@@ -224,9 +224,9 @@ text-transform: uppercase; margin-bottom: 14px; display: flex; align-items: cent
 .gold { color: var(–gold); }
 
 /* REVEAL */
-.rv { opacity: 0; transform: translateY(40px); transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
-.rv-l { opacity: 0; transform: translateX(-40px); transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
-.rv-r { opacity: 0; transform: translateX(40px); transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
+.rv { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.rv-l { opacity: 0; transform: translateX(-30px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.rv-r { opacity: 0; transform: translateX(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
 .rv.on, .rv-l.on, .rv-r.on { opacity: 1; transform: none; }
 
 /* ── ABOUT ── */
@@ -1041,18 +1041,26 @@ window.addEventListener('scroll', function() {
   if (nav) nav.style.background = st > 40 ? 'rgba(5,5,5,0.99)' : 'rgba(5,5,5,0.95)';
 }, false);
 
-// Reveal on scroll
+// Reveal on scroll - Safari iOS compatible
 (function() {
-  var items = document.querySelectorAll('.rv, .rv-l, .rv-r');
-  function check() {
-    var wh = window.innerHeight;
+  function revealAll() {
+    var items = document.querySelectorAll('.rv, .rv-l, .rv-r');
+    var wh = window.innerHeight || document.documentElement.clientHeight;
     for (var i = 0; i < items.length; i++) {
       var rect = items[i].getBoundingClientRect();
-      if (rect.top < wh - 60) items[i].classList.add('on');
+      if (rect.top < wh + 100) {
+        items[i].classList.add('on');
+      }
     }
   }
-  window.addEventListener('scroll', check, false);
-  check();
+  // Run immediately
+  revealAll();
+  // Run on scroll
+  window.addEventListener('scroll', revealAll, false);
+  // Run after fonts load
+  setTimeout(revealAll, 100);
+  setTimeout(revealAll, 500);
+  setTimeout(revealAll, 1000);
 })();
 
 // CSS particles
