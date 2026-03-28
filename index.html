@@ -2,10 +2,9 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>COACH DM — Power · Transform · Excel</title>
-<script>if(location.protocol!=="https:"&&location.hostname!=="localhost"){location.replace("https://"+location.host+location.pathname+location.search);}</script>
-<meta name="description" content="Coach DM — NASM PES CES, Ereps Level 4, CrossFit Level 3 CCFT. Personal Training 120€, Coaching Online dès 150€, 22+ Programmes PDF. Reasfit Vilvoorde — Affilié Hyrox Officiel.">
+<meta name="description" content="Coach DM — NASM PES CES, Ereps Level 4, CrossFit L3 CCFT. Personal Training 120€, Coaching Online dès 150€, 22+ Programmes PDF. Reasfit Vilvoorde.">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{--g:#C9A84C;--g2:#E8C97A;--g3:#8B6914;--bk:#060606;--d1:#0D0D0D;--d2:#141414;--d3:#1C1C1C;--w:#F0EBE0;--gr:#666}
@@ -13,8 +12,12 @@
 body{background:var(--bk);color:var(--w);font-family:'Barlow',sans-serif;overflow-x:hidden}
 ::-webkit-scrollbar{width:2px}::-webkit-scrollbar-thumb{background:var(--g)}
 a{text-decoration:none;color:inherit}
-#prog{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--g3),var(--g),var(--g2));width:0;z-index:9999}
-nav{position:fixed;top:2px;left:0;right:0;z-index:100;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 5%;background:rgba(6,6,6,.96);border-bottom:1px solid rgba(201,168,76,.12);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+
+/* PROGRESS BAR */
+#prog{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--g3),var(--g),var(--g2));width:0;z-index:9999;transition:width .1s}
+
+/* NAV */
+nav{position:fixed;top:2px;left:0;right:0;z-index:100;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 5%;background:rgba(6,6,6,.97);border-bottom:1px solid rgba(201,168,76,.12);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);transition:background .3s}
 .nl{display:flex;align-items:center;gap:11px}
 .nl img{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--g);object-fit:cover}
 .nb{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:900;letter-spacing:4px}
@@ -22,16 +25,17 @@ nav{position:fixed;top:2px;left:0;right:0;z-index:100;height:62px;display:flex;a
 .nm a{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:#777;padding:7px 10px;transition:color .2s;position:relative}
 .nm a::after{content:'';position:absolute;bottom:4px;left:50%;right:50%;height:1px;background:var(--g);transition:all .25s}
 .nm a:hover{color:var(--g)}.nm a:hover::after{left:10px;right:10px}
-.ncta{background:var(--g)!important;color:#060606!important;font-weight:700!important;border-radius:2px;padding:8px 16px!important}
-.ncta:hover{background:var(--g2)!important}.ncta::after{display:none!important}
+.ncta{background:var(--g)!important;color:#060606!important;font-weight:700!important;border-radius:2px;padding:8px 16px!important}.ncta::after{display:none!important}
 .lb-w{display:flex;gap:4px;margin-left:12px}
 .lb{background:none;border:1px solid rgba(201,168,76,.2);border-radius:2px;color:#666;font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;padding:4px 8px;cursor:pointer;transition:all .2s}
 .lb.on,.lb:hover{border-color:var(--g);color:var(--g);background:rgba(201,168,76,.05)}
 .burger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:6px}
-.burger span{display:block;width:21px;height:1.5px;background:var(--w)}
+.burger span{display:block;width:21px;height:1.5px;background:var(--w);transition:all .3s}
 .mob{display:none;position:fixed;top:64px;left:0;right:0;z-index:99;background:rgba(6,6,6,.99);padding:22px;border-bottom:1px solid rgba(201,168,76,.1)}
 .mob a{display:block;font-family:'Barlow Condensed',sans-serif;font-size:14px;letter-spacing:3px;color:#999;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05);text-transform:uppercase;transition:all .2s}
 .mob a:hover{color:var(--g);padding-left:8px}
+
+/* HERO */
 .hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:80px 20px 60px;position:relative;overflow:hidden}
 .hbg{position:absolute;inset:0;background:radial-gradient(ellipse at 25% 55%,rgba(201,168,76,.07) 0%,transparent 55%),radial-gradient(ellipse at 80% 20%,rgba(201,168,76,.04) 0%,transparent 50%)}
 .hgrid{position:absolute;inset:0;background-image:linear-gradient(rgba(201,168,76,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,.055) 1px,transparent 1px);background-size:70px 70px;animation:gm 22s linear infinite}
@@ -48,7 +52,8 @@ nav{position:fixed;top:2px;left:0;right:0;z-index:100;height:62px;display:flex;a
 .ht .gold{color:var(--g);text-shadow:0 0 60px rgba(201,168,76,.35)}
 .hsub{font-family:'Barlow Condensed',sans-serif;font-size:clamp(11px,1.5vw,14px);letter-spacing:6px;color:#555;text-transform:uppercase;margin-bottom:26px;animation:fu .6s ease .38s both}
 .certs{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin-bottom:28px;animation:fu .6s ease .46s both}
-.ct{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;border:1px solid rgba(201,168,76,.3);padding:5px 12px;color:var(--g);text-transform:uppercase;border-radius:2px;background:rgba(201,168,76,.04)}
+.ct{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;border:1px solid rgba(201,168,76,.3);padding:5px 12px;color:var(--g);text-transform:uppercase;border-radius:2px;background:rgba(201,168,76,.04);transition:all .2s}
+.ct:hover{background:rgba(201,168,76,.1)}
 .proof{display:flex;justify-content:center;max-width:540px;margin:0 auto 34px;border:1px solid rgba(201,168,76,.14);border-radius:3px;overflow:hidden;background:rgba(201,168,76,.03);animation:fu .6s ease .54s both}
 .pi{flex:1;padding:13px 6px;text-align:center;border-right:1px solid rgba(201,168,76,.1)}
 .pi:last-child{border-right:none}
@@ -66,11 +71,15 @@ nav{position:fixed;top:2px;left:0;right:0;z-index:100;height:62px;display:flex;a
 @keyframes sp{0%,100%{opacity:.2}50%{opacity:1}}
 @keyframes fu{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
 @keyframes fi{from{opacity:0}to{opacity:1}}
+
+/* STATS */
 .stats{display:grid;grid-template-columns:repeat(4,1fr);background:var(--d2);border-top:1px solid rgba(201,168,76,.1);border-bottom:1px solid rgba(201,168,76,.1)}
 .st{padding:24px 12px;text-align:center;border-right:1px solid rgba(201,168,76,.07);transition:background .3s}
 .st:last-child{border-right:none}.st:hover{background:rgba(201,168,76,.04)}
 .stn{font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:900;color:var(--g);line-height:1}
 .stl{font-size:9.5px;letter-spacing:2px;color:#555;text-transform:uppercase;margin-top:3px}
+
+/* SECTIONS */
 .sec{padding:96px 5%}
 .div{height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,.3),transparent)}
 .tag{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:5px;color:var(--g);text-transform:uppercase;margin-bottom:13px;display:flex;align-items:center;gap:12px}
@@ -78,6 +87,10 @@ nav{position:fixed;top:2px;left:0;right:0;z-index:100;height:62px;display:flex;a
 .ttl{font-family:'Barlow Condensed',sans-serif;font-size:clamp(34px,5.5vw,65px);font-weight:900;text-transform:uppercase;line-height:.9;margin-bottom:18px}
 .desc{font-size:14px;color:var(--gr);line-height:1.76;max-width:560px}
 .gold{color:var(--g)}
+
+/* FADE-IN on scroll - visible by default, animates in */
+.fi{opacity:1;transform:none;transition:opacity .7s ease,transform .7s ease}
+.fi.hidden{opacity:0;transform:translateY(30px)}
 
 /* ABOUT */
 #about{background:var(--d1)}
@@ -87,7 +100,6 @@ nav{position:fixed;top:2px;left:0;right:0;z-index:100;height:62px;display:flex;a
 .cc:hover{background:rgba(201,168,76,.05);transform:translateX(4px)}
 .cct{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;color:var(--g);text-transform:uppercase;font-weight:700}
 .ccs{font-size:11.5px;color:#666;margin-top:2px}
-.aimg{width:100%;max-height:430px;object-fit:cover;border:1px solid rgba(201,168,76,.12);border-radius:2px}
 .cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:30px}
 .cm{padding:18px;border:1px solid rgba(255,255,255,.06);background:var(--d2)}
 .cm.yes{background:rgba(201,168,76,.05);border-color:rgba(201,168,76,.24)}
@@ -96,6 +108,21 @@ nav{position:fixed;top:2px;left:0;right:0;z-index:100;height:62px;display:flex;a
 .cmr{font-size:12.5px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:8px;color:#888;line-height:1.42}
 .cmr:last-child{border-bottom:none}.cmr::before{content:'–';color:#444;flex-shrink:0}
 .cm.yes .cmr{color:#ccc}.cm.yes .cmr::before{content:'✓';color:var(--g);font-weight:700}
+.about-stats{display:flex;flex-direction:column;gap:12px}
+.as-big{background:var(--d2);border:1px solid rgba(201,168,76,.15);padding:28px;text-align:center}
+.as-big .n{font-family:'Barlow Condensed',sans-serif;font-size:64px;font-weight:900;color:var(--g);line-height:1}
+.as-big .l{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:3px;color:#666;text-transform:uppercase;margin-top:4px}
+.as-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.as-sm{background:var(--d2);border:1px solid rgba(201,168,76,.15);padding:22px;text-align:center}
+.as-sm .n{font-family:'Barlow Condensed',sans-serif;font-size:42px;font-weight:900;color:var(--g);line-height:1}
+.as-sm .l{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;color:#666;text-transform:uppercase;margin-top:4px}
+.as-certs{background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.25);padding:22px}
+.as-certs .tit{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:3px;color:var(--g);text-transform:uppercase;margin-bottom:14px}
+.as-certs .row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.as-certs .row:last-child{margin-bottom:0}
+.as-certs .row span{color:var(--g);font-size:14px;font-weight:700}
+.as-certs .row p{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:1px}
+
 /* SERVICES */
 #services{background:var(--bk)}
 .sg{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:50px}
@@ -115,6 +142,7 @@ nav{position:fixed;top:2px;left:0;right:0;z-index:100;height:62px;display:flex;a
 .pbtn:hover::after{transform:translateX(100%)}.pbtn:hover{background:var(--g2)}
 .cbtn{display:block;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:3px;text-transform:uppercase;background:transparent;color:var(--g);padding:13px;font-weight:600;border:1px solid rgba(201,168,76,.4);cursor:pointer;text-align:center;margin-top:12px;transition:all .25s}
 .cbtn:hover{background:rgba(201,168,76,.07);border-color:var(--g)}
+
 /* ONLINE */
 #online{background:var(--d1)}
 .pl{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:50px}
@@ -129,6 +157,7 @@ nav{position:fixed;top:2px;left:0;right:0;z-index:100;height:62px;display:flex;a
 .pf{list-style:none;margin-bottom:22px}
 .pf li{font-size:12.5px;color:#ccc;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
 .pf li::before{content:'→';color:var(--g);flex-shrink:0}
+
 /* PROGRAMMES */
 #programmes{background:var(--bk)}
 .pnote{background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.2);padding:13px 18px;border-radius:2px;font-size:12px;color:#888;margin:18px 0 28px}
@@ -146,6 +175,7 @@ nav{position:fixed;top:2px;left:0;right:0;z-index:100;height:62px;display:flex;a
 .ptag{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;color:#666;border:1px solid rgba(255,255,255,.07);padding:2px 6px;text-transform:uppercase}
 .ppr{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--g);margin-bottom:12px}
 .plg{font-size:10px;color:#555;margin-bottom:14px}
+
 /* FOOTBALL */
 #football{background:var(--d1);position:relative;overflow:hidden}
 #football::before{content:'FOOTBALL';position:absolute;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:220px;color:rgba(201,168,76,.018);right:-20px;top:50%;transform:translateY(-50%);pointer-events:none}
@@ -158,6 +188,7 @@ nav{position:fixed;top:2px;left:0;right:0;z-index:100;height:62px;display:flex;a
 .fqd{font-size:11px;color:#666;line-height:1.5}
 .fbox{background:var(--d2);border:1px solid rgba(201,168,76,.2);padding:34px;position:sticky;top:76px}
 .fbox h3{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;text-transform:uppercase;margin-bottom:13px;line-height:1.1}
+
 /* PERSONNALISE */
 #personnalise{background:var(--bk)}
 .prg{display:grid;grid-template-columns:1fr 1fr;gap:68px;align-items:start;margin-top:50px}
@@ -173,6 +204,7 @@ nav{position:fixed;top:2px;left:0;right:0;z-index:100;height:62px;display:flex;a
 .prn{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px}
 .prs{font-size:11px;color:#555;margin-top:2px}
 .prv{font-family:'Barlow Condensed',sans-serif;font-size:21px;font-weight:900;color:var(--g)}
+
 /* B2B */
 #b2b{background:var(--d1)}
 .b2g{display:grid;grid-template-columns:1.2fr 1fr;gap:62px;align-items:start;margin-top:50px}
@@ -186,6 +218,7 @@ nav{position:fixed;top:2px;left:0;right:0;z-index:100;height:62px;display:flex;a
 .bdg{background:var(--d3);border:1px solid rgba(201,168,76,.2);padding:17px;display:flex;align-items:center;gap:13px;margin-top:18px}
 .bdg h5{font-family:'Barlow Condensed',sans-serif;font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g)}
 .bdg p{font-size:11.5px;color:#666}
+
 /* CONTACT */
 #contact{background:var(--d2)}
 .cog{display:grid;grid-template-columns:1fr 1fr;gap:62px;margin-top:50px}
@@ -202,6 +235,8 @@ nav{position:fixed;top:2px;left:0;right:0;z-index:100;height:62px;display:flex;a
 .payhip-info{background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.22);padding:18px;border-radius:2px}
 .payhip-info h5{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;color:var(--g);text-transform:uppercase;margin-bottom:6px}
 .payhip-info p{font-size:12px;color:#777;line-height:1.65}
+
+/* FOOTER */
 footer{background:var(--d1);border-top:1px solid rgba(201,168,76,.1);padding:38px 5%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
 .fb2{display:flex;align-items:center;gap:12px}
 .fb2 img{height:36px;width:36px;border-radius:50%;border:1px solid rgba(201,168,76,.28);object-fit:cover}
@@ -211,14 +246,16 @@ footer{background:var(--d1);border-top:1px solid rgba(201,168,76,.1);padding:38p
 .fl a{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;color:#666;text-transform:uppercase;transition:.2s}
 .fl a:hover{color:var(--g)}
 .fc{font-size:11px;color:#555;text-align:right;line-height:1.7}
+
 @media(max-width:1024px){.ag,.sg,.pl,.fg,.prg,.b2g,.cog{grid-template-columns:1fr;gap:32px}.pc.ft{transform:none}.stats{grid-template-columns:1fr 1fr}}
 @media(max-width:768px){nav{padding:0 4%}.nm,.lb-w{display:none}.burger{display:flex}.sec{padding:68px 5%}.ht{font-size:50px}.cg,.cmp,.fq{grid-template-columns:1fr}footer{flex-direction:column;align-items:flex-start}.fc{text-align:left}.stats{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 <div id="prog"></div>
+
 <nav id="nav">
-  <div class="nl"><img src="data:image/jpeg;base64,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" alt="Coach DM"><span class="nb">COACH DM</span></div>
+  <div class="nl"><img src="data:image/jpeg;base64,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" alt="Coach DM"><span class="nb">COACH DM</span></div>
   <div class="nm">
     <a href="#about" class="t" data-fr="À Propos" data-en="About" data-nl="Over">À Propos</a>
     <a href="#services">Services</a>
@@ -227,7 +264,7 @@ footer{background:var(--d1);border-top:1px solid rgba(201,168,76,.1);padding:38p
     <a href="#football">Football</a>
     <a href="#b2b">B2B</a>
     <a href="#personnalise" class="t" data-fr="Sur Mesure" data-en="Custom" data-nl="Op Maat">Sur Mesure</a>
-    <a href="#contact" class="ncta t" data-fr="Contact" data-en="Contact" data-nl="Contact">Contact</a>
+    <a href="#contact" class="ncta">Contact</a>
   </div>
   <div class="lb-w">
     <button class="lb on" onclick="setL('fr')">🇫🇷 FR</button>
@@ -252,21 +289,20 @@ footer{background:var(--d1);border-top:1px solid rgba(201,168,76,.1);padding:38p
   </div>
 </div>
 
-<!-- HERO -->
 <section class="hero">
   <div class="hbg"></div><div class="hgrid"></div><div class="hvig"></div>
   <div class="pts" id="pts"></div>
   <div class="hc">
     <div class="hey t" data-fr="⚡ Préparateur Physique Certifié · Vilvoorde, Belgique" data-en="⚡ Certified Strength Coach · Vilvoorde, Belgium" data-nl="⚡ Gecertificeerde Krachtrainer · Vilvoorde, België">⚡ Préparateur Physique Certifié · Vilvoorde, Belgique</div>
-    <img src="data:image/jpeg;base64,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" class="himg" alt="Coach DM">
+    <img src="data:image/jpeg;base64,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" class="himg" alt="Coach DM">
     <h1 class="ht">COACH<span class="gold">DM</span></h1>
     <p class="hsub">Power · Transform · Excel</p>
     <div class="certs"><span class="ct">NASM</span><span class="ct">PES · CES</span><span class="ct">Ereps Level 4</span><span class="ct">CrossFit L3 CCFT</span><span class="ct">12+ Ans</span></div>
     <div class="proof">
-      <div class="pi"><div class="pin">3×</div><div class="pil t" data-fr="Plus vite avec coaching" data-en="Faster with coaching" data-nl="Sneller met coaching">Plus vite</div></div>
-      <div class="pi"><div class="pin">22+</div><div class="pil t" data-fr="Programmes PDF" data-en="PDF Programs" data-nl="PDF Programma's">Programmes</div></div>
-      <div class="pi"><div class="pin">12+</div><div class="pil t" data-fr="Ans Terrain" data-en="Years Field" data-nl="Jaar Ervaring">Ans Terrain</div></div>
-      <div class="pi"><div class="pin">5</div><div class="pil t" data-fr="Certifications" data-en="Certifications" data-nl="Certificaten">Certifs</div></div>
+      <div class="pi"><div class="pin">3×</div><div class="pil t" data-fr="Plus vite" data-en="Faster" data-nl="Sneller">Plus vite</div></div>
+      <div class="pi"><div class="pin">22+</div><div class="pil t" data-fr="Programmes" data-en="Programs" data-nl="Programma's">Programmes</div></div>
+      <div class="pi"><div class="pin">12+</div><div class="pil t" data-fr="Ans Terrain" data-en="Years Field" data-nl="Jaar">Ans Terrain</div></div>
+      <div class="pi"><div class="pin">5</div><div class="pil t" data-fr="Certifications" data-en="Certifications" data-nl="Certificaten">Certifications</div></div>
     </div>
     <div class="hbtns">
       <a href="#programmes" class="bg t" data-fr="Voir les Programmes" data-en="View Programs" data-nl="Bekijk Programma's">Voir les Programmes</a>
@@ -276,469 +312,186 @@ footer{background:var(--d1);border-top:1px solid rgba(201,168,76,.1);padding:38p
   <div class="scroll-h"><span>Scroll</span><div class="scroll-l"></div></div>
 </section>
 
-<!-- STATS -->
 <div class="stats">
   <div class="st"><div class="stn">12+</div><div class="stl t" data-fr="Années Expérience" data-en="Years Experience" data-nl="Jaar Ervaring">Années Expérience</div></div>
   <div class="st"><div class="stn">22+</div><div class="stl t" data-fr="Programmes PDF" data-en="PDF Programs" data-nl="PDF Programma's">Programmes PDF</div></div>
-  <div class="st"><div class="stn">5</div><div class="stl t" data-fr="Certifications Elite" data-en="Elite Certifications" data-nl="Elite Certificaten">Certifications</div></div>
+  <div class="st"><div class="stn">5</div><div class="stl t" data-fr="Certifications" data-en="Certifications" data-nl="Certificaten">Certifications</div></div>
   <div class="st"><div class="stn">3</div><div class="stl">FR · EN · NL</div></div>
 </div>
 <div class="div"></div>
 
-<!-- ABOUT -->
 <section class="sec" id="about" style="background:var(--d1)">
   <div class="tag t" data-fr="À Propos" data-en="About" data-nl="Over">À Propos</div>
   <h2 class="ttl">EXPERTISE<br><span class="gold t" data-fr="CERTIFIÉE" data-en="CERTIFIED" data-nl="GECERTIFICEERD">CERTIFIÉE</span></h2>
   <div class="ag">
-    <div class="">
-      <p class="desc t" style="max-width:100%"
-        data-fr="Coach DM est préparateur physique certifié avec 12+ ans d'expérience. NASM PES · CES, Ereps Level 4 et CrossFit Level 3 CCFT — les certifications les plus exigeantes du secteur. Nutrition incluse dans tous les forfaits de coaching."
-        data-en="Coach DM is a certified strength coach with 12+ years experience. NASM PES · CES, Ereps Level 4 and CrossFit Level 3 CCFT — the most demanding certifications. Nutrition included in all coaching packages."
-        data-nl="Coach DM is gecertificeerde krachtrainer met 12+ jaar ervaring. NASM PES · CES, Ereps Level 4 en CrossFit Level 3 CCFT. Voeding inbegrepen in alle coachingpakketten.">Coach DM — 12+ ans — NASM PES · CES · Ereps L4 · CrossFit L3 CCFT.</p>
+    <div>
+      <p class="desc t" style="max-width:100%" data-fr="Coach DM est préparateur physique certifié avec 12+ ans d'expérience. NASM PES · CES, Ereps Level 4 et CrossFit Level 3 CCFT. Nutrition incluse dans tous les forfaits." data-en="Coach DM is a certified strength coach with 12+ years experience. NASM PES · CES, Ereps Level 4 and CrossFit Level 3 CCFT. Nutrition included in all packages." data-nl="Coach DM is gecertificeerde krachtrainer met 12+ jaar ervaring. Voeding inbegrepen.">Coach DM — 12+ ans — NASM PES · CES · Ereps L4 · CrossFit L3 CCFT.</p>
       <div class="cg">
-        <div class="cc"><div class="cct">NASM · PES · CES</div><div class="ccs t" data-fr="Performance Enhancement + Corrective Exercise" data-en="Performance Enhancement + Corrective Exercise" data-nl="Prestatieverbetering + Corrigerende oefening">Performance Enhancement + Corrective Exercise</div></div>
+        <div class="cc"><div class="cct">NASM · PES · CES</div><div class="ccs">Performance Enhancement + Corrective Exercise</div></div>
         <div class="cc"><div class="cct">Ereps Level 4</div><div class="ccs t" data-fr="Certification Européenne — Niveau Maximal" data-en="European Certification — Maximum Level" data-nl="Europese Certificering — Maximaal">Certification Européenne — Niveau Maximal</div></div>
-        <div class="cc"><div class="cct">CrossFit L3 (CCFT)</div><div class="ccs t" data-fr="Level 3 Certified — Plus Haut Niveau" data-en="Level 3 Certified — Highest Level" data-nl="Level 3 — Hoogste niveau">Level 3 — Highest Level</div></div>
+        <div class="cc"><div class="cct">CrossFit L3 (CCFT)</div><div class="ccs t" data-fr="Level 3 — Plus Haut Niveau" data-en="Level 3 — Highest Level" data-nl="Level 3 — Hoogste niveau">Level 3 — Highest Level</div></div>
         <div class="cc"><div class="cct">Reasfit Vilvoorde</div><div class="ccs t" data-fr="Affilié Hyrox Officiel · Havenstraat 72b" data-en="Official Hyrox Affiliate · Havenstraat 72b" data-nl="Officieel Hyrox-Affiliaat · Havenstraat 72b">Official Hyrox Affiliate · Havenstraat 72b</div></div>
       </div>
       <div style="margin-top:28px">
         <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:4px;color:var(--g);text-transform:uppercase;margin-bottom:11px" class="t" data-fr="Programme seul vs Coaching" data-en="Program alone vs Coaching" data-nl="Programma vs Coaching">Programme seul vs Coaching</div>
         <div class="cmp">
           <div class="cm">
-            <div class="cmh t" data-fr="📄 Programme seul" data-en="📄 Program alone" data-nl="📄 Programma alleen">📄 Programme seul</div>
-            <div class="cmr t" data-fr="Aucune correction de mouvement" data-en="No movement correction" data-nl="Geen bewegingscorrectie">Aucune correction</div>
-            <div class="cmr t" data-fr="Pas d'ajustement si tu stagnes" data-en="No adjustment if you plateau" data-nl="Geen aanpassing">Pas d'ajustement</div>
+            <div class="cmh">📄 Programme seul</div>
+            <div class="cmr t" data-fr="Aucune correction" data-en="No correction" data-nl="Geen correctie">Aucune correction</div>
+            <div class="cmr t" data-fr="Pas d'ajustement" data-en="No adjustment" data-nl="Geen aanpassing">Pas d'ajustement</div>
             <div class="cmr t" data-fr="Nutrition non incluse" data-en="Nutrition not included" data-nl="Voeding niet inbegrepen">Nutrition non incluse</div>
             <div class="cmr t" data-fr="Progrès lents" data-en="Slow progress" data-nl="Trage vooruitgang">Progrès lents</div>
           </div>
           <div class="cm yes">
-            <div class="cmh t" data-fr="🎯 Coaching Coach DM" data-en="🎯 Coach DM Coaching" data-nl="🎯 Coach DM Coaching">🎯 Coaching Coach DM</div>
-            <div class="cmr t" data-fr="Corrections en temps réel" data-en="Real-time corrections" data-nl="Real-time correcties">Corrections temps réel</div>
-            <div class="cmr t" data-fr="Ajustements chaque semaine" data-en="Weekly adjustments" data-nl="Wekelijkse aanpassingen">Ajustements hebdo</div>
+            <div class="cmh">🎯 Coaching Coach DM</div>
+            <div class="cmr t" data-fr="Corrections temps réel" data-en="Real-time corrections" data-nl="Real-time correcties">Corrections temps réel</div>
+            <div class="cmr t" data-fr="Ajustements hebdo" data-en="Weekly adjustments" data-nl="Wekelijkse aanpassingen">Ajustements hebdo</div>
             <div class="cmr t" data-fr="Nutrition incluse ✓" data-en="Nutrition included ✓" data-nl="Voeding inbegrepen ✓">Nutrition incluse ✓</div>
-            <div class="cmr t" data-fr="Résultats 3× plus rapides" data-en="Results 3× faster" data-nl="Resultaten 3× sneller">Résultats 3× plus vite</div>
+            <div class="cmr t" data-fr="Résultats 3× plus vite" data-en="Results 3× faster" data-nl="Resultaten 3× sneller">Résultats 3× plus vite</div>
           </div>
         </div>
       </div>
     </div>
-    <div class="">
-        <div style="display:flex;flex-direction:column;gap:12px">
-          <div style="background:var(--d2);border:1px solid rgba(201,168,76,.15);padding:28px;text-align:center">
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:64px;font-weight:900;color:var(--g);line-height:1">12+</div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:3px;color:#666;text-transform:uppercase;margin-top:4px" class="t" data-fr="Années d'Expérience Terrain" data-en="Years Field Experience" data-nl="Jaar Terreinervaring">Années d'Expérience Terrain</div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-            <div style="background:var(--d2);border:1px solid rgba(201,168,76,.15);padding:22px;text-align:center">
-              <div style="font-family:'Barlow Condensed',sans-serif;font-size:42px;font-weight:900;color:var(--g);line-height:1">5</div>
-              <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;color:#666;text-transform:uppercase;margin-top:4px" class="t" data-fr="Certifications Elite" data-en="Elite Certifications" data-nl="Elite Certificaten">Certifications Elite</div>
-            </div>
-            <div style="background:var(--d2);border:1px solid rgba(201,168,76,.15);padding:22px;text-align:center">
-              <div style="font-family:'Barlow Condensed',sans-serif;font-size:42px;font-weight:900;color:var(--g);line-height:1">22+</div>
-              <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;color:#666;text-transform:uppercase;margin-top:4px" class="t" data-fr="Programmes PDF" data-en="PDF Programs" data-nl="PDF Programma's">Programmes PDF</div>
-            </div>
-          </div>
-          <div style="background:rgba(201,168,76,.05);border:1px solid rgba(201,168,76,.25);padding:22px">
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:3px;color:var(--g);text-transform:uppercase;margin-bottom:14px" class="t" data-fr="Certifications" data-en="Certifications" data-nl="Certificaten">Certifications</div>
-            <div style="display:flex;flex-direction:column;gap:8px">
-              <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--g);font-size:14px;font-weight:700">✓</span><span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:1px">NASM · PES · CES</span></div>
-              <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--g);font-size:14px;font-weight:700">✓</span><span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:1px">Ereps Level 4</span></div>
-              <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--g);font-size:14px;font-weight:700">✓</span><span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:1px">CrossFit L3 CCFT</span></div>
-              <div style="display:flex;align-items:center;gap:10px"><span style="color:var(--g);font-size:14px;font-weight:700">✓</span><span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:1px">Reasfit Vilvoorde · Hyrox Official</span></div>
-            </div>
-          </div>
-        </div>
+    <div class="about-stats">
+      <div class="as-big"><div class="n">12+</div><div class="l t" data-fr="Années d'Expérience" data-en="Years Experience" data-nl="Jaar Ervaring">Années d'Expérience</div></div>
+      <div class="as-grid">
+        <div class="as-sm"><div class="n">5</div><div class="l t" data-fr="Certifications" data-en="Certifications" data-nl="Certificaten">Certifications</div></div>
+        <div class="as-sm"><div class="n">22+</div><div class="l t" data-fr="Programmes PDF" data-en="PDF Programs" data-nl="Programma's">Programmes PDF</div></div>
       </div>
+      <div class="as-certs">
+        <div class="tit t" data-fr="Certifications Elite" data-en="Elite Certifications" data-nl="Elite Certificaten">Certifications Elite</div>
+        <div class="row"><span>✓</span><p>NASM · PES · CES</p></div>
+        <div class="row"><span>✓</span><p>Ereps Level 4</p></div>
+        <div class="row"><span>✓</span><p>CrossFit L3 CCFT</p></div>
+        <div class="row"><span>✓</span><p>Reasfit Vilvoorde · Hyrox Official</p></div>
+      </div>
+    </div>
   </div>
 </section>
 <div class="div"></div>
 
-<!-- SERVICES -->
 <section class="sec" id="services" style="background:var(--bk)">
   <div class="tag t" data-fr="Services Présentiel" data-en="In-Person Services" data-nl="Persoonlijke Diensten">Services Présentiel</div>
   <h2 class="ttl">COACHING<br><span class="gold t" data-fr="PRÉSENTIEL" data-en="IN-PERSON" data-nl="PERSOONLIJK">PRÉSENTIEL</span></h2>
-  <p class="desc t" data-fr="Reasfit Vilvoorde — affilié Hyrox officiel. Sauna + nutrition inclus dans chaque session." data-en="Reasfit Vilvoorde — official Hyrox affiliate. Sauna + nutrition included every session." data-nl="Reasfit Vilvoorde — officieel Hyrox-affiliaat. Sauna + voeding inbegrepen.">Reasfit Vilvoorde. Sauna + Nutrition inclus.</p>
+  <p class="desc t" data-fr="Reasfit Vilvoorde — affilié Hyrox officiel. Sauna + nutrition inclus." data-en="Reasfit Vilvoorde — official Hyrox affiliate. Sauna + nutrition included." data-nl="Reasfit Vilvoorde — officieel Hyrox-affiliaat. Sauna + voeding inbegrepen.">Reasfit Vilvoorde. Sauna + Nutrition inclus.</p>
   <div class="sg">
-    <div class="sc">
-      <span class="sic">🎯</span>
-      <h3 class="sn">Personal Training 1-1</h3>
-      <p class="sd t" data-fr="Attention 100% dédiée. Analyse des mouvements, corrections en temps réel, programme et nutrition qui évoluent chaque semaine." data-en="100% dedicated attention. Movement analysis, real-time corrections, weekly evolving program and nutrition." data-nl="100% aandacht. Bewegingsanalyse, real-time correcties, wekelijks evoluerend programma en voeding.">Analyse mouvements + corrections temps réel + nutrition.</p>
-      <div class="sp">120€ <small>/ 50 min</small></div>
-      <ul class="sl">
-        <li class="t" data-fr="Analyse complète des mouvements" data-en="Complete movement analysis" data-nl="Volledige bewegingsanalyse">Analyse complète des mouvements</li>
-        <li class="t" data-fr="Corrections en temps réel" data-en="Real-time corrections" data-nl="Real-time correcties">Corrections en temps réel</li>
-        <li class="t" data-fr="Nutrition incluse ✓" data-en="Nutrition included ✓" data-nl="Voeding inbegrepen ✓">Nutrition incluse ✓</li>
-        <li class="t" data-fr="Sauna inclus ✓" data-en="Sauna included ✓" data-nl="Sauna inbegrepen ✓">Sauna inclus ✓</li>
-      </ul>
-      <a href="/cdn-cgi/l/email-protection#9efaf1ebfaf1ebf6b0fdf1fffdf6f7f0f9def9f3fff7f2b0fdf1f3a1edebfcf4fbfdeaa3cefbecedf1f0fff2bbacaecaecfff7f0f7f0f9bbacaeafb3afbbacaeb3bbacaeddf1fffdf6bbacaedad3" class="cbtn t" data-fr="Réserver une Séance →" data-en="Book a Session →" data-nl="Reserveer een Sessie →">Réserver une Séance →</a>
-    </div>
-    <div class="sc">
-      <span class="sic">👥</span>
-      <h3 class="sn t" data-fr="Small Group (max 6)" data-en="Small Group (max 6)" data-nl="Kleine Groep (max 6)">Small Group (max 6)</h3>
-      <p class="sd t" data-fr="Qualité du coaching 1-1 dans l'énergie d'un groupe. Maximum 6 personnes — attention individuelle garantie." data-en="1-1 coaching quality in group energy. Maximum 6 people — individual attention guaranteed." data-nl="1-1 coachingkwaliteit in groepsenergie. Maximum 6 personen — individuele aandacht gegarandeerd.">Qualité 1-1 dans l'énergie du groupe. Max 6.</p>
-      <div class="sp">30€ <small>/ pers / 50 min</small></div>
-      <ul class="sl">
-        <li class="t" data-fr="Max 6 — attention individuelle" data-en="Max 6 — individual attention" data-nl="Max 6 — individuele aandacht">Max 6 — attention individuelle</li>
-        <li class="t" data-fr="Dynamique de groupe motivante" data-en="Motivating group dynamic" data-nl="Motiverende groepsdynamiek">Dynamique de groupe motivante</li>
-        <li class="t" data-fr="Nutrition incluse ✓" data-en="Nutrition included ✓" data-nl="Voeding inbegrepen ✓">Nutrition incluse ✓</li>
-        <li class="t" data-fr="Sauna inclus ✓" data-en="Sauna included ✓" data-nl="Sauna inbegrepen ✓">Sauna inclus ✓</li>
-      </ul>
-      <a href="/cdn-cgi/l/email-protection#f2969d87969d879adc919d93919a9b9c95b2959f939b9edc919d9fcd81879098979186cfa19f939e9ed7c0c2b5809d8782d7c0c2dfd7c0c2b19d93919ad7c0c2b6bf" class="cbtn t" data-fr="Rejoindre un Groupe →" data-en="Join a Group →" data-nl="Sluit je aan →">Rejoindre un Groupe →</a>
-    </div>
-    <div class="sc">
-      <span class="sic">💻</span>
-      <h3 class="sn">Coaching Online</h3>
-      <p class="sd t" data-fr="Expert CrossFit L3 · NASM depuis partout dans le monde. Programme + nutrition + corrections + suivi hebdomadaire." data-en="CrossFit L3 · NASM expert from anywhere. Program + nutrition + corrections + weekly tracking." data-nl="CrossFit L3 · NASM expert van overal. Programma + voeding + correcties + wekelijkse opvolging.">Expert CrossFit L3 · NASM depuis partout. Nutrition incluse.</p>
-      <div class="sp t" data-fr="Dès 150€" data-en="From €150" data-nl="Vanaf €150">Dès 150€ <small>/mois</small></div>
-      <ul class="sl">
-        <li class="t" data-fr="Programme 100% personnalisé" data-en="100% personalized program" data-nl="100% gepersonaliseerd">Programme 100% personnalisé</li>
-        <li class="t" data-fr="Nutrition incluse ✓" data-en="Nutrition included ✓" data-nl="Voeding inbegrepen ✓">Nutrition incluse ✓</li>
-        <li class="t" data-fr="Suivi hebdomadaire + appels vidéo" data-en="Weekly tracking + video calls" data-nl="Wekelijkse opvolging + videogesprekken">Suivi hebdo + appels vidéo</li>
-        <li class="t" data-fr="Partout dans le monde" data-en="Worldwide" data-nl="Wereldwijd">Partout dans le monde</li>
-      </ul>
-      <a href="#online" class="cbtn t" data-fr="Voir les Formules →" data-en="See Plans →" data-nl="Bekijk Formules →">Voir les Formules →</a>
-    </div>
+    <div class="sc"><span class="sic">🎯</span><h3 class="sn">Personal Training 1-1</h3><p class="sd t" data-fr="Attention 100% dédiée. Analyse mouvements, corrections temps réel, programme et nutrition." data-en="100% dedicated attention. Movement analysis, real-time corrections, program and nutrition." data-nl="100% aandacht. Bewegingsanalyse, correcties, programma en voeding.">Analyse mouvements + corrections temps réel + nutrition.</p><div class="sp">120€ <small>/ 50 min</small></div><ul class="sl"><li class="t" data-fr="Analyse complète des mouvements" data-en="Complete movement analysis" data-nl="Volledige bewegingsanalyse">Analyse complète des mouvements</li><li class="t" data-fr="Corrections en temps réel" data-en="Real-time corrections" data-nl="Real-time correcties">Corrections en temps réel</li><li class="t" data-fr="Nutrition incluse ✓" data-en="Nutrition included ✓" data-nl="Voeding inbegrepen ✓">Nutrition incluse ✓</li><li class="t" data-fr="Sauna inclus ✓" data-en="Sauna included ✓" data-nl="Sauna inbegrepen ✓">Sauna inclus ✓</li></ul><a href="mailto:doudouh.coaching@gmail.com?subject=Personal%20Training%201-1" class="cbtn t" data-fr="Réserver →" data-en="Book →" data-nl="Reserveer →">Réserver →</a></div>
+    <div class="sc"><span class="sic">👥</span><h3 class="sn t" data-fr="Small Group (max 6)" data-en="Small Group (max 6)" data-nl="Kleine Groep (max 6)">Small Group (max 6)</h3><p class="sd t" data-fr="Qualité 1-1 dans l'énergie du groupe. Max 6 — attention individuelle garantie." data-en="1-1 quality in group energy. Max 6 — individual attention guaranteed." data-nl="1-1 kwaliteit in groepsenergie. Max 6.">Qualité 1-1 dans l'énergie du groupe. Max 6.</p><div class="sp">30€ <small>/ pers / 50 min</small></div><ul class="sl"><li class="t" data-fr="Max 6 — attention individuelle" data-en="Max 6 — individual attention" data-nl="Max 6 — individuele aandacht">Max 6 — attention individuelle</li><li class="t" data-fr="Dynamique motivante" data-en="Motivating dynamic" data-nl="Motiverende dynamiek">Dynamique motivante</li><li class="t" data-fr="Nutrition incluse ✓" data-en="Nutrition included ✓" data-nl="Voeding inbegrepen ✓">Nutrition incluse ✓</li><li class="t" data-fr="Sauna inclus ✓" data-en="Sauna included ✓" data-nl="Sauna inbegrepen ✓">Sauna inclus ✓</li></ul><a href="mailto:doudouh.coaching@gmail.com?subject=Small%20Group" class="cbtn t" data-fr="Rejoindre →" data-en="Join →" data-nl="Sluit je aan →">Rejoindre →</a></div>
+    <div class="sc"><span class="sic">💻</span><h3 class="sn">Coaching Online</h3><p class="sd t" data-fr="Expert CrossFit L3 · NASM depuis partout. Programme + nutrition + suivi hebdo." data-en="CrossFit L3 · NASM expert from anywhere. Program + nutrition + weekly tracking." data-nl="CrossFit L3 · NASM van overal. Programma + voeding + wekelijkse opvolging.">Expert CrossFit L3 · NASM. Nutrition incluse.</p><div class="sp t" data-fr="Dès 150€" data-en="From €150" data-nl="Vanaf €150">Dès 150€ <small>/mois</small></div><ul class="sl"><li class="t" data-fr="Programme personnalisé" data-en="Personalized program" data-nl="Gepersonaliseerd">Programme personnalisé</li><li class="t" data-fr="Nutrition incluse ✓" data-en="Nutrition included ✓" data-nl="Voeding inbegrepen ✓">Nutrition incluse ✓</li><li class="t" data-fr="Suivi + appels vidéo" data-en="Tracking + video calls" data-nl="Opvolging + videogesprekken">Suivi + appels vidéo</li><li class="t" data-fr="Partout dans le monde" data-en="Worldwide" data-nl="Wereldwijd">Partout dans le monde</li></ul><a href="#online" class="cbtn t" data-fr="Voir les formules →" data-en="See plans →" data-nl="Bekijk formules →">Voir les formules →</a></div>
   </div>
 </section>
 <div class="div"></div>
 
-<!-- ONLINE -->
 <section class="sec" id="online" style="background:var(--d1)">
   <div class="tag t" data-fr="Coaching Online" data-en="Online Coaching" data-nl="Online Coaching">Coaching Online</div>
   <h2 class="ttl">COACH DM<br><span class="gold t" data-fr="PARTOUT" data-en="EVERYWHERE" data-nl="OVERAL">PARTOUT</span></h2>
-  <p class="desc t" data-fr="Même niveau d'exigence qu'en présentiel depuis n'importe où. Nutrition incluse dans toutes les formules." data-en="Same standard as in-person from anywhere. Nutrition included in all plans." data-nl="Zelfde standaard van overal. Voeding inbegrepen in alle formules.">Même exigence qu'en présentiel. Nutrition incluse.</p>
+  <p class="desc t" data-fr="Même exigence depuis partout. Nutrition incluse dans toutes les formules." data-en="Same standard from anywhere. Nutrition included in all plans." data-nl="Zelfde standaard van overal. Voeding inbegrepen.">Même exigence depuis partout. Nutrition incluse.</p>
   <div class="pl">
-    <div class="pc">
-      <h3 class="pn">STARTER</h3>
-      <div class="pp">150€</div>
-      <div class="pe t" data-fr="/mois — Sans engagement" data-en="/month — No commitment" data-nl="/maand — Geen verbintenis">/mois — Sans engagement</div>
-      <ul class="pf">
-        <li class="t" data-fr="Programme mensuel personnalisé" data-en="Monthly personalized program" data-nl="Maandelijks gepersonaliseerd">Programme mensuel personnalisé</li>
-        <li class="t" data-fr="Plan nutrition inclus" data-en="Nutrition plan included" data-nl="Voedingsplan inbegrepen">Plan nutrition inclus</li>
-        <li class="t" data-fr="Check-in hebdomadaire" data-en="Weekly check-in" data-nl="Wekelijkse check-in">Check-in hebdomadaire</li>
-        <li class="t" data-fr="Réponse sous 48h" data-en="Reply within 48h" data-nl="Antwoord binnen 48u">Réponse sous 48h</li>
-      </ul>
-      <a href="/cdn-cgi/l/email-protection#d4b0bba1b0bba1bcfab7bbb5b7bcbdbab394b3b9b5bdb8fab7bbb9eba7a1b6beb1b7a0e997bbb5b7bcbdbab3f1e6e49bbab8bdbab1f1e6e487a0b5a6a0b1a6f1e6e4e5e1e4918186f1e6e4f9f1e6e497bbb5b7bcf1e6e49099" class="pbtn t" data-fr="Démarrer — Me Contacter →" data-en="Get Started — Contact Me →" data-nl="Begin Nu — Neem Contact Op →">Démarrer — Me Contacter →</a>
-    </div>
-    <div class="pc ft">
-      <div class="pb2 t" data-fr="🏆 Recommandé" data-en="🏆 Recommended" data-nl="🏆 Aanbevolen">🏆 Recommandé</div>
-      <h3 class="pn">PERFORMANCE</h3>
-      <div class="pp">250€</div>
-      <div class="pe t" data-fr="/mois — Résultats mesurables" data-en="/month — Measurable results" data-nl="/maand — Meetbare resultaten">/mois — Résultats mesurables</div>
-      <ul class="pf">
-        <li class="t" data-fr="Programme entièrement personnalisé" data-en="Fully personalized program" data-nl="Volledig gepersonaliseerd">Programme entièrement personnalisé</li>
-        <li class="t" data-fr="Nutrition complète + suivi" data-en="Complete nutrition + tracking" data-nl="Volledige voeding + opvolging">Nutrition complète + suivi</li>
-        <li class="t" data-fr="2 appels vidéo / mois" data-en="2 video calls / month" data-nl="2 videogesprekken / maand">2 appels vidéo / mois</li>
-        <li class="t" data-fr="Analyse vidéo mouvements" data-en="Video movement analysis" data-nl="Video bewegingsanalyse">Analyse vidéo mouvements</li>
-        <li class="t" data-fr="Check-in 2× / semaine" data-en="Check-in 2× / week" data-nl="Check-in 2× / week">Check-in 2× / semaine</li>
-        <li class="t" data-fr="Ajustements continus" data-en="Continuous adjustments" data-nl="Continue aanpassingen">Ajustements continus</li>
-      </ul>
-      <a href="/cdn-cgi/l/email-protection#3c58534958534954125f535d5f5455525b7c5b515d5550125f5351034f495e56595f48017f535d5f5455525b190e0c735250555259190e0c6c594e5a534e515d525f59190e0c0e090c79696e190e0c11190e0c7f535d5f54190e0c7871" class="pbtn t" data-fr="Commencer Maintenant →" data-en="Start Now →" data-nl="Nu Beginnen →">Commencer Maintenant →</a>
-    </div>
-    <div class="pc">
-      <h3 class="pn">ELITE</h3>
-      <div class="pp">350€</div>
-      <div class="pe t" data-fr="/mois — Attention maximale" data-en="/month — Maximum attention" data-nl="/maand — Maximale aandacht">/mois — Attention maximale</div>
-      <ul class="pf">
-        <li class="t" data-fr="Programme ultra-personnalisé" data-en="Ultra-personalized program" data-nl="Ultra-gepersonaliseerd">Programme ultra-personnalisé</li>
-        <li class="t" data-fr="Nutrition + planning repas hebdo" data-en="Nutrition + weekly meal planning" data-nl="Voeding + wekelijkse maaltijdplanning">Nutrition + planning repas hebdo</li>
-        <li class="t" data-fr="4 appels vidéo / mois" data-en="4 video calls / month" data-nl="4 videogesprekken">4 appels vidéo / mois</li>
-        <li class="t" data-fr="Analyse CHAQUE séance" data-en="Analyze EVERY session" data-nl="Analyse ELKE sessie">Analyse CHAQUE séance</li>
-        <li class="t" data-fr="Réponse prioritaire &lt;12h" data-en="Priority reply &lt;12h" data-nl="Prioriteitsantwoord &lt;12u">Réponse prioritaire &lt;12h</li>
-        <li class="t" data-fr="WhatsApp direct Coach DM" data-en="Direct WhatsApp" data-nl="Directe WhatsApp">WhatsApp direct Coach DM</li>
-      </ul>
-      <a href="/cdn-cgi/l/email-protection#761219031219031e58151917151e1f181136111b171f1a5815191b490503141c1315024b351917151e1f181153444639181a1f1813534446331a1f02135344464543463323245344465b534446351917151e534446323b" class="pbtn t" data-fr="Candidater →" data-en="Apply →" data-nl="Solliciteer →">Candidater →</a>
-    </div>
+    <div class="pc"><h3 class="pn">STARTER</h3><div class="pp">150€</div><div class="pe t" data-fr="/mois — Sans engagement" data-en="/month — No commitment" data-nl="/maand — Geen verbintenis">/mois — Sans engagement</div><ul class="pf"><li class="t" data-fr="Programme mensuel personnalisé" data-en="Monthly personalized program" data-nl="Maandelijks gepersonaliseerd">Programme mensuel personnalisé</li><li class="t" data-fr="Plan nutrition inclus" data-en="Nutrition plan included" data-nl="Voedingsplan inbegrepen">Plan nutrition inclus</li><li class="t" data-fr="Check-in hebdomadaire" data-en="Weekly check-in" data-nl="Wekelijkse check-in">Check-in hebdomadaire</li><li class="t" data-fr="Réponse sous 48h" data-en="Reply within 48h" data-nl="Antwoord binnen 48u">Réponse sous 48h</li></ul><a href="mailto:doudouh.coaching@gmail.com?subject=Coaching%20Starter%20150EUR" class="pbtn t" data-fr="Démarrer →" data-en="Get Started →" data-nl="Begin →">Démarrer →</a></div>
+    <div class="pc ft"><div class="pb2 t" data-fr="🏆 Recommandé" data-en="🏆 Recommended" data-nl="🏆 Aanbevolen">🏆 Recommandé</div><h3 class="pn">PERFORMANCE</h3><div class="pp">250€</div><div class="pe t" data-fr="/mois — Résultats mesurables" data-en="/month — Measurable results" data-nl="/maand — Meetbare resultaten">/mois — Résultats mesurables</div><ul class="pf"><li class="t" data-fr="Programme entièrement personnalisé" data-en="Fully personalized program" data-nl="Volledig gepersonaliseerd">Programme entièrement personnalisé</li><li class="t" data-fr="Nutrition complète + suivi" data-en="Complete nutrition + tracking" data-nl="Volledige voeding + opvolging">Nutrition complète + suivi</li><li class="t" data-fr="2 appels vidéo / mois" data-en="2 video calls / month" data-nl="2 videogesprekken / maand">2 appels vidéo / mois</li><li class="t" data-fr="Analyse vidéo mouvements" data-en="Video movement analysis" data-nl="Video bewegingsanalyse">Analyse vidéo mouvements</li><li class="t" data-fr="Check-in 2× / semaine" data-en="Check-in 2× / week" data-nl="Check-in 2× / week">Check-in 2× / semaine</li><li class="t" data-fr="Ajustements continus" data-en="Continuous adjustments" data-nl="Continue aanpassingen">Ajustements continus</li></ul><a href="mailto:doudouh.coaching@gmail.com?subject=Coaching%20Performance%20250EUR" class="pbtn t" data-fr="Commencer →" data-en="Start Now →" data-nl="Nu Beginnen →">Commencer →</a></div>
+    <div class="pc"><h3 class="pn">ELITE</h3><div class="pp">350€</div><div class="pe t" data-fr="/mois — Attention maximale" data-en="/month — Maximum attention" data-nl="/maand — Maximale aandacht">/mois — Attention maximale</div><ul class="pf"><li class="t" data-fr="Programme ultra-personnalisé" data-en="Ultra-personalized" data-nl="Ultra-gepersonaliseerd">Programme ultra-personnalisé</li><li class="t" data-fr="Nutrition + planning repas" data-en="Nutrition + meal planning" data-nl="Voeding + maaltijden">Nutrition + planning repas</li><li class="t" data-fr="4 appels vidéo / mois" data-en="4 video calls / month" data-nl="4 videogesprekken">4 appels vidéo / mois</li><li class="t" data-fr="Analyse CHAQUE séance" data-en="Analyze EVERY session" data-nl="Analyse ELKE sessie">Analyse CHAQUE séance</li><li class="t" data-fr="Réponse &lt;12h" data-en="Reply &lt;12h" data-nl="Antwoord &lt;12u">Réponse &lt;12h</li><li class="t" data-fr="WhatsApp direct" data-en="Direct WhatsApp" data-nl="Directe WhatsApp">WhatsApp direct</li></ul><a href="mailto:doudouh.coaching@gmail.com?subject=Coaching%20Elite%20350EUR" class="pbtn t" data-fr="Candidater →" data-en="Apply →" data-nl="Solliciteer →">Candidater →</a></div>
   </div>
 </section>
 <div class="div"></div>
 
-<!-- PROGRAMMES -->
 <section class="sec" id="programmes" style="background:var(--bk)">
   <div class="tag t" data-fr="22+ Programmes" data-en="22+ Programs" data-nl="22+ Programma's">22+ Programmes</div>
   <h2 class="ttl">PROGRAMMES<br><span class="gold t" data-fr="PDF PREMIUM" data-en="PREMIUM PDF" data-nl="PREMIUM PDF">PDF PREMIUM</span></h2>
-  <p class="desc t"
-    data-fr="22+ programmes trilingues FR/EN/NL. Liens YouTube sur chaque exercice. Tempo · RIR · RPE · Notes coaching · Nutrition. Paiement sécurisé Visa/Mastercard/Amex via Payhip — PDF livré automatiquement par email."
-    data-en="22+ trilingual programs FR/EN/NL. YouTube links on every exercise. Tempo · RIR · RPE · Coaching notes · Nutrition. Secure Visa/Mastercard/Amex via Payhip — PDF automatically delivered by email."
-    data-nl="22+ drietalige programma's. YouTube op elke oefening. Tempo · RIR · RPE · Coaching notities · Voeding. Veilige Visa/Mastercard/Amex via Payhip — PDF automatisch per email geleverd.">22+ programmes FR/EN/NL · YouTube · Payhip — Livraison automatique.</p>
-  <div class="pnote t"
-    data-fr="💳 Paiement sécurisé Visa · Mastercard · Amex via Payhip — sans compte requis. PDF téléchargeable immédiatement après paiement. Livraison automatique par email."
-    data-en="💳 Secure Visa · Mastercard · Amex via Payhip — no account needed. PDF downloadable immediately. Automatic email delivery."
-    data-nl="💳 Veilige Visa · Mastercard · Amex via Payhip — geen account nodig. PDF direct downloadbaar. Automatische levering per email.">💳 Visa · Mastercard · Amex via Payhip — sans compte. PDF livré automatiquement par email.</div>
+  <p class="desc t" data-fr="22+ programmes trilingues FR/EN/NL. YouTube sur chaque exercice. Payhip — livraison automatique par email." data-en="22+ trilingual programs. YouTube on every exercise. Payhip — automatic email delivery." data-nl="22+ drietalige programma's. YouTube. Payhip — automatische levering.">22+ programmes FR/EN/NL · YouTube · Payhip.</p>
+  <div class="pnote t" data-fr="💳 Visa · Mastercard · Amex via Payhip — sans compte. PDF livré automatiquement." data-en="💳 Visa · Mastercard · Amex via Payhip — no account needed. PDF delivered automatically." data-nl="💳 Visa · Mastercard · Amex via Payhip — geen account. PDF automatisch geleverd.">💳 Visa · Mastercard · Amex — sans compte. PDF livré automatiquement.</div>
   <div class="pflt">
-    <button class="fb on" onclick="filt('all')" id="fb-all">Tous / All</button>
+    <button class="fb on" onclick="filt('all')">Tous / All</button>
     <button class="fb" onclick="filt('perte')">🔥 Perte de Poids</button>
     <button class="fb" onclick="filt('force')">💪 Force</button>
     <button class="fb" onclick="filt('crossfit')">⚡ Fitness Fonctionnel</button>
     <button class="fb" onclick="filt('sport')">🏃 Sport</button>
     <button class="fb" onclick="filt('voyage')">✈️ Voyage / Home</button>
   </div>
-  <div class="pgrid" id="pgrid"><div class="pgc">
-<div class="pcat">🔥 PERTE DE POIDS</div>
-<h3 class="ptit">FAT BURNER 10W</h3>
-<p class="pdes">Perte de graisse intensive. 5 séances/sem. 4 phases progressives. Test final semaine 10.</p>
-<div class="ptags"><span class="ptag">10 Sem</span><span class="ptag">5x/Sem</span><span class="ptag">MetCon+HIIT</span></div>
-<div class="ppr">29.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/MPHyz" target="_blank" class="pbtn">💳 Acheter — 29.99€</a>
-</div><div class="pgc">
-<div class="pcat">🔥 PERTE DE POIDS</div>
-<h3 class="ptit">BODY TRANSFORMATION 12W</h3>
-<p class="pdes">Recomposition corporelle DUP. Perte de graisses + gains musculaires. Test 1RM semaines 1 et 12.</p>
-<div class="ptags"><span class="ptag">12 Sem</span><span class="ptag">DUP</span><span class="ptag">1RM Test</span></div>
-<div class="ppr">34.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/oFbCE" target="_blank" class="pbtn">💳 Acheter — 34.99€</a>
-</div><div class="pgc">
-<div class="pcat">🔥 PERTE DE POIDS</div>
-<h3 class="ptit">SUMMER BODY BURN 8W</h3>
-<p class="pdes">Définition + tonus musculaire. MetCon + Hypertrophie. Corps d'été garanti.</p>
-<div class="ptags"><span class="ptag">8 Sem</span><span class="ptag">Définition</span><span class="ptag">MetCon</span></div>
-<div class="ppr">29.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/UtnrG" target="_blank" class="pbtn">💳 Acheter — 29.99€</a>
-</div><div class="pgc">
-<div class="pcat">🔥 PERTE DE POIDS</div>
-<h3 class="ptit">SHRED 6W</h3>
-<p class="pdes">Perte de poids rapide et intensive. Max 45 min. EMOM + Tabata. Résultats visibles.</p>
-<div class="ptags"><span class="ptag">6 Sem</span><span class="ptag">Max 45min</span><span class="ptag">Tabata</span></div>
-<div class="ppr">24.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/R0Fgt" target="_blank" class="pbtn">💳 Acheter — 24.99€</a>
-</div><div class="pgc">
-<div class="pcat">💪 FORCE</div>
-<h3 class="ptit">CORE MASTER 6W</h3>
-<p class="pdes">Gainage 360°. Force spinale complète. Stabilité tous plans anatomiques.</p>
-<div class="ptags"><span class="ptag">6 Sem</span><span class="ptag">Core 360°</span><span class="ptag">Stabilité</span></div>
-<div class="ppr">22.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/mUZMk" target="_blank" class="pbtn">💳 Acheter — 22.99€</a>
-</div><div class="pgc">
-<div class="pcat">💪 FORCE</div>
-<h3 class="ptit">MIND & BODY 8W</h3>
-<p class="pdes">Fitness + bien-être. Mobilité + santé durable. Approche complète corps et esprit.</p>
-<div class="ptags"><span class="ptag">8 Sem</span><span class="ptag">Bien-être</span><span class="ptag">Mobilité</span></div>
-<div class="ppr">24.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/KxkEy" target="_blank" class="pbtn">💳 Acheter — 24.99€</a>
-</div><div class="pgc">
-<div class="pcat">💪 FORCE</div>
-<h3 class="ptit">BULLETPROOF BODY 6W</h3>
-<p class="pdes">Prévention blessures + mobilité fonctionnelle. Certifié NASM CES. Entraîne-toi sans douleur.</p>
-<div class="ptags"><span class="ptag">6 Sem</span><span class="ptag">Prévention</span><span class="ptag">NASM CES</span></div>
-<div class="ppr">24.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/4cmRD" target="_blank" class="pbtn">💳 Acheter — 24.99€</a>
-</div><div class="pgc">
-<div class="pcat">⚡ FITNESS FONCTIONNEL</div>
-<h3 class="ptit">OPEN SEASON 8W</h3>
-<p class="pdes">Sois prêt pour le prochain Open. Skills · pacing · peaking. Coach certifié CF Level 3.</p>
-<div class="ptags"><span class="ptag">8 Sem</span><span class="ptag">Skills</span><span class="ptag">Pacing</span></div>
-<div class="ppr">34.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/7pBc3" target="_blank" class="pbtn">💳 Acheter — 34.99€</a>
-</div><div class="pgc">
-<div class="pcat">⚡ FITNESS FONCTIONNEL</div>
-<h3 class="ptit">HYROX RACE 12W</h3>
-<p class="pdes">Préparation course Hyrox complète. 8 stations + 8km de course. Reasfit affilié Hyrox officiel.</p>
-<div class="ptags"><span class="ptag">12 Sem</span><span class="ptag">8 Stations</span><span class="ptag">Reasfit</span></div>
-<div class="ppr">34.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/uK1IG" target="_blank" class="pbtn">💳 Acheter — 34.99€</a>
-</div><div class="pgc">
-<div class="pcat">⚡ FITNESS FONCTIONNEL</div>
-<h3 class="ptit">GYMNASTICS SKILLS 8W</h3>
-<p class="pdes">Muscle Up · HSPU · Toes-to-Bar · Handstand Walk. Progressions détaillées + liens YouTube.</p>
-<div class="ptags"><span class="ptag">8 Sem</span><span class="ptag">MU+HSPU</span><span class="ptag">T2B</span></div>
-<div class="ppr">29.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/0IgWv" target="_blank" class="pbtn">💳 Acheter — 29.99€</a>
-</div><div class="pgc">
-<div class="pcat">⚡ FITNESS FONCTIONNEL</div>
-<h3 class="ptit">OLYMPIC LIFTING 10W</h3>
-<p class="pdes">Snatch & Clean & Jerk. Technique + force. Test PR semaines 5 et 10.</p>
-<div class="ptags"><span class="ptag">10 Sem</span><span class="ptag">Snatch</span><span class="ptag">C&J</span></div>
-<div class="ppr">34.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/H4YDB" target="_blank" class="pbtn">💳 Acheter — 34.99€</a>
-</div><div class="pgc">
-<div class="pcat">⚡ FITNESS FONCTIONNEL</div>
-<h3 class="ptit">HYROX FOUNDATION 6W</h3>
-<p class="pdes">Introduction Hyrox pour débutants. Bases solides avant la compétition. Reasfit affilié Hyrox.</p>
-<div class="ptags"><span class="ptag">6 Sem</span><span class="ptag">Débutant</span><span class="ptag">Reasfit</span></div>
-<div class="ppr">27.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/B3TaF" target="_blank" class="pbtn">💳 Acheter — 27.99€</a>
-</div><div class="pgc">
-<div class="pcat">⚡ FITNESS FONCTIONNEL</div>
-<h3 class="ptit">FUNCTIONAL PERFORMANCE 12W</h3>
-<p class="pdes">Performance fonctionnelle complète. 4 phases. Force + puissance + endurance.</p>
-<div class="ptags"><span class="ptag">12 Sem</span><span class="ptag">Fonctionnel</span><span class="ptag">4 Phases</span></div>
-<div class="ppr">34.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/CA2jG" target="_blank" class="pbtn">💳 Acheter — 34.99€</a>
-</div><div class="pgc">
-<div class="pcat">⚡ FITNESS FONCTIONNEL</div>
-<h3 class="ptit">COMPETE READY 16W</h3>
-<p class="pdes">Préparation compétition complète. 4 phases. Peaking + Taper. Pour gagner.</p>
-<div class="ptags"><span class="ptag">16 Sem</span><span class="ptag">Compétition</span><span class="ptag">Taper</span></div>
-<div class="ppr">44.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/U8nek" target="_blank" class="pbtn">💳 Acheter — 44.99€</a>
-</div><div class="pgc">
-<div class="pcat">🏃 SPORT</div>
-<h3 class="ptit">FOOTBALL PERFORMANCE 16W</h3>
-<p class="pdes">Pré-saison (6 sem) + En Saison (10 sem). Sprint · COD · Explosivité · Prévention LCA.</p>
-<div class="ptags"><span class="ptag">16 Sem</span><span class="ptag">Pré-Saison</span><span class="ptag">NASM PES</span></div>
-<div class="ppr">39.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/5Oo2i" target="_blank" class="pbtn">💳 Acheter — 39.99€</a>
-</div><div class="pgc">
-<div class="pcat">🏃 SPORT</div>
-<h3 class="ptit">ENDURANCE ATHLETE 8W</h3>
-<p class="pdes">Zone 2 + VO2max + Seuil lactique. Moteur cardiovasculaire complet.</p>
-<div class="ptags"><span class="ptag">8 Sem</span><span class="ptag">Zone2</span><span class="ptag">VO2max</span></div>
-<div class="ppr">27.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/eRJxv" target="_blank" class="pbtn">💳 Acheter — 27.99€</a>
-</div><div class="pgc">
-<div class="pcat">🏃 SPORT</div>
-<h3 class="ptit">ATHLETE MIND 12W</h3>
-<p class="pdes">Performance athlétique complète. 3 phases. Adapté à tous les sports.</p>
-<div class="ptags"><span class="ptag">12 Sem</span><span class="ptag">Performance</span><span class="ptag">3 Phases</span></div>
-<div class="ppr">34.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/Z9gHi" target="_blank" class="pbtn">💳 Acheter — 34.99€</a>
-</div><div class="pgc">
-<div class="pcat">🏃 SPORT</div>
-<h3 class="ptit">EXPLOSIVE POWER 6W</h3>
-<p class="pdes">Plyométrie + haltérophilie + sprint. Sauter plus haut, sprinter plus vite.</p>
-<div class="ptags"><span class="ptag">6 Sem</span><span class="ptag">Plyométrie</span><span class="ptag">Sprint</span></div>
-<div class="ppr">27.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/v5x2N" target="_blank" class="pbtn">💳 Acheter — 27.99€</a>
-</div><div class="pgc">
-<div class="pcat">✈️ VOYAGE / MAISON</div>
-<h3 class="ptit">BODYWEIGHT WARRIOR 8W</h3>
-<p class="pdes">Zéro équipement. Hôtel · plage · maison · partout. 3 niveaux par exercice.</p>
-<div class="ptags"><span class="ptag">8 Sem</span><span class="ptag">0 Équip</span><span class="ptag">Hôtel</span></div>
-<div class="ppr">24.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/i2byn" target="_blank" class="pbtn">💳 Acheter — 24.99€</a>
-</div><div class="pgc">
-<div class="pcat">✈️ VOYAGE / MAISON</div>
-<h3 class="ptit">FIT EN VACANCES 4W</h3>
-<p class="pdes">Salle hôtel OU extérieur. 30-40 min par séance. Progresser partout.</p>
-<div class="ptags"><span class="ptag">4 Sem</span><span class="ptag">Hôtel+Outdoor</span><span class="ptag">30-40min</span></div>
-<div class="ppr">19.99€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="https://payhip.com/b/0s3JV" target="_blank" class="pbtn">💳 Acheter — 19.99€</a>
-</div><div class="pgc">
-<div class="pcat">⭐ SUR MESURE</div>
-<h3 class="ptit">PROGRAMME PERSONNALISÉ</h3>
-<p class="pdes">100% sur mesure. Consultation dédiée 30-60 min. Tes objectifs, ton niveau, ton matériel. PDF premium sous 3-5 jours.</p>
-<div class="ptags"><span class="ptag">Sur Demande</span><span class="ptag">100% Perso</span><span class="ptag">Consultation</span></div>
-<div class="ppr">150-280€</div>
-<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>
-<a href="/cdn-cgi/l/email-protection#6e0a011b0a011b06400d010f0d060700092e09030f0702400d0103511d1b0c040b0d1a533e1c01091c0f03030b4b5c5e3e0b1c1d0100000f02071d4b2d5d4b2f574b5c5e434b5c5e2d010f0d064b5c5e2a23" class="pbtn">📧 Demander Mon Programme</a>
-</div></div>
+  <div class="pgrid" id="pgrid"><div class="pgc" data-cat="perte"><div class="pcat">🔥 PERTE DE POIDS</div><h3 class="ptit">FAT BURNER 10W</h3><p class="pdes" data-fr="Perte de graisse intensive. 5 séances/sem. 4 phases progressives. Test final semaine 10." data-en="Intensive fat loss. 5 sessions/week. 4 progressive phases. Final test week 10." data-nl="Intensief vetverlies. 5 sessies/week. 4 fasen. Eindtest week 10.">Perte de graisse intensive. 5 séances/sem. 4 phases progressives. Test final semaine 10.</p><div class="ptags"><span class="ptag">10 Sem</span><span class="ptag">5x/Sem</span><span class="ptag">MetCon</span></div><div class="ppr">29.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/MPHyz" target="_blank" class="pbtn">💳 Acheter — 29.99€</a></div><div class="pgc" data-cat="perte"><div class="pcat">🔥 PERTE DE POIDS</div><h3 class="ptit">BODY TRANSFORMATION 12W</h3><p class="pdes" data-fr="Recomposition DUP. Perte graisses + muscles. Test 1RM semaines 1 et 12." data-en="DUP recomposition. Fat loss + muscle. 1RM test weeks 1 & 12." data-nl="DUP recompositie. 1RM test weken 1 & 12.">Recomposition DUP. Perte graisses + muscles. Test 1RM semaines 1 et 12.</p><div class="ptags"><span class="ptag">12 Sem</span><span class="ptag">DUP</span><span class="ptag">1RM</span></div><div class="ppr">34.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/oFbCE" target="_blank" class="pbtn">💳 Acheter — 34.99€</a></div><div class="pgc" data-cat="perte"><div class="pcat">🔥 PERTE DE POIDS</div><h3 class="ptit">SUMMER BODY BURN 8W</h3><p class="pdes" data-fr="Définition + tonus. MetCon + Hypertrophie." data-en="Definition + tone. MetCon + Hypertrophy." data-nl="Definitie + tonus. MetCon + Hypertrofie.">Définition + tonus. MetCon + Hypertrophie.</p><div class="ptags"><span class="ptag">8 Sem</span><span class="ptag">Définition</span><span class="ptag">MetCon</span></div><div class="ppr">29.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/UtnrG" target="_blank" class="pbtn">💳 Acheter — 29.99€</a></div><div class="pgc" data-cat="perte"><div class="pcat">🔥 PERTE DE POIDS</div><h3 class="ptit">SHRED 6W</h3><p class="pdes" data-fr="Perte rapide. Max 45min. EMOM + Tabata." data-en="Fast fat loss. Max 45min. EMOM + Tabata." data-nl="Snel vetverlies. EMOM + Tabata.">Perte rapide. Max 45min. EMOM + Tabata.</p><div class="ptags"><span class="ptag">6 Sem</span><span class="ptag">45min</span><span class="ptag">Tabata</span></div><div class="ppr">24.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/R0Fgt" target="_blank" class="pbtn">💳 Acheter — 24.99€</a></div><div class="pgc" data-cat="force"><div class="pcat">💪 FORCE</div><h3 class="ptit">CORE MASTER 6W</h3><p class="pdes" data-fr="Gainage 360°. Force spinale. Stabilité tous plans." data-en="360° core. Spinal strength. All planes." data-nl="360° core. Ruggengraatkracht.">Gainage 360°. Force spinale. Stabilité tous plans.</p><div class="ptags"><span class="ptag">6 Sem</span><span class="ptag">Core 360°</span><span class="ptag">Stabilité</span></div><div class="ppr">22.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/mUZMk" target="_blank" class="pbtn">💳 Acheter — 22.99€</a></div><div class="pgc" data-cat="force"><div class="pcat">💪 FORCE</div><h3 class="ptit">MIND & BODY 8W</h3><p class="pdes" data-fr="Fitness + bien-être. Mobilité + santé durable." data-en="Fitness + wellness. Mobility + health." data-nl="Fitness + welzijn. Mobiliteit.">Fitness + bien-être. Mobilité + santé durable.</p><div class="ptags"><span class="ptag">8 Sem</span><span class="ptag">Bien-être</span><span class="ptag">Mobilité</span></div><div class="ppr">24.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/KxkEy" target="_blank" class="pbtn">💳 Acheter — 24.99€</a></div><div class="pgc" data-cat="force"><div class="pcat">💪 FORCE</div><h3 class="ptit">BULLETPROOF BODY 6W</h3><p class="pdes" data-fr="Prévention blessures + mobilité. NASM CES." data-en="Injury prevention + mobility. NASM CES." data-nl="Blessurepreventie + mobiliteit.">Prévention blessures + mobilité. NASM CES.</p><div class="ptags"><span class="ptag">6 Sem</span><span class="ptag">Prévention</span><span class="ptag">NASM CES</span></div><div class="ppr">24.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/4cmRD" target="_blank" class="pbtn">💳 Acheter — 24.99€</a></div><div class="pgc" data-cat="crossfit"><div class="pcat">⚡ FITNESS FONCTIONNEL</div><h3 class="ptit">OPEN SEASON 8W</h3><p class="pdes" data-fr="Sois prêt pour le prochain Open. Skills · pacing · peaking. CF Level 3." data-en="Be ready for the next Open. Skills · pacing · peaking. CF Level 3." data-nl="Klaar voor de volgende Open. Skills · pacing. CF Level 3.">Sois prêt pour le prochain Open. Skills · pacing · peaking. CF Level 3.</p><div class="ptags"><span class="ptag">8 Sem</span><span class="ptag">Skills</span><span class="ptag">CF L3</span></div><div class="ppr">34.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/7pBc3" target="_blank" class="pbtn">💳 Acheter — 34.99€</a></div><div class="pgc" data-cat="crossfit"><div class="pcat">⚡ FITNESS FONCTIONNEL</div><h3 class="ptit">HYROX RACE 12W</h3><p class="pdes" data-fr="Préparation Hyrox. 8 stations + 8km. Reasfit affilié officiel." data-en="Hyrox prep. 8 stations + 8km. Reasfit official." data-nl="Hyrox voorbereiding. 8 stations + 8km.">Préparation Hyrox. 8 stations + 8km. Reasfit affilié officiel.</p><div class="ptags"><span class="ptag">12 Sem</span><span class="ptag">Hyrox</span><span class="ptag">Reasfit</span></div><div class="ppr">34.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/uK1IG" target="_blank" class="pbtn">💳 Acheter — 34.99€</a></div><div class="pgc" data-cat="crossfit"><div class="pcat">⚡ FITNESS FONCTIONNEL</div><h3 class="ptit">GYMNASTICS SKILLS 8W</h3><p class="pdes" data-fr="Muscle Up · HSPU · T2B · Handstand. Progressions + YouTube." data-en="Muscle Up · HSPU · T2B · Handstand. Progressions + YouTube." data-nl="Muscle Up · HSPU · T2B · Handstand.">Muscle Up · HSPU · T2B · Handstand. Progressions + YouTube.</p><div class="ptags"><span class="ptag">8 Sem</span><span class="ptag">MU+HSPU</span><span class="ptag">T2B</span></div><div class="ppr">29.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/0IgWv" target="_blank" class="pbtn">💳 Acheter — 29.99€</a></div><div class="pgc" data-cat="crossfit"><div class="pcat">⚡ FITNESS FONCTIONNEL</div><h3 class="ptit">OLYMPIC LIFTING 10W</h3><p class="pdes" data-fr="Snatch & Clean & Jerk. Technique + force. PR test sem 5 et 10." data-en="Snatch & C&J. Technique + strength. PR test wks 5 & 10." data-nl="Snatch & C&J. PR test.">Snatch & Clean & Jerk. Technique + force. PR test sem 5 et 10.</p><div class="ptags"><span class="ptag">10 Sem</span><span class="ptag">Snatch</span><span class="ptag">C&J</span></div><div class="ppr">34.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/H4YDB" target="_blank" class="pbtn">💳 Acheter — 34.99€</a></div><div class="pgc" data-cat="crossfit"><div class="pcat">⚡ FITNESS FONCTIONNEL</div><h3 class="ptit">HYROX FOUNDATION 6W</h3><p class="pdes" data-fr="Hyrox débutants. Bases solides. Reasfit affilié." data-en="Hyrox beginners. Solid foundations. Reasfit affiliate." data-nl="Hyrox beginners. Reasfit officieel.">Hyrox débutants. Bases solides. Reasfit affilié.</p><div class="ptags"><span class="ptag">6 Sem</span><span class="ptag">Débutant</span><span class="ptag">Reasfit</span></div><div class="ppr">27.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/B3TaF" target="_blank" class="pbtn">💳 Acheter — 27.99€</a></div><div class="pgc" data-cat="crossfit"><div class="pcat">⚡ FITNESS FONCTIONNEL</div><h3 class="ptit">FUNCTIONAL PERFORMANCE 12W</h3><p class="pdes" data-fr="Performance fonctionnelle. 4 phases. Force + puissance + endurance." data-en="Functional performance. 4 phases. Strength + power + endurance." data-nl="Functionele prestaties. 4 fasen.">Performance fonctionnelle. 4 phases. Force + puissance + endurance.</p><div class="ptags"><span class="ptag">12 Sem</span><span class="ptag">Fonctionnel</span><span class="ptag">4 Phases</span></div><div class="ppr">34.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/CA2jG" target="_blank" class="pbtn">💳 Acheter — 34.99€</a></div><div class="pgc" data-cat="crossfit"><div class="pcat">⚡ FITNESS FONCTIONNEL</div><h3 class="ptit">COMPETE READY 16W</h3><p class="pdes" data-fr="Préparation compétition. 4 phases. Peaking + Taper." data-en="Competition prep. 4 phases. Peaking + Taper." data-nl="Competitie voorbereiding. 4 fasen. Taper.">Préparation compétition. 4 phases. Peaking + Taper.</p><div class="ptags"><span class="ptag">16 Sem</span><span class="ptag">Compétition</span><span class="ptag">Taper</span></div><div class="ppr">44.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/U8nek" target="_blank" class="pbtn">💳 Acheter — 44.99€</a></div><div class="pgc" data-cat="sport"><div class="pcat">🏃 SPORT</div><h3 class="ptit">FOOTBALL PERFORMANCE 16W</h3><p class="pdes" data-fr="Pré-saison + En Saison. Sprint · COD · LCA. NASM PES." data-en="Pre-season + In-Season. Sprint · COD · ACL. NASM PES." data-nl="Preseason + In Seizoen. Sprint · COD.">Pré-saison + En Saison. Sprint · COD · LCA. NASM PES.</p><div class="ptags"><span class="ptag">16 Sem</span><span class="ptag">Pré-Saison</span><span class="ptag">NASM PES</span></div><div class="ppr">39.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/5Oo2i" target="_blank" class="pbtn">💳 Acheter — 39.99€</a></div><div class="pgc" data-cat="sport"><div class="pcat">🏃 SPORT</div><h3 class="ptit">ENDURANCE ATHLETE 8W</h3><p class="pdes" data-fr="Zone 2 + VO2max + Seuil. Moteur cardiovasculaire complet." data-en="Zone 2 + VO2max + Threshold. Complete engine." data-nl="Zone 2 + VO2max + Drempel.">Zone 2 + VO2max + Seuil. Moteur cardiovasculaire complet.</p><div class="ptags"><span class="ptag">8 Sem</span><span class="ptag">Zone2</span><span class="ptag">VO2max</span></div><div class="ppr">27.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/eRJxv" target="_blank" class="pbtn">💳 Acheter — 27.99€</a></div><div class="pgc" data-cat="sport"><div class="pcat">🏃 SPORT</div><h3 class="ptit">ATHLETE MIND 12W</h3><p class="pdes" data-fr="Performance athlétique complète. 3 phases. Tous sports." data-en="Complete athletic performance. 3 phases. All sports." data-nl="Atletische prestaties. 3 fasen.">Performance athlétique complète. 3 phases. Tous sports.</p><div class="ptags"><span class="ptag">12 Sem</span><span class="ptag">Performance</span><span class="ptag">3 Phases</span></div><div class="ppr">34.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/Z9gHi" target="_blank" class="pbtn">💳 Acheter — 34.99€</a></div><div class="pgc" data-cat="sport"><div class="pcat">🏃 SPORT</div><h3 class="ptit">EXPLOSIVE POWER 6W</h3><p class="pdes" data-fr="Plyométrie + sprint. Sauter plus haut, sprinter plus vite." data-en="Plyometrics + sprint. Jump higher, sprint faster." data-nl="Plyometrie + sprint.">Plyométrie + sprint. Sauter plus haut, sprinter plus vite.</p><div class="ptags"><span class="ptag">6 Sem</span><span class="ptag">Plyométrie</span><span class="ptag">Sprint</span></div><div class="ppr">27.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/v5x2N" target="_blank" class="pbtn">💳 Acheter — 27.99€</a></div><div class="pgc" data-cat="voyage"><div class="pcat">✈️ VOYAGE / MAISON</div><h3 class="ptit">BODYWEIGHT WARRIOR 8W</h3><p class="pdes" data-fr="Zéro équipement. Hôtel · plage · partout. 3 niveaux." data-en="Zero equipment. Hotel · beach · anywhere. 3 levels." data-nl="Nul uitrusting. Hotel · strand · overal.">Zéro équipement. Hôtel · plage · partout. 3 niveaux.</p><div class="ptags"><span class="ptag">8 Sem</span><span class="ptag">0 Équip</span><span class="ptag">Hôtel</span></div><div class="ppr">24.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/i2byn" target="_blank" class="pbtn">💳 Acheter — 24.99€</a></div><div class="pgc" data-cat="voyage"><div class="pcat">✈️ VOYAGE / MAISON</div><h3 class="ptit">FIT EN VACANCES 4W</h3><p class="pdes" data-fr="Hôtel OU extérieur. 30-40min. Progresser partout." data-en="Hotel OR outdoor. 30-40min. Anywhere." data-nl="Hotel OF buiten. 30-40min.">Hôtel OU extérieur. 30-40min. Progresser partout.</p><div class="ptags"><span class="ptag">4 Sem</span><span class="ptag">Hôtel</span><span class="ptag">30-40min</span></div><div class="ppr">19.99€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="https://payhip.com/b/0s3JV" target="_blank" class="pbtn">💳 Acheter — 19.99€</a></div><div class="pgc" data-cat="perso"><div class="pcat">⭐ SUR MESURE</div><h3 class="ptit">PROGRAMME PERSONNALISÉ</h3><p class="pdes" data-fr="100% sur mesure. Consultation dédiée 30-60 min. PDF premium sous 3-5 jours." data-en="100% custom. Dedicated 30-60 min consultation. PDF in 3-5 days." data-nl="100% op maat. Consultatie 30-60 min. PDF in 3-5 dagen.">100% sur mesure. Consultation dédiée 30-60 min. PDF premium sous 3-5 jours.</p><div class="ptags"><span class="ptag">Sur Demande</span><span class="ptag">100% Perso</span><span class="ptag">Consultation</span></div><div class="ppr">150-280€</div><div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div><a href="mailto:doudouh.coaching@gmail.com?subject=Programme%20Personnalis%C3%A9%20-%20Coach%20DM" class="pbtn">📧 Demander</a></div></div>
 </section>
 <div class="div"></div>
 
-<!-- FOOTBALL -->
 <section class="sec" id="football" style="background:var(--d1)">
   <div class="tag">Football Performance</div>
   <h2 class="ttl t" data-fr="PRÉPARATION<br><span class='gold'>PHYSIQUE FOOTBALL</span>" data-en="FOOTBALL<br><span class='gold'>PHYSICAL PREP</span>" data-nl="VOETBAL<br><span class='gold'>FYSIEKE VOORBEREIDING</span>">PRÉPARATION<br><span class="gold">PHYSIQUE FOOTBALL</span></h2>
   <div class="fg">
-    <div class="">
-      <p class="desc t" style="max-width:100%"
-        data-fr="Programme conçu par un coach certifié NASM PES. Pré-saison (6 sem) + En Saison (10 sem). Sprint · COD · Explosivité · Prévention LCA. Tests benchmarks semaines 1 et 6."
-        data-en="Program designed by NASM PES certified coach. Pre-season (6 wks) + In-Season (10 wks). Sprint · COD · Explosiveness · ACL prevention. Benchmark tests weeks 1 and 6."
-        data-nl="Programma ontworpen door NASM PES gecertificeerde coach. Preseason (6 wk) + In Seizoen (10 wk). Sprint · COD · Explosiviteit · LCA preventie. Benchmarktests weken 1 en 6.">NASM PES. Pré-saison + En Saison. Benchmarks sem 1 et 6.</p>
+    <div>
+      <p class="desc t" style="max-width:100%" data-fr="Programme NASM PES. Pré-saison (6 sem) + En Saison (10 sem). Sprint · COD · Explosivité · Prévention LCA. Benchmarks sem 1 et 6." data-en="NASM PES program. Pre-season (6 wks) + In-Season (10 wks). Sprint · COD · Explosiveness · ACL prevention. Benchmarks wks 1 and 6." data-nl="NASM PES programma. Preseason + In Seizoen. Sprint · COD · LCA.">Programme NASM PES. Pré-saison + En Saison. Benchmarks sem 1 et 6.</p>
       <div class="fq">
-        <div class="fqc"><span class="fqi">⚡</span><div class="fqn t" data-fr="Vitesse Sprint" data-en="Sprint Speed" data-nl="Sprintsnelheid">Vitesse Sprint</div><div class="fqd">10-20-30m. Mesure sem 6.</div></div>
-        <div class="fqc"><span class="fqi">🔄</span><div class="fqn">COD</div><div class="fqd">T-Test · 5-10-5.</div></div>
-        <div class="fqc"><span class="fqi">💥</span><div class="fqn t" data-fr="Explosivité" data-en="Explosiveness" data-nl="Explosiviteit">Explosivité</div><div class="fqd">Box Jumps · Depth Jumps.</div></div>
-        <div class="fqc"><span class="fqi">🛡️</span><div class="fqn t" data-fr="Prévention LCA" data-en="ACL Prevention" data-nl="LCA Preventie">Prévention LCA</div><div class="fqd t" data-fr="Nordic Curl — -51% blessures." data-en="Nordic Curl — -51% injuries." data-nl="Nordic Curl — -51%.">Nordic Curl -51%.</div></div>
-        <div class="fqc"><span class="fqi">🏃</span><div class="fqn t" data-fr="Endurance" data-en="Endurance" data-nl="Uithouding">Endurance</div><div class="fqd">15-15 · Zone 2 · 90 min.</div></div>
-        <div class="fqc"><span class="fqi">🧠</span><div class="fqn t" data-fr="Réactivité" data-en="Reactivity" data-nl="Reactiviteit">Réactivité</div><div class="fqd">COD sur signal.</div></div>
+        <div class="fqc"><span class="fqi">⚡</span><div class="fqn t" data-fr="Vitesse Sprint" data-en="Sprint Speed" data-nl="Sprintsnelheid">Vitesse Sprint</div><div class="fqd">10-20-30m</div></div>
+        <div class="fqc"><span class="fqi">🔄</span><div class="fqn">COD</div><div class="fqd">T-Test · 5-10-5</div></div>
+        <div class="fqc"><span class="fqi">💥</span><div class="fqn t" data-fr="Explosivité" data-en="Explosiveness" data-nl="Explosiviteit">Explosivité</div><div class="fqd">Box Jumps · Depth</div></div>
+        <div class="fqc"><span class="fqi">🛡️</span><div class="fqn t" data-fr="Prévention LCA" data-en="ACL Prevention" data-nl="LCA Preventie">Prévention LCA</div><div class="fqd">Nordic Curl -51%</div></div>
+        <div class="fqc"><span class="fqi">🏃</span><div class="fqn t" data-fr="Endurance" data-en="Endurance" data-nl="Uithouding">Endurance</div><div class="fqd">15-15 · Zone 2</div></div>
+        <div class="fqc"><span class="fqi">🧠</span><div class="fqn t" data-fr="Réactivité" data-en="Reactivity" data-nl="Reactiviteit">Réactivité</div><div class="fqd">COD sur signal</div></div>
       </div>
     </div>
-    <div class="">
+    <div>
       <div class="fbox">
         <div class="tag" style="margin-bottom:14px">Programme PDF</div>
         <h3>Football Performance<br><span class="gold">PRÉ-SAISON + EN SAISON</span></h3>
-        <p style="font-size:12.5px;color:#777;line-height:1.7;margin:13px 0" class="t"
-          data-fr="16 semaines complètes. Tests benchmarks semaines 1 et 6. FR/EN/NL. Liens YouTube sur chaque exercice."
-          data-en="16 complete weeks. Benchmark tests weeks 1 and 6. FR/EN/NL. YouTube links on every exercise."
-          data-nl="16 volledige weken. Benchmarktests weken 1 en 6. FR/EN/NL. YouTube op elke oefening.">16 semaines. Tests sem 1 et 6. FR/EN/NL. YouTube.</p>
+        <p style="font-size:12.5px;color:#777;line-height:1.7;margin:13px 0" class="t" data-fr="16 semaines. Tests sem 1 et 6. FR/EN/NL. YouTube." data-en="16 weeks. Tests wks 1 & 6. FR/EN/NL. YouTube." data-nl="16 weken. Tests. FR/EN/NL. YouTube.">16 semaines. Tests sem 1 et 6. YouTube.</p>
         <div style="margin-bottom:20px">
-          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:12px;color:#666" class="t" data-fr="Pré-saison" data-en="Pre-season" data-nl="Preseason">Pré-saison</span><span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--g)">6 Sem</span></div>
-          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:12px;color:#666" class="t" data-fr="En Saison" data-en="In-Season" data-nl="In Seizoen">En Saison</span><span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--g)">10 Sem</span></div>
-          <div style="display:flex;justify-content:space-between;padding:8px 0"><span style="font-size:12px;color:#666" class="t" data-fr="Prix" data-en="Price" data-nl="Prijs">Prix</span><span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--g)">39.99€</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:12px;color:#666">Pré-saison</span><span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--g)">6 Sem</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:12px;color:#666">En Saison</span><span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--g)">10 Sem</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0"><span style="font-size:12px;color:#666">Prix</span><span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--g)">39.99€</span></div>
         </div>
-        <a href="https://payhip.com/b/5Oo2i" target="_blank" class="pbtn t"
-          data-fr="💳 Acheter — Paiement Sécurisé" data-en="💳 Buy — Secure Payment" data-nl="💳 Kopen — Veilige Betaling">💳 Acheter — Paiement Sécurisé</a>
+        <a href="https://payhip.com/b/5Oo2i" target="_blank" class="pbtn t" data-fr="💳 Acheter — Paiement Sécurisé" data-en="💳 Buy — Secure Payment" data-nl="💳 Kopen — Veilige Betaling">💳 Acheter — Paiement Sécurisé</a>
       </div>
     </div>
   </div>
 </section>
 <div class="div"></div>
 
-<!-- PERSONNALISE -->
 <section class="sec" id="personnalise" style="background:var(--bk)">
   <div class="tag t" data-fr="Sur Mesure" data-en="Custom" data-nl="Op Maat">Sur Mesure</div>
   <h2 class="ttl">PROGRAMME<br><span class="gold t" data-fr="PERSONNALISÉ" data-en="PERSONALIZED" data-nl="GEPERSONALISEERD">PERSONNALISÉ</span></h2>
   <div class="prg">
     <div class="stp">
-      <div class="stpi"><div class="stpn">01</div><div class="stpb"><h4 class="t" data-fr="Consultation Initiale" data-en="Initial Consultation" data-nl="Initieel Overleg">Consultation Initiale</h4><p class="t" data-fr="30-60 min d'analyse complète : objectifs, niveau actuel, contraintes, matériel disponible, historique sportif. Coach DM comprend ta situation avant de programmer." data-en="30-60 min complete analysis: goals, current level, constraints, available equipment, sports history. Coach DM understands your situation before programming." data-nl="30-60 min volledige analyse: doelen, niveau, beperkingen, materiaal, sportgeschiedenis.">30-60 min : objectifs, niveau, contraintes, matériel.</p></div></div>
-      <div class="stpi"><div class="stpn">02</div><div class="stpb"><h4 class="t" data-fr="Conception 3-5 Jours" data-en="Design in 3-5 Days" data-nl="Ontwerp 3-5 Dagen">Conception 3-5 Jours</h4><p class="t" data-fr="Périodisation sur mesure, exercices adaptés à ton matériel, volume et intensité calibrés, plan nutrition intégré. Chaque variable est justifiée." data-en="Custom periodization, exercises adapted to your equipment, calibrated volume and intensity, integrated nutrition plan. Every variable justified." data-nl="Maatwerk periodisering, oefeningen, voeding. Alles verantwoord.">Périodisation + exercices + nutrition. Tout justifié.</p></div></div>
-      <div class="stpi"><div class="stpn">03</div><div class="stpb"><h4 class="t" data-fr="Livraison PDF Premium" data-en="Premium PDF Delivery" data-nl="Premium PDF Levering">Livraison PDF Premium</h4><p class="t" data-fr="Tempo · RIR · RPE · notes coaching · YouTube · nutrition · suivi de progression. 100% conçu pour toi. Livré par email." data-en="Tempo · RIR · RPE · coaching notes · YouTube · nutrition · progress tracking. 100% for you. Delivered by email." data-nl="Tempo · RIR · RPE · YouTube · voeding · opvolging. 100% voor jou. Per email geleverd.">Tempo · RIR · RPE · YouTube · Nutrition. 100% pour toi.</p></div></div>
+      <div class="stpi"><div class="stpn">01</div><div class="stpb"><h4 class="t" data-fr="Consultation Initiale" data-en="Initial Consultation" data-nl="Initieel Overleg">Consultation Initiale</h4><p class="t" data-fr="30-60 min d'analyse : objectifs, niveau, contraintes, matériel, historique." data-en="30-60 min analysis: goals, level, constraints, equipment, history." data-nl="30-60 min analyse: doelen, niveau, materiaal.">30-60 min : objectifs, niveau, matériel.</p></div></div>
+      <div class="stpi"><div class="stpn">02</div><div class="stpb"><h4 class="t" data-fr="Conception 3-5 Jours" data-en="Design 3-5 Days" data-nl="Ontwerp 3-5 Dagen">Conception 3-5 Jours</h4><p class="t" data-fr="Périodisation sur mesure, exercices adaptés, nutrition intégrée. Tout justifié." data-en="Custom periodization, adapted exercises, integrated nutrition. All justified." data-nl="Maatwerk periodisering, oefeningen, voeding.">Périodisation + exercices + nutrition.</p></div></div>
+      <div class="stpi"><div class="stpn">03</div><div class="stpb"><h4 class="t" data-fr="Livraison PDF Premium" data-en="Premium PDF Delivery" data-nl="Premium PDF Levering">Livraison PDF Premium</h4><p class="t" data-fr="Tempo · RIR · RPE · YouTube · nutrition · suivi. 100% pour toi." data-en="Tempo · RIR · RPE · YouTube · nutrition · tracking. 100% for you." data-nl="Tempo · RIR · RPE · YouTube · voeding. 100% voor jou.">Tempo · RIR · RPE · YouTube. 100% pour toi.</p></div></div>
     </div>
     <div class="pbox">
       <h3 class="t" data-fr="Tarifs" data-en="Pricing" data-nl="Tarieven">Tarifs</h3>
-      <div class="pr"><div><div class="prn t" data-fr="Programme 4 semaines" data-en="4-week program" data-nl="4 weken">Programme 4 semaines</div><div class="prs t" data-fr="1 objectif précis" data-en="1 specific goal" data-nl="1 specifiek doel">1 objectif précis</div></div><div class="prv">150€</div></div>
+      <div class="pr"><div><div class="prn t" data-fr="Programme 4 semaines" data-en="4-week program" data-nl="4 weken">Programme 4 semaines</div><div class="prs">1 objectif précis</div></div><div class="prv">150€</div></div>
       <div class="pr"><div><div class="prn t" data-fr="Programme 8 semaines" data-en="8-week program" data-nl="8 weken">Programme 8 semaines</div><div class="prs" style="color:var(--g)">⭐ Recommandé</div></div><div class="prv">220€</div></div>
       <div class="pr"><div><div class="prn t" data-fr="Programme 12 semaines" data-en="12-week program" data-nl="12 weken">Programme 12 semaines</div><div class="prs t" data-fr="Transformation complète" data-en="Complete transformation" data-nl="Volledige transformatie">Transformation complète</div></div><div class="prv">280€</div></div>
       <div class="pr"><div><div class="prn t" data-fr="+ Suivi mensuel" data-en="+ Monthly follow-up" data-nl="+ Maandelijkse opvolging">+ Suivi mensuel</div><div class="prs">Option</div></div><div class="prv">+60€</div></div>
-      <a href="/cdn-cgi/l/email-protection#c0a4afb5a4afb5a8eea3afa1a3a8a9aea780a7ada1a9aceea3afadffb3b5a2aaa5a3b4fd90b2afa7b2a1adada5e5f2f090a5b2b3afaeaea1aca9b3e583f3e581f9e5f2f0ede5f2f083afa1a3a8e5f2f0848de6a2afa4b9fd82afaeaaafb5b2e5f2f083afa1a3a8e5f2f0848de5f283e5f2f0aaa5e5f2f0b3b5a9b3e5f2f0a9aeb4e583f3e581f9b2a5b3b3e583f3e581f9e8a5e9e5f2f0b0a1b2e5f2f0b5aee5f2f0b0b2afa7b2a1adada5e5f2f0b0a5b2b3afaeaea1aca9b3e583f3e581f9eee5f2f096afa9a3a9e5f2f0ada5b3e5f2f0afa2aaa5a3b4a9a6b3e5f2f0e5f381" class="pbtn t" style="margin-top:20px" data-fr="📧 Demander Mon Programme" data-en="📧 Request My Program" data-nl="📧 Vraag Mijn Programma">📧 Demander Mon Programme</a>
+      <a href="mailto:doudouh.coaching@gmail.com?subject=Programme%20Personnalis%C3%A9%20-%20Coach%20DM" class="pbtn t" style="margin-top:20px" data-fr="📧 Demander Mon Programme" data-en="📧 Request My Program" data-nl="📧 Vraag Mijn Programma">📧 Demander Mon Programme</a>
     </div>
   </div>
 </section>
 <div class="div"></div>
 
-<!-- B2B -->
 <section class="sec" id="b2b" style="background:var(--d1)">
   <div class="tag t" data-fr="Entreprises" data-en="Corporate" data-nl="Bedrijven">Entreprises</div>
   <h2 class="ttl">COACHING<br><span class="gold">B2B</span></h2>
   <div class="b2g">
-    <div class="">
-      <div class="b2i"><div class="b2ic">🎯</div><div><h4 class="t" data-fr="Coaching Physique Entreprise" data-en="Corporate Physical Coaching" data-nl="Bedrijfs Coaching">Coaching Physique Entreprise</h4><p class="t" data-fr="Sessions de coaching physique fonctionnel pour vos équipes. Amélioration de la condition physique, de l'énergie et de la productivité de vos collaborateurs." data-en="Functional physical coaching sessions for your teams. Improved fitness, energy and productivity of your employees." data-nl="Functionele coaching voor uw teams. Betere conditie, energie en productiviteit.">Coaching physique fonctionnel. Condition + énergie + productivité.</p></div></div>
-      <div class="b2i"><div class="b2ic">🥗</div><div><h4 class="t" data-fr="Coaching Nutrition Entreprise" data-en="Corporate Nutrition Coaching" data-nl="Voedingscoaching">Coaching Nutrition Entreprise</h4><p class="t" data-fr="Accompagnement nutritionnel pratique adapté au quotidien professionnel. Conférences, plans personnalisés ou suivi collectif selon vos besoins." data-en="Practical nutritional coaching adapted to professional life. Talks, personalized plans or group follow-up based on your needs." data-nl="Praktische voedingscoaching. Lezingen, gepersonaliseerde plannen of groepsopvolging.">Nutrition pratique. Conférences · plans · suivi collectif.</p></div></div>
-      <div class="b2i"><div class="b2ic">📊</div><div><h4 class="t" data-fr="Programme Santé Entreprise" data-en="Corporate Health Program" data-nl="Bedrijfsgezondheid">Programme Santé Entreprise</h4><p class="t" data-fr="Coaching physique + nutrition intégrés dans votre politique bien-être RH. Résultats mesurables, format flexible selon vos contraintes." data-en="Physical coaching + nutrition integrated in your HR wellness policy. Measurable results, flexible format." data-nl="Coaching + voeding in uw HR welzijnsbeleid. Meetbare resultaten, flexibel formaat.">Coaching + nutrition dans votre politique RH.</p></div></div>
+    <div>
+      <div class="b2i"><div class="b2ic">🎯</div><div><h4 class="t" data-fr="Coaching Physique Entreprise" data-en="Corporate Physical Coaching" data-nl="Bedrijfs Coaching">Coaching Physique Entreprise</h4><p class="t" data-fr="Sessions coaching physique pour vos équipes. Condition + énergie + productivité." data-en="Physical coaching sessions for your teams. Fitness + energy + productivity." data-nl="Coaching voor uw teams. Conditie + energie + productiviteit.">Sessions coaching physique. Condition + énergie.</p></div></div>
+      <div class="b2i"><div class="b2ic">🥗</div><div><h4 class="t" data-fr="Coaching Nutrition Entreprise" data-en="Corporate Nutrition Coaching" data-nl="Voedingscoaching">Coaching Nutrition Entreprise</h4><p class="t" data-fr="Accompagnement nutritionnel pratique. Conférences · plans · suivi collectif." data-en="Practical nutritional coaching. Talks · plans · group follow-up." data-nl="Praktische voedingscoaching. Lezingen · plannen.">Nutrition pratique. Conférences · plans.</p></div></div>
+      <div class="b2i"><div class="b2ic">📊</div><div><h4 class="t" data-fr="Programme Santé Entreprise" data-en="Corporate Health Program" data-nl="Bedrijfsgezondheid">Programme Santé Entreprise</h4><p class="t" data-fr="Coaching + nutrition dans votre politique RH. Résultats mesurables." data-en="Coaching + nutrition in your HR policy. Measurable results." data-nl="Coaching + voeding in uw HR beleid.">Coaching + nutrition dans votre politique RH.</p></div></div>
     </div>
     <div class="b2cta">
       <h3>OFFRE B2B<br><span class="gold t" data-fr="SUR DEMANDE" data-en="ON REQUEST" data-nl="OP AANVRAAG">SUR DEMANDE</span></h3>
-      <p style="font-size:13px;color:#777;line-height:1.72;margin:13px 0 18px" class="t"
-        data-fr="Tarifs adaptés à chaque entreprise selon le nombre de participants, la fréquence et le type de prestation. Contactez-nous pour une offre personnalisée."
-        data-en="Rates adapted to each company based on participants, frequency and service type. Contact us for a personalized offer."
-        data-nl="Tarieven aangepast per bedrijf. Neem contact op voor een gepersonaliseerd aanbod.">Tarifs adaptés. Offre personnalisée sur demande.</p>
-      <a href="/cdn-cgi/l/email-protection#bedad1cbdad1cbd690ddd1dfddd6d7d0d9fed9d3dfd7d290ddd1d381cdcbdcd4dbddca83f1d8d8ccdb9b8c8efc8cfc9b8c8e939b8c8efdd1dfddd69b8c8efaf3" class="pbtn t" data-fr="📧 Demander une Offre B2B" data-en="📧 Request B2B Offer" data-nl="📧 Vraag B2B Aanbod">📧 Demander une Offre B2B</a>
-      <div class="bdg"><span style="font-size:26px">🏋️</span><div><h5>Reasfit Vilvoorde</h5><p class="t" data-fr="Affilié Hyrox Officiel · Havenstraat 72b, 1800 Vilvoorde" data-en="Official Hyrox Affiliate · Havenstraat 72b, 1800 Vilvoorde" data-nl="Officieel Hyrox-Affiliaat · Havenstraat 72b, 1800 Vilvoorde">Affilié Hyrox Officiel · Havenstraat 72b, 1800 Vilvoorde</p></div></div>
+      <p style="font-size:13px;color:#777;line-height:1.72;margin:13px 0 18px" class="t" data-fr="Tarifs adaptés selon participants, fréquence et prestation." data-en="Rates adapted per company." data-nl="Tarieven op maat.">Tarifs adaptés sur demande.</p>
+      <a href="mailto:doudouh.coaching@gmail.com?subject=Offre%20B2B%20-%20Coach%20DM" class="pbtn t" data-fr="📧 Demander une Offre B2B" data-en="📧 Request B2B Offer" data-nl="📧 Vraag B2B Aanbod">📧 Demander une Offre B2B</a>
+      <div class="bdg"><span style="font-size:26px">🏋️</span><div><h5>Reasfit Vilvoorde</h5><p>Affilié Hyrox Officiel · Havenstraat 72b, 1800 Vilvoorde</p></div></div>
     </div>
   </div>
 </section>
 <div class="div"></div>
 
-<!-- CONTACT -->
 <section class="sec" id="contact" style="background:var(--d2)">
   <div class="tag">Contact</div>
   <h2 class="ttl t" data-fr="DÉMARRONS<br><span class='gold'>ENSEMBLE</span>" data-en="LET'S START<br><span class='gold'>TOGETHER</span>" data-nl="LATEN WE<br><span class='gold'>BEGINNEN</span>">DÉMARRONS<br><span class="gold">ENSEMBLE</span></h2>
   <div class="cog">
     <form class="cf" onsubmit="hForm(event)">
-      <input type="text" id="f-name" placeholder="Nom / Name / Naam *" required>
-      <input type="email" id="f-email" placeholder="Email *" required>
-      <input type="tel" id="f-tel" placeholder="Téléphone / Phone / Telefoon">
-      <select id="f-type" required>
+      <input type="text" id="fn" placeholder="Nom / Name / Naam *" required>
+      <input type="email" id="fe" placeholder="Email *" required>
+      <input type="tel" id="ft" placeholder="Téléphone / Phone / Telefoon">
+      <select id="fs" required>
         <option value="" disabled selected>Type de demande *</option>
         <option>Personal Training 1-1 (120€/50min)</option>
         <option>Small Group (30€/pers/50min)</option>
@@ -749,47 +502,28 @@ footer{background:var(--d1);border-top:1px solid rgba(201,168,76,.1);padding:38p
         <option>B2B / Coaching Entreprise</option>
         <option>Question / Information</option>
       </select>
-      <textarea id="f-msg" placeholder="Décris tes objectifs / Describe your goals / Beschrijf je doelen..."></textarea>
+      <textarea id="fm" placeholder="Décris tes objectifs..."></textarea>
       <button type="submit" class="csb t" data-fr="📧 Envoyer le Message →" data-en="📧 Send Message →" data-nl="📧 Stuur Bericht →">📧 Envoyer le Message →</button>
       <p id="fmsg" style="margin-top:9px;font-size:12px;color:var(--g);display:none"></p>
     </form>
     <div class="ci">
       <div class="cic"><h4>📍 Localisation</h4><p>Reasfit Vilvoorde<br>Havenstraat 72b<br>1800 Vilvoorde, Belgique</p></div>
       <div class="cic"><h4>🌐 Website</h4><p>coachdm.be</p></div>
-      <div class="cic"><h4>⏰ <span class="t" data-fr="Réponse sous 48h" data-en="Reply within 48h" data-nl="Antwoord binnen 48u">Réponse sous 48h</span></h4><p class="t" data-fr="Coach DM répond personnellement à chaque message." data-en="Coach DM personally replies to every message." data-nl="Coach DM antwoordt persoonlijk op elk bericht.">Coach DM répond personnellement.</p></div>
-      <div class="payhip-info">
-        <h5>🛒 Payhip — <span class="t" data-fr="Paiement Sécurisé" data-en="Secure Payment" data-nl="Veilige Betaling">Paiement Sécurisé</span></h5>
-        <p class="t"
-          data-fr="Visa · Mastercard · Amex — sans compte requis. PDF téléchargeable immédiatement après paiement. Livraison automatique par email."
-          data-en="Visa · Mastercard · Amex — no account required. PDF downloadable immediately. Automatic email delivery."
-          data-nl="Visa · Mastercard · Amex — geen account nodig. PDF direct downloadbaar. Automatische levering per email.">Visa · Mastercard · Amex — sans compte. PDF livré automatiquement.</p>
-      </div>
+      <div class="cic"><h4>⏰ <span class="t" data-fr="Réponse sous 48h" data-en="Reply within 48h" data-nl="Antwoord binnen 48u">Réponse sous 48h</span></h4><p class="t" data-fr="Coach DM répond personnellement." data-en="Coach DM personally replies." data-nl="Coach DM antwoordt persoonlijk.">Coach DM répond personnellement.</p></div>
+      <div class="payhip-info"><h5>🛒 Payhip — Paiement Sécurisé</h5><p class="t" data-fr="Visa · Mastercard · Amex — sans compte. PDF livré automatiquement." data-en="Visa · Mastercard · Amex — no account. PDF auto-delivered." data-nl="Visa · Mastercard · Amex — geen account. PDF automatisch.">Visa · Mastercard · Amex — sans compte.</p></div>
     </div>
   </div>
 </section>
 
-<!-- FOOTER -->
 <footer>
-  <div class="fb2"><img src="data:image/jpeg;base64,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" alt="Coach DM"><div><h3>COACH DM</h3><p>Power · Transform · Excel · coachdm.be</p></div></div>
-  <div class="fl">
-    <a href="#about" class="t" data-fr="À Propos" data-en="About" data-nl="Over">À Propos</a>
-    <a href="#services">Services</a>
-    <a href="#programmes">Programmes</a>
-    <a href="#football">Football</a>
-    <a href="#contact">Contact</a>
-  </div>
+  <div class="fb2"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCACMAIwDASIAAhEBAxEB/8QAHAAAAQUBAQEAAAAAAAAAAAAAAwECBAUGAAcI/8QAOhAAAQMDBAAFAgQFAgUFAAAAAQIDBAAFEQYSITEHEyJBURRhMkJxgQgVI5GhNLEWQ1LB0SRkk6LS/8QAGQEBAAMBAQAAAAAAAAAAAAAAAAECAwQF/8QAKxEAAgIBAwIDCQEBAAAAAAAAAAECEQMSITFBUQRxsRMUIjJhkaHB8EKB/9oADAMBAAIRAxEAPwD5WA5wBxT0jjnumjg0ZA5oAzIOKlITkZoDaeqlNAZxUMBm0AgVIbR7U1tOaloRnArMkahHsBUhLYPftTm2sc4zmpKG8+1SCOlrihqax75qwDXGOqaprg8VAKxTfeKG4181YLaA9uqju46oCvcRgVEcRyTVi8nmobyeTUogguJyTUdQI9sVNWgCo7g75q6BEI9VMUAT1RlihE88UA9Iyev3ozY5oaM5o7Y6oCQ0no1IaTzz1QW+sVIQc8UBLa/xUtlScZJBxVzp21NQ9GXDWMmCi4FiU3Eix3eWgtXJccA/EBwAOiTzUe9alkaigw2ptohRrhDSplD8JoNIeZPqSlTaRjcklXqHYP2rnWS5NRWyLuNLc1MjTFm01bLVcNdXG4xHLqz9TGgW6Olx9LGcB1wrISnPsnk/OKtdeeHzdh0zatX2G7pvembqB9PLDXluNqIPocTzg8EfqCOK1PjtHa1poTSXiTp1v6uEiCmDPDKdxjKGCAoDrCt6T+3zUS3zzbP4YDpu5J2TL1eyqzx3jsUWgpClujdjCNwUNx4yqs4TbSk2S1vSGfw/6KsGqpE1Go1JT9YhyFaElZSVyg2XFKGO9iADg8eqvPP5Jc16j/4daircuZlfSBgDku7tuP71u7jqWRoS9aQs9ltWmb2bW23IRcTIDhEp5f8A6jatKwlGOEZUOk56rYaquWkrD/EVZteRLxa5djmvgTFsSULMV9SFIKlAHIHIVu67qynvY0nnviFpHRWgpbNj1Jqi5SL+ppLslq2Q0OMxAoZAUVqBUffAxx+orF6w049Yr3GtrUyNdDMjsyYrkXcfNbeGW8pIyFEYO32zWl8XLFf5fjFfm/5bLmy7pcFOQ1NNFYkNLx5RQocKTt2jI4GKD4P6Rlan8Rym9vKXb7EA7PcccCkpQz6UNbhxtynHH5Umo1aY62wlbpI8+koWy8th5tbTrailaFpKVJI7BB5BqE7wa9Y1mm8+InjMY8q2+TaH3FKiyGUJG6KlOPO81IIXng4yeSE8V5xqu2xrPfJVui3Ri5IjuKbLraSnCgcEEH3H2JFWxZlOk+asTg1v0KZ33qK4KkuKGKjLrpRmRlgA4IoSsZoy8ZoSu+qkD0nmpDY4qOkDPVSEnHAoCQjr70Zo1HbVxiitmoB6J4V6vsUCFdNH6w3N2W6jKJAHDDmADnHXSSD7EfepUO36b0TqGJqJesbZfWITwfhQ4KVF6UscoS5xtQnONxyeMgDmvNFoQ4nC0gj71tvDHw/RqFmTfbxPRYtLW/mbcnBySP8AltA/iX/gZ9zxXHkxRxtz1UnyjaMnKlXBH0ZcNZRNROt6Fm3OJKnuFSodt3FK8nrYMjA659q9OHg1re6SF37xD1NbLM88gAuXacFPbfgJBOP0zVSjxGvT0OXpnwJ0u9abXHSDKuKEBc6SOgpSz0VY4SMqPsPaqLSOk42p59iuGqL3ebkm7NSnZDylKSzHU2VJSlb/AKyFFSRlO3pacZqLb3qvUj6XZr4/hl4XQW1xpPjNZ0LV2lmIpaf77qAz4NaWn+YjS3itpSe4oY8mQssFX25Jqvt+i9DMrtMaRb2pBE5bDrrtzSlcj/UhQWgOAANBEdfoKSoOHBJIqpd0PpQ6ei3J5lcRLVvkvPORrmFGW+Xktx0tkpUAhW8BJwCSlSVAEZpqfcV9CZqrTnjJ4eWQw1zb3GsW0hL8GSXowSfhaD6R+uKpLb4juW7w3u2iINnYgKuaUBy5RlEuPdBQcyfzJyMpxjJ45qxiXrXPheHn9O63TKisz3IC7ZLClIkrbCPN2tqylaEqXtJBByP7WS4mjvFjz/5LBZ0brxsFTtqV6YdwUPxeXn8C/t/cHuqtxSua27r9kq29nuBs8xjw68H5UuFdmZ13vD5Yjojv+Y1FODyPhQGVHgc7R7V5IlAbRjtR5UT2T80WdCl224ybfOZfhyWXNsiM5kYWPkfI9j96Eo/Fb4cShcrtsrOd0uwNf96C6cj70RZzQln5GTXQjMAoUJeN3dEczxigqHPVSAwPxRUEe9AT3RE4JoCQB7iitZoaTwPiiJUKgGi0Jp17VGo2bYHfp4yUl6W+emWU8qV+vsPua0uoLi54iXdjTtmcFq0bZ/6EBo+lt54ghvzFZASp1QIClEAZP5jg1iJK7B4UupYUG52opHlFzOCmMjsZ9gf+9EuLU7SlkjAfy51oNLahyoju1bpcP9RDratyJDKsDPuBtIx1XA28mRy7bL9s6K0xr7ltJ1ZYrLCt6LXEU9OhJVHTBIUhPlhzcWpCgUlLjTqd6XUp3ODy1EpwoVi5Ey4Svq0Oz5CI8yQZb8VpxSGFPHPr2A4yMkD4FaG1+GHiLdozd2i6fkT25aQ6mQmS0vzQffJXk/vzVs14M+KK05GkJf8A8zX/AO61hLFH/Rm1J9Dz0Q4qgpKmkkFISeOwOhT2mEx3xIjqUy6laXEqQcEKT+E/qDyK1118N9eWiRHZummpcH6lYbadfUhDJWeklwq2An2BIzQtY+H+tNIW9udqWwyLfGdd8lDi1oUCvBOPSo+wNaa4PZMppaKqzXwwr1bble0vXJi2NrEVpISShZUtwLIOAs+aveQo+rGCaZeUW5TVviWSW9etSF9U167Q/M3ndkhG087wcKJwNpyMn2g2yFOu90YtdsiuS5slexllsZUtXwP/ADWsjaR1dpmLIRe9LyotvkrAkPJcBLpwUtMKCF7i2p1SSoJ5OAOhVMrhFrffsXimydeJA8StHv3V9jy9aaebCZ6QnCp0YcbyP+pPP+R7ivMNwKcjojutjbp8rTGp7XqNBs7e1wQrgzbXt7YOPWkgDaPSRwkkZT3mqjXlsZs+rZ8Jj/TKX50fHQbXyB+3I/aqeHeiXs+nK/aLZFqWrr1KAnJIxQ15zRVGguV2mIJXf3oau+6Io00/pQDRREGhA809FQgSUGnqUAk/PtQUGnKOBkngUYN5qN1ab/pu3MOMI+hgJU2HUhSFLIJxgkAk4A7HPvVHqRJYMGOq1xLa4Wi89HjrJCVq9OCMkDASCOelZ96brbdLnxXFJKvMjJCQBnOFGqx63zLaENyYT8VTo3IDrZQVD5Ga5PDRWmLbN80viaPYP4e7n4l2W3y3dPWJm/WF51SUx5E5DHkvjBKkFXODnkYwT961N0/iWvdiu8q03HQsdEuI6Wnkt3LelKh2NyU4P7VR6Dv8yw2SDaISCfKGVcgblk5V/mvP2NC6uu11dk3CGmGJTynXnnHkKI3KJOEpJJPPVcEHiy5JyyJJG8lKEYqO7PtHSl9t/iB4cRLhOt2y33uEfPhyAFYQrKVJPsRwSD+hrxXWS5t3/g/hPXB9yTIty0ONPOK3LcZbkLaQpR9z5ZHNRtQ6wvun9ELtkCK4ykRDDgNp/Eohsjj9EgqJ9sE1D0bqq7S/Dy0R2YTb0FMNtrYUZQdmB11+JOf1rmjknFa1xZq8ab09aLvwH0SjSVj/AOILuyE3y4NehCx6orB5CfstXBV8DA+azP8AE/qBZsdutDLpSuVK85ZScEJbGR/9iP7VGa11d7xPuEht8rjw1CMlYOQt0+pwg++BtGfua8x8SLpIu2pEfVLKvpmAjB9io7j/ALitsGOeXxSnk8yuSUYYaidd31zbG+t6PpphxbfnrVHk+bLdOU4KiSVbsbsgkd9cU/XjolQNPXBWS45bw24fkpxj/c1TXGdd0YamWyGyXWh/XXb0oeW2Rwd+Ocj83f3qZqdxRtFlYP8AymOv1A/816CTWSHm/Q5bTjL/AIURP3oS1U/2oSq7jAao+9CUST3TlGhqIzUAenunpoQpwNSA6Saco5SRQUmithTi0ttpUtaiAlKRkknoAUBoXZshuyWy+RV4kW90Akp3bfbke/I/zVnJjo/kjVyEZa48SUX2UGV5jshJOXMJAwn8isdgA56ql0fJjpnvWW5JUmNPBaOeChzr36P/AHAqRbkv6ev6rZcH0xno6T5Uwq5Wz2EIUeG0EbidoKlZKe64K0tw/qOi7qX9Zf2nxMtkNQUrTkt3H/uEjP8AitQ148wYkUpt2h0qk49KpMvKAfuEpBP9680vtnS2n6+3tKMJzlKSMKSD0QnsJI9QB5Axn2JpQRjioj4Hw896JfiMsdrPVo3jHEVDubt1005ctQz4TsNuauQlLEJDiSClhoJ9KeeTkqVjk44qhtHiPNs/hbJ0NBghEp6QtQuW/ltheNyEpx+InPqzwCaw4wFfelVgnNb+6Yqqv5GXtZ82bbS+vbPp3STNhXp1+S6l1brkhEgJCio+wI4wAB+1ZuA25ftRqX5K1fVPl1bYPIbzkjgfHGcVDgwJdwkfTworkh3aVlKBnakDJUT7ADsmtOiFH09a3nZZ3lTaXmpbQK2JKDjDYBxgg+oKSUqIOR1iquEMUm4/MyylKaSfCHasl3WQ8xYnZbzglPhZaW0ULCf+pRB2LHwRn8PftVFqmSHrsGk42MICAB9+cf2xVvbQuJbJer7skhb6PLhNLOVKB4znjJPWeyNxrHeYpxxbrq9zriitR+5qMMbltwvUnI6XmPUfvTCc127nmmKJrsMBF90JQBNOUcmmn7CoB2eeKWmgn4p2T+1SAyeqvdITnm7izCh21h199SkrfU4pDiE7fyqH4MYJyBk9Vn0qojbrrSw404tp1JylaDgpPyD7VScdUaJi6dmi1dblSA5d2BLUt1anpAeaDZCSoBDgTncAok4CvUcE1Y2q4W3WNtasOoH0xrkzxCmkfiz7H5z7j37HPcPTWoGGITkMMSpd0kOYHqKnZLi/Tu8w/gATxnk8nFCm2GFcnHG7StoSWAPOCVAR3FnOENe6VDaobVdhOc81yyVqpbNcM2+q3T6Fk/PuulpiEakgy3FNJV9HKjOYRIWVcqUo+5T6CRhQTkY+B2236fnWFQKH3LjEimTKcjkpSVuKw23n1DgqH5RjBBPPAtMeId0tLAt91jMXy2kbSxKAKtvwCQc/uD+orSR2fBnURLibjddJS18lIypoH4AO4Y/cVnJyh8yfmiyqXD+5WStCRk3WRb413fddZdjIUAwlW1LhwpZIIBAynG3PKkg4zmiR9F21McThcXpDbclgrYeAZUWHFMnKsZwQl7CsHgjPRrQN+H1hdYLcPxtgiK4pK1JdOMlH4CQHOx7UKdozw3jPLk6k8W3bm4tZW6mIjcpwnsk5WegB+wqnvF7W/syfZ10/Jib6LfbpTLthvDX1kV3Y0I4US+jduQskcZGdiknklPXNXEPS5jRU3/Wh/l1qaUpyNayTklR3bdvaU5JIT+I59hk1ZL13oTSgWjQOlfOl4KRcrgSVj7jPI/bbWBu1xuupL3Ge1DcVID6wEOupIaaQTjclI/L9x8d1rFTmuy/JR6Yvv6Em93O46vvqGozKUMoCvpmCsIShKRkqUehwOT0AMCrFpmGLUfJabuVrY/1re5KJEVwAb3AvOAVHhKRuSoAe9KwmJaXbhZvXb5sJQltz1bXd6UnGFtgnAKV8pBORzgms1dJjctTbceHGhNMhSCIxVsdyrcTzzjPQPVaRjfwx2SIk63fIlwfjyJr78SMIzC1lTbIJIQn2GTUZZOK7rrqhqVmutKjEQ56pD33XE/FITmgOB5pQeeeqHnmnjvNAPBp+aEDTgaAJzu3pJSsdKBwRVmxqC4MwJELcpS31BSnQohSyVArKz2cpAT9hn5qpz+1OyPaqyjGXJKbXBtdNSIciMxbRHhoYuc1T8phX9UQ4zScqIJypJVzg5zgCmXrTEBbGobjEZejsWxCUJQgqU0ZAwXUhShu2AKGM85NYsg5O1RSVcZBxVgi9XhDDkdVwdcZdbWhxtZ3JUFkKUTnskpHPfFYPFJO4svri1TRqZHh22zeo9vduu1MhLq2lJj71ubG0KIQkK9SsrUNuc+g9nigQdIW36S2zpMqe8xKjSJLnksoQFBlKyW0KUSd52e6QAD88VXJ1le1yYsiS3AlqiOPOMpejhSQp1YWo/YhQBGMYqC7fLsuXEmJk+VKhlamHkJAUCtalqz8+pSuOsHFQoZerJbx9EbFuz2S1WyVLixm58y3yg835pKlSGsNvJGz8BBZUrI7ynI6NV2s7vaA0xFtC2lOREuNMhbYdSGHSolIJyBtBSUnsbiOxWUmzJ86S9Ily3XHX3PMdOcBSsYBwOOBwPgcVHCEp6FWjgd3Jh5FVJEydcrjPixoUx8LjxU7WgEAE8YyojlRwAMn2AqNgJGB0KQmm5+K3SS4Mm7OVjmmHqlUab71IErsikVn35pDz80Bw5Nd71wpAfVQDweqd2aGDSg80AQk9U4UwGlBoB+a7PvTc/wC1cKgCppSabmuJ4oBQaXJ7porqAU9U3OKWmnugOJppPxSKJpKkHHI+4pM0iia4E4oD/9k=" alt="Coach DM"><div><h3>COACH DM</h3><p>Power · Transform · Excel · coachdm.be</p></div></div>
+  <div class="fl"><a href="#about" class="t" data-fr="À Propos" data-en="About" data-nl="Over">À Propos</a><a href="#services">Services</a><a href="#programmes">Programmes</a><a href="#football">Football</a><a href="#contact">Contact</a></div>
   <div class="fc"><p>© 2025 Coach DM — coachdm.be</p><p style="margin-top:2px;font-size:10px;color:#444">NASM · PES · CES · Ereps Level 4 · CrossFit L3 CCFT</p></div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js">
-// Initialisation
-renderP();
-document.addEventListener('DOMContentLoaded', function() { renderP(); });
-</script><script>
+<script>
 var lang = 'fr';
 var curFilt = 'all';
-var CATS = {perte:'🔥 PERTE DE POIDS',force:'💪 FORCE',crossfit:'⚡ FITNESS FONCTIONNEL',sport:'🏃 SPORT',voyage:'✈️ VOYAGE / MAISON',perso:'⭐ SUR MESURE'};
-var PROGS = [{"id": "MPHyz", "cat": "perte", "t": "FAT BURNER 10W", "d": {"fr": "Perte de graisse intensive. 5 séances/sem. 4 phases progressives. Test final semaine 10.", "en": "Intensive fat loss. 5 sessions/week. 4 progressive phases. Final test week 10.", "nl": "Intensief vetverlies. 5 sessies/week. 4 progressieve fasen. Eindtest week 10."}, "tags": ["10 Sem", "5x/Sem", "MetCon+HIIT"], "price": "29.99€"}, {"id": "oFbCE", "cat": "perte", "t": "BODY TRANSFORMATION 12W", "d": {"fr": "Recomposition corporelle DUP. Perte de graisses + gains musculaires. Test 1RM semaines 1 et 12.", "en": "DUP body recomposition. Fat loss + muscle gain. 1RM test weeks 1 & 12.", "nl": "DUP lichaamsrecompositie. Vetverlies + spiermassa. 1RM test weken 1 & 12."}, "tags": ["12 Sem", "DUP", "1RM Test"], "price": "34.99€"}, {"id": "5Oo2i", "cat": "sport", "t": "FOOTBALL PERFORMANCE 16W", "d": {"fr": "Pré-saison (6 sem) + En Saison (10 sem). Sprint · COD · Explosivité · Prévention LCA. NASM PES.", "en": "Pre-season (6 wks) + In-Season (10 wks). Sprint · COD · Explosiveness · ACL prevention. NASM PES.", "nl": "Preseason (6 wk) + In Seizoen (10 wk). Sprint · COD · Explosiviteit · LCA preventie. NASM PES."}, "tags": ["16 Sem", "Pré-Saison", "NASM PES"], "price": "39.99€"}, {"id": "7pBc3", "cat": "crossfit", "t": "OPEN SEASON 8W", "d": {"fr": "Préparation compétition. Skills · pacing · peaking. Coach certifié CF Level 3.", "en": "Competition prep. Skills · pacing · peaking. CrossFit Level 3 certified coach.", "nl": "Competitie voorbereiding. Skills · pacing · peaking. CF Level 3 coach."}, "tags": ["8 Sem", "Skills+Pacing", "CF L3"], "price": "34.99€"}, {"id": "uK1IG", "cat": "crossfit", "t": "HYROX RACE 12W", "d": {"fr": "Préparation course Hyrox complète. 8 stations + 8km de course. Reasfit affilié Hyrox officiel.", "en": "Complete Hyrox race preparation. 8 stations + 8km run. Reasfit official Hyrox affiliate.", "nl": "Complete Hyrox race voorbereiding. 8 stations + 8km lopen. Reasfit officieel Hyrox-affiliaat."}, "tags": ["12 Sem", "8 Stations", "Reasfit"], "price": "34.99€"}, {"id": "0IgWv", "cat": "crossfit", "t": "GYMNASTICS SKILLS 8W", "d": {"fr": "Muscle Up · HSPU · Toes-to-Bar · Handstand Walk. Progressions détaillées + liens YouTube.", "en": "Muscle Up · HSPU · Toes-to-Bar · Handstand Walk. Detailed progressions + YouTube links.", "nl": "Muscle Up · HSPU · Toes-to-Bar · Handstand Walk. Gedetailleerde progressies + YouTube."}, "tags": ["8 Sem", "MU+HSPU", "T2B"], "price": "29.99€"}, {"id": "H4YDB", "cat": "crossfit", "t": "OLYMPIC LIFTING 10W", "d": {"fr": "Snatch & Clean & Jerk. Technique + force. Test PR semaines 5 et 10.", "en": "Snatch & Clean & Jerk. Technique + strength. PR test weeks 5 and 10.", "nl": "Snatch & Clean & Jerk. Techniek + kracht. PR test weken 5 en 10."}, "tags": ["10 Sem", "Snatch", "C&J"], "price": "34.99€"}, {"id": "i2byn", "cat": "voyage", "t": "BODYWEIGHT WARRIOR 8W", "d": {"fr": "Zéro équipement. Hôtel · plage · maison · partout. 3 niveaux par exercice.", "en": "Zero equipment. Hotel · beach · home · anywhere. 3 levels per exercise.", "nl": "Nul uitrusting. Hotel · strand · thuis · overal. 3 niveaus per oefening."}, "tags": ["8 Sem", "0 Équip", "Hôtel+Home"], "price": "24.99€"}, {"id": "eRJxv", "cat": "sport", "t": "ENDURANCE ATHLETE 8W", "d": {"fr": "Zone 2 + VO2max + Seuil lactique. Moteur cardiovasculaire complet. Multi-machines.", "en": "Zone 2 + VO2max + Lactate threshold. Complete cardiovascular engine. Multi-equipment.", "nl": "Zone 2 + VO2max + Lactaatdrempel. Volledig cardiovasculair systeem. Multi-materiaal."}, "tags": ["8 Sem", "Zone2+VO2max", "Seuil"], "price": "27.99€"}, {"id": "UtnrG", "cat": "perte", "t": "SUMMER BODY BURN 8W", "d": {"fr": "Définition + tonus musculaire. MetCon + Hypertrophie. Corps d'été garanti.", "en": "Definition + muscle tone. MetCon + Hypertrophy. Summer body guaranteed.", "nl": "Definitie + spierspanning. MetCon + Hypertrofie. Zomerbody gegarandeerd."}, "tags": ["8 Sem", "Définition", "MetCon+Hyp"], "price": "29.99€"}, {"id": "mUZMk", "cat": "force", "t": "CORE MASTER 6W", "d": {"fr": "Gainage 360°. Force spinale complète. Stabilité tous plans anatomiques.", "en": "360° core. Complete spinal strength. Stability in all anatomical planes.", "nl": "360° core. Volledige ruggengraatkracht. Stabiliteit in alle anatomische vlakken."}, "tags": ["6 Sem", "Core 360°", "Stabilité"], "price": "22.99€"}, {"id": "Z9gHi", "cat": "sport", "t": "ATHLETE MIND 12W", "d": {"fr": "Performance athlétique complète. 3 phases. Adapté à tous les sports.", "en": "Complete athletic performance. 3 phases. Adapted to all sports.", "nl": "Volledige atletische prestaties. 3 fasen. Geschikt voor alle sporten."}, "tags": ["12 Sem", "Performance", "3 Phases"], "price": "34.99€"}, {"id": "B3TaF", "cat": "crossfit", "t": "HYROX FOUNDATION 6W", "d": {"fr": "Introduction Hyrox pour débutants. Bases solides avant la compétition. Reasfit affilié Hyrox.", "en": "Hyrox introduction for beginners. Solid foundations before competition. Reasfit Hyrox affiliate.", "nl": "Hyrox introductie voor beginners. Stevige basis voor competitie. Reasfit Hyrox-affiliaat."}, "tags": ["6 Sem", "Hyrox Débutant", "Reasfit"], "price": "27.99€"}, {"id": "CA2jG", "cat": "crossfit", "t": "FUNCTIONAL PERFORMANCE 12W", "d": {"fr": "Performance fonctionnelle complète. 4 phases. Force + puissance + endurance.", "en": "Complete functional performance. 4 phases. Strength + power + endurance.", "nl": "Volledige functionele prestaties. 4 fasen. Kracht + vermogen + uithouding."}, "tags": ["12 Sem", "Fonctionnel", "4 Phases"], "price": "34.99€"}, {"id": "KxkEy", "cat": "force", "t": "MIND & BODY 8W", "d": {"fr": "Fitness + bien-être. Mobilité + santé durable. Approche complète corps et esprit.", "en": "Fitness + wellness. Mobility + lasting health. Complete body and mind approach.", "nl": "Fitness + welzijn. Mobiliteit + duurzame gezondheid. Volledig lichaam en geest."}, "tags": ["8 Sem", "Bien-être", "Mobilité"], "price": "24.99€"}, {"id": "U8nek", "cat": "crossfit", "t": "COMPETE READY 16W", "d": {"fr": "Préparation compétition complète. 4 phases. Peaking + Taper. Pour gagner.", "en": "Complete competition preparation. 4 phases. Peaking + Taper. To win.", "nl": "Complete competitie voorbereiding. 4 fasen. Peaking + Taper. Om te winnen."}, "tags": ["16 Sem", "Compétition", "4 Phases+Taper"], "price": "44.99€"}, {"id": "4cmRD", "cat": "force", "t": "BULLETPROOF BODY 6W", "d": {"fr": "Prévention blessures + mobilité fonctionnelle. Certifié NASM CES. Entraîne-toi sans douleur.", "en": "Injury prevention + functional mobility. NASM CES certified. Train pain-free.", "nl": "Blessurepreventie + functionele mobiliteit. NASM CES gecertificeerd. Pijnvrij trainen."}, "tags": ["6 Sem", "Prévention", "NASM CES"], "price": "24.99€"}, {"id": "0s3JV", "cat": "voyage", "t": "FIT EN VACANCES 4W", "d": {"fr": "Salle hôtel OU extérieur. 30-40 min par séance. Progresser partout sans contrainte.", "en": "Hotel gym OR outdoor. 30-40 min per session. Progress anywhere without constraints.", "nl": "Hotelgym OF buiten. 30-40 min per sessie. Overal vooruitgang zonder beperkingen."}, "tags": ["4 Sem", "Hôtel+Outdoor", "30-40min"], "price": "19.99€"}, {"id": "R0Fgt", "cat": "perte", "t": "SHRED 6W", "d": {"fr": "Perte de poids rapide et intensive. Max 45 min. EMOM + Tabata. Résultats visibles.", "en": "Fast and intensive fat loss. Max 45 min. EMOM + Tabata. Visible results.", "nl": "Snel en intensief vetverlies. Max 45 min. EMOM + Tabata. Zichtbare resultaten."}, "tags": ["6 Sem", "Max 45min", "EMOM+Tabata"], "price": "24.99€"}, {"id": "v5x2N", "cat": "sport", "t": "EXPLOSIVE POWER 6W", "d": {"fr": "Plyométrie + haltérophilie + sprint. Sauter plus haut, sprinter plus vite, réagir plus fort.", "en": "Plyometrics + weightlifting + sprint. Jump higher, sprint faster, react stronger.", "nl": "Plyometrie + gewichtheffen + sprint. Hoger springen, sneller sprinten, sterker reageren."}, "tags": ["6 Sem", "Plyométrie", "Sprint"], "price": "27.99€"}, {"id": "contact", "cat": "perso", "t": "PROGRAMME PERSONNALISÉ", "d": {"fr": "100% sur mesure. Consultation dédiée 30-60 min. Tes objectifs, ton niveau, ton matériel. PDF premium livré sous 3-5 jours.", "en": "100% custom. Dedicated 30-60 min consultation. Your goals, your level, your equipment. Premium PDF delivered in 3-5 days.", "nl": "100% op maat. Toegewijde consultatie 30-60 min. Jouw doelen, jouw niveau, jouw materiaal. Premium PDF geleverd in 3-5 dagen."}, "tags": ["Sur Demande", "100% Perso", "Consultation"], "price": "150-280€"}];
 
 function setL(l) {
   lang = l;
@@ -802,14 +536,25 @@ function setL(l) {
     var v = els[j].getAttribute('data-' + l);
     if (v) els[j].innerHTML = v;
   }
-  renderP();
+  // Update programme descriptions
+  var cards = document.querySelectorAll('.pgc');
+  for (var k = 0; k < cards.length; k++) {
+    var d = cards[k].querySelector('.pdes');
+    if (d) {
+      var txt = d.getAttribute('data-' + l);
+      if (txt) d.textContent = txt;
+    }
+    var btn = cards[k].querySelector('.pbtn');
+    if (btn && btn.getAttribute('data-' + l)) btn.textContent = btn.getAttribute('data-' + l);
+  }
+  // Update filter display
+  filt(curFilt);
 }
 
 function toggleM() {
   var m = document.getElementById('mob');
   m.style.display = m.style.display === 'block' ? 'none' : 'block';
 }
-
 function closeMob() { document.getElementById('mob').style.display = 'none'; }
 
 function filt(cat) {
@@ -819,61 +564,50 @@ function filt(cat) {
     var oc = btns[i].getAttribute('onclick') || '';
     btns[i].classList.toggle('on', oc.indexOf("'" + cat + "'") > -1);
   }
-  renderP();
-}
-
-function renderP() {
-  var grid = document.getElementById('pgrid');
-  if (!grid) return;
-  var list = [];
-  for (var i = 0; i < PROGS.length; i++) {
-    if (curFilt === 'all' || PROGS[i].cat === curFilt) list.push(PROGS[i]);
+  var cards = document.querySelectorAll('.pgc');
+  for (var j = 0; j < cards.length; j++) {
+    var c = cards[j].getAttribute('data-cat');
+    cards[j].style.display = (cat === 'all' || c === cat) ? '' : 'none';
   }
-  var out = '';
-  for (var j = 0; j < list.length; j++) {
-    var p = list[j];
-    var d = p.d[lang] || p.d.fr;
-    var tags = '';
-    for (var k = 0; k < p.tags.length; k++) {
-      tags += '<span class="ptag">' + p.tags[k] + '</span>';
-    }
-    var btn = '';
-    if (p.id === 'contact') {
-      btn = '<a href="mailto:doudouh.coaching@gmail.com?subject=Programme%20Personnalis%C3%A9%20-%20Coach%20DM" class="pbtn t" data-fr="📧 Demander Mon Programme" data-en="📧 Request My Program" data-nl="📧 Vraag Mijn Programma">📧 Demander Mon Programme</a>';
-    } else {
-      var btnTxt = {fr:'💳 Acheter — ' + p.price, en:'💳 Buy — ' + p.price, nl:'💳 Kopen — ' + p.price};
-      btn = '<a href="https://payhip.com/b/' + p.id + '" target="_blank" class="pbtn">' + btnTxt[lang] + '</a>';
-    }
-    out += '<div class="pgc">'
-      + '<div class="pcat">' + (CATS[p.cat] || p.cat) + '</div>'
-      + '<h3 class="ptit">' + p.t + '</h3>'
-      + '<p class="pdes">' + d + '</p>'
-      + '<div class="ptags">' + tags + '</div>'
-      + '<div class="ppr">' + p.price + '</div>'
-      + '<div class="plg">🇫🇷 FR · 🇬🇧 EN · 🇳🇱 NL · YouTube ✓</div>'
-      + btn + '</div>';
-  }
-  grid.innerHTML = out;
 }
 
 function hForm(e) {
   e.preventDefault();
-  var name = document.getElementById('f-name').value;
-  var email = document.getElementById('f-email').value;
-  var tel = document.getElementById('f-tel').value;
-  var type = document.getElementById('f-type').value;
-  var msg = document.getElementById('f-msg').value;
-  var subject = encodeURIComponent('Contact Coach DM — ' + type);
-  var body = encodeURIComponent('Nom: ' + name + '\nEmail: ' + email + '\nTél: ' + tel + '\nDemande: ' + type + '\n\nMessage:\n' + msg);
-  window.location.href = 'mailto:doudouh.coaching@gmail.com?subject=' + subject + '&body=' + body;
-  var m = document.getElementById('fmsg');
-  m.style.display = 'block';
-  var msgs = {fr:'✓ Email ouvert. Envoie le message depuis ton application mail.',en:'✓ Email opened. Send the message from your mail app.',nl:'✓ Email geopend. Stuur het bericht vanuit je mailapp.'};
-  m.textContent = msgs[lang] || msgs.fr;
-  setTimeout(function() { m.style.display = 'none'; }, 7000);
+  var n = document.getElementById('fn').value;
+  var em = document.getElementById('fe').value;
+  var t = document.getElementById('ft').value;
+  var s = document.getElementById('fs').value;
+  var m = document.getElementById('fm').value;
+  var sub = encodeURIComponent('Contact Coach DM — ' + s);
+  var body = encodeURIComponent('Nom: ' + n + '\nEmail: ' + em + '\nTél: ' + t + '\nDemande: ' + s + '\n\nMessage:\n' + m);
+  window.location.href = 'mailto:doudouh.coaching@gmail.com?subject=' + sub + '&body=' + body;
+  var msg = document.getElementById('fmsg');
+  msg.style.display = 'block';
+  msg.textContent = '✓ Email ouvert. Envoie le message depuis ton application mail.';
+  setTimeout(function() { msg.style.display = 'none'; }, 6000);
 }
 
+// Progress bar
 window.addEventListener('scroll', function() {
   var st = window.scrollY || document.documentElement.scrollTop;
   var dh = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-  var pb = document.ge
+  var pb = document.getElementById('prog');
+  if (pb) pb.style.width = (dh > 0 ? (st / dh) * 100 : 0) + '%';
+  var nav = document.getElementById('nav');
+  if (nav) nav.style.background = st > 40 ? 'rgba(6,6,6,.99)' : 'rgba(6,6,6,.97)';
+}, false);
+
+// Particles
+(function() {
+  var c = document.getElementById('pts');
+  if (!c) return;
+  for (var i = 0; i < 26; i++) {
+    var p = document.createElement('div');
+    p.className = 'pt';
+    p.style.cssText = 'left:' + Math.floor(Math.random()*100) + '%;width:' + (Math.random()*2+1).toFixed(1) + 'px;height:' + (Math.random()*2+1).toFixed(1) + 'px;animation-duration:' + (Math.random()*12+8).toFixed(1) + 's;animation-delay:' + (Math.random()*14).toFixed(1) + 's';
+    c.appendChild(p);
+  }
+})();
+</script>
+</body>
+</html>
