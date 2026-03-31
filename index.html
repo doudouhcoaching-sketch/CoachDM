@@ -729,6 +729,50 @@ window.addEventListener('scroll', function() {
     c.appendChild(p);
   }
 })();
+</script> <script>
+// Gestion de la barre de progression
+window.onscroll = function() {
+    let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+    let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    let scrolled = (winScroll / height) * 100;
+    document.getElementById("prog").style.width = scrolled + "%";
+};
+
+// Menu Mobile
+function toggleM() {
+    const mob = document.getElementById('mob');
+    mob.style.display = (mob.style.display === 'block') ? 'none' : 'block';
+}
+function closeMob() {
+    document.getElementById('mob').style.display = 'none';
+}
+
+// Changement de Langue (Simplifié)
+function setL(lang) {
+    // 1. Update des boutons
+    document.querySelectorAll('.lb').forEach(btn => btn.classList.remove('on'));
+    event.target.classList.add('on');
+    
+    // 2. Update des textes avec la classe .t
+    const elements = document.querySelectorAll('.t');
+    elements.forEach(el => {
+        if(el.dataset[lang]) {
+            el.innerText = el.dataset[lang];
+        }
+    });
+}
+
+// Animation des points (Hero)
+const ptsContainer = document.getElementById('pts');
+for (let i = 0; i < 20; i++) {
+    let p = document.createElement('div');
+    p.className = 'pt';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.width = p.style.height = Math.random() * 3 + 'px';
+    p.style.animationDuration = (Math.random() * 3 + 2) + 's';
+    p.style.animationDelay = Math.random() * 5 + 's';
+    ptsContainer.appendChild(p);
+}
 </script>
 </body>
 </html>
