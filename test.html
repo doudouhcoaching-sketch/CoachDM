@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex" />
+<title>Coach DM · Test moteur</title>
+<style>
+  :root{
+    --bg:#0A0A0A; --surface:#141414; --alt:#1C1C1C; --border:#2A2A2A;
+    --gold:#D4AF37; --text:#F5F5F5; --dim:#9A9A9A;
+    --green:#10B981; --red:#EF4444; --blue:#38BDF8;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    padding:18px;max-width:520px;margin:0 auto;line-height:1.45}
+  h1{color:var(--gold);font-size:22px;margin:6px 0 2px}
+  .sub{color:var(--dim);font-size:13px;margin-bottom:18px}
+  .card{background:var(--surface);border:1px solid var(--border);
+    border-radius:14px;padding:16px;margin-bottom:14px}
+  .card h2{font-size:14px;margin:0 0 12px;color:var(--gold);
+    text-transform:uppercase;letter-spacing:.5px}
+  label{display:block;color:var(--dim);font-size:12px;margin:10px 0 5px}
+  input,textarea{width:100%;background:var(--alt);border:1px solid var(--border);
+    border-radius:10px;color:var(--text);font-size:16px;padding:12px 14px;
+    -webkit-appearance:none}
+  textarea{min-height:64px;resize:vertical}
+  button{width:100%;background:var(--gold);color:#0A0A0A;border:none;
+    border-radius:10px;padding:14px;font-size:15px;font-weight:800;
+    margin-top:12px;cursor:pointer}
+  button.sec{background:transparent;color:var(--gold);border:1px solid var(--gold)}
+  button:disabled{opacity:.5}
+  .row{display:flex;gap:10px}
+  .row>*{flex:1}
+  .status{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:8px}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--dim);flex:none}
+  .ok .dot{background:var(--green)} .ko .dot{background:var(--red)}
+  .ok{color:var(--green)} .ko{color:var(--red)}
+  pre{background:var(--alt);border:1px solid var(--border);border-radius:10px;
+    padding:12px;font-size:12px;color:var(--dim);overflow:auto;white-space:pre-wrap;
+    word-break:break-word;max-height:240px;margin:10px 0 0}
+  .hidden{display:none}
+  .pill{display:inline-block;background:var(--alt);border:1px solid var(--border);
+    border-radius:8px;padding:3px 8px;font-size:11px;color:var(--gold);margin:2px 4px 2px 0}
+  .bubble{background:var(--alt);border:1px solid var(--border);border-left:3px solid var(--blue);
+    border-radius:10px;padding:12px;margin-top:10px;font-size:14px}
+  .me{border-left-color:var(--gold);color:var(--gold)}
+  .foot{color:var(--dim);font-size:11px;text-align:center;margin:18px 0 8px}
+</style>
+</head>
+<body>
+  <h1>Coach DM · Test du moteur</h1>
+  <div class="sub">Vérifie en direct que ta base et ton coach IA répondent. Rien n'est facturé.</div>
+
+  <!-- 1. Connexion à Supabase -->
+  <div class="card" id="cfgCard">
+    <h2>1 · Clé de connexion</h2>
+    <label>URL du projet</label>
+    <input id="url" value="https://kkcmhviyvttwpaclrjmv.supabase.co" />
+    <label>Clé « anon public » (Supabase → Settings → API)</label>
+    <input id="anon" placeholder="eyJhbGciOi..." autocapitalize="off" autocorrect="off" spellcheck="false" />
+    <button onclick="saveCfg()">Connecter</button>
+    <div class="status" id="cfgStatus"><span class="dot"></span><span>En attente de la clé</span></div>
+  </div>
+
+  <!-- 2. Compte -->
+  <div class="card hidden" id="authCard">
+    <h2>2 · Ton 1er compte</h2>
+    <label>Email</label>
+    <input id="email" type="email" autocapitalize="off" autocorrect="off" placeholder="toi@exemple.com" />
+    <label>Mot de passe (min. 6)</label>
+    <input id="pwd" type="password" placeholder="••••••" />
+    <div class="row">
+      <button onclick="signup()">Créer le compte</button>
+      <button class="sec" onclick="login()">Se connecter</button>
+    </div>
+    <div class="status" id="authStatus"><span class="dot"></span><span>Pas connecté</span></div>
+  </div>
+
+  <!-- 3. Test base -->
+  <div class="card hidden" id="dbCard">
+    <h2>3 · La base répond ?</h2>
+    <button onclick="testDb()">Lire les aliments</button>
+    <div id="dbOut"></div>
+  </div>
+
+  <!-- 4. Test IA -->
+  <div class="card hidden" id="aiCard">
+    <h2>4 · Le coach IA répond ?</h2>
+    <textarea id="msg">Je stagne au développé couché depuis 3 semaines, que faire ?</textarea>
+    <button onclick="testAi()" id="aiBtn">Envoyer au coach IA</button>
+    <div id="aiOut"></div>
+  </div>
+
+  <div class="foot">Coach DM · test interne · noindex</div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+let supabase = null;
+const $ = (id) => document.getElementById(id);
+function setStatus(el, ok, txt){ el.className = "status " + (ok ? "ok" : "ko"); el.querySelector("span:last-child").textContent = txt; }
+
+// Restaure une clé déjà saisie
+const savedUrl = localStorage.getItem("cdm_url");
+const savedAnon = localStorage.getItem("cdm_anon");
+if (savedUrl) $("url").value = savedUrl;
+if (savedAnon){ $("anon").value = savedAnon; }
+
+window.saveCfg = async function(){
+  const url = $("url").value.trim();
+  const anon = $("anon").value.trim();
+  if(!anon){ setStatus($("cfgStatus"), false, "Colle ta clé anon d'abord"); return; }
+  try{
+    supabase = createClient(url, anon);
+    localStorage.setItem("cdm_url", url);
+    localStorage.setItem("cdm_anon", anon);
+    setStatus($("cfgStatus"), true, "Connecté à Supabase");
+    $("authCard").classList.remove("hidden");
+    // Session déjà ouverte ?
+    const { data } = await supabase.auth.getSession();
+    if(data.session){ onLoggedIn(data.session.user.email); }
+  }catch(e){ setStatus($("cfgStatus"), false, "Clé invalide"); }
+};
+
+function onLoggedIn(email){
+  setStatus($("authStatus"), true, "Connecté : " + email);
+  $("dbCard").classList.remove("hidden");
+  $("aiCard").classList.remove("hidden");
+}
+
+window.signup = async function(){
+  if(!supabase) return;
+  const { data, error } = await supabase.auth.signUp({ email: $("email").value.trim(), password: $("pwd").value });
+  if(error){ setStatus($("authStatus"), false, error.message); return; }
+  if(data.session){ onLoggedIn(data.user.email); }
+  else { setStatus($("authStatus"), true, "Compte créé — vérifie tes mails puis connecte-toi"); }
+};
+
+window.login = async function(){
+  if(!supabase) return;
+  const { data, error } = await supabase.auth.signInWithPassword({ email: $("email").value.trim(), password: $("pwd").value });
+  if(error){ setStatus($("authStatus"), false, error.message); return; }
+  onLoggedIn(data.user.email);
+};
+
+window.testDb = async function(){
+  $("dbOut").innerHTML = "<pre>Lecture…</pre>";
+  const { data, error } = await supabase.from("foods").select("name_fr").limit(8);
+  if(error){ $("dbOut").innerHTML = '<pre class="ko">Erreur : '+error.message+"</pre>"; return; }
+  const pills = (data||[]).map(f => '<span class="pill">'+(f.name_fr||"?")+"</span>").join("");
+  $("dbOut").innerHTML = '<div class="status ok"><span class="dot"></span><span>'+(data?.length||0)+" aliments lus ✓</span></div>"+pills;
+};
+
+window.testAi = async function(){
+  const btn = $("aiBtn"); btn.disabled = true; btn.textContent = "Le coach réfléchit…";
+  $("aiOut").innerHTML = '<div class="bubble me">'+$("msg").value+"</div>";
+  try{
+    const { data, error } = await supabase.functions.invoke("ai-chat", {
+      body: { conversation_id: null, message: $("msg").value, locale: "fr" }
+    });
+    if(error) throw error;
+    const convId = data?.conversation_id;
+    let reply = data?.reply || data?.message || null;
+    // Source de vérité : on relit ai_messages
+    if(convId){
+      const { data: msgs } = await supabase.from("ai_messages")
+        .select("role,content,tool_name").eq("conversation_id", convId)
+        .order("created_at", { ascending: true });
+      const ass = (msgs||[]).filter(m => m.role === "assistant" && m.content).pop();
+      if(ass) reply = ass.content;
+      const tools = (msgs||[]).filter(m => m.role === "tool").map(m => m.tool_name);
+      if(tools.length) $("aiOut").innerHTML += '<div class="status ok"><span class="dot"></span><span>Outils utilisés : '+tools.join(", ")+"</span></div>";
+    }
+    $("aiOut").innerHTML += '<div class="bubble">'+(reply || "Réponse reçue (voir détail) :")+"</div>";
+    if(!reply) $("aiOut").innerHTML += "<pre>"+JSON.stringify(data,null,2)+"</pre>";
+  }catch(e){
+    $("aiOut").innerHTML += '<div class="bubble ko" style="border-left-color:var(--red)">Erreur IA : '+(e.message||e)+'</div><pre>'+JSON.stringify(e,null,2)+"</pre>";
+  }finally{
+    btn.disabled = false; btn.textContent = "Envoyer au coach IA";
+  }
+};
+</script>
+</body>
+</html>
