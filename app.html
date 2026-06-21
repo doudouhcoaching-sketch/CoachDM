@@ -425,7 +425,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const $ = (s)=>document.querySelector(s);
 const MEAL_FR = {breakfast:'Petit-déj',lunch:'Déjeuner',dinner:'Dîner',snack:'Collation',pre_workout:'Pré-training',post_workout:'Post-training'};
-let USER=null, TARGETS=null, SELECTED=null, CONV=null, BUSY=false;
+let USER=null, TARGETS=null, SELECTED=null, CONV=null, BUSY=false, IA_LOADED=false;
 
 const todayStr = ()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
 const r0=(n)=>Math.round(n||0);
@@ -562,17 +562,56 @@ $('#go-profile').onclick = ()=>switchTab('profile');
 $('#jo-search').onclick = doSearch;
 $('#jo-q').addEventListener('keydown',e=>{ if(e.key==='Enter') doSearch(); });
 
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+async function searchLocal(q){
+  const { data } = await sb.rpc('search_foods',{ p_query:q, p_barcode:null, p_limit:20 });
+  return (data||[]).map(f=>({ ...f, off:false }));
+}
+
+async function searchOFF(q){
+  const url='https://world.openfoodfacts.org/cgi/search.pl?search_terms='+encodeURIComponent(q)
+    +'&search_simple=1&action=process&json=1&page_size=30'
+    +'&fields=code,product_name,product_name_fr,product_name_nl,product_name_en,generic_name_fr,brands,nutriments,serving_quantity,image_small_url';
+  let j;
+  try{ const r=await fetch(url); j=await r.json(); }catch(e){ return []; }
+  const out=[];
+  for(const p of (j.products||[])){
+    const n=p.nutriments||{};
+    let kcal=n['energy-kcal_100g'];
+    if(kcal==null && n['energy_100g']!=null) kcal=(+n['energy_100g'])/4.184;
+    if(kcal==null) continue;
+    const name=p.product_name_fr||p.product_name||p.generic_name_fr||p.product_name_en||p.product_name_nl;
+    if(!name) continue;
+    out.push({
+      off:true, id:null, barcode:p.code||null, off_id:p.code?('off:'+p.code):null,
+      name_fr:name, name_en:p.product_name_en||null, name_nl:p.product_name_nl||null,
+      brand:(p.brands||'').split(',')[0].trim()||null,
+      kcal_per_100g:Math.round((+kcal)||0),
+      protein_per_100g:+n.proteins_100g||0, carbs_per_100g:+n.carbohydrates_100g||0,
+      fat_per_100g:+n.fat_100g||0, fiber_per_100g:+n.fiber_100g||0,
+      sugars:+n.sugars_100g||null, sat:+n['saturated-fat_100g']||null, salt:+n.salt_100g||null,
+      default_serving_g:(p.serving_quantity&&+p.serving_quantity)||100,
+      image:p.image_small_url||null
+    });
+  }
+  return out.slice(0,25);
+}
+
 async function doSearch(){
   const q=$('#jo-q').value.trim();
   if(q.length<2){ $('#jo-results').innerHTML='<p class="empty">Tape au moins 2 lettres.</p>'; return; }
   $('#jo-results').innerHTML='<div class="spin"></div>';
-  const { data, error } = await sb.rpc('search_foods',{ p_query:q, p_barcode:null, p_limit:20 });
-  if(error){ $('#jo-results').innerHTML='<p class="empty">Recherche indisponible. Réessaie.</p>'; return; }
-  if(!data||!data.length){ $('#jo-results').innerHTML='<p class="empty">Aucun aliment trouvé pour « '+q+' ».</p>'; return; }
-  window.__FOODS = data;
-  $('#jo-results').innerHTML = data.map((f,i)=>`
+  const [localR,offR]=await Promise.allSettled([ searchLocal(q), searchOFF(q) ]);
+  const local=localR.status==='fulfilled'?localR.value:[];
+  const off=offR.status==='fulfilled'?offR.value:[];
+  const seen=new Set(local.map(f=>(f.name_fr||'').toLowerCase()));
+  const merged=local.concat(off.filter(f=>!seen.has((f.name_fr||'').toLowerCase())));
+  if(!merged.length){ $('#jo-results').innerHTML='<p class="empty">Aucun aliment trouvé pour « '+esc(q)+' ».</p>'; return; }
+  window.__FOODS=merged;
+  $('#jo-results').innerHTML = merged.map((f,i)=>`
     <div class="food" data-i="${i}">
-      <div><div class="fn">${f.name_fr||f.name_en||'Aliment'}</div>
+      <div><div class="fn">${esc(f.name_fr||f.name_en||'Aliment')}${f.brand?' · <span style="color:var(--muted);font-weight:500">'+esc(f.brand)+'</span>':''}</div>
         <div class="fk">${r0(f.kcal_per_100g)} kcal · P${r0(f.protein_per_100g)} G${r0(f.carbs_per_100g)} L${r0(f.fat_per_100g)} /100g</div></div>
       <div class="add">＋</div>
     </div>`).join('');
@@ -604,8 +643,21 @@ $('#sh-add').onclick = async ()=>{
   if(!q||q<=0) return toast('Quantité invalide');
   const k=q/100;
   setBtn('#sh-add',true,'Ajout…');
+  let foodId=SELECTED.id;
+  if(SELECTED.off && !foodId){
+    const { data:fid, error:e1 } = await sb.rpc('upsert_off_food',{
+      p_barcode:SELECTED.barcode, p_off_id:SELECTED.off_id,
+      p_name_fr:SELECTED.name_fr, p_name_en:SELECTED.name_en, p_name_nl:SELECTED.name_nl,
+      p_brand:SELECTED.brand, p_kcal:SELECTED.kcal_per_100g, p_protein:SELECTED.protein_per_100g,
+      p_carbs:SELECTED.carbs_per_100g, p_fat:SELECTED.fat_per_100g, p_fiber:SELECTED.fiber_per_100g,
+      p_sugars:SELECTED.sugars, p_sat:SELECTED.sat, p_salt:SELECTED.salt,
+      p_serving_g:SELECTED.default_serving_g, p_image:SELECTED.image
+    });
+    if(e1||!fid){ setBtn('#sh-add',false,'Ajouter au journal'); toast('Échec de l\'ajout'); return; }
+    foodId=fid;
+  }
   const row={
-    user_id:USER.id, food_id:SELECTED.id, logged_date:todayStr(),
+    user_id:USER.id, food_id:foodId, logged_date:todayStr(),
     logged_at:new Date().toISOString(), meal_type:$('#sh-meal').value, quantity_g:q,
     kcal:r0(SELECTED.kcal_per_100g*k), protein_g:r1(SELECTED.protein_per_100g*k),
     carbs_g:r1(SELECTED.carbs_per_100g*k), fat_g:r1(SELECTED.fat_per_100g*k),
@@ -682,10 +734,26 @@ $('#p-calc').onclick = async ()=>{
 $('#ia-send').onclick = sendIA;
 $('#ia-input').addEventListener('keydown',e=>{ if(e.key==='Enter') sendIA(); });
 $('#ia-new').onclick = ()=>{
-  CONV=null;
+  CONV=null; IA_LOADED=true;
   $('#ia-scroll').innerHTML = `<div class="chat-intro"><div class="mark">DM</div>
     Nouvelle conversation.<br>Pose ta question : macros, séance, récupération, plateau…</div>`;
 };
+async function loadConversation(){
+  try{
+    const { data:convs } = await sb.from('ai_conversations').select('id')
+      .eq('user_id',USER.id).order('updated_at',{ascending:false}).limit(1);
+    if(!convs||!convs.length) return;
+    const cid=convs[0].id;
+    const { data:msgs } = await sb.from('ai_messages').select('role,content')
+      .eq('conversation_id',cid).order('created_at',{ascending:true});
+    const shown=(msgs||[]).filter(m=>(m.role==='user'||m.role==='assistant')&&m.content);
+    if(!shown.length) return;
+    CONV=cid;
+    $('#ia-intro')?.remove();
+    $('#ia-scroll').innerHTML='';
+    for(const m of shown){ addBubble(m.role==='user'?'me':'ai', m.content); }
+  }catch(e){}
+}
 function addBubble(role,text){
   $('#ia-intro')?.remove();
   const b=document.createElement('div');
@@ -724,7 +792,7 @@ function switchTab(tab){
   $('.topbar').style.display = tab==='ia' ? 'none' : 'block';
   if(tab==='journal') loadLogs();
   if(tab==='today') loadToday();
-  if(tab==='ia') setTimeout(()=>$('#ia-input').focus(),100);
+  if(tab==='ia'){ if(!IA_LOADED){ IA_LOADED=true; loadConversation(); } setTimeout(()=>$('#ia-input').focus(),100); }
   window.scrollTo(0,0);
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
