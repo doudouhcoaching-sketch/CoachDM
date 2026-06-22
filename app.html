@@ -333,6 +333,16 @@
   .se-action{position:sticky;bottom:calc(94px + env(safe-area-inset-bottom));z-index:30;margin:20px 0 4px}
   .se-action .btn{box-shadow:0 10px 26px rgba(109,94,246,.4)}
   .se-action .btn.fin{background:linear-gradient(135deg,var(--fiber),#0c8f64)}
+  .shop-free{background:color-mix(in srgb,var(--fiber) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--fiber) 36%,transparent);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+  .shop-note{font-size:12.5px;color:var(--muted);line-height:1.45;margin:0 2px 6px}
+  .shop-cat-h{font-size:13px;font-weight:800;letter-spacing:.4px;margin:18px 2px 11px}
+  .prod{border:1px solid var(--line);border-left:3px solid var(--c,var(--brand));border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:14px;margin-bottom:11px;background:var(--surface)}
+  .prod-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .prod-name{font-size:15px;font-weight:800;line-height:1.2}
+  .prod-price{font-size:15px;font-weight:800;color:var(--c,var(--brand));white-space:nowrap}
+  .prod-desc{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.4}
+  .prod-buy{display:inline-flex;align-items:center;gap:6px;margin-top:11px;padding:9px 15px;border-radius:11px;font-weight:700;font-size:13px;color:#fff;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));text-decoration:none}
 </style>
 </head>
 <body>
@@ -424,8 +434,8 @@
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg>Séances</button>
       <button class="qtile" data-go="ia" style="--c:var(--fat)">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>Coach IA</button>
-      <button class="qtile" data-go="profile" style="--c:var(--fiber)">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>Profil</button>
+      <button class="qtile" data-go="boutique" style="--c:#D4AF37">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1.2 12.5H4.8z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Boutique</button>
     </div>
 
     <div id="home-insight"></div>
@@ -451,6 +461,12 @@
   <div class="page tabpane" id="pane-seances">
     <div id="se-list"><div id="se-cards"><div class="spin"></div></div></div>
     <div id="se-detail" class="hidden"></div>
+  </div>
+
+  <!-- BOUTIQUE -->
+  <div class="page tabpane" id="pane-boutique">
+    <button class="se-back" data-go="home">‹ Accueil</button>
+    <div id="shop"><div class="spin"></div></div>
   </div>
 
   <!-- COACH IA -->
@@ -921,7 +937,7 @@ async function sendIA(){
 }
 
 /* ---------------- TABS ---------------- */
-const TITLES={home:["Accueil",""],journal:["Journal","Cherche, ajoute, suis tes repas"],seances:["Séances","Tes programmes Coach DM"],ia:["Coach IA",""],profile:["Profil",""]};
+const TITLES={home:["Accueil",""],journal:["Journal","Cherche, ajoute, suis tes repas"],seances:["Séances","Tes programmes Coach DM"],boutique:["Boutique","Programmes PDF premium"],ia:["Coach IA",""],profile:["Profil",""]};
 function switchTab(tab){
   document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('active'));
   $('#pane-'+tab).classList.add('active');
@@ -931,6 +947,7 @@ function switchTab(tab){
   if(tab==='home') loadHome();
   if(tab==='journal') loadLogs();
   if(tab==='seances') loadWorkouts();
+  if(tab==='boutique') loadBoutique();
   if(tab==='ia'){ if(!IA_LOADED){ IA_LOADED=true; loadConversation(); } setTimeout(()=>$('#ia-input').focus(),100); }
   window.scrollTo(0,0);
 }
@@ -1013,19 +1030,35 @@ async function loadWod(){
   </div>`;
 }
 
-async function loadInsight(){
-  try{
-    const { data } = await sb.from('exercise_tips').select('severity,body_fr,body_en,body_nl,reference').limit(40);
-    if(!data||!data.length){ $('#home-insight').innerHTML=''; return; }
-    const t=data[Math.floor(Math.random()*data.length)], s=SEV[t.severity]||SEV.success;
-    $('#home-insight').innerHTML=`<div class="insight" style="--c:var(${s.c})">
-      <div class="ins-h"><span>${s.i}</span> Insight du jour</div>
-      <div class="ins-b">${esc(t.body_fr||'')}</div>
-      ${t.body_en?`<div class="ins-en">${esc(t.body_en)}</div>`:''}
-      ${t.body_nl?`<div class="ins-nl">${esc(t.body_nl)}</div>`:''}
-      ${t.reference?`<div class="ins-ref">${esc(t.reference)}</div>`:''}
-    </div>`;
-  }catch(e){ $('#home-insight').innerHTML=''; }
+const INSIGHTS=[
+ {cat:'Muscle',sev:'success',fr:'10 à 20 séries par muscle et par semaine maximisent l\u2019hypertrophie.',en:'Ten to twenty sets per muscle per week maximise hypertrophy.',nl:'Tien tot twintig sets per spier per week maximaliseren spiergroei.',ref:'Schoenfeld 2017'},
+ {cat:'Muscle',sev:'success',fr:'Vise 1,6 g de protéines par kg de poids de corps pour construire du muscle.',en:'Aim for 1.6 g of protein per kg of bodyweight to build muscle.',nl:'Streef naar 1,6 g eiwit per kg lichaamsgewicht om spier op te bouwen.',ref:'Morton 2018'},
+ {cat:'Muscle',sev:'success',fr:'La surcharge progressive — ajouter charge ou répétitions — pilote la prise de muscle.',en:'Progressive overload — adding load or reps — drives muscle gain.',nl:'Progressieve overload — meer gewicht of reps — drijft spiergroei.',ref:'ACSM'},
+ {cat:'Muscle',sev:'info',fr:'Le muscle se construit jusqu\u2019à ~48 h après une séance : la récupération compte autant que l\u2019effort.',en:'Muscle keeps building up to ~48 h after a session: recovery matters as much as effort.',nl:'Spieren bouwen tot ~48 u na een training: herstel telt evenveel als inspanning.',ref:'Damas 2016'},
+ {cat:'Perte de gras',sev:'info',fr:'Un déficit modéré de 300 à 500 kcal/jour préserve le muscle tout en perdant du gras.',en:'A moderate 300-500 kcal/day deficit preserves muscle while losing fat.',nl:'Een matig tekort van 300-500 kcal/dag behoudt spier tijdens vetverlies.',ref:'Helms 2014'},
+ {cat:'Perte de gras',sev:'success',fr:'Garder un apport protéique élevé en sèche limite la perte de masse maigre.',en:'Keeping protein high during a cut limits lean mass loss.',nl:'Veel eiwit tijdens een cut beperkt verlies van spiermassa.',ref:'Helms 2014'},
+ {cat:'Perte de gras',sev:'info',fr:'Le NEAT (pas, activité quotidienne) peut représenter des centaines de kcal brûlées par jour.',en:'NEAT (steps, daily activity) can account for hundreds of kcal burned per day.',nl:'NEAT (stappen, dagelijkse activiteit) kan honderden kcal per dag zijn.',ref:'Levine 2002'},
+ {cat:'Perte de gras',sev:'tactic',fr:'Combiner force et cardio préserve le muscle et accélère la perte de gras.',en:'Combining strength and cardio preserves muscle and speeds fat loss.',nl:'Kracht en cardio combineren behoudt spier en versnelt vetverlies.',ref:'Willis 2012'},
+ {cat:'Cardio',sev:'tactic',fr:'L\u2019entraînement en Zone 2 développe la base aérobie et la combustion des graisses.',en:'Zone 2 training builds the aerobic base and fat oxidation.',nl:'Zone 2-training bouwt de aerobe basis en vetverbranding op.',ref:'San Millán 2018'},
+ {cat:'Cardio',sev:'info',fr:'Les intervalles 4×4 min à haute intensité améliorent fortement la VO2max.',en:'High-intensity 4×4 min intervals strongly improve VO2max.',nl:'4×4 min intervallen op hoge intensiteit verbeteren de VO2max sterk.',ref:'Helgerud 2007'},
+ {cat:'Cardio',sev:'success',fr:'150 min de cardio modéré par semaine apportent des bénéfices santé majeurs.',en:'150 min of moderate cardio per week brings major health benefits.',nl:'150 min matige cardio per week levert grote gezondheidsvoordelen.',ref:'OMS'},
+ {cat:'Santé',sev:'info',fr:'7 à 9 h de sommeil optimisent récupération, hormones et performance.',en:'7 to 9 h of sleep optimise recovery, hormones and performance.',nl:'7 tot 9 u slaap optimaliseren herstel, hormonen en prestaties.',ref:'Walker 2017'},
+ {cat:'Santé',sev:'success',fr:'Environ 8 000 à 10 000 pas par jour réduisent nettement la mortalité.',en:'Around 8,000-10,000 steps a day markedly reduce mortality.',nl:'Ongeveer 8.000-10.000 stappen per dag verlagen de sterfte duidelijk.',ref:'Paluch 2022'},
+ {cat:'Santé',sev:'info',fr:'La mobilité quotidienne entretient les amplitudes et prévient les douleurs.',en:'Daily mobility maintains range of motion and prevents pain.',nl:'Dagelijkse mobiliteit behoudt bewegingsbereik en voorkomt pijn.',ref:'NASM'},
+ {cat:'Santé',sev:'tactic',fr:'L\u2019hydratation (~35 ml/kg) soutient la performance et la concentration.',en:'Hydration (~35 ml/kg) supports performance and focus.',nl:'Hydratatie (~35 ml/kg) ondersteunt prestaties en focus.',ref:'ACSM'},
+ {cat:'Santé',sev:'warning',fr:'Sauter l\u2019échauffement augmente nettement le risque de blessure.',en:'Skipping the warm-up clearly raises injury risk.',nl:'De warming-up overslaan verhoogt het blessurerisico duidelijk.',ref:'Fradkin 2006'}
+];
+function dayIndex(){ const d=new Date(); const s=new Date(d.getFullYear(),0,0); return Math.floor((d-s)/86400000); }
+function loadInsight(){
+  if(!INSIGHTS.length){ $('#home-insight').innerHTML=''; return; }
+  const t=INSIGHTS[dayIndex()%INSIGHTS.length], s=SEV[t.sev]||SEV.success;
+  $('#home-insight').innerHTML=`<div class="insight" style="--c:var(${s.c})">
+    <div class="ins-h"><span>${s.i}</span> Insight du jour · ${esc(t.cat)}</div>
+    <div class="ins-b">${esc(t.fr)}</div>
+    <div class="ins-en">${esc(t.en)}</div>
+    <div class="ins-nl">${esc(t.nl)}</div>
+    <div class="ins-ref">${esc(t.ref)}</div>
+  </div>`;
 }
 
 /* ================= SEANCES ================= */
@@ -1194,6 +1227,70 @@ $('#set-save').onclick=async ()=>{
   SET_CTX.pill.classList.add('done'); SET_CTX.pill.textContent='✓';
   $('#set-ov').classList.remove('show'); toast('Série enregistrée'); SET_CTX=null;
 };
+
+/* ================= BOUTIQUE ================= */
+const SHOP_GUIDE={n:'Les 5 erreurs qui tuent tes résultats',d:'Guide gratuit · 14 pages · framework Coach DM + 1 semaine GPP complète.',u:'https://payhip.com/b/bUMpk'};
+const SHOP=[
+ {cat:'Perte de poids',color:'#EF4444',items:[
+   {n:'Fat Burner 10W',d:'Perte de graisse intensive. 60 séances · 93 pages.',p:'29,99 €',u:'https://payhip.com/b/MPHyz'},
+   {n:'Body Transformation 12W',d:'Recomposition DUP. Test 1RM semaines 1 et 12.',p:'34,99 €',u:'https://payhip.com/b/oFbCE'},
+   {n:'Summer Body Burn 8W',d:'Définition + tonus. MetCon + hypertrophie.',p:'29,99 €',u:'https://payhip.com/b/UtnrG'},
+   {n:'Shred 6W',d:'Perte rapide. Max 45 min. EMOM + Tabata.',p:'24,99 €',u:'https://payhip.com/b/R0Fgt'}
+ ]},
+ {cat:'Force',color:'#8E7CFF',items:[
+   {n:'Strength Cycle 8W',d:'Force pure. Squat · Bench · Deadlift. PR semaine 8.',p:'29,99 €',u:'https://payhip.com/b/8neIR'},
+   {n:'Core Master 6W',d:'Gainage 360°. Force spinale, stabilité.',p:'22,99 €',u:'https://payhip.com/b/mUZMk'},
+   {n:'Mind & Body 8W',d:'Fitness + bien-être. Mobilité + santé durable.',p:'24,99 €',u:'https://payhip.com/b/KxkEy'},
+   {n:'Bulletproof Body 6W',d:'Prévention blessures + mobilité. NASM CES.',p:'24,99 €',u:'https://payhip.com/b/4cmRD'}
+ ]},
+ {cat:'Fitness fonctionnel',color:'#38BDF8',items:[
+   {n:'Functional Open Prep 8W',d:'CrossFit Open. 40 séances · 3 niveaux.',p:'34,99 €',u:'https://payhip.com/b/7pBc3'},
+   {n:'Hyrox Race 12W',d:'Prépa Hyrox. 8 stations + 8 km. Reasfit.',p:'34,99 €',u:'https://payhip.com/b/uK1IG'},
+   {n:'Gymnastics Skills 8W',d:'Muscle Up · HSPU · T2B · Handstand.',p:'29,99 €',u:'https://payhip.com/b/0IgWv'},
+   {n:'Olympic Lifting 10W',d:'Snatch & Clean & Jerk. Technique + force.',p:'34,99 €',u:'https://payhip.com/b/H4YDB'},
+   {n:'Hyrox Foundation 6W',d:'Hyrox débutants. Bases solides. Reasfit.',p:'27,99 €',u:'https://payhip.com/b/B3TaF'},
+   {n:'Functional Performance 12W',d:'Force + puissance + endurance. 4 phases.',p:'34,99 €',u:'https://payhip.com/b/CA2jG'},
+   {n:'Compete Ready 16W',d:'Prépa compétition. Peaking + Taper.',p:'44,99 €',u:'https://payhip.com/b/U8nek'}
+ ]},
+ {cat:'Sport',color:'#10B981',items:[
+   {n:'Football Performance 16W',d:'Pré-saison + en saison. Sprint · COD · LCA.',p:'39,99 €',u:'https://payhip.com/b/5Oo2i'},
+   {n:'Endurance Athlete 8W',d:'Zone 2 + VO2max + seuil. Moteur cardio.',p:'27,99 €',u:'https://payhip.com/b/eRJxv'},
+   {n:'Athlete Mind 12W',d:'Performance athlétique complète. Tous sports.',p:'34,99 €',u:'https://payhip.com/b/Z9gHi'},
+   {n:'Explosive Power 6W',d:'Plyométrie + sprint. Plus haut, plus vite.',p:'27,99 €',u:'https://payhip.com/b/v5x2N'}
+ ]},
+ {cat:'Voyage / Maison',color:'#D4AF37',items:[
+   {n:'Bodyweight Warrior 8W',d:'Zéro équipement. Hôtel · plage · partout.',p:'24,99 €',u:'https://payhip.com/b/i2byn'},
+   {n:'Holiday Fit 4W',d:'Hôtel ou extérieur. 16 séances · 24 pages.',p:'19,99 €',u:'https://payhip.com/b/0s3JV'}
+ ]}
+];
+const SHOP_PERSO={n:'Programme personnalisé',d:'100% sur mesure. Consultation 30-60 min, PDF premium sous 3-5 jours.',p:'150-280 €',u:'mailto:doudouh.coaching@gmail.com?subject=Programme%20Personnalis%C3%A9%20-%20Coach%20DM'};
+let SHOP_DONE=false;
+function loadBoutique(){
+  if(SHOP_DONE) return;
+  let h=`<div class="shop-free">
+    <div style="display:flex;align-items:center;gap:7px;color:var(--fiber);font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase"><span>🎁</span> Gratuit</div>
+    <div class="prod-name" style="margin-top:6px">${esc(SHOP_GUIDE.n)}</div>
+    <div class="prod-desc">${esc(SHOP_GUIDE.d)}</div>
+    <a class="prod-buy" style="background:linear-gradient(135deg,var(--fiber),#0c8f64)" href="${SHOP_GUIDE.u}" target="_blank" rel="noopener">📥 Télécharger gratuitement</a>
+  </div>
+  <p class="shop-note">22 programmes PDF premium trilingues FR/EN/NL · paiement carte sécurisé via Payhip, PDF livré automatiquement. Visa · Mastercard · Amex, sans compte.</p>`;
+  SHOP.forEach(c=>{
+    h+=`<div class="shop-cat-h" style="color:${c.color}">${esc(c.cat)}</div>`;
+    c.items.forEach(it=>{
+      h+=`<div class="prod" style="--c:${c.color}">
+        <div class="prod-top"><div class="prod-name">${esc(it.n)}</div><div class="prod-price">${esc(it.p)}</div></div>
+        <div class="prod-desc">${esc(it.d)}</div>
+        <a class="prod-buy" href="${it.u}" target="_blank" rel="noopener">💳 Acheter</a>
+      </div>`;
+    });
+  });
+  h+=`<div class="shop-cat-h" style="color:var(--brand)">Sur mesure</div>
+    <div class="prod" style="--c:var(--brand)"><div class="prod-top"><div class="prod-name">${esc(SHOP_PERSO.n)}</div><div class="prod-price">${esc(SHOP_PERSO.p)}</div></div>
+    <div class="prod-desc">${esc(SHOP_PERSO.d)}</div>
+    <a class="prod-buy" href="${SHOP_PERSO.u}">📧 Demander</a></div>
+    <p class="shop-note" style="text-align:center;margin-top:16px">Tout le détail sur <a href="https://coachdm.be/programmes.html" target="_blank" rel="noopener" style="color:var(--brand);font-weight:700">coachdm.be</a></p>`;
+  $('#shop').innerHTML=h; SHOP_DONE=true;
+}
 
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>switchTab(b.dataset.go));
 document.addEventListener('click',e=>{ const t=e.target.closest('[data-open]'); if(t) openWorkout(t.getAttribute('data-open')); });
