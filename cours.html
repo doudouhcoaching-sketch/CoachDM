@@ -56,6 +56,9 @@ textarea{min-height:64px;resize:vertical}
 .muted{color:var(--mut);font-size:13px}
 .login{max-width:360px;margin:60px auto;padding:0 16px}
 hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+.seg{display:flex;gap:6px;margin-bottom:6px}
+.seg button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--surf2);color:var(--mut);font-weight:700;font-size:13px}
+.seg button.on{background:var(--vio);color:#fff;border-color:var(--vio)}
 </style>
 </head>
 <body>
@@ -70,7 +73,7 @@ const sb=createClient(SB_URL,SB_KEY);
 
 const $=s=>document.querySelector(s);
 const app=$('#app');
-let ME=null, ROLE=null, VIEW='planning', PLANNING=[], TEMPLATES=[];
+let ME=null, ROLE=null, VIEW='planning', PLANNING=[], TEMPLATES=[], CLIENTS=[], CAP={active:0,max:20};
 
 const esc=s=>(s??'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._);t._=setTimeout(()=>t.classList.remove('show'),2200);};
@@ -119,18 +122,21 @@ function render(){
     <div class="tabs">
       <button data-v="planning" class="${VIEW==='planning'?'on':''}">Planning</button>
       <button data-v="modeles" class="${VIEW==='modeles'?'on':''}">Modèles</button>
+      <button data-v="membres" class="${VIEW==='membres'?'on':''}">Membres</button>
     </div>
     <div id="body"></div>
   </div>`;
   $('#logout').onclick=async()=>{await sb.auth.signOut();boot();};
   app.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{VIEW=b.dataset.v;render();});
-  VIEW==='planning'?loadPlanning():loadTemplates();
+  if(VIEW==='planning')loadPlanning();
+  else if(VIEW==='modeles')loadTemplates();
+  else loadClients();
 }
 
-/* ---------- PLANNING ---------- */
+/* ---------- PLANNING (scoped coach) ---------- */
 async function loadPlanning(){
   const body=$('#body');body.innerHTML='<div class="center">Chargement…</div>';
-  const {data,error}=await sb.rpc('class_list_instances');
+  const {data,error}=await sb.rpc('class_coach_planning');
   if(error){body.innerHTML='<div class="center">Erreur de chargement</div>';return;}
   PLANNING=data||[];renderPlanning();
 }
@@ -160,7 +166,7 @@ function renderPlanning(){
   body.querySelectorAll('.inst').forEach(c=>c.onclick=()=>openRoster(c.dataset.id));
 }
 
-/* ---------- ROSTER + PRÉSENCE ---------- */
+/* ---------- ROSTER + PRÉSENCE + AJOUT MEMBRE ---------- */
 async function openRoster(id){
   const it=PLANNING.find(x=>x.id===id);
   const {data,error}=await sb.rpc('class_roster',{p_instance:id});
@@ -176,7 +182,9 @@ async function openRoster(id){
      ${it.status==='cancelled'
        ? `<button class="btn sec sm" data-act="republish">Republier</button>`
        : `<button class="btn red sm" data-act="cancelinst">Annuler la séance</button>`}
-   </div><hr>`;
+   </div>
+   <button class="btn sec" style="width:100%" id="addMember">＋ Ajouter un de mes membres</button>
+   <hr>`;
   if(!rows.length)h+='<div class="center">Aucune réservation.</div>';
   rows.forEach(r=>{
     const pay=r.has_access?'<span class="pill ok">En ordre</span>':'<span class="pill full">À régulariser</span>';
@@ -199,10 +207,28 @@ async function openRoster(id){
   const sheet=$('#sheetBody');
   sheet.querySelectorAll('[data-pres]').forEach(b=>b.onclick=()=>mark(b.dataset.pres,'attended',id));
   sheet.querySelectorAll('[data-abs]').forEach(b=>b.onclick=()=>mark(b.dataset.abs,'no_show',id));
-  const ci=sheet.querySelector('[data-act="cancelinst"]');
-  if(ci)ci.onclick=()=>setInstStatus(id,'cancelled');
-  const rp=sheet.querySelector('[data-act="republish"]');
-  if(rp)rp.onclick=()=>setInstStatus(id,'scheduled');
+  const ci=sheet.querySelector('[data-act="cancelinst"]'); if(ci)ci.onclick=()=>setInstStatus(id,'cancelled');
+  const rp=sheet.querySelector('[data-act="republish"]'); if(rp)rp.onclick=()=>setInstStatus(id,'scheduled');
+  sheet.querySelector('#addMember').onclick=()=>pickMember(id);
+}
+async function pickMember(instId){
+  if(!CLIENTS.length){const {data}=await sb.rpc('class_my_clients');CLIENTS=data||[];}
+  if(!CLIENTS.length){toast('Aucun membre lié. Ajoute-en dans l’onglet Membres.');return;}
+  const opts=CLIENTS.map(c=>`<option value="${c.client_id}">${esc(c.full_name||c.email)}</option>`).join('');
+  let h=`<h2>Ajouter un membre</h2>
+   <label>Choisis un de tes membres</label>
+   <select id="pm_sel">${opts}</select>
+   <div class="row" style="margin-top:16px;gap:8px"><div class="sp" style="flex:1"></div>
+   <button class="btn sec" id="pm_cancel">Retour</button>
+   <button class="btn" id="pm_add">Ajouter</button></div>`;
+  openSheet(h);
+  $('#pm_cancel').onclick=()=>openRoster(instId);
+  $('#pm_add').onclick=async()=>{
+    const {data,error}=await sb.rpc('class_book_member',{p_instance:instId,p_member:$('#pm_sel').value});
+    if(error||!data?.ok){toast(data?.reason==='not_your_member'?'Membre non lié à toi':'Échec');return;}
+    toast(data.status==='waitlist'?'Ajouté (liste d’attente)':'Membre ajouté');
+    await loadPlanning();openRoster(instId);
+  };
 }
 async function mark(bid,status,instId){
   const {data,error}=await sb.rpc('class_mark_attendance',{p_booking:bid,p_status:status});
@@ -344,6 +370,97 @@ function openSchedule(t={}){
     if(error){toast('Échec création');return;}
     closeSheet();toast(payload.length>1?`${payload.length} séances créées`:'Séance créée');VIEW='planning';render();
   };
+}
+
+/* ---------- MEMBRES ---------- */
+async function loadClients(){
+  const body=$('#body');body.innerHTML='<div class="center">Chargement…</div>';
+  const [{data,error},{data:cap}]=await Promise.all([
+    sb.rpc('class_my_clients'),
+    sb.rpc('coach_my_capacity')
+  ]);
+  if(error){body.innerHTML='<div class="center">Erreur</div>';return;}
+  CLIENTS=data||[];
+  if(cap&&cap[0])CAP={active:cap[0].active,max:cap[0].max};
+  renderClients();
+}
+async function coachArchive(clientId,name){
+  const {data,error}=await sb.rpc('coach_set_member_status',{p_client:clientId,p_status:'ended'});
+  if(error||!data?.ok){toast('Échec');return;}
+  toast('Membre archivé');loadClients();
+}
+function renderClients(){
+  const body=$('#body');
+  const full=CAP.active>=CAP.max;
+  const capCls=full?'full':'ok';
+  let h=`<div class="card row" style="gap:10px">
+     <div style="flex:1"><div class="title">Mes membres actifs</div>
+     <div class="sub">Quota de ton offre coach</div></div>
+     <span class="pill ${capCls}">${CAP.active} / ${CAP.max}</span></div>
+   <button class="btn" style="width:100%;margin-bottom:14px" id="newCli">＋ Ajouter un membre</button>`;
+  if(full)h=h.replace('id="newCli"','id="newCli" style="opacity:.5"');
+  if(!CLIENTS.length)h+='<div class="center">Aucun membre lié.</div>';
+  CLIENTS.forEach(c=>{
+    const pay=c.has_access?'<span class="pill ok">En ordre</span>':'<span class="pill full">À régulariser</span>';
+    h+=`<div class="card row" style="gap:12px">
+      <div style="flex:1;min-width:0">
+        <div class="title">${esc(c.full_name||'—')}</div>
+        <div class="sub">${esc(c.email||'')}</div>
+        <div style="margin-top:6px">${pay}</div>
+      </div>
+      <button class="btn gho sm" data-arch="${c.client_id}" data-name="${esc(c.full_name||c.email||'')}">Archiver</button>
+    </div>`;
+  });
+  body.innerHTML=h;
+  $('#newCli').onclick=()=>{ if(full){toast(`Quota atteint (${CAP.max}). Archive un membre ou passe en offre supérieure.`);return;} openClientForm(); };
+  body.querySelectorAll('[data-arch]').forEach(b=>b.onclick=()=>{
+    if(confirm(`Archiver ${b.dataset.name} ? Le compte est conservé, le slot est libéré.`))coachArchive(b.dataset.arch);
+  });
+}
+function openClientForm(){
+  let mode='create';
+  const draw=()=>{
+    let h=`<h2>Ajouter un membre</h2>
+     <div class="seg">
+       <button data-m="create" class="${mode==='create'?'on':''}">Nouveau compte</button>
+       <button data-m="link" class="${mode==='link'?'on':''}">Lier un existant</button>
+     </div>`;
+    if(mode==='create'){
+      h+=`<label>Nom complet</label><input id="c_name" placeholder="Prénom Nom">
+       <label>Email *</label><input id="c_email" type="email">
+       <label>Mot de passe * (min 6)</label><input id="c_pwd" type="text" value="">
+       <p class="muted">Le membre est créé et lié à toi. Donne-lui ces identifiants.</p>`;
+    }else{
+      h+=`<label>Email du membre existant *</label><input id="c_email2" type="email">
+       <p class="muted">Le compte doit déjà exister. Il sera lié à toi.</p>`;
+    }
+    h+=`<div class="row" style="margin-top:16px;gap:8px"><div class="sp" style="flex:1"></div>
+      <button class="btn sec" id="c_cancel">Fermer</button>
+      <button class="btn" id="c_save">${mode==='create'?'Créer & lier':'Lier'}</button></div>`;
+    openSheet(h);
+    $('#sheetBody').querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{mode=b.dataset.m;draw();});
+    $('#c_cancel').onclick=closeSheet;
+    $('#c_save').onclick=save;
+  };
+  const save=async()=>{
+    if(mode==='create'){
+      const email=$('#c_email').value.trim(), pwd=$('#c_pwd').value, name=$('#c_name').value.trim();
+      if(!email||pwd.length<6)return toast('Email + mot de passe (6+) requis');
+      const {data,error}=await sb.rpc('coach_create_member',{p_email:email,p_password:pwd,p_full_name:name||null});
+      if(data?.reason==='limit_reached')return toast(`Quota atteint (${CAP.max})`);
+      if(error||!data?.ok){toast(/déjà utilisé/.test(error?.message||'')?'Email déjà utilisé':'Échec création');return;}
+      toast('Membre créé & lié');
+    }else{
+      const email=$('#c_email2').value.trim();if(!email)return toast('Email requis');
+      const {data,error}=await sb.rpc('coach_link_member',{p_email:email});
+      if(error){toast('Échec');return;}
+      if(data?.reason==='limit_reached')return toast(`Quota atteint (${CAP.max})`);
+      if(!data?.ok){toast(data.reason==='not_found'?'Aucun membre avec cet email':'Échec');return;}
+      toast('Membre lié');
+    }
+    closeSheet();loadClients();
+  };
+  draw();
 }
 
 /* ---------- SHEET ---------- */
