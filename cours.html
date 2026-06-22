@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coach DM · Cours</title>
+<style>
+:root{--bg:#0E0E12;--surf:#17171F;--surf2:#1F1F2A;--line:#2A2A38;--txt:#F4F4F7;--mut:#9A9AA8;--vio:#6D5EF6;--grn:#10B981;--red:#EF4444;--blu:#38BDF8;--amb:#F59E0B}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,system-ui,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--vio)}
+header{position:sticky;top:0;z-index:5;background:rgba(14,14,18,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 16px;display:flex;align-items:center;gap:10px}
+header h1{font-size:16px;margin:0;font-weight:800;letter-spacing:.3px}
+header .sp{flex:1}
+.btn{border:0;border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;cursor:pointer;color:#fff;background:var(--vio)}
+.btn.sec{background:var(--surf2);color:var(--txt);border:1px solid var(--line)}
+.btn.gho{background:transparent;color:var(--mut);border:1px solid var(--line)}
+.btn.sm{padding:7px 10px;font-size:13px;border-radius:10px}
+.btn.grn{background:var(--grn)}.btn.red{background:var(--red)}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+.tabs{display:flex;gap:8px;margin:6px 0 16px}
+.tabs button{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--surf);color:var(--mut);font-weight:700;font-size:14px}
+.tabs button.on{background:var(--vio);color:#fff;border-color:var(--vio)}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.row{display:flex;align-items:center;gap:10px}
+.daylabel{font-size:12px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;margin:14px 2px 8px}
+.inst{cursor:pointer}
+.inst .accent{width:4px;align-self:stretch;border-radius:4px;background:var(--vio)}
+.title{font-weight:800;font-size:15px}
+.sub{color:var(--mut);font-size:13px;margin-top:2px}
+.pill{font-size:12px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.pill.ok{background:rgba(16,185,129,.15);color:var(--grn)}
+.pill.warn{background:rgba(245,158,11,.15);color:var(--amb)}
+.pill.full{background:rgba(239,68,68,.15);color:var(--red)}
+.pill.cancel{background:rgba(154,154,168,.15);color:var(--mut)}
+.pill.vio{background:rgba(109,94,246,.18);color:#b6acff}
+label{display:block;font-size:12px;font-weight:700;color:var(--mut);margin:12px 0 5px}
+input,select,textarea{width:100%;background:var(--surf2);border:1px solid var(--line);border-radius:11px;color:var(--txt);padding:11px;font-size:15px;font-family:inherit}
+textarea{min-height:64px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{flex:1;min-width:42px;padding:9px 0;border-radius:10px;border:1px solid var(--line);background:var(--surf2);color:var(--mut);font-weight:700;font-size:13px}
+.chips button.on{background:var(--vio);color:#fff;border-color:var(--vio)}
+.modal{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center}
+.modal.show{display:flex}
+.sheet{background:var(--bg);border:1px solid var(--line);border-radius:20px 20px 0 0;width:100%;max-width:760px;max-height:92vh;overflow:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+.sheet h2{margin:2px 0 4px;font-size:18px}
+.member{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.member:last-child{border-bottom:0}
+.mname{font-weight:700;font-size:14px}
+.memail{color:var(--mut);font-size:12px}
+.att{display:flex;gap:6px}
+.center{text-align:center;color:var(--mut);padding:30px 0}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--surf2);border:1px solid var(--line);color:var(--txt);padding:12px 16px;border-radius:12px;font-weight:700;font-size:14px;z-index:50;opacity:0;transition:.25s;pointer-events:none}
+.toast.show{opacity:1}
+.muted{color:var(--mut);font-size:13px}
+.login{max-width:360px;margin:60px auto;padding:0 16px}
+hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+const SB_URL='https://kkcmhviyvttwpaclrjmv.supabase.co';
+const SB_KEY='sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b';
+const sb=createClient(SB_URL,SB_KEY);
+
+const $=s=>document.querySelector(s);
+const app=$('#app');
+let ME=null, ROLE=null, VIEW='planning', PLANNING=[], TEMPLATES=[];
+
+const esc=s=>(s??'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._);t._=setTimeout(()=>t.classList.remove('show'),2200);};
+const dKey=d=>new Date(d).toLocaleDateString('fr-BE',{weekday:'long',day:'numeric',month:'long'});
+const hhmm=d=>new Date(d).toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'});
+
+/* ---------- AUTH ---------- */
+async function boot(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){return renderLogin();}
+  ME=session.user.id;
+  const {data:prof}=await sb.from('profiles').select('role,full_name').eq('id',ME).single();
+  ROLE=prof?.role;
+  if(!['coach','admin'].includes(ROLE)){return renderDenied();}
+  render();
+}
+function renderLogin(){
+  app.innerHTML=`<div class="login">
+    <h1 style="text-align:center">Coach DM · Cours</h1>
+    <label>Email</label><input id="le" type="email" autocomplete="username">
+    <label>Mot de passe</label><input id="lp" type="password" autocomplete="current-password">
+    <button class="btn" style="width:100%;margin-top:16px" id="lb">Se connecter</button>
+    <p class="muted" style="text-align:center;margin-top:14px">Réservé coach / admin.</p></div>`;
+  $('#lb').onclick=async()=>{
+    const {error}=await sb.auth.signInWithPassword({email:$('#le').value.trim(),password:$('#lp').value});
+    if(error)return toast('Connexion refusée');
+    boot();
+  };
+}
+function renderDenied(){
+  app.innerHTML=`<div class="login"><h1 style="text-align:center">Accès réservé</h1>
+  <p class="muted" style="text-align:center">Ce compte n'est pas coach/admin.</p>
+  <button class="btn sec" style="width:100%;margin-top:14px" id="lo">Se déconnecter</button></div>`;
+  $('#lo').onclick=async()=>{await sb.auth.signOut();boot();};
+}
+
+/* ---------- SHELL ---------- */
+function render(){
+  app.innerHTML=`
+  <header>
+    <h1>Coach DM · Cours</h1><div class="sp"></div>
+    <a class="btn gho sm" href="admin.html">Admin</a>
+    <button class="btn gho sm" id="logout">Quitter</button>
+  </header>
+  <div class="wrap">
+    <div class="tabs">
+      <button data-v="planning" class="${VIEW==='planning'?'on':''}">Planning</button>
+      <button data-v="modeles" class="${VIEW==='modeles'?'on':''}">Modèles</button>
+    </div>
+    <div id="body"></div>
+  </div>`;
+  $('#logout').onclick=async()=>{await sb.auth.signOut();boot();};
+  app.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{VIEW=b.dataset.v;render();});
+  VIEW==='planning'?loadPlanning():loadTemplates();
+}
+
+/* ---------- PLANNING ---------- */
+async function loadPlanning(){
+  const body=$('#body');body.innerHTML='<div class="center">Chargement…</div>';
+  const {data,error}=await sb.rpc('class_list_instances');
+  if(error){body.innerHTML='<div class="center">Erreur de chargement</div>';return;}
+  PLANNING=data||[];renderPlanning();
+}
+function renderPlanning(){
+  const body=$('#body');
+  let h=`<button class="btn" style="width:100%;margin-bottom:14px" id="newInst">＋ Programmer une séance</button>`;
+  if(!PLANNING.length){h+='<div class="center">Aucune séance à venir.</div>';}
+  let lastDay='';
+  PLANNING.forEach(it=>{
+    const day=dKey(it.starts_at);
+    if(day!==lastDay){h+=`<div class="daylabel">${esc(day)}</div>`;lastDay=day;}
+    const full=it.spots_left<=0, cancelled=it.status==='cancelled';
+    const pc=cancelled?'cancel':full?'full':'ok';
+    const ptxt=cancelled?'Annulé':`${it.booked_count}/${it.capacity}`;
+    const col=it.color||'#6D5EF6';
+    h+=`<div class="card inst row" data-id="${it.id}" style="gap:12px">
+      <div class="accent" style="background:${esc(col)}"></div>
+      <div style="flex:1">
+        <div class="title">${esc(it.name_fr)} ${it.kind==='personal_training'?'<span class="pill vio">PT</span>':''}</div>
+        <div class="sub">${hhmm(it.starts_at)}–${hhmm(it.ends_at)}${it.location?' · '+esc(it.location):''}</div>
+      </div>
+      <span class="pill ${pc}">${ptxt}</span>
+    </div>`;
+  });
+  body.innerHTML=h;
+  $('#newInst').onclick=()=>openSchedule();
+  body.querySelectorAll('.inst').forEach(c=>c.onclick=()=>openRoster(c.dataset.id));
+}
+
+/* ---------- ROSTER + PRÉSENCE ---------- */
+async function openRoster(id){
+  const it=PLANNING.find(x=>x.id===id);
+  const {data,error}=await sb.rpc('class_roster',{p_instance:id});
+  if(error){toast('Roster indisponible');return;}
+  const rows=data||[];
+  const present=rows.filter(r=>r.status==='attended').length;
+  let h=`<h2>${esc(it.name_fr)}</h2>
+   <div class="muted">${esc(dKey(it.starts_at))} · ${hhmm(it.starts_at)}–${hhmm(it.ends_at)}${it.location?' · '+esc(it.location):''}</div>
+   <div class="row" style="margin:12px 0;gap:8px;flex-wrap:wrap">
+     <span class="pill ${it.status==='cancelled'?'cancel':'vio'}">${rows.length}/${it.capacity} inscrits</span>
+     <span class="pill ok">${present} présents</span>
+     <div class="sp" style="flex:1"></div>
+     ${it.status==='cancelled'
+       ? `<button class="btn sec sm" data-act="republish">Republier</button>`
+       : `<button class="btn red sm" data-act="cancelinst">Annuler la séance</button>`}
+   </div><hr>`;
+  if(!rows.length)h+='<div class="center">Aucune réservation.</div>';
+  rows.forEach(r=>{
+    const pay=r.has_access?'<span class="pill ok">En ordre</span>':'<span class="pill full">À régulariser</span>';
+    const st=r.status==='attended'?'<span class="pill ok">Présent</span>'
+            :r.status==='no_show'?'<span class="pill full">Absent</span>'
+            :r.status==='waitlist'?'<span class="pill warn">Attente</span>':'<span class="pill vio">Réservé</span>';
+    h+=`<div class="member">
+      <div style="flex:1;min-width:0">
+        <div class="mname">${esc(r.full_name||'—')}</div>
+        <div class="memail">${esc(r.email||'')}</div>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${st} ${pay}</div>
+      </div>
+      <div class="att">
+        <button class="btn grn sm" data-pres="${r.booking_id}">✓</button>
+        <button class="btn red sm" data-abs="${r.booking_id}">✗</button>
+      </div>
+    </div>`;
+  });
+  openSheet(h);
+  const sheet=$('#sheetBody');
+  sheet.querySelectorAll('[data-pres]').forEach(b=>b.onclick=()=>mark(b.dataset.pres,'attended',id));
+  sheet.querySelectorAll('[data-abs]').forEach(b=>b.onclick=()=>mark(b.dataset.abs,'no_show',id));
+  const ci=sheet.querySelector('[data-act="cancelinst"]');
+  if(ci)ci.onclick=()=>setInstStatus(id,'cancelled');
+  const rp=sheet.querySelector('[data-act="republish"]');
+  if(rp)rp.onclick=()=>setInstStatus(id,'scheduled');
+}
+async function mark(bid,status,instId){
+  const {data,error}=await sb.rpc('class_mark_attendance',{p_booking:bid,p_status:status});
+  if(error||!data?.ok){toast('Échec');return;}
+  toast(status==='attended'?'Présent ✓':'Absent ✗');
+  await loadPlanning();openRoster(instId);
+}
+async function setInstStatus(id,status){
+  const {error}=await sb.from('class_instances').update({status}).eq('id',id);
+  if(error){toast('Échec');return;}
+  closeSheet();toast(status==='cancelled'?'Séance annulée':'Séance republiée');loadPlanning();
+}
+
+/* ---------- MODÈLES ---------- */
+async function loadTemplates(){
+  const body=$('#body');body.innerHTML='<div class="center">Chargement…</div>';
+  const {data,error}=await sb.from('class_templates').select('*').order('created_at',{ascending:false});
+  if(error){body.innerHTML='<div class="center">Erreur</div>';return;}
+  TEMPLATES=data||[];renderTemplates();
+}
+function renderTemplates(){
+  const body=$('#body');
+  let h=`<button class="btn" style="width:100%;margin-bottom:14px" id="newTpl">＋ Nouveau cours</button>`;
+  if(!TEMPLATES.length)h+='<div class="center">Aucun cours modèle.</div>';
+  TEMPLATES.forEach(t=>{
+    h+=`<div class="card row" style="gap:12px">
+      <div class="accent" style="background:${esc(t.color||'#6D5EF6')}"></div>
+      <div style="flex:1">
+        <div class="title">${esc(t.name_fr)} ${t.kind==='personal_training'?'<span class="pill vio">PT</span>':''} ${t.is_active?'':'<span class="pill cancel">inactif</span>'}</div>
+        <div class="sub">Cap. ${t.default_capacity} · ${t.default_duration_min} min${t.location?' · '+esc(t.location):''}</div>
+      </div>
+      <button class="btn sec sm" data-edit="${t.id}">Éditer</button>
+      <button class="btn sm" data-sched="${t.id}">Programmer</button>
+    </div>`;
+  });
+  body.innerHTML=h;
+  $('#newTpl').onclick=()=>openTemplate();
+  body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openTemplate(TEMPLATES.find(t=>t.id===b.dataset.edit)));
+  body.querySelectorAll('[data-sched]').forEach(b=>b.onclick=()=>openSchedule(TEMPLATES.find(t=>t.id===b.dataset.sched)));
+}
+function openTemplate(t={}){
+  const e=t.id?t:{};
+  let h=`<h2>${t.id?'Éditer le cours':'Nouveau cours'}</h2>
+   <label>Type</label>
+   <select id="t_kind"><option value="group" ${e.kind!=='personal_training'?'selected':''}>Cours collectif</option>
+   <option value="personal_training" ${e.kind==='personal_training'?'selected':''}>Personal training (PT)</option></select>
+   <label>Nom — FR *</label><input id="t_fr" value="${esc(e.name_fr)}">
+   <div class="grid2"><div><label>Nom — EN</label><input id="t_en" value="${esc(e.name_en)}"></div>
+   <div><label>Nom — NL</label><input id="t_nl" value="${esc(e.name_nl)}"></div></div>
+   <label>Description — FR</label><textarea id="d_fr">${esc(e.description_fr)}</textarea>
+   <div class="grid2"><div><label>Desc — EN</label><textarea id="d_en">${esc(e.description_en)}</textarea></div>
+   <div><label>Desc — NL</label><textarea id="d_nl">${esc(e.description_nl)}</textarea></div></div>
+   <label>Image (URL)</label><input id="t_img" value="${esc(e.cover_image_url)}" placeholder="https://…">
+   <div class="grid2"><div><label>Capacité défaut</label><input id="t_cap" type="number" min="1" value="${e.default_capacity||12}"></div>
+   <div><label>Durée (min)</label><input id="t_dur" type="number" min="5" value="${e.default_duration_min||60}"></div></div>
+   <div class="grid2"><div><label>Lieu</label><input id="t_loc" value="${esc(e.location)}"></div>
+   <div><label>Couleur</label><input id="t_col" type="text" value="${esc(e.color||'#6D5EF6')}"></div></div>
+   <label>Actif</label><select id="t_act"><option value="true" ${e.is_active!==false?'selected':''}>Oui</option><option value="false" ${e.is_active===false?'selected':''}>Non</option></select>
+   <div class="row" style="margin-top:18px;gap:8px">
+     ${t.id?'<button class="btn red sec sm" id="t_del">Supprimer</button>':''}
+     <div class="sp" style="flex:1"></div>
+     <button class="btn sec" id="t_cancel">Fermer</button>
+     <button class="btn" id="t_save">Enregistrer</button>
+   </div>`;
+  openSheet(h);
+  $('#t_cancel').onclick=closeSheet;
+  if($('#t_del'))$('#t_del').onclick=async()=>{
+    const {error}=await sb.from('class_templates').delete().eq('id',t.id);
+    if(error){toast('Suppression refusée (séances liées ?)');return;}
+    closeSheet();toast('Supprimé');loadTemplates();
+  };
+  $('#t_save').onclick=async()=>{
+    const fr=$('#t_fr').value.trim();if(!fr)return toast('Nom FR requis');
+    const p={coach_id:ME,kind:$('#t_kind').value,name_fr:fr,
+      name_en:$('#t_en').value.trim()||null,name_nl:$('#t_nl').value.trim()||null,
+      description_fr:$('#d_fr').value.trim()||null,description_en:$('#d_en').value.trim()||null,description_nl:$('#d_nl').value.trim()||null,
+      cover_image_url:$('#t_img').value.trim()||null,default_capacity:+$('#t_cap').value||12,
+      default_duration_min:+$('#t_dur').value||60,location:$('#t_loc').value.trim()||null,
+      color:$('#t_col').value.trim()||'#6D5EF6',is_active:$('#t_act').value==='true'};
+    const q=t.id?sb.from('class_templates').update(p).eq('id',t.id):sb.from('class_templates').insert(p);
+    const {error}=await q;
+    if(error){toast('Échec enregistrement');return;}
+    closeSheet();toast('Enregistré');loadTemplates();
+  };
+}
+
+/* ---------- PROGRAMMER (avec récurrence) ---------- */
+function openSchedule(t={}){
+  const e=t.id?t:{};
+  const today=new Date().toISOString().slice(0,10);
+  const days=[['MO','Lun'],['TU','Mar'],['WE','Mer'],['TH','Jeu'],['FR','Ven'],['SA','Sam'],['SU','Dim']];
+  let h=`<h2>Programmer une séance</h2>
+   <label>Type</label><select id="s_kind"><option value="group" ${e.kind!=='personal_training'?'selected':''}>Cours collectif</option>
+   <option value="personal_training" ${e.kind==='personal_training'?'selected':''}>PT</option></select>
+   <label>Nom — FR *</label><input id="s_fr" value="${esc(e.name_fr)}">
+   <div class="grid2"><div><label>Nom — EN</label><input id="s_en" value="${esc(e.name_en)}"></div>
+   <div><label>Nom — NL</label><input id="s_nl" value="${esc(e.name_nl)}"></div></div>
+   <div class="grid2"><div><label>Date</label><input id="s_date" type="date" value="${today}"></div>
+   <div><label>Heure</label><input id="s_time" type="time" value="18:00"></div></div>
+   <div class="grid2"><div><label>Durée (min)</label><input id="s_dur" type="number" min="5" value="${e.default_duration_min||60}"></div>
+   <div><label>Capacité</label><input id="s_cap" type="number" min="1" value="${e.default_capacity||12}"></div></div>
+   <div class="grid2"><div><label>Lieu</label><input id="s_loc" value="${esc(e.location)}"></div>
+   <div><label>Couleur</label><input id="s_col" value="${esc(e.color||'#6D5EF6')}"></div></div>
+   <label>Répéter chaque (laisse vide = séance unique)</label>
+   <div class="chips" id="s_days">${days.map(d=>`<button data-d="${d[0]}">${d[1]}</button>`).join('')}</div>
+   <label>Pendant combien de semaines</label><input id="s_weeks" type="number" min="1" max="26" value="4">
+   <div class="grid2"><div><label>Annulation jusqu'à (min avant)</label><input id="s_cut" type="number" min="0" value="120"></div>
+   <div><label>Pointage ouvre (min avant)</label><input id="s_chk" type="number" min="0" value="10"></div></div>
+   <div class="row" style="margin-top:18px;gap:8px"><div class="sp" style="flex:1"></div>
+     <button class="btn sec" id="s_cancel">Fermer</button>
+     <button class="btn" id="s_save">Créer</button></div>`;
+  openSheet(h);
+  const sel=new Set();
+  $('#s_days').querySelectorAll('button').forEach(b=>b.onclick=()=>{b.classList.toggle('on');b.classList.contains('on')?sel.add(b.dataset.d):sel.delete(b.dataset.d);});
+  $('#s_cancel').onclick=closeSheet;
+  $('#s_save').onclick=async()=>{
+    const fr=$('#s_fr').value.trim();if(!fr)return toast('Nom FR requis');
+    const date=$('#s_date').value,time=$('#s_time').value;if(!date||!time)return toast('Date/heure requises');
+    const dur=+$('#s_dur').value||60, weeks=+$('#s_weeks').value||1;
+    const map={SU:0,MO:1,TU:2,WE:3,TH:4,FR:5,SA:6};
+    const wd=[...sel].map(d=>map[d]);
+    const first=new Date(`${date}T${time}`);
+    let dates=[];
+    if(!wd.length){dates=[first];}
+    else{
+      const horizon=new Date(first);horizon.setDate(horizon.getDate()+weeks*7);
+      let cur=new Date(first);
+      while(cur<horizon){if(wd.includes(cur.getDay()))dates.push(new Date(cur));cur.setDate(cur.getDate()+1);}
+    }
+    if(!dates.length)return toast('Aucune date générée');
+    const base={template_id:t.id||null,coach_id:ME,kind:$('#s_kind').value,name_fr:fr,
+      name_en:$('#s_en').value.trim()||null,name_nl:$('#s_nl').value.trim()||null,
+      description_fr:e.description_fr||null,description_en:e.description_en||null,description_nl:e.description_nl||null,
+      cover_image_url:e.cover_image_url||null,color:$('#s_col').value.trim()||'#6D5EF6',
+      location:$('#s_loc').value.trim()||null,capacity:+$('#s_cap').value||12,
+      cancel_cutoff_min_before:+$('#s_cut').value||0,checkin_opens_min_before:+$('#s_chk').value||0};
+    const payload=dates.map(d=>({...base,starts_at:d.toISOString(),ends_at:new Date(d.getTime()+dur*60000).toISOString()}));
+    const {error}=await sb.from('class_instances').insert(payload);
+    if(error){toast('Échec création');return;}
+    closeSheet();toast(payload.length>1?`${payload.length} séances créées`:'Séance créée');VIEW='planning';render();
+  };
+}
+
+/* ---------- SHEET ---------- */
+function openSheet(html){
+  let m=$('#modal');
+  if(!m){m=document.createElement('div');m.id='modal';m.className='modal';m.innerHTML='<div class="sheet"><div id="sheetBody"></div></div>';document.body.appendChild(m);
+    m.onclick=ev=>{if(ev.target===m)closeSheet();};}
+  $('#sheetBody').innerHTML=html;m.classList.add('show');
+}
+function closeSheet(){const m=$('#modal');if(m)m.classList.remove('show');}
+
+sb.auth.onAuthStateChange((_e,s)=>{if(!s){renderLogin();}});
+boot();
+</script>
+</body>
+</html>
