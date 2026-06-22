@@ -230,6 +230,109 @@
   .spin{width:30px;height:30px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--brand);
     animation:rot .7s linear infinite;margin:30px auto}
   @keyframes rot{to{transform:rotate(360deg)}}
+
+  /* ---------- HOME header ---------- */
+  .home-hi{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 16px}
+  .hh-hello{font-size:20px;font-weight:800;letter-spacing:.2px}
+  .hh-date{font-size:12px;color:var(--muted);margin-top:2px;text-transform:capitalize}
+  .hh-logo{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-weight:800;font-size:15px;
+    color:#3a2f06;background:linear-gradient(145deg,#E9C766,#C99B2E)}
+
+  /* ---------- Colored macro cards ---------- */
+  .macros{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+  .mcard{background:color-mix(in srgb,var(--mc) 14%,var(--surface));
+    border:1px solid color-mix(in srgb,var(--mc) 34%,transparent);border-radius:14px;padding:11px 12px}
+  .mc-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .mc-name{font-size:13px;font-weight:700;color:var(--mc)}
+  .mc-val{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .mc-val b{color:var(--text)}
+  .mc-track{height:6px;border-radius:6px;background:color-mix(in srgb,var(--mc) 18%,transparent);overflow:hidden}
+  .mc-track>span{display:block;height:100%;background:var(--mc);border-radius:6px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+  /* ---------- Workout-of-day ---------- */
+  .wod{background:color-mix(in srgb,var(--c) 13%,var(--surface));border:1px solid color-mix(in srgb,var(--c) 36%,transparent);
+    border-radius:var(--radius);padding:16px 17px;margin-bottom:16px}
+  .wod-top{display:flex;justify-content:space-between;align-items:center}
+  .wod-k{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--c)}
+  .wod-dur{font-size:12px;color:var(--muted)}
+  .wod-name{font-size:18px;font-weight:800;margin:8px 0 3px}
+  .wod-sub{font-size:13px;color:var(--muted)}
+  .wod-btn{margin-top:13px;width:100%;padding:12px;border-radius:13px;font-weight:700;font-size:14px;color:#fff;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));display:flex;align-items:center;justify-content:center;gap:7px}
+
+  /* ---------- Quick tiles ---------- */
+  .qtiles{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:16px}
+  .qtile{display:flex;flex-direction:column;align-items:flex-start;gap:9px;text-align:left;
+    background:color-mix(in srgb,var(--c) 13%,var(--surface));border:1px solid color-mix(in srgb,var(--c) 32%,transparent);
+    border-radius:var(--radius-sm);padding:15px 14px;font-weight:700;font-size:14.5px;color:var(--text);transition:transform .1s}
+  .qtile:active{transform:scale(.97)}
+  .qtile svg{width:24px;height:24px;stroke:var(--c)}
+
+  /* ---------- Insight ---------- */
+  .insight{background:color-mix(in srgb,var(--c) 11%,var(--surface));border:1px solid color-mix(in srgb,var(--c) 30%,transparent);
+    border-left:3px solid var(--c);border-radius:0 14px 14px 0;padding:13px 15px;margin-bottom:8px}
+  .ins-h{display:flex;align-items:center;gap:7px;color:var(--c);font-size:12px;font-weight:800;
+    text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+  .ins-b{font-size:14px;font-weight:600;line-height:1.5}
+  .ins-en{font-size:12.5px;color:var(--muted);line-height:1.45;margin-top:3px}
+  .ins-nl{font-size:12px;color:var(--muted);font-style:italic;line-height:1.4;margin-top:1px}
+  .ins-ref{font-size:11px;color:var(--c);font-weight:700;margin-top:7px}
+
+  /* ---------- Séances : cards ---------- */
+  .se-card{position:relative;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+    margin-bottom:14px;background:var(--surface);box-shadow:var(--shadow-soft);transition:transform .1s}
+  .se-card:active{transform:scale(.99)}
+  .se-cover{height:96px;background:
+    linear-gradient(135deg,color-mix(in srgb,var(--c) 92%,#000),color-mix(in srgb,var(--c) 55%,#000));
+    display:flex;align-items:flex-end;padding:12px 15px;position:relative}
+  .se-cover.img{background-size:cover;background-position:center}
+  .se-cover::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent,rgba(0,0,0,.45))}
+  .se-cover .se-type{position:relative;z-index:1;font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;
+    color:#fff;background:rgba(0,0,0,.35);padding:4px 10px;border-radius:20px;backdrop-filter:blur(4px)}
+  .se-body{padding:13px 15px 15px}
+  .se-title{font-size:16px;font-weight:800}
+  .se-src{font-size:12px;color:var(--muted);margin-top:2px}
+  .se-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+  .badge{font-size:11px;font-weight:700;padding:5px 9px;border-radius:9px;background:var(--surface-2);color:var(--muted)}
+  .badge.c{background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c)}
+
+  /* ---------- Séances : detail ---------- */
+  .se-back{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--brand);
+    background:var(--brand-soft);padding:9px 14px;border-radius:12px;margin-bottom:14px}
+  .se-hero{border-radius:var(--radius);overflow:hidden;margin-bottom:6px}
+  .se-hero .se-cover{height:120px}
+  .se-d-title{font-size:21px;font-weight:800;margin:14px 0 1px}
+  .se-d-en{font-size:13px;color:var(--muted)} .se-d-nl{font-size:12.5px;color:var(--muted);font-style:italic}
+  .blk{margin-top:18px}
+  .blk-h{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+    color:var(--bc);margin-bottom:10px}
+  .blk-h::before{content:"";width:8px;height:8px;border-radius:3px;background:var(--bc)}
+  .exrow{display:flex;gap:12px;padding:12px;border:1px solid var(--line);border-radius:var(--radius-sm);
+    margin-bottom:10px;background:var(--surface)}
+  .ex-thumb{flex:0 0 64px;width:64px;height:64px;border-radius:12px;overflow:hidden;position:relative;
+    background:color-mix(in srgb,var(--bc) 24%,var(--surface-2));display:grid;place-items:center;text-decoration:none}
+  .ex-thumb img{width:100%;height:100%;object-fit:cover}
+  .ex-thumb .play{position:absolute;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.55);
+    display:grid;place-items:center;color:#fff;font-size:13px;padding-left:2px}
+  .ex-main{flex:1;min-width:0}
+  .ex-name{font-size:14.5px;font-weight:700;line-height:1.25}
+  .ex-tr{font-size:12px;color:var(--muted);line-height:1.3} .ex-tr i{font-style:italic}
+  .ex-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+  .chip{font-size:11px;font-weight:700;padding:4px 8px;border-radius:8px;background:var(--surface-2);color:var(--muted)}
+  .chip.k{background:var(--brand-soft);color:var(--brand)}
+  .ex-tip{margin-top:8px;font-size:12px;line-height:1.4;color:var(--tc);display:flex;gap:6px;align-items:flex-start}
+  .ex-tip b{font-weight:700}
+  .ex-demo{display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-size:12px;font-weight:700;color:var(--prot)}
+  /* set pills */
+  .pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+  .pill{min-width:34px;height:30px;padding:0 8px;border-radius:9px;border:1.5px solid var(--line);background:var(--surface-2);
+    color:var(--muted);font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:4px}
+  .pill[data-on="1"]{pointer-events:auto;border-color:var(--brand);color:var(--brand);background:var(--brand-soft)}
+  .pill.done{border-color:var(--fiber);background:color-mix(in srgb,var(--fiber) 18%,transparent);color:var(--fiber)}
+  .pill[data-on="0"]{opacity:.55}
+  .se-action{position:sticky;bottom:calc(94px + env(safe-area-inset-bottom));z-index:30;margin:20px 0 4px}
+  .se-action .btn{box-shadow:0 10px 26px rgba(109,94,246,.4)}
+  .se-action .btn.fin{background:linear-gradient(135deg,var(--fiber),#0c8f64)}
 </style>
 </head>
 <body>
@@ -281,8 +384,12 @@
     <div class="sub" id="tb-sub"></div>
   </div>
 
-  <!-- TODAY -->
-  <div class="page tabpane active" id="pane-today">
+  <!-- HOME -->
+  <div class="page tabpane active" id="pane-home">
+    <div class="home-hi">
+      <div><div class="hh-hello" id="home-hi">Salut</div><div class="hh-date" id="home-date"></div></div>
+      <div class="hh-logo">DM</div>
+    </div>
     <div class="block ring-wrap" id="today-card">
       <div class="ring">
         <svg viewBox="0 0 208 208" width="208" height="208">
@@ -307,6 +414,21 @@
       <p class="empty">Pas encore d'objectifs.<br>Calcule-les dans <b>Profil</b> pour suivre ta journée en temps réel.</p>
       <button class="btn" id="go-profile">Définir mes objectifs</button>
     </div>
+
+    <div id="wod"></div>
+
+    <div class="qtiles">
+      <button class="qtile" data-go="journal" style="--c:var(--carb)">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M9 12h6M12 9v6"/></svg>Journal</button>
+      <button class="qtile" data-go="seances" style="--c:var(--brand)">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg>Séances</button>
+      <button class="qtile" data-go="ia" style="--c:var(--fat)">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>Coach IA</button>
+      <button class="qtile" data-go="profile" style="--c:var(--fiber)">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>Profil</button>
+    </div>
+
+    <div id="home-insight"></div>
   </div>
 
   <!-- JOURNAL -->
@@ -323,6 +445,12 @@
       <h3>Aujourd'hui</h3>
       <div id="jo-logs"><p class="empty">Aucun aliment enregistré.</p></div>
     </div>
+  </div>
+
+  <!-- SEANCES -->
+  <div class="page tabpane" id="pane-seances">
+    <div id="se-list"><div id="se-cards"><div class="spin"></div></div></div>
+    <div id="se-detail" class="hidden"></div>
   </div>
 
   <!-- COACH IA -->
@@ -383,10 +511,11 @@
 
   <!-- NAV -->
   <div class="nav">
-    <button class="on" data-tab="today"><span class="ic">◎</span>Aujourd'hui</button>
-    <button data-tab="journal"><span class="ic">＋</span>Journal</button>
-    <button data-tab="ia"><span class="ic">✦</span>Coach IA</button>
-    <button data-tab="profile"><span class="ic">☰</span>Profil</button>
+    <button class="on" data-tab="home"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></span>Accueil</button>
+    <button data-tab="journal"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M9 12h6M12 9v6"/></svg></span>Journal</button>
+    <button data-tab="seances"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg></span>Séances</button>
+    <button data-tab="ia"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg></span>Coach IA</button>
+    <button data-tab="profile"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></span>Profil</button>
   </div>
 </div>
 
@@ -411,6 +540,18 @@
     <div class="fk" id="sh-preview" style="margin:2px 0 16px"></div>
     <button class="btn" id="sh-add">Ajouter au journal</button>
     <button class="btn subtle" id="sh-cancel" style="margin-top:10px">Annuler</button>
+  </div>
+</div>
+
+<!-- LOG-SET SHEET -->
+<div class="overlay" id="set-ov">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 id="set-name">Série</h3>
+    <div class="fk" id="set-sub">—</div>
+    <div id="set-fields"></div>
+    <button class="btn" id="set-save">Valider la série</button>
+    <button class="btn subtle" id="set-cancel" style="margin-top:10px">Annuler</button>
   </div>
 </div>
 
@@ -478,7 +619,7 @@ async function enter(user){
   $('#p-email').textContent = user.email || '';
   await loadTargets();
   await loadToday();
-  switchTab('today');
+  switchTab('home');
 }
 
 async function hasAccess(uid){
@@ -546,12 +687,9 @@ async function loadToday(){
   ];
   $('#macros').innerHTML = macros.map(m=>{
     const p = m.t>0 ? Math.min(m.v/m.t,1)*100 : 0;
-    return `<div class="macro">
-      <div class="top">
-        <span class="name"><span class="dot" style="background:var(${m.c})"></span>${m.n}</span>
-        <span class="val"><b>${r0(m.v)}</b> / ${r0(m.t)} g</span>
-      </div>
-      <div class="track"><span style="width:${p}%;background:var(${m.c})"></span></div>
+    return `<div class="mcard" style="--mc:var(${m.c})">
+      <div class="mc-top"><span class="mc-name">${m.n}</span><span class="mc-val"><b>${r0(m.v)}</b> / ${r0(m.t)} g</span></div>
+      <div class="mc-track"><span style="width:${p}%"></span></div>
     </div>`;
   }).join('');
 }
@@ -727,7 +865,7 @@ $('#p-calc').onclick = async ()=>{
   if(error){ setMsg('p-msg','Échec de l\'enregistrement.','err'); return; }
   setMsg('p-msg',`✓ ${r0(kcal)} kcal · P${r0(protein)} G${r0(carbs)} L${r0(fat)} g`,'ok');
   await loadTargets(); await loadToday();
-  setTimeout(()=>switchTab('today'),900);
+  setTimeout(()=>switchTab('home'),900);
 };
 
 /* ---------------- COACH IA ---------------- */
@@ -783,15 +921,16 @@ async function sendIA(){
 }
 
 /* ---------------- TABS ---------------- */
-const TITLES={today:["Aujourd'hui",""],journal:["Journal","Cherche, ajoute, suis tes repas"],ia:["Coach IA",""],profile:["Profil",""]};
+const TITLES={home:["Accueil",""],journal:["Journal","Cherche, ajoute, suis tes repas"],seances:["Séances","Tes programmes Coach DM"],ia:["Coach IA",""],profile:["Profil",""]};
 function switchTab(tab){
   document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('active'));
   $('#pane-'+tab).classList.add('active');
   document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
-  $('#tb-title').textContent=TITLES[tab][0]; $('#tb-sub').textContent=TITLES[tab][1];
-  $('.topbar').style.display = tab==='ia' ? 'none' : 'block';
+  const T=TITLES[tab]||['','']; $('#tb-title').textContent=T[0]; $('#tb-sub').textContent=T[1];
+  $('.topbar').style.display = (tab==='ia'||tab==='home') ? 'none' : 'block';
+  if(tab==='home') loadHome();
   if(tab==='journal') loadLogs();
-  if(tab==='today') loadToday();
+  if(tab==='seances') loadWorkouts();
   if(tab==='ia'){ if(!IA_LOADED){ IA_LOADED=true; loadConversation(); } setTimeout(()=>$('#ia-input').focus(),100); }
   window.scrollTo(0,0);
 }
@@ -833,6 +972,231 @@ function setBtn(sel,loading,label){ const b=$(sel); b.disabled=loading; if(label
   }
   coin.addEventListener('click',enableGyro);
 })();
+
+/* ================= HOME ================= */
+function firstName(email){ if(!email) return 'Coach'; const n=email.split('@')[0].replace(/[._\-]+/g,' ').trim(); return n? n.charAt(0).toUpperCase()+n.slice(1) : 'Coach'; }
+async function loadHome(){
+  $('#home-hi').textContent = 'Salut '+firstName(USER&&USER.email);
+  $('#home-date').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  await loadToday();
+  loadWod();
+  loadInsight();
+}
+
+const TYPE_FR={strength:'Force',hypertrophy:'Hypertrophie',hiit:'HIIT',hyrox:'Hyrox',conditioning:'Conditionnement',mobility:'Mobilité',football:'Football',full_body:'Full body',emom:'EMOM',amrap:'AMRAP',for_time:'For time',circuit:'Circuit'};
+const TYPE_COLOR={strength:'#8E7CFF',hypertrophy:'#8E7CFF',hiit:'#EF4444',hyrox:'#38BDF8',conditioning:'#F59E0B',mobility:'#10B981',football:'#10B981',full_body:'#8E7CFF'};
+const DIFF_FR={beginner:'Débutant',intermediate:'Intermédiaire',advanced:'Avancé'};
+const BLOCK_FR={activation:'Activation',sprint_plyo:'Sprint / Plyo',strength:'Force',accessory:'Accessoire',conditioning:'Conditionnement',recovery:'Récupération'};
+const BLOCK_COLOR={activation:'#38BDF8',sprint_plyo:'#A78BFA',strength:'#D4AF37',accessory:'#10B981',conditioning:'#EF4444',recovery:'#10B981'};
+const MUSCLE_FR={chest:'Pectoraux',back:'Dos',lats:'Dorsaux',traps:'Trapèzes',shoulders:'Épaules',biceps:'Biceps',triceps:'Triceps',forearms:'Avant-bras',quads:'Quadriceps',hamstrings:'Ischios',glutes:'Fessiers',calves:'Mollets',adductors:'Adducteurs',abductors:'Abducteurs',core:'Gainage',full_body:'Full body',cardio:'Cardio'};
+const SEV={success:{c:'--fiber',i:'✓'},warning:{c:'--prot',i:'✗'},info:{c:'--carb',i:'ⓘ'},tactic:{c:'--fat',i:'⚑'}};
+const typeColor=(t)=>TYPE_COLOR[t]||'#8E7CFF';
+function ytId(u){ if(!u) return null; const m=String(u).match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/); return m?m[1]:null; }
+function exThumb(ex){ if(ex.thumbnail_url) return ex.thumbnail_url; const id=ytId(ex.video_url); return id?('https://i.ytimg.com/vi/'+id+'/hqdefault.jpg'):null; }
+function exDemo(ex){ if(ex.video_url) return ex.video_url; if(ex.youtube_query) return 'https://www.youtube.com/results?search_query='+encodeURIComponent(ex.youtube_query); return null; }
+
+let SE_WORKOUTS=null, SE_COUNTS={}, SE_CUR=null, SESSION=null, SET_CTX=null;
+
+async function loadWod(){
+  if(!SE_WORKOUTS) await fetchWorkouts();
+  const list=SE_WORKOUTS||[];
+  if(!list.length){ $('#wod').innerHTML=''; return; }
+  const goal=TARGETS&&TARGETS.goal;
+  const pref={lose_fat:['hiit','hyrox','conditioning'],build_muscle:['strength','hypertrophy'],maintain:['hyrox','football','strength'],recomp:['strength','hyrox']}[goal]||[];
+  const w=list.find(x=>pref.includes(x.type))||list[0];
+  const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
+  $('#wod').innerHTML=`<div class="wod" style="--c:${col}">
+    <div class="wod-top"><span class="wod-k">Séance recommandée</span><span class="wod-dur">${w.estimated_duration_min||'—'} min</span></div>
+    <div class="wod-name">${esc(w.name_fr)}</div>
+    <div class="wod-sub">${TYPE_FR[w.type]||w.type} · ${n} exercices · ${DIFF_FR[w.difficulty]||''}</div>
+    <button class="wod-btn" data-open="${w.id}">▸ Voir la séance</button>
+  </div>`;
+}
+
+async function loadInsight(){
+  try{
+    const { data } = await sb.from('exercise_tips').select('severity,body_fr,body_en,body_nl,reference').limit(40);
+    if(!data||!data.length){ $('#home-insight').innerHTML=''; return; }
+    const t=data[Math.floor(Math.random()*data.length)], s=SEV[t.severity]||SEV.success;
+    $('#home-insight').innerHTML=`<div class="insight" style="--c:var(${s.c})">
+      <div class="ins-h"><span>${s.i}</span> Insight du jour</div>
+      <div class="ins-b">${esc(t.body_fr||'')}</div>
+      ${t.body_en?`<div class="ins-en">${esc(t.body_en)}</div>`:''}
+      ${t.body_nl?`<div class="ins-nl">${esc(t.body_nl)}</div>`:''}
+      ${t.reference?`<div class="ins-ref">${esc(t.reference)}</div>`:''}
+    </div>`;
+  }catch(e){ $('#home-insight').innerHTML=''; }
+}
+
+/* ================= SEANCES ================= */
+async function fetchWorkouts(){
+  const { data:ws } = await sb.from('workouts')
+    .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url')
+    .eq('is_published',true).order('created_at',{ascending:true});
+  SE_WORKOUTS = ws||[]; SE_COUNTS={};
+  const ids=SE_WORKOUTS.map(w=>w.id);
+  if(ids.length){
+    const { data:we } = await sb.from('workout_exercises').select('workout_id').in('workout_id',ids);
+    (we||[]).forEach(r=>{ SE_COUNTS[r.workout_id]=(SE_COUNTS[r.workout_id]||0)+1; });
+  }
+}
+async function loadWorkouts(){
+  backToList();
+  await fetchWorkouts();
+  if(!SE_WORKOUTS.length){ $('#se-cards').innerHTML='<p class="empty">Aucune séance publiée.</p>'; return; }
+  $('#se-cards').innerHTML = SE_WORKOUTS.map(w=>{
+    const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
+    const cover = w.cover_image_url
+      ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${TYPE_FR[w.type]||w.type}</span></div>`
+      : `<div class="se-cover" style="--c:${col}"><span class="se-type">${TYPE_FR[w.type]||w.type}</span></div>`;
+    return `<div class="se-card" data-open="${w.id}">${cover}
+      <div class="se-body">
+        <div class="se-title">${esc(w.name_fr)}</div>
+        ${w.source?`<div class="se-src">${esc(w.source)}</div>`:''}
+        <div class="se-badges">
+          <span class="badge c" style="--c:${col}">${DIFF_FR[w.difficulty]||''}</span>
+          <span class="badge">${w.estimated_duration_min||'—'} min</span>
+          <span class="badge">${n} exercices</span>
+        </div>
+      </div></div>`;
+  }).join('');
+}
+function backToList(){ const d=$('#se-detail'),l=$('#se-list'); if(d) d.classList.add('hidden'); if(l) l.classList.remove('hidden'); }
+
+async function openWorkout(id){
+  switchTab('seances');
+  if(!SE_WORKOUTS) await fetchWorkouts();
+  const w=(SE_WORKOUTS||[]).find(x=>x.id===id); if(!w) return;
+  SE_CUR={w}; SESSION=null;
+  $('#se-list').classList.add('hidden');
+  $('#se-detail').classList.remove('hidden');
+  $('#se-detail').innerHTML='<div class="spin"></div>';
+  window.scrollTo(0,0);
+  const { data:items } = await sb.from('workout_exercises')
+    .select('id,block,display_order,sets,reps,rest_sec,notes_fr,exercise:exercises(id,name_fr,name_en,name_nl,primary_muscle,equipment,load_type,video_url,youtube_query,thumbnail_url)')
+    .eq('workout_id',id).order('display_order',{ascending:true});
+  const list=items||[];
+  const exIds=[...new Set(list.map(it=>it.exercise&&it.exercise.id).filter(Boolean))];
+  let tips={};
+  if(exIds.length){
+    const { data:tp } = await sb.from('exercise_tips').select('exercise_id,severity,body_fr,reference').in('exercise_id',exIds).order('display_order',{ascending:true});
+    (tp||[]).forEach(t=>{ if(!tips[t.exercise_id]) tips[t.exercise_id]=t; });
+  }
+  renderDetail(w,list,tips);
+}
+
+function renderDetail(w,items,tips){
+  const col=typeColor(w.type);
+  const cover = w.cover_image_url
+    ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${TYPE_FR[w.type]||w.type}</span></div>`
+    : `<div class="se-cover" style="--c:${col}"><span class="se-type">${TYPE_FR[w.type]||w.type}</span></div>`;
+  let html=`<button class="se-back" id="se-back">‹ Toutes les séances</button>
+    <div class="se-hero">${cover}</div>
+    <div class="se-d-title">${esc(w.name_fr)}</div>
+    ${w.name_en?`<div class="se-d-en">${esc(w.name_en)}</div>`:''}
+    ${w.name_nl?`<div class="se-d-nl">${esc(w.name_nl)}</div>`:''}
+    <div class="se-badges" style="margin-top:12px">
+      <span class="badge c" style="--c:${col}">${TYPE_FR[w.type]||w.type}</span>
+      <span class="badge">${DIFF_FR[w.difficulty]||''}</span>
+      <span class="badge">${w.estimated_duration_min||'—'} min</span>
+    </div>`;
+  let lastBlock=null;
+  items.forEach(it=>{
+    const ex=it.exercise||{}, bc=BLOCK_COLOR[it.block]||col;
+    if(it.block!==lastBlock){
+      if(lastBlock!==null) html+=`</div>`;
+      html+=`<div class="blk"><div class="blk-h" style="--bc:${bc}">${BLOCK_FR[it.block]||it.block}</div>`;
+      lastBlock=it.block;
+    }
+    const thumb=exThumb(ex), demo=exDemo(ex);
+    const thumbInner = thumb ? `<img src="${esc(thumb)}" alt="" loading="lazy"/><span class="play">▶</span>`
+      : `<span class="play" style="position:static;background:transparent;color:var(--bc);font-size:20px">▶</span>`;
+    const thumbEl = demo ? `<a class="ex-thumb" style="--bc:${bc}" href="${esc(demo)}" target="_blank" rel="noopener">${thumbInner}</a>`
+      : `<div class="ex-thumb" style="--bc:${bc}">${thumbInner}</div>`;
+    const tip=tips[ex.id];
+    const sv=tip?(SEV[tip.severity]||SEV.success):null;
+    const tipEl = tip ? `<div class="ex-tip" style="--tc:var(${sv.c})"><b>${sv.i}</b><span>${esc(tip.body_fr||'')}${tip.reference?` · <b>${esc(tip.reference)}</b>`:''}</span></div>` : '';
+    const setsN=it.sets||0, reps=it.reps?esc(it.reps):'';
+    const pills = setsN>0 ? `<div class="pills" data-we="${it.id}" data-ex="${ex.id}" data-load="${ex.load_type||'reps_only'}">`+
+      Array.from({length:setsN},(_,i)=>`<span class="pill" data-on="0" data-set="${i+1}">${i+1}</span>`).join('')+`</div>` : '';
+    html+=`<div class="exrow">${thumbEl}
+      <div class="ex-main">
+        <div class="ex-name">${esc(ex.name_fr||'Exercice')}</div>
+        <div class="ex-tr">${esc(ex.name_en||'')}${ex.name_nl?` · <i>${esc(ex.name_nl)}</i>`:''}</div>
+        <div class="ex-meta">
+          ${setsN?`<span class="chip k">${setsN} × ${reps}</span>`:(reps?`<span class="chip k">${reps}</span>`:'')}
+          ${it.rest_sec?`<span class="chip">repos ${it.rest_sec}s</span>`:''}
+          ${ex.primary_muscle?`<span class="chip">${MUSCLE_FR[ex.primary_muscle]||ex.primary_muscle}</span>`:''}
+        </div>
+        ${tipEl}
+        ${demo?`<a class="ex-demo" href="${esc(demo)}" target="_blank" rel="noopener">▶ Voir la démo</a>`:''}
+        ${pills}
+      </div></div>`;
+  });
+  if(lastBlock!==null) html+=`</div>`;
+  html+=`<div class="se-action"><button class="btn" id="se-start">Démarrer la séance</button></div>`;
+  $('#se-detail').innerHTML=html;
+  $('#se-back').onclick=backToList;
+  $('#se-start').onclick=startOrFinish;
+}
+
+async function startOrFinish(){
+  const btn=$('#se-start');
+  if(!SESSION){
+    btn.disabled=true; btn.textContent='Démarrage…';
+    const { data, error } = await sb.from('workout_sessions').insert({
+      user_id:USER.id, workout_id:SE_CUR.w.id, name_fr:SE_CUR.w.name_fr,
+      scheduled_date:todayStr(), started_at:new Date().toISOString(), status:'in_progress'
+    }).select('id').single();
+    btn.disabled=false;
+    if(error||!data){ btn.textContent='Démarrer la séance'; toast('Impossible de démarrer'); return; }
+    SESSION={id:data.id, started:Date.now()};
+    document.querySelectorAll('#se-detail .pills').forEach(wrap=>{
+      wrap.querySelectorAll('.pill').forEach(p=>{ p.setAttribute('data-on','1'); p.onclick=()=>openSetSheet(wrap,p); });
+    });
+    btn.textContent='Terminer la séance'; btn.classList.add('fin');
+    toast('Séance démarrée 💪');
+  } else {
+    btn.disabled=true;
+    const mins=Math.max(1,Math.round((Date.now()-SESSION.started)/60000));
+    await sb.from('workout_sessions').update({status:'completed',completed_at:new Date().toISOString(),duration_min:mins}).eq('id',SESSION.id);
+    SESSION=null; btn.disabled=false; toast('Séance terminée ✓'); backToList();
+  }
+}
+
+function openSetSheet(wrap,pill){
+  if(!SESSION){ toast('Démarre la séance d\'abord'); return; }
+  const load=wrap.dataset.load;
+  SET_CTX={wrap,pill,load,exId:wrap.dataset.ex,weId:wrap.dataset.we,setN:+pill.dataset.set};
+  $('#set-name').textContent=pill.closest('.exrow').querySelector('.ex-name').textContent;
+  $('#set-sub').textContent='Série '+SET_CTX.setN;
+  let f='';
+  if(load==='weight') f=`<div class="row2"><div class="field"><label>Reps</label><input id="f-reps" type="number" inputmode="numeric" placeholder="8"/></div><div class="field"><label>Charge (kg)</label><input id="f-kg" type="number" inputmode="decimal" placeholder="60"/></div></div>`;
+  else if(load==='time') f=`<div class="field"><label>Durée (s)</label><input id="f-dur" type="number" inputmode="numeric" placeholder="45"/></div>`;
+  else if(load==='distance') f=`<div class="field"><label>Distance (m)</label><input id="f-dist" type="number" inputmode="numeric" placeholder="20"/></div>`;
+  else if(load==='calories') f=`<div class="field"><label>Calories</label><input id="f-cal" type="number" inputmode="numeric" placeholder="15"/></div>`;
+  else f=`<div class="field"><label>Reps</label><input id="f-reps" type="number" inputmode="numeric" placeholder="10"/></div>`;
+  $('#set-fields').innerHTML=f;
+  $('#set-ov').classList.add('show');
+}
+$('#set-cancel').onclick=()=>{ $('#set-ov').classList.remove('show'); SET_CTX=null; };
+$('#set-ov').onclick=(e)=>{ if(e.target.id==='set-ov'){ $('#set-ov').classList.remove('show'); SET_CTX=null; } };
+$('#set-save').onclick=async ()=>{
+  if(!SET_CTX||!SESSION) return;
+  const g=(id)=>{ const el=$('#'+id); return el?(parseFloat(el.value)||null):null; };
+  const row={ session_id:SESSION.id, exercise_id:SET_CTX.exId, workout_exercise_id:SET_CTX.weId,
+    set_number:SET_CTX.setN, is_completed:true, logged_at:new Date().toISOString(),
+    reps:g('f-reps'), weight_kg:g('f-kg'), duration_sec:g('f-dur'), distance_m:g('f-dist'), calories:g('f-cal') };
+  setBtn('#set-save',true,'…');
+  const { error } = await sb.from('set_logs').insert(row);
+  setBtn('#set-save',false,'Valider la série');
+  if(error){ toast('Échec de l\'enregistrement'); return; }
+  SET_CTX.pill.classList.add('done'); SET_CTX.pill.textContent='✓';
+  $('#set-ov').classList.remove('show'); toast('Série enregistrée'); SET_CTX=null;
+};
+
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>switchTab(b.dataset.go));
+document.addEventListener('click',e=>{ const t=e.target.closest('[data-open]'); if(t) openWorkout(t.getAttribute('data-open')); });
 
 boot();
 </script>
