@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F4F5FB" />
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0E0F1C" />
-<title>Coach DM · Super Admin</title>
+<title>Coach DM · Admin</title>
 <style>
   :root{
     --bg:#F4F5FB; --bg-2:#ECEDF8; --surface:#FFFFFF; --surface-2:#F0F1F9; --line:#E3E4F0;
     --text:#14152A; --muted:#63667F; --brand:#6D5EF6; --brand-2:#9B6CFF; --brand-soft:rgba(109,94,246,.12);
-    --ok:#10B981; --warn:#EF4444; --amber:#D4AF37; --blue:#38BDF8;
+    --ok:#10B981; --warn:#EF4444; --amber:#D4AF37;
     --shadow:0 10px 34px rgba(22,22,48,.09); --shadow-soft:0 4px 16px rgba(22,22,48,.06);
     --radius:20px; --radius-sm:13px;
   }
@@ -25,7 +25,7 @@
   body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
     background:linear-gradient(180deg,var(--bg-2),var(--bg) 30%);color:var(--text);-webkit-font-smoothing:antialiased}
   button{font-family:inherit;cursor:pointer;border:none;color:inherit}
-  input,select{font-family:inherit;font-size:16px}
+  input{font-family:inherit;font-size:16px}
   .hidden{display:none!important}
   .screen{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:32px 22px;max-width:440px;margin:0 auto}
   .mark{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;margin:0 auto 14px;
@@ -36,8 +36,11 @@
   .sub{color:var(--muted);font-size:13px;text-align:center;margin:0 0 20px}
   .field{margin-bottom:13px}
   .field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 6px 2px;text-transform:uppercase;letter-spacing:.5px}
-  .field input,.field select{width:100%;padding:13px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);outline:none}
-  .field input:focus,.field select:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+  .field input{width:100%;padding:13px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);outline:none}
+  .field input:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+  .field select,.field textarea{width:100%;padding:13px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);outline:none;font-size:16px;font-family:inherit}
+  .field select:focus,.field textarea:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+  .field textarea{min-height:72px;resize:vertical;font-size:15px;line-height:1.5}
   .btn{width:100%;padding:14px;border-radius:var(--radius-sm);font-weight:700;font-size:15px;
     background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff;box-shadow:0 8px 22px rgba(109,94,246,.36)}
   .btn:active{transform:scale(.99)}
@@ -49,31 +52,25 @@
   .msg.err{color:var(--warn)} .msg.ok{color:var(--ok)}
 
   .topbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 80%,transparent);
-    backdrop-filter:blur(16px);padding:calc(14px + env(safe-area-inset-top)) 16px 0;border-bottom:1px solid var(--line)}
-  .topbar .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-  .topbar h2{margin:0;font-size:19px;font-weight:800}
-  .tabs{display:flex;gap:4px;overflow-x:auto}
-  .tabs button{flex:1 0 auto;padding:10px 8px;border-radius:11px 11px 0 0;font-weight:700;font-size:13px;color:var(--muted);background:transparent;border-bottom:2.5px solid transparent;white-space:nowrap}
+    backdrop-filter:blur(16px);padding:calc(14px + env(safe-area-inset-top)) 18px 0;border-bottom:1px solid var(--line)}
+  .topbar .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .topbar h2{margin:0;font-size:20px;font-weight:800}
+  .tabs{display:flex;gap:8px}
+  .tabs button{flex:1;padding:11px;border-radius:12px 12px 0 0;font-weight:700;font-size:14px;color:var(--muted);background:transparent;border-bottom:2.5px solid transparent}
   .tabs button.on{color:var(--brand);border-bottom-color:var(--brand)}
-  .page{padding:16px 16px 70px;max-width:680px;margin:0 auto}
+  .page{padding:16px 16px 60px;max-width:680px;margin:0 auto}
   .pane{display:none} .pane.active{display:block}
 
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-  .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);box-shadow:var(--shadow-soft);padding:16px}
-  .stat .n{font-size:28px;font-weight:800;line-height:1}
-  .stat .l{font-size:12px;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.4px}
-  .stat.accent .n{color:var(--brand)} .stat.ok .n{color:var(--ok)}
-
   .item{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);box-shadow:var(--shadow-soft);padding:14px;margin-bottom:11px}
-  .item .nm{font-weight:700;font-size:15px;word-break:break-word}
+  .item .nm{font-weight:700;font-size:15px}
   .item .meta{font-size:12.5px;color:var(--muted);margin-top:3px}
-  .item .acts{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px;align-items:center}
-  .item select{padding:7px 9px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-size:13px;font-weight:600}
+  .item .acts{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
   .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:8px;text-transform:uppercase;letter-spacing:.4px}
   .pill.ok{background:rgba(16,185,129,.15);color:var(--ok)}
   .pill.no{background:rgba(239,68,68,.13);color:var(--warn)}
   .pill.role{background:var(--brand-soft);color:var(--brand)}
   .pill.verif{background:rgba(212,175,55,.18);color:var(--amber)}
+  .pill.vid{background:rgba(56,189,248,.16);color:#0ea5e9}
 
   .search-row{display:flex;gap:8px;margin-bottom:12px}
   .search-row input{flex:1;padding:12px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);outline:none}
@@ -81,8 +78,18 @@
   .toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
   .chk{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);font-weight:600}
   .chk input{width:18px;height:18px;accent-color:var(--brand)}
-  .note{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px;font-size:13px;color:var(--muted);line-height:1.5;margin-top:14px}
-  .note b{color:var(--text)}
+
+  .subswitch{display:flex;gap:8px;margin-bottom:14px}
+  .subswitch button{flex:1;padding:10px;border-radius:12px;font-weight:700;font-size:13.5px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line)}
+  .subswitch button.on{color:var(--brand);background:var(--brand-soft);border-color:transparent}
+  .subpane{display:none} .subpane.active{display:block}
+  .mini{font-size:11px;font-weight:700;color:var(--muted);margin:0 0 5px 2px;text-transform:uppercase;letter-spacing:.4px}
+  .comp-item{background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:12px;margin-bottom:10px}
+  .comp-item .ci-top{display:flex;align-items:center;gap:7px;margin-bottom:9px}
+  .comp-item .ci-top .ord{font-weight:800;color:var(--brand);font-size:13px;min-width:20px}
+  .comp-item .ci-top .sp{flex:1}
+  .iconbtn{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:6px 10px;font-size:14px;font-weight:700;line-height:1}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
 
   .overlay{position:fixed;inset:0;z-index:60;background:rgba(8,8,20,.5);backdrop-filter:blur(3px);display:none;align-items:flex-end;justify-content:center}
   .overlay.show{display:flex}
@@ -92,13 +99,9 @@
   .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 14px}
   .sheet h3{margin:0 0 16px;font-size:18px}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-  .inline{display:flex;gap:8px}
   .spin{width:28px;height:28px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--brand);animation:rot .7s linear infinite;margin:30px auto}
   @keyframes rot{to{transform:rotate(360deg)}}
   .empty{text-align:center;color:var(--muted);font-size:14px;padding:20px}
-  .qrbox{text-align:center;margin-top:16px}
-  .qrbox img{width:240px;height:240px;border-radius:16px;background:#fff;padding:10px;box-shadow:var(--shadow)}
-  .cred{background:var(--surface-2);border:1px dashed var(--brand);border-radius:12px;padding:12px;margin-top:10px;font-size:13px;word-break:break-all}
   .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:13px;font-size:13px;font-weight:600;box-shadow:var(--shadow);z-index:90;opacity:0;transition:opacity .2s;pointer-events:none}
   .toast.show{opacity:1}
 </style>
@@ -110,7 +113,7 @@
 <div id="auth" class="screen hidden">
   <div class="card">
     <div class="mark">DM</div>
-    <h1>Super Admin</h1>
+    <h1>Console Coach</h1>
     <p class="sub">Réservé à l'administration Coach DM</p>
     <div class="field"><label>Email</label><input id="au-email" type="email" inputmode="email" placeholder="doudouh.coaching@gmail.com" /></div>
     <div class="field"><label>Mot de passe</label><input id="au-pass" type="password" placeholder="••••••••" /></div>
@@ -130,33 +133,40 @@
 
 <div id="app" class="hidden">
   <div class="topbar">
-    <div class="row"><h2>Super Admin</h2><button class="btn subtle sm" id="logout">Déconnexion</button></div>
+    <div class="row"><h2>Console Coach</h2><button class="btn subtle sm" id="logout">Déconnexion</button></div>
     <div class="tabs">
-      <button class="on" data-tab="dash">Tableau de bord</button>
-      <button data-tab="members">Membres</button>
+      <button class="on" data-tab="members">Membres</button>
+      <button data-tab="workouts">Séances</button>
       <button data-tab="foods">Aliments</button>
-      <button data-tab="pay">Paiement</button>
     </div>
   </div>
 
   <div class="page">
-
-    <!-- DASHBOARD -->
-    <div class="pane active" id="pane-dash">
-      <div id="d-stats"><div class="spin"></div></div>
-      <button class="btn subtle sm" id="d-refresh" style="margin-top:14px">↻ Actualiser</button>
-    </div>
-
-    <!-- MEMBRES -->
-    <div class="pane" id="pane-members">
-      <div class="toolbar">
-        <button class="btn sm" id="m-new">＋ Créer un compte</button>
-        <button class="btn subtle sm" id="m-refresh">↻ Actualiser</button>
-      </div>
+    <div class="pane active" id="pane-members">
+      <div class="toolbar"><div class="sub" style="text-align:left;margin:0">Donne ou retire l'accès à l'app.</div>
+        <button class="btn subtle sm" id="m-refresh">↻ Actualiser</button></div>
       <div id="m-list"><div class="spin"></div></div>
     </div>
 
-    <!-- ALIMENTS -->
+    <div class="pane" id="pane-workouts">
+      <div class="subswitch">
+        <button class="on" data-sub="ex">Exercices</button>
+        <button data-sub="wk">Séances</button>
+      </div>
+
+      <div class="subpane active" id="sub-ex">
+        <div class="toolbar"><div class="sub" style="text-align:left;margin:0">Bibliothèque d'exercices.</div>
+          <button class="btn sm" id="ex-new">＋ Exercice</button></div>
+        <div id="ex-list"><div class="spin"></div></div>
+      </div>
+
+      <div class="subpane" id="sub-wk">
+        <div class="toolbar"><div class="sub" style="text-align:left;margin:0">Séances publiées dans l'app.</div>
+          <button class="btn sm" id="wk-new">＋ Séance</button></div>
+        <div id="wk-list"><div class="spin"></div></div>
+      </div>
+    </div>
+
     <div class="pane" id="pane-foods">
       <div class="search-row">
         <input id="f-q" type="text" placeholder="Chercher un aliment…" enterkeyhint="search" />
@@ -168,51 +178,11 @@
       </div>
       <div id="f-list"><p class="empty">Cherche un aliment ou ajoute-en un.</p></div>
     </div>
-
-    <!-- PAIEMENT -->
-    <div class="pane" id="pane-pay">
-      <h3 style="margin:4px 0 4px">QR de paiement (virement SEPA)</h3>
-      <p class="sub" style="text-align:left;margin:0 0 14px">Génère un QR que ton client scanne avec son app bancaire (BE/EU) — le virement se pré-remplit tout seul.</p>
-      <div class="field"><label>Bénéficiaire (ton nom / Coach DM)</label><input id="p-name" type="text" placeholder="Doudouh M." /></div>
-      <div class="field"><label>IBAN</label><input id="p-iban" type="text" inputmode="latin" placeholder="BE00 0000 0000 0000" autocapitalize="characters" /></div>
-      <div class="row2">
-        <div class="field"><label>Montant (€)</label><input id="p-amount" type="number" inputmode="decimal" placeholder="14.99" /></div>
-        <div class="field"><label>Communication</label><input id="p-comm" type="text" placeholder="Abonnement Coach DM" /></div>
-      </div>
-      <button class="btn" id="p-gen">Générer le QR</button>
-      <div class="qrbox" id="p-qr"></div>
-      <div class="note">
-        <b>À savoir.</b> Ce QR = virement manuel : le client paie, puis tu lui ouvres l'accès dans l'onglet Membres. C'est gratuit et sans intermédiaire, idéal pour démarrer.<br><br>
-        Pour l'<b>encaissement carte automatique</b>, voir <b>qui a payé</b>, les <b>factures auto</b> et l'<b>abonnement récurrent</b> qui active le compte tout seul → il faut <b>Stripe</b> (international) ou <b>Payconiq/Bancontact</b> (Belgique). C'est la prochaine étape quand tu veux.
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- CREATE USER -->
-<div class="overlay" id="ov-user">
-  <div class="sheet">
-    <div class="grab"></div>
-    <h3>Créer un compte</h3>
-    <div class="field"><label>Email</label><input id="cu-email" type="email" inputmode="email" /></div>
-    <div class="field"><label>Mot de passe</label>
-      <div class="inline"><input id="cu-pass" type="text" style="flex:1;padding:13px 14px;border-radius:13px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);outline:none" />
-      <button class="btn subtle sm" id="cu-genpw">Générer</button></div>
-    </div>
-    <div class="row2">
-      <div class="field"><label>Rôle</label><select id="cu-role"><option value="client">Membre</option><option value="coach">Coach</option><option value="admin">Admin</option></select></div>
-      <div class="field"><label>Accès</label><select id="cu-access"><option value="">Aucun</option><option value="7">Essai 7 jours</option><option value="0">Illimité</option></select></div>
-    </div>
-    <button class="btn" id="cu-save">Créer le compte</button>
-    <button class="btn subtle" id="cu-cancel" style="margin-top:9px">Annuler</button>
-    <div class="msg" id="cu-msg"></div>
-    <div class="cred hidden" id="cu-cred"></div>
   </div>
 </div>
 
 <!-- FOOD EDITOR -->
-<div class="overlay" id="ov-food">
+<div class="overlay" id="ov">
   <div class="sheet">
     <div class="grab"></div>
     <h3 id="ed-title">Éditer l'aliment</h3>
@@ -242,19 +212,113 @@
   </div>
 </div>
 
+<!-- EXERCISE EDITOR -->
+<div class="overlay" id="ov-ex">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 id="ex-title">Éditer l'exercice</h3>
+    <div class="field"><label>Nom FR</label><input id="ex-fr" type="text" /></div>
+    <div class="row2">
+      <div class="field"><label>Nom EN</label><input id="ex-en" type="text" /></div>
+      <div class="field"><label>Nom NL</label><input id="ex-nl" type="text" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Catégorie</label><select id="ex-cat"></select></div>
+      <div class="field"><label>Muscle principal</label><select id="ex-mus"></select></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Équipement</label><select id="ex-equip"></select></div>
+      <div class="field"><label>Difficulté</label><select id="ex-diff"></select></div>
+    </div>
+    <div class="field"><label>Type de charge</label><select id="ex-load"></select></div>
+    <div class="row3">
+      <div class="field"><label>Sets</label><input id="ex-sets" type="number" inputmode="numeric" /></div>
+      <div class="field"><label>Reps</label><input id="ex-reps" type="text" placeholder="8-10" /></div>
+      <div class="field"><label>Repos (s)</label><input id="ex-rest" type="number" inputmode="numeric" /></div>
+    </div>
+    <div class="field"><label>Lien vidéo YouTube (vignette auto)</label><input id="ex-video" type="url" inputmode="url" placeholder="https://youtu.be/…" /></div>
+    <div class="field"><label>Recherche YouTube (si pas de lien)</label><input id="ex-yt" type="text" placeholder="goblet squat technique" /></div>
+    <div class="field"><label>Référence scientifique (optionnel)</label><input id="ex-ref" type="text" placeholder="Contreras 2017" /></div>
+    <div class="field"><label>Instructions FR (1 étape par ligne)</label><textarea id="ex-ins-fr"></textarea></div>
+    <div class="row2">
+      <div class="field"><label>Instructions EN</label><textarea id="ex-ins-en"></textarea></div>
+      <div class="field"><label>Instructions NL</label><textarea id="ex-ins-nl"></textarea></div>
+    </div>
+    <div class="row3">
+      <div class="field"><label>Cue FR</label><input id="ex-cue-fr" type="text" /></div>
+      <div class="field"><label>Cue EN</label><input id="ex-cue-en" type="text" /></div>
+      <div class="field"><label>Cue NL</label><input id="ex-cue-nl" type="text" /></div>
+    </div>
+    <label class="chk" style="margin:4px 0 16px"><input type="checkbox" id="ex-pub" /> Publié (visible dans l'app)</label>
+    <button class="btn" id="ex-save">Enregistrer</button>
+    <button class="btn danger" id="ex-del" style="margin-top:9px">Supprimer</button>
+    <button class="btn subtle" id="ex-cancel" style="margin-top:9px">Annuler</button>
+    <div class="msg" id="ex-msg"></div>
+  </div>
+</div>
+
+<!-- WORKOUT EDITOR -->
+<div class="overlay" id="ov-wk">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 id="wk-title">Éditer la séance</h3>
+    <div class="field"><label>Nom FR</label><input id="wk-fr" type="text" /></div>
+    <div class="row2">
+      <div class="field"><label>Nom EN</label><input id="wk-en" type="text" /></div>
+      <div class="field"><label>Nom NL</label><input id="wk-nl" type="text" /></div>
+    </div>
+    <div class="field"><label>Description FR</label><textarea id="wk-dfr"></textarea></div>
+    <div class="row2">
+      <div class="field"><label>Description EN</label><textarea id="wk-den"></textarea></div>
+      <div class="field"><label>Description NL</label><textarea id="wk-dnl"></textarea></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Type</label><select id="wk-type"></select></div>
+      <div class="field"><label>Difficulté</label><select id="wk-diff"></select></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Objectif (séance reco)</label><select id="wk-goal"></select></div>
+      <div class="field"><label>Muscle focus</label><select id="wk-focus"></select></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Durée (min)</label><input id="wk-dur" type="number" inputmode="numeric" /></div>
+      <div class="field"><label>Image couverture (URL)</label><input id="wk-cover" type="url" inputmode="url" /></div>
+    </div>
+    <label class="chk" style="margin:4px 0 16px"><input type="checkbox" id="wk-pub" /> Publiée (visible dans l'app)</label>
+    <button class="btn" id="wk-save">Enregistrer</button>
+    <button class="btn subtle" id="wk-compose" style="margin-top:9px">🏋️ Composer les exercices</button>
+    <button class="btn danger" id="wk-del" style="margin-top:9px">Supprimer</button>
+    <button class="btn subtle" id="wk-cancel" style="margin-top:9px">Fermer</button>
+    <div class="msg" id="wk-msg"></div>
+  </div>
+</div>
+
+<!-- COMPOSITION -->
+<div class="overlay" id="ov-comp">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 id="comp-title">Composer la séance</h3>
+    <p class="sub" style="text-align:left;margin:-8px 0 14px">Ajoute les exercices par bloc, dans l'ordre.</p>
+    <div id="comp-list"></div>
+    <button class="btn subtle" id="comp-add" style="margin-top:4px">＋ Ajouter un exercice</button>
+    <button class="btn" id="comp-save" style="margin-top:14px">Enregistrer la composition</button>
+    <button class="btn subtle" id="comp-cancel" style="margin-top:9px">Annuler</button>
+    <div class="msg" id="comp-msg"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 const sb = createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
 const $ = s=>document.querySelector(s);
-let EDIT=null, QR=null;
+let EDIT=null;
 const esc = s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const r0 = n=>Math.round(n||0);
 function show(id){['boot','auth','gate'].forEach(s=>$('#'+s).classList.toggle('hidden',s!==id));$('#app').classList.toggle('hidden',id!=='app');}
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1800);}
 function setMsg(id,t,c){const e=$('#'+id);e.textContent=t;e.className='msg '+(c||'');}
-function genPass(){const w=['falaise','cumin','orbite','tigre','menthe','granit','cobalt','nimbus','safran','dune','brise','cedre','onyx','lynx','vortex','prisme','azur','silex','comete','jade'];const p=[];for(let i=0;i<3;i++)p.push(w[Math.floor(Math.random()*w.length)]);p[Math.floor(Math.random()*3)]=p[Math.floor(Math.random()*3)].replace(/^./,c=>c.toUpperCase());return p.join('-')+'-'+(Math.floor(Math.random()*90)+10);}
 
 async function boot(){
   const { data:{ session } } = await sb.auth.getSession();
@@ -275,38 +339,19 @@ async function enter(user){
   show('boot');
   const { data:prof } = await sb.from('profiles').select('role').eq('id',user.id).maybeSingle();
   if(!prof || !['coach','admin'].includes(prof.role)){ show('gate'); return; }
-  show('app'); switchTab('dash'); loadStats();
+  show('app'); switchTab('members'); loadUsers();
 }
 
-/* TABS */
+/* ---- TABS ---- */
 function switchTab(t){
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
   $('#pane-'+t).classList.add('active');
   document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
-  if(t==='members') loadUsers();
-  if(t==='dash') loadStats();
-  if(t==='pay') loadPay();
+  if(t==='workouts' && !window.__wkLoaded){ window.__wkLoaded=true; loadExercises(); loadWorkouts(); }
 }
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
 
-/* DASHBOARD */
-$('#d-refresh').onclick = loadStats;
-async function loadStats(){
-  $('#d-stats').innerHTML='<div class="spin"></div>';
-  const { data, error } = await sb.rpc('admin_stats');
-  if(error){ $('#d-stats').innerHTML='<p class="empty">Erreur de chargement.</p>'; return; }
-  const s=data||{};
-  $('#d-stats').innerHTML=`<div class="grid">
-    <div class="stat accent"><div class="n">${s.total_users??0}</div><div class="l">Utilisateurs</div></div>
-    <div class="stat ok"><div class="n">${s.with_access??0}</div><div class="l">Avec accès</div></div>
-    <div class="stat"><div class="n">${s.clients??0}</div><div class="l">Membres</div></div>
-    <div class="stat"><div class="n">${s.coaches??0}</div><div class="l">Coachs</div></div>
-    <div class="stat"><div class="n">${s.active??0}</div><div class="l">Accès illimité</div></div>
-    <div class="stat"><div class="n">${s.trialing??0}</div><div class="l">En essai</div></div>
-  </div>`;
-}
-
-/* MEMBRES */
+/* ---- MEMBRES ---- */
 $('#m-refresh').onclick = loadUsers;
 async function loadUsers(){
   $('#m-list').innerHTML='<div class="spin"></div>';
@@ -315,56 +360,312 @@ async function loadUsers(){
   if(!data||!data.length){ $('#m-list').innerHTML='<p class="empty">Aucun inscrit.</p>'; return; }
   $('#m-list').innerHTML = data.map(u=>{
     const access = u.has_access ? '<span class="pill ok">Accès</span>' : '<span class="pill no">Sans accès</span>';
+    const role = u.role && u.role!=='client' ? `<span class="pill role">${esc(u.role)}</span>` : '';
     let detail='';
-    if(u.sub_status) detail = u.sub_status + (u.trial_end?` · essai → ${u.trial_end.slice(0,10)}`:'') + (u.current_period_end && new Date(u.current_period_end)<new Date('2100-01-01')?` · jusqu'au ${u.current_period_end.slice(0,10)}`:'');
-    const roles=['client','coach','admin'];
-    const opts=roles.map(r=>`<option value="${r}"${u.role===r?' selected':''}>${r==='client'?'Membre':r==='coach'?'Coach':'Admin'}</option>`).join('');
+    if(u.sub_status) detail = u.sub_status + (u.trial_end?` · essai → ${u.trial_end.slice(0,10)}`:'') + (u.current_period_end?` · jusqu'au ${u.current_period_end.slice(0,10)}`:'');
     return `<div class="item">
-      <div class="nm">${esc(u.email||'—')} ${access}</div>
+      <div class="nm">${esc(u.email||'—')} ${access} ${role}</div>
       <div class="meta">${esc(u.full_name||'')}${detail?' · '+esc(detail):''}</div>
       <div class="acts">
-        <select data-role="${u.user_id}">${opts}</select>
         <button class="btn subtle sm" data-grant="7" data-u="${u.user_id}">Essai 7j</button>
         <button class="btn subtle sm" data-grant="0" data-u="${u.user_id}">Illimité</button>
-        <button class="btn subtle sm" data-revoke="${u.user_id}">Révoquer</button>
-        <button class="btn danger sm" data-del="${u.user_id}" data-em="${esc(u.email||'')}">Suppr.</button>
+        <button class="btn danger sm" data-revoke="${u.user_id}">Révoquer</button>
       </div></div>`;
   }).join('');
   document.querySelectorAll('[data-grant]').forEach(b=>b.onclick=()=>grant(b.dataset.u,+b.dataset.grant));
   document.querySelectorAll('[data-revoke]').forEach(b=>b.onclick=()=>revoke(b.dataset.revoke));
-  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>delUser(b.dataset.del,b.dataset.em));
-  document.querySelectorAll('[data-role]').forEach(s=>s.onchange=()=>setRole(s.dataset.role,s.value));
 }
-async function grant(uid,days){ const {error}=await sb.rpc('admin_grant_access',{p_user:uid,p_days:days}); if(error){toast('Échec');return;} toast(days>0?'Essai accordé':'Accès illimité'); loadUsers(); }
-async function revoke(uid){ const {error}=await sb.rpc('admin_revoke_access',{p_user:uid}); if(error){toast('Échec');return;} toast('Accès révoqué'); loadUsers(); }
-async function setRole(uid,role){ const {error}=await sb.rpc('admin_set_role',{p_user:uid,p_role:role}); toast(error?'Échec':'Rôle mis à jour'); }
-async function delUser(uid,em){
-  if(!confirm('Supprimer définitivement '+em+' ? Toutes ses données seront perdues.')) return;
-  const {data,error}=await sb.rpc('admin_delete_user',{p_user:uid});
-  if(error){toast('Échec : '+(error.message||''));return;}
-  if(data===false){toast('Impossible (données liées)');return;}
-  toast('Compte supprimé'); loadUsers();
+async function grant(uid,days){
+  const { error } = await sb.rpc('admin_grant_access',{ p_user:uid, p_days:days });
+  if(error){ toast('Échec'); return; }
+  toast(days>0?'Essai 7j accordé':'Accès illimité accordé'); loadUsers();
+}
+async function revoke(uid){
+  const { error } = await sb.rpc('admin_revoke_access',{ p_user:uid });
+  if(error){ toast('Échec'); return; }
+  toast('Accès révoqué'); loadUsers();
 }
 
-/* CREATE USER */
-$('#m-new').onclick=()=>{ $('#cu-email').value='';$('#cu-pass').value=genPass();$('#cu-role').value='client';$('#cu-access').value='7';setMsg('cu-msg','','');$('#cu-cred').classList.add('hidden');$('#ov-user').classList.add('show'); };
-$('#cu-cancel').onclick=()=>$('#ov-user').classList.remove('show');
-$('#ov-user').onclick=e=>{ if(e.target.id==='ov-user') $('#ov-user').classList.remove('show'); };
-$('#cu-genpw').onclick=()=>{ $('#cu-pass').value=genPass(); };
-$('#cu-save').onclick=async()=>{
-  const email=$('#cu-email').value.trim(), pass=$('#cu-pass').value.trim(), role=$('#cu-role').value, acc=$('#cu-access').value;
-  if(!email||!pass) return setMsg('cu-msg','Email et mot de passe requis.','err');
-  $('#cu-save').disabled=true; setMsg('cu-msg','Création…','');
-  const { error } = await sb.rpc('admin_create_user',{ p_email:email, p_password:pass, p_role:role, p_access_days: acc===''?null:+acc });
-  $('#cu-save').disabled=false;
-  if(error){ setMsg('cu-msg','Échec : '+(error.message||''),'err'); return; }
-  setMsg('cu-msg','Compte créé ✓','ok');
-  $('#cu-cred').classList.remove('hidden');
-  $('#cu-cred').innerHTML=`<b>À transmettre au client :</b><br>Email : ${esc(email)}<br>Mot de passe : ${esc(pass)}<br>App : coachdm.be/app.html`;
-  loadUsers();
+/* ===================================================================
+   SÉANCES & EXERCICES
+=================================================================== */
+const L_CAT={warmup:'Échauffement',activation:'Activation',sprint:'Sprint',plyometric:'Pliométrie',strength:'Force',hypertrophy:'Hypertrophie',olympic:'Haltéro',core:'Gainage',conditioning:'Conditionnement',mobility:'Mobilité',cardio:'Cardio'};
+const L_MUS={chest:'Pectoraux',back:'Dos',lats:'Dorsaux',traps:'Trapèzes',shoulders:'Épaules',biceps:'Biceps',triceps:'Triceps',forearms:'Avant-bras',quads:'Quadriceps',hamstrings:'Ischios',glutes:'Fessiers',calves:'Mollets',adductors:'Adducteurs',abductors:'Abducteurs',core:'Gainage/Core',full_body:'Corps entier',cardio:'Cardio'};
+const L_EQUIP={bodyweight:'Poids du corps',barbell:'Barre',dumbbell:'Haltères',kettlebell:'Kettlebell',ez_bar:'Barre EZ',trap_bar:'Trap bar',machine:'Machine',cable:'Poulie',bands:'Élastiques',bench:'Banc',pullup_bar:'Barre traction',box:'Box',medicine_ball:'Med ball',sled:'Sled',rower:'Rameur',skierg:'SkiErg',assault_bike:'Assault bike',jump_rope:'Corde à sauter',none:'Aucun'};
+const L_DIFF={beginner:'Débutant',intermediate:'Intermédiaire',advanced:'Avancé'};
+const L_LOAD={weight:'Charge (kg)',bodyweight:'Poids du corps',time:'Durée',distance:'Distance',calories:'Calories',reps_only:'Reps seules'};
+const L_TYPE={strength:'Force',hypertrophy:'Hypertrophie',hiit:'HIIT',hyrox:'Hyrox',conditioning:'Conditionnement',mobility:'Mobilité',football:'Football',full_body:'Full Body',emom:'EMOM',amrap:'AMRAP',for_time:'For Time',circuit:'Circuit'};
+const L_GOAL={lose_fat:'Perte de gras',maintain:'Maintien',build_muscle:'Prise de muscle',recomp:'Recomposition'};
+const L_BLOCK={activation:'Activation',sprint_plyo:'Sprint/Plyo',strength:'Force',conditioning:'Conditionnement',recovery:'Récupération',accessory:'Accessoire'};
+const KEYS=o=>Object.keys(o);
+
+function fillSelect(id,labels,sel,allowEmpty){
+  const el=$('#'+id); if(!el) return;
+  let html = allowEmpty ? '<option value="">—</option>' : '';
+  html += KEYS(labels).map(v=>`<option value="${v}">${esc(labels[v])}</option>`).join('');
+  el.innerHTML=html; if(sel!=null) el.value=sel;
+}
+const linesToArr = v => (v||'').split('\n').map(s=>s.trim()).filter(Boolean);
+const arrToLines = a => Array.isArray(a)?a.join('\n'):'';
+
+/* ---- sous-onglets ---- */
+document.querySelectorAll('.subswitch button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.subpane').forEach(p=>p.classList.remove('active'));
+  $('#sub-'+b.dataset.sub).classList.add('active');
+  document.querySelectorAll('.subswitch button').forEach(x=>x.classList.toggle('on',x===b));
+});
+
+/* ---- EXERCICES : liste ---- */
+let EXS=[]; // cache complet pour la composition
+async function loadExercises(){
+  $('#ex-list').innerHTML='<div class="spin"></div>';
+  const { data, error } = await sb.rpc('admin_list_exercises');
+  if(error){ $('#ex-list').innerHTML='<p class="empty">Erreur (accès admin requis).</p>'; return; }
+  EXS = data||[];
+  if(!EXS.length){ $('#ex-list').innerHTML='<p class="empty">Aucun exercice.</p>'; return; }
+  $('#ex-list').innerHTML = EXS.map(e=>{
+    const pub = e.is_published?'':'<span class="pill no">Brouillon</span>';
+    const vid = e.video_url?'<span class="pill vid">Vidéo ✓</span>':'';
+    const cat = L_CAT[e.category]||e.category, mus = L_MUS[e.primary_muscle]||e.primary_muscle, eq = L_EQUIP[e.equipment]||e.equipment;
+    return `<div class="item" data-ex="${e.id}">
+      <div class="nm">${esc(e.name_fr)} ${pub} ${vid}</div>
+      <div class="meta">${esc(cat)} · ${esc(mus)} · ${esc(eq)}${e.tip_count?` · ${e.tip_count} tip(s)`:''}</div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('#ex-list .item').forEach(el=>el.onclick=()=>openExEditor(el.dataset.ex));
+}
+$('#ex-new').onclick = ()=>openExEditor(null);
+
+let EXEDIT=null;
+async function openExEditor(id){
+  fillSelect('ex-cat',L_CAT); fillSelect('ex-mus',L_MUS); fillSelect('ex-equip',L_EQUIP);
+  fillSelect('ex-diff',L_DIFF); fillSelect('ex-load',L_LOAD);
+  setMsg('ex-msg','','');
+  if(id){
+    setMsg('ex-msg','Chargement…','');
+    const { data, error } = await sb.rpc('admin_get_exercise',{ p_id:id });
+    if(error||!data||!data.length){ setMsg('ex-msg','Erreur de chargement.','err'); return; }
+    EXEDIT = data[0]; setMsg('ex-msg','','');
+  } else {
+    EXEDIT = { id:null, secondary_muscles:[], category:'strength', primary_muscle:'full_body', equipment:'bodyweight', difficulty:'intermediate', load_type:'weight', is_published:true };
+  }
+  const e=EXEDIT;
+  $('#ex-title').textContent = id?'Éditer l\'exercice':'Nouvel exercice';
+  $('#ex-fr').value=e.name_fr||''; $('#ex-en').value=e.name_en||''; $('#ex-nl').value=e.name_nl||'';
+  $('#ex-cat').value=e.category||'strength'; $('#ex-mus').value=e.primary_muscle||'full_body';
+  $('#ex-equip').value=e.equipment||'bodyweight'; $('#ex-diff').value=e.difficulty||'intermediate';
+  $('#ex-load').value=e.load_type||'weight';
+  $('#ex-sets').value=e.default_sets??''; $('#ex-reps').value=e.default_reps||''; $('#ex-rest').value=e.default_rest_sec??'';
+  $('#ex-video').value=e.video_url||''; $('#ex-yt').value=e.youtube_query||''; $('#ex-ref').value=e.reference||'';
+  $('#ex-ins-fr').value=arrToLines(e.instructions_fr); $('#ex-ins-en').value=arrToLines(e.instructions_en); $('#ex-ins-nl').value=arrToLines(e.instructions_nl);
+  $('#ex-cue-fr').value=e.cue_fr||''; $('#ex-cue-en').value=e.cue_en||''; $('#ex-cue-nl').value=e.cue_nl||'';
+  $('#ex-pub').checked = !!e.is_published;
+  $('#ex-del').style.display = id?'block':'none';
+  $('#ov-ex').classList.add('show');
+}
+function closeEx(){ $('#ov-ex').classList.remove('show'); EXEDIT=null; }
+$('#ex-cancel').onclick = closeEx;
+$('#ov-ex').onclick = ev=>{ if(ev.target.id==='ov-ex') closeEx(); };
+const intOrNull = v=>{ const n=parseInt(v,10); return isNaN(n)?null:n; };
+
+$('#ex-save').onclick = async ()=>{
+  const fr=$('#ex-fr').value.trim();
+  if(!fr) return setMsg('ex-msg','Le nom FR est requis.','err');
+  $('#ex-save').disabled=true; setMsg('ex-msg','Enregistrement…','');
+  const { error } = await sb.rpc('admin_upsert_exercise',{
+    p_id: EXEDIT?EXEDIT.id:null, p_name_fr:fr, p_name_en:$('#ex-en').value.trim()||null, p_name_nl:$('#ex-nl').value.trim()||null,
+    p_category:$('#ex-cat').value, p_primary_muscle:$('#ex-mus').value, p_equipment:$('#ex-equip').value,
+    p_difficulty:$('#ex-diff').value, p_load_type:$('#ex-load').value,
+    p_secondary_muscles: (EXEDIT&&EXEDIT.secondary_muscles)||[],
+    p_instructions_fr:linesToArr($('#ex-ins-fr').value), p_instructions_en:linesToArr($('#ex-ins-en').value), p_instructions_nl:linesToArr($('#ex-ins-nl').value),
+    p_cue_fr:$('#ex-cue-fr').value.trim()||null, p_cue_en:$('#ex-cue-en').value.trim()||null, p_cue_nl:$('#ex-cue-nl').value.trim()||null,
+    p_video_url:$('#ex-video').value.trim()||null, p_youtube_query:$('#ex-yt').value.trim()||null, p_reference:$('#ex-ref').value.trim()||null,
+    p_default_sets:intOrNull($('#ex-sets').value), p_default_reps:$('#ex-reps').value.trim()||null, p_default_rest_sec:intOrNull($('#ex-rest').value),
+    p_is_published:$('#ex-pub').checked
+  });
+  $('#ex-save').disabled=false;
+  if(error){ setMsg('ex-msg','Échec de l\'enregistrement.','err'); return; }
+  closeEx(); toast('Exercice enregistré ✓'); loadExercises();
+};
+$('#ex-del').onclick = async ()=>{
+  if(!EXEDIT||!EXEDIT.id) return;
+  if(!confirm('Supprimer définitivement cet exercice ?')) return;
+  $('#ex-del').disabled=true;
+  const { data, error } = await sb.rpc('admin_delete_exercise',{ p_id:EXEDIT.id });
+  $('#ex-del').disabled=false;
+  if(error){ setMsg('ex-msg','Échec de la suppression.','err'); return; }
+  if(data===false){ setMsg('ex-msg','Impossible : cet exercice est utilisé dans une séance. Retire-le des séances d\'abord.','err'); return; }
+  closeEx(); toast('Exercice supprimé'); loadExercises();
 };
 
-/* ALIMENTS */
+/* ---- SÉANCES : liste ---- */
+let WKS=[];
+async function loadWorkouts(){
+  $('#wk-list').innerHTML='<div class="spin"></div>';
+  const { data, error } = await sb.rpc('admin_list_workouts');
+  if(error){ $('#wk-list').innerHTML='<p class="empty">Erreur (accès admin requis).</p>'; return; }
+  WKS = data||[];
+  if(!WKS.length){ $('#wk-list').innerHTML='<p class="empty">Aucune séance.</p>'; return; }
+  $('#wk-list').innerHTML = WKS.map(w=>{
+    const pub = w.is_published?'<span class="pill ok">Publiée</span>':'<span class="pill no">Brouillon</span>';
+    const t=L_TYPE[w.type]||w.type, d=L_DIFF[w.difficulty]||w.difficulty;
+    return `<div class="item" data-wk="${w.id}">
+      <div class="nm">${esc(w.name_fr)} ${pub}</div>
+      <div class="meta">${esc(t)} · ${esc(d)} · ${w.exercise_count||0} exercice(s)${w.estimated_duration_min?` · ${w.estimated_duration_min} min`:''}</div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('#wk-list .item').forEach(el=>el.onclick=()=>openWkEditor(el.dataset.wk));
+}
+$('#wk-new').onclick = ()=>openWkEditor(null);
+
+let WKEDIT=null;
+async function openWkEditor(id){
+  fillSelect('wk-type',L_TYPE); fillSelect('wk-diff',L_DIFF);
+  fillSelect('wk-goal',L_GOAL,null,true); fillSelect('wk-focus',L_MUS,null,true);
+  setMsg('wk-msg','','');
+  if(id){
+    setMsg('wk-msg','Chargement…','');
+    const { data, error } = await sb.rpc('admin_get_workout',{ p_id:id });
+    if(error||!data||!data.length){ setMsg('wk-msg','Erreur de chargement.','err'); return; }
+    WKEDIT = data[0]; setMsg('wk-msg','','');
+  } else {
+    WKEDIT = { id:null, equipment_needed:[], type:'strength', difficulty:'intermediate', is_published:false };
+  }
+  const w=WKEDIT;
+  $('#wk-title').textContent = id?'Éditer la séance':'Nouvelle séance';
+  $('#wk-fr').value=w.name_fr||''; $('#wk-en').value=w.name_en||''; $('#wk-nl').value=w.name_nl||'';
+  $('#wk-dfr').value=w.description_fr||''; $('#wk-den').value=w.description_en||''; $('#wk-dnl').value=w.description_nl||'';
+  $('#wk-type').value=w.type||'strength'; $('#wk-diff').value=w.difficulty||'intermediate';
+  $('#wk-goal').value=w.goal||''; $('#wk-focus').value=w.focus_muscle||'';
+  $('#wk-dur').value=w.estimated_duration_min??''; $('#wk-cover').value=w.cover_image_url||'';
+  $('#wk-pub').checked = !!w.is_published;
+  $('#wk-compose').style.display = id?'block':'none';
+  $('#wk-del').style.display = id?'block':'none';
+  $('#ov-wk').classList.add('show');
+}
+function closeWk(){ $('#ov-wk').classList.remove('show'); WKEDIT=null; }
+$('#wk-cancel').onclick = closeWk;
+$('#ov-wk').onclick = ev=>{ if(ev.target.id==='ov-wk') closeWk(); };
+
+async function saveWorkout(){
+  const fr=$('#wk-fr').value.trim();
+  if(!fr){ setMsg('wk-msg','Le nom FR est requis.','err'); return null; }
+  $('#wk-save').disabled=true; setMsg('wk-msg','Enregistrement…','');
+  const { data, error } = await sb.rpc('admin_upsert_workout',{
+    p_id: WKEDIT?WKEDIT.id:null, p_name_fr:fr, p_name_en:$('#wk-en').value.trim()||null, p_name_nl:$('#wk-nl').value.trim()||null,
+    p_description_fr:$('#wk-dfr').value.trim()||null, p_description_en:$('#wk-den').value.trim()||null, p_description_nl:$('#wk-dnl').value.trim()||null,
+    p_type:$('#wk-type').value, p_difficulty:$('#wk-diff').value,
+    p_goal:$('#wk-goal').value||null, p_focus_muscle:$('#wk-focus').value||null,
+    p_equipment: (WKEDIT&&WKEDIT.equipment_needed)||[],
+    p_estimated_duration_min:intOrNull($('#wk-dur').value), p_cover_image_url:$('#wk-cover').value.trim()||null,
+    p_is_published:$('#wk-pub').checked
+  });
+  $('#wk-save').disabled=false;
+  if(error){ setMsg('wk-msg','Échec de l\'enregistrement.','err'); return null; }
+  if(!WKEDIT) WKEDIT={};
+  WKEDIT.id = data;
+  return data;
+}
+$('#wk-save').onclick = async ()=>{
+  const id = await saveWorkout();
+  if(id){ $('#wk-compose').style.display='block'; $('#wk-del').style.display='block'; toast('Séance enregistrée ✓'); loadWorkouts(); }
+};
+$('#wk-del').onclick = async ()=>{
+  if(!WKEDIT||!WKEDIT.id) return;
+  if(!confirm('Supprimer définitivement cette séance ?')) return;
+  $('#wk-del').disabled=true;
+  const { data, error } = await sb.rpc('admin_delete_workout',{ p_id:WKEDIT.id });
+  $('#wk-del').disabled=false;
+  if(error){ setMsg('wk-msg','Échec de la suppression.','err'); return; }
+  if(data===false){ setMsg('wk-msg','Impossible : séance liée à des sessions enregistrées.','err'); return; }
+  closeWk(); toast('Séance supprimée'); loadWorkouts();
+};
+
+/* ---- COMPOSITION ---- */
+let COMP=[]; let COMP_WID=null;
+$('#wk-compose').onclick = async ()=>{
+  if(!WKEDIT||!WKEDIT.id){ toast('Enregistre la séance d\'abord'); return; }
+  if(!EXS.length) await loadExercises();
+  COMP_WID = WKEDIT.id;
+  setMsg('comp-msg','Chargement…','');
+  const { data, error } = await sb.rpc('admin_get_workout_exercises',{ p_workout_id:COMP_WID });
+  setMsg('comp-msg','','');
+  if(error){ toast('Erreur'); return; }
+  COMP = (data||[]).map(x=>({ exercise_id:x.exercise_id, block:x.block||'strength', sets:x.sets??'', reps:x.reps||'', rest_sec:x.rest_sec??'', target_rpe:x.target_rpe??'', notes_fr:x.notes_fr||'' }));
+  renderComp();
+  $('#ov-comp').classList.add('show');
+};
+function exOptions(sel){
+  return EXS.map(e=>`<option value="${e.id}"${e.id===sel?' selected':''}>${esc(e.name_fr)}</option>`).join('');
+}
+function renderComp(){
+  if(!COMP.length){ $('#comp-list').innerHTML='<p class="empty">Aucun exercice. Ajoute-en un.</p>'; return; }
+  $('#comp-list').innerHTML = COMP.map((c,i)=>`
+    <div class="comp-item" data-i="${i}">
+      <div class="ci-top">
+        <span class="ord">${i+1}</span>
+        <select class="sp" data-f="exercise_id">${exOptions(c.exercise_id)}</select>
+        <button class="iconbtn" data-up="${i}">↑</button>
+        <button class="iconbtn" data-down="${i}">↓</button>
+        <button class="iconbtn" data-rm="${i}" style="color:var(--warn)">✕</button>
+      </div>
+      <div class="field" style="margin-bottom:9px"><div class="mini">Bloc</div>
+        <select data-f="block">${KEYS(L_BLOCK).map(v=>`<option value="${v}"${v===c.block?' selected':''}>${esc(L_BLOCK[v])}</option>`).join('')}</select></div>
+      <div class="row3">
+        <div><div class="mini">Sets</div><input type="number" inputmode="numeric" data-f="sets" value="${c.sets}" /></div>
+        <div><div class="mini">Reps</div><input type="text" data-f="reps" value="${esc(c.reps)}" placeholder="8-10" /></div>
+        <div><div class="mini">Repos s</div><input type="number" inputmode="numeric" data-f="rest_sec" value="${c.rest_sec}" /></div>
+      </div>
+      <div class="row2" style="margin-top:9px">
+        <div><div class="mini">RPE cible</div><input type="number" inputmode="decimal" data-f="target_rpe" value="${c.target_rpe}" /></div>
+        <div><div class="mini">Note FR</div><input type="text" data-f="notes_fr" value="${esc(c.notes_fr)}" /></div>
+      </div>
+    </div>`).join('');
+  // bind field changes
+  document.querySelectorAll('#comp-list .comp-item').forEach(el=>{
+    const i=+el.dataset.i;
+    el.querySelectorAll('[data-f]').forEach(inp=>{
+      inp.onchange=()=>{ COMP[i][inp.dataset.f]=inp.value; };
+    });
+  });
+  document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>moveComp(+b.dataset.up,-1));
+  document.querySelectorAll('[data-down]').forEach(b=>b.onclick=()=>moveComp(+b.dataset.down,1));
+  document.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ COMP.splice(+b.dataset.rm,1); renderComp(); });
+}
+function syncCompFromDom(){
+  document.querySelectorAll('#comp-list .comp-item').forEach(el=>{
+    const i=+el.dataset.i;
+    el.querySelectorAll('[data-f]').forEach(inp=>{ COMP[i][inp.dataset.f]=inp.value; });
+  });
+}
+function moveComp(i,dir){
+  syncCompFromDom();
+  const j=i+dir; if(j<0||j>=COMP.length) return;
+  const t=COMP[i]; COMP[i]=COMP[j]; COMP[j]=t; renderComp();
+}
+$('#comp-add').onclick = ()=>{
+  syncCompFromDom();
+  if(!EXS.length){ toast('Charge les exercices d\'abord'); return; }
+  COMP.push({ exercise_id:EXS[0].id, block:'strength', sets:'', reps:'', rest_sec:'', target_rpe:'', notes_fr:'' });
+  renderComp();
+};
+function closeComp(){ $('#ov-comp').classList.remove('show'); }
+$('#comp-cancel').onclick = closeComp;
+$('#ov-comp').onclick = ev=>{ if(ev.target.id==='ov-comp') closeComp(); };
+$('#comp-save').onclick = async ()=>{
+  syncCompFromDom();
+  const items = COMP.map((c,i)=>({
+    exercise_id:c.exercise_id, block:c.block, display_order:i+1,
+    sets:c.sets, reps:c.reps, rest_sec:c.rest_sec, target_rpe:c.target_rpe, notes_fr:c.notes_fr
+  }));
+  $('#comp-save').disabled=true; setMsg('comp-msg','Enregistrement…','');
+  const { error } = await sb.rpc('admin_set_workout_exercises',{ p_workout_id:COMP_WID, p_items:items });
+  $('#comp-save').disabled=false;
+  if(error){ setMsg('comp-msg','Échec de l\'enregistrement.','err'); return; }
+  closeComp(); toast('Composition enregistrée ✓'); loadWorkouts();
+};
+
+/* ---- ALIMENTS ---- */
 $('#f-search').onclick = searchFoods;
 $('#f-q').addEventListener('keydown',e=>{ if(e.key==='Enter') searchFoods(); });
 $('#f-unverif').onchange = searchFoods;
@@ -374,73 +675,60 @@ async function searchFoods(){
   const { data, error } = await sb.rpc('admin_search_foods',{ p_q:q, p_only_unverified:only, p_limit:60 });
   if(error){ $('#f-list').innerHTML='<p class="empty">Erreur (accès admin requis).</p>'; return; }
   if(!data||!data.length){ $('#f-list').innerHTML='<p class="empty">Aucun aliment.</p>'; return; }
-  window.__F={}; data.forEach(f=>window.__F[f.id]=f);
+  window.__F = {}; data.forEach(f=>window.__F[f.id]=f);
   $('#f-list').innerHTML = data.map(f=>`
     <div class="item" data-id="${f.id}">
       <div class="nm">${esc(f.name_fr)} ${f.is_verified?'<span class="pill verif">Vérifié</span>':''}</div>
       <div class="meta">${f.brand?esc(f.brand)+' · ':''}${r0(f.kcal)} kcal · P${r0(f.protein)} G${r0(f.carbs)} L${r0(f.fat)} F${r0(f.fiber)} /100g</div>
     </div>`).join('');
-  document.querySelectorAll('#f-list .item').forEach(el=>el.onclick=()=>openFood(window.__F[el.dataset.id]));
+  document.querySelectorAll('#f-list .item').forEach(el=>el.onclick=()=>openEditor(window.__F[el.dataset.id]));
 }
-function openFood(f){
-  EDIT=f||null;
-  $('#ed-title').textContent=f?"Éditer l'aliment":'Nouvel aliment';
+
+function openEditor(f){
+  EDIT = f || null;
+  $('#ed-title').textContent = f ? 'Éditer l\'aliment' : 'Nouvel aliment';
   $('#ed-fr').value=f?f.name_fr||'':''; $('#ed-en').value=f?f.name_en||'':''; $('#ed-nl').value=f?f.name_nl||'':'';
   $('#ed-brand').value=f?f.brand||'':'';
   $('#ed-kcal').value=f?f.kcal:''; $('#ed-serving').value=f?f.serving:100;
   $('#ed-p').value=f?f.protein:''; $('#ed-c').value=f?f.carbs:''; $('#ed-f').value=f?f.fat:''; $('#ed-fib').value=f?(f.fiber??''):'';
-  $('#ed-verif').checked=f?!!f.is_verified:true;
-  $('#ed-delete').style.display=f?'block':'none';
-  setMsg('ed-msg','',''); $('#ov-food').classList.add('show');
+  $('#ed-verif').checked = f?!!f.is_verified:true;
+  $('#ed-delete').style.display = f ? 'block':'none';
+  setMsg('ed-msg','','');
+  $('#ov').classList.add('show');
 }
-$('#ed-cancel').onclick=()=>$('#ov-food').classList.remove('show');
-$('#ov-food').onclick=e=>{ if(e.target.id==='ov-food') $('#ov-food').classList.remove('show'); };
-$('#f-new').onclick=()=>openFood(null);
-const numOrNull=v=>{const n=parseFloat(v);return isNaN(n)?null:n;};
-$('#ed-save').onclick=async()=>{
+function closeEditor(){ $('#ov').classList.remove('show'); EDIT=null; }
+$('#ed-cancel').onclick = closeEditor;
+$('#ov').onclick = e=>{ if(e.target.id==='ov') closeEditor(); };
+const numOrNull = v=>{ const n=parseFloat(v); return isNaN(n)?null:n; };
+
+$('#ed-save').onclick = async ()=>{
   const fr=$('#ed-fr').value.trim();
   if(!fr) return setMsg('ed-msg','Le nom FR est requis.','err');
   const kcal=numOrNull($('#ed-kcal').value);
   if(kcal==null) return setMsg('ed-msg','Les kcal/100g sont requises.','err');
   $('#ed-save').disabled=true; setMsg('ed-msg','Enregistrement…','');
   const { error } = await sb.rpc('admin_upsert_food',{
-    p_id:EDIT?EDIT.id:null, p_name_fr:fr, p_name_en:$('#ed-en').value.trim()||null, p_name_nl:$('#ed-nl').value.trim()||null,
-    p_brand:$('#ed-brand').value.trim()||null, p_kcal:kcal, p_protein:numOrNull($('#ed-p').value)||0, p_carbs:numOrNull($('#ed-c').value)||0,
-    p_fat:numOrNull($('#ed-f').value)||0, p_fiber:numOrNull($('#ed-fib').value), p_serving:numOrNull($('#ed-serving').value)||100, p_verified:$('#ed-verif').checked
+    p_id: EDIT?EDIT.id:null, p_name_fr:fr, p_name_en:$('#ed-en').value.trim()||null,
+    p_name_nl:$('#ed-nl').value.trim()||null, p_brand:$('#ed-brand').value.trim()||null,
+    p_kcal:kcal, p_protein:numOrNull($('#ed-p').value)||0, p_carbs:numOrNull($('#ed-c').value)||0,
+    p_fat:numOrNull($('#ed-f').value)||0, p_fiber:numOrNull($('#ed-fib').value),
+    p_serving:numOrNull($('#ed-serving').value)||100, p_verified:$('#ed-verif').checked
   });
   $('#ed-save').disabled=false;
-  if(error){ setMsg('ed-msg',"Échec de l'enregistrement.",'err'); return; }
-  $('#ov-food').classList.remove('show'); toast('Enregistré ✓'); searchFoods();
+  if(error){ setMsg('ed-msg','Échec de l\'enregistrement.','err'); return; }
+  closeEditor(); toast('Enregistré ✓'); searchFoods();
 };
-$('#ed-delete').onclick=async()=>{
+$('#ed-delete').onclick = async ()=>{
   if(!EDIT) return;
   if(!confirm('Supprimer définitivement cet aliment ?')) return;
   $('#ed-delete').disabled=true;
   const { data, error } = await sb.rpc('admin_delete_food',{ p_id:EDIT.id });
   $('#ed-delete').disabled=false;
   if(error){ setMsg('ed-msg','Échec de la suppression.','err'); return; }
-  if(data===false){ setMsg('ed-msg','Impossible : aliment utilisé dans des journaux. Décoche « vérifié » à la place.','err'); return; }
-  $('#ov-food').classList.remove('show'); toast('Supprimé'); searchFoods();
+  if(data===false){ setMsg('ed-msg','Impossible : cet aliment est utilisé dans des journaux. Décoche « vérifié » à la place.','err'); return; }
+  closeEditor(); toast('Supprimé'); searchFoods();
 };
-
-/* PAIEMENT */
-function loadPay(){
-  try{ const s=JSON.parse(localStorage.getItem('cdm_pay')||'{}'); if(s.name)$('#p-name').value=s.name; if(s.iban)$('#p-iban').value=s.iban; }catch(e){}
-}
-$('#p-gen').onclick=async()=>{
-  const name=$('#p-name').value.trim(), iban=$('#p-iban').value.replace(/\s/g,'').toUpperCase(), amount=$('#p-amount').value, comm=$('#p-comm').value.trim();
-  if(!name||!iban){ toast('Nom et IBAN requis'); return; }
-  if(iban.length<14||!/^[A-Z]{2}/.test(iban)){ toast('IBAN invalide'); return; }
-  try{ localStorage.setItem('cdm_pay',JSON.stringify({name,iban})); }catch(e){}
-  const amt = amount? ('EUR'+Number(amount).toFixed(2)) : '';
-  const payload=['BCD','002','1','SCT','',name.slice(0,70),iban,amt,'','',comm.slice(0,140),''].join('\n');
-  $('#p-qr').innerHTML='<div class="spin"></div>';
-  try{
-    if(!QR){ const m=await import('https://cdn.jsdelivr.net/npm/qrcode@1.5.4/+esm'); QR=m.default||m; }
-    const url=await QR.toDataURL(payload,{width:480,margin:1,errorCorrectionLevel:'M'});
-    $('#p-qr').innerHTML=`<img src="${url}" alt="QR paiement" /><div class="sub" style="margin-top:10px">Le client scane ce QR avec son app bancaire.</div>`;
-  }catch(e){ $('#p-qr').innerHTML='<p class="empty">Impossible de générer le QR (réseau).</p>'; }
-};
+$('#f-new').onclick = ()=>openEditor(null);
 
 boot();
 </script>
