@@ -401,11 +401,26 @@ $('#au-login').onclick = async ()=>{
 };
 $('#gate-out').onclick = $('#logout').onclick = async ()=>{ await sb.auth.signOut(); show('auth'); };
 
+let ROLE=null;
 async function enter(user){
   show('boot');
   const { data:prof } = await sb.from('profiles').select('role').eq('id',user.id).maybeSingle();
   if(!prof || !['coach','admin'].includes(prof.role)){ show('gate'); return; }
-  show('app'); switchTab('members'); loadUsers();
+  ROLE = prof.role;
+  applyRoleUI();
+  show('app');
+  if(ROLE==='coach'){ switchTab('workouts'); }
+  else { switchTab('members'); loadUsers(); }
+}
+function applyRoleUI(){
+  const coach = ROLE==='coach';
+  const h = document.querySelector('.topbar h2'); if(h) h.textContent = coach ? 'Console Coach' : 'Console Admin';
+  // Coach : accès limité au seul onglet Séances
+  document.querySelectorAll('.tabs button').forEach(b=>{
+    if(coach && b.dataset.tab!=='workouts') b.style.display='none';
+  });
+  // Coach : bibliothèque d'exercices en lecture seule (ajout réservé à l'admin)
+  if(coach){ const x=$('#ex-new'); if(x) x.style.display='none'; }
 }
 
 /* ---- TABS ---- */
@@ -499,7 +514,12 @@ async function loadExercises(){
       <div class="meta">${esc(cat)} · ${esc(mus)} · ${esc(eq)}${e.tip_count?` · ${e.tip_count} tip(s)`:''}</div>
     </div>`;
   }).join('');
-  document.querySelectorAll('#ex-list .item').forEach(el=>el.onclick=()=>openExEditor(el.dataset.ex));
+  if(ROLE!=='coach'){
+    document.querySelectorAll('#ex-list .item').forEach(el=>el.onclick=()=>openExEditor(el.dataset.ex));
+  } else {
+    $('#ex-list').insertAdjacentHTML('afterbegin','<p class="empty" style="margin:0 0 10px">Bibliothèque en lecture seule. Pour ajouter un exercice, contacte l\'admin.</p>');
+    document.querySelectorAll('#ex-list .item').forEach(el=>{ el.style.cursor='default'; el.style.opacity='.7'; });
+  }
 }
 $('#ex-new').onclick = ()=>openExEditor(null);
 
