@@ -228,6 +228,11 @@
     background:linear-gradient(135deg,var(--brand),var(--brand-2));box-shadow:0 0 16px rgba(0,255,160,.28)}
   .co-act.cancel{background:transparent;color:var(--warn);border:1.5px solid var(--warn)}
   .co-act[disabled]{opacity:.5;pointer-events:none}
+  .lang-seg{display:flex;gap:8px}
+  .lang-seg button{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);font-weight:700;font-size:13px}
+  .lang-seg button.on{background:var(--brand);color:#04120a;border-color:var(--brand);box-shadow:0 0 14px rgba(0,255,160,.3)}
+  .opt-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px;font-weight:600}
+  .opt-row:last-child{border-bottom:0}
 
   /* ---------- Bottom nav ---------- */
   .nav{position:fixed;bottom:0;left:0;right:0;z-index:40;
@@ -376,16 +381,16 @@
         <div class="rim"></div>
         <div class="shine" id="coin-shine"></div>
       </div>
-      <div class="coin-hint" id="coin-hint">Touche la pièce pour l'incliner avec ton téléphone</div>
+      <div class="coin-hint" id="coin-hint" data-i18n="coin_hint">Touche la pièce pour l'incliner avec ton téléphone</div>
     </div>
     <h1>COACH DM</h1>
     <p>Power · Transform · Excel</p>
   </div>
   <div class="card">
-    <div class="field"><label>Email</label><input id="au-email" type="email" autocomplete="email" inputmode="email" placeholder="ton@email.be" /></div>
-    <div class="field"><label>Mot de passe</label><input id="au-pass" type="password" autocomplete="current-password" placeholder="••••••••" /></div>
-    <button class="btn" id="au-login">Se connecter</button>
-    <button class="btn ghost" id="au-signup">Créer un compte</button>
+    <div class="field"><label data-i18n="au_email">Email</label><input id="au-email" type="email" autocomplete="email" inputmode="email" placeholder="ton@email.be" /></div>
+    <div class="field"><label data-i18n="au_pass">Mot de passe</label><input id="au-pass" type="password" autocomplete="current-password" placeholder="••••••••" /></div>
+    <button class="btn" id="au-login" data-i18n="au_login">Se connecter</button>
+    <button class="btn ghost" id="au-signup" data-i18n="au_signup">Créer un compte</button>
     <div class="msg" id="au-msg"></div>
   </div>
 </div>
@@ -394,13 +399,13 @@
 <div id="gate" class="screen hidden">
   <div class="card" style="text-align:center">
     <div class="gate-icon">🔒</div>
-    <h1 style="font-size:21px;margin:0 0 10px">Accès réservé</h1>
-    <p style="color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 6px">
+    <h1 style="font-size:21px;margin:0 0 10px" data-i18n="gate_title">Accès réservé</h1>
+    <p style="color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 6px" data-i18n-html="gate_p1">
       L'app Coach DM est réservée aux membres.<br>Essai 7 jours, puis 14,99 €/mois.</p>
-    <p style="color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 18px">
+    <p style="color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 18px" data-i18n="gate_p2">
       Ton compte est créé mais n'a pas encore d'accès. Contacte le coach pour l'activer.</p>
-    <a class="btn" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener" style="display:block;text-decoration:none;text-align:center">Demander l'accès</a>
-    <button class="btn subtle" id="gate-out" style="margin-top:10px">Se déconnecter</button>
+    <a class="btn" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener" style="display:block;text-decoration:none;text-align:center" data-i18n="gate_ask">Demander l'accès</a>
+    <button class="btn subtle" id="gate-out" style="margin-top:10px" data-i18n="btn_logout">Se déconnecter</button>
   </div>
 </div>
 
@@ -438,21 +443,21 @@
       <div class="macros" id="macros"></div>
     </div>
     <div class="block hidden" id="today-empty">
-      <p class="empty">Pas encore d'objectifs.<br>Calcule-les dans <b>Profil</b> pour suivre ta journée en temps réel.</p>
-      <button class="btn" id="go-profile">Définir mes objectifs</button>
+      <p class="empty"><span data-i18n="empty_targets">Pas encore d'objectifs.</span><br><span data-i18n="empty_targets_sub">Calcule-les dans Profil pour suivre ta journée en temps réel.</span></p>
+      <button class="btn" id="go-profile" data-i18n="define_goals">Définir mes objectifs</button>
     </div>
 
     <div id="wod"></div>
 
     <div class="qtiles">
       <button class="qtile" data-go="journal" style="--c:var(--carb)">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M9 12h6M12 9v6"/></svg>Journal</button>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M9 12h6M12 9v6"/></svg><span data-i18n="nav_journal">Journal</span></button>
       <button class="qtile" data-go="seances" style="--c:var(--brand)">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg>Séances</button>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg><span data-i18n="nav_seances">Séances</span></button>
       <button class="qtile" data-go="ia" style="--c:var(--fat)">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>Coach IA</button>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg><span data-i18n="nav_ia">Coach IA</span></button>
       <button class="qtile" data-go="boutique" style="--c:#D4AF37">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1.2 12.5H4.8z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>Boutique</button>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1.2 12.5H4.8z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span data-i18n="nav_boutique">Boutique</span></button>
     </div>
 
     <div id="home-insight"></div>
@@ -461,16 +466,16 @@
   <!-- JOURNAL -->
   <div class="page tabpane" id="pane-journal">
     <div class="block">
-      <h3>Ajouter un aliment</h3>
+      <h3 data-i18n="jo_add">Ajouter un aliment</h3>
       <div class="search-row">
-        <input id="jo-q" type="text" placeholder="Riz, poulet, banane…" enterkeyhint="search" />
-        <button id="jo-search">Chercher</button>
+        <input id="jo-q" type="text" placeholder="Riz, poulet, banane…" data-i18n-ph="jo_ph" enterkeyhint="search" />
+        <button id="jo-search" data-i18n="jo_search">Chercher</button>
       </div>
       <div id="jo-results"></div>
     </div>
     <div class="block">
-      <h3>Aujourd'hui</h3>
-      <div id="jo-logs"><p class="empty">Aucun aliment enregistré.</p></div>
+      <h3 data-i18n="jo_today">Aujourd'hui</h3>
+      <div id="jo-logs"><p class="empty" data-i18n="jo_none">Aucun aliment enregistré.</p></div>
     </div>
   </div>
 
@@ -482,15 +487,15 @@
 
   <!-- BOUTIQUE -->
   <div class="page tabpane" id="pane-boutique">
-    <button class="se-back" data-go="home">‹ Accueil</button>
+    <button class="se-back" data-go="home" data-i18n="back_home">‹ Accueil</button>
     <div id="shop"><div class="spin"></div></div>
   </div>
 
   <!-- COURS -->
   <div class="page tabpane" id="pane-cours">
     <div class="co-seg">
-      <button class="on" data-cof="all">À venir</button>
-      <button data-cof="mine">Mes réservations</button>
+      <button class="on" data-cof="all" data-i18n="co_upcoming">À venir</button>
+      <button data-cof="mine" data-i18n="co_mine">Mes réservations</button>
     </div>
     <div id="co-list"><div class="spin"></div></div>
   </div>
@@ -498,68 +503,99 @@
   <!-- COACH IA -->
   <div class="tabpane" id="pane-ia">
     <div class="topbar ia-top" style="position:static;border-bottom:1px solid var(--line)">
-      <div><h2 style="font-size:18px">Coach IA</h2><div class="sub">Ton assistant nutrition & training</div></div>
-      <button class="newconv" id="ia-new">＋ Nouvelle</button>
+      <div><h2 style="font-size:18px" data-i18n="ia_title">Coach IA</h2><div class="sub" data-i18n="ia_sub">Ton assistant nutrition & training</div></div>
+      <button class="newconv" id="ia-new" data-i18n="ia_new">＋ Nouvelle</button>
     </div>
     <div class="chat-scroll" id="ia-scroll">
       <div class="chat-intro" id="ia-intro">
         <div class="mark">DM</div>
-        Pose ta question : macros, séance, récupération, plateau…<br>Je connais tes données et je réponds en direct.
+        <span data-i18n-html="ia_intro">Pose ta question : macros, séance, récupération, plateau…<br>Je connais tes données et je réponds en direct.</span>
       </div>
     </div>
     <div class="chat-bar">
-      <input id="ia-input" type="text" placeholder="Écris ton message…" enterkeyhint="send" />
+      <input id="ia-input" type="text" placeholder="Écris ton message…" data-i18n-ph="ia_ph" enterkeyhint="send" />
       <button id="ia-send">↑</button>
     </div>
   </div>
 
   <!-- PROFIL -->
   <div class="page tabpane" id="pane-profile">
+
     <div class="block">
-      <h3>Calcul de tes objectifs</h3>
-      <p class="empty" style="text-align:left;padding:0 0 14px">Méthode Mifflin-St Jeor (1990). Tes macros se mettent à jour partout dans l'app.</p>
+      <h3 data-i18n="lbl_lang">Langue de l'app</h3>
+      <div class="lang-seg" id="lang-seg">
+        <button data-lang="fr">Français</button>
+        <button data-lang="en">English</button>
+        <button data-lang="nl">Nederlands</button>
+      </div>
+    </div>
+
+    <div class="block">
+      <h3 data-i18n="prof_info">Informations</h3>
+      <div class="field"><label data-i18n="lbl_fullname">Nom complet</label><input id="p-name" type="text" placeholder="Doudouh M." /></div>
+      <button class="btn subtle" id="p-name-save" data-i18n="btn_save">Enregistrer</button>
+      <div class="msg" id="p-name-msg"></div>
+    </div>
+
+    <div class="block">
+      <h3 data-i18n="prof_calc_title">Calcul de tes objectifs</h3>
+      <p class="empty" style="text-align:left;padding:0 0 14px" data-i18n="prof_calc_sub">Méthode Mifflin-St Jeor (1990). Tes macros se mettent à jour partout dans l'app.</p>
       <div class="row2">
-        <div class="field"><label>Poids (kg)</label><input id="p-weight" type="number" inputmode="decimal" placeholder="78" /></div>
-        <div class="field"><label>Taille (cm)</label><input id="p-height" type="number" inputmode="numeric" placeholder="180" /></div>
+        <div class="field"><label data-i18n="lbl_weight">Poids (kg)</label><input id="p-weight" type="number" inputmode="decimal" placeholder="78" /></div>
+        <div class="field"><label data-i18n="lbl_height">Taille (cm)</label><input id="p-height" type="number" inputmode="numeric" placeholder="180" /></div>
       </div>
       <div class="row2">
-        <div class="field"><label>Âge</label><input id="p-age" type="number" inputmode="numeric" placeholder="30" /></div>
-        <div class="field"><label>Sexe</label><select id="p-sex"><option value="male">Homme</option><option value="female">Femme</option></select></div>
+        <div class="field"><label data-i18n="lbl_age">Âge</label><input id="p-age" type="number" inputmode="numeric" placeholder="30" /></div>
+        <div class="field"><label data-i18n="lbl_sex">Sexe</label><select id="p-sex"><option value="male" data-i18n="sex_male">Homme</option><option value="female" data-i18n="sex_female">Femme</option></select></div>
       </div>
-      <div class="field"><label>Niveau d'activité</label>
+      <div class="field"><label data-i18n="lbl_act">Niveau d'activité</label>
         <select id="p-act">
-          <option value="sedentary">Sédentaire</option>
-          <option value="light">Légère</option>
-          <option value="moderate" selected>Modérée</option>
-          <option value="active">Active</option>
-          <option value="very_active">Très active</option>
+          <option value="sedentary" data-i18n="act_sedentary">Sédentaire</option>
+          <option value="light" data-i18n="act_light">Légère</option>
+          <option value="moderate" selected data-i18n="act_moderate">Modérée</option>
+          <option value="active" data-i18n="act_active">Active</option>
+          <option value="very_active" data-i18n="act_very_active">Très active</option>
         </select></div>
-      <div class="field"><label>Objectif</label>
+      <div class="field"><label data-i18n="lbl_goal">Objectif</label>
         <select id="p-goal">
-          <option value="lose_fat">Perte de gras</option>
-          <option value="maintain" selected>Maintien</option>
-          <option value="build_muscle">Prise de muscle</option>
-          <option value="recomp">Recomposition</option>
+          <option value="lose_fat" data-i18n="goal_lose_fat">Perte de gras</option>
+          <option value="maintain" selected data-i18n="goal_maintain">Maintien</option>
+          <option value="build_muscle" data-i18n="goal_build_muscle">Prise de muscle</option>
+          <option value="recomp" data-i18n="goal_recomp">Recomposition</option>
         </select></div>
-      <button class="btn" id="p-calc">Calculer & enregistrer</button>
+      <button class="btn" id="p-calc" data-i18n="btn_calc">Calculer & enregistrer</button>
       <div class="msg" id="p-msg"></div>
     </div>
+
     <div class="block">
-      <h3>Compte</h3>
+      <h3 data-i18n="prof_sub">Abonnement & paiement</h3>
+      <div class="fk" id="p-sub" style="margin-bottom:12px">—</div>
+      <p class="empty" style="text-align:left;padding:0 0 12px" data-i18n="sub_pay_note">Le paiement en ligne arrive bientôt. En attendant, contacte le coach pour activer ou renouveler ton accès.</p>
+      <a class="btn subtle" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none" data-i18n="contact_coach">Contacter le coach</a>
+    </div>
+
+    <div class="block">
+      <h3 data-i18n="prof_options">Options</h3>
+      <div class="opt-row"><span data-i18n="opt_units">Unités</span><span class="fk" data-i18n="opt_metric">Métrique (kg, cm)</span></div>
+      <div class="opt-row"><span data-i18n="opt_notif">Rappels & notifications</span><span class="fk" data-i18n="opt_soon">Bientôt disponible</span></div>
+    </div>
+
+    <div class="block">
+      <h3 data-i18n="prof_account">Compte</h3>
       <div class="empty" style="text-align:left;padding:0 0 12px" id="p-email"></div>
-      <button class="btn subtle" id="p-out">Se déconnecter</button>
-      <a href="https://coachdm.be/privacy.html" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:14px;color:var(--muted);font-size:12.5px;text-decoration:none">Politique de confidentialité</a>
+      <button class="btn subtle" id="p-out" data-i18n="btn_logout">Se déconnecter</button>
+      <a href="https://coachdm.be/privacy.html" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:14px;color:var(--muted);font-size:12.5px;text-decoration:none" data-i18n="privacy">Politique de confidentialité</a>
     </div>
   </div>
 
   <!-- NAV -->
   <div class="nav">
-    <button class="on" data-tab="home"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></span>Accueil</button>
-    <button data-tab="journal"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M9 12h6M12 9v6"/></svg></span>Journal</button>
-    <button data-tab="seances"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg></span>Séances</button>
-    <button data-tab="cours"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg></span>Cours</button>
-    <button data-tab="ia"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg></span>Coach IA</button>
-    <button data-tab="profile"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></span>Profil</button>
+    <button class="on" data-tab="home"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></span><span data-i18n="nav_home">Accueil</span></button>
+    <button data-tab="journal"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M9 12h6M12 9v6"/></svg></span><span data-i18n="nav_journal">Journal</span></button>
+    <button data-tab="seances"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg></span><span data-i18n="nav_seances">Séances</span></button>
+    <button data-tab="cours"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg></span><span data-i18n="nav_cours">Cours</span></button>
+    <button data-tab="ia"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg></span><span data-i18n="nav_ia">Coach IA</span></button>
+    <button data-tab="profile"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></span><span data-i18n="nav_profile">Profil</span></button>
   </div>
 </div>
 
@@ -570,20 +606,20 @@
     <h3 id="sh-name">Aliment</h3>
     <div class="fk" id="sh-per">—</div>
     <div class="row2">
-      <div class="field"><label>Quantité (g)</label><input id="sh-qty" type="number" inputmode="numeric" /></div>
-      <div class="field"><label>Repas</label>
+      <div class="field"><label data-i18n="sh_qty">Quantité (g)</label><input id="sh-qty" type="number" inputmode="numeric" /></div>
+      <div class="field"><label data-i18n="sh_meal">Repas</label>
         <select id="sh-meal">
-          <option value="breakfast">Petit-déj</option>
-          <option value="lunch">Déjeuner</option>
-          <option value="dinner">Dîner</option>
-          <option value="snack">Collation</option>
-          <option value="pre_workout">Pré-training</option>
-          <option value="post_workout">Post-training</option>
+          <option value="breakfast" data-i18n="meal_breakfast">Petit-déj</option>
+          <option value="lunch" data-i18n="meal_lunch">Déjeuner</option>
+          <option value="dinner" data-i18n="meal_dinner">Dîner</option>
+          <option value="snack" data-i18n="meal_snack">Collation</option>
+          <option value="pre_workout" data-i18n="meal_pre_workout">Pré-training</option>
+          <option value="post_workout" data-i18n="meal_post_workout">Post-training</option>
         </select></div>
     </div>
     <div class="fk" id="sh-preview" style="margin:2px 0 16px"></div>
-    <button class="btn" id="sh-add">Ajouter au journal</button>
-    <button class="btn subtle" id="sh-cancel" style="margin-top:10px">Annuler</button>
+    <button class="btn" id="sh-add" data-i18n="sh_add">Ajouter au journal</button>
+    <button class="btn subtle" id="sh-cancel" style="margin-top:10px" data-i18n="btn_cancel">Annuler</button>
   </div>
 </div>
 
@@ -594,8 +630,8 @@
     <h3 id="set-name">Série</h3>
     <div class="fk" id="set-sub">—</div>
     <div id="set-fields"></div>
-    <button class="btn" id="set-save">Valider la série</button>
-    <button class="btn subtle" id="set-cancel" style="margin-top:10px">Annuler</button>
+    <button class="btn" id="set-save" data-i18n="set_save">Valider la série</button>
+    <button class="btn subtle" id="set-cancel" style="margin-top:10px" data-i18n="btn_cancel">Annuler</button>
   </div>
 </div>
 
@@ -609,7 +645,203 @@ const SUPABASE_KEY = 'sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b';
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const $ = (s)=>document.querySelector(s);
-const MEAL_FR = {breakfast:'Petit-déj',lunch:'Déjeuner',dinner:'Dîner',snack:'Collation',pre_workout:'Pré-training',post_workout:'Post-training'};
+
+/* ================= i18n ================= */
+let LANG = localStorage.getItem('cdm_lang') || 'fr';
+if(!['fr','en','nl'].includes(LANG)) LANG='fr';
+const T = {
+ nav_home:{fr:'Accueil',en:'Home',nl:'Home'},
+ nav_journal:{fr:'Journal',en:'Diary',nl:'Dagboek'},
+ nav_seances:{fr:'Séances',en:'Workouts',nl:'Trainingen'},
+ nav_cours:{fr:'Cours',en:'Classes',nl:'Lessen'},
+ nav_ia:{fr:'Coach IA',en:'AI Coach',nl:'AI-coach'},
+ nav_profile:{fr:'Profil',en:'Profile',nl:'Profiel'},
+ nav_boutique:{fr:'Boutique',en:'Shop',nl:'Shop'},
+ title_home:{fr:"Aujourd'hui",en:'Today',nl:'Vandaag'},
+ sub_journal:{fr:'Cherche, ajoute, suis tes repas',en:'Search, add and track your meals',nl:'Zoek, voeg toe en volg je maaltijden'},
+ sub_seances:{fr:'Tes programmes Coach DM',en:'Your Coach DM programs',nl:'Jouw Coach DM-programma\u2019s'},
+ sub_cours:{fr:'Réserve tes séances collectives & PT',en:'Book your classes & PT',nl:'Reserveer je groepslessen & PT'},
+ sub_boutique:{fr:'Programmes PDF premium',en:'Premium PDF programs',nl:'Premium PDF-programma\u2019s'},
+ home_hello:{fr:'Salut',en:'Hi',nl:'Hallo'},
+ kcal:{fr:'kcal',en:'kcal',nl:'kcal'},
+ left_under:{fr:'kcal restantes',en:'kcal left',nl:'kcal over'},
+ left_over:{fr:'kcal au-dessus',en:'kcal over',nl:'kcal te veel'},
+ macro_protein:{fr:'Protéines',en:'Protein',nl:'Eiwitten'},
+ macro_carb:{fr:'Glucides',en:'Carbs',nl:'Koolhydraten'},
+ macro_fat:{fr:'Lipides',en:'Fat',nl:'Vetten'},
+ macro_fiber:{fr:'Fibres',en:'Fiber',nl:'Vezels'},
+ empty_targets:{fr:"Pas encore d'objectifs.",en:'No targets yet.',nl:'Nog geen doelen.'},
+ empty_targets_sub:{fr:'Calcule-les dans Profil pour suivre ta journée en temps réel.',en:'Set them in Profile to track your day in real time.',nl:'Stel ze in bij Profiel om je dag live te volgen.'},
+ define_goals:{fr:'Définir mes objectifs',en:'Set my targets',nl:'Mijn doelen instellen'},
+ wod_today:{fr:'Séance du jour',en:'Workout of the day',nl:'Training van de dag'},
+ btn_start:{fr:'Démarrer',en:'Start',nl:'Starten'},
+ see_demo:{fr:'Voir la démo',en:'Watch demo',nl:'Bekijk demo'},
+ jo_add:{fr:'Ajouter un aliment',en:'Add a food',nl:'Voedsel toevoegen'},
+ jo_ph:{fr:'Riz, poulet, banane…',en:'Rice, chicken, banana…',nl:'Rijst, kip, banaan…'},
+ jo_search:{fr:'Chercher',en:'Search',nl:'Zoeken'},
+ jo_today:{fr:"Aujourd'hui",en:'Today',nl:'Vandaag'},
+ jo_none:{fr:'Aucun aliment enregistré.',en:'No food logged.',nl:'Nog niets geregistreerd.'},
+ jo_added:{fr:'Ajouté au journal ✓',en:'Added to diary ✓',nl:'Toegevoegd ✓'},
+ jo_removed:{fr:'Supprimé',en:'Removed',nl:'Verwijderd'},
+ back_home:{fr:'‹ Accueil',en:'‹ Home',nl:'‹ Home'},
+ co_upcoming:{fr:'À venir',en:'Upcoming',nl:'Komend'},
+ co_mine:{fr:'Mes réservations',en:'My bookings',nl:'Mijn reservaties'},
+ co_reserve:{fr:'Réserver',en:'Book',nl:'Reserveren'},
+ co_waitlist_btn:{fr:"Rejoindre la liste d'attente",en:'Join the waitlist',nl:'Op wachtlijst'},
+ co_cancel_btn:{fr:'Annuler ma réservation',en:'Cancel my booking',nl:'Reservatie annuleren'},
+ co_reserved:{fr:'Réservé',en:'Booked',nl:'Gereserveerd'},
+ co_waitlist:{fr:"Liste d'attente",en:'Waitlist',nl:'Wachtlijst'},
+ co_full:{fr:'Complet',en:'Full',nl:'Vol'},
+ co_place:{fr:'place',en:'spot',nl:'plaats'},
+ co_places:{fr:'places',en:'spots',nl:'plaatsen'},
+ co_none_up:{fr:'Aucun cours programmé pour le moment.',en:'No classes scheduled yet.',nl:'Nog geen lessen gepland.'},
+ co_none_mine:{fr:'Aucune réservation à venir.',en:'No upcoming bookings.',nl:'Geen komende reservaties.'},
+ co_cancel_closed:{fr:'Annulation fermée (trop proche du début).',en:'Cancellation closed (too close to start).',nl:'Annuleren gesloten (te dicht bij de start).'},
+ co_booked_ok:{fr:'Réservé ✓',en:'Booked ✓',nl:'Gereserveerd ✓'},
+ co_wl_ok:{fr:"Ajouté à la liste d'attente",en:'Added to the waitlist',nl:'Op de wachtlijst gezet'},
+ co_cancelled_ok:{fr:'Réservation annulée',en:'Booking cancelled',nl:'Reservatie geannuleerd'},
+ co_confirm_cancel:{fr:'Annuler ta réservation ?',en:'Cancel your booking?',nl:'Je reservatie annuleren?'},
+ ia_title:{fr:'Coach IA',en:'AI Coach',nl:'AI-coach'},
+ ia_sub:{fr:'Ton assistant nutrition & training',en:'Your nutrition & training assistant',nl:'Je voeding- & trainingsassistent'},
+ ia_intro:{fr:'Pose ta question : macros, séance, récupération, plateau…<br>Je connais tes données et je réponds en direct.',en:'Ask anything: macros, workout, recovery, plateau…<br>I know your data and answer live.',nl:'Stel je vraag: macro\u2019s, training, herstel, plateau…<br>Ik ken je gegevens en antwoord live.'},
+ ia_ph:{fr:'Écris ton message…',en:'Type your message…',nl:'Typ je bericht…'},
+ ia_new:{fr:'＋ Nouvelle',en:'＋ New',nl:'＋ Nieuw'},
+ prof_calc_title:{fr:'Calcul de tes objectifs',en:'Calculate your targets',nl:'Bereken je doelen'},
+ prof_calc_sub:{fr:'Méthode Mifflin-St Jeor (1990). Tes macros se mettent à jour partout dans l\u2019app.',en:'Mifflin-St Jeor method (1990). Your macros update everywhere in the app.',nl:'Mifflin-St Jeor-methode (1990). Je macro\u2019s worden overal in de app bijgewerkt.'},
+ lbl_weight:{fr:'Poids (kg)',en:'Weight (kg)',nl:'Gewicht (kg)'},
+ lbl_height:{fr:'Taille (cm)',en:'Height (cm)',nl:'Lengte (cm)'},
+ lbl_age:{fr:'Âge',en:'Age',nl:'Leeftijd'},
+ lbl_sex:{fr:'Sexe',en:'Sex',nl:'Geslacht'},
+ sex_male:{fr:'Homme',en:'Male',nl:'Man'},
+ sex_female:{fr:'Femme',en:'Female',nl:'Vrouw'},
+ lbl_act:{fr:"Niveau d'activité",en:'Activity level',nl:'Activiteitsniveau'},
+ act_sedentary:{fr:'Sédentaire',en:'Sedentary',nl:'Zittend'},
+ act_light:{fr:'Légère',en:'Light',nl:'Licht'},
+ act_moderate:{fr:'Modérée',en:'Moderate',nl:'Matig'},
+ act_active:{fr:'Active',en:'Active',nl:'Actief'},
+ act_very_active:{fr:'Très active',en:'Very active',nl:'Zeer actief'},
+ lbl_goal:{fr:'Objectif',en:'Goal',nl:'Doel'},
+ goal_lose_fat:{fr:'Perte de gras',en:'Fat loss',nl:'Vetverlies'},
+ goal_maintain:{fr:'Maintien',en:'Maintain',nl:'Onderhoud'},
+ goal_build_muscle:{fr:'Prise de muscle',en:'Build muscle',nl:'Spieropbouw'},
+ goal_recomp:{fr:'Recomposition',en:'Recomposition',nl:'Recompositie'},
+ btn_calc:{fr:'Calculer & enregistrer',en:'Calculate & save',nl:'Berekenen & opslaan'},
+ saved_ok:{fr:'Objectifs enregistrés ✓',en:'Targets saved ✓',nl:'Doelen opgeslagen ✓'},
+ prof_info:{fr:'Informations',en:'Information',nl:'Informatie'},
+ prof_account:{fr:'Compte',en:'Account',nl:'Account'},
+ lbl_fullname:{fr:'Nom complet',en:'Full name',nl:'Volledige naam'},
+ lbl_lang:{fr:'Langue de l\u2019app',en:'App language',nl:'App-taal'},
+ btn_save:{fr:'Enregistrer',en:'Save',nl:'Opslaan'},
+ prof_sub:{fr:'Abonnement & paiement',en:'Subscription & payment',nl:'Abonnement & betaling'},
+ sub_status_active:{fr:'Accès actif',en:'Active access',nl:'Actieve toegang'},
+ sub_status_trial:{fr:'Essai en cours',en:'Trial in progress',nl:'Proefperiode loopt'},
+ sub_status_none:{fr:'Aucun accès',en:'No access',nl:'Geen toegang'},
+ sub_pay_note:{fr:'Le paiement en ligne arrive bientôt. En attendant, contacte le coach pour activer ou renouveler ton accès.',en:'Online payment is coming soon. Meanwhile, contact the coach to activate or renew your access.',nl:'Online betalen komt binnenkort. Neem intussen contact op met de coach om je toegang te activeren of te verlengen.'},
+ contact_coach:{fr:'Contacter le coach',en:'Contact the coach',nl:'Contacteer de coach'},
+ prof_options:{fr:'Options',en:'Options',nl:'Opties'},
+ opt_units:{fr:'Unités',en:'Units',nl:'Eenheden'},
+ opt_metric:{fr:'Métrique (kg, cm)',en:'Metric (kg, cm)',nl:'Metrisch (kg, cm)'},
+ opt_imperial:{fr:'Impérial (lb, in)',en:'Imperial (lb, in)',nl:'Imperiaal (lb, in)'},
+ opt_notif:{fr:'Rappels & notifications',en:'Reminders & notifications',nl:'Herinneringen & meldingen'},
+ opt_on:{fr:'Activés',en:'On',nl:'Aan'},
+ opt_off:{fr:'Désactivés',en:'Off',nl:'Uit'},
+ opt_soon:{fr:'Bientôt disponible',en:'Coming soon',nl:'Binnenkort'},
+ btn_logout:{fr:'Se déconnecter',en:'Log out',nl:'Uitloggen'},
+ privacy:{fr:'Politique de confidentialité',en:'Privacy policy',nl:'Privacybeleid'},
+ gate_title:{fr:'Accès réservé',en:'Members only',nl:'Alleen voor leden'},
+ gate_p1:{fr:'L\u2019app Coach DM est réservée aux membres.<br>Essai 7 jours, puis 14,99 €/mois.',en:'The Coach DM app is for members.<br>7-day trial, then €14.99/month.',nl:'De Coach DM-app is voor leden.<br>7 dagen proberen, daarna €14,99/maand.'},
+ gate_p2:{fr:"Ton compte est créé mais n'a pas encore d'accès. Contacte le coach pour l'activer.",en:'Your account is created but has no access yet. Contact the coach to activate it.',nl:'Je account is aangemaakt maar heeft nog geen toegang. Contacteer de coach om het te activeren.'},
+ gate_ask:{fr:"Demander l'accès",en:'Request access',nl:'Toegang aanvragen'},
+ au_email:{fr:'Email',en:'Email',nl:'E-mail'},
+ au_pass:{fr:'Mot de passe',en:'Password',nl:'Wachtwoord'},
+ au_login:{fr:'Se connecter',en:'Log in',nl:'Inloggen'},
+ au_signup:{fr:'Créer un compte',en:'Create account',nl:'Account aanmaken'},
+ coin_hint:{fr:'Touche la pièce pour l\u2019incliner avec ton téléphone',en:'Tap the coin to tilt it with your phone',nl:'Tik op de munt om hem te kantelen met je telefoon'},
+ sh_food:{fr:'Aliment',en:'Food',nl:'Voedsel'},
+ sh_qty:{fr:'Quantité (g)',en:'Quantity (g)',nl:'Hoeveelheid (g)'},
+ sh_meal:{fr:'Repas',en:'Meal',nl:'Maaltijd'},
+ sh_add:{fr:'Ajouter au journal',en:'Add to diary',nl:'Toevoegen aan dagboek'},
+ btn_cancel:{fr:'Annuler',en:'Cancel',nl:'Annuleren'},
+ set_title:{fr:'Série',en:'Set',nl:'Set'},
+ set_save:{fr:'Valider la série',en:'Save set',nl:'Set opslaan'},
+ meal_breakfast:{fr:'Petit-déj',en:'Breakfast',nl:'Ontbijt'},
+ meal_lunch:{fr:'Déjeuner',en:'Lunch',nl:'Lunch'},
+ meal_dinner:{fr:'Dîner',en:'Dinner',nl:'Diner'},
+ meal_snack:{fr:'Collation',en:'Snack',nl:'Snack'},
+ meal_pre_workout:{fr:'Pré-training',en:'Pre-workout',nl:'Pre-workout'},
+ meal_post_workout:{fr:'Post-training',en:'Post-workout',nl:'Post-workout'},
+ err_credentials:{fr:'Email et mot de passe requis.',en:'Email and password required.',nl:'E-mail en wachtwoord vereist.'},
+ insight_title:{fr:'Insight du jour',en:'Daily insight',nl:'Inzicht van de dag'},
+ see_all_workouts:{fr:'‹ Toutes les séances',en:'‹ All workouts',nl:'‹ Alle trainingen'},
+ exercises:{fr:'exercices',en:'exercises',nl:'oefeningen'},
+ wod_reco:{fr:'Séance recommandée',en:'Recommended workout',nl:'Aanbevolen training'},
+ wod_see:{fr:'▸ Voir la séance',en:'▸ View workout',nl:'▸ Bekijk training'},
+ cat_muscle:{fr:'Muscle',en:'Muscle',nl:'Spier'},
+ cat_fat:{fr:'Perte de gras',en:'Fat loss',nl:'Vetverlies'},
+ cat_cardio:{fr:'Cardio',en:'Cardio',nl:'Cardio'},
+ cat_health:{fr:'Santé',en:'Health',nl:'Gezondheid'},
+ co_cancelled_label:{fr:'Annulé',en:'Cancelled',nl:'Geannuleerd'},
+ co_load_fail:{fr:'Impossible de charger les cours.',en:'Could not load classes.',nl:'Kan de lessen niet laden.'},
+ co_full_msg:{fr:'Cours complet',en:'Class full',nl:'Les vol'},
+ co_already:{fr:'Déjà réservé',en:'Already booked',nl:'Al gereserveerd'},
+ co_closed:{fr:'Réservations fermées',en:'Bookings closed',nl:'Reservaties gesloten'},
+ co_no_access:{fr:'Accès à régulariser',en:'Access needed',nl:'Toegang vereist'},
+ co_book_fail:{fr:'Réservation impossible',en:'Booking failed',nl:'Reserveren mislukt'},
+ co_cancel_fail:{fr:'Annulation impossible',en:'Cancellation failed',nl:'Annuleren mislukt'},
+ rest:{fr:'repos',en:'rest',nl:'rust'},
+ ex_fallback:{fr:'Exercice',en:'Exercise',nl:'Oefening'},
+ start_session:{fr:'Démarrer la séance',en:'Start the workout',nl:'Training starten'},
+ finish_session:{fr:'Terminer la séance',en:'Finish the workout',nl:'Training afronden'},
+ session_started:{fr:'Séance démarrée',en:'Workout started',nl:'Training gestart'},
+ session_done:{fr:'Séance terminée ✓',en:'Workout finished ✓',nl:'Training afgerond ✓'},
+ set_saved:{fr:'Série enregistrée ✓',en:'Set saved ✓',nl:'Set opgeslagen ✓'},
+ start_fail:{fr:'Impossible de démarrer',en:'Could not start',nl:'Kan niet starten'},
+ start_first:{fr:'Démarre la séance d\u2019abord',en:'Start the workout first',nl:'Start eerst de training'},
+ f_reps:{fr:'Reps',en:'Reps',nl:'Reps'},
+ f_load:{fr:'Charge (kg)',en:'Load (kg)',nl:'Gewicht (kg)'},
+ f_dur:{fr:'Durée (s)',en:'Duration (s)',nl:'Duur (s)'},
+ f_dist:{fr:'Distance (m)',en:'Distance (m)',nl:'Afstand (m)'},
+ f_cal:{fr:'Calories',en:'Calories',nl:'Calorieën'},
+ err_pwd_min:{fr:'Mot de passe : 6 caractères minimum.',en:'Password: 6 characters minimum.',nl:'Wachtwoord: minimaal 6 tekens.'},
+ signup_confirm:{fr:'Compte créé. Vérifie ta boîte mail pour confirmer, puis connecte-toi.',en:'Account created. Check your email to confirm, then log in.',nl:'Account aangemaakt. Bevestig via je e-mail en log dan in.'},
+ auth_invalid:{fr:'Email ou mot de passe incorrect.',en:'Wrong email or password.',nl:'Verkeerd e-mail of wachtwoord.'},
+ auth_exists:{fr:'Cet email a déjà un compte. Connecte-toi.',en:'This email already has an account. Log in.',nl:'Dit e-mailadres heeft al een account. Log in.'},
+ auth_unconfirmed:{fr:'Confirme ton email avant de te connecter.',en:'Confirm your email before logging in.',nl:'Bevestig je e-mail voor je inlogt.'},
+ no_food_a:{fr:'Aucun aliment trouvé pour « ',en:'No food found for "',nl:'Geen voedsel gevonden voor "'},
+ no_food_b:{fr:' ».',en:'".',nl:'".'},
+ jo_none_today:{fr:"Aucun aliment enregistré aujourd'hui.",en:'No food logged today.',nl:'Vandaag nog niets geregistreerd.'},
+ qty_invalid:{fr:'Quantité invalide',en:'Invalid quantity',nl:'Ongeldige hoeveelheid'},
+ need_fields:{fr:'Renseigne poids, taille et âge.',en:'Enter weight, height and age.',nl:'Vul gewicht, lengte en leeftijd in.'},
+ save_fail:{fr:"Échec de l'enregistrement.",en:'Save failed.',nl:'Opslaan mislukt.'},
+ search_min:{fr:'Tape au moins 2 lettres.',en:'Type at least 2 letters.',nl:'Typ minstens 2 letters.'},
+ shop_free:{fr:'Gratuit',en:'Free',nl:'Gratis'},
+ shop_download:{fr:'📥 Télécharger gratuitement',en:'📥 Download for free',nl:'📥 Gratis downloaden'},
+ shop_buy:{fr:'💳 Acheter',en:'💳 Buy',nl:'💳 Kopen'},
+ shop_custom:{fr:'Sur mesure',en:'Custom',nl:'Op maat'}
+};
+const t = (k)=> (T[k] ? (T[k][LANG] ?? T[k].fr) : k);
+const pick = (o,base)=> o ? (o[base+'_'+LANG] || o[base+'_fr'] || o[base+'_en'] || '') : '';
+const mealLabel = (m)=> t('meal_'+m);
+const CAT_KEY={'Muscle':'cat_muscle','Perte de gras':'cat_fat','Cardio':'cat_cardio','Santé':'cat_health'};
+const catL = (c)=> CAT_KEY[c] ? t(CAT_KEY[c]) : (c||'');
+const locale = ()=> LANG==='fr'?'fr-BE':(LANG==='nl'?'nl-BE':'en-GB');
+function applyI18n(){
+  document.documentElement.lang=LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(T[k]) el.textContent=t(k); });
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{ const k=el.getAttribute('data-i18n-html'); if(T[k]) el.innerHTML=t(k); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ const k=el.getAttribute('data-i18n-ph'); if(T[k]) el.setAttribute('placeholder',t(k)); });
+  const ps=document.getElementById('p-sub'); if(ps && ps.dataset.key){ ps.textContent = t(ps.dataset.key) + (ps.dataset.extra||''); }
+}
+function renderLangBtns(){ document.querySelectorAll('#lang-seg button').forEach(b=>b.classList.toggle('on', b.dataset.lang===LANG)); }
+function setLang(l){
+  if(!['fr','en','nl'].includes(l)) return;
+  LANG=l; localStorage.setItem('cdm_lang',l);
+  applyI18n(); renderLangBtns();
+  try{ if(typeof loadToday==='function' && USER) loadToday(); }catch(e){}
+  const active=document.querySelector('.nav button.on')?.dataset.tab;
+  if(active && typeof switchTab==='function') switchTab(active);
+}
+
 let USER=null, TARGETS=null, SELECTED=null, CONV=null, BUSY=false, IA_LOADED=false;
 
 const todayStr = ()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
@@ -629,28 +861,28 @@ sb.auth.onAuthStateChange((_e,session)=>{ if(!session) show('auth'); });
 
 $('#au-login').onclick = async ()=>{
   const email=$('#au-email').value.trim(), pass=$('#au-pass').value;
-  if(!email||!pass) return setMsg('au-msg','Email et mot de passe requis.','err');
-  setBtn('#au-login',true,'Connexion…');
+  if(!email||!pass) return setMsg('au-msg',t('err_credentials'),'err');
+  setBtn('#au-login',true,'…');
   const { data, error } = await sb.auth.signInWithPassword({ email, password:pass });
-  setBtn('#au-login',false,'Se connecter');
+  setBtn('#au-login',false,t('au_login'));
   if(error) return setMsg('au-msg', humanAuth(error.message),'err');
   await enter(data.user);
 };
 $('#au-signup').onclick = async ()=>{
   const email=$('#au-email').value.trim(), pass=$('#au-pass').value;
-  if(!email||!pass) return setMsg('au-msg','Email et mot de passe requis.','err');
-  if(pass.length<6) return setMsg('au-msg','Mot de passe : 6 caractères minimum.','err');
-  setBtn('#au-signup',true,'Création…');
+  if(!email||!pass) return setMsg('au-msg',t('err_credentials'),'err');
+  if(pass.length<6) return setMsg('au-msg',t('err_pwd_min'),'err');
+  setBtn('#au-signup',true,'…');
   const { data, error } = await sb.auth.signUp({ email, password:pass });
-  setBtn('#au-signup',false,'Créer un compte');
+  setBtn('#au-signup',false,t('au_signup'));
   if(error) return setMsg('au-msg', humanAuth(error.message),'err');
   if(data.session?.user){ await enter(data.user); }
-  else setMsg('au-msg','Compte créé. Vérifie ta boîte mail pour confirmer, puis connecte-toi.','ok');
+  else setMsg('au-msg',t('signup_confirm'),'ok');
 };
 function humanAuth(m){
-  if(/invalid login/i.test(m)) return 'Email ou mot de passe incorrect.';
-  if(/already registered/i.test(m)) return 'Cet email a déjà un compte. Connecte-toi.';
-  if(/email not confirmed/i.test(m)) return 'Confirme ton email avant de te connecter.';
+  if(/invalid login/i.test(m)) return t('auth_invalid');
+  if(/already registered/i.test(m)) return t('auth_exists');
+  if(/email not confirmed/i.test(m)) return t('auth_unconfirmed');
   return m;
 }
 
@@ -661,9 +893,38 @@ async function enter(user){
   if(!ok){ show('gate'); return; }
   show('app');
   $('#p-email').textContent = user.email || '';
+  await loadProfileInfo(user);
   await loadTargets();
   await loadToday();
   switchTab('home');
+}
+
+async function loadProfileInfo(user){
+  // full name
+  try{
+    const { data:prof } = await sb.from('profiles').select('full_name').eq('id',user.id).maybeSingle();
+    if(prof && prof.full_name && $('#p-name')) $('#p-name').value = prof.full_name;
+  }catch(e){}
+  // subscription / payment status
+  try{
+    const { data:prof2 } = await sb.from('profiles').select('role').eq('id',user.id).maybeSingle();
+    const role = prof2 && prof2.role;
+    const { data:sub } = await sb.from('subscriptions')
+      .select('status,current_period_end,trial_end').eq('user_id',user.id)
+      .order('current_period_end',{ascending:false,nullsFirst:false}).limit(1).maybeSingle();
+    const now=Date.now();
+    let key='sub_status_none', extra='';
+    const trialing = sub && (sub.status==='trialing' || (sub.trial_end && new Date(sub.trial_end).getTime()>now));
+    const active = (role==='coach'||role==='admin') || (sub && (sub.status==='active' || (sub.current_period_end && new Date(sub.current_period_end).getTime()>now)));
+    if(trialing && !(role==='coach'||role==='admin')){
+      key='sub_status_trial';
+      if(sub && sub.trial_end) extra = ' · ' + new Date(sub.trial_end).toLocaleDateString(locale(),{day:'numeric',month:'long'});
+    } else if(active){
+      key='sub_status_active';
+      if(sub && sub.current_period_end) extra = ' · ' + new Date(sub.current_period_end).toLocaleDateString(locale(),{day:'numeric',month:'long'});
+    }
+    if($('#p-sub')){ $('#p-sub').dataset.key=key; $('#p-sub').dataset.extra=extra; $('#p-sub').textContent = t(key)+extra; }
+  }catch(e){}
 }
 
 async function hasAccess(uid){
@@ -721,13 +982,13 @@ async function loadToday(){
   const pct = tgt>0 ? Math.min(sum.kcal/tgt,1) : 0;
   $('#ring-fg').style.strokeDashoffset = String(578*(1-pct));
   const left = r0(tgt - sum.kcal);
-  $('#r-left').textContent = left>=0 ? left+' kcal restantes' : Math.abs(left)+' kcal au-dessus';
+  $('#r-left').textContent = left>=0 ? left+' '+t('left_under') : Math.abs(left)+' '+t('left_over');
 
   const macros=[
-    {n:'Protéines',c:'--prot',v:sum.p,t:TARGETS.protein_g},
-    {n:'Glucides',c:'--carb',v:sum.c,t:TARGETS.carbs_g},
-    {n:'Lipides',c:'--fat',v:sum.f,t:TARGETS.fat_g},
-    {n:'Fibres',c:'--fiber',v:sum.fb,t:TARGETS.fiber_g},
+    {n:t('macro_protein'),c:'--prot',v:sum.p,t:TARGETS.protein_g},
+    {n:t('macro_carb'),c:'--carb',v:sum.c,t:TARGETS.carbs_g},
+    {n:t('macro_fat'),c:'--fat',v:sum.f,t:TARGETS.fat_g},
+    {n:t('macro_fiber'),c:'--fiber',v:sum.fb,t:TARGETS.fiber_g},
   ];
   $('#macros').innerHTML = macros.map(m=>{
     const p = m.t>0 ? Math.min(m.v/m.t,1)*100 : 0;
@@ -782,18 +1043,18 @@ async function searchOFF(q){
 
 async function doSearch(){
   const q=$('#jo-q').value.trim();
-  if(q.length<2){ $('#jo-results').innerHTML='<p class="empty">Tape au moins 2 lettres.</p>'; return; }
+  if(q.length<2){ $('#jo-results').innerHTML='<p class="empty">'+t('search_min')+'</p>'; return; }
   $('#jo-results').innerHTML='<div class="spin"></div>';
   const [localR,offR]=await Promise.allSettled([ searchLocal(q), searchOFF(q) ]);
   const local=localR.status==='fulfilled'?localR.value:[];
   const off=offR.status==='fulfilled'?offR.value:[];
   const seen=new Set(local.map(f=>(f.name_fr||'').toLowerCase()));
   const merged=local.concat(off.filter(f=>!seen.has((f.name_fr||'').toLowerCase())));
-  if(!merged.length){ $('#jo-results').innerHTML='<p class="empty">Aucun aliment trouvé pour « '+esc(q)+' ».</p>'; return; }
+  if(!merged.length){ $('#jo-results').innerHTML='<p class="empty">'+t('no_food_a')+esc(q)+t('no_food_b')+'</p>'; return; }
   window.__FOODS=merged;
   $('#jo-results').innerHTML = merged.map((f,i)=>`
     <div class="food" data-i="${i}">
-      <div><div class="fn">${esc(f.name_fr||f.name_en||'Aliment')}${f.brand?' · <span style="color:var(--muted);font-weight:500">'+esc(f.brand)+'</span>':''}</div>
+      <div><div class="fn">${esc(pick(f,'name')||t('sh_food'))}${f.brand?' · <span style="color:var(--muted);font-weight:500">'+esc(f.brand)+'</span>':''}</div>
         <div class="fk">${r0(f.kcal_per_100g)} kcal · P${r0(f.protein_per_100g)} G${r0(f.carbs_per_100g)} L${r0(f.fat_per_100g)} /100g</div></div>
       <div class="add">＋</div>
     </div>`).join('');
@@ -804,7 +1065,7 @@ async function doSearch(){
 
 function openSheet(food){
   SELECTED=food;
-  $('#sh-name').textContent = food.name_fr||food.name_en||'Aliment';
+  $('#sh-name').textContent = pick(food,'name')||t('sh_food');
   $('#sh-per').textContent = `${r0(food.kcal_per_100g)} kcal / 100 g`;
   $('#sh-qty').value = food.default_serving_g || 100;
   updatePreview();
@@ -822,9 +1083,9 @@ function updatePreview(){
 $('#sh-add').onclick = async ()=>{
   if(!SELECTED) return;
   const q=parseFloat($('#sh-qty').value);
-  if(!q||q<=0) return toast('Quantité invalide');
+  if(!q||q<=0) return toast(t('qty_invalid'));
   const k=q/100;
-  setBtn('#sh-add',true,'Ajout…');
+  setBtn('#sh-add',true,'…');
   let foodId=SELECTED.id;
   if(SELECTED.off && !foodId){
     const { data:fid, error:e1 } = await sb.rpc('upsert_off_food',{
@@ -835,7 +1096,7 @@ $('#sh-add').onclick = async ()=>{
       p_sugars:SELECTED.sugars, p_sat:SELECTED.sat, p_salt:SELECTED.salt,
       p_serving_g:SELECTED.default_serving_g, p_image:SELECTED.image
     });
-    if(e1||!fid){ setBtn('#sh-add',false,'Ajouter au journal'); toast('Échec de l\'ajout'); return; }
+    if(e1||!fid){ setBtn('#sh-add',false,t('sh_add')); toast('Échec de l\'ajout'); return; }
     foodId=fid;
   }
   const row={
@@ -846,9 +1107,9 @@ $('#sh-add').onclick = async ()=>{
     fiber_g:r1((SELECTED.fiber_per_100g||0)*k)
   };
   const { error } = await sb.from('food_logs').insert(row);
-  setBtn('#sh-add',false,'Ajouter au journal');
+  setBtn('#sh-add',false,t('sh_add'));
   if(error){ toast('Échec de l\'ajout'); return; }
-  closeSheet(); toast('Ajouté ✓');
+  closeSheet(); toast(t('jo_added'));
   await loadLogs(); await loadToday();
 };
 
@@ -857,18 +1118,18 @@ async function loadLogs(){
     .select('id,food_id,meal_type,quantity_g,kcal')
     .eq('user_id',USER.id).eq('logged_date',todayStr())
     .order('logged_at',{ascending:true});
-  if(!data||!data.length){ $('#jo-logs').innerHTML='<p class="empty">Aucun aliment enregistré aujourd\'hui.</p>'; return; }
+  if(!data||!data.length){ $('#jo-logs').innerHTML='<p class="empty">'+t('jo_none_today')+'</p>'; return; }
   // resolve names
   const ids=[...new Set(data.map(d=>d.food_id))];
   let names={};
   if(ids.length){
-    const { data:fs } = await sb.from('foods').select('id,name_fr,name_en').in('id',ids);
-    (fs||[]).forEach(f=>names[f.id]=f.name_fr||f.name_en||'Aliment');
+    const { data:fs } = await sb.from('foods').select('id,name_fr,name_en,name_nl').in('id',ids);
+    (fs||[]).forEach(f=>names[f.id]=pick(f,'name')||t('sh_food'));
   }
   $('#jo-logs').innerHTML = data.map(l=>`
     <div class="logitem" data-id="${l.id}">
-      <div><div class="meal">${MEAL_FR[l.meal_type]||l.meal_type}</div>
-        <div class="ln">${names[l.food_id]||'Aliment'}</div>
+      <div><div class="meal">${mealLabel(l.meal_type)}</div>
+        <div class="ln">${names[l.food_id]||t('sh_food')}</div>
         <div class="lq">${r0(l.quantity_g)} g</div></div>
       <div style="display:flex;align-items:center"><span class="lk">${r0(l.kcal)} kcal</span>
         <span class="del" title="Supprimer">✕</span></div>
@@ -876,7 +1137,7 @@ async function loadLogs(){
   document.querySelectorAll('#jo-logs .logitem').forEach(el=>{
     el.querySelector('.del').onclick = async ()=>{
       await sb.from('food_logs').delete().eq('id',el.dataset.id);
-      await loadLogs(); await loadToday(); toast('Supprimé');
+      await loadLogs(); await loadToday(); toast(t('jo_removed'));
     };
   });
 }
@@ -885,7 +1146,7 @@ async function loadLogs(){
 $('#p-calc').onclick = async ()=>{
   const w=parseFloat($('#p-weight').value), h=parseFloat($('#p-height').value), a=parseInt($('#p-age').value);
   const sex=$('#p-sex').value, act=$('#p-act').value, goal=$('#p-goal').value;
-  if(!w||!h||!a) return setMsg('p-msg','Renseigne poids, taille et âge.','err');
+  if(!w||!h||!a) return setMsg('p-msg',t('need_fields'),'err');
   const bmr = 10*w + 6.25*h - 5*a + (sex==='male'?5:-161);
   const actMul = {sedentary:1.2,light:1.375,moderate:1.55,active:1.725,very_active:1.9}[act];
   const tdee = bmr*actMul;
@@ -897,7 +1158,7 @@ $('#p-calc').onclick = async ()=>{
   const fiber = 14*(kcal/1000);
   const water = 35*w;
 
-  setBtn('#p-calc',true,'Enregistrement…');
+  setBtn('#p-calc',true,'…');
   await sb.from('nutrition_targets').update({is_active:false}).eq('user_id',USER.id).eq('is_active',true);
   const { error } = await sb.from('nutrition_targets').insert({
     user_id:USER.id, is_active:true, calculation_method:'mifflin_st_jeor',
@@ -905,8 +1166,8 @@ $('#p-calc').onclick = async ()=>{
     protein_g:r0(protein), carbs_g:r0(carbs), fat_g:r0(fat), fiber_g:r0(fiber), water_ml:r0(water),
     goal, activity_level:act, current_weight_kg:w
   });
-  setBtn('#p-calc',false,'Calculer & enregistrer');
-  if(error){ setMsg('p-msg','Échec de l\'enregistrement.','err'); return; }
+  setBtn('#p-calc',false,t('btn_calc'));
+  if(error){ setMsg('p-msg',t('save_fail'),'err'); return; }
   setMsg('p-msg',`✓ ${r0(kcal)} kcal · P${r0(protein)} G${r0(carbs)} L${r0(fat)} g`,'ok');
   await loadTargets(); await loadToday();
   setTimeout(()=>switchTab('home'),900);
@@ -956,7 +1217,7 @@ async function sendIA(){
   typing.className='typing'; typing.innerHTML='<i></i><i></i><i></i>';
   $('#ia-scroll').appendChild(typing); $('#ia-scroll').scrollTop=$('#ia-scroll').scrollHeight;
   try{
-    const { data, error } = await sb.functions.invoke('ai-chat',{ body:{ conversation_id:CONV, message:text, locale:'fr' } });
+    const { data, error } = await sb.functions.invoke('ai-chat',{ body:{ conversation_id:CONV, message:text, locale:LANG } });
     typing.remove();
     if(error||!data){ addBubble('ai','Petit souci de connexion. Réessaie dans un instant.'); }
     else { CONV = data.conversation_id || CONV; addBubble('ai', data.reply || '…'); }
@@ -970,7 +1231,9 @@ function switchTab(tab){
   document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('active'));
   $('#pane-'+tab).classList.add('active');
   document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
-  const T=TITLES[tab]||['','']; $('#tb-title').textContent=T[0]; $('#tb-sub').textContent=T[1];
+  $('#tb-title').textContent = tab==='home' ? t('title_home') : (tab==='boutique' ? t('nav_boutique') : t('nav_'+tab));
+  const SUBS={journal:'sub_journal',seances:'sub_seances',cours:'sub_cours',boutique:'sub_boutique'};
+  $('#tb-sub').textContent = SUBS[tab] ? t(SUBS[tab]) : '';
   $('.topbar').style.display = (tab==='ia'||tab==='home') ? 'none' : 'block';
   if(tab==='home') loadHome();
   if(tab==='journal') loadLogs();
@@ -1022,19 +1285,23 @@ function setBtn(sel,loading,label){ const b=$(sel); b.disabled=loading; if(label
 /* ================= HOME ================= */
 function firstName(email){ if(!email) return 'Coach'; const n=email.split('@')[0].replace(/[._\-]+/g,' ').trim(); return n? n.charAt(0).toUpperCase()+n.slice(1) : 'Coach'; }
 async function loadHome(){
-  $('#home-hi').textContent = 'Salut '+firstName(USER&&USER.email);
-  $('#home-date').textContent = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  $('#home-hi').textContent = t('home_hello')+' '+firstName(USER&&USER.email);
+  $('#home-date').textContent = new Date().toLocaleDateString(locale(),{weekday:'long',day:'numeric',month:'long'});
   await loadToday();
   loadWod();
   loadInsight();
 }
 
-const TYPE_FR={strength:'Force',hypertrophy:'Hypertrophie',hiit:'HIIT',hyrox:'Hyrox',conditioning:'Conditionnement',mobility:'Mobilité',football:'Football',full_body:'Full body',emom:'EMOM',amrap:'AMRAP',for_time:'For time',circuit:'Circuit'};
+const TYPE_L={strength:{fr:'Force',en:'Strength',nl:'Kracht'},hypertrophy:{fr:'Hypertrophie',en:'Hypertrophy',nl:'Hypertrofie'},hiit:{fr:'HIIT',en:'HIIT',nl:'HIIT'},hyrox:{fr:'Hyrox',en:'Hyrox',nl:'Hyrox'},conditioning:{fr:'Conditionnement',en:'Conditioning',nl:'Conditie'},mobility:{fr:'Mobilité',en:'Mobility',nl:'Mobiliteit'},football:{fr:'Football',en:'Football',nl:'Voetbal'},full_body:{fr:'Full body',en:'Full body',nl:'Full body'},emom:{fr:'EMOM',en:'EMOM',nl:'EMOM'},amrap:{fr:'AMRAP',en:'AMRAP',nl:'AMRAP'},for_time:{fr:'For time',en:'For time',nl:'For time'},circuit:{fr:'Circuit',en:'Circuit',nl:'Circuit'}};
+const typeL=(x)=>{const o=TYPE_L[x];return o?(o[LANG]||o.fr):(x||'');};
 const TYPE_COLOR={strength:'#00FFA3',hypertrophy:'#00FFA3',hiit:'#EF4444',hyrox:'#38BDF8',conditioning:'#F59E0B',mobility:'#10B981',football:'#10B981',full_body:'#00FFA3'};
-const DIFF_FR={beginner:'Débutant',intermediate:'Intermédiaire',advanced:'Avancé'};
-const BLOCK_FR={activation:'Activation',sprint_plyo:'Sprint / Plyo',strength:'Force',accessory:'Accessoire',conditioning:'Conditionnement',recovery:'Récupération'};
+const DIFF_L={beginner:{fr:'Débutant',en:'Beginner',nl:'Beginner'},intermediate:{fr:'Intermédiaire',en:'Intermediate',nl:'Gemiddeld'},advanced:{fr:'Avancé',en:'Advanced',nl:'Gevorderd'}};
+const diffL=(x)=>{const o=DIFF_L[x];return o?(o[LANG]||o.fr):'';};
+const BLOCK_L={activation:{fr:'Activation',en:'Activation',nl:'Activatie'},sprint_plyo:{fr:'Sprint / Plyo',en:'Sprint / Plyo',nl:'Sprint / Plyo'},strength:{fr:'Force',en:'Strength',nl:'Kracht'},accessory:{fr:'Accessoire',en:'Accessory',nl:'Accessoire'},conditioning:{fr:'Conditionnement',en:'Conditioning',nl:'Conditie'},recovery:{fr:'Récupération',en:'Recovery',nl:'Herstel'}};
+const blockL=(x)=>{const o=BLOCK_L[x];return o?(o[LANG]||o.fr):(x||'');};
 const BLOCK_COLOR={activation:'#38BDF8',sprint_plyo:'#A78BFA',strength:'#D4AF37',accessory:'#10B981',conditioning:'#EF4444',recovery:'#10B981'};
-const MUSCLE_FR={chest:'Pectoraux',back:'Dos',lats:'Dorsaux',traps:'Trapèzes',shoulders:'Épaules',biceps:'Biceps',triceps:'Triceps',forearms:'Avant-bras',quads:'Quadriceps',hamstrings:'Ischios',glutes:'Fessiers',calves:'Mollets',adductors:'Adducteurs',abductors:'Abducteurs',core:'Gainage',full_body:'Full body',cardio:'Cardio'};
+const MUSCLE_L={chest:{fr:'Pectoraux',en:'Chest',nl:'Borst'},back:{fr:'Dos',en:'Back',nl:'Rug'},lats:{fr:'Dorsaux',en:'Lats',nl:'Lats'},traps:{fr:'Trapèzes',en:'Traps',nl:'Trapezius'},shoulders:{fr:'Épaules',en:'Shoulders',nl:'Schouders'},biceps:{fr:'Biceps',en:'Biceps',nl:'Biceps'},triceps:{fr:'Triceps',en:'Triceps',nl:'Triceps'},forearms:{fr:'Avant-bras',en:'Forearms',nl:'Onderarmen'},quads:{fr:'Quadriceps',en:'Quads',nl:'Quadriceps'},hamstrings:{fr:'Ischios',en:'Hamstrings',nl:'Hamstrings'},glutes:{fr:'Fessiers',en:'Glutes',nl:'Bilspieren'},calves:{fr:'Mollets',en:'Calves',nl:'Kuiten'},adductors:{fr:'Adducteurs',en:'Adductors',nl:'Adductoren'},abductors:{fr:'Abducteurs',en:'Abductors',nl:'Abductoren'},core:{fr:'Gainage',en:'Core',nl:'Core'},full_body:{fr:'Full body',en:'Full body',nl:'Full body'},cardio:{fr:'Cardio',en:'Cardio',nl:'Cardio'}};
+const muscleL=(x)=>{const o=MUSCLE_L[x];return o?(o[LANG]||o.fr):(x||'');};
 const SEV={success:{c:'--fiber',i:'✓'},warning:{c:'--prot',i:'✗'},info:{c:'--carb',i:'ⓘ'},tactic:{c:'--fat',i:'⚑'}};
 const typeColor=(t)=>TYPE_COLOR[t]||'#00FFA3';
 function ytId(u){ if(!u) return null; const m=String(u).match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/); return m?m[1]:null; }
@@ -1052,10 +1319,10 @@ async function loadWod(){
   const w=list.find(x=>pref.includes(x.type))||list[0];
   const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
   $('#wod').innerHTML=`<div class="wod" style="--c:${col}">
-    <div class="wod-top"><span class="wod-k">Séance recommandée</span><span class="wod-dur">${w.estimated_duration_min||'—'} min</span></div>
-    <div class="wod-name">${esc(w.name_fr)}</div>
-    <div class="wod-sub">${TYPE_FR[w.type]||w.type} · ${n} exercices · ${DIFF_FR[w.difficulty]||''}</div>
-    <button class="wod-btn" data-open="${w.id}">▸ Voir la séance</button>
+    <div class="wod-top"><span class="wod-k">${t('wod_reco')}</span><span class="wod-dur">${w.estimated_duration_min||'—'} min</span></div>
+    <div class="wod-name">${esc(pick(w,'name'))}</div>
+    <div class="wod-sub">${typeL(w.type)} · ${n} ${t('exercises')} · ${diffL(w.difficulty)}</div>
+    <button class="wod-btn" data-open="${w.id}">${t('wod_see')}</button>
   </div>`;
 }
 
@@ -1080,13 +1347,12 @@ const INSIGHTS=[
 function dayIndex(){ const d=new Date(); const s=new Date(d.getFullYear(),0,0); return Math.floor((d-s)/86400000); }
 function loadInsight(){
   if(!INSIGHTS.length){ $('#home-insight').innerHTML=''; return; }
-  const t=INSIGHTS[dayIndex()%INSIGHTS.length], s=SEV[t.sev]||SEV.success;
+  const ins=INSIGHTS[dayIndex()%INSIGHTS.length], s=SEV[ins.sev]||SEV.success;
+  const body = ins[LANG] || ins.fr;
   $('#home-insight').innerHTML=`<div class="insight" style="--c:var(${s.c})">
-    <div class="ins-h"><span>${s.i}</span> Insight du jour · ${esc(t.cat)}</div>
-    <div class="ins-b">${esc(t.fr)}</div>
-    <div class="ins-en">${esc(t.en)}</div>
-    <div class="ins-nl">${esc(t.nl)}</div>
-    <div class="ins-ref">${esc(t.ref)}</div>
+    <div class="ins-h"><span>${s.i}</span> ${t('insight_title')} · ${esc(catL(ins.cat))}</div>
+    <div class="ins-b">${esc(body)}</div>
+    <div class="ins-ref">${esc(ins.ref)}</div>
   </div>`;
 }
 
@@ -1105,20 +1371,20 @@ async function fetchWorkouts(){
 async function loadWorkouts(){
   backToList();
   await fetchWorkouts();
-  if(!SE_WORKOUTS.length){ $('#se-cards').innerHTML='<p class="empty">Aucune séance publiée.</p>'; return; }
+  if(!SE_WORKOUTS.length){ $('#se-cards').innerHTML='<p class="empty">'+t('co_none_up')+'</p>'; return; }
   $('#se-cards').innerHTML = SE_WORKOUTS.map(w=>{
     const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
     const cover = w.cover_image_url
-      ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${TYPE_FR[w.type]||w.type}</span></div>`
-      : `<div class="se-cover" style="--c:${col}"><span class="se-type">${TYPE_FR[w.type]||w.type}</span></div>`;
+      ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${typeL(w.type)}</span></div>`
+      : `<div class="se-cover" style="--c:${col}"><span class="se-type">${typeL(w.type)}</span></div>`;
     return `<div class="se-card" data-open="${w.id}">${cover}
       <div class="se-body">
-        <div class="se-title">${esc(w.name_fr)}</div>
+        <div class="se-title">${esc(pick(w,'name'))}</div>
         ${w.source?`<div class="se-src">${esc(w.source)}</div>`:''}
         <div class="se-badges">
-          <span class="badge c" style="--c:${col}">${DIFF_FR[w.difficulty]||''}</span>
+          <span class="badge c" style="--c:${col}">${diffL(w.difficulty)}</span>
           <span class="badge">${w.estimated_duration_min||'—'} min</span>
-          <span class="badge">${n} exercices</span>
+          <span class="badge">${n} ${t('exercises')}</span>
         </div>
       </div></div>`;
   }).join('');
@@ -1141,7 +1407,7 @@ async function openWorkout(id){
   const exIds=[...new Set(list.map(it=>it.exercise&&it.exercise.id).filter(Boolean))];
   let tips={};
   if(exIds.length){
-    const { data:tp } = await sb.from('exercise_tips').select('exercise_id,severity,body_fr,reference').in('exercise_id',exIds).order('display_order',{ascending:true});
+    const { data:tp } = await sb.from('exercise_tips').select('exercise_id,severity,body_fr,body_en,body_nl,reference').in('exercise_id',exIds).order('display_order',{ascending:true});
     (tp||[]).forEach(t=>{ if(!tips[t.exercise_id]) tips[t.exercise_id]=t; });
   }
   renderDetail(w,list,tips);
@@ -1150,16 +1416,14 @@ async function openWorkout(id){
 function renderDetail(w,items,tips){
   const col=typeColor(w.type);
   const cover = w.cover_image_url
-    ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${TYPE_FR[w.type]||w.type}</span></div>`
-    : `<div class="se-cover" style="--c:${col}"><span class="se-type">${TYPE_FR[w.type]||w.type}</span></div>`;
-  let html=`<button class="se-back" id="se-back">‹ Toutes les séances</button>
+    ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${typeL(w.type)}</span></div>`
+    : `<div class="se-cover" style="--c:${col}"><span class="se-type">${typeL(w.type)}</span></div>`;
+  let html=`<button class="se-back" id="se-back">${t('see_all_workouts')}</button>
     <div class="se-hero">${cover}</div>
-    <div class="se-d-title">${esc(w.name_fr)}</div>
-    ${w.name_en?`<div class="se-d-en">${esc(w.name_en)}</div>`:''}
-    ${w.name_nl?`<div class="se-d-nl">${esc(w.name_nl)}</div>`:''}
+    <div class="se-d-title">${esc(pick(w,'name'))}</div>
     <div class="se-badges" style="margin-top:12px">
-      <span class="badge c" style="--c:${col}">${TYPE_FR[w.type]||w.type}</span>
-      <span class="badge">${DIFF_FR[w.difficulty]||''}</span>
+      <span class="badge c" style="--c:${col}">${typeL(w.type)}</span>
+      <span class="badge">${diffL(w.difficulty)}</span>
       <span class="badge">${w.estimated_duration_min||'—'} min</span>
     </div>`;
   let lastBlock=null;
@@ -1167,7 +1431,7 @@ function renderDetail(w,items,tips){
     const ex=it.exercise||{}, bc=BLOCK_COLOR[it.block]||col;
     if(it.block!==lastBlock){
       if(lastBlock!==null) html+=`</div>`;
-      html+=`<div class="blk"><div class="blk-h" style="--bc:${bc}">${BLOCK_FR[it.block]||it.block}</div>`;
+      html+=`<div class="blk"><div class="blk-h" style="--bc:${bc}">${blockL(it.block)}</div>`;
       lastBlock=it.block;
     }
     const thumb=exThumb(ex), demo=exDemo(ex);
@@ -1177,26 +1441,25 @@ function renderDetail(w,items,tips){
       : `<div class="ex-thumb" style="--bc:${bc}">${thumbInner}</div>`;
     const tip=tips[ex.id];
     const sv=tip?(SEV[tip.severity]||SEV.success):null;
-    const tipEl = tip ? `<div class="ex-tip" style="--tc:var(${sv.c})"><b>${sv.i}</b><span>${esc(tip.body_fr||'')}${tip.reference?` · <b>${esc(tip.reference)}</b>`:''}</span></div>` : '';
+    const tipEl = tip ? `<div class="ex-tip" style="--tc:var(${sv.c})"><b>${sv.i}</b><span>${esc(pick(tip,'body')||'')}${tip.reference?` · <b>${esc(tip.reference)}</b>`:''}</span></div>` : '';
     const setsN=it.sets||0, reps=it.reps?esc(it.reps):'';
     const pills = setsN>0 ? `<div class="pills" data-we="${it.id}" data-ex="${ex.id}" data-load="${ex.load_type||'reps_only'}">`+
       Array.from({length:setsN},(_,i)=>`<span class="pill" data-on="0" data-set="${i+1}">${i+1}</span>`).join('')+`</div>` : '';
     html+=`<div class="exrow">${thumbEl}
       <div class="ex-main">
-        <div class="ex-name">${esc(ex.name_fr||'Exercice')}</div>
-        <div class="ex-tr">${esc(ex.name_en||'')}${ex.name_nl?` · <i>${esc(ex.name_nl)}</i>`:''}</div>
+        <div class="ex-name">${esc(pick(ex,'name')||t('ex_fallback'))}</div>
         <div class="ex-meta">
           ${setsN?`<span class="chip k">${setsN} × ${reps}</span>`:(reps?`<span class="chip k">${reps}</span>`:'')}
-          ${it.rest_sec?`<span class="chip">repos ${it.rest_sec}s</span>`:''}
-          ${ex.primary_muscle?`<span class="chip">${MUSCLE_FR[ex.primary_muscle]||ex.primary_muscle}</span>`:''}
+          ${it.rest_sec?`<span class="chip">${t('rest')} ${it.rest_sec}s</span>`:''}
+          ${ex.primary_muscle?`<span class="chip">${muscleL(ex.primary_muscle)}</span>`:''}
         </div>
         ${tipEl}
-        ${demo?`<a class="ex-demo" href="${esc(demo)}" target="_blank" rel="noopener">▶ Voir la démo</a>`:''}
+        ${demo?`<a class="ex-demo" href="${esc(demo)}" target="_blank" rel="noopener">▶ ${t('see_demo')}</a>`:''}
         ${pills}
       </div></div>`;
   });
   if(lastBlock!==null) html+=`</div>`;
-  html+=`<div class="se-action"><button class="btn" id="se-start">Démarrer la séance</button></div>`;
+  html+=`<div class="se-action"><button class="btn" id="se-start">${t('start_session')}</button></div>`;
   $('#se-detail').innerHTML=html;
   $('#se-back').onclick=backToList;
   $('#se-start').onclick=startOrFinish;
@@ -1205,39 +1468,39 @@ function renderDetail(w,items,tips){
 async function startOrFinish(){
   const btn=$('#se-start');
   if(!SESSION){
-    btn.disabled=true; btn.textContent='Démarrage…';
+    btn.disabled=true; btn.textContent='…';
     const { data, error } = await sb.from('workout_sessions').insert({
       user_id:USER.id, workout_id:SE_CUR.w.id, name_fr:SE_CUR.w.name_fr,
       scheduled_date:todayStr(), started_at:new Date().toISOString(), status:'in_progress'
     }).select('id').single();
     btn.disabled=false;
-    if(error||!data){ btn.textContent='Démarrer la séance'; toast('Impossible de démarrer'); return; }
+    if(error||!data){ btn.textContent=t('start_session'); toast(t('start_fail')); return; }
     SESSION={id:data.id, started:Date.now()};
     document.querySelectorAll('#se-detail .pills').forEach(wrap=>{
       wrap.querySelectorAll('.pill').forEach(p=>{ p.setAttribute('data-on','1'); p.onclick=()=>openSetSheet(wrap,p); });
     });
-    btn.textContent='Terminer la séance'; btn.classList.add('fin');
-    toast('Séance démarrée 💪');
+    btn.textContent=t('finish_session'); btn.classList.add('fin');
+    toast(t('session_started')+' 💪');
   } else {
     btn.disabled=true;
     const mins=Math.max(1,Math.round((Date.now()-SESSION.started)/60000));
     await sb.from('workout_sessions').update({status:'completed',completed_at:new Date().toISOString(),duration_min:mins}).eq('id',SESSION.id);
-    SESSION=null; btn.disabled=false; toast('Séance terminée ✓'); backToList();
+    SESSION=null; btn.disabled=false; toast(t('session_done')); backToList();
   }
 }
 
 function openSetSheet(wrap,pill){
-  if(!SESSION){ toast('Démarre la séance d\'abord'); return; }
+  if(!SESSION){ toast(t('start_first')); return; }
   const load=wrap.dataset.load;
   SET_CTX={wrap,pill,load,exId:wrap.dataset.ex,weId:wrap.dataset.we,setN:+pill.dataset.set};
   $('#set-name').textContent=pill.closest('.exrow').querySelector('.ex-name').textContent;
-  $('#set-sub').textContent='Série '+SET_CTX.setN;
+  $('#set-sub').textContent=t('set_title')+' '+SET_CTX.setN;
   let f='';
-  if(load==='weight') f=`<div class="row2"><div class="field"><label>Reps</label><input id="f-reps" type="number" inputmode="numeric" placeholder="8"/></div><div class="field"><label>Charge (kg)</label><input id="f-kg" type="number" inputmode="decimal" placeholder="60"/></div></div>`;
-  else if(load==='time') f=`<div class="field"><label>Durée (s)</label><input id="f-dur" type="number" inputmode="numeric" placeholder="45"/></div>`;
-  else if(load==='distance') f=`<div class="field"><label>Distance (m)</label><input id="f-dist" type="number" inputmode="numeric" placeholder="20"/></div>`;
-  else if(load==='calories') f=`<div class="field"><label>Calories</label><input id="f-cal" type="number" inputmode="numeric" placeholder="15"/></div>`;
-  else f=`<div class="field"><label>Reps</label><input id="f-reps" type="number" inputmode="numeric" placeholder="10"/></div>`;
+  if(load==='weight') f=`<div class="row2"><div class="field"><label>${t('f_reps')}</label><input id="f-reps" type="number" inputmode="numeric" placeholder="8"/></div><div class="field"><label>${t('f_load')}</label><input id="f-kg" type="number" inputmode="decimal" placeholder="60"/></div></div>`;
+  else if(load==='time') f=`<div class="field"><label>${t('f_dur')}</label><input id="f-dur" type="number" inputmode="numeric" placeholder="45"/></div>`;
+  else if(load==='distance') f=`<div class="field"><label>${t('f_dist')}</label><input id="f-dist" type="number" inputmode="numeric" placeholder="20"/></div>`;
+  else if(load==='calories') f=`<div class="field"><label>${t('f_cal')}</label><input id="f-cal" type="number" inputmode="numeric" placeholder="15"/></div>`;
+  else f=`<div class="field"><label>${t('f_reps')}</label><input id="f-reps" type="number" inputmode="numeric" placeholder="10"/></div>`;
   $('#set-fields').innerHTML=f;
   $('#set-ov').classList.add('show');
 }
@@ -1251,10 +1514,10 @@ $('#set-save').onclick=async ()=>{
     reps:g('f-reps'), weight_kg:g('f-kg'), duration_sec:g('f-dur'), distance_m:g('f-dist'), calories:g('f-cal') };
   setBtn('#set-save',true,'…');
   const { error } = await sb.from('set_logs').insert(row);
-  setBtn('#set-save',false,'Valider la série');
+  setBtn('#set-save',false,t('set_save'));
   if(error){ toast('Échec de l\'enregistrement'); return; }
   SET_CTX.pill.classList.add('done'); SET_CTX.pill.textContent='✓';
-  $('#set-ov').classList.remove('show'); toast('Série enregistrée'); SET_CTX=null;
+  $('#set-ov').classList.remove('show'); toast(t('set_saved')); SET_CTX=null;
 };
 
 /* ================= BOUTIQUE ================= */
@@ -1297,10 +1560,10 @@ let SHOP_DONE=false;
 function loadBoutique(){
   if(SHOP_DONE) return;
   let h=`<div class="shop-free">
-    <div style="display:flex;align-items:center;gap:7px;color:var(--fiber);font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase"><span>🎁</span> Gratuit</div>
+    <div style="display:flex;align-items:center;gap:7px;color:var(--fiber);font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase"><span>🎁</span> ${t('shop_free')}</div>
     <div class="prod-name" style="margin-top:6px">${esc(SHOP_GUIDE.n)}</div>
     <div class="prod-desc">${esc(SHOP_GUIDE.d)}</div>
-    <a class="prod-buy" style="background:linear-gradient(135deg,var(--fiber),#0c8f64)" href="${SHOP_GUIDE.u}" target="_blank" rel="noopener">📥 Télécharger gratuitement</a>
+    <a class="prod-buy" style="background:linear-gradient(135deg,var(--fiber),#0c8f64)" href="${SHOP_GUIDE.u}" target="_blank" rel="noopener">${t('shop_download')}</a>
   </div>
   <p class="shop-note">22 programmes PDF premium trilingues FR/EN/NL · paiement carte sécurisé via Payhip, PDF livré automatiquement. Visa · Mastercard · Amex, sans compte.</p>`;
   SHOP.forEach(c=>{
@@ -1309,11 +1572,11 @@ function loadBoutique(){
       h+=`<div class="prod" style="--c:${c.color}">
         <div class="prod-top"><div class="prod-name">${esc(it.n)}</div><div class="prod-price">${esc(it.p)}</div></div>
         <div class="prod-desc">${esc(it.d)}</div>
-        <a class="prod-buy" href="${it.u}" target="_blank" rel="noopener">💳 Acheter</a>
+        <a class="prod-buy" href="${it.u}" target="_blank" rel="noopener">${t('shop_buy')}</a>
       </div>`;
     });
   });
-  h+=`<div class="shop-cat-h" style="color:var(--brand)">Sur mesure</div>
+  h+=`<div class="shop-cat-h" style="color:var(--brand)">${t('shop_custom')}</div>
     <div class="prod" style="--c:var(--brand)"><div class="prod-top"><div class="prod-name">${esc(SHOP_PERSO.n)}</div><div class="prod-price">${esc(SHOP_PERSO.p)}</div></div>
     <div class="prod-desc">${esc(SHOP_PERSO.d)}</div>
     <a class="prod-buy" href="${SHOP_PERSO.u}">📧 Demander</a></div>
@@ -1323,8 +1586,8 @@ function loadBoutique(){
 
 /* ---------------- COURS (membre) ---------------- */
 let COURS=[], COURS_FILTER='all';
-const coDay=(d)=>{const s=new Date(d).toLocaleDateString('fr-BE',{weekday:'long',day:'numeric',month:'long'});return s.charAt(0).toUpperCase()+s.slice(1);};
-const coHM=(d)=>new Date(d).toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'});
+const coDay=(d)=>{const s=new Date(d).toLocaleDateString(locale(),{weekday:'long',day:'numeric',month:'long'});return s.charAt(0).toUpperCase()+s.slice(1);};
+const coHM=(d)=>new Date(d).toLocaleTimeString(locale(),{hour:'2-digit',minute:'2-digit'});
 document.querySelectorAll('#pane-cours .co-seg button').forEach(b=>b.onclick=()=>{
   COURS_FILTER=b.dataset.cof;
   document.querySelectorAll('#pane-cours .co-seg button').forEach(x=>x.classList.toggle('on',x===b));
@@ -1333,7 +1596,7 @@ document.querySelectorAll('#pane-cours .co-seg button').forEach(b=>b.onclick=()=
 async function loadCours(){
   $('#co-list').innerHTML='<div class="spin"></div>';
   const { data, error } = await sb.rpc('class_list_instances');
-  if(error){ $('#co-list').innerHTML='<p class="empty">Impossible de charger les cours.</p>'; return; }
+  if(error){ $('#co-list').innerHTML='<p class="empty">'+t('co_load_fail')+'</p>'; return; }
   COURS = data || [];
   renderCours();
 }
@@ -1344,7 +1607,7 @@ function renderCours(){
     return mineOnly ? mine : (c.status!=='cancelled' || mine);
   });
   if(!rows.length){
-    $('#co-list').innerHTML='<p class="empty">'+(mineOnly?'Aucune réservation à venir.':'Aucun cours programmé pour le moment.')+'</p>';
+    $('#co-list').innerHTML='<p class="empty">'+(mineOnly?t('co_none_mine'):t('co_none_up'))+'</p>';
     return;
   }
   let h='', lastDay='';
@@ -1356,28 +1619,26 @@ function renderCours(){
     const mine=c.my_status==='booked'||c.my_status==='waitlist';
     const left=(c.spots_left==null?0:c.spots_left), full=left<=0;
     let spots;
-    if(cancelled) spots='<span class="co-pill off">Annulé</span>';
-    else if(full) spots=`<span class="co-pill full">Complet · ${c.booked_count}/${c.capacity}</span>`;
-    else spots=`<span class="co-pill ${left<=3?'warn':'ok'}">${c.booked_count}/${c.capacity} · ${left} place${left>1?'s':''}</span>`;
+    if(cancelled) spots=`<span class="co-pill off">${t('co_cancelled_label')}</span>`;
+    else if(full) spots=`<span class="co-pill full">${t('co_full')} · ${c.booked_count}/${c.capacity}</span>`;
+    else spots=`<span class="co-pill ${left<=3?'warn':'ok'}">${c.booked_count}/${c.capacity} · ${left} ${left>1?t('co_places'):t('co_place')}</span>`;
     let minePill='';
-    if(c.my_status==='booked') minePill='<span class="co-pill mine">Réservé</span>';
-    else if(c.my_status==='waitlist') minePill='<span class="co-pill warn">Liste d\'attente</span>';
+    if(c.my_status==='booked') minePill=`<span class="co-pill mine">${t('co_reserved')}</span>`;
+    else if(c.my_status==='waitlist') minePill=`<span class="co-pill warn">${t('co_waitlist')}</span>`;
     let act='';
     if(cancelled){ act=''; }
     else if(mine){
       act = c.can_cancel
-        ? `<button class="co-act cancel" data-cancel="${c.id}">Annuler ma réservation</button>`
-        : `<div class="co-sub" style="margin-top:9px">Annulation fermée (trop proche du début).</div>`;
+        ? `<button class="co-act cancel" data-cancel="${c.id}">${t('co_cancel_btn')}</button>`
+        : `<div class="co-sub" style="margin-top:9px">${t('co_cancel_closed')}</div>`;
     } else {
-      act = `<button class="co-act" data-book="${c.id}">${full?"Rejoindre la liste d'attente":'Réserver'}</button>`;
+      act = `<button class="co-act" data-book="${c.id}">${full?t('co_waitlist_btn'):t('co_reserve')}</button>`;
     }
     const pt = c.kind==='personal_training' ? ' <span class="co-pill mine">PT</span>' : '';
-    const en = c.name_en?`<div class="co-en">${esc(c.name_en)}</div>`:'';
-    const nl = c.name_nl?`<div class="co-nl">${esc(c.name_nl)}</div>`:'';
     h+=`<div class="co-card">
       <div class="co-accent" style="background:${esc(col)}"></div>
       <div class="co-main">
-        <div class="co-title">${esc(c.name_fr||'Cours')}${pt}</div>${en}${nl}
+        <div class="co-title">${esc(pick(c,'name')||'Cours')}${pt}</div>
         <div class="co-sub">${coHM(c.starts_at)}–${coHM(c.ends_at)}${c.location?' · '+esc(c.location):''}${c.coach_name?' · '+esc(c.coach_name):''}</div>
         <div class="co-row">${spots}${minePill}</div>
         ${act}
@@ -1393,24 +1654,38 @@ async function bookClass(id,btn){
   const { data, error } = await sb.rpc('class_book',{ p_instance:id });
   if(error || (data && data.ok===false)){
     const r = data && data.reason;
-    toast(r==='full'?'Cours complet':r==='already_booked'||r==='already'?'Déjà réservé':r==='closed'?'Réservations fermées':r==='no_access'?'Accès à régulariser':'Réservation impossible');
+    toast(r==='full'?t('co_full_msg'):(r==='already_booked'||r==='already')?t('co_already'):r==='closed'?t('co_closed'):r==='no_access'?t('co_no_access'):t('co_book_fail'));
     loadCours(); return;
   }
-  toast((data && data.status==='waitlist')?'Ajouté à la liste d\'attente':'Réservé ✓');
+  toast((data && data.status==='waitlist')?t('co_wl_ok'):t('co_booked_ok'));
   loadCours();
 }
 async function cancelClass(id,btn){
-  if(!confirm('Annuler ta réservation ?')) return;
+  if(!confirm(t('co_confirm_cancel'))) return;
   if(btn){ btn.disabled=true; }
   const { data, error } = await sb.rpc('class_cancel',{ p_instance:id });
-  if(error || (data && data.ok===false)){ toast('Annulation impossible'); loadCours(); return; }
-  toast('Réservation annulée');
+  if(error || (data && data.ok===false)){ toast(t('co_cancel_fail')); loadCours(); return; }
+  toast(t('co_cancelled_ok'));
   loadCours();
 }
 
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>switchTab(b.dataset.go));
 document.addEventListener('click',e=>{ const t=e.target.closest('[data-open]'); if(t) openWorkout(t.getAttribute('data-open')); });
 
+/* ---- language selector + profile name ---- */
+document.querySelectorAll('#lang-seg button').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
+$('#p-name-save').onclick = async ()=>{
+  if(!USER) return;
+  const name=$('#p-name').value.trim();
+  setBtn('#p-name-save',true,'…');
+  const { error } = await sb.from('profiles').update({ full_name:name }).eq('id',USER.id);
+  setBtn('#p-name-save',false,t('btn_save'));
+  const ok={fr:'Enregistré ✓',en:'Saved ✓',nl:'Opgeslagen ✓'}[LANG];
+  const ko={fr:'Échec',en:'Failed',nl:'Mislukt'}[LANG];
+  setMsg('p-name-msg', error?ko:ok, error?'err':'ok');
+};
+
+applyI18n(); renderLangBtns();
 boot();
 </script>
 </body>
