@@ -212,6 +212,32 @@
   .newconv{font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-soft);
     padding:7px 12px;border-radius:11px}
 
+  /* ---------- Cours (membre) ---------- */
+  .co-seg{display:flex;gap:8px;margin-bottom:14px}
+  .co-seg button{flex:1;padding:10px;border-radius:13px;border:1px solid var(--line);background:var(--surface-2);
+    color:var(--muted);font-weight:700;font-size:13.5px}
+  .co-seg button.on{color:var(--brand);background:var(--brand-soft);border-color:transparent}
+  .co-day{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:16px 2px 9px}
+  .co-card{display:flex;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);
+    box-shadow:var(--shadow-soft);padding:13px 14px;margin-bottom:11px}
+  .co-accent{width:4px;align-self:stretch;border-radius:4px;background:var(--brand)}
+  .co-main{flex:1;min-width:0}
+  .co-title{font-size:15px;font-weight:800}
+  .co-en{font-size:12.5px;color:var(--muted)}
+  .co-nl{font-size:12px;color:var(--muted);font-style:italic}
+  .co-sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .co-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px}
+  .co-pill{font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap}
+  .co-pill.ok{background:rgba(16,185,129,.15);color:var(--fiber)}
+  .co-pill.warn{background:rgba(245,158,11,.16);color:#D4AF37}
+  .co-pill.full{background:rgba(239,68,68,.14);color:var(--warn)}
+  .co-pill.mine{background:var(--brand-soft);color:var(--brand)}
+  .co-pill.off{background:var(--surface-2);color:var(--muted)}
+  .co-act{margin-top:11px;width:100%;padding:11px;border-radius:12px;font-weight:700;font-size:14px;color:#fff;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2))}
+  .co-act.cancel{background:transparent;color:var(--warn);border:1.5px solid var(--warn)}
+  .co-act[disabled]{opacity:.5;pointer-events:none}
+
   /* ---------- Bottom nav ---------- */
   .nav{position:fixed;bottom:0;left:0;right:0;z-index:40;
     padding:8px 14px calc(8px + env(safe-area-inset-bottom));
@@ -469,6 +495,15 @@
     <div id="shop"><div class="spin"></div></div>
   </div>
 
+  <!-- COURS -->
+  <div class="page tabpane" id="pane-cours">
+    <div class="co-seg">
+      <button class="on" data-cof="all">À venir</button>
+      <button data-cof="mine">Mes réservations</button>
+    </div>
+    <div id="co-list"><div class="spin"></div></div>
+  </div>
+
   <!-- COACH IA -->
   <div class="tabpane" id="pane-ia">
     <div class="topbar ia-top" style="position:static;border-bottom:1px solid var(--line)">
@@ -530,6 +565,7 @@
     <button class="on" data-tab="home"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></span>Accueil</button>
     <button data-tab="journal"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M9 12h6M12 9v6"/></svg></span>Journal</button>
     <button data-tab="seances"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg></span>Séances</button>
+    <button data-tab="cours"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg></span>Cours</button>
     <button data-tab="ia"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg></span>Coach IA</button>
     <button data-tab="profile"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></span>Profil</button>
   </div>
@@ -937,7 +973,7 @@ async function sendIA(){
 }
 
 /* ---------------- TABS ---------------- */
-const TITLES={home:["Accueil",""],journal:["Journal","Cherche, ajoute, suis tes repas"],seances:["Séances","Tes programmes Coach DM"],boutique:["Boutique","Programmes PDF premium"],ia:["Coach IA",""],profile:["Profil",""]};
+const TITLES={home:["Accueil",""],journal:["Journal","Cherche, ajoute, suis tes repas"],seances:["Séances","Tes programmes Coach DM"],cours:["Cours","Réserve tes séances collectives & PT"],boutique:["Boutique","Programmes PDF premium"],ia:["Coach IA",""],profile:["Profil",""]};
 function switchTab(tab){
   document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('active'));
   $('#pane-'+tab).classList.add('active');
@@ -947,6 +983,7 @@ function switchTab(tab){
   if(tab==='home') loadHome();
   if(tab==='journal') loadLogs();
   if(tab==='seances') loadWorkouts();
+  if(tab==='cours') loadCours();
   if(tab==='boutique') loadBoutique();
   if(tab==='ia'){ if(!IA_LOADED){ IA_LOADED=true; loadConversation(); } setTimeout(()=>$('#ia-input').focus(),100); }
   window.scrollTo(0,0);
@@ -1290,6 +1327,93 @@ function loadBoutique(){
     <a class="prod-buy" href="${SHOP_PERSO.u}">📧 Demander</a></div>
     <p class="shop-note" style="text-align:center;margin-top:16px">Tout le détail sur <a href="https://coachdm.be/programmes.html" target="_blank" rel="noopener" style="color:var(--brand);font-weight:700">coachdm.be</a></p>`;
   $('#shop').innerHTML=h; SHOP_DONE=true;
+}
+
+/* ---------------- COURS (membre) ---------------- */
+let COURS=[], COURS_FILTER='all';
+const coDay=(d)=>{const s=new Date(d).toLocaleDateString('fr-BE',{weekday:'long',day:'numeric',month:'long'});return s.charAt(0).toUpperCase()+s.slice(1);};
+const coHM=(d)=>new Date(d).toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'});
+document.querySelectorAll('#pane-cours .co-seg button').forEach(b=>b.onclick=()=>{
+  COURS_FILTER=b.dataset.cof;
+  document.querySelectorAll('#pane-cours .co-seg button').forEach(x=>x.classList.toggle('on',x===b));
+  renderCours();
+});
+async function loadCours(){
+  $('#co-list').innerHTML='<div class="spin"></div>';
+  const { data, error } = await sb.rpc('class_list_instances');
+  if(error){ $('#co-list').innerHTML='<p class="empty">Impossible de charger les cours.</p>'; return; }
+  COURS = data || [];
+  renderCours();
+}
+function renderCours(){
+  const mineOnly = COURS_FILTER==='mine';
+  const rows = COURS.filter(c=>{
+    const mine = c.my_status==='booked'||c.my_status==='waitlist';
+    return mineOnly ? mine : (c.status!=='cancelled' || mine);
+  });
+  if(!rows.length){
+    $('#co-list').innerHTML='<p class="empty">'+(mineOnly?'Aucune réservation à venir.':'Aucun cours programmé pour le moment.')+'</p>';
+    return;
+  }
+  let h='', lastDay='';
+  rows.forEach(c=>{
+    const day=coDay(c.starts_at);
+    if(day!==lastDay){ h+=`<div class="co-day">${esc(day)}</div>`; lastDay=day; }
+    const col=c.color||'#6D5EF6';
+    const cancelled=c.status==='cancelled';
+    const mine=c.my_status==='booked'||c.my_status==='waitlist';
+    const left=(c.spots_left==null?0:c.spots_left), full=left<=0;
+    let spots;
+    if(cancelled) spots='<span class="co-pill off">Annulé</span>';
+    else if(full) spots=`<span class="co-pill full">Complet · ${c.booked_count}/${c.capacity}</span>`;
+    else spots=`<span class="co-pill ${left<=3?'warn':'ok'}">${c.booked_count}/${c.capacity} · ${left} place${left>1?'s':''}</span>`;
+    let minePill='';
+    if(c.my_status==='booked') minePill='<span class="co-pill mine">Réservé</span>';
+    else if(c.my_status==='waitlist') minePill='<span class="co-pill warn">Liste d\'attente</span>';
+    let act='';
+    if(cancelled){ act=''; }
+    else if(mine){
+      act = c.can_cancel
+        ? `<button class="co-act cancel" data-cancel="${c.id}">Annuler ma réservation</button>`
+        : `<div class="co-sub" style="margin-top:9px">Annulation fermée (trop proche du début).</div>`;
+    } else {
+      act = `<button class="co-act" data-book="${c.id}">${full?"Rejoindre la liste d'attente":'Réserver'}</button>`;
+    }
+    const pt = c.kind==='personal_training' ? ' <span class="co-pill mine">PT</span>' : '';
+    const en = c.name_en?`<div class="co-en">${esc(c.name_en)}</div>`:'';
+    const nl = c.name_nl?`<div class="co-nl">${esc(c.name_nl)}</div>`:'';
+    h+=`<div class="co-card">
+      <div class="co-accent" style="background:${esc(col)}"></div>
+      <div class="co-main">
+        <div class="co-title">${esc(c.name_fr||'Cours')}${pt}</div>${en}${nl}
+        <div class="co-sub">${coHM(c.starts_at)}–${coHM(c.ends_at)}${c.location?' · '+esc(c.location):''}${c.coach_name?' · '+esc(c.coach_name):''}</div>
+        <div class="co-row">${spots}${minePill}</div>
+        ${act}
+      </div>
+    </div>`;
+  });
+  $('#co-list').innerHTML=h;
+  $('#co-list').querySelectorAll('[data-book]').forEach(b=>b.onclick=()=>bookClass(b.dataset.book,b));
+  $('#co-list').querySelectorAll('[data-cancel]').forEach(b=>b.onclick=()=>cancelClass(b.dataset.cancel,b));
+}
+async function bookClass(id,btn){
+  if(btn){ btn.disabled=true; btn.textContent='…'; }
+  const { data, error } = await sb.rpc('class_book',{ p_instance:id });
+  if(error || (data && data.ok===false)){
+    const r = data && data.reason;
+    toast(r==='full'?'Cours complet':r==='already_booked'||r==='already'?'Déjà réservé':r==='closed'?'Réservations fermées':r==='no_access'?'Accès à régulariser':'Réservation impossible');
+    loadCours(); return;
+  }
+  toast((data && data.status==='waitlist')?'Ajouté à la liste d\'attente':'Réservé ✓');
+  loadCours();
+}
+async function cancelClass(id,btn){
+  if(!confirm('Annuler ta réservation ?')) return;
+  if(btn){ btn.disabled=true; }
+  const { data, error } = await sb.rpc('class_cancel',{ p_instance:id });
+  if(error || (data && data.ok===false)){ toast('Annulation impossible'); loadCours(); return; }
+  toast('Réservation annulée');
+  loadCours();
 }
 
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>switchTab(b.dataset.go));
