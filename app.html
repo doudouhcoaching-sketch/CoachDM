@@ -169,7 +169,45 @@
   .logitem .del{margin-left:12px;color:var(--muted);font-size:20px;padding:4px 6px}
 
   /* ---------- Modal ---------- */
-  .overlay{position:fixed;inset:0;z-index:60;background:rgba(8,8,20,.5);
+.go-head{display:flex;align-items:center;justify-content:space-between;margin:2px 0 12px}
+  .go-head>span{font-size:16px;font-weight:700}
+  .go-new{background:var(--go);color:#fff;border:none;border-radius:12px;padding:8px 12px;font-size:13px;font-weight:700}
+  .go-empty{border:1.5px dashed rgba(109,94,246,.45);border-radius:18px;padding:20px;text-align:center;margin-bottom:16px}
+  .go-empty-ic{font-size:30px}
+  .go-empty-t{font-weight:700;margin-top:6px}
+  .go-empty-s{color:var(--muted);font-size:13px;margin-top:2px}
+  .go-card{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--go);border-radius:16px;padding:14px;margin-bottom:10px}
+  .go-card.blocked{border-left-color:var(--prot)}
+  .go-c-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .go-c-title{font-weight:700;font-size:15px}
+  .go-badge{background:rgba(109,94,246,.16);color:var(--go);font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;white-space:nowrap}
+  .go-badge.warn{background:rgba(255,92,92,.16);color:var(--prot)}
+  .go-prog{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin:10px 0 4px}
+  .go-bar{height:7px;background:var(--line);border-radius:4px;overflow:hidden}
+  .go-bar i{display:block;height:100%;background:var(--go);border-radius:4px}
+  .go-meta{font-size:12px;color:var(--muted);margin-top:8px}
+  .go-note{font-size:13px;color:var(--muted);margin:8px 0}
+  .go-act{background:transparent;border:1px solid var(--go);color:var(--go);border-radius:10px;padding:7px 12px;font-size:13px;font-weight:700}
+  .go-lifts{display:grid;gap:8px;max-height:46vh;overflow:auto;margin:4px 0}
+  .go-lift{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;width:100%;color:var(--text)}
+  .go-lift small{color:var(--muted);font-size:12px}
+  .go-seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:12px}
+  .go-seg button{flex:1;background:transparent;border:none;color:var(--muted);padding:8px;border-radius:9px;font-size:13px;font-weight:600}
+  .go-seg button.on{background:var(--go);color:#fff}
+  .go-guard{background:rgba(255,92,92,.10);border:1px solid rgba(255,92,92,.35);border-radius:12px;padding:14px;font-size:14px;line-height:1.5;margin:8px 0 16px}
+  .go-done{text-align:center}
+  .go-done-ic{width:54px;height:54px;border-radius:50%;background:var(--go);color:#fff;font-size:28px;display:grid;place-items:center;margin:0 auto 8px}
+  .go-done-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+  .go-done-grid>div{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 6px}
+  .go-done-grid b{display:block;font-size:15px;color:var(--go)}
+  .go-done-grid span{font-size:11px;color:var(--muted)}
+  .cyc-wk{margin-top:16px}
+  .cyc-wk-h{font-size:13px;font-weight:700;color:var(--go);margin-bottom:8px}
+  .cyc-day{display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 14px;width:100%;margin-bottom:7px;text-align:left;color:var(--text)}
+  .cyc-day span{font-weight:700;font-size:14px}
+  .cyc-day small{color:var(--muted);font-size:12px}
+  :root{--go:#6D5EF6;}
+    .overlay{position:fixed;inset:0;z-index:60;background:rgba(8,8,20,.5);
     backdrop-filter:blur(3px);display:none;align-items:flex-end;justify-content:center}
   .overlay.show{display:flex}
   .sheet{width:100%;max-width:480px;background:var(--surface);border-radius:26px 26px 0 0;
@@ -368,35 +406,6 @@
   .prod-desc{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.4}
   .prod-buy{display:inline-flex;align-items:center;gap:6px;margin-top:11px;padding:9px 15px;border-radius:11px;font-weight:700;font-size:13px;color:#fff;
     background:linear-gradient(135deg,var(--brand),var(--brand-2));text-decoration:none}
-
-  /* ---------- Premium / free-tier lock (violet → magenta) ---------- */
-  :root{--prem:#7C5CFF;--prem-2:#C840FF;--prem-soft:rgba(176,78,255,.18);--prem-ink:#D9B3FF;--prem-line:rgba(124,92,255,.5)}
-  .se-card{position:relative}
-  .se-card.locked .se-cover::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.5);backdrop-filter:saturate(.6) blur(1px)}
-  .lock-badge{position:absolute;top:10px;right:10px;z-index:3;display:inline-flex;align-items:center;gap:5px;
-    padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.4px;
-    color:#fff;background:linear-gradient(135deg,var(--prem),var(--prem-2));box-shadow:0 4px 16px rgba(176,78,255,.5)}
-  .lock-badge svg{width:12px;height:12px}
-  .upsell{background:linear-gradient(180deg,rgba(168,76,255,.12),rgba(124,92,255,.02));
-    border:1.5px solid var(--prem-line);border-radius:var(--radius);padding:22px 18px;margin-bottom:16px;text-align:center;
-    box-shadow:0 0 40px rgba(124,92,255,.12)}
-  .upsell .crown{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;margin:0 auto 14px;
-    background:linear-gradient(145deg,var(--prem),var(--prem-2));color:#fff;font-size:26px;box-shadow:0 10px 30px rgba(176,78,255,.6)}
-  .upsell h3{margin:0 0 6px;font-size:18px;font-weight:800;color:#fff}
-  .upsell .us-sub{font-size:13.5px;color:var(--muted);line-height:1.5;margin:0 auto 14px;max-width:340px}
-  .upsell .us-feat{list-style:none;padding:0;margin:0 auto 16px;max-width:330px;text-align:left}
-  .upsell .us-feat li{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;line-height:1.45;margin-bottom:9px}
-  .upsell .us-feat li::before{content:"✓";color:var(--prem-ink);font-weight:900;flex:none}
-  .upsell .us-price{font-size:14px;color:#fff;font-weight:700;margin-bottom:14px}
-  .upsell .us-price b{color:var(--prem-ink);font-size:22px}
-  .upsell .us-cta{display:block;text-decoration:none;text-align:center;padding:14px;border-radius:var(--radius-sm);
-    font-weight:800;font-size:15px;color:#fff;background:linear-gradient(135deg,var(--prem),var(--prem-2));
-    box-shadow:0 8px 26px rgba(176,78,255,.55)}
-  .upsell .us-cta2{display:block;text-decoration:none;text-align:center;padding:12px;border-radius:var(--radius-sm);
-    font-weight:700;font-size:13.5px;color:var(--prem-ink);border:1.5px solid var(--prem-line);margin-top:10px;background:transparent}
-  .tier-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.3px}
-  .tier-pill.free{color:var(--muted);background:var(--surface-2);border:1px solid var(--line)}
-  .tier-pill.prem{color:#fff;background:linear-gradient(135deg,var(--prem),var(--prem-2))}
 </style>
 </head>
 <body>
@@ -513,7 +522,10 @@
 
   <!-- SEANCES -->
   <div class="page tabpane" id="pane-seances">
-    <div id="se-list"><div id="se-cards"><div class="spin"></div></div></div>
+    <div id="se-list">
+      <div id="go-section"></div>
+      <div id="se-cards"><div class="spin"></div></div>
+    </div>
     <div id="se-detail" class="hidden"></div>
   </div>
 
@@ -525,7 +537,7 @@
 
   <!-- COURS -->
   <div class="page tabpane" id="pane-cours">
-    <div class="co-seg" id="co-seg">
+    <div class="co-seg">
       <button class="on" data-cof="all" data-i18n="co_upcoming">À venir</button>
       <button data-cof="mine" data-i18n="co_mine">Mes réservations</button>
     </div>
@@ -544,7 +556,7 @@
         <span data-i18n-html="ia_intro">Pose ta question : macros, séance, récupération, plateau…<br>Je connais tes données et je réponds en direct.</span>
       </div>
     </div>
-    <div class="chat-bar" id="ia-bar">
+    <div class="chat-bar">
       <input id="ia-input" type="text" placeholder="Écris ton message…" data-i18n-ph="ia_ph" enterkeyhint="send" />
       <button id="ia-send">↑</button>
     </div>
@@ -552,8 +564,6 @@
 
   <!-- PROFIL -->
   <div class="page tabpane" id="pane-profile">
-
-    <div id="prof-upsell" class="hidden"></div>
 
     <div class="block">
       <h3 data-i18n="lbl_lang">Langue de l'app</h3>
@@ -669,6 +679,11 @@
   </div>
 </div>
 
+<div class="overlay" id="goal-ov"><div class="sheet">
+  <div class="grab"></div>
+  <div id="goal-body"></div>
+</div></div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -691,6 +706,47 @@ const T = {
  nav_ia:{fr:'Coach IA',en:'AI Coach',nl:'AI-coach'},
  nav_profile:{fr:'Profil',en:'Profile',nl:'Profiel'},
  nav_boutique:{fr:'Boutique',en:'Shop',nl:'Shop'},
+ go_title:{fr:'Mes objectifs',en:'My goals',nl:'Mijn doelen'},
+ go_new:{fr:'Objectif',en:'Goal',nl:'Doel'},
+ go_empty_t:{fr:'Fixe ton premier objectif',en:'Set your first goal',nl:'Stel je eerste doel in'},
+ go_empty_s:{fr:"Force ou skill \u2014 l'app construit ton cycle",en:'Strength or skill \u2014 the app builds your cycle',nl:'Kracht of skill \u2014 de app bouwt je cyclus'},
+ go_weeks:{fr:'sem.',en:'wks',nl:'wkn'},
+ go_block:{fr:'Bloc',en:'Block',nl:'Blok'},
+ go_pending:{fr:'en validation',en:'pending review',nl:'in validatie'},
+ go_blocked:{fr:'\u00c0 ajuster',en:'Adjust',nl:'Bijstellen'},
+ go_adjust:{fr:"Ajuster l'objectif",en:'Adjust goal',nl:'Doel bijstellen'},
+ go_w_lift:{fr:'Choisis le mouvement',en:'Pick the lift',nl:'Kies de oefening'},
+ go_w_lift_s:{fr:'Sur quel lift veux-tu progresser ?',en:'Which lift do you want to improve?',nl:'Op welke lift wil je vooruitgaan?'},
+ go_w_params_s:{fr:'Ton point de d\u00e9part et ta cible',en:'Your start point and target',nl:'Je startpunt en doel'},
+ go_known:{fr:'Je connais mon 1RM',en:'I know my 1RM',nl:'Ik ken mijn 1RM'},
+ go_estimate:{fr:'Estimer',en:'Estimate',nl:'Schatten'},
+ go_cur_1rm:{fr:'1RM actuel (kg)',en:'Current 1RM (kg)',nl:'Huidige 1RM (kg)'},
+ go_weight:{fr:'Charge (kg)',en:'Load (kg)',nl:'Gewicht (kg)'},
+ go_reps:{fr:'Reps',en:'Reps',nl:'Reps'},
+ go_est_1rm:{fr:'1RM estim\u00e9 :',en:'Estimated 1RM:',nl:'Geschatte 1RM:'},
+ go_reps_warn:{fr:'moins fiable >10 reps',en:'less reliable >10 reps',nl:'minder betrouwbaar >10 reps'},
+ go_target:{fr:'Objectif (kg)',en:'Target (kg)',nl:'Doel (kg)'},
+ go_level:{fr:'Niveau',en:'Level',nl:'Niveau'},
+ go_date:{fr:'Date cible',en:'Target date',nl:'Streefdatum'},
+ go_generate:{fr:'G\u00e9n\u00e9rer mon cycle',en:'Generate my cycle',nl:'Genereer mijn cyclus'},
+ go_generating:{fr:'G\u00e9n\u00e9ration\u2026',en:'Generating\u2026',nl:'Genereren\u2026'},
+ go_back:{fr:'Retour',en:'Back',nl:'Terug'},
+ go_err_start:{fr:'Renseigne ton 1RM de d\u00e9part.',en:'Enter your starting 1RM.',nl:'Vul je start-1RM in.'},
+ go_err_target:{fr:'La cible doit d\u00e9passer ton 1RM actuel.',en:'Target must exceed your current 1RM.',nl:'Doel moet hoger zijn dan je huidige 1RM.'},
+ go_err_gen:{fr:'G\u00e9n\u00e9ration impossible. R\u00e9essaie.',en:'Generation failed. Try again.',nl:'Genereren mislukt. Probeer opnieuw.'},
+ go_blocked_t:{fr:'Objectif \u00e0 ajuster',en:'Goal needs adjusting',nl:'Doel bijstellen'},
+ go_ok:{fr:'Compris',en:'Got it',nl:'Begrepen'},
+ go_done_t:{fr:'Cycle g\u00e9n\u00e9r\u00e9 !',en:'Cycle generated!',nl:'Cyclus gegenereerd!'},
+ go_block_tgt:{fr:'Cible du bloc',en:'Block target',nl:'Blokdoel'},
+ go_done_member:{fr:'Ton cycle est pr\u00eat dans S\u00e9ances.',en:'Your cycle is ready in Workouts.',nl:'Je cyclus staat klaar in Trainingen.'},
+ go_done_coach:{fr:'Ton coach validera ton cycle avant publication.',en:'Your coach will review your cycle before it goes live.',nl:'Je coach controleert je cyclus voor publicatie.'},
+ go_see:{fr:'Voir mon cycle',en:'See my cycle',nl:'Bekijk mijn cyclus'},
+ go_cycle:{fr:'Mon cycle',en:'My cycle',nl:'Mijn cyclus'},
+ go_cycle_pending:{fr:'Cycle en attente de validation du coach.',en:'Cycle pending coach review.',nl:'Cyclus wacht op goedkeuring van de coach.'},
+ go_week:{fr:'Semaine',en:'Week',nl:'Week'},
+ go_day_heavy:{fr:'Lourd',en:'Heavy',nl:'Zwaar'},
+ go_day_squat:{fr:'Squat',en:'Squat',nl:'Squat'},
+ go_day_vol:{fr:'Volume',en:'Volume',nl:'Volume'},
  title_home:{fr:"Aujourd'hui",en:'Today',nl:'Vandaag'},
  sub_journal:{fr:'Cherche, ajoute, suis tes repas',en:'Search, add and track your meals',nl:'Zoek, voeg toe en volg je maaltijden'},
  sub_seances:{fr:'Tes programmes Coach DM',en:'Your Coach DM programs',nl:'Jouw Coach DM-programma\u2019s'},
@@ -782,33 +838,6 @@ const T = {
  opt_soon:{fr:'Bientôt disponible',en:'Coming soon',nl:'Binnenkort'},
  btn_logout:{fr:'Se déconnecter',en:'Log out',nl:'Uitloggen'},
  privacy:{fr:'Politique de confidentialité',en:'Privacy policy',nl:'Privacybeleid'},
- tier_free:{fr:'Gratuit',en:'Free',nl:'Gratis'},
- tier_premium:{fr:'Premium',en:'Premium',nl:'Premium'},
- lock_premium:{fr:'Premium',en:'Premium',nl:'Premium'},
- up_plans:{fr:'Voir les offres',en:'See plans',nl:'Bekijk de abonnementen'},
- up_contact:{fr:'Parler au coach',en:'Talk to the coach',nl:'Praat met de coach'},
- up_price:{fr:'à partir de',en:'from',nl:'vanaf'},
- up_se_title:{fr:'Débloque tous les programmes',en:'Unlock every program',nl:'Ontgrendel alle programma\u2019s'},
- up_se_sub:{fr:'Cette séance fait partie d\u2019un programme Coach DM complet, réservé aux membres.',en:'This session is part of a full Coach DM program, reserved for members.',nl:'Deze sessie hoort bij een volledig Coach DM-programma, voorbehouden aan leden.'},
- up_se_f1:{fr:'Tous les programmes multi-semaines (Force, Hyrox, Perte de gras, Football…)',en:'All multi-week programs (Strength, Hyrox, Fat loss, Football…)',nl:'Alle meerweekse programma\u2019s (Kracht, Hyrox, Vetverlies, Voetbal…)'},
- up_se_f2:{fr:'Progression semaine par semaine, sans répétition',en:'Week-by-week progression, no repetition',nl:'Week-na-week progressie, zonder herhaling'},
- up_se_f3:{fr:'Suivi de tes séances & historique',en:'Session tracking & history',nl:'Sessietracking & geschiedenis'},
- up_ia_title:{fr:'Coach IA — réservé aux membres',en:'AI Coach — members only',nl:'AI-coach — alleen voor leden'},
- up_ia_sub:{fr:'Ton assistant nutrition & training, qui connaît tes données et répond en direct.',en:'Your nutrition & training assistant that knows your data and answers live.',nl:'Je voedings- & trainingsassistent die je data kent en live antwoordt.'},
- up_ia_f1:{fr:'Réponses personnalisées sur tes macros et tes séances',en:'Personalised answers on your macros and sessions',nl:'Gepersonaliseerde antwoorden over je macro\u2019s en sessies'},
- up_ia_f2:{fr:'Conseils science-based, références à l\u2019appui',en:'Science-based advice, with references',nl:'Wetenschappelijk advies, met bronnen'},
- up_ia_f3:{fr:'Disponible 24/7 dans ta langue',en:'Available 24/7 in your language',nl:'24/7 beschikbaar in jouw taal'},
- up_co_title:{fr:'Cours & réservations',en:'Classes & bookings',nl:'Lessen & reserveringen'},
- up_co_sub:{fr:'Réserve les cours collectifs et le personal training, réservé aux membres.',en:'Book group classes and personal training, reserved for members.',nl:'Reserveer groepslessen en personal training, voorbehouden aan leden.'},
- up_co_f1:{fr:'Réservation des cours collectifs',en:'Group class booking',nl:'Groepslessen reserveren'},
- up_co_f2:{fr:'Séances de personal training avec ton coach',en:'Personal training sessions with your coach',nl:'Personal training met je coach'},
- up_co_f3:{fr:'Gestion de tes réservations & liste d\u2019attente',en:'Manage your bookings & waitlist',nl:'Beheer je reserveringen & wachtlijst'},
- up_prof_title:{fr:'Passe Membre',en:'Go Member',nl:'Word lid'},
- up_prof_sub:{fr:'Tu profites du gratuit : nutrition complète + séances découverte. Débloque tout le reste.',en:'You\u2019re on the free plan: full nutrition + trial sessions. Unlock everything else.',nl:'Je zit op het gratis plan: volledige voeding + proefsessies. Ontgrendel de rest.'},
- up_prof_f1:{fr:'Tous les programmes d\u2019entraînement',en:'All training programs',nl:'Alle trainingsprogramma\u2019s'},
- up_prof_f2:{fr:'Coach IA + suivi & historique',en:'AI Coach + tracking & history',nl:'AI-coach + tracking & geschiedenis'},
- up_prof_f3:{fr:'Cours collectifs & personal training',en:'Group classes & personal training',nl:'Groepslessen & personal training'},
- sub_status_free:{fr:'Plan gratuit',en:'Free plan',nl:'Gratis plan'},
  gate_title:{fr:'Accès réservé',en:'Members only',nl:'Alleen voor leden'},
  gate_p1:{fr:'L\u2019app Coach DM est réservée aux membres.<br>Essai 7 jours, puis 14,99 €/mois.',en:'The Coach DM app is for members.<br>7-day trial, then €14.99/month.',nl:'De Coach DM-app is voor leden.<br>7 dagen proberen, daarna €14,99/maand.'},
  gate_p2:{fr:"Ton compte est créé mais n'a pas encore d'accès. Contacte le coach pour l'activer.",en:'Your account is created but has no access yet. Contact the coach to activate it.',nl:'Je account is aangemaakt maar heeft nog geen toegang. Contacteer de coach om het te activeren.'},
@@ -898,33 +927,12 @@ function setLang(l){
   if(!['fr','en','nl'].includes(l)) return;
   LANG=l; localStorage.setItem('cdm_lang',l);
   applyI18n(); renderLangBtns();
-  try{ if(USER) applyTier(); }catch(e){}
   try{ if(typeof loadToday==='function' && USER) loadToday(); }catch(e){}
   const active=document.querySelector('.nav button.on')?.dataset.tab;
   if(active && typeof switchTab==='function') switchTab(active);
 }
 
 let USER=null, TARGETS=null, SELECTED=null, CONV=null, BUSY=false, IA_LOADED=false;
-let TIER='free';                 // 'free' | 'premium'  (premium = abonné actif/essai OU coach/admin)
-const isPrem=()=>TIER==='premium';
-const PLANS_URL='https://coachdm.be/tarifs.html';
-const COACH_URL='https://instagram.com/coachdm.be';
-/* Encart premium réutilisable (accent or = signal premium) */
-function upsell(key){
-  return `<div class="upsell">
-    <div class="crown">♛</div>
-    <h3>${t('up_'+key+'_title')}</h3>
-    <p class="us-sub">${t('up_'+key+'_sub')}</p>
-    <ul class="us-feat">
-      <li>${t('up_'+key+'_f1')}</li>
-      <li>${t('up_'+key+'_f2')}</li>
-      <li>${t('up_'+key+'_f3')}</li>
-    </ul>
-    <div class="us-price">${t('up_price')} <b>9,99€</b> / ${({fr:'mois',en:'mo',nl:'maand'})[LANG]||'mois'}</div>
-    <a class="us-cta" href="${PLANS_URL}" target="_blank" rel="noopener">${t('up_plans')}</a>
-    <a class="us-cta2" href="${COACH_URL}" target="_blank" rel="noopener">${t('up_contact')}</a>
-  </div>`;
-}
 
 const todayStr = ()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
 const r0=(n)=>Math.round(n||0);
@@ -971,21 +979,14 @@ function humanAuth(m){
 async function enter(user){
   USER=user;
   show('boot');
-  TIER = (await hasAccess(user.id)) ? 'premium' : 'free';
+  const ok = await hasAccess(user.id);
+  if(!ok){ show('gate'); return; }
   show('app');
-  applyTier();
   $('#p-email').textContent = user.email || '';
   await loadProfileInfo(user);
   await loadTargets();
   await loadToday();
   switchTab('home');
-}
-
-/* Affiche/masque les éléments selon le tier (gratuit vs premium) */
-function applyTier(){
-  const free=!isPrem();
-  // Bloc upsell en haut du Profil (visible uniquement pour les gratuits)
-  const pu=$('#prof-upsell'); if(pu){ pu.innerHTML = free ? upsell('prof') : ''; pu.classList.toggle('hidden',!free); }
 }
 
 async function loadProfileInfo(user){
@@ -1002,7 +1003,7 @@ async function loadProfileInfo(user){
       .select('status,current_period_end,trial_end').eq('user_id',user.id)
       .order('current_period_end',{ascending:false,nullsFirst:false}).limit(1).maybeSingle();
     const now=Date.now();
-    let key='sub_status_free', extra='';
+    let key='sub_status_none', extra='';
     const trialing = sub && (sub.status==='trialing' || (sub.trial_end && new Date(sub.trial_end).getTime()>now));
     const active = (role==='coach'||role==='admin') || (sub && (sub.status==='active' || (sub.current_period_end && new Date(sub.current_period_end).getTime()>now)));
     if(trialing && !(role==='coach'||role==='admin')){
@@ -1327,21 +1328,9 @@ function switchTab(tab){
   if(tab==='home') loadHome();
   if(tab==='journal') loadLogs();
   if(tab==='seances') loadWorkouts();
-  if(tab==='cours'){
-    if(isPrem()){ $('#co-seg')?.classList.remove('hidden'); loadCours(); }
-    else { $('#co-seg')?.classList.add('hidden'); $('#co-list').innerHTML=upsell('co'); }
-  }
+  if(tab==='cours') loadCours();
   if(tab==='boutique') loadBoutique();
-  if(tab==='ia'){
-    if(isPrem()){
-      $('#ia-bar')?.classList.remove('hidden');
-      if(!IA_LOADED){ IA_LOADED=true; loadConversation(); }
-      setTimeout(()=>$('#ia-input').focus(),100);
-    } else {
-      $('#ia-bar')?.classList.add('hidden');
-      $('#ia-scroll').innerHTML = '<div class="page" style="padding-top:18px">'+upsell('ia')+'</div>';
-    }
-  }
+  if(tab==='ia'){ if(!IA_LOADED){ IA_LOADED=true; loadConversation(); } setTimeout(()=>$('#ia-input').focus(),100); }
   window.scrollTo(0,0);
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
@@ -1413,13 +1402,11 @@ let SE_WORKOUTS=null, SE_COUNTS={}, SE_CUR=null, SESSION=null, SET_CTX=null;
 
 async function loadWod(){
   if(!SE_WORKOUTS) await fetchWorkouts();
-  const list=SE_WORKOUTS||[];
+  const list=(SE_WORKOUTS||[]).filter(x=>x.source!=='charge_engine');
   if(!list.length){ $('#wod').innerHTML=''; return; }
   const goal=TARGETS&&TARGETS.goal;
   const pref={lose_fat:['hiit','hyrox','conditioning'],build_muscle:['strength','hypertrophy'],maintain:['hyrox','football','strength'],recomp:['strength','hyrox']}[goal]||[];
-  const pool = isPrem() ? list : list.filter(x=>x.is_free);
-  const base = pool.length ? pool : list;
-  const w=base.find(x=>pref.includes(x.type))||base[0];
+  const w=list.find(x=>pref.includes(x.type))||list[0];
   const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
   $('#wod').innerHTML=`<div class="wod" style="--c:${col}">
     <div class="wod-top"><span class="wod-k">${t('wod_reco')}</span><span class="wod-dur">${w.estimated_duration_min||'—'} min</span></div>
@@ -1462,7 +1449,7 @@ function loadInsight(){
 /* ================= SEANCES ================= */
 async function fetchWorkouts(){
   const { data:ws } = await sb.from('workouts')
-    .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url,is_free,program_slug')
+    .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url')
     .eq('is_published',true).order('created_at',{ascending:true});
   SE_WORKOUTS = ws||[]; SE_COUNTS={};
   const ids=SE_WORKOUTS.map(w=>w.id);
@@ -1474,17 +1461,15 @@ async function fetchWorkouts(){
 async function loadWorkouts(){
   backToList();
   await fetchWorkouts();
-  if(!SE_WORKOUTS.length){ $('#se-cards').innerHTML='<p class="empty">'+t('co_none_up')+'</p>'; return; }
-  $('#se-cards').innerHTML = SE_WORKOUTS.map(w=>{
+  loadGoals();
+  const FLAT=(SE_WORKOUTS||[]).filter(w=>w.source!=='charge_engine');
+  if(!FLAT.length){ $('#se-cards').innerHTML='<p class="empty">'+t('co_none_up')+'</p>'; return; }
+  $('#se-cards').innerHTML = FLAT.map(w=>{
     const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
-    const locked = !isPrem() && !w.is_free;
-    const lockBadge = locked
-      ? `<span class="lock-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>${t('lock_premium')}</span>`
-      : '';
     const cover = w.cover_image_url
       ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${typeL(w.type)}</span></div>`
       : `<div class="se-cover" style="--c:${col}"><span class="se-type">${typeL(w.type)}</span></div>`;
-    return `<div class="se-card${locked?' locked':''}" data-open="${w.id}">${lockBadge}${cover}
+    return `<div class="se-card" data-open="${w.id}">${cover}
       <div class="se-body">
         <div class="se-title">${esc(pick(w,'name'))}</div>
         ${w.source?`<div class="se-src">${esc(w.source)}</div>`:''}
@@ -1496,20 +1481,206 @@ async function loadWorkouts(){
       </div></div>`;
   }).join('');
 }
+/* ================= OBJECTIFS / MOTEUR CHARGE ================= */
+let GOAL_LIFTS=null, GOAL_DRAFT={};
+
+async function loadGoals(){
+  const host=$('#go-section'); if(!host||!USER) return;
+  let goals=[];
+  try{
+    const { data } = await sb.from('goals')
+      .select('id,title_fr,title_en,title_nl,exercise_id,start_value,target_value,unit,level,status,est_weeks,feasible,feasibility_note,program_slug,goal_cycles(block_number,start_1rm,target_1rm,training_max,status)')
+      .eq('user_id',USER.id).neq('status','abandoned').order('created_at',{ascending:false});
+    goals=data||[];
+  }catch(e){ goals=[]; }
+  let html='<div class="go-head"><span>'+t('go_title')+'</span>'
+    +'<button class="go-new" data-goal-new="1">\uFF0B '+t('go_new')+'</button></div>';
+  if(!goals.length){
+    html+='<div class="go-empty" data-goal-new="1"><div class="go-empty-ic">\uD83C\uDFAF</div>'
+      +'<div class="go-empty-t">'+t('go_empty_t')+'</div>'
+      +'<div class="go-empty-s">'+t('go_empty_s')+'</div></div>';
+  } else {
+    html+=goals.map(g=>{
+      const cyc=(g.goal_cycles||[])[0];
+      const title=pick(g,'title')||(g.target_value+' '+(g.unit||'kg'));
+      if(g.status==='blocked'){
+        return '<div class="go-card blocked"><div class="go-c-top">'
+          +'<span class="go-c-title">'+esc(title)+'</span>'
+          +'<span class="go-badge warn">'+t('go_blocked')+'</span></div>'
+          +'<div class="go-note">'+esc(g.feasibility_note||'')+'</div>'
+          +'<button class="go-act" data-goal-adjust="'+g.id+'">'+t('go_adjust')+'</button></div>';
+      }
+      const start=g.start_value, tgt=g.target_value, unit=g.unit||'kg';
+      const cur=cyc?cyc.target_1rm:start;
+      const pct=(start&&tgt&&tgt>start)?Math.max(4,Math.min(100,Math.round((cur-start)/(tgt-start)*100))):4;
+      return '<div class="go-card" data-goal-open="'+g.id+'" data-slug="'+esc(g.program_slug||'')+'">'
+        +'<div class="go-c-top"><span class="go-c-title">'+esc(title)+'</span>'
+        +'<span class="go-badge">'+(g.est_weeks||'\u2014')+' '+t('go_weeks')+'</span></div>'
+        +'<div class="go-prog"><span>'+(start!=null?start:'\u2014')+' '+unit+'</span><span>'+tgt+' '+unit+'</span></div>'
+        +'<div class="go-bar"><i style="width:'+pct+'%"></i></div>'
+        +(cyc?'<div class="go-meta">'+t('go_block')+' '+cyc.block_number+' \u00b7 TM '+cyc.training_max+' '+unit+(cyc.status==='draft'?' \u00b7 '+t('go_pending'):'')+'</div>':'')
+        +'</div>';
+    }).join('');
+  }
+  host.innerHTML=html;
+}
+
+async function openGoalWizard(){
+  GOAL_DRAFT={};
+  $('#goal-ov').classList.add('show');
+  $('#goal-body').innerHTML='<div class="spin"></div>';
+  if(!GOAL_LIFTS){
+    try{
+      const { data } = await sb.from('exercises')
+        .select('id,name_fr,name_en,name_nl,primary_muscle,category')
+        .eq('is_published',true).eq('load_type','weight')
+        .in('category',['strength','olympic']).order('name_fr');
+      GOAL_LIFTS=data||[];
+    }catch(e){ GOAL_LIFTS=[]; }
+  }
+  goalStepLift();
+}
+function closeGoal(){ $('#goal-ov').classList.remove('show'); }
+
+function goalStepLift(){
+  const items=(GOAL_LIFTS||[]).map(x=>'<button class="go-lift" data-lift="'+x.id+'">'
+    +'<span>'+esc(pick(x,'name'))+'</span><small>'+muscleL(x.primary_muscle)+'</small></button>').join('');
+  $('#goal-body').innerHTML='<h3>'+t('go_w_lift')+'</h3><div class="fk">'+t('go_w_lift_s')+'</div>'
+    +'<div class="go-lifts">'+(items||('<p class="empty">'+t('co_none_up')+'</p>'))+'</div>'
+    +'<button class="btn subtle" data-goal-close="1" style="margin-top:12px">'+t('btn_cancel')+'</button>';
+}
+
+function goalStepParams(lift){
+  GOAL_DRAFT.exercise_id=lift.id; GOAL_DRAFT.name=pick(lift,'name'); GOAL_DRAFT.est=null;
+  $('#goal-body').innerHTML='<h3>'+esc(GOAL_DRAFT.name)+'</h3><div class="fk">'+t('go_w_params_s')+'</div>'
+    +'<div class="go-seg"><button class="on" data-mode="known">'+t('go_known')+'</button>'
+    +'<button data-mode="est">'+t('go_estimate')+'</button></div>'
+    +'<div id="go-mode-known"><div class="field"><label>'+t('go_cur_1rm')+'</label>'
+    +'<input id="go-cur" type="number" inputmode="decimal" placeholder="kg"/></div></div>'
+    +'<div id="go-mode-est" class="hidden"><div class="row2">'
+    +'<div class="field"><label>'+t('go_weight')+'</label><input id="go-ew" type="number" inputmode="decimal" placeholder="kg"/></div>'
+    +'<div class="field"><label>'+t('go_reps')+'</label><input id="go-er" type="number" inputmode="numeric" placeholder="\u226410"/></div></div>'
+    +'<div class="fk" id="go-est-out" style="margin:-6px 0 8px"></div></div>'
+    +'<div class="field"><label>'+t('go_target')+'</label><input id="go-tgt" type="number" inputmode="decimal" placeholder="kg"/></div>'
+    +'<div class="row2"><div class="field"><label>'+t('go_level')+'</label><select id="go-lvl">'
+    +'<option value="beginner">'+diffL('beginner')+'</option>'
+    +'<option value="intermediate" selected>'+diffL('intermediate')+'</option>'
+    +'<option value="advanced">'+diffL('advanced')+'</option></select></div>'
+    +'<div class="field"><label>'+t('go_date')+'</label><input id="go-date" type="date"/></div></div>'
+    +'<div class="msg" id="go-msg"></div>'
+    +'<button class="btn" id="go-generate">'+t('go_generate')+'</button>'
+    +'<button class="btn subtle" data-goal-back="1" style="margin-top:10px">'+t('go_back')+'</button>';
+  document.querySelectorAll('#goal-body [data-mode]').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('#goal-body [data-mode]').forEach(x=>x.classList.toggle('on',x===b));
+    const est=b.dataset.mode==='est';
+    $('#go-mode-known').classList.toggle('hidden',est);
+    $('#go-mode-est').classList.toggle('hidden',!est);
+  });
+  const recompute=()=>{
+    const w=parseFloat($('#go-ew').value), r=parseInt($('#go-er').value);
+    if(w>0&&r>0){ const e=Math.round(w*(1+Math.min(r,12)/30)); GOAL_DRAFT.est=e;
+      $('#go-est-out').innerHTML=t('go_est_1rm')+' <b style="color:var(--go)">'+e+' kg</b>'+(r>10?' \u00b7 '+t('go_reps_warn'):'');
+    } else { GOAL_DRAFT.est=null; $('#go-est-out').textContent=''; }
+  };
+  $('#go-ew').oninput=recompute; $('#go-er').oninput=recompute;
+  $('#go-generate').onclick=goalGenerate;
+}
+
+async function goalGenerate(){
+  const lvl=$('#go-lvl').value;
+  const estMode=$('#go-mode-est') && !$('#go-mode-est').classList.contains('hidden');
+  const start=estMode?GOAL_DRAFT.est:parseFloat($('#go-cur').value);
+  const target=parseFloat($('#go-tgt').value);
+  const date=$('#go-date').value||null;
+  const msg=$('#go-msg');
+  if(!start||start<=0){ msg.textContent=t('go_err_start'); msg.className='msg err'; return; }
+  if(!target||target<=start){ msg.textContent=t('go_err_target'); msg.className='msg err'; return; }
+  msg.textContent=''; const btn=$('#go-generate'); btn.disabled=true; btn.textContent=t('go_generating');
+  try{
+    const { data, error } = await sb.rpc('generate_charge_cycle',{
+      p_exercise_id:GOAL_DRAFT.exercise_id, p_target_1rm:target, p_start_1rm:start,
+      p_level:lvl, p_target_date:date, p_for_user:null });
+    if(error) throw error;
+    goalResult(data);
+  }catch(e){
+    btn.disabled=false; btn.textContent=t('go_generate');
+    msg.textContent=(e&&e.message)||t('go_err_gen'); msg.className='msg err';
+  }
+}
+
+function goalResult(res){
+  if(!res){ closeGoal(); return; }
+  if(res.feasible===false || res.status==='blocked'){
+    $('#goal-body').innerHTML='<h3>'+t('go_blocked_t')+'</h3>'
+      +'<div class="go-guard">'+esc(res.recommendation||'')+'</div>'
+      +'<button class="btn" data-goal-close="1">'+t('go_ok')+'</button>';
+    loadGoals(); return;
+  }
+  $('#goal-body').innerHTML='<div class="go-done"><div class="go-done-ic">\u2713</div>'
+    +'<h3>'+t('go_done_t')+'</h3>'
+    +'<div class="go-done-grid">'
+    +'<div><b>'+res.est_weeks+'</b><span>'+t('go_weeks')+'</span></div>'
+    +'<div><b>'+res.block_target+' kg</b><span>'+t('go_block_tgt')+'</span></div>'
+    +'<div><b>'+res.training_max+' kg</b><span>TM</span></div></div>'
+    +'<div class="fk" style="margin-top:6px">'+(res.semi_auto?t('go_done_coach'):t('go_done_member'))+'</div>'
+    +'<button class="btn" data-goal-close="1" style="margin-top:14px">'+t('go_see')+'</button></div>';
+  loadWorkouts();
+}
+
+async function openCycle(goalId){
+  const card=document.querySelector('[data-goal-open="'+goalId+'"]');
+  const slug=card?card.dataset.slug:null; if(!slug) return;
+  switchTab('seances');
+  $('#se-list').classList.add('hidden');
+  $('#se-detail').classList.remove('hidden');
+  $('#se-detail').innerHTML='<div class="spin"></div>';
+  window.scrollTo(0,0);
+  const { data:ws } = await sb.from('workouts')
+    .select('id,name_fr,name_en,name_nl,week_number,day_number,difficulty')
+    .eq('program_slug',slug).eq('is_published',true)
+    .order('week_number',{ascending:true}).order('day_number',{ascending:true});
+  const list=ws||[];
+  const back='<button class="se-back" id="se-back">'+t('see_all_workouts')+'</button>';
+  if(!list.length){
+    $('#se-detail').innerHTML=back+'<p class="empty">'+t('go_cycle_pending')+'</p>';
+    document.getElementById('se-back').onclick=()=>{ loadWorkouts(); backToList(); };
+    return;
+  }
+  const DAYL={1:t('go_day_heavy'),2:t('go_day_squat'),3:t('go_day_vol')};
+  const weeks={};
+  list.forEach(w=>{ (weeks[w.week_number]=weeks[w.week_number]||[]).push(w); });
+  let html=back+'<div class="se-d-title">'+t('go_cycle')+'</div>';
+  Object.keys(weeks).sort((a,b)=>a-b).forEach(wk=>{
+    html+='<div class="cyc-wk"><div class="cyc-wk-h">'+t('go_week')+' '+wk+'</div>';
+    weeks[wk].forEach(w=>{
+      html+='<button class="cyc-day" data-open="'+w.id+'"><span>'+(DAYL[w.day_number]||('J'+w.day_number))+'</span>'
+        +'<small>'+esc(pick(w,'name'))+'</small></button>';
+    });
+    html+='</div>';
+  });
+  $('#se-detail').innerHTML=html;
+  document.getElementById('se-back').onclick=()=>{ loadWorkouts(); backToList(); };
+}
+
+if($('#goal-ov')) $('#goal-ov').onclick=e=>{ if(e.target.id==='goal-ov') closeGoal(); };
+document.addEventListener('click',e=>{
+  if(e.target.closest('[data-goal-new]')){ openGoalWizard(); return; }
+  if(e.target.closest('[data-goal-close]')){ closeGoal(); return; }
+  if(e.target.closest('[data-goal-back]')){ goalStepLift(); return; }
+  const lf=e.target.closest('[data-lift]');
+  if(lf){ const id=lf.getAttribute('data-lift'); const x=(GOAL_LIFTS||[]).find(z=>z.id===id); if(x) goalStepParams(x); return; }
+  const op=e.target.closest('[data-goal-open]');
+  if(op){ openCycle(op.getAttribute('data-goal-open')); return; }
+  const aj=e.target.closest('[data-goal-adjust]');
+  if(aj){ openGoalWizard(); return; }
+});
+
 function backToList(){ const d=$('#se-detail'),l=$('#se-list'); if(d) d.classList.add('hidden'); if(l) l.classList.remove('hidden'); }
 
 async function openWorkout(id){
   switchTab('seances');
   if(!SE_WORKOUTS) await fetchWorkouts();
   const w=(SE_WORKOUTS||[]).find(x=>x.id===id); if(!w) return;
-  if(!isPrem() && !w.is_free){          // séance premium → encart, pas d'ouverture
-    $('#se-list').classList.add('hidden');
-    $('#se-detail').classList.remove('hidden');
-    $('#se-detail').innerHTML = `<button class="se-back" id="se-back">${t('see_all_workouts')}</button>`+upsell('se');
-    $('#se-back').onclick=backToList;
-    window.scrollTo(0,0);
-    return;
-  }
   SE_CUR={w}; SESSION=null;
   $('#se-list').classList.add('hidden');
   $('#se-detail').classList.remove('hidden');
