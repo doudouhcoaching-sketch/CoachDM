@@ -368,6 +368,33 @@
   .prod-desc{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.4}
   .prod-buy{display:inline-flex;align-items:center;gap:6px;margin-top:11px;padding:9px 15px;border-radius:11px;font-weight:700;font-size:13px;color:#fff;
     background:linear-gradient(135deg,var(--brand),var(--brand-2));text-decoration:none}
+
+  /* ---------- Premium / free-tier lock ---------- */
+  .se-card{position:relative}
+  .se-card.locked .se-cover::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.5);backdrop-filter:saturate(.6) blur(1px)}
+  .lock-badge{position:absolute;top:10px;right:10px;z-index:3;display:inline-flex;align-items:center;gap:5px;
+    padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.4px;
+    color:#0A0A0A;background:linear-gradient(135deg,#E7C65A,#C9A227);box-shadow:0 4px 12px rgba(0,0,0,.45)}
+  .lock-badge svg{width:12px;height:12px}
+  .upsell{background:linear-gradient(180deg,rgba(212,175,55,.10),rgba(212,175,55,.02));
+    border:1.5px solid rgba(212,175,55,.5);border-radius:var(--radius);padding:22px 18px;margin-bottom:16px;text-align:center}
+  .upsell .crown{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;margin:0 auto 14px;
+    background:linear-gradient(145deg,#E7C65A,#C9A227);color:#0A0A0A;font-size:26px;box-shadow:0 10px 26px rgba(212,175,55,.4)}
+  .upsell h3{margin:0 0 6px;font-size:18px;font-weight:800;color:#fff}
+  .upsell .us-sub{font-size:13.5px;color:var(--muted);line-height:1.5;margin:0 auto 14px;max-width:340px}
+  .upsell .us-feat{list-style:none;padding:0;margin:0 auto 16px;max-width:330px;text-align:left}
+  .upsell .us-feat li{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;line-height:1.45;margin-bottom:9px}
+  .upsell .us-feat li::before{content:"✓";color:#E7C65A;font-weight:900;flex:none}
+  .upsell .us-price{font-size:14px;color:#fff;font-weight:700;margin-bottom:14px}
+  .upsell .us-price b{color:#E7C65A;font-size:22px}
+  .upsell .us-cta{display:block;text-decoration:none;text-align:center;padding:14px;border-radius:var(--radius-sm);
+    font-weight:800;font-size:15px;color:#0A0A0A;background:linear-gradient(135deg,#E7C65A,#C9A227);
+    box-shadow:0 8px 22px rgba(212,175,55,.4)}
+  .upsell .us-cta2{display:block;text-decoration:none;text-align:center;padding:12px;border-radius:var(--radius-sm);
+    font-weight:700;font-size:13.5px;color:#E7C65A;border:1.5px solid rgba(212,175,55,.4);margin-top:10px;background:transparent}
+  .tier-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.3px}
+  .tier-pill.free{color:var(--muted);background:var(--surface-2);border:1px solid var(--line)}
+  .tier-pill.prem{color:#0A0A0A;background:linear-gradient(135deg,#E7C65A,#C9A227)}
 </style>
 </head>
 <body>
@@ -496,7 +523,7 @@
 
   <!-- COURS -->
   <div class="page tabpane" id="pane-cours">
-    <div class="co-seg">
+    <div class="co-seg" id="co-seg">
       <button class="on" data-cof="all" data-i18n="co_upcoming">À venir</button>
       <button data-cof="mine" data-i18n="co_mine">Mes réservations</button>
     </div>
@@ -515,7 +542,7 @@
         <span data-i18n-html="ia_intro">Pose ta question : macros, séance, récupération, plateau…<br>Je connais tes données et je réponds en direct.</span>
       </div>
     </div>
-    <div class="chat-bar">
+    <div class="chat-bar" id="ia-bar">
       <input id="ia-input" type="text" placeholder="Écris ton message…" data-i18n-ph="ia_ph" enterkeyhint="send" />
       <button id="ia-send">↑</button>
     </div>
@@ -523,6 +550,8 @@
 
   <!-- PROFIL -->
   <div class="page tabpane" id="pane-profile">
+
+    <div id="prof-upsell" class="hidden"></div>
 
     <div class="block">
       <h3 data-i18n="lbl_lang">Langue de l'app</h3>
@@ -751,6 +780,33 @@ const T = {
  opt_soon:{fr:'Bientôt disponible',en:'Coming soon',nl:'Binnenkort'},
  btn_logout:{fr:'Se déconnecter',en:'Log out',nl:'Uitloggen'},
  privacy:{fr:'Politique de confidentialité',en:'Privacy policy',nl:'Privacybeleid'},
+ tier_free:{fr:'Gratuit',en:'Free',nl:'Gratis'},
+ tier_premium:{fr:'Premium',en:'Premium',nl:'Premium'},
+ lock_premium:{fr:'Premium',en:'Premium',nl:'Premium'},
+ up_plans:{fr:'Voir les offres',en:'See plans',nl:'Bekijk de abonnementen'},
+ up_contact:{fr:'Parler au coach',en:'Talk to the coach',nl:'Praat met de coach'},
+ up_price:{fr:'à partir de',en:'from',nl:'vanaf'},
+ up_se_title:{fr:'Débloque tous les programmes',en:'Unlock every program',nl:'Ontgrendel alle programma\u2019s'},
+ up_se_sub:{fr:'Cette séance fait partie d\u2019un programme Coach DM complet, réservé aux membres.',en:'This session is part of a full Coach DM program, reserved for members.',nl:'Deze sessie hoort bij een volledig Coach DM-programma, voorbehouden aan leden.'},
+ up_se_f1:{fr:'Tous les programmes multi-semaines (Force, Hyrox, Perte de gras, Football…)',en:'All multi-week programs (Strength, Hyrox, Fat loss, Football…)',nl:'Alle meerweekse programma\u2019s (Kracht, Hyrox, Vetverlies, Voetbal…)'},
+ up_se_f2:{fr:'Progression semaine par semaine, sans répétition',en:'Week-by-week progression, no repetition',nl:'Week-na-week progressie, zonder herhaling'},
+ up_se_f3:{fr:'Suivi de tes séances & historique',en:'Session tracking & history',nl:'Sessietracking & geschiedenis'},
+ up_ia_title:{fr:'Coach IA — réservé aux membres',en:'AI Coach — members only',nl:'AI-coach — alleen voor leden'},
+ up_ia_sub:{fr:'Ton assistant nutrition & training, qui connaît tes données et répond en direct.',en:'Your nutrition & training assistant that knows your data and answers live.',nl:'Je voedings- & trainingsassistent die je data kent en live antwoordt.'},
+ up_ia_f1:{fr:'Réponses personnalisées sur tes macros et tes séances',en:'Personalised answers on your macros and sessions',nl:'Gepersonaliseerde antwoorden over je macro\u2019s en sessies'},
+ up_ia_f2:{fr:'Conseils science-based, références à l\u2019appui',en:'Science-based advice, with references',nl:'Wetenschappelijk advies, met bronnen'},
+ up_ia_f3:{fr:'Disponible 24/7 dans ta langue',en:'Available 24/7 in your language',nl:'24/7 beschikbaar in jouw taal'},
+ up_co_title:{fr:'Cours & réservations',en:'Classes & bookings',nl:'Lessen & reserveringen'},
+ up_co_sub:{fr:'Réserve les cours collectifs et le personal training, réservé aux membres.',en:'Book group classes and personal training, reserved for members.',nl:'Reserveer groepslessen en personal training, voorbehouden aan leden.'},
+ up_co_f1:{fr:'Réservation des cours collectifs',en:'Group class booking',nl:'Groepslessen reserveren'},
+ up_co_f2:{fr:'Séances de personal training avec ton coach',en:'Personal training sessions with your coach',nl:'Personal training met je coach'},
+ up_co_f3:{fr:'Gestion de tes réservations & liste d\u2019attente',en:'Manage your bookings & waitlist',nl:'Beheer je reserveringen & wachtlijst'},
+ up_prof_title:{fr:'Passe Membre',en:'Go Member',nl:'Word lid'},
+ up_prof_sub:{fr:'Tu profites du gratuit : nutrition complète + séances découverte. Débloque tout le reste.',en:'You\u2019re on the free plan: full nutrition + trial sessions. Unlock everything else.',nl:'Je zit op het gratis plan: volledige voeding + proefsessies. Ontgrendel de rest.'},
+ up_prof_f1:{fr:'Tous les programmes d\u2019entraînement',en:'All training programs',nl:'Alle trainingsprogramma\u2019s'},
+ up_prof_f2:{fr:'Coach IA + suivi & historique',en:'AI Coach + tracking & history',nl:'AI-coach + tracking & geschiedenis'},
+ up_prof_f3:{fr:'Cours collectifs & personal training',en:'Group classes & personal training',nl:'Groepslessen & personal training'},
+ sub_status_free:{fr:'Plan gratuit',en:'Free plan',nl:'Gratis plan'},
  gate_title:{fr:'Accès réservé',en:'Members only',nl:'Alleen voor leden'},
  gate_p1:{fr:'L\u2019app Coach DM est réservée aux membres.<br>Essai 7 jours, puis 14,99 €/mois.',en:'The Coach DM app is for members.<br>7-day trial, then €14.99/month.',nl:'De Coach DM-app is voor leden.<br>7 dagen proberen, daarna €14,99/maand.'},
  gate_p2:{fr:"Ton compte est créé mais n'a pas encore d'accès. Contacte le coach pour l'activer.",en:'Your account is created but has no access yet. Contact the coach to activate it.',nl:'Je account is aangemaakt maar heeft nog geen toegang. Contacteer de coach om het te activeren.'},
@@ -840,12 +896,33 @@ function setLang(l){
   if(!['fr','en','nl'].includes(l)) return;
   LANG=l; localStorage.setItem('cdm_lang',l);
   applyI18n(); renderLangBtns();
+  try{ if(USER) applyTier(); }catch(e){}
   try{ if(typeof loadToday==='function' && USER) loadToday(); }catch(e){}
   const active=document.querySelector('.nav button.on')?.dataset.tab;
   if(active && typeof switchTab==='function') switchTab(active);
 }
 
 let USER=null, TARGETS=null, SELECTED=null, CONV=null, BUSY=false, IA_LOADED=false;
+let TIER='free';                 // 'free' | 'premium'  (premium = abonné actif/essai OU coach/admin)
+const isPrem=()=>TIER==='premium';
+const PLANS_URL='https://coachdm.be/tarifs.html';
+const COACH_URL='https://instagram.com/coachdm.be';
+/* Encart premium réutilisable (accent or = signal premium) */
+function upsell(key){
+  return `<div class="upsell">
+    <div class="crown">♛</div>
+    <h3>${t('up_'+key+'_title')}</h3>
+    <p class="us-sub">${t('up_'+key+'_sub')}</p>
+    <ul class="us-feat">
+      <li>${t('up_'+key+'_f1')}</li>
+      <li>${t('up_'+key+'_f2')}</li>
+      <li>${t('up_'+key+'_f3')}</li>
+    </ul>
+    <div class="us-price">${t('up_price')} <b>9,99€</b> / ${({fr:'mois',en:'mo',nl:'maand'})[LANG]||'mois'}</div>
+    <a class="us-cta" href="${PLANS_URL}" target="_blank" rel="noopener">${t('up_plans')}</a>
+    <a class="us-cta2" href="${COACH_URL}" target="_blank" rel="noopener">${t('up_contact')}</a>
+  </div>`;
+}
 
 const todayStr = ()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
 const r0=(n)=>Math.round(n||0);
@@ -892,14 +969,21 @@ function humanAuth(m){
 async function enter(user){
   USER=user;
   show('boot');
-  const ok = await hasAccess(user.id);
-  if(!ok){ show('gate'); return; }
+  TIER = (await hasAccess(user.id)) ? 'premium' : 'free';
   show('app');
+  applyTier();
   $('#p-email').textContent = user.email || '';
   await loadProfileInfo(user);
   await loadTargets();
   await loadToday();
   switchTab('home');
+}
+
+/* Affiche/masque les éléments selon le tier (gratuit vs premium) */
+function applyTier(){
+  const free=!isPrem();
+  // Bloc upsell en haut du Profil (visible uniquement pour les gratuits)
+  const pu=$('#prof-upsell'); if(pu){ pu.innerHTML = free ? upsell('prof') : ''; pu.classList.toggle('hidden',!free); }
 }
 
 async function loadProfileInfo(user){
@@ -916,7 +1000,7 @@ async function loadProfileInfo(user){
       .select('status,current_period_end,trial_end').eq('user_id',user.id)
       .order('current_period_end',{ascending:false,nullsFirst:false}).limit(1).maybeSingle();
     const now=Date.now();
-    let key='sub_status_none', extra='';
+    let key='sub_status_free', extra='';
     const trialing = sub && (sub.status==='trialing' || (sub.trial_end && new Date(sub.trial_end).getTime()>now));
     const active = (role==='coach'||role==='admin') || (sub && (sub.status==='active' || (sub.current_period_end && new Date(sub.current_period_end).getTime()>now)));
     if(trialing && !(role==='coach'||role==='admin')){
@@ -1241,9 +1325,21 @@ function switchTab(tab){
   if(tab==='home') loadHome();
   if(tab==='journal') loadLogs();
   if(tab==='seances') loadWorkouts();
-  if(tab==='cours') loadCours();
+  if(tab==='cours'){
+    if(isPrem()){ $('#co-seg')?.classList.remove('hidden'); loadCours(); }
+    else { $('#co-seg')?.classList.add('hidden'); $('#co-list').innerHTML=upsell('co'); }
+  }
   if(tab==='boutique') loadBoutique();
-  if(tab==='ia'){ if(!IA_LOADED){ IA_LOADED=true; loadConversation(); } setTimeout(()=>$('#ia-input').focus(),100); }
+  if(tab==='ia'){
+    if(isPrem()){
+      $('#ia-bar')?.classList.remove('hidden');
+      if(!IA_LOADED){ IA_LOADED=true; loadConversation(); }
+      setTimeout(()=>$('#ia-input').focus(),100);
+    } else {
+      $('#ia-bar')?.classList.add('hidden');
+      $('#ia-scroll').innerHTML = '<div class="page" style="padding-top:18px">'+upsell('ia')+'</div>';
+    }
+  }
   window.scrollTo(0,0);
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
@@ -1319,7 +1415,9 @@ async function loadWod(){
   if(!list.length){ $('#wod').innerHTML=''; return; }
   const goal=TARGETS&&TARGETS.goal;
   const pref={lose_fat:['hiit','hyrox','conditioning'],build_muscle:['strength','hypertrophy'],maintain:['hyrox','football','strength'],recomp:['strength','hyrox']}[goal]||[];
-  const w=list.find(x=>pref.includes(x.type))||list[0];
+  const pool = isPrem() ? list : list.filter(x=>x.is_free);
+  const base = pool.length ? pool : list;
+  const w=base.find(x=>pref.includes(x.type))||base[0];
   const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
   $('#wod').innerHTML=`<div class="wod" style="--c:${col}">
     <div class="wod-top"><span class="wod-k">${t('wod_reco')}</span><span class="wod-dur">${w.estimated_duration_min||'—'} min</span></div>
@@ -1362,7 +1460,7 @@ function loadInsight(){
 /* ================= SEANCES ================= */
 async function fetchWorkouts(){
   const { data:ws } = await sb.from('workouts')
-    .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url')
+    .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url,is_free,program_slug')
     .eq('is_published',true).order('created_at',{ascending:true});
   SE_WORKOUTS = ws||[]; SE_COUNTS={};
   const ids=SE_WORKOUTS.map(w=>w.id);
@@ -1377,10 +1475,14 @@ async function loadWorkouts(){
   if(!SE_WORKOUTS.length){ $('#se-cards').innerHTML='<p class="empty">'+t('co_none_up')+'</p>'; return; }
   $('#se-cards').innerHTML = SE_WORKOUTS.map(w=>{
     const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
+    const locked = !isPrem() && !w.is_free;
+    const lockBadge = locked
+      ? `<span class="lock-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>${t('lock_premium')}</span>`
+      : '';
     const cover = w.cover_image_url
       ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${typeL(w.type)}</span></div>`
       : `<div class="se-cover" style="--c:${col}"><span class="se-type">${typeL(w.type)}</span></div>`;
-    return `<div class="se-card" data-open="${w.id}">${cover}
+    return `<div class="se-card${locked?' locked':''}" data-open="${w.id}">${lockBadge}${cover}
       <div class="se-body">
         <div class="se-title">${esc(pick(w,'name'))}</div>
         ${w.source?`<div class="se-src">${esc(w.source)}</div>`:''}
@@ -1398,6 +1500,14 @@ async function openWorkout(id){
   switchTab('seances');
   if(!SE_WORKOUTS) await fetchWorkouts();
   const w=(SE_WORKOUTS||[]).find(x=>x.id===id); if(!w) return;
+  if(!isPrem() && !w.is_free){          // séance premium → encart, pas d'ouverture
+    $('#se-list').classList.add('hidden');
+    $('#se-detail').classList.remove('hidden');
+    $('#se-detail').innerHTML = `<button class="se-back" id="se-back">${t('see_all_workouts')}</button>`+upsell('se');
+    $('#se-back').onclick=backToList;
+    window.scrollTo(0,0);
+    return;
+  }
   SE_CUR={w}; SESSION=null;
   $('#se-list').classList.add('hidden');
   $('#se-detail').classList.remove('hidden');
