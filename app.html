@@ -188,6 +188,11 @@
   .go-meta{font-size:12px;color:var(--muted);margin-top:8px}
   .go-note{font-size:13px;color:var(--muted);margin:8px 0}
   .go-act{background:transparent;border:1px solid var(--go);color:var(--go);border-radius:10px;padding:7px 12px;font-size:13px;font-weight:700}
+  .go-actrow{display:flex;gap:8px;align-items:center;margin-top:2px}
+  .go-actrow .go-act{flex:1}
+  .go-del{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:7px 11px;font-size:15px;line-height:1;cursor:pointer}
+  .go-del:active{background:rgba(255,92,92,.12);border-color:var(--prot);color:var(--prot)}
+  .go-del.mini{padding:3px 7px;font-size:13px;margin-left:2px}
   .go-lifts{display:grid;gap:8px;max-height:46vh;overflow:auto;margin:4px 0}
   .go-lift{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;width:100%;color:var(--text)}
   .go-lift small{color:var(--muted);font-size:12px}
@@ -715,6 +720,10 @@ const T = {
  go_pending:{fr:'en validation',en:'pending review',nl:'in validatie'},
  go_blocked:{fr:'\u00c0 ajuster',en:'Adjust',nl:'Bijstellen'},
  go_adjust:{fr:"Ajuster l'objectif",en:'Adjust goal',nl:'Doel bijstellen'},
+ go_del:{fr:'Supprimer',en:'Delete',nl:'Verwijderen'},
+ go_del_confirm:{fr:'Supprimer cet objectif et son cycle ?',en:'Delete this goal and its cycle?',nl:'Dit doel en de cyclus verwijderen?'},
+ go_del_done:{fr:'Objectif supprim\u00e9.',en:'Goal deleted.',nl:'Doel verwijderd.'},
+ go_del_err:{fr:'Suppression impossible. R\u00e9essaie.',en:'Could not delete. Try again.',nl:'Verwijderen mislukt. Probeer opnieuw.'},
  go_w_lift:{fr:'Choisis le mouvement',en:'Pick the lift',nl:'Kies de oefening'},
  go_w_lift_s:{fr:'Sur quel lift veux-tu progresser ?',en:'Which lift do you want to improve?',nl:'Op welke lift wil je vooruitgaan?'},
  go_w_params_s:{fr:'Ton point de d\u00e9part et ta cible',en:'Your start point and target',nl:'Je startpunt en doel'},
@@ -744,9 +753,9 @@ const T = {
  go_cycle:{fr:'Mon cycle',en:'My cycle',nl:'Mijn cyclus'},
  go_cycle_pending:{fr:'Cycle en attente de validation du coach.',en:'Cycle pending coach review.',nl:'Cyclus wacht op goedkeuring van de coach.'},
  go_week:{fr:'Semaine',en:'Week',nl:'Week'},
- go_day_heavy:{fr:'Lourd',en:'Heavy',nl:'Zwaar'},
- go_day_squat:{fr:'Squat',en:'Squat',nl:'Squat'},
- go_day_vol:{fr:'Volume',en:'Volume',nl:'Volume'},
+ go_day_heavy:{fr:'Comp\u00e9tition',en:'Competition',nl:'Competitie'},
+ go_day_squat:{fr:'Squat & Force',en:'Squat & Strength',nl:'Squat & Kracht'},
+ go_day_vol:{fr:'Vitesse & Technique',en:'Speed & Technique',nl:'Snelheid & Techniek'},
  title_home:{fr:"Aujourd'hui",en:'Today',nl:'Vandaag'},
  sub_journal:{fr:'Cherche, ajoute, suis tes repas',en:'Search, add and track your meals',nl:'Zoek, voeg toe en volg je maaltijden'},
  sub_seances:{fr:'Tes programmes Coach DM',en:'Your Coach DM programs',nl:'Jouw Coach DM-programma\u2019s'},
@@ -1508,14 +1517,16 @@ async function loadGoals(){
           +'<span class="go-c-title">'+esc(title)+'</span>'
           +'<span class="go-badge warn">'+t('go_blocked')+'</span></div>'
           +'<div class="go-note">'+esc(g.feasibility_note||'')+'</div>'
-          +'<button class="go-act" data-goal-adjust="'+g.id+'">'+t('go_adjust')+'</button></div>';
+          +'<div class="go-actrow"><button class="go-act" data-goal-adjust="'+g.id+'">'+t('go_adjust')+'</button>'
+          +'<button class="go-del" data-goal-del="'+g.id+'" data-goal-title="'+esc(title)+'">\uD83D\uDDD1</button></div></div>';
       }
       const start=g.start_value, tgt=g.target_value, unit=g.unit||'kg';
       const cur=cyc?cyc.target_1rm:start;
       const pct=(start&&tgt&&tgt>start)?Math.max(4,Math.min(100,Math.round((cur-start)/(tgt-start)*100))):4;
       return '<div class="go-card" data-goal-open="'+g.id+'" data-slug="'+esc(g.program_slug||'')+'">'
         +'<div class="go-c-top"><span class="go-c-title">'+esc(title)+'</span>'
-        +'<span class="go-badge">'+(g.est_weeks||'\u2014')+' '+t('go_weeks')+'</span></div>'
+        +'<span class="go-badge">'+(g.est_weeks||'\u2014')+' '+t('go_weeks')+'</span>'
+        +'<button class="go-del mini" data-goal-del="'+g.id+'" data-goal-title="'+esc(title)+'">\uD83D\uDDD1</button></div>'
         +'<div class="go-prog"><span>'+(start!=null?start:'\u2014')+' '+unit+'</span><span>'+tgt+' '+unit+'</span></div>'
         +'<div class="go-bar"><i style="width:'+pct+'%"></i></div>'
         +(cyc?'<div class="go-meta">'+t('go_block')+' '+cyc.block_number+' \u00b7 TM '+cyc.training_max+' '+unit+(cyc.status==='draft'?' \u00b7 '+t('go_pending'):'')+'</div>':'')
@@ -1669,11 +1680,24 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-goal-back]')){ goalStepLift(); return; }
   const lf=e.target.closest('[data-lift]');
   if(lf){ const id=lf.getAttribute('data-lift'); const x=(GOAL_LIFTS||[]).find(z=>z.id===id); if(x) goalStepParams(x); return; }
+  const dl=e.target.closest('[data-goal-del]');
+  if(dl){ e.preventDefault(); e.stopPropagation(); deleteGoal(dl.getAttribute('data-goal-del'),dl.getAttribute('data-goal-title')); return; }
   const op=e.target.closest('[data-goal-open]');
   if(op){ openCycle(op.getAttribute('data-goal-open')); return; }
   const aj=e.target.closest('[data-goal-adjust]');
   if(aj){ openGoalWizard(); return; }
 });
+
+async function deleteGoal(id,title){
+  if(!id) return;
+  if(!window.confirm(t('go_del_confirm')+(title?'\n\n'+title:''))) return;
+  try{
+    const { error } = await sb.rpc('goal_delete',{p_goal:id});
+    if(error) throw error;
+    toast(t('go_del_done'));
+    loadGoals();
+  }catch(e){ toast(t('go_del_err')); }
+}
 
 function backToList(){ const d=$('#se-detail'),l=$('#se-list'); if(d) d.classList.add('hidden'); if(l) l.classList.remove('hidden'); }
 
