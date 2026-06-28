@@ -424,6 +424,9 @@
   .se-cover{position:relative}
   .prem-badge{position:absolute;top:10px;right:10px;font-size:10px;font-weight:800;letter-spacing:.5px;color:#fff;background:linear-gradient(90deg,#7C5CFF,#C840FF);border-radius:999px;padding:3px 9px}
   .badge.free{color:#0A0A0A;background:#D4AF37;font-weight:800}
+  .se-intent{margin:12px 0 4px;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--brand);border-radius:12px;font-size:13.5px;line-height:1.45;color:var(--text)}
+  .se-intent-h{display:block;font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--brand);margin-bottom:4px}
+  .ex-note{margin-top:6px;font-size:12.5px;line-height:1.4;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -1159,6 +1162,7 @@ function prescMulti(reps,oneRM){
   const segs=String(reps).split(' \u00B7 ');
   return '<div class="presc">'+segs.map(s=>'<div class="presc-l">'+withKg(s,oneRM)+'</div>').join('')+'</div>';
 }
+function fmtRest(s){ s=+s; if(!s) return ''; return (s>=120 && s%60===0) ? (s/60)+' min' : s+'s'; }
 
 async function searchLocal(q){
   const { data } = await sb.rpc('search_foods',{ p_query:q, p_barcode:null, p_limit:20 });
@@ -1512,7 +1516,7 @@ function loadInsight(){
 /* ================= SEANCES ================= */
 async function fetchWorkouts(){
   const { data:ws } = await sb.from('workouts')
-    .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url,program_slug,week_number,day_number')
+    .select('id,slug,name_fr,name_en,name_nl,description_fr,description_en,description_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url,program_slug,week_number,day_number')
     .eq('is_published',true).order('created_at',{ascending:true});
   SE_WORKOUTS = ws||[]; SE_COUNTS={};
   const ids=SE_WORKOUTS.map(w=>w.id);
@@ -1984,7 +1988,7 @@ async function openWorkout(id){
   $('#se-detail').innerHTML='<div class="spin"></div>';
   window.scrollTo(0,0);
   const { data:items } = await sb.from('workout_exercises')
-    .select('id,block,display_order,sets,reps,rest_sec,notes_fr,exercise:exercises(id,name_fr,name_en,name_nl,primary_muscle,equipment,load_type,video_url,youtube_query,thumbnail_url)')
+    .select('id,block,display_order,sets,reps,rest_sec,tempo,target_rpe,notes_fr,notes_en,notes_nl,exercise:exercises(id,name_fr,name_en,name_nl,primary_muscle,equipment,load_type,video_url,youtube_query,thumbnail_url)')
     .eq('workout_id',id).order('display_order',{ascending:true});
   const list=items||[];
   const exIds=[...new Set(list.map(it=>it.exercise&&it.exercise.id).filter(Boolean))];
@@ -2010,7 +2014,8 @@ function renderDetail(w,items,tips,oneRMmap){
       <span class="badge c" style="--c:${col}">${typeL(w.type)}</span>
       <span class="badge">${diffL(w.difficulty)}</span>
       <span class="badge">${w.estimated_duration_min||'—'} min</span>
-    </div>`;
+    </div>
+    ${pick(w,'description')?`<div class="se-intent"><span class="se-intent-h">${L3('But de la séance','Session goal','Doel van de sessie')}</span>${esc(pick(w,'description'))}</div>`:''}`;
   let lastBlock=null;
   items.forEach(it=>{
     const ex=it.exercise||{}, bc=BLOCK_COLOR[it.block]||col;
@@ -2038,10 +2043,13 @@ function renderDetail(w,items,tips,oneRMmap){
         <div class="ex-name">${esc(pick(ex,'name')||t('ex_fallback'))}</div>
         <div class="ex-meta">
           ${setsN>0?`<span class="chip k">${setsN} × ${withKg(rawReps,oneRM)}</span>`:''}
-          ${it.rest_sec?`<span class="chip">${t('rest')} ${it.rest_sec}s</span>`:''}
+          ${it.rest_sec?`<span class="chip">${t('rest')} ${fmtRest(it.rest_sec)}</span>`:''}
+          ${it.tempo?`<span class="chip">Tempo ${esc(it.tempo)}</span>`:''}
+          ${it.target_rpe?`<span class="chip">RPE ${(+it.target_rpe).toString().replace(/\.0$/,'')}</span>`:''}
           ${ex.primary_muscle?`<span class="chip">${muscleL(ex.primary_muscle)}</span>`:''}
         </div>
         ${prescBlock}
+        ${pick(it,'notes')?`<div class="ex-note">${esc(pick(it,'notes'))}</div>`:''}
         ${rmBtn}
         ${tipEl}
         ${demo?`<a class="ex-demo" href="${esc(demo)}" target="_blank" rel="noopener">▶ ${t('see_demo')}</a>`:''}
