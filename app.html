@@ -413,6 +413,10 @@
   .prod-desc{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.4}
   .prod-buy{display:inline-flex;align-items:center;gap:6px;margin-top:11px;padding:9px 15px;border-radius:11px;font-weight:700;font-size:13px;color:#fff;
     background:linear-gradient(135deg,var(--brand),var(--brand-2));text-decoration:none}
+  .presc{display:flex;flex-direction:column;gap:4px;margin-top:7px}
+  .presc-l{font-size:13.5px;line-height:1.35;color:var(--text);background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--brand);border-radius:9px;padding:7px 10px}
+  .presc-l b{color:#D4AF37;font-weight:800;white-space:nowrap}
+  .ex-1rm{align-self:flex-start;margin-top:8px;font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-soft);border:1px solid var(--brand);border-radius:8px;padding:6px 11px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -1123,6 +1127,30 @@ $('#jo-search').onclick = doSearch;
 $('#jo-q').addEventListener('keydown',e=>{ if(e.key==='Enter') doSearch(); });
 
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function L3(fr,en,nl){ return LANG==='en'?en:(LANG==='nl'?nl:fr); }
+let USER_1RM=null;
+async function loadOneRM(){
+  if(USER_1RM) return USER_1RM;
+  USER_1RM={};
+  try{
+    const { data } = await sb.from('personal_records')
+      .select('exercise_id,value,achieved_at').eq('user_id',USER.id).eq('category','strength_1rm')
+      .order('achieved_at',{ascending:false});
+    (data||[]).forEach(r=>{ if(r.exercise_id && USER_1RM[r.exercise_id]==null) USER_1RM[r.exercise_id]=Number(r.value); });
+  }catch(e){}
+  return USER_1RM;
+}
+function kgRound(v){ v=Math.round(v/2.5)*2.5; return (v%1===0)?String(v):v.toFixed(1); }
+function hasPct(s){ return /@\s*>?\s*\d+(?:\.\d+)?\s*%/.test(s||''); }
+function withKg(seg,oneRM){
+  let s=esc(seg||'');
+  if(oneRM){ s=s.replace(/@\s*(&gt;)?\s*(\d+(?:\.\d+)?)\s*%/g,(m,gt,p)=>'@'+(gt||'')+p+'% <b>= '+(gt?'&gt;':'')+kgRound(oneRM*(+p)/100)+' kg</b>'); }
+  return s;
+}
+function prescMulti(reps,oneRM){
+  const segs=String(reps).split(' \u00B7 ');
+  return '<div class="presc">'+segs.map(s=>'<div class="presc-l">'+withKg(s,oneRM)+'</div>').join('')+'</div>';
+}
 
 async function searchLocal(q){
   const { data } = await sb.rpc('search_foods',{ p_query:q, p_barcode:null, p_limit:20 });
@@ -1476,7 +1504,7 @@ function loadInsight(){
 /* ================= SEANCES ================= */
 async function fetchWorkouts(){
   const { data:ws } = await sb.from('workouts')
-    .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url')
+    .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url,program_slug,week_number,day_number')
     .eq('is_published',true).order('created_at',{ascending:true});
   SE_WORKOUTS = ws||[]; SE_COUNTS={};
   const ids=SE_WORKOUTS.map(w=>w.id);
@@ -1489,9 +1517,28 @@ async function loadWorkouts(){
   backToList();
   await fetchWorkouts();
   loadGoals();
-  const FLAT=(SE_WORKOUTS||[]).filter(w=>w.source!=='charge_engine');
+  const FLAT=(SE_WORKOUTS||[]).filter(w=> w.source!=='charge_engine' && w.source!=='skill_engine');
   if(!FLAT.length){ $('#se-cards').innerHTML='<p class="empty">'+t('co_none_up')+'</p>'; return; }
-  $('#se-cards').innerHTML = FLAT.map(w=>{
+  const progMap={}, singles=[];
+  FLAT.forEach(w=>{ if(w.program_slug){ (progMap[w.program_slug]=progMap[w.program_slug]||[]).push(w); } else singles.push(w); });
+  let cards='';
+  Object.keys(progMap).forEach(slug=>{
+    const arr=progMap[slug], w0=arr[0], col=typeColor(w0.type);
+    const weeks=Math.max.apply(null,arr.map(x=>x.week_number||1)), days=arr.length;
+    const pname=w0.source||pick(w0,'name');
+    const cover=`<div class="se-cover" style="--c:${col}"><span class="se-type">${typeL(w0.type)}</span></div>`;
+    cards+=`<div class="se-card" data-prog="${esc(slug)}" data-pname="${esc(pname)}">${cover}
+      <div class="se-body">
+        <div class="se-title">${esc(pname)}</div>
+        <div class="se-src">${weeks} ${L3('semaines','weeks','weken')} \u00B7 ${days} ${L3('séances','sessions','sessies')}</div>
+        <div class="se-badges">
+          <span class="badge c" style="--c:${col}">${diffL(w0.difficulty)}</span>
+          <span class="badge">${typeL(w0.type)}</span>
+          <span class="badge">${days} ${L3('séances','sessions','sessies')}</span>
+        </div>
+      </div></div>`;
+  });
+  cards+=singles.map(w=>{
     const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
     const cover = w.cover_image_url
       ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${typeL(w.type)}</span></div>`
@@ -1507,6 +1554,7 @@ async function loadWorkouts(){
         </div>
       </div></div>`;
   }).join('');
+  $('#se-cards').innerHTML=cards;
 }
 /* ================= OBJECTIFS / MOTEUR CHARGE ================= */
 let GOAL_LIFTS=null, GOAL_DRAFT={}, GOAL_SKILLS=null, GOAL_FAMS=null;
@@ -1789,6 +1837,59 @@ async function openCycle(goalId){
   document.getElementById('se-back').onclick=()=>{ loadWorkouts(); backToList(); };
 }
 
+async function openProgram(slug,pname){
+  switchTab('seances');
+  $('#se-list').classList.add('hidden');
+  $('#se-detail').classList.remove('hidden');
+  $('#se-detail').innerHTML='<div class="spin"></div>';
+  window.scrollTo(0,0);
+  const { data:ws } = await sb.from('workouts')
+    .select('id,name_fr,name_en,name_nl,week_number,day_number,difficulty')
+    .eq('program_slug',slug).eq('is_published',true)
+    .order('week_number',{ascending:true}).order('day_number',{ascending:true});
+  const list=ws||[];
+  const back='<button class="se-back" id="se-back">'+t('see_all_workouts')+'</button>';
+  if(!list.length){
+    $('#se-detail').innerHTML=back+'<p class="empty">'+t('co_none_up')+'</p>';
+    document.getElementById('se-back').onclick=()=>{ loadWorkouts(); backToList(); };
+    return;
+  }
+  const weeks={};
+  list.forEach(w=>{ (weeks[w.week_number||1]=weeks[w.week_number||1]||[]).push(w); });
+  let html=back+'<div class="se-d-title">'+esc(pname||'')+'</div>';
+  Object.keys(weeks).sort((a,b)=>a-b).forEach(wk=>{
+    html+='<div class="cyc-wk"><div class="cyc-wk-h">'+t('go_week')+' '+wk+'</div>';
+    weeks[wk].forEach(w=>{
+      html+='<button class="cyc-day" data-open="'+w.id+'"><span>'+L3('Jour','Day','Dag')+' '+(w.day_number||1)+'</span><small>'+esc(pick(w,'name'))+'</small></button>';
+    });
+    html+='</div>';
+  });
+  $('#se-detail').innerHTML=html;
+  document.getElementById('se-back').onclick=()=>{ loadWorkouts(); backToList(); };
+}
+
+document.addEventListener('click',async e=>{
+  const pc=e.target.closest('[data-prog]');
+  if(pc){ openProgram(pc.getAttribute('data-prog'), pc.getAttribute('data-pname')); return; }
+  const rm=e.target.closest('[data-rm]');
+  if(rm){
+    e.preventDefault();
+    const exId=rm.getAttribute('data-rm');
+    const val=window.prompt(L3('Ton 1RM pour ce mouvement (kg) :','Your 1RM for this lift (kg):','Jouw 1RM voor deze oefening (kg):'));
+    if(val===null) return;
+    const num=parseFloat(String(val).replace(',','.'));
+    if(!num||num<=0){ toast(L3('Valeur invalide','Invalid value','Ongeldige waarde')); return; }
+    try{
+      const { error }=await sb.rpc('set_one_rm',{p_exercise_id:exId,p_value:num});
+      if(error) throw error;
+      USER_1RM=null;
+      toast(L3('1RM enregistré','1RM saved','1RM opgeslagen')+' \u2705');
+      if(SE_CUR&&SE_CUR.w) openWorkout(SE_CUR.w.id);
+    }catch(err){ toast(L3('Échec de l\u2019enregistrement','Save failed','Opslaan mislukt')); }
+    return;
+  }
+});
+
 if($('#goal-ov')) $('#goal-ov').onclick=e=>{ if(e.target.id==='goal-ov') closeGoal(); };
 document.addEventListener('click',e=>{
   if(e.target.closest('[data-goal-new]')){ openGoalWizard(); return; }
@@ -1841,10 +1942,12 @@ async function openWorkout(id){
     const { data:tp } = await sb.from('exercise_tips').select('exercise_id,severity,body_fr,body_en,body_nl,reference').in('exercise_id',exIds).order('display_order',{ascending:true});
     (tp||[]).forEach(t=>{ if(!tips[t.exercise_id]) tips[t.exercise_id]=t; });
   }
-  renderDetail(w,list,tips);
+  const oneRM=await loadOneRM();
+  renderDetail(w,list,tips,oneRM);
 }
 
-function renderDetail(w,items,tips){
+function renderDetail(w,items,tips,oneRMmap){
+  oneRMmap=oneRMmap||{};
   const col=typeColor(w.type);
   const cover = w.cover_image_url
     ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${typeL(w.type)}</span></div>`
@@ -1873,17 +1976,22 @@ function renderDetail(w,items,tips){
     const tip=tips[ex.id];
     const sv=tip?(SEV[tip.severity]||SEV.success):null;
     const tipEl = tip ? `<div class="ex-tip" style="--tc:var(${sv.c})"><b>${sv.i}</b><span>${esc(pick(tip,'body')||'')}${tip.reference?` · <b>${esc(tip.reference)}</b>`:''}</span></div>` : '';
-    const setsN=it.sets||0, reps=it.reps?esc(it.reps):'';
+    const setsN=it.sets||0, rawReps=it.reps||'', oneRM=oneRMmap[ex.id];
     const pills = setsN>0 ? `<div class="pills" data-we="${it.id}" data-ex="${ex.id}" data-load="${ex.load_type||'reps_only'}">`+
       Array.from({length:setsN},(_,i)=>`<span class="pill" data-on="0" data-set="${i+1}">${i+1}</span>`).join('')+`</div>` : '';
+    const prescBlock = (!setsN && rawReps) ? prescMulti(rawReps,oneRM) : '';
+    const rmBtn = (hasPct(rawReps) && !oneRM && ex.load_type==='weight')
+      ? `<button class="ex-1rm" data-rm="${ex.id}">${L3('+ Renseigner mon 1RM','+ Set my 1RM','+ Mijn 1RM instellen')}</button>` : '';
     html+=`<div class="exrow">${thumbEl}
       <div class="ex-main">
         <div class="ex-name">${esc(pick(ex,'name')||t('ex_fallback'))}</div>
         <div class="ex-meta">
-          ${setsN?`<span class="chip k">${setsN} × ${reps}</span>`:(reps?`<span class="chip k">${reps}</span>`:'')}
+          ${setsN>0?`<span class="chip k">${setsN} × ${withKg(rawReps,oneRM)}</span>`:''}
           ${it.rest_sec?`<span class="chip">${t('rest')} ${it.rest_sec}s</span>`:''}
           ${ex.primary_muscle?`<span class="chip">${muscleL(ex.primary_muscle)}</span>`:''}
         </div>
+        ${prescBlock}
+        ${rmBtn}
         ${tipEl}
         ${demo?`<a class="ex-demo" href="${esc(demo)}" target="_blank" rel="noopener">▶ ${t('see_demo')}</a>`:''}
         ${pills}
