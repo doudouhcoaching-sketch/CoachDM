@@ -199,6 +199,8 @@
   .go-seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:12px}
   .go-seg button{flex:1;background:transparent;border:none;color:var(--muted);padding:8px;border-radius:9px;font-size:13px;font-weight:600}
   .go-seg button.on{background:var(--go);color:#fff}
+  .sk-info{font-size:13px;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin-bottom:8px}
+  .sk-info b{color:var(--text);font-weight:600}
   .go-guard{background:rgba(255,92,92,.10);border:1px solid rgba(255,92,92,.35);border-radius:12px;padding:14px;font-size:14px;line-height:1.5;margin:8px 0 16px}
   .go-done{text-align:center}
   .go-done-ic{width:54px;height:54px;border-radius:50%;background:var(--go);color:#fff;font-size:28px;display:grid;place-items:center;margin:0 auto 8px}
@@ -756,6 +758,22 @@ const T = {
  go_day_heavy:{fr:'Comp\u00e9tition',en:'Competition',nl:'Competitie'},
  go_day_squat:{fr:'Squat & Force',en:'Squat & Strength',nl:'Squat & Kracht'},
  go_day_vol:{fr:'Vitesse & Technique',en:'Speed & Technique',nl:'Snelheid & Techniek'},
+ go_w_kind:{fr:'Type d\u2019objectif',en:'Goal type',nl:'Doeltype'},
+ go_w_kind_s:{fr:'Force chiffrée ou skill gymnastique ?',en:'Numeric strength or gymnastics skill?',nl:'Numerieke kracht of gymnastiek skill?'},
+ go_kind_charge:{fr:'Force (1RM)',en:'Strength (1RM)',nl:'Kracht (1RM)'},
+ go_kind_charge_s:{fr:'Progresser sur un lift chiffré',en:'Improve a numeric lift',nl:'Vooruitgang op een lift'},
+ go_kind_skill:{fr:'Skill gymnastique',en:'Gymnastics skill',nl:'Gymnastiek skill'},
+ go_kind_skill_s:{fr:'Débloquer un mouvement',en:'Unlock a movement',nl:'Een beweging ontgrendelen'},
+ go_w_skill:{fr:'Choisis le mouvement',en:'Pick the movement',nl:'Kies de beweging'},
+ go_w_skill_s:{fr:'Quel skill veux-tu travailler ?',en:'Which skill do you want to train?',nl:'Welke skill wil je trainen?'},
+ go_skill_none:{fr:'Aucun skill disponible.',en:'No skill available.',nl:'Geen skill beschikbaar.'},
+ go_skill_lvl_s:{fr:'Choisis ton niveau',en:'Pick your level',nl:'Kies je niveau'},
+ go_skill_prereq:{fr:'Prérequis',en:'Prerequisite',nl:'Vereiste'},
+ go_skill_bench:{fr:'Objectif',en:'Target',nl:'Doel'},
+ go_skill_done_s:{fr:'jours/sem.',en:'days/wk',nl:'dagen/wk'},
+ go_skill_phases:{fr:'phases',en:'phases',nl:'fasen'},
+ go_day:{fr:'Jour',en:'Day',nl:'Dag'},
+ go_badge_skill:{fr:'Skill',en:'Skill',nl:'Skill'},
  title_home:{fr:"Aujourd'hui",en:'Today',nl:'Vandaag'},
  sub_journal:{fr:'Cherche, ajoute, suis tes repas',en:'Search, add and track your meals',nl:'Zoek, voeg toe en volg je maaltijden'},
  sub_seances:{fr:'Tes programmes Coach DM',en:'Your Coach DM programs',nl:'Jouw Coach DM-programma\u2019s'},
@@ -1491,14 +1509,14 @@ async function loadWorkouts(){
   }).join('');
 }
 /* ================= OBJECTIFS / MOTEUR CHARGE ================= */
-let GOAL_LIFTS=null, GOAL_DRAFT={};
+let GOAL_LIFTS=null, GOAL_DRAFT={}, GOAL_SKILLS=null, GOAL_FAMS=null;
 
 async function loadGoals(){
   const host=$('#go-section'); if(!host||!USER) return;
   let goals=[];
   try{
     const { data } = await sb.from('goals')
-      .select('id,title_fr,title_en,title_nl,exercise_id,start_value,target_value,unit,level,status,est_weeks,feasible,feasibility_note,program_slug,goal_cycles(block_number,start_1rm,target_1rm,training_max,status)')
+      .select('id,kind,title_fr,title_en,title_nl,exercise_id,start_value,target_value,unit,level,status,est_weeks,feasible,feasibility_note,program_slug,goal_cycles(block_number,start_1rm,target_1rm,training_max,status)')
       .eq('user_id',USER.id).neq('status','abandoned').order('created_at',{ascending:false});
     goals=data||[];
   }catch(e){ goals=[]; }
@@ -1520,10 +1538,19 @@ async function loadGoals(){
           +'<div class="go-actrow"><button class="go-act" data-goal-adjust="'+g.id+'">'+t('go_adjust')+'</button>'
           +'<button class="go-del" data-goal-del="'+g.id+'" data-goal-title="'+esc(title)+'">\uD83D\uDDD1</button></div></div>';
       }
+      if(g.kind==='skill'){
+        const stitle=pick(g,'title')||t('go_badge_skill');
+        return '<div class="go-card" data-goal-open="'+g.id+'" data-slug="'+esc(g.program_slug||'')+'" data-kind="skill">'
+          +'<div class="go-c-top"><span class="go-c-title">'+esc(stitle)+'</span>'
+          +'<span class="go-badge">'+(g.est_weeks||'\u2014')+' '+t('go_weeks')+'</span>'
+          +'<button class="go-del mini" data-goal-del="'+g.id+'" data-goal-title="'+esc(stitle)+'">\uD83D\uDDD1</button></div>'
+          +'<div class="go-meta"><span class="badge c" style="--c:var(--go)">'+diffL(g.level)+'</span> <span class="badge">'+t('go_badge_skill')+'</span></div>'
+          +'</div>';
+      }
       const start=g.start_value, tgt=g.target_value, unit=g.unit||'kg';
       const cur=cyc?cyc.target_1rm:start;
       const pct=(start&&tgt&&tgt>start)?Math.max(4,Math.min(100,Math.round((cur-start)/(tgt-start)*100))):4;
-      return '<div class="go-card" data-goal-open="'+g.id+'" data-slug="'+esc(g.program_slug||'')+'">'
+      return '<div class="go-card" data-goal-open="'+g.id+'" data-slug="'+esc(g.program_slug||'')+'" data-kind="charge">'
         +'<div class="go-c-top"><span class="go-c-title">'+esc(title)+'</span>'
         +'<span class="go-badge">'+(g.est_weeks||'\u2014')+' '+t('go_weeks')+'</span>'
         +'<button class="go-del mini" data-goal-del="'+g.id+'" data-goal-title="'+esc(title)+'">\uD83D\uDDD1</button></div>'
@@ -1536,11 +1563,27 @@ async function loadGoals(){
   host.innerHTML=html;
 }
 
-async function openGoalWizard(){
+function openGoalWizard(){
   GOAL_DRAFT={};
   $('#goal-ov').classList.add('show');
   $('#goal-body').innerHTML='<div class="spin"></div>';
+  goalStepKind();
+}
+function closeGoal(){ $('#goal-ov').classList.remove('show'); }
+
+function goalStepKind(){
+  GOAL_DRAFT={};
+  $('#goal-body').innerHTML='<h3>'+t('go_w_kind')+'</h3><div class="fk">'+t('go_w_kind_s')+'</div>'
+    +'<div class="go-lifts">'
+    +'<button class="go-lift" data-goal-kind="charge"><span>'+t('go_kind_charge')+'</span><small>'+t('go_kind_charge_s')+'</small></button>'
+    +'<button class="go-lift" data-goal-kind="skill"><span>'+t('go_kind_skill')+'</span><small>'+t('go_kind_skill_s')+'</small></button>'
+    +'</div>'
+    +'<button class="btn subtle" data-goal-close="1" style="margin-top:12px">'+t('btn_cancel')+'</button>';
+}
+
+async function goalStepLift(){
   if(!GOAL_LIFTS){
+    $('#goal-body').innerHTML='<div class="spin"></div>';
     try{
       const { data } = await sb.from('exercises')
         .select('id,name_fr,name_en,name_nl,primary_muscle,category')
@@ -1549,16 +1592,75 @@ async function openGoalWizard(){
       GOAL_LIFTS=data||[];
     }catch(e){ GOAL_LIFTS=[]; }
   }
-  goalStepLift();
-}
-function closeGoal(){ $('#goal-ov').classList.remove('show'); }
-
-function goalStepLift(){
   const items=(GOAL_LIFTS||[]).map(x=>'<button class="go-lift" data-lift="'+x.id+'">'
     +'<span>'+esc(pick(x,'name'))+'</span><small>'+muscleL(x.primary_muscle)+'</small></button>').join('');
   $('#goal-body').innerHTML='<h3>'+t('go_w_lift')+'</h3><div class="fk">'+t('go_w_lift_s')+'</div>'
     +'<div class="go-lifts">'+(items||('<p class="empty">'+t('co_none_up')+'</p>'))+'</div>'
-    +'<button class="btn subtle" data-goal-close="1" style="margin-top:12px">'+t('btn_cancel')+'</button>';
+    +'<button class="btn subtle" data-back-kind="1" style="margin-top:12px">'+t('go_back')+'</button>';
+}
+
+async function goalStepSkill(){
+  if(!GOAL_SKILLS){
+    $('#goal-body').innerHTML='<div class="spin"></div>';
+    try{
+      const { data } = await sb.from('skills')
+        .select('id,slug,family,name_fr,name_en,name_nl,tagline_fr,tagline_en,tagline_nl,benchmark_fr,benchmark_en,benchmark_nl,prereq_fr,prereq_en,prereq_nl,icon,difficulty,est_weeks,display_order')
+        .eq('is_published',true).order('display_order');
+      GOAL_SKILLS=data||[];
+    }catch(e){ GOAL_SKILLS=[]; }
+  }
+  const map={}, fams=[];
+  (GOAL_SKILLS||[]).forEach(s=>{
+    const key=s.family||s.slug;
+    if(!map[key]){ map[key]={key,icon:s.icon,name:pick(s,'name'),tagline:pick(s,'tagline'),levels:[]}; fams.push(map[key]); }
+    map[key].levels.push(s);
+  });
+  const ORD={beginner:0,intermediate:1,advanced:2};
+  fams.forEach(f=>f.levels.sort((a,b)=>(ORD[a.difficulty]??9)-(ORD[b.difficulty]??9)));
+  GOAL_FAMS=fams;
+  const items=fams.map(f=>'<button class="go-lift" data-skill-fam="'+esc(f.key)+'">'
+    +'<span>'+(f.icon?esc(f.icon)+' ':'')+esc(f.name)+'</span><small>'+esc(f.tagline||'')+'</small></button>').join('');
+  $('#goal-body').innerHTML='<h3>'+t('go_w_skill')+'</h3><div class="fk">'+t('go_w_skill_s')+'</div>'
+    +'<div class="go-lifts">'+(items||('<p class="empty">'+t('go_skill_none')+'</p>'))+'</div>'
+    +'<button class="btn subtle" data-back-kind="1" style="margin-top:12px">'+t('go_back')+'</button>';
+}
+
+function goalStepSkillPick(key){
+  const f=(GOAL_FAMS||[]).find(x=>x.key===key); if(!f) return;
+  GOAL_DRAFT.skill=f.levels[0];
+  const detail=(s)=> (s.prereq_fr?'<div class="sk-info"><b>'+t('go_skill_prereq')+'</b> '+esc(pick(s,'prereq'))+'</div>':'')
+    +(s.benchmark_fr?'<div class="sk-info"><b>'+t('go_skill_bench')+'</b> '+esc(pick(s,'benchmark'))+'</div>':'')
+    +'<div class="sk-info"><b>'+(s.est_weeks||8)+' '+t('go_weeks')+'</b> \u00b7 4 '+t('go_skill_phases')+'</div>';
+  const seg=f.levels.length>1
+    ? '<div class="go-seg" id="sk-seg">'+f.levels.map((s,i)=>'<button'+(i===0?' class="on"':'')+' data-skill-lvl="'+s.id+'">'+diffL(s.difficulty)+'</button>').join('')+'</div>'
+    : '';
+  $('#goal-body').innerHTML='<h3>'+(f.icon?esc(f.icon)+' ':'')+esc(f.name)+'</h3>'
+    +(f.levels.length>1?'<div class="fk">'+t('go_skill_lvl_s')+'</div>':'')+seg
+    +'<div id="sk-detail">'+detail(GOAL_DRAFT.skill)+'</div>'
+    +'<div class="msg" id="sk-msg"></div>'
+    +'<button class="btn" id="sk-generate">'+t('go_generate')+'</button>'
+    +'<button class="btn subtle" data-back-skills="1" style="margin-top:10px">'+t('go_back')+'</button>';
+  document.querySelectorAll('#goal-body [data-skill-lvl]').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('#goal-body [data-skill-lvl]').forEach(x=>x.classList.toggle('on',x===b));
+    const s=f.levels.find(z=>z.id===b.dataset.skillLvl);
+    if(s){ GOAL_DRAFT.skill=s; $('#sk-detail').innerHTML=detail(s); }
+  });
+  $('#sk-generate').onclick=goalSkillGenerate;
+}
+
+async function goalSkillGenerate(){
+  const s=GOAL_DRAFT.skill; if(!s) return;
+  const msg=$('#sk-msg'), btn=$('#sk-generate');
+  msg.textContent=''; btn.disabled=true; btn.textContent=t('go_generating');
+  try{
+    const { data, error } = await sb.rpc('generate_skill_cycle',{
+      p_skill_id:s.id, p_level:s.difficulty, p_target_date:null, p_for_user:null });
+    if(error) throw error;
+    goalResult(data);
+  }catch(e){
+    btn.disabled=false; btn.textContent=t('go_generate');
+    msg.textContent=(e&&e.message)||t('go_err_gen'); msg.className='msg err';
+  }
 }
 
 function goalStepParams(lift){
@@ -1627,6 +1729,17 @@ function goalResult(res){
       +'<button class="btn" data-goal-close="1">'+t('go_ok')+'</button>';
     loadGoals(); return;
   }
+  if(res.kind==='skill'){
+    $('#goal-body').innerHTML='<div class="go-done"><div class="go-done-ic">\u2713</div>'
+      +'<h3>'+t('go_done_t')+'</h3>'
+      +'<div class="go-done-grid">'
+      +'<div><b>'+res.est_weeks+'</b><span>'+t('go_weeks')+'</span></div>'
+      +'<div><b>'+res.phases+'</b><span>'+t('go_skill_phases')+'</span></div>'
+      +'<div><b>'+res.days_per_week+'</b><span>'+t('go_skill_done_s')+'</span></div></div>'
+      +'<div class="fk" style="margin-top:6px">'+(res.semi_auto?t('go_done_coach'):t('go_done_member'))+'</div>'
+      +'<button class="btn" data-goal-close="1" style="margin-top:14px">'+t('go_see')+'</button></div>';
+    loadGoals(); loadWorkouts(); return;
+  }
   $('#goal-body').innerHTML='<div class="go-done"><div class="go-done-ic">\u2713</div>'
     +'<h3>'+t('go_done_t')+'</h3>'
     +'<div class="go-done-grid">'
@@ -1641,6 +1754,7 @@ function goalResult(res){
 async function openCycle(goalId){
   const card=document.querySelector('[data-goal-open="'+goalId+'"]');
   const slug=card?card.dataset.slug:null; if(!slug) return;
+  const gkind=card?card.dataset.kind:'charge';
   switchTab('seances');
   $('#se-list').classList.add('hidden');
   $('#se-detail').classList.remove('hidden');
@@ -1657,7 +1771,9 @@ async function openCycle(goalId){
     document.getElementById('se-back').onclick=()=>{ loadWorkouts(); backToList(); };
     return;
   }
-  const DAYL={1:t('go_day_heavy'),2:t('go_day_squat'),3:t('go_day_vol')};
+  const DAYL = gkind==='skill'
+    ? {1:t('go_day')+' 1',2:t('go_day')+' 2',3:t('go_day')+' 3'}
+    : {1:t('go_day_heavy'),2:t('go_day_squat'),3:t('go_day_vol')};
   const weeks={};
   list.forEach(w=>{ (weeks[w.week_number]=weeks[w.week_number]||[]).push(w); });
   let html=back+'<div class="se-d-title">'+t('go_cycle')+'</div>';
@@ -1678,6 +1794,11 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-goal-new]')){ openGoalWizard(); return; }
   if(e.target.closest('[data-goal-close]')){ closeGoal(); return; }
   if(e.target.closest('[data-goal-back]')){ goalStepLift(); return; }
+  if(e.target.closest('[data-goal-kind]')){ const k=e.target.closest('[data-goal-kind]').dataset.goalKind; if(k==='skill') goalStepSkill(); else goalStepLift(); return; }
+  if(e.target.closest('[data-back-kind]')){ goalStepKind(); return; }
+  if(e.target.closest('[data-back-skills]')){ goalStepSkill(); return; }
+  const sf=e.target.closest('[data-skill-fam]');
+  if(sf){ goalStepSkillPick(sf.getAttribute('data-skill-fam')); return; }
   const lf=e.target.closest('[data-lift]');
   if(lf){ const id=lf.getAttribute('data-lift'); const x=(GOAL_LIFTS||[]).find(z=>z.id===id); if(x) goalStepParams(x); return; }
   const dl=e.target.closest('[data-goal-del]');
