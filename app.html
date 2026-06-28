@@ -417,6 +417,13 @@
   .presc-l{font-size:13.5px;line-height:1.35;color:var(--text);background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--brand);border-radius:9px;padding:7px 10px}
   .presc-l b{color:#D4AF37;font-weight:800;white-space:nowrap}
   .ex-1rm{align-self:flex-start;margin-top:8px;font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-soft);border:1px solid var(--brand);border-radius:8px;padding:6px 11px;cursor:pointer}
+  .se-filters{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .se-filters::-webkit-scrollbar{display:none}
+  .se-chip{flex:0 0 auto;font-size:13px;font-weight:700;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 14px;white-space:nowrap;cursor:pointer}
+  .se-chip.on{color:#fff;background:var(--brand);border-color:var(--brand)}
+  .se-cover{position:relative}
+  .prem-badge{position:absolute;top:10px;right:10px;font-size:10px;font-weight:800;letter-spacing:.5px;color:#fff;background:linear-gradient(90deg,#7C5CFF,#C840FF);border-radius:999px;padding:3px 9px}
+  .badge.free{color:#0A0A0A;background:#D4AF37;font-weight:800}
 </style>
 </head>
 <body>
@@ -535,6 +542,7 @@
   <div class="page tabpane" id="pane-seances">
     <div id="se-list">
       <div id="go-section"></div>
+      <div id="se-filters" class="se-filters"></div>
       <div id="se-cards"><div class="spin"></div></div>
     </div>
     <div id="se-detail" class="hidden"></div>
@@ -1513,37 +1521,64 @@ async function fetchWorkouts(){
     (we||[]).forEach(r=>{ SE_COUNTS[r.workout_id]=(SE_COUNTS[r.workout_id]||0)+1; });
   }
 }
+let SE_ITEMS=[], SE_FILTER='all';
+function typeGroup(type){
+  const M={
+    strength:['force','Force & Haltéro','Strength','Kracht'],
+    hypertrophy:['force','Force & Haltéro','Strength','Kracht'],
+    hyrox:['hyrox','Hyrox','Hyrox','Hyrox'],
+    hiit:['hiit','HIIT','HIIT','HIIT'],
+    circuit:['fatburn','Fat burn','Fat burn','Fat burn'],
+    conditioning:['cardio','Cardio','Cardio','Cardio'],
+    cardio:['cardio','Cardio','Cardio','Cardio'],
+    skill:['gym','Gym & Skill','Gym & Skill','Gym & Skill'],
+    football:['football','Football','Football','Voetbal'],
+    full_body:['fullbody','Full body','Full body','Full body'],
+    mobility:['mobility','Mobilité','Mobility','Mobiliteit'],
+    emom:['metcon','MetCon','MetCon','MetCon'],
+    amrap:['metcon','MetCon','MetCon','MetCon'],
+    for_time:['metcon','MetCon','MetCon','MetCon']
+  };
+  return M[type]||['autre','Autre','Other','Andere'];
+}
+function renderSeCards(){
+  const host=$('#se-cards'); if(!host) return;
+  const list=(SE_ITEMS||[]).filter(it=>SE_FILTER==='all'||it.group===SE_FILTER);
+  host.innerHTML=list.length?list.map(it=>it.html).join(''):'<p class="empty">'+t('co_none_up')+'</p>';
+}
 async function loadWorkouts(){
   backToList();
   await fetchWorkouts();
   loadGoals();
   const FLAT=(SE_WORKOUTS||[]).filter(w=> w.source!=='charge_engine' && w.source!=='skill_engine');
-  if(!FLAT.length){ $('#se-cards').innerHTML='<p class="empty">'+t('co_none_up')+'</p>'; return; }
+  const fbar=$('#se-filters');
+  if(!FLAT.length){ SE_ITEMS=[]; if(fbar) fbar.innerHTML=''; $('#se-cards').innerHTML='<p class="empty">'+t('co_none_up')+'</p>'; return; }
   const progMap={}, singles=[];
   FLAT.forEach(w=>{ if(w.program_slug){ (progMap[w.program_slug]=progMap[w.program_slug]||[]).push(w); } else singles.push(w); });
-  let cards='';
+  const items=[];
   Object.keys(progMap).forEach(slug=>{
-    const arr=progMap[slug], w0=arr[0], col=typeColor(w0.type);
+    const arr=progMap[slug], w0=arr[0], col=typeColor(w0.type), g=typeGroup(w0.type);
     const weeks=Math.max.apply(null,arr.map(x=>x.week_number||1)), days=arr.length;
     const pname=w0.source||pick(w0,'name');
-    const cover=`<div class="se-cover" style="--c:${col}"><span class="se-type">${typeL(w0.type)}</span></div>`;
-    cards+=`<div class="se-card" data-prog="${esc(slug)}" data-pname="${esc(pname)}">${cover}
+    const html=`<div class="se-card" data-prog="${esc(slug)}" data-pname="${esc(pname)}">
+      <div class="se-cover" style="--c:${col}"><span class="se-type">${typeL(w0.type)}</span><span class="prem-badge">PREMIUM</span></div>
       <div class="se-body">
         <div class="se-title">${esc(pname)}</div>
         <div class="se-src">${weeks} ${L3('semaines','weeks','weken')} \u00B7 ${days} ${L3('séances','sessions','sessies')}</div>
         <div class="se-badges">
           <span class="badge c" style="--c:${col}">${diffL(w0.difficulty)}</span>
           <span class="badge">${typeL(w0.type)}</span>
-          <span class="badge">${days} ${L3('séances','sessions','sessies')}</span>
+          <span class="badge free">${L3('S1 offerte','Week 1 free','Week 1 gratis')}</span>
         </div>
       </div></div>`;
+    items.push({group:g[0], glabel:g, html});
   });
-  cards+=singles.map(w=>{
-    const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
+  singles.forEach(w=>{
+    const col=typeColor(w.type), n=SE_COUNTS[w.id]||0, g=typeGroup(w.type);
     const cover = w.cover_image_url
       ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${typeL(w.type)}</span></div>`
       : `<div class="se-cover" style="--c:${col}"><span class="se-type">${typeL(w.type)}</span></div>`;
-    return `<div class="se-card" data-open="${w.id}">${cover}
+    const html=`<div class="se-card" data-open="${w.id}">${cover}
       <div class="se-body">
         <div class="se-title">${esc(pick(w,'name'))}</div>
         ${w.source?`<div class="se-src">${esc(w.source)}</div>`:''}
@@ -1553,8 +1588,20 @@ async function loadWorkouts(){
           <span class="badge">${n} ${t('exercises')}</span>
         </div>
       </div></div>`;
-  }).join('');
-  $('#se-cards').innerHTML=cards;
+    items.push({group:g[0], glabel:g, html});
+  });
+  SE_ITEMS=items;
+  const groups={}; items.forEach(it=>{ groups[it.group]=it.glabel; });
+  const keys=Object.keys(groups);
+  if(!keys.includes(SE_FILTER) && SE_FILTER!=='all') SE_FILTER='all';
+  if(fbar){
+    if(keys.length>1){
+      let chips=`<button class="se-chip${SE_FILTER==='all'?' on':''}" data-filter="all">${L3('Tous','All','Alle')}</button>`;
+      keys.forEach(k=>{ const g=groups[k]; chips+=`<button class="se-chip${SE_FILTER===k?' on':''}" data-filter="${k}">${L3(g[1],g[2],g[3])}</button>`; });
+      fbar.innerHTML=chips;
+    } else fbar.innerHTML='';
+  }
+  renderSeCards();
 }
 /* ================= OBJECTIFS / MOTEUR CHARGE ================= */
 let GOAL_LIFTS=null, GOAL_DRAFT={}, GOAL_SKILLS=null, GOAL_FAMS=null;
@@ -1869,6 +1916,10 @@ async function openProgram(slug,pname){
 }
 
 document.addEventListener('click',async e=>{
+  const fc=e.target.closest('[data-filter]');
+  if(fc){ SE_FILTER=fc.getAttribute('data-filter');
+    document.querySelectorAll('#se-filters .se-chip').forEach(c=>c.classList.toggle('on',c.getAttribute('data-filter')===SE_FILTER));
+    renderSeCards(); return; }
   const pc=e.target.closest('[data-prog]');
   if(pc){ openProgram(pc.getAttribute('data-prog'), pc.getAttribute('data-pname')); return; }
   const rm=e.target.closest('[data-rm]');
