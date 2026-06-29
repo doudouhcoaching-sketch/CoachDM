@@ -1471,9 +1471,9 @@ function exThumb(ex){ if(ex.thumbnail_url) return ex.thumbnail_url; const id=ytI
 function exDemo(ex){ if(ex.video_url) return ex.video_url; if(ex.youtube_query) return 'https://www.youtube.com/results?search_query='+encodeURIComponent(ex.youtube_query); return null; }
 
 /* ---- prescription rendering (wave loading, %→kg, tempo/RPE) ---- */
-let MAXES={};
-function exMax(exId){ const v=MAXES[exId]; return (v&&v>0)?v:null; }
-function pctToKg(exId,pct){ const m=exMax(exId); if(!m||!pct) return null; return Math.round(m*pct/100/2.5)*2.5; }
+let MAXES={}; // keyed by exercise slug -> 1RM kg
+function exMax(ex){ if(!ex) return null; let v=MAXES[ex.slug]; if((!v||v<=0)&&ex.pct_ref_slug) v=MAXES[ex.pct_ref_slug]; return (v&&v>0)?v:null; }
+function pctToKg(ex,pct){ const m=exMax(ex); if(!m||!pct) return null; return Math.round(m*pct/100/2.5)*2.5; }
 function fmtKg(k){ return (Number.isInteger(k)?k:k.toFixed(1).replace(/\.0$/,''))+' kg'; }
 function rpeTxt(v){ if(v==null) return ''; const n=+v; return String(n); }
 /* parse a rich reps string into wave steps; returns array or null */
@@ -1489,11 +1489,10 @@ function parseWave(reps){
 }
 /* build the prescription block for one workout_exercise row */
 function rxBlock(it,ex){
-  const exId=ex.id;
   const wave=(!it.sets)?parseWave(it.reps):null;
   if(wave){
     const rows=wave.map(s=>{
-      const kg=s.pct?pctToKg(exId,s.pct):null;
+      const kg=s.pct?pctToKg(ex,s.pct):null;
       const right=s.pct
         ? `<span class="pct">${s.pct}%</span> <span class="kg${kg?'':' miss'}">${kg?'→ '+esc(fmtKg(kg)):'· '+t('rx_need_1rm')}</span>`
         : '';
@@ -1505,7 +1504,7 @@ function rxBlock(it,ex){
   const main=it.sets?`${it.sets} × ${repsTxt}`:(repsTxt||'—');
   let right='';
   if(it.load_pct_1rm){
-    const pct=Math.round(+it.load_pct_1rm), kg=pctToKg(exId,pct);
+    const pct=Math.round(+it.load_pct_1rm), kg=pctToKg(ex,pct);
     right=`<span class="pct">${pct}%</span> <span class="kg${kg?'':' miss'}">${kg?'→ '+esc(fmtKg(kg)):'· '+t('rx_need_1rm')}</span>`;
   }
   return `<div class="rx"><div class="rx-row"><span class="sxr">${main}</span><span>${right}</span></div></div>`;
@@ -1945,15 +1944,15 @@ async function openWorkout(id){
   $('#se-detail').innerHTML='<div class="spin"></div>';
   window.scrollTo(0,0);
   const { data:items } = await sb.from('workout_exercises')
-    .select('id,block,display_order,sets,reps,rest_sec,tempo,target_rpe,load_pct_1rm,superset_group,notes_fr,notes_en,notes_nl,exercise:exercises(id,name_fr,name_en,name_nl,primary_muscle,equipment,load_type,video_url,youtube_query,thumbnail_url,cue_fr,cue_en,cue_nl,instructions_fr,instructions_en,instructions_nl,reference)')
+    .select('id,block,display_order,sets,reps,rest_sec,tempo,target_rpe,load_pct_1rm,superset_group,notes_fr,notes_en,notes_nl,exercise:exercises(id,slug,pct_ref_slug,name_fr,name_en,name_nl,primary_muscle,equipment,load_type,video_url,youtube_query,thumbnail_url,cue_fr,cue_en,cue_nl,instructions_fr,instructions_en,instructions_nl,reference)')
     .eq('workout_id',id).order('display_order',{ascending:true});
   const list=items||[];
   const exIds=[...new Set(list.map(it=>it.exercise&&it.exercise.id).filter(Boolean))];
   MAXES={};
   if(USER&&USER.id){
     const { data:prs } = await sb.from('personal_records')
-      .select('exercise_id,value,unit').eq('user_id',USER.id).eq('category','strength_1rm');
-    (prs||[]).forEach(p=>{ if(p.exercise_id && (!p.unit||p.unit==='kg') && p.value){ const v=+p.value; if(v>(MAXES[p.exercise_id]||0)) MAXES[p.exercise_id]=v; } });
+      .select('value,unit,exercise:exercises(slug)').eq('user_id',USER.id).eq('category','strength_1rm');
+    (prs||[]).forEach(p=>{ const slug=p.exercise&&p.exercise.slug; if(slug && (!p.unit||p.unit==='kg') && p.value){ const v=+p.value; if(v>(MAXES[slug]||0)) MAXES[slug]=v; } });
   }
   let tips={};
   if(exIds.length){
