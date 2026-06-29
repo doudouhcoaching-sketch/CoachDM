@@ -393,6 +393,42 @@
   .ex-tip{margin-top:8px;font-size:12px;line-height:1.4;color:var(--tc);display:flex;gap:6px;align-items:flex-start}
   .ex-tip b{font-weight:700}
   .ex-demo{display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-size:12px;font-weight:700;color:var(--prot)}
+  /* prescription premium */
+  .rx{margin-top:9px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);overflow:hidden}
+  .rx-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:7px 11px;font-size:13px}
+  .rx-row+.rx-row{border-top:1px solid var(--line)}
+  .rx-row .sxr{font-weight:800;color:var(--text)}
+  .rx-row .pct{font-size:11px;font-weight:700;color:var(--muted)}
+  .rx-row .kg{font-weight:800;color:var(--brand);white-space:nowrap}
+  .rx-row .kg.miss{color:var(--muted);font-weight:700}
+  .rx-solo{padding:7px 11px;font-size:13.5px;font-weight:800;color:var(--text)}
+  .ex-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+  .ch{font-size:11px;font-weight:800;padding:4px 8px;border-radius:8px;background:var(--surface-2);color:var(--muted);letter-spacing:.2px}
+  .ch.tempo{background:rgba(167,139,250,.14);color:var(--fat)}
+  .ch.rpe{background:rgba(56,189,248,.14);color:var(--carb)}
+  .ch.rest{background:rgba(16,185,129,.14);color:var(--fiber)}
+  .ch.ss{background:rgba(212,175,55,.16);color:#D4AF37}
+  .ex-note{margin-top:8px;font-size:12.5px;line-height:1.45;color:var(--text);
+    border-left:2px solid #D4AF37;padding:2px 0 2px 10px}
+  .ex-note b{color:#D4AF37;font-weight:800}
+  .ex-tech{margin-top:8px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);overflow:hidden}
+  .ex-tech>summary{list-style:none;cursor:pointer;padding:8px 11px;font-size:11.5px;font-weight:800;
+    letter-spacing:.4px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:7px}
+  .ex-tech>summary::-webkit-details-marker{display:none}
+  .ex-tech>summary::before{content:"\203A";font-size:16px;transition:transform .2s;color:var(--brand)}
+  .ex-tech[open]>summary::before{transform:rotate(90deg)}
+  .ex-tech-body{padding:0 12px 11px;font-size:12.5px;line-height:1.5;color:var(--muted)}
+  .ex-cue{color:var(--text);font-weight:600;margin-bottom:6px}
+  .ex-steps{margin:0;padding-left:18px} .ex-steps li{margin:3px 0}
+  .ex-ref{margin-top:7px;font-size:11px;color:var(--muted)} .ex-ref b{color:var(--text)}
+  /* "comment lire" session helper */
+  .se-read{margin-top:14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);overflow:hidden}
+  .se-read>summary{list-style:none;cursor:pointer;padding:11px 13px;font-size:12.5px;font-weight:800;color:var(--text);
+    display:flex;align-items:center;gap:8px}
+  .se-read>summary::-webkit-details-marker{display:none}
+  .se-read>summary::before{content:"\1F4D6";font-size:14px}
+  .se-read-body{padding:0 14px 13px;font-size:12.5px;line-height:1.55;color:var(--muted)}
+  .se-read-body b{color:var(--text)} .se-read-body .k{color:var(--brand);font-weight:800}
   /* set pills */
   .pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
   .pill{min-width:34px;height:30px;padding:0 8px;border-radius:9px;border:1.5px solid var(--line);background:var(--surface-2);
@@ -413,20 +449,6 @@
   .prod-desc{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.4}
   .prod-buy{display:inline-flex;align-items:center;gap:6px;margin-top:11px;padding:9px 15px;border-radius:11px;font-weight:700;font-size:13px;color:#fff;
     background:linear-gradient(135deg,var(--brand),var(--brand-2));text-decoration:none}
-  .presc{display:flex;flex-direction:column;gap:4px;margin-top:7px}
-  .presc-l{font-size:13.5px;line-height:1.35;color:var(--text);background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--brand);border-radius:9px;padding:7px 10px}
-  .presc-l b{color:#D4AF37;font-weight:800;white-space:nowrap}
-  .ex-1rm{align-self:flex-start;margin-top:8px;font-size:12px;font-weight:700;color:var(--brand);background:var(--brand-soft);border:1px solid var(--brand);border-radius:8px;padding:6px 11px;cursor:pointer}
-  .se-filters{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-  .se-filters::-webkit-scrollbar{display:none}
-  .se-chip{flex:0 0 auto;font-size:13px;font-weight:700;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:7px 14px;white-space:nowrap;cursor:pointer}
-  .se-chip.on{color:#fff;background:var(--brand);border-color:var(--brand)}
-  .se-cover{position:relative}
-  .prem-badge{position:absolute;top:10px;right:10px;font-size:10px;font-weight:800;letter-spacing:.5px;color:#fff;background:linear-gradient(90deg,#7C5CFF,#C840FF);border-radius:999px;padding:3px 9px}
-  .badge.free{color:#0A0A0A;background:#D4AF37;font-weight:800}
-  .se-intent{margin:12px 0 4px;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--brand);border-radius:12px;font-size:13.5px;line-height:1.45;color:var(--text)}
-  .se-intent-h{display:block;font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--brand);margin-bottom:4px}
-  .ex-note{margin-top:6px;font-size:12.5px;line-height:1.4;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -545,7 +567,6 @@
   <div class="page tabpane" id="pane-seances">
     <div id="se-list">
       <div id="go-section"></div>
-      <div id="se-filters" class="se-filters"></div>
       <div id="se-cards"><div class="spin"></div></div>
     </div>
     <div id="se-detail" class="hidden"></div>
@@ -929,6 +950,15 @@ const T = {
  set_saved:{fr:'Série enregistrée ✓',en:'Set saved ✓',nl:'Set opgeslagen ✓'},
  start_fail:{fr:'Impossible de démarrer',en:'Could not start',nl:'Kan niet starten'},
  start_first:{fr:'Démarre la séance d\u2019abord',en:'Start the workout first',nl:'Start eerst de training'},
+ rpe_label:{fr:'RPE',en:'RPE',nl:'RPE'},
+ tempo_label:{fr:'Tempo',en:'Tempo',nl:'Tempo'},
+ ex_tech:{fr:'Technique & exécution',en:'Technique & execution',nl:'Techniek & uitvoering'},
+ ref_label:{fr:'Réf.',en:'Ref.',nl:'Ref.'},
+ rx_need_1rm:{fr:'1RM ?',en:'1RM ?',nl:'1RM ?'},
+ se_howto:{fr:'Comment lire ta séance',en:'How to read your session',nl:'Je sessie lezen'},
+ howto_pct:{fr:'Les pourcentages se calculent sur ton 1RM. Les kg affichés en vert sont déjà convertis et arrondis à 2,5 kg près. Pas de kg ? Renseigne ton 1RM via un objectif Force.',en:'Percentages are based on your 1RM. The green kg are already converted and rounded to the nearest 2.5 kg. No kg shown? Set your 1RM through a Strength goal.',nl:'Percentages zijn gebaseerd op je 1RM. De groene kg zijn al omgerekend en afgerond op 2,5 kg. Geen kg? Stel je 1RM in via een krachtdoel.'},
+ howto_tempo:{fr:'Tempo en 4 chiffres : excentrique (descente) · pause basse · concentrique (montée, X = explosif) · pause haute. Ex. 31X1 = 3 s descente, 1 s en bas, montée explosive, 1 s en haut.',en:'Tempo in 4 digits: eccentric (lowering) · pause bottom · concentric (lifting, X = explosive) · pause top. E.g. 31X1 = 3 s down, 1 s bottom, explosive up, 1 s top.',nl:'Tempo in 4 cijfers: excentrisch (zakken) · pauze onder · concentrisch (omhoog, X = explosief) · pauze boven. Bijv. 31X1 = 3 s zakken, 1 s onder, explosief omhoog, 1 s boven.'},
+ howto_rpe:{fr:'RPE = effort perçu sur 10. RPE 7 ≈ 3 reps en réserve, RPE 8 ≈ 2, RPE 9 ≈ 1. Régule la charge pour atteindre le RPE cible.',en:'RPE = perceived effort out of 10. RPE 7 ≈ 3 reps in reserve, RPE 8 ≈ 2, RPE 9 ≈ 1. Adjust the load to hit the target RPE.',nl:'RPE = ervaren inspanning op 10. RPE 7 ≈ 3 reps in reserve, RPE 8 ≈ 2, RPE 9 ≈ 1. Pas de last aan om de doel-RPE te halen.'},
  f_reps:{fr:'Reps',en:'Reps',nl:'Reps'},
  f_load:{fr:'Charge (kg)',en:'Load (kg)',nl:'Gewicht (kg)'},
  f_dur:{fr:'Durée (s)',en:'Duration (s)',nl:'Duur (s)'},
@@ -1138,31 +1168,6 @@ $('#jo-search').onclick = doSearch;
 $('#jo-q').addEventListener('keydown',e=>{ if(e.key==='Enter') doSearch(); });
 
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-function L3(fr,en,nl){ return LANG==='en'?en:(LANG==='nl'?nl:fr); }
-let USER_1RM=null;
-async function loadOneRM(){
-  if(USER_1RM) return USER_1RM;
-  USER_1RM={};
-  try{
-    const { data } = await sb.from('personal_records')
-      .select('exercise_id,value,achieved_at').eq('user_id',USER.id).eq('category','strength_1rm')
-      .order('achieved_at',{ascending:false});
-    (data||[]).forEach(r=>{ if(r.exercise_id && USER_1RM[r.exercise_id]==null) USER_1RM[r.exercise_id]=Number(r.value); });
-  }catch(e){}
-  return USER_1RM;
-}
-function kgRound(v){ v=Math.round(v/2.5)*2.5; return (v%1===0)?String(v):v.toFixed(1); }
-function hasPct(s){ return /@\s*>?\s*\d+(?:\.\d+)?\s*%/.test(s||''); }
-function withKg(seg,oneRM){
-  let s=esc(seg||'');
-  if(oneRM){ s=s.replace(/@\s*(&gt;)?\s*(\d+(?:\.\d+)?)\s*%/g,(m,gt,p)=>'@'+(gt||'')+p+'% <b>= '+(gt?'&gt;':'')+kgRound(oneRM*(+p)/100)+' kg</b>'); }
-  return s;
-}
-function prescMulti(reps,oneRM){
-  const segs=String(reps).split(' \u00B7 ');
-  return '<div class="presc">'+segs.map(s=>'<div class="presc-l">'+withKg(s,oneRM)+'</div>').join('')+'</div>';
-}
-function fmtRest(s){ s=+s; if(!s) return ''; return (s>=120 && s%60===0) ? (s/60)+' min' : s+'s'; }
 
 async function searchLocal(q){
   const { data } = await sb.rpc('search_foods',{ p_query:q, p_barcode:null, p_limit:20 });
@@ -1465,6 +1470,74 @@ function ytId(u){ if(!u) return null; const m=String(u).match(/(?:v=|youtu\.be\/
 function exThumb(ex){ if(ex.thumbnail_url) return ex.thumbnail_url; const id=ytId(ex.video_url); return id?('https://i.ytimg.com/vi/'+id+'/hqdefault.jpg'):null; }
 function exDemo(ex){ if(ex.video_url) return ex.video_url; if(ex.youtube_query) return 'https://www.youtube.com/results?search_query='+encodeURIComponent(ex.youtube_query); return null; }
 
+/* ---- prescription rendering (wave loading, %→kg, tempo/RPE) ---- */
+let MAXES={};
+function exMax(exId){ const v=MAXES[exId]; return (v&&v>0)?v:null; }
+function pctToKg(exId,pct){ const m=exMax(exId); if(!m||!pct) return null; return Math.round(m*pct/100/2.5)*2.5; }
+function fmtKg(k){ return (Number.isInteger(k)?k:k.toFixed(1).replace(/\.0$/,''))+' kg'; }
+function rpeTxt(v){ if(v==null) return ''; const n=+v; return String(n); }
+/* parse a rich reps string into wave steps; returns array or null */
+function parseWave(reps){
+  if(!reps) return null;
+  const parts=String(reps).split(/[·;\n]/).map(s=>s.trim()).filter(Boolean);
+  const out=[];
+  parts.forEach(p=>{
+    const m=p.match(/^(\d+)\s*[×x]\s*([0-9]+(?:\s*[-\u2013]\s*[0-9]+)?\+?)\s*(?:@\s*(\d{1,3})\s*%)?/i);
+    if(m) out.push({sets:+m[1], reps:m[2].replace(/\s+/g,''), pct:m[3]?+m[3]:null, raw:p});
+  });
+  return out.length?out:null;
+}
+/* build the prescription block for one workout_exercise row */
+function rxBlock(it,ex){
+  const exId=ex.id;
+  const wave=(!it.sets)?parseWave(it.reps):null;
+  if(wave){
+    const rows=wave.map(s=>{
+      const kg=s.pct?pctToKg(exId,s.pct):null;
+      const right=s.pct
+        ? `<span class="pct">${s.pct}%</span> <span class="kg${kg?'':' miss'}">${kg?'→ '+esc(fmtKg(kg)):'· '+t('rx_need_1rm')}</span>`
+        : '';
+      return `<div class="rx-row"><span class="sxr">${s.sets} × ${esc(s.reps)}</span><span>${right}</span></div>`;
+    }).join('');
+    return `<div class="rx">${rows}</div>`;
+  }
+  const repsTxt=it.reps?esc(it.reps):'';
+  const main=it.sets?`${it.sets} × ${repsTxt}`:(repsTxt||'—');
+  let right='';
+  if(it.load_pct_1rm){
+    const pct=Math.round(+it.load_pct_1rm), kg=pctToKg(exId,pct);
+    right=`<span class="pct">${pct}%</span> <span class="kg${kg?'':' miss'}">${kg?'→ '+esc(fmtKg(kg)):'· '+t('rx_need_1rm')}</span>`;
+  }
+  return `<div class="rx"><div class="rx-row"><span class="sxr">${main}</span><span>${right}</span></div></div>`;
+}
+function exChips(it){
+  let c='';
+  if(it.tempo) c+=`<span class="ch tempo">${t('tempo_label')} ${esc(it.tempo)}</span>`;
+  if(it.target_rpe!=null) c+=`<span class="ch rpe">${t('rpe_label')} ${esc(rpeTxt(it.target_rpe))}</span>`;
+  if(it.rest_sec) c+=`<span class="ch rest">${t('rest')} ${it.rest_sec}s</span>`;
+  if(it.superset_group) c+=`<span class="ch ss">Superset ${esc(it.superset_group)}</span>`;
+  return c?`<div class="ex-chips">${c}</div>`:'';
+}
+function exTech(ex){
+  const cue=pick(ex,'cue');
+  const steps=ex['instructions_'+LANG]||ex.instructions_fr||ex.instructions_en||[];
+  const hasSteps=Array.isArray(steps)&&steps.length;
+  const ref=ex.reference;
+  if(!cue&&!hasSteps&&!ref) return '';
+  let body='';
+  if(cue) body+=`<div class="ex-cue">${esc(cue)}</div>`;
+  if(hasSteps) body+=`<ol class="ex-steps">${steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`;
+  if(ref) body+=`<div class="ex-ref">${t('ref_label')} <b>${esc(ref)}</b></div>`;
+  return `<details class="ex-tech"><summary>${t('ex_tech')}</summary><div class="ex-tech-body">${body}</div></details>`;
+}
+function howToRead(){
+  return `<details class="se-read"><summary>${t('se_howto')}</summary><div class="se-read-body">`
+    +`<p><span class="k">%→kg.</span> ${t('howto_pct')}</p>`
+    +`<p style="margin-top:8px"><span class="k">Tempo.</span> ${t('howto_tempo')}</p>`
+    +`<p style="margin-top:8px"><span class="k">RPE.</span> ${t('howto_rpe')}</p>`
+    +`</div></details>`;
+}
+
 let SE_WORKOUTS=null, SE_COUNTS={}, SE_CUR=null, SESSION=null, SET_CTX=null;
 
 async function loadWod(){
@@ -1516,7 +1589,7 @@ function loadInsight(){
 /* ================= SEANCES ================= */
 async function fetchWorkouts(){
   const { data:ws } = await sb.from('workouts')
-    .select('id,slug,name_fr,name_en,name_nl,description_fr,description_en,description_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url,program_slug,week_number,day_number')
+    .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url')
     .eq('is_published',true).order('created_at',{ascending:true});
   SE_WORKOUTS = ws||[]; SE_COUNTS={};
   const ids=SE_WORKOUTS.map(w=>w.id);
@@ -1525,64 +1598,18 @@ async function fetchWorkouts(){
     (we||[]).forEach(r=>{ SE_COUNTS[r.workout_id]=(SE_COUNTS[r.workout_id]||0)+1; });
   }
 }
-let SE_ITEMS=[], SE_FILTER='all';
-function typeGroup(type){
-  const M={
-    strength:['force','Force & Haltéro','Strength','Kracht'],
-    hypertrophy:['force','Force & Haltéro','Strength','Kracht'],
-    hyrox:['hyrox','Hyrox','Hyrox','Hyrox'],
-    hiit:['hiit','HIIT','HIIT','HIIT'],
-    circuit:['fatburn','Fat burn','Fat burn','Fat burn'],
-    conditioning:['cardio','Cardio','Cardio','Cardio'],
-    cardio:['cardio','Cardio','Cardio','Cardio'],
-    skill:['gym','Gym & Skill','Gym & Skill','Gym & Skill'],
-    football:['football','Football','Football','Voetbal'],
-    full_body:['fullbody','Full body','Full body','Full body'],
-    mobility:['mobility','Mobilité','Mobility','Mobiliteit'],
-    emom:['metcon','MetCon','MetCon','MetCon'],
-    amrap:['metcon','MetCon','MetCon','MetCon'],
-    for_time:['metcon','MetCon','MetCon','MetCon']
-  };
-  return M[type]||['autre','Autre','Other','Andere'];
-}
-function renderSeCards(){
-  const host=$('#se-cards'); if(!host) return;
-  const list=(SE_ITEMS||[]).filter(it=>SE_FILTER==='all'||it.group===SE_FILTER);
-  host.innerHTML=list.length?list.map(it=>it.html).join(''):'<p class="empty">'+t('co_none_up')+'</p>';
-}
 async function loadWorkouts(){
   backToList();
   await fetchWorkouts();
   loadGoals();
-  const FLAT=(SE_WORKOUTS||[]).filter(w=> w.source!=='charge_engine' && w.source!=='skill_engine');
-  const fbar=$('#se-filters');
-  if(!FLAT.length){ SE_ITEMS=[]; if(fbar) fbar.innerHTML=''; $('#se-cards').innerHTML='<p class="empty">'+t('co_none_up')+'</p>'; return; }
-  const progMap={}, singles=[];
-  FLAT.forEach(w=>{ if(w.program_slug){ (progMap[w.program_slug]=progMap[w.program_slug]||[]).push(w); } else singles.push(w); });
-  const items=[];
-  Object.keys(progMap).forEach(slug=>{
-    const arr=progMap[slug], w0=arr[0], col=typeColor(w0.type), g=typeGroup(w0.type);
-    const weeks=Math.max.apply(null,arr.map(x=>x.week_number||1)), days=arr.length;
-    const pname=w0.source||pick(w0,'name');
-    const html=`<div class="se-card" data-prog="${esc(slug)}" data-pname="${esc(pname)}">
-      <div class="se-cover" style="--c:${col}"><span class="se-type">${typeL(w0.type)}</span><span class="prem-badge">PREMIUM</span></div>
-      <div class="se-body">
-        <div class="se-title">${esc(pname)}</div>
-        <div class="se-src">${weeks} ${L3('semaines','weeks','weken')} \u00B7 ${days} ${L3('séances','sessions','sessies')}</div>
-        <div class="se-badges">
-          <span class="badge c" style="--c:${col}">${diffL(w0.difficulty)}</span>
-          <span class="badge">${typeL(w0.type)}</span>
-          <span class="badge free">${L3('S1 offerte','Week 1 free','Week 1 gratis')}</span>
-        </div>
-      </div></div>`;
-    items.push({group:g[0], glabel:g, html});
-  });
-  singles.forEach(w=>{
-    const col=typeColor(w.type), n=SE_COUNTS[w.id]||0, g=typeGroup(w.type);
+  const FLAT=(SE_WORKOUTS||[]).filter(w=>w.source!=='charge_engine');
+  if(!FLAT.length){ $('#se-cards').innerHTML='<p class="empty">'+t('co_none_up')+'</p>'; return; }
+  $('#se-cards').innerHTML = FLAT.map(w=>{
+    const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
     const cover = w.cover_image_url
       ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${typeL(w.type)}</span></div>`
       : `<div class="se-cover" style="--c:${col}"><span class="se-type">${typeL(w.type)}</span></div>`;
-    const html=`<div class="se-card" data-open="${w.id}">${cover}
+    return `<div class="se-card" data-open="${w.id}">${cover}
       <div class="se-body">
         <div class="se-title">${esc(pick(w,'name'))}</div>
         ${w.source?`<div class="se-src">${esc(w.source)}</div>`:''}
@@ -1592,20 +1619,7 @@ async function loadWorkouts(){
           <span class="badge">${n} ${t('exercises')}</span>
         </div>
       </div></div>`;
-    items.push({group:g[0], glabel:g, html});
-  });
-  SE_ITEMS=items;
-  const groups={}; items.forEach(it=>{ groups[it.group]=it.glabel; });
-  const keys=Object.keys(groups);
-  if(!keys.includes(SE_FILTER) && SE_FILTER!=='all') SE_FILTER='all';
-  if(fbar){
-    if(keys.length>1){
-      let chips=`<button class="se-chip${SE_FILTER==='all'?' on':''}" data-filter="all">${L3('Tous','All','Alle')}</button>`;
-      keys.forEach(k=>{ const g=groups[k]; chips+=`<button class="se-chip${SE_FILTER===k?' on':''}" data-filter="${k}">${L3(g[1],g[2],g[3])}</button>`; });
-      fbar.innerHTML=chips;
-    } else fbar.innerHTML='';
-  }
-  renderSeCards();
+  }).join('');
 }
 /* ================= OBJECTIFS / MOTEUR CHARGE ================= */
 let GOAL_LIFTS=null, GOAL_DRAFT={}, GOAL_SKILLS=null, GOAL_FAMS=null;
@@ -1888,63 +1902,6 @@ async function openCycle(goalId){
   document.getElementById('se-back').onclick=()=>{ loadWorkouts(); backToList(); };
 }
 
-async function openProgram(slug,pname){
-  switchTab('seances');
-  $('#se-list').classList.add('hidden');
-  $('#se-detail').classList.remove('hidden');
-  $('#se-detail').innerHTML='<div class="spin"></div>';
-  window.scrollTo(0,0);
-  const { data:ws } = await sb.from('workouts')
-    .select('id,name_fr,name_en,name_nl,week_number,day_number,difficulty')
-    .eq('program_slug',slug).eq('is_published',true)
-    .order('week_number',{ascending:true}).order('day_number',{ascending:true});
-  const list=ws||[];
-  const back='<button class="se-back" id="se-back">'+t('see_all_workouts')+'</button>';
-  if(!list.length){
-    $('#se-detail').innerHTML=back+'<p class="empty">'+t('co_none_up')+'</p>';
-    document.getElementById('se-back').onclick=()=>{ loadWorkouts(); backToList(); };
-    return;
-  }
-  const weeks={};
-  list.forEach(w=>{ (weeks[w.week_number||1]=weeks[w.week_number||1]||[]).push(w); });
-  let html=back+'<div class="se-d-title">'+esc(pname||'')+'</div>';
-  Object.keys(weeks).sort((a,b)=>a-b).forEach(wk=>{
-    html+='<div class="cyc-wk"><div class="cyc-wk-h">'+t('go_week')+' '+wk+'</div>';
-    weeks[wk].forEach(w=>{
-      html+='<button class="cyc-day" data-open="'+w.id+'"><span>'+L3('Jour','Day','Dag')+' '+(w.day_number||1)+'</span><small>'+esc(pick(w,'name'))+'</small></button>';
-    });
-    html+='</div>';
-  });
-  $('#se-detail').innerHTML=html;
-  document.getElementById('se-back').onclick=()=>{ loadWorkouts(); backToList(); };
-}
-
-document.addEventListener('click',async e=>{
-  const fc=e.target.closest('[data-filter]');
-  if(fc){ SE_FILTER=fc.getAttribute('data-filter');
-    document.querySelectorAll('#se-filters .se-chip').forEach(c=>c.classList.toggle('on',c.getAttribute('data-filter')===SE_FILTER));
-    renderSeCards(); return; }
-  const pc=e.target.closest('[data-prog]');
-  if(pc){ openProgram(pc.getAttribute('data-prog'), pc.getAttribute('data-pname')); return; }
-  const rm=e.target.closest('[data-rm]');
-  if(rm){
-    e.preventDefault();
-    const exId=rm.getAttribute('data-rm');
-    const val=window.prompt(L3('Ton 1RM pour ce mouvement (kg) :','Your 1RM for this lift (kg):','Jouw 1RM voor deze oefening (kg):'));
-    if(val===null) return;
-    const num=parseFloat(String(val).replace(',','.'));
-    if(!num||num<=0){ toast(L3('Valeur invalide','Invalid value','Ongeldige waarde')); return; }
-    try{
-      const { error }=await sb.rpc('set_one_rm',{p_exercise_id:exId,p_value:num});
-      if(error) throw error;
-      USER_1RM=null;
-      toast(L3('1RM enregistré','1RM saved','1RM opgeslagen')+' \u2705');
-      if(SE_CUR&&SE_CUR.w) openWorkout(SE_CUR.w.id);
-    }catch(err){ toast(L3('Échec de l\u2019enregistrement','Save failed','Opslaan mislukt')); }
-    return;
-  }
-});
-
 if($('#goal-ov')) $('#goal-ov').onclick=e=>{ if(e.target.id==='goal-ov') closeGoal(); };
 document.addEventListener('click',e=>{
   if(e.target.closest('[data-goal-new]')){ openGoalWizard(); return; }
@@ -1988,21 +1945,25 @@ async function openWorkout(id){
   $('#se-detail').innerHTML='<div class="spin"></div>';
   window.scrollTo(0,0);
   const { data:items } = await sb.from('workout_exercises')
-    .select('id,block,display_order,sets,reps,rest_sec,tempo,target_rpe,notes_fr,notes_en,notes_nl,exercise:exercises(id,name_fr,name_en,name_nl,primary_muscle,equipment,load_type,video_url,youtube_query,thumbnail_url)')
+    .select('id,block,display_order,sets,reps,rest_sec,tempo,target_rpe,load_pct_1rm,superset_group,notes_fr,notes_en,notes_nl,exercise:exercises(id,name_fr,name_en,name_nl,primary_muscle,equipment,load_type,video_url,youtube_query,thumbnail_url,cue_fr,cue_en,cue_nl,instructions_fr,instructions_en,instructions_nl,reference)')
     .eq('workout_id',id).order('display_order',{ascending:true});
   const list=items||[];
   const exIds=[...new Set(list.map(it=>it.exercise&&it.exercise.id).filter(Boolean))];
+  MAXES={};
+  if(USER&&USER.id){
+    const { data:prs } = await sb.from('personal_records')
+      .select('exercise_id,value,unit').eq('user_id',USER.id).eq('category','strength_1rm');
+    (prs||[]).forEach(p=>{ if(p.exercise_id && (!p.unit||p.unit==='kg') && p.value){ const v=+p.value; if(v>(MAXES[p.exercise_id]||0)) MAXES[p.exercise_id]=v; } });
+  }
   let tips={};
   if(exIds.length){
     const { data:tp } = await sb.from('exercise_tips').select('exercise_id,severity,body_fr,body_en,body_nl,reference').in('exercise_id',exIds).order('display_order',{ascending:true});
     (tp||[]).forEach(t=>{ if(!tips[t.exercise_id]) tips[t.exercise_id]=t; });
   }
-  const oneRM=await loadOneRM();
-  renderDetail(w,list,tips,oneRM);
+  renderDetail(w,list,tips);
 }
 
-function renderDetail(w,items,tips,oneRMmap){
-  oneRMmap=oneRMmap||{};
+function renderDetail(w,items,tips){
   const col=typeColor(w.type);
   const cover = w.cover_image_url
     ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${typeL(w.type)}</span></div>`
@@ -2014,8 +1975,8 @@ function renderDetail(w,items,tips,oneRMmap){
       <span class="badge c" style="--c:${col}">${typeL(w.type)}</span>
       <span class="badge">${diffL(w.difficulty)}</span>
       <span class="badge">${w.estimated_duration_min||'—'} min</span>
-    </div>
-    ${pick(w,'description')?`<div class="se-intent"><span class="se-intent-h">${L3('But de la séance','Session goal','Doel van de sessie')}</span>${esc(pick(w,'description'))}</div>`:''}`;
+    </div>`;
+  html+=howToRead();
   let lastBlock=null;
   items.forEach(it=>{
     const ex=it.exercise||{}, bc=BLOCK_COLOR[it.block]||col;
@@ -2032,26 +1993,20 @@ function renderDetail(w,items,tips,oneRMmap){
     const tip=tips[ex.id];
     const sv=tip?(SEV[tip.severity]||SEV.success):null;
     const tipEl = tip ? `<div class="ex-tip" style="--tc:var(${sv.c})"><b>${sv.i}</b><span>${esc(pick(tip,'body')||'')}${tip.reference?` · <b>${esc(tip.reference)}</b>`:''}</span></div>` : '';
-    const setsN=it.sets||0, rawReps=it.reps||'', oneRM=oneRMmap[ex.id];
-    const pills = setsN>0 ? `<div class="pills" data-we="${it.id}" data-ex="${ex.id}" data-load="${ex.load_type||'reps_only'}">`+
-      Array.from({length:setsN},(_,i)=>`<span class="pill" data-on="0" data-set="${i+1}">${i+1}</span>`).join('')+`</div>` : '';
-    const prescBlock = (!setsN && rawReps) ? prescMulti(rawReps,oneRM) : '';
-    const rmBtn = (hasPct(rawReps) && !oneRM && ex.load_type==='weight')
-      ? `<button class="ex-1rm" data-rm="${ex.id}">${L3('+ Renseigner mon 1RM','+ Set my 1RM','+ Mijn 1RM instellen')}</button>` : '';
+    const wave=(!it.sets)?parseWave(it.reps):null;
+    const trackSets=it.sets||(wave?wave.reduce((a,s)=>a+s.sets,0):0);
+    const note=pick(it,'notes');
+    const pills = trackSets>0 ? `<div class="pills" data-we="${it.id}" data-ex="${ex.id}" data-load="${ex.load_type||'reps_only'}">`+
+      Array.from({length:trackSets},(_,i)=>`<span class="pill" data-on="0" data-set="${i+1}">${i+1}</span>`).join('')+`</div>` : '';
     html+=`<div class="exrow">${thumbEl}
       <div class="ex-main">
         <div class="ex-name">${esc(pick(ex,'name')||t('ex_fallback'))}</div>
-        <div class="ex-meta">
-          ${setsN>0?`<span class="chip k">${setsN} × ${withKg(rawReps,oneRM)}</span>`:''}
-          ${it.rest_sec?`<span class="chip">${t('rest')} ${fmtRest(it.rest_sec)}</span>`:''}
-          ${it.tempo?`<span class="chip">Tempo ${esc(it.tempo)}</span>`:''}
-          ${it.target_rpe?`<span class="chip">RPE ${(+it.target_rpe).toString().replace(/\.0$/,'')}</span>`:''}
-          ${ex.primary_muscle?`<span class="chip">${muscleL(ex.primary_muscle)}</span>`:''}
-        </div>
-        ${prescBlock}
-        ${pick(it,'notes')?`<div class="ex-note">${esc(pick(it,'notes'))}</div>`:''}
-        ${rmBtn}
+        ${ex.primary_muscle?`<div class="ex-meta"><span class="chip">${muscleL(ex.primary_muscle)}</span></div>`:''}
+        ${rxBlock(it,ex)}
+        ${exChips(it)}
+        ${note?`<div class="ex-note">${esc(note)}</div>`:''}
         ${tipEl}
+        ${exTech(ex)}
         ${demo?`<a class="ex-demo" href="${esc(demo)}" target="_blank" rel="noopener">▶ ${t('see_demo')}</a>`:''}
         ${pills}
       </div></div>`;
