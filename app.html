@@ -9,6 +9,7 @@
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#050807" />
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#050807" />
 <title>Coach DM</title>
+<link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -686,19 +687,6 @@
   </div>
 </div>
 
-<div class="overlay" id="loop-ov">
-  <div class="sheet" style="text-align:center">
-    <div class="grab"></div>
-    <div style="font-size:40px;line-height:1;margin:6px 0 10px">🏆</div>
-    <h3 id="loop-title" style="margin:0 0 4px">Cycle terminé</h3>
-    <div class="fk" id="loop-cycle" style="color:var(--gold,#D4AF37);font-weight:700;margin-bottom:10px">—</div>
-    <p id="loop-body" style="color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 16px"></p>
-    <div id="loop-next" style="font-size:12px;color:var(--muted);margin-bottom:14px"></div>
-    <button class="btn" id="loop-restart" data-i18n="loop_restart">Recommencer le cycle</button>
-    <button class="btn subtle" id="loop-later" style="margin-top:10px" data-i18n="loop_later">Plus tard</button>
-  </div>
-</div>
-
 <div class="overlay" id="goal-ov"><div class="sheet">
   <div class="grab"></div>
   <div id="goal-body"></div>
@@ -927,13 +915,6 @@ const T = {
  set_saved:{fr:'Série enregistrée ✓',en:'Set saved ✓',nl:'Set opgeslagen ✓'},
  start_fail:{fr:'Impossible de démarrer',en:'Could not start',nl:'Kan niet starten'},
  start_first:{fr:'Démarre la séance d\u2019abord',en:'Start the workout first',nl:'Start eerst de training'},
- loop_done_t:{fr:'Cycle terminé 🏆',en:'Cycle complete 🏆',nl:'Cyclus voltooid 🏆'},
- loop_done_p:{fr:'Tu as bouclé les 8 semaines. Ce programme est un CYCLE : relance-le et, grâce à tes nouveaux records, les charges %1RM repartent automatiquement plus lourdes. Tu progresses sans changer de plan.',en:'You\u2019ve completed all 8 weeks. This program is a CYCLE: restart it and, thanks to your new records, the %1RM loads automatically come back heavier. You progress without changing plans.',nl:'Je hebt alle 8 weken afgerond. Dit programma is een CYCLUS: herstart het en dankzij je nieuwe records komen de %1RM-belastingen automatisch zwaarder terug. Je vordert zonder van plan te wisselen.'},
- loop_cycle:{fr:'Cycle N°',en:'Cycle No.',nl:'Cyclus nr.'},
- loop_next:{fr:'Prochain : Cycle N°',en:'Next: Cycle No.',nl:'Volgende: Cyclus nr.'},
- loop_restart:{fr:'Recommencer le cycle',en:'Restart the cycle',nl:'Cyclus herstarten'},
- loop_later:{fr:'Plus tard',en:'Later',nl:'Later'},
- loop_restarted:{fr:'Nouveau cycle lancé 💪',en:'New cycle started 💪',nl:'Nieuwe cyclus gestart 💪'},
  f_reps:{fr:'Reps',en:'Reps',nl:'Reps'},
  f_load:{fr:'Charge (kg)',en:'Load (kg)',nl:'Gewicht (kg)'},
  f_dur:{fr:'Durée (s)',en:'Duration (s)',nl:'Duur (s)'},
@@ -1496,7 +1477,7 @@ function loadInsight(){
 /* ================= SEANCES ================= */
 async function fetchWorkouts(){
   const { data:ws } = await sb.from('workouts')
-    .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url,program_slug')
+    .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url')
     .eq('is_published',true).order('created_at',{ascending:true});
   SE_WORKOUTS = ws||[]; SE_COUNTS={};
   const ids=SE_WORKOUTS.map(w=>w.id);
@@ -1936,36 +1917,9 @@ async function startOrFinish(){
     btn.disabled=true;
     const mins=Math.max(1,Math.round((Date.now()-SESSION.started)/60000));
     await sb.from('workout_sessions').update({status:'completed',completed_at:new Date().toISOString(),duration_min:mins}).eq('id',SESSION.id);
-    SESSION=null; btn.disabled=false; toast(t('session_done'));
-    const _slug = SE_CUR && SE_CUR.w && SE_CUR.w.program_slug;
-    if(_slug){
-      try{
-        const { data:st } = await sb.rpc('program_status',{p_slug:_slug});
-        if(st && st.done){ showCycleDone(_slug, st.cycle); return; }
-      }catch(e){}
-    }
-    backToList();
+    SESSION=null; btn.disabled=false; toast(t('session_done')); backToList();
   }
 }
-
-/* ---- FOUNDATION LOOP : écran fin de cycle + relance ---- */
-function showCycleDone(slug, cycle){
-  $('#loop-title').textContent = t('loop_done_t');
-  $('#loop-cycle').textContent = t('loop_cycle')+cycle;
-  $('#loop-body').textContent  = t('loop_done_p');
-  $('#loop-next').textContent  = t('loop_next')+(cycle+1);
-  const ov=$('#loop-ov'); ov.dataset.slug=slug; ov.classList.add('show');
-}
-async function restartCycle(){
-  const ov=$('#loop-ov'); const slug=ov.dataset.slug; if(!slug) return;
-  setBtn('#loop-restart',true,'\u2026');
-  try{ await sb.rpc('restart_program',{p_slug:slug}); }catch(e){}
-  setBtn('#loop-restart',false,t('loop_restart'));
-  ov.classList.remove('show'); toast(t('loop_restarted')); backToList();
-}
-if($('#loop-restart')) $('#loop-restart').onclick=restartCycle;
-if($('#loop-later'))   $('#loop-later').onclick=()=>{ $('#loop-ov').classList.remove('show'); backToList(); };
-if($('#loop-ov'))      $('#loop-ov').onclick=(e)=>{ if(e.target.id==='loop-ov'){ $('#loop-ov').classList.remove('show'); backToList(); } };
 
 function openSetSheet(wrap,pill){
   if(!SESSION){ toast(t('start_first')); return; }
@@ -2165,6 +2119,13 @@ $('#p-name-save').onclick = async ()=>{
 
 applyI18n(); renderLangBtns();
 boot();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
 </script>
 </body>
 </html>
