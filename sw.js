@@ -19,9 +19,14 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Network-first : toujours essayer le réseau, fallback cache si offline
+// Network-first, same-origin only : ne JAMAIS intercepter les appels
+// vers Supabase ou autres APIs externes (auth, données premium, etc.)
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return; // laisse passer Supabase, CDN, etc.
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
