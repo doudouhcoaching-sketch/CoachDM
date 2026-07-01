@@ -200,6 +200,18 @@
     .overlay{position:fixed;inset:0;z-index:60;background:rgba(8,8,20,.5);
     backdrop-filter:blur(3px);display:none;align-items:flex-end;justify-content:center}
   .overlay.show{display:flex}
+  .se-card.locked{opacity:.6}
+  .se-card.locked .se-cover{filter:grayscale(.45)}
+  .se-lock{position:absolute;top:10px;right:10px;z-index:2;width:30px;height:30px;border-radius:50%;
+    background:rgba(0,0,0,.62);display:grid;place-items:center;font-size:15px;backdrop-filter:blur(2px)}
+  .up-price{color:var(--gold,#D4AF37);font-weight:700;font-size:13px;margin-bottom:2px}
+  .up-feats{list-style:none;padding:0;margin:14px 0 18px;display:flex;flex-direction:column;gap:10px;text-align:left}
+  .up-feats li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.4}
+  .up-feats li .ck{color:var(--gold,#D4AF37);flex:0 0 auto;font-weight:800}
+  .ia-lock{margin:auto;text-align:center;padding:34px 22px;max-width:340px}
+  .ia-lock .lk{font-size:44px;margin-bottom:12px}
+  .ia-lock h3{margin:0 0 8px;font-size:18px}
+  .ia-lock p{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 18px}
   .sheet{width:100%;max-width:480px;background:var(--surface);border-radius:26px 26px 0 0;
     padding:22px 20px calc(22px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.3);
     animation:up .25s cubic-bezier(.2,.8,.2,1)}
@@ -665,6 +677,21 @@
   <div id="goal-body"></div>
 </div></div>
 
+<div class="overlay" id="up-ov"><div class="sheet" style="text-align:center">
+  <div class="grab"></div>
+  <div style="font-size:40px;line-height:1;margin:6px 0 10px">🔒</div>
+  <h3 data-i18n="up_title">Passe en Premium</h3>
+  <p class="fk" id="up-sub" style="margin-bottom:14px">—</p>
+  <div class="up-price" data-i18n="up_price">Essai 7 jours, puis 14,99 €/mois</div>
+  <ul class="up-feats">
+    <li><span class="ck">✓</span><span data-i18n="up_feat1">Tous les programmes, semaine après semaine</span></li>
+    <li><span class="ck">✓</span><span data-i18n="up_feat2">Coach IA illimité</span></li>
+    <li><span class="ck">✓</span><span data-i18n="up_feat3">Objectifs perso &amp; moteur de charge</span></li>
+  </ul>
+  <a class="btn" id="up-cta" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener" style="display:block;text-decoration:none;text-align:center" data-i18n="up_cta">Demander l'accès</a>
+  <button class="btn subtle" id="up-later" style="margin-top:10px" data-i18n="up_later">Plus tard</button>
+</div></div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -843,6 +870,15 @@ const T = {
  gate_p1:{fr:'L\u2019app Coach DM est réservée aux membres.<br>Essai 7 jours, puis 14,99 €/mois.',en:'The Coach DM app is for members.<br>7-day trial, then €14.99/month.',nl:'De Coach DM-app is voor leden.<br>7 dagen proberen, daarna €14,99/maand.'},
  gate_p2:{fr:"Ton compte est créé mais n'a pas encore d'accès. Contacte le coach pour l'activer.",en:'Your account is created but has no access yet. Contact the coach to activate it.',nl:'Je account is aangemaakt maar heeft nog geen toegang. Contacteer de coach om het te activeren.'},
  gate_ask:{fr:"Demander l'accès",en:'Request access',nl:'Toegang aanvragen'},
+ up_title:{fr:'Passe en Premium',en:'Go Premium',nl:'Word Premium'},
+ up_workout:{fr:'Cette séance fait partie du programme complet, réservé aux membres.',en:'This workout is part of the full members-only program.',nl:'Deze training hoort bij het volledige ledenprogramma.'},
+ up_ia:{fr:'Le Coach IA est réservé aux membres Premium.',en:'The AI Coach is for Premium members.',nl:'De AI-coach is voor Premium-leden.'},
+ up_price:{fr:'Essai 7 jours, puis 14,99 €/mois',en:'7-day trial, then €14.99/month',nl:'7 dagen proberen, daarna €14,99/maand'},
+ up_feat1:{fr:'Tous les programmes, semaine après semaine',en:'Every program, week after week',nl:"Alle programma's, week na week"},
+ up_feat2:{fr:'Coach IA illimité',en:'Unlimited AI Coach',nl:'Onbeperkte AI-coach'},
+ up_feat3:{fr:'Objectifs perso & moteur de charge',en:'Custom goals & load engine',nl:'Persoonlijke doelen & belastingsmotor'},
+ up_cta:{fr:"Demander l'accès",en:'Request access',nl:'Toegang aanvragen'},
+ up_later:{fr:'Plus tard',en:'Later',nl:'Later'},
  au_email:{fr:'Email',en:'Email',nl:'E-mail'},
  au_pass:{fr:'Mot de passe',en:'Password',nl:'Wachtwoord'},
  au_login:{fr:'Se connecter',en:'Log in',nl:'Inloggen'},
@@ -940,7 +976,7 @@ function setLang(l){
   if(active && typeof switchTab==='function') switchTab(active);
 }
 
-let USER=null, TARGETS=null, SELECTED=null, CONV=null, BUSY=false, IA_LOADED=false;
+let USER=null, TARGETS=null, SELECTED=null, CONV=null, BUSY=false, IA_LOADED=false, PREMIUM=false;
 
 const todayStr = ()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
 const r0=(n)=>Math.round(n||0);
@@ -987,8 +1023,7 @@ function humanAuth(m){
 async function enter(user){
   USER=user;
   show('boot');
-  const ok = await hasAccess(user.id);
-  if(!ok){ show('gate'); return; }
+  PREMIUM = await hasAccess(user.id);
   show('app');
   $('#p-email').textContent = user.email || '';
   await loadProfileInfo(user);
@@ -1302,6 +1337,7 @@ function addBubble(role,text){
 }
 async function sendIA(){
   if(BUSY) return;
+  if(!PREMIUM){ showUpsell('ia'); return; }
   const text=$('#ia-input').value.trim();
   if(!text) return;
   $('#ia-input').value='';
@@ -1319,6 +1355,22 @@ async function sendIA(){
   BUSY=false; $('#ia-send').disabled=false;
 }
 
+/* ---------------- UPSELL ---------------- */
+function showUpsell(kind){
+  const sub=$('#up-sub'); if(sub) sub.textContent=t(kind==='ia'?'up_ia':'up_workout');
+  const ov=$('#up-ov'); if(ov) ov.classList.add('show');
+}
+function renderIALock(){
+  const sc=$('#ia-scroll');
+  if(sc) sc.innerHTML='<div class="ia-lock"><div class="lk">🔒</div><h3>'+t('up_title')+'</h3><p>'+t('up_ia')+'</p><button class="btn" id="ia-unlock" style="max-width:240px;margin:0 auto">'+t('up_cta')+'</button></div>';
+  const inp=$('#ia-input'), snd=$('#ia-send');
+  if(inp) inp.disabled=true;
+  if(snd) snd.disabled=true;
+  const b=$('#ia-unlock'); if(b) b.onclick=()=>showUpsell('ia');
+}
+if($('#up-later')) $('#up-later').onclick=()=>$('#up-ov').classList.remove('show');
+if($('#up-ov')) $('#up-ov').onclick=(e)=>{ if(e.target.id==='up-ov') $('#up-ov').classList.remove('show'); };
+
 /* ---------------- TABS ---------------- */
 const TITLES={home:["Accueil",""],journal:["Journal","Cherche, ajoute, suis tes repas"],seances:["Séances","Tes programmes Coach DM"],cours:["Cours","Réserve tes séances collectives & PT"],boutique:["Boutique","Programmes PDF premium"],ia:["Coach IA",""],profile:["Profil",""]};
 function switchTab(tab){
@@ -1334,7 +1386,7 @@ function switchTab(tab){
   if(tab==='seances') loadWorkouts();
   if(tab==='cours') loadCours();
   if(tab==='boutique') loadBoutique();
-  if(tab==='ia'){ if(!IA_LOADED){ IA_LOADED=true; loadConversation(); } setTimeout(()=>$('#ia-input').focus(),100); }
+  if(tab==='ia'){ if(!PREMIUM){ renderIALock(); return; } if(!IA_LOADED){ IA_LOADED=true; loadConversation(); } setTimeout(()=>$('#ia-input').focus(),100); }
   window.scrollTo(0,0);
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
@@ -1451,7 +1503,7 @@ function loadInsight(){
 /* ================= SEANCES ================= */
 async function fetchWorkouts(){
   const { data:ws } = await sb.from('workouts')
-    .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url,program_slug')
+    .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url,program_slug,is_free,week_number,day_number')
     .eq('is_published',true).order('created_at',{ascending:true});
   SE_WORKOUTS = ws||[]; SE_COUNTS={};
   const ids=SE_WORKOUTS.map(w=>w.id);
@@ -1468,10 +1520,11 @@ async function loadWorkouts(){
   if(!FLAT.length){ $('#se-cards').innerHTML='<p class="empty">'+t('co_none_up')+'</p>'; return; }
   $('#se-cards').innerHTML = FLAT.map(w=>{
     const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
+    const locked = !PREMIUM && !w.is_free;
     const cover = w.cover_image_url
       ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${typeL(w.type)}</span></div>`
       : `<div class="se-cover" style="--c:${col}"><span class="se-type">${typeL(w.type)}</span></div>`;
-    return `<div class="se-card" data-open="${w.id}">${cover}
+    return `<div class="se-card${locked?' locked':''}" data-open="${w.id}">${cover}${locked?'<span class="se-lock">🔒</span>':''}
       <div class="se-body">
         <div class="se-title">${esc(pick(w,'name'))}</div>
         ${w.source?`<div class="se-src">${esc(w.source)}</div>`:''}
@@ -1766,7 +1819,7 @@ async function openCycle(goalId){
 
 if($('#goal-ov')) $('#goal-ov').onclick=e=>{ if(e.target.id==='goal-ov') closeGoal(); };
 document.addEventListener('click',e=>{
-  if(e.target.closest('[data-goal-new]')){ openGoalWizard(); return; }
+  if(e.target.closest('[data-goal-new]')){ if(!PREMIUM){ showUpsell('workout'); return; } openGoalWizard(); return; }
   if(e.target.closest('[data-goal-close]')){ closeGoal(); return; }
   if(e.target.closest('[data-goal-back]')){ goalStepLift(); return; }
   if(e.target.closest('[data-goal-kind]')){ const k=e.target.closest('[data-goal-kind]').dataset.goalKind; if(k==='skill') goalStepSkill(); else goalStepLift(); return; }
@@ -1798,9 +1851,10 @@ async function deleteGoal(id,title){
 function backToList(){ const d=$('#se-detail'),l=$('#se-list'); if(d) d.classList.add('hidden'); if(l) l.classList.remove('hidden'); }
 
 async function openWorkout(id){
-  switchTab('seances');
   if(!SE_WORKOUTS) await fetchWorkouts();
   const w=(SE_WORKOUTS||[]).find(x=>x.id===id); if(!w) return;
+  if(!PREMIUM && !w.is_free){ showUpsell('workout'); return; }
+  switchTab('seances');
   SE_CUR={w}; SESSION=null;
   $('#se-list').classList.add('hidden');
   $('#se-detail').classList.remove('hidden');
