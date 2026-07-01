@@ -201,6 +201,8 @@
     backdrop-filter:blur(3px);display:none;align-items:flex-end;justify-content:center}
   .overlay.show{display:flex}
   .se-card.locked{opacity:.6}
+  .prog-h{font-size:14px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--gold,#D4AF37);margin:24px 4px 12px}
+  #se-cards .prog-h:first-child{margin-top:2px}
   .se-card.locked .se-cover{filter:grayscale(.45)}
   .se-lock{position:absolute;top:10px;right:10px;z-index:2;width:30px;height:30px;border-radius:50%;
     background:rgba(0,0,0,.62);display:grid;place-items:center;font-size:15px;backdrop-filter:blur(2px)}
@@ -1512,29 +1514,36 @@ async function fetchWorkouts(){
     (we||[]).forEach(r=>{ SE_COUNTS[r.workout_id]=(SE_COUNTS[r.workout_id]||0)+1; });
   }
 }
+const PROG_ORDER=['barbell-strength-12w','gravity-10w','hyrox-engine-12w','fat-burner-10w','foundation-8w'];
 async function loadWorkouts(){
   backToList();
   await fetchWorkouts();
   loadGoals();
-  const FLAT=(SE_WORKOUTS||[]).filter(w=>w.source!=='charge_engine');
-  if(!FLAT.length){ $('#se-cards').innerHTML='<p class="empty">'+t('co_none_up')+'</p>'; return; }
-  $('#se-cards').innerHTML = FLAT.map(w=>{
+  const CAT=(SE_WORKOUTS||[]).filter(w=>PROG_ORDER.indexOf(w.program_slug)>=0);
+  if(!CAT.length){ $('#se-cards').innerHTML='<p class="empty">'+t('co_none_up')+'</p>'; return; }
+  const rank=s=>{ const i=PROG_ORDER.indexOf(s); return i<0?99:i; };
+  CAT.sort((a,b)=> rank(a.program_slug)-rank(b.program_slug)
+    || (a.week_number||0)-(b.week_number||0)
+    || (a.day_number||0)-(b.day_number||0));
+  let html='', curProg=null;
+  CAT.forEach(w=>{
+    if(w.program_slug!==curProg){ curProg=w.program_slug; html+=`<div class="prog-h">${esc(w.source||'')}</div>`; }
     const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
     const locked = !PREMIUM && !w.is_free;
     const cover = w.cover_image_url
       ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${typeL(w.type)}</span></div>`
       : `<div class="se-cover" style="--c:${col}"><span class="se-type">${typeL(w.type)}</span></div>`;
-    return `<div class="se-card${locked?' locked':''}" data-open="${w.id}">${cover}${locked?'<span class="se-lock">🔒</span>':''}
+    html+=`<div class="se-card${locked?' locked':''}" data-open="${w.id}">${cover}${locked?'<span class="se-lock">🔒</span>':''}
       <div class="se-body">
         <div class="se-title">${esc(pick(w,'name'))}</div>
-        ${w.source?`<div class="se-src">${esc(w.source)}</div>`:''}
         <div class="se-badges">
           <span class="badge c" style="--c:${col}">${diffL(w.difficulty)}</span>
           <span class="badge">${w.estimated_duration_min||'—'} min</span>
-          <span class="badge">${n} ${t('exercises')}</span>
+          ${locked?'':`<span class="badge">${n} ${t('exercises')}</span>`}
         </div>
       </div></div>`;
-  }).join('');
+  });
+  $('#se-cards').innerHTML=html;
 }
 /* ================= OBJECTIFS / MOTEUR CHARGE ================= */
 let GOAL_LIFTS=null, GOAL_DRAFT={}, GOAL_SKILLS=null, GOAL_FAMS=null;
