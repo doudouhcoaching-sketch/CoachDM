@@ -201,8 +201,15 @@
     backdrop-filter:blur(3px);display:none;align-items:flex-end;justify-content:center}
   .overlay.show{display:flex}
   .se-card.locked{opacity:.6}
-  .prog-h{font-size:14px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--gold,#D4AF37);margin:24px 4px 12px}
-  #se-cards .prog-h:first-child{margin-top:2px}
+  .pf-card{position:relative;display:flex;align-items:center;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--surface);margin-bottom:14px;cursor:pointer}
+  .pf-cover{flex:0 0 88px;align-self:stretch;min-height:88px;background:linear-gradient(135deg,color-mix(in srgb,var(--c) 60%,#000),color-mix(in srgb,var(--c) 22%,#000))}
+  .pf-cover.img{background-size:cover;background-position:center}
+  .pf-body{flex:1;padding:14px 6px 14px 16px}
+  .pf-title{font-weight:800;font-size:15.5px;margin-bottom:9px;line-height:1.25}
+  .pf-badges{display:flex;gap:7px;flex-wrap:wrap}
+  .pf-arrow{flex:0 0 auto;padding:0 16px;font-size:26px;color:var(--muted)}
+  .pf-h{font-size:17px;font-weight:800;margin:6px 4px 16px}
+  .pf-week{font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--gold,#D4AF37);margin:20px 4px 11px}
   .se-card.locked .se-cover{filter:grayscale(.45)}
   .se-lock{position:absolute;top:10px;right:10px;z-index:2;width:30px;height:30px;border-radius:50%;
     background:rgba(0,0,0,.62);display:grid;place-items:center;font-size:15px;backdrop-filter:blur(2px)}
@@ -881,6 +888,10 @@ const T = {
  up_feat3:{fr:'Objectifs perso & moteur de charge',en:'Custom goals & load engine',nl:'Persoonlijke doelen & belastingsmotor'},
  up_cta:{fr:"Demander l'accès",en:'Request access',nl:'Toegang aanvragen'},
  up_later:{fr:'Plus tard',en:'Later',nl:'Later'},
+ pf_weeks:{fr:'sem.',en:'weeks',nl:'wk'},
+ pf_sessions:{fr:'séances',en:'sessions',nl:'sessies'},
+ pf_back:{fr:'Programmes',en:'Programs',nl:"Programma's"},
+ pf_week:{fr:'Semaine',en:'Week',nl:'Week'},
  au_email:{fr:'Email',en:'Email',nl:'E-mail'},
  au_pass:{fr:'Mot de passe',en:'Password',nl:'Wachtwoord'},
  au_login:{fr:'Se connecter',en:'Log in',nl:'Inloggen'},
@@ -1515,21 +1526,57 @@ async function fetchWorkouts(){
   }
 }
 const PROG_ORDER=['barbell-strength-12w','gravity-10w','hyrox-engine-12w','fat-burner-10w','foundation-8w'];
+let SE_PROG=null;
 async function loadWorkouts(){
   backToList();
   await fetchWorkouts();
-  loadGoals();
   const CAT=(SE_WORKOUTS||[]).filter(w=>PROG_ORDER.indexOf(w.program_slug)>=0);
+  const go=$('#go-section');
+  if(SE_PROG){
+    if(go) go.style.display='none';
+    renderProgramDays(CAT, SE_PROG);
+    return;
+  }
+  if(go) go.style.display='';
+  loadGoals();
   if(!CAT.length){ $('#se-cards').innerHTML='<p class="empty">'+t('co_none_up')+'</p>'; return; }
-  const rank=s=>{ const i=PROG_ORDER.indexOf(s); return i<0?99:i; };
-  CAT.sort((a,b)=> rank(a.program_slug)-rank(b.program_slug)
-    || (a.week_number||0)-(b.week_number||0)
-    || (a.day_number||0)-(b.day_number||0));
-  let html='', curProg=null;
-  CAT.forEach(w=>{
-    if(w.program_slug!==curProg){ curProg=w.program_slug; html+=`<div class="prog-h">${esc(w.source||'')}</div>`; }
+  renderProgramFolders(CAT);
+}
+function renderProgramFolders(CAT){
+  let html='';
+  PROG_ORDER.forEach(slug=>{
+    const items=CAT.filter(w=>w.program_slug===slug);
+    if(!items.length) return;
+    const first=items[0];
+    const weeks=items.reduce((m,w)=>Math.max(m,w.week_number||1),1);
+    const col=typeColor(first.type);
+    const cov=(items.find(w=>w.cover_image_url)||{}).cover_image_url||'';
+    const cover=cov
+      ? `<div class="pf-cover img" style="--c:${col};background-image:url('${esc(cov)}')"></div>`
+      : `<div class="pf-cover" style="--c:${col}"></div>`;
+    html+=`<div class="pf-card" data-prog="${esc(slug)}">${cover}
+      <div class="pf-body">
+        <div class="pf-title">${esc(first.source||slug)}</div>
+        <div class="pf-badges">
+          <span class="badge">${weeks} ${t('pf_weeks')}</span>
+          <span class="badge">${items.length} ${t('pf_sessions')}</span>
+        </div>
+      </div>
+      <div class="pf-arrow">›</div></div>`;
+  });
+  $('#se-cards').innerHTML=html;
+}
+function renderProgramDays(CAT, slug){
+  const items=CAT.filter(w=>w.program_slug===slug)
+    .sort((a,b)=>(a.week_number||0)-(b.week_number||0)||(a.day_number||0)-(b.day_number||0));
+  const src=(items[0]&&items[0].source)||slug;
+  let html=`<button class="se-back" data-prog-back="1">‹ ${t('pf_back')}</button><div class="pf-h">${esc(src)}</div>`;
+  let curWeek=null;
+  items.forEach(w=>{
+    const wk=w.week_number||0;
+    if(wk!==curWeek){ curWeek=wk; html+=`<div class="pf-week">${t('pf_week')} ${wk}</div>`; }
     const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
-    const locked = !PREMIUM && !w.is_free;
+    const locked=!PREMIUM && !w.is_free;
     const cover = w.cover_image_url
       ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${typeL(w.type)}</span></div>`
       : `<div class="se-cover" style="--c:${col}"><span class="se-type">${typeL(w.type)}</span></div>`;
@@ -1544,7 +1591,10 @@ async function loadWorkouts(){
       </div></div>`;
   });
   $('#se-cards').innerHTML=html;
+  try{ window.scrollTo(0,0); }catch(e){}
 }
+function openProgram(slug){ SE_PROG=slug; loadWorkouts(); }
+function closeProgram(){ SE_PROG=null; loadWorkouts(); }
 /* ================= OBJECTIFS / MOTEUR CHARGE ================= */
 let GOAL_LIFTS=null, GOAL_DRAFT={}, GOAL_SKILLS=null, GOAL_FAMS=null;
 
@@ -2166,7 +2216,11 @@ async function cancelClass(id,btn){
 }
 
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>switchTab(b.dataset.go));
-document.addEventListener('click',e=>{ const t=e.target.closest('[data-open]'); if(t) openWorkout(t.getAttribute('data-open')); });
+document.addEventListener('click',e=>{
+  const pb=e.target.closest('[data-prog-back]'); if(pb){ closeProgram(); return; }
+  const pf=e.target.closest('[data-prog]'); if(pf){ openProgram(pf.getAttribute('data-prog')); return; }
+  const t=e.target.closest('[data-open]'); if(t) openWorkout(t.getAttribute('data-open'));
+});
 
 /* ---- language selector + profile name ---- */
 document.querySelectorAll('#lang-seg button').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
