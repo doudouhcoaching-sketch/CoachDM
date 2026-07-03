@@ -465,6 +465,21 @@
   .pr-val{font-size:16px;font-weight:800;color:var(--brand);white-space:nowrap}
   .pr-val small{font-size:11px;color:var(--muted);font-weight:600}
   .pr-edit{background:var(--surface-2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:7px 11px;font-size:12.5px;font-weight:700}
+  /* ---- Lisibilité & accessibilité (couche finale, priorité cascade) ---- */
+  :root{--muted:#9CC2AF}
+  html{-webkit-text-size-adjust:100%}
+  .chip{font-size:12.5px;padding:5px 10px}
+  .badge{font-size:12.5px;padding:6px 10px}
+  .ex-name{font-size:16.5px}
+  .ex-note{font-size:14px;line-height:1.5}
+  .ex-tip{font-size:13.5px;line-height:1.5}
+  .tech summary,.tech p{font-size:14px;line-height:1.55}
+  .wod-name{font-size:20px}
+  .wod-sub{font-size:14px}
+  .se-d-title{font-size:23px}
+  .pill{min-width:44px;height:38px;font-size:14.5px;font-weight:800}
+  .blk-h{font-size:13px}
+  .empty,.fk{font-size:13.5px}
 </style>
 </head>
 <body>
@@ -1068,6 +1083,11 @@ const T = {
  sum_sets:{fr:'séries validées',en:'sets logged',nl:'sets gelogd'},
  sum_vol:{fr:'kg soulevés',en:'kg lifted',nl:'kg getild'},
  sum_close:{fr:'Continuer',en:'Continue',nl:'Doorgaan'},
+ wod_continue:{fr:'Reprends ton programme',en:'Continue your program',nl:'Hervat je programma'},
+ wod_week:{fr:'Semaine',en:'Week',nl:'Week'},
+ wod_day:{fr:'Jour',en:'Day',nl:'Dag'},
+ wod_unlock:{fr:'Débloquer en premium',en:'Unlock with premium',nl:'Ontgrendel met premium'},
+ tap_hint:{fr:'Tape une série pour la valider · maintiens pour ajuster',en:'Tap a set to log it · hold to adjust',nl:'Tik op een set om te loggen · houd vast om aan te passen'},
  session_started:{fr:'Séance démarrée',en:'Workout started',nl:'Training gestart'},
  session_done:{fr:'Séance terminée ✓',en:'Workout finished ✓',nl:'Training afgerond ✓'},
  set_saved:{fr:'Série enregistrée ✓',en:'Set saved ✓',nl:'Set opgeslagen ✓'},
@@ -1748,16 +1768,39 @@ async function loadWod(){
   if(!SE_WORKOUTS) await fetchWorkouts();
   const list=(SE_WORKOUTS||[]).filter(x=>x.source!=='charge_engine');
   if(!list.length){ $('#wod').innerHTML=''; return; }
-  const goal=TARGETS&&TARGETS.goal;
-  const pref={lose_fat:['hiit','hyrox','conditioning'],build_muscle:['strength','hypertrophy'],maintain:['hyrox','football','strength'],recomp:['strength','hyrox']}[goal]||[];
-  const w=list.find(x=>pref.includes(x.type))||list[0];
+  let w=null, label=t('wod_reco'), locked=false;
+  try{
+    const { data:ss } = await sb.from('workout_sessions')
+      .select('workout_id,started_at')
+      .eq('user_id',USER.id).eq('status','completed')
+      .order('started_at',{ascending:false}).limit(400);
+    const doneIds=new Set((ss||[]).map(s=>s.workout_id));
+    const lastProg=(ss||[]).map(s=>list.find(x=>x.id===s.workout_id)).find(x=>x&&x.program_slug);
+    if(lastProg){
+      const prog=list.filter(x=>x.program_slug===lastProg.program_slug)
+        .sort((a,b)=>(a.week_number||0)-(b.week_number||0)||(a.day_number||0)-(b.day_number||0));
+      w=prog.find(x=>!doneIds.has(x.id))||prog[0];
+      if(w){ label=t('wod_continue'); locked=!PREMIUM&&!w.is_free; }
+    }
+  }catch(e){}
+  if(!w){
+    const goal=TARGETS&&TARGETS.goal;
+    const pref={lose_fat:['hiit','hyrox','conditioning'],build_muscle:['strength','hypertrophy'],maintain:['hyrox','football','strength'],recomp:['strength','hyrox']}[goal]||[];
+    const free=list.filter(x=>x.is_free);
+    w=free.find(x=>pref.includes(x.type))||free[0]||list.find(x=>pref.includes(x.type))||list[0];
+  }
   const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
+  const wk=(w.week_number&&w.day_number)?(t('wod_week')+' '+w.week_number+' · '+t('wod_day')+' '+w.day_number+' · '):'';
+  const btn=locked
+    ? `<button class="wod-btn" style="background:linear-gradient(135deg,#D4AF37,#a8862a)" data-wod-up="1">🔒 ${t('wod_unlock')}</button>`
+    : `<button class="wod-btn" data-open="${w.id}">${t('wod_see')}</button>`;
   $('#wod').innerHTML=`<div class="wod" style="--c:${col}">
-    <div class="wod-top"><span class="wod-k">${t('wod_reco')}</span><span class="wod-dur">${w.estimated_duration_min||'—'} min</span></div>
+    <div class="wod-top"><span class="wod-k">${label}</span><span class="wod-dur">${w.estimated_duration_min||'—'} min</span></div>
     <div class="wod-name">${esc(pick(w,'name'))}</div>
-    <div class="wod-sub">${typeL(w.type)} · ${n} ${t('exercises')} · ${diffL(w.difficulty)}</div>
-    <button class="wod-btn" data-open="${w.id}">${t('wod_see')}</button>
+    <div class="wod-sub">${wk}${typeL(w.type)} · ${n} ${t('exercises')} · ${diffL(w.difficulty)}</div>
+    ${btn}
   </div>`;
+  const up=$('#wod [data-wod-up]'); if(up) up.onclick=()=>showUpsell('workout');
 }
 
 const INSIGHTS=[
@@ -1798,8 +1841,13 @@ async function fetchWorkouts(){
   SE_WORKOUTS = ws||[]; SE_COUNTS={};
   const ids=SE_WORKOUTS.map(w=>w.id);
   if(ids.length){
-    const { data:we } = await sb.from('workout_exercises').select('workout_id').in('workout_id',ids);
-    (we||[]).forEach(r=>{ SE_COUNTS[r.workout_id]=(SE_COUNTS[r.workout_id]||0)+1; });
+    let from=0; const page=1000;
+    while(true){
+      const { data:we } = await sb.from('workout_exercises').select('workout_id').in('workout_id',ids).range(from,from+page-1);
+      (we||[]).forEach(r=>{ SE_COUNTS[r.workout_id]=(SE_COUNTS[r.workout_id]||0)+1; });
+      if(!we||we.length<page) break;
+      from+=page;
+    }
   }
 }
 const PROG_ORDER=['barbell-strength-12w','gravity-10w','hyrox-engine-12w','fat-burner-10w','foundation-8w'];
@@ -2259,9 +2307,11 @@ function renderDetail(w,items,tips){
     const note=pick(it,'notes');
     const cue=pick(ex,'cue');
     const presKg=(it.load_pct_1rm!=null&&rm)?kg25(rm.v*it.load_pct_1rm/100):'';
-    const presReps=(()=>{ const s=String(it.reps||''); const m1=s.match(/^(\d+)\s*$/); if(m1) return m1[1]; const m2=s.match(/[×x]\s*(\d+)/); return m2?m2[1]:''; })();
-    const pills = setsN>0 ? `<div class="pills" data-we="${it.id}" data-ex="${ex.id}" data-load="${ex.load_type||'reps_only'}" data-rest="${it.rest_sec||''}" data-kg="${presKg}" data-preps="${presReps}">`+
-      Array.from({length:setsN},(_,i)=>`<span class="pill" data-on="0" data-set="${i+1}">${i+1}</span>`).join('')+`</div>` : '';
+    const plan=parsePlan(it.reps,setsN,rm?rm.v:null,presKg?parseFloat(presKg):null);
+    const nSets=setsN||plan.length;
+    const planAttr=plan.map(p=>(p.r!=null?p.r:'')+'@'+(p.k!=null?p.k:'')).join(';');
+    const pills = nSets>0 ? `<div class="pills" data-we="${it.id}" data-ex="${ex.id}" data-load="${ex.load_type||'reps_only'}" data-rest="${it.rest_sec||''}" data-kg="${presKg}" data-plan="${planAttr}">`+
+      Array.from({length:nSets},(_,i)=>`<span class="pill" data-on="0" data-set="${i+1}">${i+1}</span>`).join('')+`</div>` : '';
     html+=`<div class="exrow">${thumbEl}
       <div class="ex-main">
         <div class="ex-name">${esc(pick(ex,'name')||t('ex_fallback'))}</div>
@@ -2302,11 +2352,56 @@ function renderDetail(w,items,tips){
 /* ---- Workout player : état + timer de repos + HUD ---- */
 let REST=null, WO_TOTAL=0, WO_DONE=0, WO_VOL=0, LAST_SET={};
 function buzz(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
-function beep(){ try{ const A=window.AudioContext||window.webkitAudioContext; if(!A) return;
-  const c=new A(); const o=c.createOscillator(), g=c.createGain();
-  o.connect(g); g.connect(c.destination); o.frequency.value=880;
-  g.gain.setValueAtTime(.12,c.currentTime); g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.5);
-  o.start(); o.stop(c.currentTime+.5); setTimeout(()=>{ try{c.close();}catch(e){} },700); }catch(e){} }
+function tones(seq){ try{
+  const A=window.AudioContext||window.webkitAudioContext; if(!A) return;
+  const c=new A(); let t0=c.currentTime;
+  seq.forEach(p=>{ const o=c.createOscillator(),g=c.createGain(); o.type='sine'; o.frequency.value=p[0];
+    o.connect(g); g.connect(c.destination);
+    g.gain.setValueAtTime(.14,t0); g.gain.exponentialRampToValueAtTime(.0001,t0+p[1]);
+    o.start(t0); o.stop(t0+p[1]); t0+=p[1]*.85; });
+  setTimeout(()=>{ try{c.close();}catch(e){} }, (t0-c.currentTime)*1000+400);
+}catch(e){} }
+const SND={
+  start:()=>tones([[523,.15],[659,.15],[784,.28]]),
+  finish:()=>tones([[784,.14],[988,.14],[1175,.32]]),
+  rest:()=>tones([[880,.12],[880,.12],[1046,.26]])
+};
+function parsePlan(repsStr,setsN,rmv,defKg){
+  const s=String(repsStr||''); const plan=[];
+  const re=/(\d+)\s*[×x]\s*(\d+)(?:[^@·;+]*@\s*(\d+(?:[.,]\d+)?)\s*%)?/g; let m;
+  while((m=re.exec(s))){
+    const cnt=Math.min(20,+m[1]), r=+m[2];
+    const pct=m[3]?parseFloat(m[3].replace(',','.')):null;
+    const k=(pct&&rmv)?kg25(rmv*pct/100):(defKg||null);
+    for(let i=0;i<cnt;i++) plan.push({r:r,k:k});
+  }
+  if(!plan.length){
+    const m1=s.match(/^(\d+)(?:\s*reps?)?\s*$/i);
+    if(m1&&setsN) for(let i=0;i<setsN;i++) plan.push({r:+m1[1],k:defKg||null});
+  }
+  while(plan.length&&setsN&&plan.length<setsN) plan.push(plan[plan.length-1]);
+  return setsN?plan.slice(0,setsN):plan.slice(0,12);
+}
+async function quickSet(wrap,pill){
+  if(!SESSION){ toast(t('start_first')); return; }
+  const load=wrap.dataset.load;
+  const seg=((wrap.dataset.plan||'').split(';')[+pill.dataset.set-1]||'').split('@');
+  const reps=parseInt(seg[0],10)||null;
+  const kg=parseFloat(seg[1])||null;
+  if(!reps||(load!=='weight'&&load!=='reps_only')){ openSetSheet(wrap,pill); return; }
+  pill.style.opacity=.5;
+  const row={ session_id:SESSION.id, exercise_id:wrap.dataset.ex, workout_exercise_id:wrap.dataset.we,
+    set_number:+pill.dataset.set, is_completed:true, logged_at:new Date().toISOString(),
+    reps:reps, weight_kg:(load==='weight'?kg:null) };
+  const { error } = await sb.from('set_logs').insert(row);
+  pill.style.opacity='';
+  if(error){ toast('Échec de l\'enregistrement'); return; }
+  pill.classList.add('done'); pill.textContent='✓';
+  WO_DONE++; WO_VOL+=(row.weight_kg||0)*(row.reps||0); updHud(); buzz(15);
+  LAST_SET[wrap.dataset.ex]={reps:row.reps,kg:row.weight_kg};
+  toast('✓ '+reps+(row.weight_kg?(' × '+row.weight_kg+' kg'):''));
+  const restS=parseInt(wrap.dataset.rest,10)||0; if(restS) startRest(restS);
+}
 function fmtRest(s){ const m=Math.floor(s/60); return m+':'+String(s%60).padStart(2,'0'); }
 function startRest(sec){
   stopRest();
@@ -2317,7 +2412,7 @@ function startRest(sec){
   REST.iv=setInterval(()=>{
     if(!REST) return;
     REST.left--;
-    if(REST.left<=0){ stopRest(); buzz(200); beep(); toast(t('rest_done')); return; }
+    if(REST.left<=0){ stopRest(); buzz(200); SND.rest(); toast(t('rest_done')); return; }
     $('#rest-num').textContent=fmtRest(REST.left);
     $('#rest-fill').style.width=Math.max(0,REST.left/REST.total*100)+'%';
   },1000);
@@ -2339,14 +2434,22 @@ async function startOrFinish(){
     if(error||!data){ btn.textContent=t('start_session'); toast(t('start_fail')); return; }
     SESSION={id:data.id, started:Date.now()};
     document.querySelectorAll('#se-detail .pills').forEach(wrap=>{
-      wrap.querySelectorAll('.pill').forEach(p=>{ p.setAttribute('data-on','1'); p.onclick=()=>openSetSheet(wrap,p); });
+      wrap.querySelectorAll('.pill').forEach(p=>{
+        p.setAttribute('data-on','1');
+        let lp=null, held=false;
+        p.onpointerdown=()=>{ held=false; lp=setTimeout(()=>{ held=true; buzz(20); openSetSheet(wrap,p); },450); };
+        const cl=()=>{ if(lp){ clearTimeout(lp); lp=null; } };
+        p.onpointerup=cl; p.onpointerleave=cl; p.onpointercancel=cl;
+        p.onclick=()=>{ if(held){ held=false; return; } if(!p.classList.contains('done')) quickSet(wrap,p); };
+      });
     });
     btn.textContent=t('finish_session'); btn.classList.add('fin');
     WO_TOTAL=document.querySelectorAll('#se-detail .pill').length;
     WO_DONE=document.querySelectorAll('#se-detail .pill.done').length;
     WO_VOL=0; LAST_SET={};
     $('#wo-hud').classList.add('on'); updHud();
-    toast(t('session_started')+' 💪');
+    SND.start();
+    toast(t('tap_hint'));
   } else {
     btn.disabled=true;
     stopRest();
@@ -2360,6 +2463,7 @@ async function startOrFinish(){
     $('#sum-vol').textContent=Math.round(WO_VOL); $('#sum-vol-l').textContent=t('sum_vol');
     $('#sum-close').textContent=t('sum_close');
     const ov=$('#sum-ov'); ov.dataset.slug=_slug||''; ov.classList.add('show');
+    SND.finish();
     buzz(60);
   }
 }
@@ -2414,9 +2518,10 @@ function openSetSheet(wrap,pill){
   else f=`<div class="field"><label>${t('f_reps')}</label><input id="f-reps" type="number" inputmode="numeric" placeholder="10"/></div>`;
   $('#set-fields').innerHTML=f;
   const last=LAST_SET[SET_CTX.exId]||{};
+  const seg=((wrap.dataset.plan||'').split(';')[SET_CTX.setN-1]||'').split('@');
   const put=(id,v)=>{ const el=$('#'+id); if(el&&v!=null&&v!=='') el.value=v; };
-  put('f-reps', last.reps!=null?last.reps:(wrap.dataset.preps||''));
-  put('f-kg',   last.kg!=null?last.kg:(wrap.dataset.kg||''));
+  put('f-reps', last.reps!=null?last.reps:(seg[0]||''));
+  put('f-kg',   last.kg!=null?last.kg:(seg[1]||wrap.dataset.kg||''));
   put('f-dur',  last.dur); put('f-dist', last.dist); put('f-cal', last.cal);
   $('#set-ov').classList.add('show');
 }
