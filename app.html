@@ -393,6 +393,31 @@
   .se-action{position:sticky;bottom:calc(94px + env(safe-area-inset-bottom));z-index:30;margin:20px 0 4px}
   .se-action .btn{box-shadow:0 10px 26px rgba(0,255,160,.4)}
   .se-action .btn.fin{background:linear-gradient(135deg,var(--fiber),#0c8f64)}
+  /* ---- Workout player : HUD progression + timer de repos ---- */
+  .wo-hud{display:none;align-items:center;gap:10px;padding:11px 14px;margin-bottom:8px;border-radius:16px;
+    background:color-mix(in srgb,var(--surface) 84%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border:1px solid var(--line)}
+  .wo-hud.on{display:flex}
+  .wo-track{flex:1;height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+  .wo-track i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--brand),#00d488);transition:width .45s cubic-bezier(.22,1,.36,1)}
+  .wo-count{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.4px;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .rest-bar{display:none;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px;border-radius:16px;
+    background:color-mix(in srgb,#D4AF37 13%,var(--surface));border:1px solid color-mix(in srgb,#D4AF37 42%,transparent);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+  .rest-bar.on{display:flex}
+  .rest-num{font-variant-numeric:tabular-nums;font-size:24px;font-weight:900;color:#D4AF37;min-width:58px;line-height:1}
+  .rest-lbl{font-size:9px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+  .rest-track{height:5px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+  .rest-track i{display:block;height:100%;width:100%;background:#D4AF37;border-radius:99px;transition:width 1s linear}
+  .rest-btn{height:38px;min-width:44px;padding:0 12px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;font-weight:800}
+  .rest-btn:active{transform:scale(.95)}
+  @keyframes pillpop{0%{transform:scale(.6)}55%{transform:scale(1.22)}100%{transform:scale(1)}}
+  .pill.done{animation:pillpop .32s cubic-bezier(.22,1.4,.36,1)}
+  .sum-stats{display:flex;gap:10px;margin:14px 0 18px}
+  .sum-stat{flex:1;padding:14px 6px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line)}
+  .sum-stat b{display:block;font-size:22px;font-weight:900;color:var(--brand);font-variant-numeric:tabular-nums}
+  .sum-stat span{font-size:9px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+  @media (prefers-reduced-motion:reduce){.pill.done{animation:none}.wo-track i,.rest-track i{transition:none}}
   .shop-free{background:color-mix(in srgb,var(--fiber) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--fiber) 36%,transparent);border-radius:var(--radius);padding:16px;margin-bottom:14px}
   .shop-note{font-size:12.5px;color:var(--muted);line-height:1.45;margin:0 2px 6px}
   .shop-cat-h{font-size:13px;font-weight:800;letter-spacing:.4px;margin:18px 2px 11px}
@@ -752,6 +777,20 @@
   </div>
 </div>
 
+<div class="overlay" id="sum-ov">
+  <div class="sheet" style="text-align:center">
+    <div class="grab"></div>
+    <div style="font-size:40px;line-height:1;margin:6px 0 10px">🎉</div>
+    <h3 id="sum-title" style="margin:0 0 6px">Séance terminée</h3>
+    <div class="sum-stats">
+      <div class="sum-stat"><b id="sum-dur">—</b><span id="sum-dur-l">min</span></div>
+      <div class="sum-stat"><b id="sum-sets">—</b><span id="sum-sets-l">séries</span></div>
+      <div class="sum-stat"><b id="sum-vol">—</b><span id="sum-vol-l">kg</span></div>
+    </div>
+    <button class="btn" id="sum-close">Continuer</button>
+  </div>
+</div>
+
 <div class="overlay" id="goal-ov"><div class="sheet">
   <div class="grab"></div>
   <div id="goal-body"></div>
@@ -1021,6 +1060,14 @@ const T = {
  ex_fallback:{fr:'Exercice',en:'Exercise',nl:'Oefening'},
  start_session:{fr:'Démarrer la séance',en:'Start the workout',nl:'Training starten'},
  finish_session:{fr:'Terminer la séance',en:'Finish the workout',nl:'Training afronden'},
+ rest_lbl:{fr:'Repos',en:'Rest',nl:'Rust'},
+ rest_skip:{fr:'Passer',en:'Skip',nl:'Skip'},
+ rest_done:{fr:'Repos terminé — série suivante 💪',en:'Rest over — next set 💪',nl:'Rust voorbij — volgende set 💪'},
+ sum_title:{fr:'Séance terminée',en:'Workout complete',nl:'Training voltooid'},
+ sum_min:{fr:'minutes',en:'minutes',nl:'minuten'},
+ sum_sets:{fr:'séries validées',en:'sets logged',nl:'sets gelogd'},
+ sum_vol:{fr:'kg soulevés',en:'kg lifted',nl:'kg getild'},
+ sum_close:{fr:'Continuer',en:'Continue',nl:'Doorgaan'},
  session_started:{fr:'Séance démarrée',en:'Workout started',nl:'Training gestart'},
  session_done:{fr:'Séance terminée ✓',en:'Workout finished ✓',nl:'Training afgerond ✓'},
  set_saved:{fr:'Série enregistrée ✓',en:'Set saved ✓',nl:'Set opgeslagen ✓'},
@@ -2211,7 +2258,9 @@ function renderDetail(w,items,tips){
     })();
     const note=pick(it,'notes');
     const cue=pick(ex,'cue');
-    const pills = setsN>0 ? `<div class="pills" data-we="${it.id}" data-ex="${ex.id}" data-load="${ex.load_type||'reps_only'}">`+
+    const presKg=(it.load_pct_1rm!=null&&rm)?kg25(rm.v*it.load_pct_1rm/100):'';
+    const presReps=(()=>{ const s=String(it.reps||''); const m1=s.match(/^(\d+)\s*$/); if(m1) return m1[1]; const m2=s.match(/[×x]\s*(\d+)/); return m2?m2[1]:''; })();
+    const pills = setsN>0 ? `<div class="pills" data-we="${it.id}" data-ex="${ex.id}" data-load="${ex.load_type||'reps_only'}" data-rest="${it.rest_sec||''}" data-kg="${presKg}" data-preps="${presReps}">`+
       Array.from({length:setsN},(_,i)=>`<span class="pill" data-on="0" data-set="${i+1}">${i+1}</span>`).join('')+`</div>` : '';
     html+=`<div class="exrow">${thumbEl}
       <div class="ex-main">
@@ -2233,11 +2282,50 @@ function renderDetail(w,items,tips){
       </div></div>`;
   });
   if(lastBlock!==null) html+=`</div>`;
-  html+=`<div class="se-action"><button class="btn" id="se-start">${t('start_session')}</button></div>`;
+  html+=`<div class="se-action">
+    <div class="rest-bar" id="rest-bar">
+      <span class="rest-num" id="rest-num">0:00</span>
+      <div style="flex:1"><div class="rest-lbl">${t('rest_lbl')}</div><div class="rest-track"><i id="rest-fill"></i></div></div>
+      <button class="rest-btn" id="rest-plus">+30s</button>
+      <button class="rest-btn" id="rest-skip">${t('rest_skip')}</button>
+    </div>
+    <div class="wo-hud" id="wo-hud"><div class="wo-track"><i id="wo-fill"></i></div><span class="wo-count" id="wo-count">0/0</span></div>
+    <button class="btn" id="se-start">${t('start_session')}</button>
+  </div>`;
   $('#se-detail').innerHTML=html;
   $('#se-back').onclick=backToList;
   $('#se-start').onclick=startOrFinish;
+  $('#rest-skip').onclick=()=>stopRest();
+  $('#rest-plus').onclick=()=>{ if(REST){ REST.left+=30; REST.total+=30; } };
 }
+
+/* ---- Workout player : état + timer de repos + HUD ---- */
+let REST=null, WO_TOTAL=0, WO_DONE=0, WO_VOL=0, LAST_SET={};
+function buzz(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
+function beep(){ try{ const A=window.AudioContext||window.webkitAudioContext; if(!A) return;
+  const c=new A(); const o=c.createOscillator(), g=c.createGain();
+  o.connect(g); g.connect(c.destination); o.frequency.value=880;
+  g.gain.setValueAtTime(.12,c.currentTime); g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.5);
+  o.start(); o.stop(c.currentTime+.5); setTimeout(()=>{ try{c.close();}catch(e){} },700); }catch(e){} }
+function fmtRest(s){ const m=Math.floor(s/60); return m+':'+String(s%60).padStart(2,'0'); }
+function startRest(sec){
+  stopRest();
+  const bar=$('#rest-bar'); if(!bar||!sec) return;
+  REST={left:sec,total:sec};
+  bar.classList.add('on');
+  $('#rest-num').textContent=fmtRest(sec); $('#rest-fill').style.width='100%';
+  REST.iv=setInterval(()=>{
+    if(!REST) return;
+    REST.left--;
+    if(REST.left<=0){ stopRest(); buzz(200); beep(); toast(t('rest_done')); return; }
+    $('#rest-num').textContent=fmtRest(REST.left);
+    $('#rest-fill').style.width=Math.max(0,REST.left/REST.total*100)+'%';
+  },1000);
+}
+function stopRest(){ if(REST&&REST.iv) clearInterval(REST.iv); REST=null; const b=$('#rest-bar'); if(b) b.classList.remove('on'); }
+function updHud(){ const f=$('#wo-fill'),c=$('#wo-count'); if(!f||!c) return;
+  c.textContent=WO_DONE+'/'+WO_TOTAL;
+  f.style.width=(WO_TOTAL?Math.round(WO_DONE/WO_TOTAL*100):0)+'%'; }
 
 async function startOrFinish(){
   const btn=$('#se-start');
@@ -2254,22 +2342,44 @@ async function startOrFinish(){
       wrap.querySelectorAll('.pill').forEach(p=>{ p.setAttribute('data-on','1'); p.onclick=()=>openSetSheet(wrap,p); });
     });
     btn.textContent=t('finish_session'); btn.classList.add('fin');
+    WO_TOTAL=document.querySelectorAll('#se-detail .pill').length;
+    WO_DONE=document.querySelectorAll('#se-detail .pill.done').length;
+    WO_VOL=0; LAST_SET={};
+    $('#wo-hud').classList.add('on'); updHud();
     toast(t('session_started')+' 💪');
   } else {
     btn.disabled=true;
+    stopRest();
     const mins=Math.max(1,Math.round((Date.now()-SESSION.started)/60000));
     await sb.from('workout_sessions').update({status:'completed',completed_at:new Date().toISOString(),duration_min:mins}).eq('id',SESSION.id);
-    SESSION=null; btn.disabled=false; toast(t('session_done'));
+    SESSION=null; btn.disabled=false;
     const _slug = SE_CUR && SE_CUR.w && SE_CUR.w.program_slug;
-    if(_slug){
-      try{
-        const { data:st } = await sb.rpc('program_status',{p_slug:_slug});
-        if(st && st.done){ showCycleDone(_slug, st.cycle); return; }
-      }catch(e){}
-    }
-    backToList();
+    $('#sum-title').textContent=t('sum_title');
+    $('#sum-dur').textContent=mins;               $('#sum-dur-l').textContent=t('sum_min');
+    $('#sum-sets').textContent=WO_DONE;           $('#sum-sets-l').textContent=t('sum_sets');
+    $('#sum-vol').textContent=Math.round(WO_VOL); $('#sum-vol-l').textContent=t('sum_vol');
+    $('#sum-close').textContent=t('sum_close');
+    const ov=$('#sum-ov'); ov.dataset.slug=_slug||''; ov.classList.add('show');
+    buzz(60);
   }
 }
+async function afterFinish(slug){
+  if(slug){
+    try{
+      const { data:st } = await sb.rpc('program_status',{p_slug:slug});
+      if(st && st.done){ showCycleDone(slug, st.cycle); return; }
+    }catch(e){}
+  }
+  backToList();
+}
+async function closeSummary(){
+  const ov=$('#sum-ov'); if(!ov.classList.contains('show')) return;
+  ov.classList.remove('show');
+  const s=ov.dataset.slug; ov.dataset.slug='';
+  await afterFinish(s||null);
+}
+if($('#sum-close')) $('#sum-close').onclick=closeSummary;
+if($('#sum-ov'))    $('#sum-ov').onclick=(e)=>{ if(e.target.id==='sum-ov') closeSummary(); };
 
 /* ---- FOUNDATION LOOP : écran fin de cycle + relance ---- */
 function showCycleDone(slug, cycle){
@@ -2303,6 +2413,11 @@ function openSetSheet(wrap,pill){
   else if(load==='calories') f=`<div class="field"><label>${t('f_cal')}</label><input id="f-cal" type="number" inputmode="numeric" placeholder="15"/></div>`;
   else f=`<div class="field"><label>${t('f_reps')}</label><input id="f-reps" type="number" inputmode="numeric" placeholder="10"/></div>`;
   $('#set-fields').innerHTML=f;
+  const last=LAST_SET[SET_CTX.exId]||{};
+  const put=(id,v)=>{ const el=$('#'+id); if(el&&v!=null&&v!=='') el.value=v; };
+  put('f-reps', last.reps!=null?last.reps:(wrap.dataset.preps||''));
+  put('f-kg',   last.kg!=null?last.kg:(wrap.dataset.kg||''));
+  put('f-dur',  last.dur); put('f-dist', last.dist); put('f-cal', last.cal);
   $('#set-ov').classList.add('show');
 }
 $('#set-cancel').onclick=()=>{ $('#set-ov').classList.remove('show'); SET_CTX=null; };
@@ -2318,7 +2433,11 @@ $('#set-save').onclick=async ()=>{
   setBtn('#set-save',false,t('set_save'));
   if(error){ toast('Échec de l\'enregistrement'); return; }
   SET_CTX.pill.classList.add('done'); SET_CTX.pill.textContent='✓';
+  WO_DONE++; WO_VOL+=(row.weight_kg||0)*(row.reps||0); updHud(); buzz(15);
+  LAST_SET[SET_CTX.exId]={reps:row.reps,kg:row.weight_kg,dur:row.duration_sec,dist:row.distance_m,cal:row.calories};
+  const restS=parseInt(SET_CTX.wrap.dataset.rest,10)||0;
   $('#set-ov').classList.remove('show'); toast(t('set_saved')); SET_CTX=null;
+  if(restS) startRest(restS);
 };
 
 /* ================= BOUTIQUE ================= */
