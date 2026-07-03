@@ -2310,7 +2310,7 @@ function renderDetail(w,items,tips){
     const plan=parsePlan(it.reps,setsN,rm?rm.v:null,presKg?parseFloat(presKg):null);
     const nSets=setsN||plan.length;
     const planAttr=plan.map(p=>(p.r!=null?p.r:'')+'@'+(p.k!=null?p.k:'')).join(';');
-    const pills = nSets>0 ? `<div class="pills" data-we="${it.id}" data-ex="${ex.id}" data-load="${ex.load_type||'reps_only'}" data-rest="${it.rest_sec||''}" data-kg="${presKg}" data-plan="${planAttr}">`+
+    const pills = nSets>0 ? `<div class="pills" data-we="${it.id}" data-ex="${ex.id}" data-load="${ex.load_type||'reps_only'}" data-rest="${it.rest_sec||''}" data-kg="${presKg}" data-plan="${planAttr}" data-rx="${encodeURIComponent(String(it.reps||''))}">`+
       Array.from({length:nSets},(_,i)=>`<span class="pill" data-on="0" data-set="${i+1}">${i+1}</span>`).join('')+`</div>` : '';
     html+=`<div class="exrow">${thumbEl}
       <div class="ex-main">
@@ -2376,30 +2376,55 @@ function parsePlan(repsStr,setsN,rmv,defKg){
     for(let i=0;i<cnt;i++) plan.push({r:r,k:k});
   }
   if(!plan.length){
-    const m1=s.match(/^(\d+)(?:\s*reps?)?\s*$/i);
+    const m1=s.match(/^(\d+)(?:\s*reps?)?\s*$/i) || s.match(/(\d+)/);
     if(m1&&setsN) for(let i=0;i<setsN;i++) plan.push({r:+m1[1],k:defKg||null});
   }
   while(plan.length&&setsN&&plan.length<setsN) plan.push(plan[plan.length-1]);
   return setsN?plan.slice(0,setsN):plan.slice(0,12);
 }
+function quickVal(load,rx){
+  const s=String(rx||'');
+  if(load==='time'){
+    let m=s.match(/(\d+(?:[.,]\d+)?)\s*min/i); if(m) return Math.round(parseFloat(m[1].replace(',','.'))*60);
+    m=s.match(/(\d+)\s*(?:s\b|sec)/i); if(m) return +m[1];
+    return null;
+  }
+  if(load==='distance'){
+    let m=s.match(/(\d+(?:[.,]\d+)?)\s*km/i); if(m) return Math.round(parseFloat(m[1].replace(',','.'))*1000);
+    m=s.match(/(\d+)\s*m\b/i); return m?+m[1]:null;
+  }
+  if(load==='calories'){ const m=s.match(/(\d+)\s*k?cal/i); return m?+m[1]:null; }
+  return null;
+}
 async function quickSet(wrap,pill){
   if(!SESSION){ toast(t('start_first')); return; }
   const load=wrap.dataset.load;
-  const seg=((wrap.dataset.plan||'').split(';')[+pill.dataset.set-1]||'').split('@');
-  const reps=parseInt(seg[0],10)||null;
-  const kg=parseFloat(seg[1])||null;
-  if(!reps||(load!=='weight'&&load!=='reps_only')){ openSetSheet(wrap,pill); return; }
-  pill.style.opacity=.5;
+  const rx=decodeURIComponent(wrap.dataset.rx||'');
   const row={ session_id:SESSION.id, exercise_id:wrap.dataset.ex, workout_exercise_id:wrap.dataset.we,
-    set_number:+pill.dataset.set, is_completed:true, logged_at:new Date().toISOString(),
-    reps:reps, weight_kg:(load==='weight'?kg:null) };
+    set_number:+pill.dataset.set, is_completed:true, logged_at:new Date().toISOString() };
+  let fb='';
+  if(load==='time'||load==='distance'||load==='calories'){
+    const v=quickVal(load,rx);
+    if(!v){ openSetSheet(wrap,pill); return; }
+    if(load==='time'){ row.duration_sec=v; fb='✓ '+(v>=90?Math.round(v/60)+' min':v+' s'); }
+    else if(load==='distance'){ row.distance_m=v; fb='✓ '+(v>=1000?(v/1000)+' km':v+' m'); }
+    else { row.calories=v; fb='✓ '+v+' kcal'; }
+  } else {
+    const seg=((wrap.dataset.plan||'').split(';')[+pill.dataset.set-1]||'').split('@');
+    const reps=parseInt(seg[0],10)||null;
+    const kg=parseFloat(seg[1])||null;
+    if(!reps){ openSetSheet(wrap,pill); return; }
+    row.reps=reps; if(load==='weight') row.weight_kg=kg;
+    fb='✓ '+reps+(row.weight_kg?(' × '+row.weight_kg+' kg'):'');
+  }
+  pill.style.opacity=.5;
   const { error } = await sb.from('set_logs').insert(row);
   pill.style.opacity='';
   if(error){ toast('Échec de l\'enregistrement'); return; }
   pill.classList.add('done'); pill.textContent='✓';
   WO_DONE++; WO_VOL+=(row.weight_kg||0)*(row.reps||0); updHud(); buzz(15);
-  LAST_SET[wrap.dataset.ex]={reps:row.reps,kg:row.weight_kg};
-  toast('✓ '+reps+(row.weight_kg?(' × '+row.weight_kg+' kg'):''));
+  LAST_SET[wrap.dataset.ex]={reps:row.reps,kg:row.weight_kg,dur:row.duration_sec,dist:row.distance_m,cal:row.calories};
+  toast(fb);
   const restS=parseInt(wrap.dataset.rest,10)||0; if(restS) startRest(restS);
 }
 function fmtRest(s){ const m=Math.floor(s/60); return m+':'+String(s%60).padStart(2,'0'); }
