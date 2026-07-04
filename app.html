@@ -333,6 +333,19 @@
   .wod-sub{font-size:13px;color:var(--muted)}
   .wod-btn{margin-top:13px;width:100%;padding:12px;border-radius:13px;font-weight:800;font-size:14px;color:#04120a;
     background:linear-gradient(135deg,var(--brand),var(--brand-2));display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 0 18px rgba(0,255,160,.3)}
+  .mplan{background:color-mix(in srgb,var(--brand) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--brand) 36%,transparent);
+    border-radius:var(--radius);padding:16px 17px;margin-bottom:16px}
+  .mp-bar{height:7px;border-radius:5px;background:var(--surface-2);overflow:hidden;margin:11px 0 4px}
+  .mp-bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--brand),var(--brand-2));box-shadow:0 0 10px rgba(0,255,160,.5)}
+  .mp-cnt{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .mp-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .mp-row:last-of-type{border-bottom:0}
+  .mp-dot{width:9px;height:9px;border-radius:50%;background:var(--brand);box-shadow:0 0 8px rgba(0,255,160,.6);flex-shrink:0}
+  .mp-row.dn .mp-dot{background:var(--muted);box-shadow:none}
+  .mp-row.dn .mp-n{color:var(--muted);text-decoration:line-through}
+  .mp-n{font-weight:700;font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mp-d{font-size:12px;color:var(--muted);white-space:nowrap}
+  .mp-note{font-size:11.5px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .qtiles{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:16px}
   .qtile{display:flex;flex-direction:column;align-items:flex-start;gap:9px;text-align:left;
     background:color-mix(in srgb,var(--c) 13%,var(--surface));border:1px solid color-mix(in srgb,var(--c) 32%,transparent);
@@ -582,6 +595,8 @@
       <p class="empty"><span data-i18n="empty_targets">Pas encore d'objectifs.</span><br><span data-i18n="empty_targets_sub">Calcule-les dans Profil pour suivre ta journée en temps réel.</span></p>
       <button class="btn" id="go-profile" data-i18n="define_goals">Définir mes objectifs</button>
     </div>
+
+    <div id="myplan"></div>
 
     <div id="wod"></div>
 
@@ -1944,8 +1959,62 @@ async function loadHome(){
   $('#home-hi').textContent = t('home_hello')+' '+firstName(USER&&USER.email);
   $('#home-date').textContent = new Date().toLocaleDateString(locale(),{weekday:'long',day:'numeric',month:'long'});
   await loadToday();
+  loadMyPlan();
   loadWod();
   loadInsight();
+}
+
+/* ---- Mon programme (assigné par mon coach) ---- */
+const MP_L={
+  title:{fr:'Mon programme',en:'My program',nl:'Mijn programma'},
+  by:{fr:'par',en:'by',nl:'door'},
+  done:{fr:'séances faites',en:'sessions done',nl:'sessies gedaan'},
+  all:{fr:'Programme terminé — bravo. Ton coach prépare la suite.',en:'Program completed — well done. Your coach is preparing the next one.',nl:'Programma afgerond — goed gedaan. Je coach bereidt het vervolg voor.'},
+  today:{fr:"Aujourd'hui",en:'Today',nl:'Vandaag'}
+};
+const mpT=k=>{const o=MP_L[k];return o?(o[LANG]||o.fr):k;};
+let MY_PLAN_IDS=new Set();
+async function refreshPlanIds(){
+  try{
+    const { data:d } = await sb.rpc('client_my_plan');
+    MY_PLAN_IDS=new Set(((d&&d.items)||[]).map(x=>x.workout_id));
+  }catch(e){}
+}
+async function loadMyPlan(){
+  const box=$('#myplan');
+  try{
+    const { data:d, error } = await sb.rpc('client_my_plan');
+    if(error||!d||!d.plan){ box.innerHTML=''; MY_PLAN_IDS=new Set(); return; }
+    const items=d.items||[];
+    MY_PLAN_IDS=new Set(items.map(x=>x.workout_id));
+    if(!items.length){ box.innerHTML=''; return; }
+    const doneN=items.filter(x=>x.completed_at).length;
+    const pct=Math.round(doneN/items.length*100);
+    const todayS=new Date().toISOString().slice(0,10);
+    const upcoming=items.filter(x=>!x.completed_at).slice(0,3);
+    const lastDone=[...items].reverse().find(x=>x.completed_at);
+    const rows=(upcoming.length?upcoming:(lastDone?[lastDone]:[])).map(x=>{
+      const dn=!!x.completed_at;
+      const dt=x.scheduled_date
+        ? (x.scheduled_date===todayS ? mpT('today')
+           : new Date(x.scheduled_date+'T12:00:00').toLocaleDateString(locale(),{weekday:'short',day:'numeric',month:'short'}))
+        : '';
+      return `<div class="mp-row${dn?' dn':''}" data-open="${x.workout_id}">
+        <span class="mp-dot"></span>
+        <span style="flex:1;min-width:0"><span class="mp-n">${esc(pick(x,'title'))}</span>
+          ${x.notes?`<div class="mp-note">${esc(x.notes)}</div>`:''}</span>
+        <span class="mp-d">${esc(dt)}${x.estimated_duration_min?' · '+x.estimated_duration_min+' min':''}</span>
+      </div>`;
+    }).join('');
+    box.innerHTML=`<div class="mplan">
+      <div class="wod-top"><span class="wod-k" style="--c:var(--brand);color:var(--brand)">${mpT('title')}</span>
+        ${d.plan.coach_name?`<span class="wod-dur">${mpT('by')} ${esc(d.plan.coach_name)}</span>`:''}</div>
+      <div class="wod-name">${esc(pick(d.plan,'title'))}</div>
+      <div class="mp-bar"><i style="width:${pct}%"></i></div>
+      <div class="mp-cnt">${doneN}/${items.length} ${mpT('done')}</div>
+      ${doneN===items.length?`<div class="mp-note" style="margin-top:8px;white-space:normal">${mpT('all')}</div>`:rows}
+    </div>`;
+  }catch(e){ box.innerHTML=''; }
 }
 
 const TYPE_L={strength:{fr:'Force',en:'Strength',nl:'Kracht'},hypertrophy:{fr:'Hypertrophie',en:'Hypertrophy',nl:'Hypertrofie'},hiit:{fr:'HIIT',en:'HIIT',nl:'HIIT'},hyrox:{fr:'Hyrox',en:'Hyrox',nl:'Hyrox'},conditioning:{fr:'Conditionnement',en:'Conditioning',nl:'Conditie'},mobility:{fr:'Mobilité',en:'Mobility',nl:'Mobiliteit'},football:{fr:'Football',en:'Football',nl:'Voetbal'},full_body:{fr:'Full body',en:'Full body',nl:'Full body'},emom:{fr:'EMOM',en:'EMOM',nl:'EMOM'},amrap:{fr:'AMRAP',en:'AMRAP',nl:'AMRAP'},for_time:{fr:'For time',en:'For time',nl:'For time'},circuit:{fr:'Circuit',en:'Circuit',nl:'Circuit'}};
@@ -2039,7 +2108,7 @@ function loadInsight(){
 async function fetchWorkouts(){
   const { data:ws } = await sb.from('workouts')
     .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url,program_slug,is_free,week_number,day_number')
-    .eq('is_published',true).order('created_at',{ascending:true});
+    .eq('is_published',true).not('program_slug','is',null).order('created_at',{ascending:true});
   SE_WORKOUTS = ws||[]; SE_COUNTS={};
   const ids=SE_WORKOUTS.map(w=>w.id);
   if(ids.length){
@@ -2438,8 +2507,17 @@ function backToList(){ const d=$('#se-detail'),l=$('#se-list'); if(d) d.classLis
 
 async function openWorkout(id){
   if(!SE_WORKOUTS) await fetchWorkouts();
-  const w=(SE_WORKOUTS||[]).find(x=>x.id===id); if(!w) return;
-  if(!PREMIUM && !w.is_free){ showUpsell('workout'); return; }
+  let w=(SE_WORKOUTS||[]).find(x=>x.id===id);
+  if(!w){
+    const { data:one } = await sb.from('workouts')
+      .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url,program_slug,is_free,week_number,day_number')
+      .eq('id',id).maybeSingle();
+    w=one; if(!w) return;
+  }
+  if(!PREMIUM && !w.is_free && !MY_PLAN_IDS.has(id)){
+    await refreshPlanIds();
+    if(!MY_PLAN_IDS.has(id)){ showUpsell('workout'); return; }
+  }
   switchTab('seances');
   SE_CUR={w}; SESSION=null;
   $('#se-list').classList.add('hidden');
