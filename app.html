@@ -503,6 +503,7 @@
   <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v10m0 0 4-4m-4 4-4-4"/><path d="M5 17v2a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-2"/></symbol>
   <symbol id="i-card" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2.2"/><path d="M3 10.5h18M7 15.5h4"/></symbol>
   <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2.2"/><path d="m4.5 7.5 7.5 6 7.5-6"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8.5h3L8.5 6h7L17 8.5h3A1.5 1.5 0 0 1 21.5 10v8A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18v-8A1.5 1.5 0 0 1 4 8.5Z"/><circle cx="12" cy="13.5" r="3.2"/></symbol>
 </svg>
 <!-- ============ LOADING ============ -->
 <div id="boot" class="screen"><div class="spin"></div></div>
@@ -606,6 +607,8 @@
         <input id="jo-q" type="text" placeholder="Riz, poulet, banane…" data-i18n-ph="jo_ph" enterkeyhint="search" />
         <button id="jo-search" data-i18n="jo_search">Chercher</button>
       </div>
+      <button class="btn subtle" id="jo-photo" style="width:100%;margin-top:10px"><svg class="ic"><use href="#i-camera"/></svg> <span id="jo-photo-lbl" data-i18n="ph_btn">Photo IA — calcule mes calories</span></button>
+      <input type="file" id="jo-photo-file" accept="image/*" capture="environment" style="display:none" />
       <div id="jo-results"></div>
     </div>
     <div class="block">
@@ -707,8 +710,14 @@
           <option value="build_muscle" data-i18n="goal_build_muscle">Prise de muscle</option>
           <option value="recomp" data-i18n="goal_recomp">Recomposition</option>
         </select></div>
+      <div class="row2">
+        <div class="field"><label data-i18n="wg_target">Poids cible (kg)</label><input id="p-target-w" type="number" inputmode="decimal" placeholder="72" /></div>
+        <div class="field"><label data-i18n="wg_date">Date cible</label><input id="p-target-date" type="date" /></div>
+      </div>
+      <p class="empty" style="text-align:left;padding:0 0 12px;font-size:12.5px" data-i18n="wg_hint">Optionnel — fixe un poids et une date : tes calories sont calculées pour l'atteindre, dans des limites saines.</p>
       <button class="btn" id="p-calc" data-i18n="btn_calc">Calculer & enregistrer</button>
       <div class="msg" id="p-msg"></div>
+      <div class="msg" id="p-warn" style="text-align:left"></div>
     </div>
 
     <div class="block">
@@ -785,6 +794,28 @@
     <div class="fk" id="sh-preview" style="margin:2px 0 16px"></div>
     <button class="btn" id="sh-add" data-i18n="sh_add">Ajouter au journal</button>
     <button class="btn subtle" id="sh-cancel" style="margin-top:10px" data-i18n="btn_cancel">Annuler</button>
+  </div>
+</div>
+
+<!-- PHOTO-IA SHEET -->
+<div class="overlay" id="ph-ov">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 data-i18n="ph_title">Analyse de ton plat</h3>
+    <div class="fk" id="ph-note" style="margin-bottom:8px">—</div>
+    <div id="ph-items"></div>
+    <div class="field" style="margin:12px 0 4px"><label data-i18n="sh_meal">Repas</label>
+      <select id="ph-meal">
+        <option value="breakfast" data-i18n="meal_breakfast">Petit-déj</option>
+        <option value="lunch" data-i18n="meal_lunch">Déjeuner</option>
+        <option value="dinner" data-i18n="meal_dinner">Dîner</option>
+        <option value="snack" data-i18n="meal_snack">Collation</option>
+        <option value="pre_workout" data-i18n="meal_pre_workout">Pré-training</option>
+        <option value="post_workout" data-i18n="meal_post_workout">Post-training</option>
+      </select></div>
+    <div class="fk" id="ph-total" style="margin:2px 0 14px"></div>
+    <button class="btn" id="ph-add" data-i18n="ph_add">Ajouter au journal</button>
+    <button class="btn subtle" id="ph-cancel" style="margin-top:10px" data-i18n="btn_cancel">Annuler</button>
   </div>
 </div>
 
@@ -1065,6 +1096,24 @@ const T = {
  sh_qty:{fr:'Quantité (g)',en:'Quantity (g)',nl:'Hoeveelheid (g)'},
  sh_meal:{fr:'Repas',en:'Meal',nl:'Maaltijd'},
  sh_add:{fr:'Ajouter au journal',en:'Add to diary',nl:'Toevoegen aan dagboek'},
+ ph_btn:{fr:'Photo IA — calcule mes calories',en:'AI Photo — count my calories',nl:'AI-foto — bereken mijn calorieën'},
+ ph_analyzing:{fr:'Analyse en cours…',en:'Analyzing…',nl:'Bezig met analyseren…'},
+ ph_title:{fr:'Analyse de ton plat',en:'Your plate, analyzed',nl:'Analyse van je bord'},
+ ph_conf:{fr:'Confiance',en:'Confidence',nl:'Zekerheid'},
+ ph_none:{fr:'Aucun aliment détecté sur la photo.',en:'No food detected in the photo.',nl:'Geen voedsel gedetecteerd op de foto.'},
+ ph_add:{fr:'Ajouter au journal',en:'Add to diary',nl:'Toevoegen aan dagboek'},
+ ph_fail:{fr:'Analyse impossible, réessaie.',en:'Analysis failed, try again.',nl:'Analyse mislukt, probeer opnieuw.'},
+ wg_target:{fr:'Poids cible (kg)',en:'Target weight (kg)',nl:'Streefgewicht (kg)'},
+ wg_date:{fr:'Date cible',en:'Target date',nl:'Streefdatum'},
+ wg_hint:{fr:'Optionnel — fixe un poids et une date : tes calories sont calculées pour l\u2019atteindre, dans des limites saines.',en:'Optional — set a weight and a date: your calories are computed to reach it, within safe limits.',nl:'Optioneel — kies een gewicht en een datum: je calorie\u00ebn worden berekend om het veilig te bereiken.'},
+ wg_week:{fr:'sem',en:'wk',nl:'wk'},
+ wg_date_err:{fr:'Choisis une date à au moins 7 jours.',en:'Pick a date at least 7 days away.',nl:'Kies een datum minstens 7 dagen verder.'},
+ wg_dir_err:{fr:'Ton poids cible ne correspond pas à ton objectif (perte ou prise).',en:'Your target weight does not match your goal (loss or gain).',nl:'Je streefgewicht past niet bij je doel (verlies of toename).'},
+ wg_extreme_loss:{fr:'Demande trop agressive : au-delà de 1 % du poids par semaine, tu perds du muscle et tu mets ta santé en jeu (Helms 2014). Plan ajusté au rythme maximal sûr.',en:'Too aggressive: beyond 1% of bodyweight per week you lose muscle and risk your health (Helms 2014). Plan adjusted to the maximum safe rate.',nl:'Te agressief: boven 1% lichaamsgewicht per week verlies je spiermassa en riskeer je je gezondheid (Helms 2014). Plan aangepast naar het veilige maximum.'},
+ wg_extreme_gain:{fr:'Surplus trop agressif : au-delà de 0,5 % par semaine, le gain est surtout du gras. Plan ajusté.',en:'Surplus too aggressive: beyond 0.5% per week the gain is mostly fat. Plan adjusted.',nl:'Te groot surplus: boven 0,5% per week is de toename vooral vet. Plan aangepast.'},
+ wg_floor:{fr:'Calories limitées à ton métabolisme de base pour protéger ta santé.',en:'Calories floored at your basal metabolic rate to protect your health.',nl:'Calorie\u00ebn begrensd op je basaal metabolisme om je gezondheid te beschermen.'},
+ wg_new_date:{fr:'Date réaliste :',en:'Realistic date:',nl:'Realistische datum:'},
+ wg_health:{fr:'Estimation théorique (≈7700 kcal/kg). Problème de santé, grossesse ou trouble du comportement alimentaire : parles-en à un professionnel de santé avant de suivre ce plan.',en:'Theoretical estimate (≈7700 kcal/kg). Health condition, pregnancy or eating disorder: talk to a health professional before following this plan.',nl:'Theoretische schatting (≈7700 kcal/kg). Gezondheidsprobleem, zwangerschap of eetstoornis: raadpleeg eerst een zorgprofessional.'},
  btn_cancel:{fr:'Annuler',en:'Cancel',nl:'Annuleren'},
  set_title:{fr:'Série',en:'Set',nl:'Set'},
  set_save:{fr:'Valider la série',en:'Save set',nl:'Set opslaan'},
@@ -1277,6 +1326,8 @@ async function loadTargets(){
     if(TARGETS.current_weight_kg) $('#p-weight').value = TARGETS.current_weight_kg;
     if(TARGETS.goal) $('#p-goal').value = TARGETS.goal;
     if(TARGETS.activity_level) $('#p-act').value = TARGETS.activity_level;
+    if(TARGETS.target_weight_kg) $('#p-target-w').value = TARGETS.target_weight_kg;
+    if(TARGETS.target_date) $('#p-target-date').value = TARGETS.target_date;
   }
 }
 
@@ -1461,6 +1512,98 @@ async function loadLogs(){
   });
 }
 
+/* ---------------- PHOTO IA (plat → calories) ---------------- */
+let PH_ITEMS=[];
+function phBusy(on){
+  $('#jo-photo').disabled=on;
+  $('#jo-photo-lbl').textContent = on ? t('ph_analyzing') : t('ph_btn');
+}
+$('#jo-photo').onclick = ()=>{
+  if(!PREMIUM){ showUpsell('ia'); return; }
+  $('#jo-photo-file').click();
+};
+$('#jo-photo-file').onchange = async (e)=>{
+  const f = e.target.files && e.target.files[0];
+  e.target.value='';
+  if(!f) return;
+  phBusy(true);
+  try{
+    const b64 = await phCompress(f, 1024, 0.82);
+    const { data, error } = await sb.functions.invoke('food-photo',{ body:{ image:b64, mime:'image/jpeg', locale:LANG } });
+    if(error || !data || data.error){ toast(t('ph_fail')); return; }
+    if(!data.items || !data.items.length){ toast(data['note_'+LANG]||data.note_fr||t('ph_none')); return; }
+    PH_ITEMS = data.items;
+    phOpen(data);
+  }catch(_){ toast(t('ph_fail')); }
+  finally{ phBusy(false); }
+};
+function phCompress(file,maxDim,q){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(file);
+    const im=new Image();
+    im.onload=()=>{
+      let w=im.width,h=im.height;
+      const s=Math.min(1,maxDim/Math.max(w,h)); w=Math.round(w*s); h=Math.round(h*s);
+      const c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(im,0,0,w,h);
+      URL.revokeObjectURL(url);
+      res(c.toDataURL('image/jpeg',q).split(',')[1]);
+    };
+    im.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error('img')); };
+    im.src=url;
+  });
+}
+function phOpen(data){
+  const note = data['note_'+LANG]||data.note_fr||'';
+  const conf = Math.round((data.confidence||0)*100);
+  $('#ph-note').textContent = (note?note+' · ':'')+t('ph_conf')+' '+conf+'%';
+  phRender();
+  $('#ph-ov').classList.add('show');
+}
+function phRender(){
+  $('#ph-items').innerHTML = PH_ITEMS.map((it,i)=>`
+    <div class="logitem">
+      <div style="flex:1;min-width:0"><div class="ln">${esc(pick(it,'name')||it.name_fr)}</div>
+        <div class="lq">${r0(it.kcal_per_100g)} kcal/100g · P ${r1(it.protein_per_100g)} · G ${r1(it.carbs_per_100g)} · L ${r1(it.fat_per_100g)}</div></div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <input type="number" inputmode="numeric" value="${r0(it.grams)}" data-phg="${i}" style="width:64px;text-align:right" />
+        <span style="opacity:.6;font-size:12px">g</span>
+        <span class="del" data-phx="${i}" title="Retirer">✕</span>
+      </div>
+    </div>`).join('');
+  $('#ph-items').querySelectorAll('[data-phg]').forEach(inp=>{
+    inp.oninput = ()=>{ PH_ITEMS[+inp.dataset.phg].grams = parseFloat(inp.value)||0; phTotal(); };
+  });
+  $('#ph-items').querySelectorAll('[data-phx]').forEach(x=>{
+    x.onclick = ()=>{
+      PH_ITEMS.splice(+x.dataset.phx,1);
+      if(!PH_ITEMS.length){ $('#ph-ov').classList.remove('show'); return; }
+      phRender();
+    };
+  });
+  phTotal();
+}
+function phTotal(){
+  const tot = PH_ITEMS.reduce((a,it)=>{
+    const k=(it.grams||0)/100;
+    return { kcal:a.kcal+it.kcal_per_100g*k, p:a.p+it.protein_per_100g*k, c:a.c+it.carbs_per_100g*k, f:a.f+it.fat_per_100g*k };
+  },{kcal:0,p:0,c:0,f:0});
+  $('#ph-total').textContent = `≈ ${r0(tot.kcal)} kcal · P ${r1(tot.p)} · G ${r1(tot.c)} · L ${r1(tot.f)} g`;
+}
+$('#ph-cancel').onclick = ()=>{ $('#ph-ov').classList.remove('show'); };
+$('#ph-ov').onclick = (e)=>{ if(e.target.id==='ph-ov') $('#ph-ov').classList.remove('show'); };
+$('#ph-add').onclick = async ()=>{
+  const items = PH_ITEMS.filter(it=>it.grams>0);
+  if(!items.length) return;
+  setBtn('#ph-add',true,'…');
+  const { data, error } = await sb.rpc('log_ai_meal',{ p_items:items, p_meal:$('#ph-meal').value, p_date:todayStr() });
+  setBtn('#ph-add',false,t('ph_add'));
+  if(error || !data || !data.ok){ toast(t('ph_fail')); return; }
+  $('#ph-ov').classList.remove('show'); PH_ITEMS=[];
+  toast(t('jo_added'));
+  await loadLogs(); await loadToday();
+};
+
 /* ---------------- PROFIL (Mifflin-St Jeor) ---------------- */
 $('#p-calc').onclick = async ()=>{
   const w=parseFloat($('#p-weight').value), h=parseFloat($('#p-height').value), a=parseInt($('#p-age').value);
@@ -1470,7 +1613,38 @@ $('#p-calc').onclick = async ()=>{
   const actMul = {sedentary:1.2,light:1.375,moderate:1.55,active:1.725,very_active:1.9}[act];
   const tdee = bmr*actMul;
   const goalMul = {lose_fat:0.8,maintain:1,build_muscle:1.1,recomp:0.95}[goal];
-  const kcal = tdee*goalMul;
+  let kcal = tdee*goalMul;
+
+  /* -- Objectif de poids daté (optionnel) -- */
+  const tw = parseFloat($('#p-target-w').value)||null;
+  const tdStr = $('#p-target-date').value||null;
+  let targetDate=null, weeklyRate=null;
+  const warns=[];
+  if(tw && tdStr && (goal==='lose_fat'||goal==='build_muscle')){
+    const days = Math.round((new Date(tdStr+'T12:00:00') - new Date())/86400000);
+    if(days<7) return setMsg('p-msg',t('wg_date_err'),'err');
+    const delta = tw - w;
+    if(goal==='lose_fat' && delta>=0) return setMsg('p-msg',t('wg_dir_err'),'err');
+    if(goal==='build_muscle' && delta<=0) return setMsg('p-msg',t('wg_dir_err'),'err');
+    let rate = delta/(days/7);            /* kg/semaine, négatif = perte */
+    const maxLoss = -0.01*w;              /* -1 %/sem max (Helms 2014) */
+    const maxGain = 0.005*w;              /* +0,5 %/sem max */
+    let clamped=false;
+    if(rate < maxLoss){ rate = maxLoss; clamped=true; warns.push(t('wg_extreme_loss')); }
+    if(rate > maxGain){ rate = maxGain; clamped=true; warns.push(t('wg_extreme_gain')); }
+    kcal = tdee + (rate*7700)/7;
+    if(kcal < bmr){ kcal = bmr; warns.push(t('wg_floor')); }
+    weeklyRate = Math.round(rate*100)/100;
+    if(clamped){
+      const realWeeks = Math.ceil(Math.abs(delta/rate));
+      const rd = new Date(); rd.setDate(rd.getDate()+realWeeks*7);
+      targetDate = rd.toISOString().slice(0,10);
+      warns.push(t('wg_new_date')+' '+targetDate);
+    }else{
+      targetDate = tdStr;
+    }
+  }
+
   const protein = 2*w;
   const fat = (kcal*0.25)/9;
   const carbs = (kcal - (protein*4 + fat*9))/4;
@@ -1483,13 +1657,20 @@ $('#p-calc').onclick = async ()=>{
     user_id:USER.id, is_active:true, calculation_method:'mifflin_st_jeor',
     bmr_kcal:r0(bmr), tdee_kcal:r0(tdee), daily_calories_kcal:r0(kcal),
     protein_g:r0(protein), carbs_g:r0(carbs), fat_g:r0(fat), fiber_g:r0(fiber), water_ml:r0(water),
-    goal, activity_level:act, current_weight_kg:w
+    goal, activity_level:act, current_weight_kg:w,
+    target_weight_kg:tw, target_date:targetDate, weekly_rate_kg:weeklyRate
   });
   setBtn('#p-calc',false,t('btn_calc'));
   if(error){ setMsg('p-msg',t('save_fail'),'err'); return; }
-  setMsg('p-msg',`✓ ${r0(kcal)} kcal · P${r0(protein)} G${r0(carbs)} L${r0(fat)} g`,'ok');
+  const rateTxt = weeklyRate!=null ? ` · ${weeklyRate>0?'+':''}${weeklyRate} kg/${t('wg_week')}` : '';
+  setMsg('p-msg',`✓ ${r0(kcal)} kcal · P${r0(protein)} G${r0(carbs)} L${r0(fat)} g${rateTxt}`,'ok');
+  const wEl=$('#p-warn');
+  if(weeklyRate!=null){
+    wEl.innerHTML = (warns.length?`<span style="color:var(--prot);font-weight:600">${esc(warns.join(' '))}</span><br>`:'')
+      + `<span style="opacity:.65;font-size:12px">${esc(t('wg_health'))}</span>`;
+  }else{ wEl.innerHTML=''; }
   await loadTargets(); await loadToday();
-  setTimeout(()=>switchTab('home'),900);
+  if(!warns.length) setTimeout(()=>switchTab('home'),900);
 };
 
 /* ---------------- MES RECORDS (1RM) + UTILS ---------------- */
