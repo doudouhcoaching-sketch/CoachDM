@@ -758,6 +758,8 @@
     <div class="block">
       <h3 data-i18n="prof_account">Compte</h3>
       <div class="empty" style="text-align:left;padding:0 0 12px" id="p-email"></div>
+      <a class="btn subtle" id="p-coach-console" href="coach.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_coach_console">Console Coach</a>
+      <a class="btn subtle" id="p-admin-console" href="admin.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_admin_console">Console Admin</a>
       <button class="btn subtle" id="p-out" data-i18n="btn_logout">Se déconnecter</button>
       <a href="https://coachdm.be/privacy.html" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:14px;color:var(--muted);font-size:12.5px;text-decoration:none" data-i18n="privacy">Politique de confidentialité</a>
     </div>
@@ -1073,6 +1075,9 @@ const T = {
  sub_status_active:{fr:'Accès actif',en:'Active access',nl:'Actieve toegang'},
  sub_status_trial:{fr:'Essai en cours',en:'Trial in progress',nl:'Proefperiode loopt'},
  sub_status_none:{fr:'Aucun accès',en:'No access',nl:'Geen toegang'},
+ sub_status_coach:{fr:'Suivi par ton coach',en:'Coached access',nl:'Begeleid door je coach'},
+ btn_coach_console:{fr:'Console Coach',en:'Coach Console',nl:'Coach Console'},
+ btn_admin_console:{fr:'Console Admin',en:'Admin Console',nl:'Admin Console'},
  sub_pay_note:{fr:'Le paiement en ligne arrive bientôt. En attendant, contacte le coach pour activer ou renouveler ton accès.',en:'Online payment is coming soon. Meanwhile, contact the coach to activate or renew your access.',nl:'Online betalen komt binnenkort. Neem intussen contact op met de coach om je toegang te activeren of te verlengen.'},
  contact_coach:{fr:'Contacter le coach',en:'Contact the coach',nl:'Contacteer de coach'},
  prof_options:{fr:'Options',en:'Options',nl:'Opties'},
@@ -1294,6 +1299,10 @@ async function loadProfileInfo(user){
   try{
     const { data:prof2 } = await sb.from('profiles').select('role').eq('id',user.id).maybeSingle();
     const role = prof2 && prof2.role;
+    if(role==='coach'||role==='admin'){
+      const cc=$('#p-coach-console'); if(cc) cc.style.display='block';
+      if(role==='admin'){ const ac=$('#p-admin-console'); if(ac) ac.style.display='block'; }
+    }
     const { data:sub } = await sb.from('subscriptions')
       .select('status,current_period_end,trial_end').eq('user_id',user.id)
       .order('current_period_end',{ascending:false,nullsFirst:false}).limit(1).maybeSingle();
@@ -1301,7 +1310,9 @@ async function loadProfileInfo(user){
     let key='sub_status_none', extra='';
     const trialing = sub && (sub.status==='trialing' || (sub.trial_end && new Date(sub.trial_end).getTime()>now));
     const active = (role==='coach'||role==='admin') || (sub && (sub.status==='active' || (sub.current_period_end && new Date(sub.current_period_end).getTime()>now)));
-    if(trialing && !(role==='coach'||role==='admin')){
+    if(!trialing && !active && ACCESS==='coach_client'){
+      key='sub_status_coach';
+    } else if(trialing && !(role==='coach'||role==='admin')){
       key='sub_status_trial';
       if(sub && sub.trial_end) extra = ' · ' + new Date(sub.trial_end).toLocaleDateString(locale(),{day:'numeric',month:'long'});
     } else if(active){
@@ -1312,10 +1323,16 @@ async function loadProfileInfo(user){
   }catch(e){}
 }
 
+let ACCESS='free';
 async function hasAccess(uid){
   try{
+    const { data, error } = await sb.rpc('access_level');
+    if(!error && data){ ACCESS = data; return ACCESS==='full'; }
+  }catch(e){}
+  // Repli local si le RPC est indisponible (hors-ligne)
+  try{
     const { data:prof } = await sb.from('profiles').select('role').eq('id',uid).maybeSingle();
-    if(prof && (prof.role==='coach'||prof.role==='admin')) return true;
+    if(prof && (prof.role==='coach'||prof.role==='admin')){ ACCESS='full'; return true; }
   }catch(e){}
   try{
     const { data:sub } = await sb.from('subscriptions')
@@ -1323,9 +1340,9 @@ async function hasAccess(uid){
       .order('current_period_end',{ascending:false,nullsFirst:false}).limit(1).maybeSingle();
     if(!sub) return false;
     const now=Date.now();
-    if(['active','trialing'].includes(sub.status)) return true;
-    if(sub.current_period_end && new Date(sub.current_period_end).getTime()>now) return true;
-    if(sub.trial_end && new Date(sub.trial_end).getTime()>now) return true;
+    if(['active','trialing'].includes(sub.status) ||
+       (sub.current_period_end && new Date(sub.current_period_end).getTime()>now) ||
+       (sub.trial_end && new Date(sub.trial_end).getTime()>now)){ ACCESS='full'; return true; }
   }catch(e){}
   return false;
 }
