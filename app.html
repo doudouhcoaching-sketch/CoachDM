@@ -13,6 +13,9 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#050807; --bg-2:#0A0F0C;
@@ -25,6 +28,7 @@
     --shadow-soft:0 8px 22px rgba(0,0,0,.4);
     --glow:0 0 22px rgba(0,255,160,.45);
     --radius:22px; --radius-sm:14px;
+    --font-d:'Space Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0;height:100%}
@@ -35,6 +39,7 @@
       linear-gradient(180deg,var(--bg-2),var(--bg) 30%);
     color:var(--text);
     -webkit-font-smoothing:antialiased;
+    font-variant-numeric:tabular-nums;
     overscroll-behavior-y:none;
   }
   button{font-family:inherit;cursor:pointer;border:none;color:inherit}
@@ -480,9 +485,25 @@
   .pill{min-width:44px;height:38px;font-size:14.5px;font-weight:800}
   .blk-h{font-size:13px}
   .empty,.fk{font-size:13.5px}
+  /* ===== Premium polish ===== */
+  h1,h2,h3,h4,.mark{font-family:var(--font-d);letter-spacing:-.01em}
+  .btn,.wod-btn,.prod-buy{font-family:var(--font-d);letter-spacing:.01em}
+  .btn{font-weight:700}
+  .topbar h2{letter-spacing:0}
+  .ic{width:1em;height:1em;display:inline-block;vertical-align:-.13em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+  .ic-xl{width:44px;height:44px;stroke-width:1.7}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10.5" width="16" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.4" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4.5a0 0 0 0 0 0 0c0 3 1.5 4.7 3 5"/><path d="M17 5h2.5c0 3-1.5 4.7-3 5"/><path d="M12 14v3.5"/><path d="M8.5 20.5h7M10 17.5h4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.6 2.6L16 9.5"/></symbol>
+  <symbol id="i-gift" viewBox="0 0 24 24"><rect x="4" y="9" width="16" height="11" rx="1.6"/><path d="M12 9v11M4 13h16"/><path d="M12 9c-4.2 0-5.4-1.8-4.6-3.4C8.2 4 11 4.6 12 9Zm0 0c4.2 0 5.4-1.8 4.6-3.4C15.8 4 13 4.6 12 9Z"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v10m0 0 4-4m-4 4-4-4"/><path d="M5 17v2a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-2"/></symbol>
+  <symbol id="i-card" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2.2"/><path d="M3 10.5h18M7 15.5h4"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2.2"/><path d="m4.5 7.5 7.5 6 7.5-6"/></symbol>
+</svg>
 <!-- ============ LOADING ============ -->
 <div id="boot" class="screen"><div class="spin"></div></div>
 
@@ -512,7 +533,7 @@
 <!-- ============ GATE ============ -->
 <div id="gate" class="screen hidden">
   <div class="card" style="text-align:center">
-    <div class="gate-icon">🔒</div>
+    <div class="gate-icon"><svg class="ic"><use href="#i-lock"/></svg></div>
     <h1 style="font-size:21px;margin:0 0 10px" data-i18n="gate_title">Accès réservé</h1>
     <p style="color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 6px" data-i18n-html="gate_p1">
       L'app Coach DM est réservée aux membres.<br>Essai 7 jours, puis 14,99 €/mois.</p>
@@ -630,10 +651,10 @@
       </div>
     </div>
     <div class="ia-chips" id="ia-chips">
-      <button data-i18n="ia_c1">📓 Analyse mon journal</button>
-      <button data-i18n="ia_c2">🏋️ Calcule mes charges du jour</button>
-      <button data-i18n="ia_c3">🎯 Crée-moi un cycle sur mesure</button>
-      <button data-i18n="ia_c4">🔋 Ma readiness aujourd'hui</button>
+      <button data-i18n="ia_c1">Analyse mon journal</button>
+      <button data-i18n="ia_c2">Calcule mes charges du jour</button>
+      <button data-i18n="ia_c3">Crée-moi un cycle sur mesure</button>
+      <button data-i18n="ia_c4">Ma readiness aujourd'hui</button>
     </div>
     <div class="chat-bar">
       <input id="ia-input" type="text" placeholder="Écris ton message…" data-i18n-ph="ia_ph" enterkeyhint="send" />
@@ -782,7 +803,7 @@
 <div class="overlay" id="loop-ov">
   <div class="sheet" style="text-align:center">
     <div class="grab"></div>
-    <div style="font-size:40px;line-height:1;margin:6px 0 10px">🏆</div>
+    <div style="line-height:1;margin:6px 0 10px"><svg class="ic ic-xl" style="color:#D4AF37"><use href="#i-trophy"/></svg></div>
     <h3 id="loop-title" style="margin:0 0 4px">Cycle terminé</h3>
     <div class="fk" id="loop-cycle" style="color:var(--gold,#D4AF37);font-weight:700;margin-bottom:10px">—</div>
     <p id="loop-body" style="color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 16px"></p>
@@ -795,7 +816,7 @@
 <div class="overlay" id="sum-ov">
   <div class="sheet" style="text-align:center">
     <div class="grab"></div>
-    <div style="font-size:40px;line-height:1;margin:6px 0 10px">🎉</div>
+    <div style="line-height:1;margin:6px 0 10px"><svg class="ic ic-xl" style="color:var(--brand)"><use href="#i-check"/></svg></div>
     <h3 id="sum-title" style="margin:0 0 6px">Séance terminée</h3>
     <div class="sum-stats">
       <div class="sum-stat"><b id="sum-dur">—</b><span id="sum-dur-l">min</span></div>
@@ -813,7 +834,7 @@
 
 <div class="overlay" id="up-ov"><div class="sheet" style="text-align:center">
   <div class="grab"></div>
-  <div style="font-size:40px;line-height:1;margin:6px 0 10px">🔒</div>
+  <div style="line-height:1;margin:6px 0 10px"><svg class="ic ic-xl" style="color:#D4AF37"><use href="#i-lock"/></svg></div>
   <h3 data-i18n="up_title">Passe en Premium</h3>
   <p class="fk" id="up-sub" style="margin-bottom:14px">—</p>
   <div class="up-price" data-i18n="up_price">Essai 7 jours, puis 14,99 €/mois</div>
@@ -958,10 +979,10 @@ const T = {
  ia_intro:{fr:'Pose ta question : macros, séance, récupération, plateau…<br>Je connais tes données et je réponds en direct.',en:'Ask anything: macros, workout, recovery, plateau…<br>I know your data and answer live.',nl:'Stel je vraag: macro\u2019s, training, herstel, plateau…<br>Ik ken je gegevens en antwoord live.'},
  ia_ph:{fr:'Écris ton message…',en:'Type your message…',nl:'Typ je bericht…'},
  ia_new:{fr:'＋ Nouvelle',en:'＋ New',nl:'＋ Nieuw'},
- ia_c1:{fr:'📓 Analyse mon journal',en:'📓 Review my food log',nl:'📓 Analyseer mijn dagboek'},
- ia_c2:{fr:'🏋️ Calcule mes charges du jour',en:'🏋️ Compute my loads for today',nl:'🏋️ Bereken mijn gewichten vandaag'},
- ia_c3:{fr:'🎯 Crée-moi un cycle sur mesure',en:'🎯 Build me a custom cycle',nl:'🎯 Maak een cyclus op maat'},
- ia_c4:{fr:'🔋 Ma readiness aujourd\u2019hui',en:'🔋 My readiness today',nl:'🔋 Mijn readiness vandaag'},
+ ia_c1:{fr:'Analyse mon journal',en:'Review my food log',nl:'Analyseer mijn dagboek'},
+ ia_c2:{fr:'Calcule mes charges du jour',en:'Compute my loads for today',nl:'Bereken mijn gewichten vandaag'},
+ ia_c3:{fr:'Crée-moi un cycle sur mesure',en:'Build me a custom cycle',nl:'Maak een cyclus op maat'},
+ ia_c4:{fr:'Ma readiness aujourd\u2019hui',en:'My readiness today',nl:'Mijn readiness vandaag'},
  pr_title:{fr:'Mes Records (1RM)',en:'My Records (1RM)',nl:'Mijn Records (1RM)'},
  pr_sub:{fr:'Tes maxes alimentent toute l\u2019app : les séances et le Coach IA convertissent les % en kilos exacts, arrondis à 2,5 kg.',en:'Your maxes power the whole app: workouts and the AI Coach convert % into exact kilos, rounded to 2.5 kg.',nl:'Je maxen voeden de hele app: trainingen en de AI-coach zetten % om in exacte kilo\u2019s, afgerond op 2,5 kg.'},
  pr_none:{fr:'Aucun record enregistré.',en:'No record saved yet.',nl:'Nog geen record opgeslagen.'},
@@ -971,7 +992,7 @@ const T = {
  pr_lift:{fr:'Mouvement',en:'Movement',nl:'Beweging'},
  pr_kg:{fr:'1RM (kg)',en:'1RM (kg)',nl:'1RM (kg)'},
  pr_save:{fr:'Enregistrer le record',en:'Save record',nl:'Record opslaan'},
- pr_saved:{fr:'Record enregistré 💪',en:'Record saved 💪',nl:'Record opgeslagen 💪'},
+ pr_saved:{fr:'Record enregistré',en:'Record saved',nl:'Record opgeslagen'},
  pr_invalid:{fr:'Entre un poids valide',en:'Enter a valid weight',nl:'Geef een geldig gewicht in'},
  pr_edit:{fr:'Modifier',en:'Edit',nl:'Wijzig'},
  pr_add_missing:{fr:'＋ Ajoute ton 1RM',en:'＋ Add your 1RM',nl:'＋ Voeg je 1RM toe'},
@@ -1077,7 +1098,7 @@ const T = {
  finish_session:{fr:'Terminer la séance',en:'Finish the workout',nl:'Training afronden'},
  rest_lbl:{fr:'Repos',en:'Rest',nl:'Rust'},
  rest_skip:{fr:'Passer',en:'Skip',nl:'Skip'},
- rest_done:{fr:'Repos terminé — série suivante 💪',en:'Rest over — next set 💪',nl:'Rust voorbij — volgende set 💪'},
+ rest_done:{fr:'Repos terminé — série suivante',en:'Rest over — next set',nl:'Rust voorbij — volgende set'},
  sum_title:{fr:'Séance terminée',en:'Workout complete',nl:'Training voltooid'},
  sum_min:{fr:'minutes',en:'minutes',nl:'minuten'},
  sum_sets:{fr:'séries validées',en:'sets logged',nl:'sets gelogd'},
@@ -1093,13 +1114,13 @@ const T = {
  set_saved:{fr:'Série enregistrée ✓',en:'Set saved ✓',nl:'Set opgeslagen ✓'},
  start_fail:{fr:'Impossible de démarrer',en:'Could not start',nl:'Kan niet starten'},
  start_first:{fr:'Démarre la séance d\u2019abord',en:'Start the workout first',nl:'Start eerst de training'},
- loop_done_t:{fr:'Cycle terminé 🏆',en:'Cycle complete 🏆',nl:'Cyclus voltooid 🏆'},
+ loop_done_t:{fr:'Cycle terminé',en:'Cycle complete',nl:'Cyclus voltooid'},
  loop_done_p:{fr:'Tu as bouclé les 8 semaines. Ce programme est un CYCLE : relance-le et, grâce à tes nouveaux records, les charges %1RM repartent automatiquement plus lourdes. Tu progresses sans changer de plan.',en:'You\u2019ve completed all 8 weeks. This program is a CYCLE: restart it and, thanks to your new records, the %1RM loads automatically come back heavier. You progress without changing plans.',nl:'Je hebt alle 8 weken afgerond. Dit programma is een CYCLUS: herstart het en dankzij je nieuwe records komen de %1RM-belastingen automatisch zwaarder terug. Je vordert zonder van plan te wisselen.'},
  loop_cycle:{fr:'Cycle N°',en:'Cycle No.',nl:'Cyclus nr.'},
  loop_next:{fr:'Prochain : Cycle N°',en:'Next: Cycle No.',nl:'Volgende: Cyclus nr.'},
  loop_restart:{fr:'Recommencer le cycle',en:'Restart the cycle',nl:'Cyclus herstarten'},
  loop_later:{fr:'Plus tard',en:'Later',nl:'Later'},
- loop_restarted:{fr:'Nouveau cycle lancé 💪',en:'New cycle started 💪',nl:'Nieuwe cyclus gestart 💪'},
+ loop_restarted:{fr:'Nouveau cycle lancé',en:'New cycle started',nl:'Nieuwe cyclus gestart'},
  f_reps:{fr:'Reps',en:'Reps',nl:'Reps'},
  f_load:{fr:'Charge (kg)',en:'Load (kg)',nl:'Gewicht (kg)'},
  f_dur:{fr:'Durée (s)',en:'Duration (s)',nl:'Duur (s)'},
@@ -1118,8 +1139,8 @@ const T = {
  save_fail:{fr:"Échec de l'enregistrement.",en:'Save failed.',nl:'Opslaan mislukt.'},
  search_min:{fr:'Tape au moins 2 lettres.',en:'Type at least 2 letters.',nl:'Typ minstens 2 letters.'},
  shop_free:{fr:'Gratuit',en:'Free',nl:'Gratis'},
- shop_download:{fr:'📥 Télécharger gratuitement',en:'📥 Download for free',nl:'📥 Gratis downloaden'},
- shop_buy:{fr:'💳 Acheter',en:'💳 Buy',nl:'💳 Kopen'},
+ shop_download:{fr:'Télécharger gratuitement',en:'Download for free',nl:'Gratis downloaden'},
+ shop_buy:{fr:'Acheter',en:'Buy',nl:'Kopen'},
  shop_custom:{fr:'Sur mesure',en:'Custom',nl:'Op maat'}
 };
 const t = (k)=> (T[k] ? (T[k][LANG] ?? T[k].fr) : k);
@@ -1659,7 +1680,7 @@ async function sendIA(){
 document.querySelectorAll('#ia-chips button').forEach(b=>{
   b.onclick=()=>{
     if(!PREMIUM){ showUpsell('ia'); return; }
-    $('#ia-input').value=b.textContent.replace(/^\S+\s*/,'').trim();
+    $('#ia-input').value=b.textContent.trim();
     sendIA();
   };
 });
@@ -1671,7 +1692,7 @@ function showUpsell(kind){
 }
 function renderIALock(){
   const sc=$('#ia-scroll');
-  if(sc) sc.innerHTML='<div class="ia-lock"><div class="lk">🔒</div><h3>'+t('up_title')+'</h3><p>'+t('up_ia')+'</p><button class="btn" id="ia-unlock" style="max-width:240px;margin:0 auto">'+t('up_cta')+'</button></div>';
+  if(sc) sc.innerHTML='<div class="ia-lock"><div class="lk"><svg class="ic"><use href="#i-lock"/></svg></div><h3>'+t('up_title')+'</h3><p>'+t('up_ia')+'</p><button class="btn" id="ia-unlock" style="max-width:240px;margin:0 auto">'+t('up_cta')+'</button></div>';
   const inp=$('#ia-input'), snd=$('#ia-send');
   if(inp) inp.disabled=true;
   if(snd) snd.disabled=true;
@@ -1792,7 +1813,7 @@ async function loadWod(){
   const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
   const wk=(w.week_number&&w.day_number)?(t('wod_week')+' '+w.week_number+' · '+t('wod_day')+' '+w.day_number+' · '):'';
   const btn=locked
-    ? `<button class="wod-btn" style="background:linear-gradient(135deg,#D4AF37,#a8862a)" data-wod-up="1">🔒 ${t('wod_unlock')}</button>`
+    ? `<button class="wod-btn" style="background:linear-gradient(135deg,#D4AF37,#a8862a)" data-wod-up="1"><svg class="ic"><use href="#i-lock"/></svg> ${t('wod_unlock')}</button>`
     : `<button class="wod-btn" data-open="${w.id}">${t('wod_see')}</button>`;
   $('#wod').innerHTML=`<div class="wod" style="--c:${col}">
     <div class="wod-top"><span class="wod-k">${label}</span><span class="wod-dur">${w.estimated_duration_min||'—'} min</span></div>
@@ -1905,7 +1926,7 @@ function renderProgramDays(CAT, slug){
     const cover = w.cover_image_url
       ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${typeL(w.type)}</span></div>`
       : `<div class="se-cover" style="--c:${col}"><span class="se-type">${typeL(w.type)}</span></div>`;
-    html+=`<div class="se-card${locked?' locked':''}" data-open="${w.id}">${cover}${locked?'<span class="se-lock">🔒</span>':''}
+    html+=`<div class="se-card${locked?' locked':''}" data-open="${w.id}">${cover}${locked?'<span class="se-lock"><svg class="ic"><use href="#i-lock"/></svg></span>':''}
       <div class="se-body">
         <div class="se-title">${esc(pick(w,'name'))}</div>
         <div class="se-badges">
@@ -2610,10 +2631,10 @@ let SHOP_DONE=false;
 function loadBoutique(){
   if(SHOP_DONE) return;
   let h=`<div class="shop-free">
-    <div style="display:flex;align-items:center;gap:7px;color:var(--fiber);font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase"><span>🎁</span> ${t('shop_free')}</div>
+    <div style="display:flex;align-items:center;gap:7px;color:var(--fiber);font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase"><svg class="ic"><use href="#i-gift"/></svg> ${t('shop_free')}</div>
     <div class="prod-name" style="margin-top:6px">${esc(SHOP_GUIDE.n)}</div>
     <div class="prod-desc">${esc(SHOP_GUIDE.d)}</div>
-    <a class="prod-buy" style="background:linear-gradient(135deg,var(--fiber),#0c8f64)" href="${SHOP_GUIDE.u}" target="_blank" rel="noopener">${t('shop_download')}</a>
+    <a class="prod-buy" style="background:linear-gradient(135deg,var(--fiber),#0c8f64)" href="${SHOP_GUIDE.u}" target="_blank" rel="noopener"><svg class="ic"><use href="#i-download"/></svg> ${t('shop_download')}</a>
   </div>
   <p class="shop-note">22 programmes PDF premium trilingues FR/EN/NL · paiement carte sécurisé via Payhip, PDF livré automatiquement. Visa · Mastercard · Amex, sans compte.</p>`;
   SHOP.forEach(c=>{
@@ -2622,14 +2643,14 @@ function loadBoutique(){
       h+=`<div class="prod" style="--c:${c.color}">
         <div class="prod-top"><div class="prod-name">${esc(it.n)}</div><div class="prod-price">${esc(it.p)}</div></div>
         <div class="prod-desc">${esc(it.d)}</div>
-        <a class="prod-buy" href="${it.u}" target="_blank" rel="noopener">${t('shop_buy')}</a>
+        <a class="prod-buy" href="${it.u}" target="_blank" rel="noopener"><svg class="ic"><use href="#i-card"/></svg> ${t('shop_buy')}</a>
       </div>`;
     });
   });
   h+=`<div class="shop-cat-h" style="color:var(--brand)">${t('shop_custom')}</div>
     <div class="prod" style="--c:var(--brand)"><div class="prod-top"><div class="prod-name">${esc(SHOP_PERSO.n)}</div><div class="prod-price">${esc(SHOP_PERSO.p)}</div></div>
     <div class="prod-desc">${esc(SHOP_PERSO.d)}</div>
-    <a class="prod-buy" href="${SHOP_PERSO.u}">📧 Demander</a></div>
+    <a class="prod-buy" href="${SHOP_PERSO.u}"><svg class="ic"><use href="#i-mail"/></svg> Demander</a></div>
     <p class="shop-note" style="text-align:center;margin-top:16px">Tout le détail sur <a href="https://coachdm.be/programmes.html" target="_blank" rel="noopener" style="color:var(--brand);font-weight:700">coachdm.be</a></p>`;
   $('#shop').innerHTML=h; SHOP_DONE=true;
 }
