@@ -598,6 +598,7 @@
 
     <div id="myplan"></div>
     <div id="coach-card"></div>
+    <div id="calls-card"></div>
 
     <div id="wod"></div>
 
@@ -916,6 +917,12 @@
   .cc-ava{width:44px;height:44px;border-radius:50%;background:linear-gradient(145deg,var(--brand),var(--brand-2));
     display:flex;align-items:center;justify-content:center;font-weight:700;color:#04120a;flex:none}
   .cc-badge{background:var(--brand);color:#04120a;border-radius:999px;padding:3px 9px;font-size:12px;font-weight:700;flex:none}
+  .sysline{align-self:center;max-width:90%;text-align:center;font-size:12px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:5px 13px;margin:3px 0;font-variant-numeric:tabular-nums}
+  .call-row{display:flex;flex-direction:column;gap:9px;padding:13px;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;margin-top:10px}
+  .call-when{font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
+  .call-actions{display:flex;gap:8px}
+  .call-actions .btn{flex:1}
+  .call-pill{display:inline-block;background:var(--brand);color:#04120a;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:700;margin-right:6px}
 </style>
 <div class="overlay" id="up-ov"><div class="sheet" style="text-align:center">
   <div class="grab"></div>
@@ -1115,6 +1122,18 @@ const T = {
  sub_status_coach:{fr:'Suivi par ton coach',en:'Coached access',nl:'Begeleid door je coach'},
  btn_coach_console:{fr:'Console Coach',en:'Coach Console',nl:'Coach Console'},
  coach_card:{fr:'Ton coach',en:'Your coach',nl:'Jouw coach'},
+ call_sec:{fr:'Appel vidéo',en:'Video call',nl:'Videogesprek'},
+ call_proposed:{fr:'Ton coach te propose un appel',en:'Your coach proposed a call',nl:'Je coach stelt een gesprek voor'},
+ call_confirmed_pill:{fr:'Confirmé',en:'Confirmed',nl:'Bevestigd'},
+ call_accept:{fr:'Confirmer',en:'Confirm',nl:'Bevestigen'},
+ call_decline:{fr:'Décliner',en:'Decline',nl:'Afwijzen'},
+ call_join:{fr:"Rejoindre l'appel",en:'Join the call',nl:'Deelnemen aan het gesprek'},
+ call_soon:{fr:'Dans moins de 24 h',en:'Within 24 hours',nl:'Binnen 24 uur'},
+ call_accept_ok:{fr:'Appel confirmé ✓',en:'Call confirmed ✓',nl:'Gesprek bevestigd ✓'},
+ call_decline_ok:{fr:'Créneau décliné',en:'Slot declined',nl:'Voorstel afgewezen'},
+ call_fail:{fr:'Échec — réessaie',en:'Failed — try again',nl:'Mislukt — probeer opnieuw'},
+ sys_call_proposed:{fr:'Appel vidéo proposé',en:'Video call proposed',nl:'Videogesprek voorgesteld'},
+ sys_call_confirmed:{fr:'Appel vidéo confirmé',en:'Video call confirmed',nl:'Videogesprek bevestigd'},
  chat_ph:{fr:'Écris ton message…',en:'Write your message…',nl:'Schrijf je bericht…'},
  chat_send:{fr:'Envoyer',en:'Send',nl:'Versturen'},
  chat_close:{fr:'Fermer',en:'Close',nl:'Sluiten'},
@@ -1341,7 +1360,7 @@ async function enter(user){
   await loadTargets();
   await loadToday();
   switchTab('home');
-  loadCoachCard(); initChatLive();
+  loadCoachCard(); loadCalls(); initChatLive();
 }
 
 async function loadProfileInfo(user){
@@ -1429,7 +1448,51 @@ async function loadCoachCard(){
     </div></div>`;
   $('#cc-open').onclick=openCoachChat;
 }
+/* ---- Appels vidéo (Lot 6) : le client confirme ou décline, jamais d'initiation ---- */
+let CALLS=[];
+async function loadCalls(){
+  const box=$('#calls-card'); if(!box) return;
+  try{
+    const { data } = await sb.rpc('call_list_client');
+    CALLS = data||[];
+  }catch(e){ CALLS=[]; }
+  if(!CALLS.length){ box.innerHTML=''; return; }
+  box.innerHTML = `<div class="block"><h3 data-i18n="call_sec">${t('call_sec')}</h3>` + CALLS.map(c=>{
+    const soon = c.slot_status==='confirmed' && (new Date(c.starts_at).getTime()-Date.now()) < 24*3600*1000;
+    let inner='';
+    if(c.slot_status==='proposed'){
+      inner = `<div class="empty" style="text-align:left;padding:0">${t('call_proposed')}${c.coach_name?' · '+esc(c.coach_name):''}</div>
+        <div class="call-when">${fmtCallAt(c.starts_at)}</div>
+        <div class="call-actions">
+          <button class="btn sm" data-callok="${c.id}">${t('call_accept')}</button>
+          <button class="btn sm" style="background:var(--surface-2);color:var(--text);border:1px solid var(--line)" data-callno="${c.id}">${t('call_decline')}</button>
+        </div>`;
+    } else {
+      inner = `<div><span class="call-pill">${t('call_confirmed_pill')}</span>${soon?`<span class="call-pill">${t('call_soon')}</span>`:''}</div>
+        <div class="call-when">${fmtCallAt(c.starts_at)}</div>`
+        + (c.meeting_url?`<a class="btn sm" style="text-decoration:none;text-align:center;display:block" href="${esc(c.meeting_url)}" target="_blank" rel="noopener">${t('call_join')}</a>`:'');
+    }
+    return `<div class="call-row">${inner}</div>`;
+  }).join('') + `</div>`;
+  box.querySelectorAll('[data-callok]').forEach(b=>{ b.onclick=()=>respondCall(b.getAttribute('data-callok'),true); });
+  box.querySelectorAll('[data-callno]').forEach(b=>{ b.onclick=()=>respondCall(b.getAttribute('data-callno'),false); });
+}
+async function respondCall(id,accept){
+  const { data, error } = await sb.rpc('call_respond',{ p_slot:id, p_accept:accept });
+  if(error||!data?.ok){ toast(t('call_fail')); return; }
+  toast(accept?t('call_accept_ok'):t('call_decline_ok'));
+  loadCalls(); loadCoachCard();
+}
+function fmtCallAt(x){
+  const d=new Date(x);
+  return d.toLocaleDateString(locale(),{weekday:'short',day:'numeric',month:'short'})+' · '+d.toLocaleTimeString(locale(),{hour:'2-digit',minute:'2-digit'});
+}
 function chatBub(m){
+  if(m.kind==='system'){
+    const c=/^call:(proposed|confirmed):(.+)$/.exec(m.body||'');
+    const txt = c ? (t('sys_call_'+c[1])+' — '+fmtCallAt(c[2])) : (m.body||'');
+    return `<div class="sysline">${esc(txt)}</div>`;
+  }
   const at=new Date(m.created_at).toLocaleTimeString(locale(),{hour:'2-digit',minute:'2-digit'});
   const isMedia = m.kind==='image'||m.kind==='video';
   let inner='';
@@ -1518,8 +1581,9 @@ function initChatLive(){
         body.insertAdjacentHTML('beforeend', chatBub(m));
         body.scrollTop=body.scrollHeight;
         sb.rpc('msg_mark_read',{ p_peer:COACH_THREAD.peer_id });
+        if(m.kind==='system') loadCalls();
       } else {
-        loadCoachCard();
+        loadCoachCard(); loadCalls();
       }
     })
     .subscribe();

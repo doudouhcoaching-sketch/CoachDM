@@ -321,6 +321,10 @@
   .bub img,.bub video{max-width:100%;max-height:320px;border-radius:12px;display:block}
   .bub .cap{padding:5px 8px 0}
   .pill.msg{background:var(--brand);color:#04120a;border:none}
+  .sysline{align-self:center;max-width:90%;text-align:center;font-size:12px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:5px 13px;margin:3px 0;font-variant-numeric:tabular-nums}
+  .call-row{display:flex;align-items:center;gap:10px;padding:11px 12px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;margin-top:8px}
+  .call-row .cw{flex:1;min-width:0;font-weight:700;font-size:13.5px;font-variant-numeric:tabular-nums}
+  .call-row .cw small{display:block;font-weight:500;color:var(--muted);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 
 <div class="toast" id="toast"></div>
@@ -622,11 +626,82 @@ async function openClientDetail(cid){
   if(!wts.length && !n7.length && !ss.length && !prs.length && !bk.length && !lci){
     h+='<p class="empty">Pas encore de données pour ce client. Elles apparaîtront dès qu\'il utilisera l\'app.</p>';
   }
+  h+=`<div class="cd-sec"><div class="mini">Appels vidéo</div><div id="cd-calls"><div class="spin"></div></div></div>`;
   h+='<button class="btn" id="cd-chat" style="margin-top:18px">Messages</button>';
   h+='<button class="btn subtle" id="cd-close" style="margin-top:9px">Fermer</button>';
   $('#cd-body').innerHTML=h;
   $('#cd-close').onclick=closeCd;
   $('#cd-chat').onclick=()=>{ closeCd(); openChat(cid, p.full_name||p.email||''); };
+  renderCdCalls(cid);
+}
+
+/* ---- Appels vidéo (Lot 6) : créneaux ciblés, gating Coach+ ---- */
+const CALL_ST = {
+  proposed:'<span class="pill warnp">En attente</span>',
+  confirmed:'<span class="pill ok">Confirmé</span>',
+  declined:'<span class="pill no">Décliné</span>',
+  cancelled:'<span class="pill no">Annulé</span>',
+  done:'<span class="pill role">Terminé</span>'
+};
+async function renderCdCalls(cid){
+  const box=$('#cd-calls'); if(!box) return;
+  let rows=[];
+  try{
+    const { data } = await sb.rpc('call_list_coach');
+    rows=(data||[]).filter(x=>x.client_id===cid);
+  }catch(e){}
+  let h = rows.length ? rows.map(x=>`
+    <div class="call-row">
+      <div class="cw">${dhFR(x.starts_at)}<small>${esc(x.meeting_url||'')}</small></div>
+      ${CALL_ST[x.slot_status]||''}
+      ${['proposed','confirmed'].includes(x.slot_status)?`<button class="btn subtle sm" data-callcancel="${x.id}" style="width:auto">Annuler</button>`:''}
+    </div>`).join('')
+    : '<p class="empty" style="padding:8px 0">Aucun appel planifié avec ce client.</p>';
+  h += `<button class="btn sm" id="cd-call-new" style="margin-top:10px">＋ Proposer un appel</button>
+    <div id="cd-call-form" style="display:none;margin-top:12px">
+      <div class="row2">
+        <div class="field"><label>Date</label><input id="cf-date" type="date"></div>
+        <div class="field"><label>Heure</label><input id="cf-time" type="time" step="300"></div>
+      </div>
+      <div class="field"><label>Durée</label><select id="cf-dur">
+        <option value="15">15 min</option><option value="30" selected>30 min</option>
+        <option value="45">45 min</option><option value="60">60 min</option></select></div>
+      <div class="field"><label>Lien visio (Meet / Zoom)</label><input id="cf-url" type="url" inputmode="url" placeholder="https://meet.google.com/…"></div>
+      <button class="btn sm" id="cf-save">Envoyer la proposition</button>
+    </div>`;
+  box.innerHTML=h;
+  box.querySelectorAll('[data-callcancel]').forEach(b=>{
+    b.onclick=async ()=>{
+      if(!confirm('Annuler cet appel ? Le client sera notifié dans le chat.')) return;
+      const { data, error } = await sb.rpc('call_cancel_slot',{ p_slot:b.getAttribute('data-callcancel') });
+      if(error||!data?.ok){ toast('Échec'); return; }
+      toast('Appel annulé'); renderCdCalls(cid);
+    };
+  });
+  $('#cd-call-new').onclick=()=>{
+    const th=THREADS[cid];
+    if(th && th.video_allowed===false){ toast("Les appels vidéo nécessitent l'offre Coach+."); return; }
+    const f=$('#cd-call-form');
+    f.style.display = f.style.display==='none' ? 'block' : 'none';
+  };
+  $('#cf-save').onclick=async ()=>{
+    const d=$('#cf-date').value, tm=$('#cf-time').value, dur=+$('#cf-dur').value, url=$('#cf-url').value.trim();
+    if(!d||!tm){ toast('Choisis une date et une heure.'); return; }
+    if(!/^https?:\/\//i.test(url)){ toast('Colle un lien visio valide (https://…).'); return; }
+    const starts=new Date(d+'T'+tm);
+    if(isNaN(starts.getTime())||starts.getTime()<=Date.now()){ toast('Le créneau doit être dans le futur.'); return; }
+    const ends=new Date(starts.getTime()+dur*60000);
+    const { data, error } = await sb.rpc('call_create_slot',{ p_client:cid, p_starts:starts.toISOString(), p_ends:ends.toISOString(), p_url:url });
+    if(error||!data?.ok){
+      toast(data?.reason==='calls_require_plus' ? "Les appels vidéo nécessitent l'offre Coach+."
+        : data?.reason==='overlap' ? 'Ce créneau chevauche un autre appel.'
+        : data?.reason==='no_link' ? 'Client non assigné — assigne-le via la Console Admin'
+        : data?.reason==='bad_url' ? 'Lien visio invalide.'
+        : 'Échec de la création');
+      return;
+    }
+    toast('Proposition envoyée au client'); renderCdCalls(cid);
+  };
 }
 function closeCd(){ $('#ov-cd').classList.remove('show'); }
 $('#ov-cd').onclick = ev=>{ if(ev.target.id==='ov-cd') closeCd(); };
@@ -640,6 +715,11 @@ async function loadThreads(){
   }catch(e){}
 }
 function msgBub(m){
+  if(m.kind==='system'){
+    const c=/^call:(proposed|confirmed):(.+)$/.exec(m.body||'');
+    const txt = c ? ((c[1]==='proposed'?'Appel vidéo proposé':'Appel vidéo confirmé')+' — '+dhFR(c[2])) : (m.body||'');
+    return `<div class="sysline">${esc(txt)}</div>`;
+  }
   const at=new Date(m.created_at).toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'});
   const isMedia = m.kind==='image'||m.kind==='video';
   let inner='';
