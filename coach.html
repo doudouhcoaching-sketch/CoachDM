@@ -297,9 +297,11 @@
     </div>
     <div class="chat-body" id="ch-body"></div>
     <div class="chat-in">
+      <button class="btn subtle sm" id="ch-att" style="width:auto;flex:none;padding:10px 14px;font-size:18px;line-height:1" aria-label="Joindre un média">＋</button>
       <textarea id="ch-in" rows="1" placeholder="Écris ton message…"></textarea>
       <button class="btn sm" id="ch-send" style="width:auto;flex:none">Envoyer</button>
     </div>
+    <input type="file" id="ch-file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,video/mp4,video/quicktime,video/webm" style="display:none">
   </div>
 </div>
 
@@ -314,6 +316,10 @@
   .chat-in textarea{flex:1;min-height:42px;max-height:110px;resize:none;background:var(--surface-2);
     border:1px solid var(--line);border-radius:13px;color:var(--text);padding:10px 13px;font-size:15px;font-family:inherit}
   .chat-in textarea:focus{outline:none;border-color:var(--brand)}
+  .bub.media{padding:5px 5px 7px}
+  .bub.media time{padding-right:8px}
+  .bub img,.bub video{max-width:100%;max-height:320px;border-radius:12px;display:block}
+  .bub .cap{padding:5px 8px 0}
   .pill.msg{background:var(--brand);color:#04120a;border:none}
 </style>
 
@@ -635,7 +641,23 @@ async function loadThreads(){
 }
 function msgBub(m){
   const at=new Date(m.created_at).toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'});
-  return `<div class="bub ${m.sender_id===ME?'me':'them'}">${esc(m.body||'')}<time>${at}</time></div>`;
+  const isMedia = m.kind==='image'||m.kind==='video';
+  let inner='';
+  if(m.kind==='image' && m._url) inner=`<a href="${m._url}" target="_blank" rel="noopener"><img src="${m._url}" alt=""></a>`;
+  else if(m.kind==='video' && m._url) inner=`<video src="${m._url}" controls playsinline preload="metadata"></video>`;
+  else if(isMedia) inner=`<span style="opacity:.7">Média indisponible</span>`;
+  else inner=esc(m.body||'');
+  if(isMedia && m.body) inner+=`<div class="cap">${esc(m.body)}</div>`;
+  return `<div class="bub ${m.sender_id===ME?'me':'them'}${isMedia?' media':''}">${inner}<time>${at}</time></div>`;
+}
+async function signMedia(list){
+  const paths=list.filter(m=>m.attachment_url).map(m=>m.attachment_url);
+  if(!paths.length) return;
+  try{
+    const { data } = await sb.storage.from('coaching-media').createSignedUrls(paths, 3600);
+    const map={}; (data||[]).forEach(x=>{ if(x.signedUrl) map[x.path]=x.signedUrl; });
+    list.forEach(m=>{ if(m.attachment_url) m._url=map[m.attachment_url]; });
+  }catch(e){}
 }
 async function openChat(cid,name){
   CHAT_PEER=cid;
@@ -645,6 +667,7 @@ async function openChat(cid,name){
   const { data, error } = await sb.rpc('msg_list',{ p_peer:cid });
   if(error){ $('#ch-body').innerHTML='<p class="empty">Erreur de chargement.</p>'; return; }
   const list=(data||[]).slice().reverse();
+  await signMedia(list);
   $('#ch-body').innerHTML = list.length ? list.map(msgBub).join('') : '<p class="empty">Pas encore de messages. Lance la discussion.</p>';
   $('#ch-body').scrollTop=$('#ch-body').scrollHeight;
   sb.rpc('msg_mark_read',{ p_peer:cid }).then(loadThreads).then(renderClientList);
@@ -658,20 +681,58 @@ async function sendMsg(){
   if(!txt||!CHAT_PEER) return;
   $('#ch-in').value='';
   const { data, error } = await sb.rpc('msg_send',{ p_peer:CHAT_PEER, p_body:txt });
-  if(error||!data?.ok){ toast("Échec de l'envoi"); $('#ch-in').value=txt; return; }
+  if(error||!data?.ok){
+    toast(data?.reason==='no_link' ? 'Client non assigné — assigne-le via la Console Admin' : "Échec de l'envoi");
+    $('#ch-in').value=txt; return;
+  }
   const body=$('#ch-body'); const e=body.querySelector('.empty'); if(e) e.remove();
   body.insertAdjacentHTML('beforeend', msgBub({sender_id:ME,body:txt,created_at:new Date().toISOString()}));
   body.scrollTop=body.scrollHeight;
 }
 $('#ch-send').onclick=sendMsg;
 $('#ch-in').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMsg(); } });
+function videoDuration(f){ return new Promise(res=>{ try{
+  const v=document.createElement('video'); v.preload='metadata';
+  v.onloadedmetadata=()=>{ const d=v.duration||0; URL.revokeObjectURL(v.src); res(d); };
+  v.onerror=()=>res(0); v.src=URL.createObjectURL(f);
+}catch(e){ res(0); } }); }
+$('#ch-att').onclick=()=>$('#ch-file').click();
+$('#ch-file').onchange=async ev=>{
+  const f=ev.target.files[0]; ev.target.value='';
+  if(!f||!CHAT_PEER) return;
+  const th=THREADS[CHAT_PEER];
+  if(!th||!th.relationship_id){ toast('Échec'); return; }
+  const isVideo=(f.type||'').startsWith('video');
+  if(isVideo && !th.video_allowed){ toast("Les vidéos nécessitent l'offre Coach+."); return; }
+  if(f.size>50*1024*1024){ toast('Fichier trop lourd (max 50 Mo).'); return; }
+  if(isVideo){
+    const dur=await videoDuration(f);
+    if(dur>95){ toast('Vidéo trop longue (max 90 s).'); return; }
+  }
+  toast('Envoi en cours…');
+  const ext=(f.name.split('.').pop()||(isVideo?'mp4':'jpg')).toLowerCase();
+  const path=`${th.relationship_id}/${crypto.randomUUID()}.${ext}`;
+  const { error:upErr } = await sb.storage.from('coaching-media').upload(path, f, { contentType:f.type||undefined });
+  if(upErr){ toast("Échec de l'envoi"); return; }
+  const { data, error } = await sb.rpc('msg_send_media',{ p_peer:CHAT_PEER, p_kind:isVideo?'video':'image', p_path:path });
+  if(error||!data?.ok){
+    toast(data?.reason==='video_requires_plus' ? "Les vidéos nécessitent l'offre Coach+."
+      : data?.reason==='no_link' ? 'Client non assigné — assigne-le via la Console Admin'
+      : "Échec de l'envoi");
+    return;
+  }
+  const body=$('#ch-body'); const e=body.querySelector('.empty'); if(e) e.remove();
+  body.insertAdjacentHTML('beforeend', msgBub({sender_id:ME,kind:isVideo?'video':'image',_url:URL.createObjectURL(f),created_at:new Date().toISOString()}));
+  body.scrollTop=body.scrollHeight;
+};
 function initChatLive(){
   if(CHAT_CH) return;
   CHAT_CH = sb.channel('msg-live')
-    .on('postgres_changes',{ event:'INSERT', schema:'public', table:'messages' }, payload=>{
+    .on('postgres_changes',{ event:'INSERT', schema:'public', table:'messages' }, async payload=>{
       const m=payload.new||{};
       if(m.sender_id===ME) return;
       if(CHAT_PEER && m.sender_id===CHAT_PEER && $('#ov-chat').classList.contains('show')){
+        if(m.attachment_url) await signMedia([m]);
         const body=$('#ch-body'); const e=body.querySelector('.empty'); if(e) e.remove();
         body.insertAdjacentHTML('beforeend', msgBub(m));
         body.scrollTop=body.scrollHeight;
