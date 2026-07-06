@@ -567,7 +567,6 @@
     <p style="color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 18px" data-i18n="gate_p2">
       Ton compte est créé mais n'a pas encore d'accès. Contacte le coach pour l'activer.</p>
     <button class="btn" id="gate-sub" style="display:block;width:100%" data-i18n="sub_cta">S'abonner</button>
-    <a class="btn subtle" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener" style="display:block;text-decoration:none;text-align:center;margin-top:10px" data-i18n="gate_ask">Demander l'accès</a>
     <button class="btn subtle" id="gate-out" style="margin-top:10px" data-i18n="btn_logout">Se déconnecter</button>
   </div>
 </div>
@@ -967,13 +966,13 @@
   <div style="line-height:1;margin:6px 0 10px"><svg class="ic ic-xl" style="color:#D4AF37"><use href="#i-lock"/></svg></div>
   <h3 data-i18n="up_title">Passe en Premium</h3>
   <p class="fk" id="up-sub" style="margin-bottom:14px">—</p>
-  <div class="up-price" data-i18n="up_price">Essai 7 jours, puis 14,99 €/mois</div>
+  <div class="up-price" id="up-price" data-i18n="up_price">—</div>
   <ul class="up-feats">
     <li><span class="ck">✓</span><span data-i18n="up_feat1">Tous les programmes, semaine après semaine</span></li>
     <li><span class="ck">✓</span><span data-i18n="up_feat2">Coach IA illimité</span></li>
     <li><span class="ck">✓</span><span data-i18n="up_feat3">Objectifs perso &amp; moteur de charge</span></li>
   </ul>
-  <a class="btn" id="up-cta" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener" style="display:block;text-decoration:none;text-align:center" data-i18n="up_cta">Demander l'accès</a>
+  <button class="btn" id="up-cta" style="display:block;width:100%" data-i18n="sub_cta">S'abonner</button>
   <button class="btn subtle" id="up-later" style="margin-top:10px" data-i18n="up_later">Plus tard</button>
 </div></div>
 
@@ -1216,7 +1215,7 @@ const T = {
  btn_logout:{fr:'Se déconnecter',en:'Log out',nl:'Uitloggen'},
  privacy:{fr:'Politique de confidentialité',en:'Privacy policy',nl:'Privacybeleid'},
  gate_title:{fr:'Accès réservé',en:'Members only',nl:'Alleen voor leden'},
- gate_p1:{fr:'L\u2019app Coach DM est réservée aux membres.<br>Essai 7 jours, puis 14,99 €/mois.',en:'The Coach DM app is for members.<br>7-day trial, then €14.99/month.',nl:'De Coach DM-app is voor leden.<br>7 dagen proberen, daarna €14,99/maand.'},
+ gate_p1:{fr:'L\u2019app Coach DM est réservée aux membres.<br>Abonne-toi pour tout débloquer.',en:'The Coach DM app is for members.<br>Subscribe to unlock everything.',nl:'De Coach DM-app is voor leden.<br>Abonneer je om alles te ontgrendelen.'},
  gate_p2:{fr:"Ton compte est créé mais n'a pas encore d'accès. Contacte le coach pour l'activer.",en:'Your account is created but has no access yet. Contact the coach to activate it.',nl:'Je account is aangemaakt maar heeft nog geen toegang. Contacteer de coach om het te activeren.'},
  gate_ask:{fr:"Demander l'accès",en:'Request access',nl:'Toegang aanvragen'},
  up_title:{fr:'Passe en Premium',en:'Go Premium',nl:'Word Premium'},
@@ -2286,9 +2285,25 @@ document.querySelectorAll('#ia-chips button').forEach(b=>{
 });
 
 /* ---------------- UPSELL ---------------- */
+async function upsellPrice(){
+  const el=$('#up-price'); if(!el) return;
+  try{
+    if(!SUB_PRICES){
+      const { data } = await sb.from('billing_prices').select('*').eq('audience','client').eq('active',true);
+      SUB_PRICES = data||[];
+    }
+    const f=(SUB_PRICES||[]).find(p=>p.founder && p.billing_interval==='month');
+    const r=(SUB_PRICES||[]).find(p=>!p.founder && p.billing_interval==='month');
+    const offer=f||r; if(!offer) return;
+    let txt = money(offer.amount_cents)+t('sub_per_month');
+    if(f) txt = t('sub_founder_badge')+' · '+txt;
+    el.textContent = txt;
+  }catch(e){}
+}
 function showUpsell(kind){
   const sub=$('#up-sub'); if(sub) sub.textContent=t(kind==='ia'?'up_ia':'up_workout');
   const ov=$('#up-ov'); if(ov) ov.classList.add('show');
+  upsellPrice();
 }
 function renderIALock(){
   const sc=$('#ia-scroll');
@@ -2298,6 +2313,7 @@ function renderIALock(){
   if(snd) snd.disabled=true;
   const b=$('#ia-unlock'); if(b) b.onclick=()=>showUpsell('ia');
 }
+if($('#up-cta')) $('#up-cta').onclick=()=>{ $('#up-ov').classList.remove('show'); openSubSheet(); };
 if($('#up-later')) $('#up-later').onclick=()=>$('#up-ov').classList.remove('show');
 if($('#up-ov')) $('#up-ov').onclick=(e)=>{ if(e.target.id==='up-ov') $('#up-ov').classList.remove('show'); };
 
