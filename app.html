@@ -240,6 +240,19 @@
   .sheet .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 16px}
   .sheet h3{margin:0 0 4px;font-size:18px}
   .sheet .fk{color:var(--muted);font-size:13px;margin-bottom:16px}
+  /* --- Abonnement Stripe --- */
+  .sub-toggle{display:flex;gap:6px;background:color-mix(in srgb,var(--surface) 60%, black);border:1px solid var(--line);border-radius:14px;padding:5px;margin-bottom:16px}
+  .sub-toggle button{flex:1;border:0;background:transparent;color:var(--muted);font:inherit;font-size:14px;padding:9px 0;border-radius:10px}
+  .sub-toggle button.on{background:var(--brand);color:#04120a;font-weight:700}
+  .plan-card{border:1px solid color-mix(in srgb,var(--brand) 45%, var(--line));border-radius:18px;padding:18px;background:color-mix(in srgb,var(--brand) 7%, var(--surface))}
+  .plan-badge{display:inline-block;background:var(--brand);color:#04120a;font-size:11.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;border-radius:999px;padding:4px 10px;margin-bottom:10px}
+  .plan-price{font-family:'Space Grotesk',sans-serif;font-size:34px;font-weight:700;margin-bottom:4px}
+  .plan-per{font-size:14px;color:var(--muted);font-weight:400;margin-left:4px}
+  .plan-old{font-size:15px;color:var(--muted);text-decoration:line-through;margin-left:8px}
+  .plan-save{color:var(--brand);font-size:13px;margin-top:2px}
+  .plan-card .btn{width:100%;margin-top:14px}
+  .ck-box{position:relative;width:100%;max-width:480px;max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:14px}
+  .ck-close{position:absolute;top:10px;right:10px;z-index:2;border:0;background:#eee;color:#333;width:32px;height:32px;border-radius:50%;font-size:15px;line-height:1}
   #pane-ia{display:none}
   #pane-ia.active{display:flex;flex-direction:column;height:calc(100dvh - 86px - env(safe-area-inset-bottom) - 64px - env(safe-area-inset-top))}
   .chat-scroll{flex:1;overflow-y:auto;padding:18px 16px 10px;display:flex;flex-direction:column;gap:12px}
@@ -553,7 +566,8 @@
       L'app Coach DM est réservée aux membres.<br>Essai 7 jours, puis 14,99 €/mois.</p>
     <p style="color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 18px" data-i18n="gate_p2">
       Ton compte est créé mais n'a pas encore d'accès. Contacte le coach pour l'activer.</p>
-    <a class="btn" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener" style="display:block;text-decoration:none;text-align:center" data-i18n="gate_ask">Demander l'accès</a>
+    <button class="btn" id="gate-sub" style="display:block;width:100%" data-i18n="sub_cta">S'abonner</button>
+    <a class="btn subtle" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener" style="display:block;text-decoration:none;text-align:center;margin-top:10px" data-i18n="gate_ask">Demander l'accès</a>
     <button class="btn subtle" id="gate-out" style="margin-top:10px" data-i18n="btn_logout">Se déconnecter</button>
   </div>
 </div>
@@ -747,7 +761,8 @@
     <div class="block">
       <h3 data-i18n="prof_sub">Abonnement & paiement</h3>
       <div class="fk" id="p-sub" style="margin-bottom:12px">—</div>
-      <p class="empty" style="text-align:left;padding:0 0 12px" data-i18n="sub_pay_note">Le paiement en ligne arrive bientôt. En attendant, contacte le coach pour activer ou renouveler ton accès.</p>
+      <button class="btn" id="p-sub-open" style="width:100%;margin-bottom:9px;display:none" data-i18n="sub_cta">S'abonner</button>
+      <button class="btn subtle" id="p-sub-manage" style="width:100%;margin-bottom:9px;display:none" data-i18n="sub_manage">Gérer mon abonnement</button>
       <a class="btn subtle" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none" data-i18n="contact_coach">Contacter le coach</a>
     </div>
 
@@ -775,6 +790,29 @@
     <button data-tab="cours"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg></span><span data-i18n="nav_cours">Cours</span></button>
     <button data-tab="ia"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg></span><span data-i18n="nav_ia">Coach IA</span></button>
     <button data-tab="profile"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></span><span data-i18n="nav_profile">Profil</span></button>
+  </div>
+</div>
+
+<!-- ABONNEMENT SHEET -->
+<div class="overlay" id="sub-ov">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 data-i18n="sub_title">Deviens membre</h3>
+    <div class="fk" data-i18n="sub_sub">Accès complet : programmes, séances, Coach IA, nutrition et suivi.</div>
+    <div class="sub-toggle" id="sub-toggle">
+      <button class="on" data-int="month" data-i18n="sub_month">Mensuel</button>
+      <button data-int="year" data-i18n="sub_year">Annuel</button>
+    </div>
+    <div id="sub-plans"><div class="empty">…</div></div>
+    <div class="msg" id="sub-msg"></div>
+  </div>
+</div>
+
+<!-- CHECKOUT STRIPE EMBARQUÉ -->
+<div class="overlay" id="ck-ov">
+  <div class="ck-box">
+    <button class="ck-close" id="ck-close" aria-label="Fermer">✕</button>
+    <div id="ck-mount"></div>
   </div>
 </div>
 
@@ -1116,6 +1154,22 @@ const T = {
  lbl_lang:{fr:'Langue de l\u2019app',en:'App language',nl:'App-taal'},
  btn_save:{fr:'Enregistrer',en:'Save',nl:'Opslaan'},
  prof_sub:{fr:'Abonnement & paiement',en:'Subscription & payment',nl:'Abonnement & betaling'},
+ sub_cta:{fr:"S'abonner",en:'Subscribe',nl:'Abonneren'},
+ sub_manage:{fr:'Gérer mon abonnement',en:'Manage my subscription',nl:'Mijn abonnement beheren'},
+ sub_title:{fr:'Deviens membre',en:'Become a member',nl:'Word lid'},
+ sub_sub:{fr:'Accès complet : programmes, séances, Coach IA, nutrition et suivi.',en:'Full access: programs, workouts, AI Coach, nutrition and tracking.',nl:'Volledige toegang: programma\u2019s, trainingen, AI-coach, voeding en opvolging.'},
+ sub_month:{fr:'Mensuel',en:'Monthly',nl:'Maandelijks'},
+ sub_year:{fr:'Annuel',en:'Yearly',nl:'Jaarlijks'},
+ sub_founder_badge:{fr:'Membre Fondateur',en:'Founding Member',nl:'Oprichtend lid'},
+ sub_per_month:{fr:'/mois',en:'/month',nl:'/maand'},
+ sub_per_year:{fr:'/an',en:'/year',nl:'/jaar'},
+ sub_year_save:{fr:'2 mois offerts par rapport au mensuel',en:'2 months free vs monthly',nl:'2 maanden gratis t.o.v. maandelijks'},
+ sub_choose:{fr:'Choisir cette offre',en:'Choose this plan',nl:'Kies dit abonnement'},
+ sub_processing:{fr:'Ouverture du paiement…',en:'Opening payment…',nl:'Betaling openen…'},
+ sub_success:{fr:'Paiement confirmé ! Activation en cours…',en:'Payment confirmed! Activating…',nl:'Betaling bevestigd! Activeren…'},
+ sub_wait:{fr:"L'activation prend parfois une minute. Réouvre l'app si besoin.",en:'Activation can take a minute. Reopen the app if needed.',nl:'Activatie kan even duren. Heropen de app indien nodig.'},
+ sub_fail:{fr:'Paiement indisponible. Réessaie dans un instant.',en:'Payment unavailable. Try again shortly.',nl:'Betaling niet beschikbaar. Probeer straks opnieuw.'},
+ sub_portal_fail:{fr:'Portail indisponible pour le moment.',en:'Portal unavailable right now.',nl:'Portaal momenteel niet beschikbaar.'},
  sub_status_active:{fr:'Accès actif',en:'Active access',nl:'Actieve toegang'},
  sub_status_trial:{fr:'Essai en cours',en:'Trial in progress',nl:'Proefperiode loopt'},
  sub_status_none:{fr:'Aucun accès',en:'No access',nl:'Geen toegang'},
@@ -1392,6 +1446,10 @@ async function loadProfileInfo(user){
       if(sub && sub.current_period_end) extra = ' · ' + new Date(sub.current_period_end).toLocaleDateString(locale(),{day:'numeric',month:'long'});
     }
     if($('#p-sub')){ $('#p-sub').dataset.key=key; $('#p-sub').dataset.extra=extra; $('#p-sub').textContent = t(key)+extra; }
+    const canPay = !(role==='coach'||role==='admin');
+    const bOpen=$('#p-sub-open'), bMan=$('#p-sub-manage');
+    if(bOpen) bOpen.style.display = (canPay && !active && !trialing) ? 'block' : 'none';
+    if(bMan)  bMan.style.display  = (canPay && sub && (active||trialing)) ? 'block' : 'none';
   }catch(e){}
 }
 
@@ -1420,6 +1478,95 @@ async function hasAccess(uid){
 }
 
 $('#gate-out').onclick = $('#p-out').onclick = async ()=>{ await sb.auth.signOut(); USER=null; show('auth'); };
+
+/* ---------------- ABONNEMENT STRIPE ---------------- */
+const STRIPE_PK='pk_live_51TpzX7J0YSDZQQHK1pZpLyBD1QX0c95OWwdhGO1BpTvs3vb99GAq8D9JA9voqURFI5GpkfeQmORt8fnwWaipMLGq00re93zamr';
+let STRIPE=null, CK=null, SUB_INT='month', SUB_PRICES=null;
+async function stripeJs(){
+  if(window.Stripe) return window.Stripe;
+  await new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='https://js.stripe.com/v3/'; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+  return window.Stripe;
+}
+function money(c){ return (c/100).toLocaleString(locale(),{style:'currency',currency:'EUR'}); }
+async function openSubSheet(){
+  $('#sub-ov').classList.add('show');
+  if(!SUB_PRICES){
+    try{
+      const { data } = await sb.from('billing_prices').select('*').eq('audience','client').eq('active',true);
+      SUB_PRICES = data||[];
+    }catch(e){ SUB_PRICES=[]; }
+  }
+  renderSubPlans();
+}
+function renderSubPlans(){
+  const box=$('#sub-plans'); if(!box) return;
+  const ps=SUB_PRICES||[];
+  const f=ps.find(p=>p.founder && p.billing_interval===SUB_INT);
+  const r=ps.find(p=>!p.founder && p.billing_interval===SUB_INT);
+  const offer=f||r;
+  if(!offer){ box.innerHTML='<p class="empty">—</p>'; return; }
+  const per = SUB_INT==='year'?t('sub_per_year'):t('sub_per_month');
+  let h='<div class="plan-card">';
+  if(f) h+=`<div class="plan-badge">${t('sub_founder_badge')}</div>`;
+  h+=`<div class="plan-price">${money(offer.amount_cents)}<span class="plan-per">${per}</span>`;
+  if(f&&r) h+=`<span class="plan-old">${money(r.amount_cents)}</span>`;
+  h+='</div>';
+  if(SUB_INT==='year') h+=`<div class="plan-save">${t('sub_year_save')}</div>`;
+  h+=`<button class="btn" data-lk="${offer.lookup_key}">${t('sub_choose')}</button></div>`;
+  box.innerHTML=h;
+  box.querySelectorAll('[data-lk]').forEach(b=>b.onclick=()=>startCheckout(b.dataset.lk));
+}
+async function startCheckout(lk){
+  const m=$('#sub-msg'); if(m){ m.className='msg'; m.textContent=t('sub_processing'); }
+  try{
+    const S=await stripeJs();
+    if(!STRIPE) STRIPE=S(STRIPE_PK);
+    if(CK){ try{CK.destroy();}catch(e){} CK=null; }
+    CK = await STRIPE.initEmbeddedCheckout({ fetchClientSecret: async ()=>{
+      const { data, error } = await sb.functions.invoke('stripe-checkout',{ body:{ action:'checkout', lookup_key:lk, locale:LANG } });
+      if(error || !data || !data.client_secret) throw new Error((data&&data.error)||'checkout');
+      return data.client_secret;
+    }});
+    $('#sub-ov').classList.remove('show');
+    $('#ck-ov').classList.add('show');
+    CK.mount('#ck-mount');
+    if(m) m.textContent='';
+  }catch(e){ if(m){ m.className='msg err'; m.textContent=t('sub_fail'); } }
+}
+function closeCheckout(){ $('#ck-ov').classList.remove('show'); if(CK){ try{CK.destroy();}catch(e){} CK=null; } }
+async function openPortal(){
+  const b=$('#p-sub-manage'); if(b) b.disabled=true;
+  const { data, error } = await sb.functions.invoke('stripe-checkout',{ body:{ action:'portal', locale:LANG } });
+  if(b) b.disabled=false;
+  if(error || !data || !data.url){ toast(t('sub_portal_fail')); return; }
+  window.location.href=data.url;
+}
+async function checkoutReturn(){
+  const q=new URLSearchParams(location.search);
+  if(!q.get('checkout') && !q.get('portal')) return;
+  const success=q.get('checkout')==='success';
+  history.replaceState(null,'',location.pathname);
+  if(!success) return;
+  toast(t('sub_success'));
+  try{ await sb.auth.getSession(); }catch(e){}
+  for(let i=0;i<10;i++){
+    try{ const { data } = await sb.rpc('access_level'); if(data==='full'){ location.reload(); return; } }catch(e){}
+    await new Promise(r=>setTimeout(r,1800));
+  }
+  toast(t('sub_wait'));
+}
+{ const el=$('#gate-sub'); if(el) el.onclick=openSubSheet; }
+{ const el=$('#p-sub-open'); if(el) el.onclick=openSubSheet; }
+{ const el=$('#p-sub-manage'); if(el) el.onclick=openPortal; }
+document.querySelectorAll('#sub-toggle button').forEach(b=>b.onclick=()=>{
+  SUB_INT=b.dataset.int;
+  document.querySelectorAll('#sub-toggle button').forEach(x=>x.classList.toggle('on',x===b));
+  renderSubPlans();
+});
+{ const ov=$('#sub-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); }); }
+{ const el=$('#ck-close'); if(el) el.onclick=closeCheckout; }
+{ const ov=$('#ck-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) closeCheckout(); }); }
+checkoutReturn();
 
 /* ---------------- CHAT COACH ---------------- */
 let COACH_THREAD=null, CHAT_CH=null, CHAT_OPEN=false;
