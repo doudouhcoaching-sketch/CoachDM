@@ -445,10 +445,10 @@
     background:color-mix(in srgb,#D4AF37 13%,var(--surface));border:1px solid color-mix(in srgb,#D4AF37 42%,transparent);
     backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
   .rest-bar.on{display:flex}
-  .rest-num{font-variant-numeric:tabular-nums;font-size:24px;font-weight:900;color:#D4AF37;min-width:58px;line-height:1}
+  .rest-num{font-variant-numeric:tabular-nums;font-size:24px;font-weight:900;color:#E9C767;min-width:58px;line-height:1}
   .rest-lbl{font-size:9px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
   .rest-track{height:5px;border-radius:99px;background:var(--surface-2);overflow:hidden}
-  .rest-track i{display:block;height:100%;width:100%;background:#D4AF37;border-radius:99px;transition:width 1s linear}
+  .rest-track i{display:block;height:100%;width:100%;background:#E9C767;border-radius:99px;transition:width 1s linear}
   .rest-btn{height:38px;min-width:44px;padding:0 12px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;font-weight:800}
   .rest-btn:active{transform:scale(.95)}
   @keyframes pillpop{0%{transform:scale(.6)}55%{transform:scale(1.22)}100%{transform:scale(1)}}
@@ -541,7 +541,7 @@
   @keyframes spName{from{opacity:0;letter-spacing:.24em;filter:blur(4px)}to{opacity:1;letter-spacing:-.02em;filter:none}}
   @keyframes spFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   @keyframes spTrack{from{transform:translateX(-40%)}to{transform:translateX(190%)}}
-  .hh-hello{color:var(--gold);background:linear-gradient(100deg,#fff 40%,var(--gold) 80%,var(--gold-mid));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none}
+  .hh-hello{color:var(--gold);background:linear-gradient(180deg,var(--gold-hi),var(--gold) 42%,#B98C2A 72%,var(--gold-deep));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none;filter:drop-shadow(0 1px 6px rgba(212,167,60,.35))}
   .pf-cover,.se-cover{background-repeat:no-repeat}
   .pf-cover.m-str,.pf-cover.m-rings,.pf-cover.m-pulse,.pf-cover.m-flame,.pf-cover.m-found{background-position:center;background-size:74px}
   .pf-cover.m-str{background-image:url("data:image/svg+xml,%3Csvg xmlns%3D'http://www.w3.org/2000/svg' viewBox%3D'0 0 120 120' fill%3D'none' stroke%3D'rgba(255,255,255,.28)' stroke-width%3D'3.5' stroke-linecap%3D'round' stroke-linejoin%3D'round'%3E%3Cpath d%3D'M18 60h84'/%3E%3Crect x%3D'28' y%3D'36' width%3D'11' height%3D'48' rx%3D'4'/%3E%3Crect x%3D'43' y%3D'45' width%3D'9' height%3D'30' rx%3D'4'/%3E%3Crect x%3D'81' y%3D'36' width%3D'11' height%3D'48' rx%3D'4'/%3E%3Crect x%3D'68' y%3D'45' width%3D'9' height%3D'30' rx%3D'4'/%3E%3C/svg%3E"),linear-gradient(135deg,color-mix(in srgb,var(--c) 60%,#000),color-mix(in srgb,var(--c) 22%,#000))}
@@ -553,11 +553,16 @@
   .pf-card:active .pf-arrow{transform:translateX(3px)}
   @keyframes glowP{0%,100%{box-shadow:0 0 18px rgba(0,255,160,.3)}50%{box-shadow:0 0 27px rgba(0,255,160,.52)}}
   .wod-btn{animation:glowP 2.8s ease-in-out infinite}
+  .wod-gold{color:var(--on-gold)!important;
+    background:linear-gradient(180deg,var(--gold-hi),var(--gold) 42%,var(--gold-mid) 60%,var(--gold-deep))!important;
+    box-shadow:0 4px 20px rgba(212,167,60,.45),inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 6px rgba(110,78,18,.5)!important;
+    animation:goldGlow 3s ease-in-out infinite}
+  @keyframes goldGlow{0%,100%{box-shadow:0 4px 20px rgba(212,167,60,.4),inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 6px rgba(110,78,18,.5)}50%{box-shadow:0 4px 28px rgba(212,167,60,.62),inset 0 1px 0 rgba(255,255,255,.6),inset 0 -2px 6px rgba(110,78,18,.5)}}
   .empty-illus{text-align:center;padding:26px 14px 22px}
   .empty-illus .ei-ic{width:54px;height:54px;border-radius:50%;display:inline-grid;place-items:center;background:var(--brand-soft);border:1px solid rgba(0,255,160,.22);margin-bottom:11px}
   .empty-illus .ei-ic .ic{width:24px;height:24px;color:var(--brand)}
   .empty-illus p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.5}
-  @media (prefers-reduced-motion:reduce){.sp-mark,.sp-name,.sp-tag,.sp-bar,.sp-bar i,.wod-btn{animation:none}.sp-mark,.sp-name,.sp-tag,.sp-bar{opacity:1}}
+  @media (prefers-reduced-motion:reduce){.sp-mark,.sp-name,.sp-tag,.sp-bar,.sp-bar i,.wod-btn,.wod-gold{animation:none}.sp-mark,.sp-name,.sp-tag,.sp-bar{opacity:1}}
 
   /* ===== Lot B — Imagerie ===== */
   .se-cover{background-repeat:no-repeat;background-position:right 12px center;background-size:64px}
@@ -686,7 +691,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg><span data-i18n="nav_seances">Séances</span></button>
       <button class="qtile" data-go="ia" style="--c:var(--fat)">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg><span data-i18n="nav_ia">Coach IA</span></button>
-      <button class="qtile" data-go="boutique" style="--c:#D4AF37">
+      <button class="qtile" data-go="boutique" style="--c:#E9C767">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1.2 12.5H4.8z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span data-i18n="nav_boutique">Boutique</span></button>
     </div>
 
@@ -2658,7 +2663,7 @@ const DIFF_L={beginner:{fr:'Débutant',en:'Beginner',nl:'Beginner'},intermediate
 const diffL=(x)=>{const o=DIFF_L[x];return o?(o[LANG]||o.fr):'';};
 const BLOCK_L={activation:{fr:'Activation',en:'Activation',nl:'Activatie'},sprint_plyo:{fr:'Sprint / Plyo',en:'Sprint / Plyo',nl:'Sprint / Plyo'},strength:{fr:'Force',en:'Strength',nl:'Kracht'},accessory:{fr:'Accessoire',en:'Accessory',nl:'Accessoire'},conditioning:{fr:'Conditionnement',en:'Conditioning',nl:'Conditie'},recovery:{fr:'Récupération',en:'Recovery',nl:'Herstel'}};
 const blockL=(x)=>{const o=BLOCK_L[x];return o?(o[LANG]||o.fr):(x||'');};
-const BLOCK_COLOR={activation:'#38BDF8',sprint_plyo:'#A78BFA',strength:'#D4AF37',accessory:'#10B981',conditioning:'#EF4444',recovery:'#10B981'};
+const BLOCK_COLOR={activation:'#38BDF8',sprint_plyo:'#A78BFA',strength:'#E9C767',accessory:'#10B981',conditioning:'#EF4444',recovery:'#10B981'};
 const MUSCLE_L={chest:{fr:'Pectoraux',en:'Chest',nl:'Borst'},back:{fr:'Dos',en:'Back',nl:'Rug'},lats:{fr:'Dorsaux',en:'Lats',nl:'Lats'},traps:{fr:'Trapèzes',en:'Traps',nl:'Trapezius'},shoulders:{fr:'Épaules',en:'Shoulders',nl:'Schouders'},biceps:{fr:'Biceps',en:'Biceps',nl:'Biceps'},triceps:{fr:'Triceps',en:'Triceps',nl:'Triceps'},forearms:{fr:'Avant-bras',en:'Forearms',nl:'Onderarmen'},quads:{fr:'Quadriceps',en:'Quads',nl:'Quadriceps'},hamstrings:{fr:'Ischios',en:'Hamstrings',nl:'Hamstrings'},glutes:{fr:'Fessiers',en:'Glutes',nl:'Bilspieren'},calves:{fr:'Mollets',en:'Calves',nl:'Kuiten'},adductors:{fr:'Adducteurs',en:'Adductors',nl:'Adductoren'},abductors:{fr:'Abducteurs',en:'Abductors',nl:'Abductoren'},core:{fr:'Gainage',en:'Core',nl:'Core'},full_body:{fr:'Full body',en:'Full body',nl:'Full body'},cardio:{fr:'Cardio',en:'Cardio',nl:'Cardio'}};
 const muscleL=(x)=>{const o=MUSCLE_L[x];return o?(o[LANG]||o.fr):(x||'');};
 const SEV={success:{c:'--fiber',i:'✓'},warning:{c:'--prot',i:'✗'},info:{c:'--carb',i:'ⓘ'},tactic:{c:'--fat',i:'⚑'}};
@@ -2699,7 +2704,7 @@ async function loadWod(){
   const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
   const wk=(w.week_number&&w.day_number)?(t('wod_week')+' '+w.week_number+' · '+t('wod_day')+' '+w.day_number+' · '):'';
   const btn=locked
-    ? `<button class="wod-btn" style="background:linear-gradient(135deg,#D4AF37,#a8862a)" data-wod-up="1"><svg class="ic"><use href="#i-lock"/></svg> ${t('wod_unlock')}</button>`
+    ? `<button class="wod-btn wod-gold" data-wod-up="1"><svg class="ic"><use href="#i-lock"/></svg> ${t('wod_unlock')}</button>`
     : `<button class="wod-btn" data-open="${w.id}">${t('wod_see')}</button>`;
   $('#wod').innerHTML=`<div class="wod" style="--c:${col}">
     <div class="wod-top"><span class="wod-k">${label}</span><span class="wod-dur">${w.estimated_duration_min||'—'} min</span></div>
