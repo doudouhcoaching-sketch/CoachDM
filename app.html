@@ -774,6 +774,12 @@
       <a class="btn subtle" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none" data-i18n="contact_coach">Contacter le coach</a>
     </div>
 
+    <div class="block" id="p-coach-offer" style="display:none">
+      <h3 data-i18n="coach_offer_title">Espace coach</h3>
+      <p class="empty" style="text-align:left;padding:0 0 12px" data-i18n="coach_offer_sub">Tu es coach ? Gère tes clients, la messagerie et les appels vidéo depuis ta propre console.</p>
+      <button class="btn subtle" id="p-coach-open" style="width:100%" data-i18n="coach_offer_cta">Devenir coach</button>
+    </div>
+
     <div class="block">
       <h3 data-i18n="prof_options">Options</h3>
       <div class="opt-row"><span data-i18n="opt_units">Unités</span><span class="fk" data-i18n="opt_metric">Métrique (kg, cm)</span></div>
@@ -813,6 +819,17 @@
     </div>
     <div id="sub-plans"><div class="empty">…</div></div>
     <div class="msg" id="sub-msg"></div>
+  </div>
+</div>
+
+<!-- DEVENIR COACH SHEET -->
+<div class="overlay" id="coach-ov">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 data-i18n="coach_sheet_title">Deviens coach sur Coach DM</h3>
+    <div class="fk" data-i18n="coach_sheet_sub">Ta console dédiée : suivi de tes clients, messagerie temps réel et programmation. Coach+ ajoute les appels vidéo.</div>
+    <div id="coach-plans" style="display:grid;gap:12px;margin-top:14px"><div class="empty">…</div></div>
+    <div class="msg" id="coach-msg"></div>
   </div>
 </div>
 
@@ -1175,6 +1192,12 @@ const T = {
  sub_per_year:{fr:'/an',en:'/year',nl:'/jaar'},
  sub_year_save:{fr:'2 mois offerts par rapport au mensuel',en:'2 months free vs monthly',nl:'2 maanden gratis t.o.v. maandelijks'},
  sub_choose:{fr:'Choisir cette offre',en:'Choose this plan',nl:'Kies dit abonnement'},
+ coach_offer_title:{fr:'Espace coach',en:'Coach hub',nl:'Coachruimte'},
+ coach_offer_sub:{fr:'Tu es coach ? G\u00e8re tes clients, la messagerie et les appels vid\u00e9o depuis ta propre console.',en:'Are you a coach? Manage your clients, messaging and video calls from your own console.',nl:'Ben je coach? Beheer je klanten, berichten en videogesprekken vanuit je eigen console.'},
+ coach_offer_cta:{fr:'Devenir coach',en:'Become a coach',nl:'Coach worden'},
+ coach_sheet_title:{fr:'Deviens coach sur Coach DM',en:'Become a coach on Coach DM',nl:'Word coach op Coach DM'},
+ coach_sheet_sub:{fr:'Ta console d\u00e9di\u00e9e : suivi de tes clients, messagerie temps r\u00e9el et programmation. Coach+ ajoute les appels vid\u00e9o.',en:'Your dedicated console: client tracking, real-time messaging and programming. Coach+ adds video calls.',nl:'Je eigen console: klantopvolging, realtime berichten en programmering. Coach+ voegt videogesprekken toe.'},
+ coach_plus_note:{fr:'Appels vid\u00e9o & vid\u00e9os dans le chat inclus',en:'Video calls & chat videos included',nl:'Videogesprekken & video\u2019s in de chat inbegrepen'},
  sub_processing:{fr:'Ouverture du paiement…',en:'Opening payment…',nl:'Betaling openen…'},
  sub_success:{fr:'Paiement confirmé ! Activation en cours…',en:'Payment confirmed! Activating…',nl:'Betaling bevestigd! Activeren…'},
  sub_wait:{fr:"L'activation prend parfois une minute. Réouvre l'app si besoin.",en:'Activation can take a minute. Reopen the app if needed.',nl:'Activatie kan even duren. Heropen de app indien nodig.'},
@@ -1450,13 +1473,14 @@ async function loadProfileInfo(user){
       const cc=$('#p-coach-console'); if(cc) cc.style.display='block';
       if(role==='admin'){ const ac=$('#p-admin-console'); if(ac) ac.style.display='block'; }
     }
+    { const co=$('#p-coach-offer'); if(co) co.style.display=(role==='coach'||role==='admin')?'none':'block'; }
     const { data:sub } = await sb.from('subscriptions')
       .select('status,current_period_end,trial_end').eq('user_id',user.id)
       .order('current_period_end',{ascending:false,nullsFirst:false}).limit(1).maybeSingle();
     const now=Date.now();
     let key='sub_status_none', extra='';
     const trialing = sub && (sub.status==='trialing' || (sub.trial_end && new Date(sub.trial_end).getTime()>now));
-    const active = (role==='coach'||role==='admin') || (sub && (sub.status==='active' || (sub.status==='past_due' && sub.current_period_end && new Date(sub.current_period_end).getTime()>now)));
+    const active = (role==='coach'||role==='admin') || (sub && (sub.status==='active' || (sub.current_period_end && new Date(sub.current_period_end).getTime()>now)));
     if(!trialing && !active && ACCESS==='coach_client'){
       key='sub_status_coach';
     } else if(trialing && !(role==='coach'||role==='admin')){
@@ -1537,8 +1561,8 @@ function renderSubPlans(){
   box.innerHTML=h;
   box.querySelectorAll('[data-lk]').forEach(b=>b.onclick=()=>startCheckout(b.dataset.lk));
 }
-async function startCheckout(lk){
-  const m=$('#sub-msg'); if(m){ m.className='msg'; m.textContent=t('sub_processing'); }
+async function startCheckout(lk,msgSel){
+  const m=$(msgSel||'#sub-msg'); if(m){ m.className='msg'; m.textContent=t('sub_processing'); }
   try{
     const S=await stripeJs();
     if(!STRIPE) STRIPE=S(STRIPE_PK);
@@ -1549,6 +1573,7 @@ async function startCheckout(lk){
       return data.client_secret;
     }});
     $('#sub-ov').classList.remove('show');
+    { const c=$('#coach-ov'); if(c) c.classList.remove('show'); }
     $('#ck-ov').classList.add('show');
     CK.mount('#ck-mount');
     if(m) m.textContent='';
@@ -1584,6 +1609,46 @@ document.querySelectorAll('#sub-toggle button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#sub-toggle button').forEach(x=>x.classList.toggle('on',x===b));
   renderSubPlans();
 });
+/* ---- Devenir coach ---- */
+let COACH_PRICES=null;
+async function openCoachSheet(){
+  $('#coach-ov').classList.add('show');
+  if(!COACH_PRICES){
+    try{
+      const { data } = await sb.from('billing_prices').select('*').eq('audience','coach').eq('active',true);
+      COACH_PRICES = data||[];
+    }catch(e){ COACH_PRICES=[]; }
+  }
+  renderCoachPlans();
+}
+function renderCoachPlans(){
+  const box=$('#coach-plans'); if(!box) return;
+  const ps=COACH_PRICES||[];
+  const f=ps.find(p=>p.tier==='coach' && p.founder);
+  const r=ps.find(p=>p.tier==='coach' && !p.founder);
+  const plus=ps.find(p=>p.tier==='coach_plus');
+  const base=f||r;
+  let h='';
+  if(base){
+    h+='<div class="plan-card">';
+    if(f) h+=`<div class="plan-badge">${t('founder_coach_badge')}</div>`;
+    h+=`<div class="plan-price">${money(base.amount_cents)}<span class="plan-per">${t('sub_per_month')}</span>`;
+    if(f&&r) h+=`<span class="plan-old">${money(r.amount_cents)}</span>`;
+    h+='</div>';
+    h+=`<button class="btn" data-lk="${base.lookup_key}">${t('sub_choose')}</button></div>`;
+  }
+  if(plus){
+    h+='<div class="plan-card">';
+    h+='<div class="plan-badge">Coach+</div>';
+    h+=`<div class="plan-price">${money(plus.amount_cents)}<span class="plan-per">${t('sub_per_month')}</span></div>`;
+    h+=`<div class="plan-save">${t('coach_plus_note')}</div>`;
+    h+=`<button class="btn" data-lk="${plus.lookup_key}">${t('sub_choose')}</button></div>`;
+  }
+  box.innerHTML = h || '<p class="empty">—</p>';
+  box.querySelectorAll('[data-lk]').forEach(b=>b.onclick=()=>startCheckout(b.dataset.lk,'#coach-msg'));
+}
+{ const el=$('#p-coach-open'); if(el) el.onclick=openCoachSheet; }
+{ const ov=$('#coach-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); }); }
 { const ov=$('#sub-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); }); }
 { const el=$('#ck-close'); if(el) el.onclick=closeCheckout; }
 { const ov=$('#ck-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) closeCheckout(); }); }
