@@ -2035,7 +2035,11 @@ $('#jo-photo-file').onchange = async (e)=>{
   try{
     const b64 = await phCompress(f, 1024, 0.82);
     const { data, error } = await sb.functions.invoke('food-photo',{ body:{ image:b64, mime:'image/jpeg', locale:LANG } });
-    if(error || !data || data.error){ toast(t('ph_fail')); return; }
+    if(error || !data || data.error){
+      const code = (data && data.error) || (error && error.message) || '';
+      toast(t('ph_fail') + (code ? ' ('+String(code).slice(0,60)+')' : ''));
+      return;
+    }
     if(!data.items || !data.items.length){ toast(data['note_'+LANG]||data.note_fr||t('ph_none')); return; }
     PH_ITEMS = data.items;
     phOpen(data);
@@ -2066,18 +2070,34 @@ function phOpen(data){
   $('#ph-ov').classList.add('show');
 }
 function phRender(){
-  $('#ph-items').innerHTML = PH_ITEMS.map((it,i)=>`
+  $('#ph-items').innerHTML = PH_ITEMS.map((it,i)=>{
+    const countable = it.count>0 && it.unit_grams>0;
+    const qty = countable
+      ? `<input type="number" inputmode="numeric" min="0" step="1" value="${it.count}" data-phc="${i}" style="width:52px;text-align:right" />
+        <span style="opacity:.6;font-size:12px">× ${esc(pick(it,'unit')||it.unit_fr||'')} · <span data-phgv="${i}">${r0(it.grams)}</span> g</span>`
+      : `<input type="number" inputmode="numeric" value="${r0(it.grams)}" data-phg="${i}" style="width:64px;text-align:right" />
+        <span style="opacity:.6;font-size:12px">g</span>`;
+    return `
     <div class="logitem">
       <div style="flex:1;min-width:0"><div class="ln">${esc(pick(it,'name')||it.name_fr)}</div>
         <div class="lq">${r0(it.kcal_per_100g)} kcal/100g · P ${r1(it.protein_per_100g)} · G ${r1(it.carbs_per_100g)} · L ${r1(it.fat_per_100g)}</div></div>
       <div style="display:flex;align-items:center;gap:4px">
-        <input type="number" inputmode="numeric" value="${r0(it.grams)}" data-phg="${i}" style="width:64px;text-align:right" />
-        <span style="opacity:.6;font-size:12px">g</span>
+        ${qty}
         <span class="del" data-phx="${i}" title="Retirer">✕</span>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   $('#ph-items').querySelectorAll('[data-phg]').forEach(inp=>{
     inp.oninput = ()=>{ PH_ITEMS[+inp.dataset.phg].grams = parseFloat(inp.value)||0; phTotal(); };
+  });
+  $('#ph-items').querySelectorAll('[data-phc]').forEach(inp=>{
+    inp.oninput = ()=>{
+      const i=+inp.dataset.phc, it=PH_ITEMS[i];
+      it.count = Math.max(0, Math.round(parseFloat(inp.value)||0));
+      it.grams = it.count * it.unit_grams;
+      const gv=$('#ph-items').querySelector('[data-phgv="'+i+'"]'); if(gv) gv.textContent = r0(it.grams);
+      phTotal();
+    };
   });
   $('#ph-items').querySelectorAll('[data-phx]').forEach(x=>{
     x.onclick = ()=>{
