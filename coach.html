@@ -1296,6 +1296,11 @@ $('#comp-save').onclick = async ()=>{
     let h=`<h2>Programmer une séance</h2>
      <label>Type</label><select id="s_kind"><option value="group" ${e.kind!=='personal_training'?'selected':''}>Cours collectif</option>
      <option value="personal_training" ${e.kind==='personal_training'?'selected':''}>PT</option></select>
+     <label>Visibilité</label><select id="s_vis"><option value="private" selected>Privé — clients choisis uniquement</option>
+     <option value="public">Public — visible par tous les membres</option></select>
+     <div id="s_invite_wrap"><label>Clients autorisés à voir ce cours</label>
+       <div class="chips" id="s_clients"><div class="muted" style="font-size:12px">Chargement…</div></div>
+       <div class="muted" style="font-size:11.5px;margin-top:4px">Touche pour sélectionner. Eux seuls verront ce cours privé dans leur calendrier.</div></div>
      <label>Nom — FR *</label><input id="s_fr" value="${esc(e.name_fr)}">
      <div class="grid2"><div><label>Nom — EN</label><input id="s_en" value="${esc(e.name_en)}"></div>
      <div><label>Nom — NL</label><input id="s_nl" value="${esc(e.name_nl)}"></div></div>
@@ -1316,6 +1321,17 @@ $('#comp-save').onclick = async ()=>{
     openSheet(h);
     const sel=new Set();
     $('#s_days').querySelectorAll('button').forEach(b=>b.onclick=()=>{b.classList.toggle('on');b.classList.contains('on')?sel.add(b.dataset.d):sel.delete(b.dataset.d);});
+    const inviteSel=new Set();
+    const visEl=$('#s_vis'), invWrap=$('#s_invite_wrap');
+    const syncVis=()=>{ invWrap.style.display = visEl.value==='private' ? '' : 'none'; };
+    visEl.onchange=syncVis; syncVis();
+    (async()=>{
+      if(!CLIENTS.length){const {data}=await sb.rpc('class_my_clients');CLIENTS=data||[];}
+      const box=$('#s_clients');
+      if(!CLIENTS.length){ box.innerHTML='<div class="muted" style="font-size:12px">Aucun client lié. Ajoute-en dans l\'onglet Clients.</div>'; return; }
+      box.innerHTML=CLIENTS.map(c=>`<button type="button" data-cid="${c.client_id}">${esc(c.full_name||c.email)}</button>`).join('');
+      box.querySelectorAll('[data-cid]').forEach(b=>b.onclick=()=>{b.classList.toggle('on');b.classList.contains('on')?inviteSel.add(b.dataset.cid):inviteSel.delete(b.dataset.cid);});
+    })();
     $('#s_cancel').onclick=closeSheet;
     $('#s_save').onclick=async()=>{
       const fr=$('#s_fr').value.trim();if(!fr)return toast('Nom FR requis');
@@ -1337,11 +1353,22 @@ $('#comp-save').onclick = async ()=>{
         description_fr:e.description_fr||null,description_en:e.description_en||null,description_nl:e.description_nl||null,
         cover_image_url:e.cover_image_url||null,color:$('#s_col').value.trim()||'#00FFA3',
         location:$('#s_loc').value.trim()||null,capacity:+$('#s_cap').value||12,
+        visibility:$('#s_vis').value||'private',
         cancel_cutoff_min_before:+$('#s_cut').value||0,checkin_opens_min_before:+$('#s_chk').value||0};
       const payload=dates.map(d=>({...base,starts_at:d.toISOString(),ends_at:new Date(d.getTime()+dur*60000).toISOString()}));
-      const {error}=await sb.from('class_instances').insert(payload);
+      const {data:created,error}=await sb.from('class_instances').insert(payload).select('id');
       if(error){toast('Échec création');return;}
-      closeSheet();toast(payload.length>1?`${payload.length} séances créées`:'Séance créée');setView('planning');
+      // Cours privé + clients choisis → invitations
+      if(base.visibility==='private' && inviteSel.size && created?.length){
+        const invites=[];
+        created.forEach(ci=>inviteSel.forEach(uid=>invites.push({instance_id:ci.id,user_id:uid})));
+        const {error:ie}=await sb.from('class_invites').insert(invites);
+        if(ie) toast('Séances créées, mais invitations partielles');
+      }
+      closeSheet();
+      const nInv=(base.visibility==='private'?inviteSel.size:0);
+      toast((payload.length>1?`${payload.length} séances créées`:'Séance créée')+(nInv?` · ${nInv} invité(s)`:''));
+      setView('planning');
     };
   }
 
