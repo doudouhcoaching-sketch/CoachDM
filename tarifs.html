@@ -3,55 +3,62 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#050807">
 <title>Coach DM · Tarifs / Pricing / Prijzen</title>
 <meta name="description" content="Coach DM — app fitness & coaching premium. Offre fondateur à vie. Tarifs membre et coach.">
 <style>
-:root{--bg:#050807;--bg-2:#0A0F0C;--card:#0E1512;--line:rgba(255,255,255,.10);--brand:#00FFA3;--brand-2:#00D98A;--brand-soft:rgba(0,255,160,.14);--prem:#7C5CFF;--prem-2:#C840FF;--prem-soft:rgba(176,78,255,.18);--prem-line:rgba(124,92,255,.5);--prem-ink:#D9B3FF;--txt:#FFFFFF;--mut:#7FAE97;--grn:#10B981;--red:#EF4444}
+:root{--bg:#050807;--card:#0E1512;--line:#221f18;--txt:#F2ECDE;--mut:#8A8578;--red:#EF4444;
+  --gold-hi:#FBF3D0;--gold:#E9C767;--gold-mid:#D4A73C;--gold-deep:#9A6E1B;--bronze:#6E4E12;--on-gold:#3a2b08;
+  --gold-grad:linear-gradient(176deg,var(--gold-hi) 4%,var(--gold) 30%,#B98C2A 52%,var(--gold-deep) 68%,var(--gold-hi) 96%);
+  --grn:#00FFA3;--grn-2:#00c47e}
+html{background:#050807}
 *{box-sizing:border-box}
-body{margin:0;background:radial-gradient(120% 80% at 50% 0%,var(--bg-2),var(--bg) 45%);background-attachment:fixed;color:var(--txt);font-family:-apple-system,system-ui,Segoe UI,Roboto,Helvetica,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,system-ui,Segoe UI,Roboto,Helvetica,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
 .wrap{max-width:880px;margin:0 auto;padding:28px 18px 60px}
 .brand{text-align:center;margin-bottom:8px}
-.brand .name{font-size:30px;font-weight:900;letter-spacing:3px;color:var(--brand)}
-.brand .tag{font-size:12px;letter-spacing:4px;color:var(--mut);margin-top:6px;text-transform:uppercase}
-.lang{display:flex;justify-content:center;gap:8px;margin:18px auto 0}
-.lang button{border:1px solid var(--line);background:var(--card);color:var(--mut);font-family:inherit;font-weight:800;font-size:13px;letter-spacing:1.5px;padding:8px 16px;border-radius:999px;cursor:pointer;transition:all .15s}
-.lang button.on{background:var(--brand);color:#04120a;border-color:var(--brand)}
+.brand .name{font-size:34px;font-weight:700;letter-spacing:-.02em;color:var(--gold);background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 2px 8px rgba(212,167,60,.3))}
+.brand .tag{font-size:11px;letter-spacing:.14em;color:var(--mut);margin-top:8px;text-transform:uppercase}
 .lead{text-align:center;max-width:620px;margin:18px auto 0}
 .lead b{display:block;font-size:16px}
+.lead span{display:block;font-size:14px;color:var(--mut)}
+.lead i{display:block;font-size:13px;color:var(--mut)}
 .sec-title{text-align:center;margin:46px 0 18px}
-.sec-title b{display:block;font-size:20px;color:var(--brand);letter-spacing:1px}
-.founder{border:1.5px solid var(--prem-line);border-radius:20px;padding:20px 18px;background:linear-gradient(180deg,rgba(168,76,255,.10),rgba(124,92,255,0));box-shadow:0 0 46px rgba(124,92,255,.14)}
+.sec-title b{display:block;font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--gold);background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.sec-title span{display:block;font-size:13px;color:var(--mut)}
+.founder{border:1.5px solid rgba(212,167,60,.5);border-radius:20px;padding:20px 18px;background:linear-gradient(180deg,rgba(233,199,103,.1),rgba(154,110,27,.02))}
 .founder .head{text-align:center;margin-bottom:6px}
-.founder .head .k{display:inline-block;font-size:11px;font-weight:800;letter-spacing:2px;color:#fff;background:linear-gradient(135deg,var(--prem),var(--prem-2));padding:5px 12px;border-radius:999px;text-transform:uppercase}
+.founder .head .k{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--on-gold);background:linear-gradient(180deg,var(--gold-hi),var(--gold-mid) 60%,var(--gold-deep));padding:5px 12px;border-radius:999px;text-transform:uppercase;box-shadow:0 2px 8px rgba(212,167,60,.35),inset 0 1px 0 rgba(255,255,255,.5)}
 .founder .head h2{margin:12px 0 2px;font-size:22px}
 .founder .head p{margin:0;color:var(--mut);font-size:13px}
 .cards{display:grid;gap:14px;margin-top:16px}
 @media(min-width:640px){.cards{grid-template-columns:1fr 1fr}.cards.three{grid-template-columns:1fr 1fr 1fr}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-direction:column}
-.card.hl{border-color:var(--prem-line)}
+.card.hl{border-color:rgba(212,167,60,.55)}
 .tier{font-weight:800;font-size:17px}
-.price{margin:12px 0 2px;font-size:30px;font-weight:900;color:var(--brand)}
-.card.hl .price{color:var(--prem-ink,#D9B3FF)}
-.card.hl .feat li::before{color:var(--prem-ink,#D9B3FF)}
+.tier .en{font-weight:500;color:var(--mut);font-size:14px}
+.tier .nl{font-style:italic;color:var(--mut);font-size:13px}
+.price{margin:12px 0 2px;font-size:32px;font-weight:700;letter-spacing:-.02em;color:var(--gold);background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .price small{font-size:14px;color:var(--mut);font-weight:600}
 .peryear{font-size:13px;color:var(--mut)}
-.slots{margin-top:12px;font-size:13px;font-weight:800;min-height:18px}
+.slots{margin-top:12px;font-size:13px;font-weight:800}
+.slots .n{color:var(--gold)}
 .slots.out{color:var(--red)}
 .feat{list-style:none;padding:0;margin:14px 0 0;font-size:13.5px;color:#E2E2E2}
 .feat li{padding:6px 0;border-bottom:1px solid var(--line);display:flex;gap:8px}
 .feat li:last-child{border-bottom:0}
-.feat li::before{content:"✓";color:var(--brand);font-weight:900}
-.cta{margin-top:16px;display:block;text-align:center;text-decoration:none;background:linear-gradient(135deg,var(--prem),var(--prem-2));color:#fff;font-weight:800;padding:12px;border-radius:12px;box-shadow:0 8px 26px rgba(176,78,255,.5)}
-.cta.ghost{background:transparent;color:var(--brand);border:1px solid var(--brand)}
+.feat li::before{content:"✓";color:var(--grn);font-weight:900}
+.cta{margin-top:16px;display:block;text-align:center;text-decoration:none;background:linear-gradient(180deg,var(--grn),var(--grn-2));color:#04120a;font-weight:800;padding:13px;border-radius:12px;box-shadow:0 4px 18px rgba(0,255,163,.3)}
+.cta.ghost{background:transparent;color:var(--gold);border:1px solid rgba(212,167,60,.5)}
 .cta.disabled{background:#333;color:#888;pointer-events:none}
 .note{font-size:12px;color:var(--mut);text-align:center;margin-top:10px}
 .why{margin-top:18px}
 .why .card{border-color:var(--line)}
-.why h3{margin:0 0 8px;color:var(--brand);font-size:15px}
+.why h3{margin:0 0 8px;color:var(--gold);font-size:15px;font-weight:700;letter-spacing:-.01em}
 .why ul{margin:0;padding-left:18px;color:#DADADA;font-size:13.5px}
 .why li{margin:5px 0}
 footer{margin-top:46px;border-top:1px solid var(--line);padding-top:18px;text-align:center;color:var(--mut);font-size:12px}
-footer a{color:var(--brand);text-decoration:none}
+footer a{color:var(--gold);text-decoration:none}
 </style>
 </head>
 <body>
@@ -61,111 +68,108 @@ footer a{color:var(--brand);text-decoration:none}
     <div class="name">COACH DM</div>
     <div class="tag">Power · Transform · Excel</div>
   </div>
-
-  <div class="lang" id="lang">
-    <button data-lang="fr">FR</button>
-    <button data-lang="en">EN</button>
-    <button data-lang="nl">NL</button>
-  </div>
-
   <div class="lead">
-    <b data-i18n="lead">L'app fitness & coaching premium. Science. Sur-mesure. Trilingue.</b>
+    <b>L'app fitness & coaching premium. Science. Sur-mesure. Trilingue.</b>
+    <span>The premium fitness & coaching app. Science-based, tailored, trilingual.</span>
+    <i>De premium fitness- & coaching-app. Wetenschappelijk, op maat, drietalig.</i>
   </div>
 
   <!-- ===================== FONDATEUR ===================== -->
   <div class="sec-title">
-    <b data-i18n="sec_founder">Offre Fondateur — à vie</b>
+    <b>Offre Fondateur — à vie</b>
+    <span>Founder offer — lifetime &nbsp;·&nbsp; <i>Oprichtersaanbod — levenslang</i></span>
   </div>
 
   <div class="founder">
     <div class="head">
-      <span class="k" data-i18n="founder_badge">Places limitées</span>
-      <h2 data-i18n="founder_h2">Bloque ton tarif à vie</h2>
-      <p data-i18n="founder_p">Tarif garanti tant que l'abonnement reste actif</p>
+      <span class="k">Places limitées · Limited · Beperkt</span>
+      <h2>Bloque ton tarif à vie</h2>
+      <p>Tarif garanti tant que l'abonnement reste actif · Locked for life while your subscription stays active</p>
     </div>
 
     <div class="cards">
       <div class="card hl">
-        <div class="tier" data-i18n="tier_member_f">Membre Fondateur</div>
-        <div class="price">9,99€ <small data-i18n="per_month">/ mois</small></div>
-        <div class="peryear" data-i18n="member_f_year">ou 99€ / an — à vie</div>
-        <div class="slots" id="slot-member"></div>
+        <div class="tier">Membre Fondateur <span class="en">Founder Member</span><span class="nl">Oprichter-lid</span></div>
+        <div class="price">9,99€ <small>/ mois</small></div>
+        <div class="peryear">ou 99€ / an — à vie</div>
+        <div class="slots" id="slot-member">Plus que <span class="n">…</span> / 50 places</div>
         <ul class="feat">
-          <li data-i18n="member_f_1">Tout le contenu membre</li>
-          <li data-i18n="member_f_2">1 programme PDF offert</li>
-          <li data-i18n="member_f_3">Badge « Fondateur » + accès prioritaire aux nouveautés</li>
+          <li>Tout le contenu membre</li>
+          <li>1 programme PDF offert</li>
+          <li>Badge « Fondateur » + accès prioritaire aux nouveautés</li>
         </ul>
-        <a class="cta" id="cta-member" href="app.html" data-i18n="cta_reserve">Réserver ma place</a>
+        <a class="cta" id="cta-member" href="app.html">Réserver ma place</a>
       </div>
 
       <div class="card hl">
-        <div class="tier" data-i18n="tier_coach_f">Coach Fondateur</div>
-        <div class="price">29,99€ <small data-i18n="per_month">/ mois</small></div>
-        <div class="peryear" data-i18n="coach_f_year">à vie · 30 clients actifs (au lieu de 20)</div>
-        <div class="slots" id="slot-coach"></div>
+        <div class="tier">Coach Fondateur <span class="en">Founder Coach</span><span class="nl">Oprichter-coach</span></div>
+        <div class="price">29,99€ <small>/ mois</small></div>
+        <div class="peryear">à vie · 30 clients actifs (au lieu de 20)</div>
+        <div class="slots" id="slot-coach">Plus que <span class="n">…</span> / 20 places</div>
         <ul class="feat">
-          <li data-i18n="coach_f_1">Gestion clients, planning, présences, PT</li>
-          <li data-i18n="coach_f_2">Mis en avant dans l'app</li>
-          <li data-i18n="coach_f_3">Onboarding direct avec Coach DM</li>
+          <li>Gestion clients, planning, présences, PT</li>
+          <li>Mis en avant dans l'app</li>
+          <li>Onboarding direct avec Coach DM</li>
         </ul>
-        <a class="cta" id="cta-coach" href="app.html" data-i18n="cta_reserve">Réserver ma place</a>
+        <a class="cta" id="cta-coach" href="app.html">Réserver ma place</a>
       </div>
     </div>
-    <p class="note" data-i18n="founder_note">Le tarif fondateur reste bloqué tant que l'abonnement n'est pas interrompu. En cas d'annulation, retour au tarif public.</p>
+    <p class="note">Le tarif fondateur reste bloqué tant que l'abonnement n'est pas interrompu. En cas d'annulation, retour au tarif public.</p>
   </div>
 
   <!-- ===================== TARIFS PUBLICS ===================== -->
   <div class="sec-title">
-    <b data-i18n="sec_public">Tarifs publics</b>
+    <b>Tarifs publics</b>
+    <span>Standard pricing &nbsp;·&nbsp; <i>Standaardtarieven</i></span>
   </div>
 
   <div class="cards three">
     <div class="card">
-      <div class="tier" data-i18n="tier_member">Membre</div>
-      <div class="price">14,99€ <small data-i18n="per_month">/ mois</small></div>
-      <div class="peryear" data-i18n="member_year">ou 129€ / an</div>
+      <div class="tier">Membre <span class="en">Member</span><span class="nl">Lid</span></div>
+      <div class="price">14,99€ <small>/ mois</small></div>
+      <div class="peryear">ou 129€ / an</div>
       <ul class="feat">
-        <li data-i18n="member_1">Nutrition, macros sur-mesure</li>
-        <li data-i18n="member_2">Séances + Coach IA</li>
-        <li data-i18n="member_3">Suivi & progression</li>
+        <li>Nutrition, macros sur-mesure</li>
+        <li>Séances + Coach IA</li>
+        <li>Suivi & progression</li>
       </ul>
-      <a class="cta ghost" href="app.html" data-i18n="cta_start">Commencer</a>
+      <a class="cta ghost" href="app.html">Commencer</a>
     </div>
 
     <div class="card">
       <div class="tier">Coach</div>
-      <div class="price">39,99€ <small data-i18n="per_month">/ mois</small></div>
-      <div class="peryear" data-i18n="coach_year">20 clients actifs · tout inclus</div>
+      <div class="price">39,99€ <small>/ mois</small></div>
+      <div class="peryear">20 clients actifs · tout inclus</div>
       <ul class="feat">
-        <li data-i18n="coach_1">Tes membres ne paient rien</li>
-        <li data-i18n="coach_2">Planning, réservations, présences</li>
-        <li data-i18n="coach_3">PT avec tes membres liés</li>
+        <li>Tes membres ne paient rien</li>
+        <li>Planning, réservations, présences</li>
+        <li>PT avec tes membres liés</li>
       </ul>
-      <a class="cta ghost" href="app.html" data-i18n="cta_become_coach">Devenir coach</a>
+      <a class="cta ghost" href="app.html">Devenir coach</a>
     </div>
 
     <div class="card">
       <div class="tier">Coach+</div>
-      <div class="price">59,99€ <small data-i18n="per_month">/ mois</small></div>
-      <div class="peryear" data-i18n="coachplus_year">50 clients actifs · tout inclus</div>
+      <div class="price">59,99€ <small>/ mois</small></div>
+      <div class="peryear">50 clients actifs · tout inclus</div>
       <ul class="feat">
-        <li data-i18n="coachplus_1">Tout Coach, capacité étendue</li>
-        <li data-i18n="coachplus_2">Idéal salles & gros volumes</li>
-        <li data-i18n="coachplus_3">Sans add-ons à empiler</li>
+        <li>Tout Coach, capacité étendue</li>
+        <li>Idéal salles & gros volumes</li>
+        <li>Sans add-ons à empiler</li>
       </ul>
-      <a class="cta ghost" href="app.html" data-i18n="cta_coachplus">Passer Coach+</a>
+      <a class="cta ghost" href="app.html">Passer Coach+</a>
     </div>
   </div>
 
   <!-- ===================== POURQUOI ===================== -->
   <div class="why">
     <div class="card">
-      <h3 data-i18n="why_title">Pourquoi Coach DM</h3>
+      <h3>Pourquoi Coach DM</h3>
       <ul>
-        <li data-i18n-html="why_1"><b>Expertise vérifiable</b> — coach certifié (12 certifications), méthodes science-based avec références.</li>
-        <li data-i18n-html="why_2"><b>Tout inclus</b> — nutrition, séances, Coach IA, suivi : pas d'add-ons facturés en plus.</li>
-        <li data-i18n-html="why_3"><b>Trilingue FR / EN / NL</b> — pensé pour la Belgique et au-delà.</li>
-        <li data-i18n-html="why_4"><b>Coachs : clients gratuits</b> — tu paies l'outil, pas tes clients ; quota d'actifs clair.</li>
+        <li><b>Expertise vérifiable</b> — coach certifié (12 certifications), méthodes science-based avec références.</li>
+        <li><b>Tout inclus</b> — nutrition, séances, Coach IA, suivi : pas d'add-ons facturés en plus.</li>
+        <li><b>Trilingue FR / EN / NL</b> — pensé pour la Belgique et au-delà.</li>
+        <li><b>Coachs : clients gratuits</b> — tu paies l'outil, pas tes clients ; quota d'actifs clair.</li>
       </ul>
     </div>
   </div>
@@ -181,100 +185,21 @@ footer a{color:var(--brand);text-decoration:none}
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 const sb=createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
-
-const I18N={
- lead:{fr:"L'app fitness & coaching premium. Science. Sur-mesure. Trilingue.",en:"The premium fitness & coaching app. Science-based, tailored, trilingual.",nl:"De premium fitness- & coaching-app. Wetenschappelijk, op maat, drietalig."},
- sec_founder:{fr:"Offre Fondateur — à vie",en:"Founder offer — lifetime",nl:"Oprichtersaanbod — levenslang"},
- founder_badge:{fr:"Places limitées",en:"Limited spots",nl:"Beperkte plaatsen"},
- founder_h2:{fr:"Bloque ton tarif à vie",en:"Lock your price for life",nl:"Zet je tarief vast voor het leven"},
- founder_p:{fr:"Tarif garanti tant que l'abonnement reste actif",en:"Price guaranteed while your subscription stays active",nl:"Tarief gegarandeerd zolang je abonnement actief blijft"},
- tier_member_f:{fr:"Membre Fondateur",en:"Founder Member",nl:"Oprichter-lid"},
- per_month:{fr:"/ mois",en:"/ mo",nl:"/ maand"},
- member_f_year:{fr:"ou 99€ / an — à vie",en:"or €99 / year — for life",nl:"of €99 / jaar — levenslang"},
- member_f_1:{fr:"Tout le contenu membre",en:"All member content",nl:"Alle ledencontent"},
- member_f_2:{fr:"1 programme PDF offert",en:"1 free PDF program",nl:"1 gratis PDF-programma"},
- member_f_3:{fr:"Badge « Fondateur » + accès prioritaire aux nouveautés",en:"'Founder' badge + priority access to new features",nl:"'Oprichter'-badge + voorrang op nieuwe functies"},
- cta_reserve:{fr:"Réserver ma place",en:"Claim my spot",nl:"Mijn plaats reserveren"},
- tier_coach_f:{fr:"Coach Fondateur",en:"Founder Coach",nl:"Oprichter-coach"},
- coach_f_year:{fr:"à vie · 30 clients actifs (au lieu de 20)",en:"for life · 30 active clients (instead of 20)",nl:"levenslang · 30 actieve klanten (i.p.v. 20)"},
- coach_f_1:{fr:"Gestion clients, planning, présences, PT",en:"Client management, scheduling, attendance, PT",nl:"Klantenbeheer, planning, aanwezigheid, PT"},
- coach_f_2:{fr:"Mis en avant dans l'app",en:"Featured in the app",nl:"Uitgelicht in de app"},
- coach_f_3:{fr:"Onboarding direct avec Coach DM",en:"Direct onboarding with Coach DM",nl:"Directe onboarding met Coach DM"},
- founder_note:{fr:"Le tarif fondateur reste bloqué tant que l'abonnement n'est pas interrompu. En cas d'annulation, retour au tarif public.",en:"The founder price stays locked as long as your subscription is uninterrupted. If cancelled, you return to public pricing.",nl:"Het oprichterstarief blijft vast zolang je abonnement niet onderbroken wordt. Bij annulering geldt opnieuw het publieke tarief."},
- sec_public:{fr:"Tarifs publics",en:"Standard pricing",nl:"Standaardtarieven"},
- tier_member:{fr:"Membre",en:"Member",nl:"Lid"},
- member_year:{fr:"ou 129€ / an",en:"or €129 / year",nl:"of €129 / jaar"},
- member_1:{fr:"Nutrition, macros sur-mesure",en:"Nutrition, tailored macros",nl:"Voeding, macro's op maat"},
- member_2:{fr:"Séances + Coach IA",en:"Workouts + AI Coach",nl:"Trainingen + AI-coach"},
- member_3:{fr:"Suivi & progression",en:"Tracking & progression",nl:"Opvolging & progressie"},
- cta_start:{fr:"Commencer",en:"Get started",nl:"Beginnen"},
- coach_year:{fr:"20 clients actifs · tout inclus",en:"20 active clients · all included",nl:"20 actieve klanten · alles inbegrepen"},
- coach_1:{fr:"Tes membres ne paient rien",en:"Your members pay nothing",nl:"Je leden betalen niets"},
- coach_2:{fr:"Planning, réservations, présences",en:"Scheduling, bookings, attendance",nl:"Planning, reserveringen, aanwezigheid"},
- coach_3:{fr:"PT avec tes membres liés",en:"PT with your linked members",nl:"PT met je gekoppelde leden"},
- cta_become_coach:{fr:"Devenir coach",en:"Become a coach",nl:"Coach worden"},
- coachplus_year:{fr:"50 clients actifs · tout inclus",en:"50 active clients · all included",nl:"50 actieve klanten · alles inbegrepen"},
- coachplus_1:{fr:"Tout Coach, capacité étendue",en:"Everything in Coach, extended capacity",nl:"Alles van Coach, uitgebreide capaciteit"},
- coachplus_2:{fr:"Idéal salles & gros volumes",en:"Ideal for gyms & high volume",nl:"Ideaal voor zalen & grote volumes"},
- coachplus_3:{fr:"Sans add-ons à empiler",en:"No add-ons to stack",nl:"Geen add-ons om te stapelen"},
- cta_coachplus:{fr:"Passer Coach+",en:"Go Coach+",nl:"Naar Coach+"},
- why_title:{fr:"Pourquoi Coach DM",en:"Why Coach DM",nl:"Waarom Coach DM"},
- why_1:{fr:"<b>Expertise vérifiable</b> — coach certifié (12 certifications), méthodes science-based avec références.",en:"<b>Verifiable expertise</b> — certified coach (12 certifications), science-based methods with references.",nl:"<b>Aantoonbare expertise</b> — gecertificeerde coach (12 certificeringen), wetenschappelijke methodes met bronnen."},
- why_2:{fr:"<b>Tout inclus</b> — nutrition, séances, Coach IA, suivi : pas d'add-ons facturés en plus.",en:"<b>All included</b> — nutrition, workouts, AI Coach, tracking: no extra add-ons billed.",nl:"<b>Alles inbegrepen</b> — voeding, trainingen, AI-coach, opvolging: geen extra add-ons."},
- why_3:{fr:"<b>Trilingue FR / EN / NL</b> — pensé pour la Belgique et au-delà.",en:"<b>Trilingual FR / EN / NL</b> — built for Belgium and beyond.",nl:"<b>Drietalig FR / EN / NL</b> — gemaakt voor België en daarbuiten."},
- why_4:{fr:"<b>Coachs : clients gratuits</b> — tu paies l'outil, pas tes clients ; quota d'actifs clair.",en:"<b>Coaches: free clients</b> — you pay for the tool, not your clients; clear active quota.",nl:"<b>Coaches: gratis klanten</b> — je betaalt voor de tool, niet voor je klanten; duidelijk actief quotum."},
- slots_loading:{fr:"Chargement…",en:"Loading…",nl:"Laden…"},
- slots_left:{fr:"Plus que {n} / {total} places",en:"Only {n} / {total} left",nl:"Nog {n} / {total} plaatsen"},
- sold_out:{fr:"Complet",en:"Sold out",nl:"Volzet"}
-};
-
-let LANG=localStorage.getItem('cdm_lang')||'fr';
-if(!['fr','en','nl'].includes(LANG)) LANG='fr';
-const t=(k)=>{const o=I18N[k];return o?(o[LANG]||o.fr):k;};
-
-let SLOTS={member:undefined,coach:undefined};
-
-function renderSlot(id,ctaId,row,total){
-  const el=document.getElementById(id); if(!el) return;
-  const cta=document.getElementById(ctaId);
-  if(row===undefined){ el.classList.remove('out'); el.textContent=t('slots_loading'); return; }
-  if(!row || row.left_count<=0){
-    el.classList.add('out'); el.textContent=t('sold_out');
-    if(cta){ cta.classList.add('disabled'); cta.textContent=t('sold_out'); }
-  }else{
-    el.classList.remove('out');
-    el.textContent=t('slots_left').replace('{n}',row.left_count).replace('{total}',total);
-    if(cta){ cta.classList.remove('disabled'); cta.textContent=t('cta_reserve'); }
-  }
-}
-function renderSlots(){
-  renderSlot('slot-member','cta-member',SLOTS.member,50);
-  renderSlot('slot-coach','cta-coach',SLOTS.coach,20);
-}
-
-function applyI18n(){
-  document.documentElement.lang=LANG;
-  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent=t(el.dataset.i18n); });
-  document.querySelectorAll('[data-i18n-html]').forEach(el=>{ el.innerHTML=t(el.dataset.i18nHtml); });
-  document.querySelectorAll('#lang button').forEach(b=>b.classList.toggle('on',b.dataset.lang===LANG));
-  renderSlots();
-}
-function setLang(l){
-  if(!['fr','en','nl'].includes(l)) return;
-  LANG=l; localStorage.setItem('cdm_lang',l);
-  applyI18n();
-}
-document.querySelectorAll('#lang button').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
-
-applyI18n();
-
 (async()=>{
   try{
     const {data}=await sb.rpc('founder_slots');
     const by={};(data||[]).forEach(r=>by[r.kind]=r);
-    SLOTS.member=by.member||null;
-    SLOTS.coach=by.coach||null;
-    renderSlots();
+    const fill=(id,row,total,cta)=>{
+      const el=document.getElementById(id); if(!el||!row)return;
+      if(row.left_count<=0){
+        el.classList.add('out'); el.textContent='Complet · Sold out · Volzet';
+        const b=document.getElementById(cta); if(b){b.classList.add('disabled');b.textContent='Complet';}
+      }else{
+        el.querySelector('.n').textContent=row.left_count;
+      }
+    };
+    fill('slot-member',by.member,50,'cta-member');
+    fill('slot-coach',by.coach,20,'cta-coach');
   }catch(e){ /* compteur silencieux si hors-ligne */ }
 })();
 </script>
