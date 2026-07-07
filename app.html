@@ -827,7 +827,11 @@
   <div class="sheet">
     <div class="grab"></div>
     <h3 data-i18n="coach_sheet_title">Deviens coach sur Coach DM</h3>
-    <div class="fk" data-i18n="coach_sheet_sub">Ta console dédiée : suivi de tes clients, messagerie temps réel et programmation. Coach+ ajoute les appels vidéo.</div>
+    <div class="fk" data-i18n="coach_sheet_sub">Ta console dédiée : suivi de tes clients, messagerie temps réel et programmation.</div>
+    <div class="sub-toggle" id="coach-toggle" style="display:none;margin-top:14px">
+      <button class="on" data-int="month" data-i18n="sub_month">Mensuel</button>
+      <button data-int="year" data-i18n="sub_year">Annuel</button>
+    </div>
     <div id="coach-plans" style="display:grid;gap:12px;margin-top:14px"><div class="empty">…</div></div>
     <div class="msg" id="coach-msg"></div>
   </div>
@@ -1196,8 +1200,12 @@ const T = {
  coach_offer_sub:{fr:'Tu es coach ? G\u00e8re tes clients, la messagerie et les appels vid\u00e9o depuis ta propre console.',en:'Are you a coach? Manage your clients, messaging and video calls from your own console.',nl:'Ben je coach? Beheer je klanten, berichten en videogesprekken vanuit je eigen console.'},
  coach_offer_cta:{fr:'Devenir coach',en:'Become a coach',nl:'Coach worden'},
  coach_sheet_title:{fr:'Deviens coach sur Coach DM',en:'Become a coach on Coach DM',nl:'Word coach op Coach DM'},
- coach_sheet_sub:{fr:'Ta console d\u00e9di\u00e9e : suivi de tes clients, messagerie temps r\u00e9el et programmation. Coach+ ajoute les appels vid\u00e9o.',en:'Your dedicated console: client tracking, real-time messaging and programming. Coach+ adds video calls.',nl:'Je eigen console: klantopvolging, realtime berichten en programmering. Coach+ voegt videogesprekken toe.'},
- coach_plus_note:{fr:'Appels vid\u00e9o & vid\u00e9os dans le chat inclus',en:'Video calls & chat videos included',nl:'Videogesprekken & video\u2019s in de chat inbegrepen'},
+ coach_sheet_sub:{fr:'Ta console d\u00e9di\u00e9e : suivi de tes clients, messagerie temps r\u00e9el et programmation.',en:'Your dedicated console: client tracking, real-time messaging and programming.',nl:'Je eigen console: klantopvolging, realtime berichten en programmering.'},
+ coach_note_20:{fr:'Jusqu\u2019\u00e0 20 clients actifs',en:'Up to 20 active clients',nl:'Tot 20 actieve klanten'},
+ coach_note_30:{fr:'Jusqu\u2019\u00e0 30 clients actifs \u2014 exclusivit\u00e9 fondateur',en:'Up to 30 active clients \u2014 founder exclusive',nl:'Tot 30 actieve klanten \u2014 exclusief voor oprichters'},
+ coach_note_50:{fr:'Jusqu\u2019\u00e0 50 clients actifs',en:'Up to 50 active clients',nl:'Tot 50 actieve klanten'},
+ coach_note_60:{fr:'Jusqu\u2019\u00e0 60 clients actifs \u2014 exclusivit\u00e9 fondateur',en:'Up to 60 active clients \u2014 founder exclusive',nl:'Tot 60 actieve klanten \u2014 exclusief voor oprichters'},
+ coach_plus_founder_badge:{fr:'Coach+ Fondateur',en:'Founding Coach+',nl:'Oprichtend Coach+'},
  sub_processing:{fr:'Ouverture du paiement…',en:'Opening payment…',nl:'Betaling openen…'},
  sub_success:{fr:'Paiement confirmé ! Activation en cours…',en:'Payment confirmed! Activating…',nl:'Betaling bevestigd! Activeren…'},
  sub_wait:{fr:"L'activation prend parfois une minute. Réouvre l'app si besoin.",en:'Activation can take a minute. Reopen the app if needed.',nl:'Activatie kan even duren. Heropen de app indien nodig.'},
@@ -1610,7 +1618,7 @@ document.querySelectorAll('#sub-toggle button').forEach(b=>b.onclick=()=>{
   renderSubPlans();
 });
 /* ---- Devenir coach ---- */
-let COACH_PRICES=null;
+let COACH_PRICES=null, COACH_INT='month';
 async function openCoachSheet(){
   $('#coach-ov').classList.add('show');
   if(!COACH_PRICES){
@@ -1619,34 +1627,47 @@ async function openCoachSheet(){
       COACH_PRICES = data||[];
     }catch(e){ COACH_PRICES=[]; }
   }
+  const hasYear = (COACH_PRICES||[]).some(p=>p.billing_interval==='year');
+  const tg=$('#coach-toggle'); if(tg) tg.style.display = hasYear ? 'flex' : 'none';
   renderCoachPlans();
 }
 function renderCoachPlans(){
   const box=$('#coach-plans'); if(!box) return;
-  const ps=COACH_PRICES||[];
+  const ps=(COACH_PRICES||[]).filter(p=>p.billing_interval===COACH_INT);
   const f=ps.find(p=>p.tier==='coach' && p.founder);
   const r=ps.find(p=>p.tier==='coach' && !p.founder);
-  const plus=ps.find(p=>p.tier==='coach_plus');
+  const fplus=ps.find(p=>p.tier==='coach_plus' && p.founder);
+  const rplus=ps.find(p=>p.tier==='coach_plus' && !p.founder);
+  const plus=fplus||rplus;
   const base=f||r;
+  const per = COACH_INT==='year' ? t('sub_per_year') : t('sub_per_month');
   let h='';
   if(base){
     h+='<div class="plan-card">';
     if(f) h+=`<div class="plan-badge">${t('founder_coach_badge')}</div>`;
-    h+=`<div class="plan-price">${money(base.amount_cents)}<span class="plan-per">${t('sub_per_month')}</span>`;
+    h+=`<div class="plan-price">${money(base.amount_cents)}<span class="plan-per">${per}</span>`;
     if(f&&r) h+=`<span class="plan-old">${money(r.amount_cents)}</span>`;
     h+='</div>';
+    h+=`<div class="plan-save">${f ? t('coach_note_30') : t('coach_note_20')}</div>`;
     h+=`<button class="btn" data-lk="${base.lookup_key}">${t('sub_choose')}</button></div>`;
   }
   if(plus){
     h+='<div class="plan-card">';
-    h+='<div class="plan-badge">Coach+</div>';
-    h+=`<div class="plan-price">${money(plus.amount_cents)}<span class="plan-per">${t('sub_per_month')}</span></div>`;
-    h+=`<div class="plan-save">${t('coach_plus_note')}</div>`;
+    h+=`<div class="plan-badge">${fplus ? t('coach_plus_founder_badge') : 'Coach+'}</div>`;
+    h+=`<div class="plan-price">${money(plus.amount_cents)}<span class="plan-per">${per}</span>`;
+    if(fplus&&rplus) h+=`<span class="plan-old">${money(rplus.amount_cents)}</span>`;
+    h+='</div>';
+    h+=`<div class="plan-save">${fplus ? t('coach_note_60') : t('coach_note_50')}</div>`;
     h+=`<button class="btn" data-lk="${plus.lookup_key}">${t('sub_choose')}</button></div>`;
   }
   box.innerHTML = h || '<p class="empty">—</p>';
   box.querySelectorAll('[data-lk]').forEach(b=>b.onclick=()=>startCheckout(b.dataset.lk,'#coach-msg'));
 }
+document.querySelectorAll('#coach-toggle button').forEach(b=>b.onclick=()=>{
+  COACH_INT=b.dataset.int;
+  document.querySelectorAll('#coach-toggle button').forEach(x=>x.classList.toggle('on',x===b));
+  renderCoachPlans();
+});
 { const el=$('#p-coach-open'); if(el) el.onclick=openCoachSheet; }
 { const ov=$('#coach-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); }); }
 { const ov=$('#sub-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); }); }
