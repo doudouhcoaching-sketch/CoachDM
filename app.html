@@ -1206,6 +1206,7 @@ const T = {
  coach_note_50:{fr:'Jusqu\u2019\u00e0 50 clients actifs',en:'Up to 50 active clients',nl:'Tot 50 actieve klanten'},
  coach_note_60:{fr:'Jusqu\u2019\u00e0 60 clients actifs \u2014 exclusivit\u00e9 fondateur',en:'Up to 60 active clients \u2014 founder exclusive',nl:'Tot 60 actieve klanten \u2014 exclusief voor oprichters'},
  coach_plus_founder_badge:{fr:'Coach+ Fondateur',en:'Founding Coach+',nl:'Oprichtend Coach+'},
+ founder_left:{fr:'Plus que {n} places fondateur',en:'Only {n} founder spots left',nl:'Nog {n} oprichtersplaatsen'},
  sub_processing:{fr:'Ouverture du paiement…',en:'Opening payment…',nl:'Betaling openen…'},
  sub_success:{fr:'Paiement confirmé ! Activation en cours…',en:'Payment confirmed! Activating…',nl:'Betaling bevestigd! Activeren…'},
  sub_wait:{fr:"L'activation prend parfois une minute. Réouvre l'app si besoin.",en:'Activation can take a minute. Reopen the app if needed.',nl:'Activatie kan even duren. Heropen de app indien nodig.'},
@@ -1541,6 +1542,19 @@ async function stripeJs(){
   return window.Stripe;
 }
 function money(c){ return (c/100).toLocaleString(locale(),{style:'currency',currency:'EUR'}); }
+let FOUNDER_SLOTS=null;
+async function loadFounderSlots(){
+  try{ const { data } = await sb.rpc('founder_slots'); FOUNDER_SLOTS = data||[]; }
+  catch(e){ FOUNDER_SLOTS = FOUNDER_SLOTS||[]; }
+}
+function slotsLeft(kind){
+  const r=(FOUNDER_SLOTS||[]).find(x=>x.kind===kind);
+  return r ? +r.left_count : null; /* null = inconnu -> on affiche, le serveur verrouille */
+}
+function founderCounter(kind){
+  const left=slotsLeft(kind);
+  return (left!==null && left>0 && left<=15) ? `<div class="plan-save">${t('founder_left').replace('{n}',left)}</div>` : '';
+}
 async function openSubSheet(){
   $('#sub-ov').classList.add('show');
   if(!SUB_PRICES){
@@ -1549,12 +1563,14 @@ async function openSubSheet(){
       SUB_PRICES = data||[];
     }catch(e){ SUB_PRICES=[]; }
   }
+  await loadFounderSlots();
   renderSubPlans();
 }
 function renderSubPlans(){
   const box=$('#sub-plans'); if(!box) return;
   const ps=SUB_PRICES||[];
-  const f=ps.find(p=>p.founder && p.billing_interval===SUB_INT);
+  const memLeft=slotsLeft('membre');
+  const f=(memLeft===0)?null:ps.find(p=>p.founder && p.billing_interval===SUB_INT);
   const r=ps.find(p=>!p.founder && p.billing_interval===SUB_INT);
   const offer=f||r;
   if(!offer){ box.innerHTML='<p class="empty">—</p>'; return; }
@@ -1565,6 +1581,7 @@ function renderSubPlans(){
   if(f&&r) h+=`<span class="plan-old">${money(r.amount_cents)}</span>`;
   h+='</div>';
   if(SUB_INT==='year') h+=`<div class="plan-save">${t('sub_year_save')}</div>`;
+  if(f) h+=founderCounter('membre');
   h+=`<button class="btn" data-lk="${offer.lookup_key}">${t('sub_choose')}</button></div>`;
   box.innerHTML=h;
   box.querySelectorAll('[data-lk]').forEach(b=>b.onclick=()=>startCheckout(b.dataset.lk));
@@ -1627,6 +1644,7 @@ async function openCoachSheet(){
       COACH_PRICES = data||[];
     }catch(e){ COACH_PRICES=[]; }
   }
+  await loadFounderSlots();
   const hasYear = (COACH_PRICES||[]).some(p=>p.billing_interval==='year');
   const tg=$('#coach-toggle'); if(tg) tg.style.display = hasYear ? 'flex' : 'none';
   renderCoachPlans();
@@ -1634,9 +1652,10 @@ async function openCoachSheet(){
 function renderCoachPlans(){
   const box=$('#coach-plans'); if(!box) return;
   const ps=(COACH_PRICES||[]).filter(p=>p.billing_interval===COACH_INT);
-  const f=ps.find(p=>p.tier==='coach' && p.founder);
+  const coachLeft=slotsLeft('coach');
+  const f=(coachLeft===0)?null:ps.find(p=>p.tier==='coach' && p.founder);
   const r=ps.find(p=>p.tier==='coach' && !p.founder);
-  const fplus=ps.find(p=>p.tier==='coach_plus' && p.founder);
+  const fplus=(coachLeft===0)?null:ps.find(p=>p.tier==='coach_plus' && p.founder);
   const rplus=ps.find(p=>p.tier==='coach_plus' && !p.founder);
   const plus=fplus||rplus;
   const base=f||r;
@@ -1649,6 +1668,7 @@ function renderCoachPlans(){
     if(f&&r) h+=`<span class="plan-old">${money(r.amount_cents)}</span>`;
     h+='</div>';
     h+=`<div class="plan-save">${f ? t('coach_note_30') : t('coach_note_20')}</div>`;
+    if(f) h+=founderCounter('coach');
     h+=`<button class="btn" data-lk="${base.lookup_key}">${t('sub_choose')}</button></div>`;
   }
   if(plus){
@@ -1658,6 +1678,7 @@ function renderCoachPlans(){
     if(fplus&&rplus) h+=`<span class="plan-old">${money(rplus.amount_cents)}</span>`;
     h+='</div>';
     h+=`<div class="plan-save">${fplus ? t('coach_note_60') : t('coach_note_50')}</div>`;
+    if(fplus) h+=founderCounter('coach');
     h+=`<button class="btn" data-lk="${plus.lookup_key}">${t('sub_choose')}</button></div>`;
   }
   box.innerHTML = h || '<p class="empty">—</p>';
