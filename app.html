@@ -6,9 +6,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Coach DM" />
-<meta name="color-scheme" content="dark" />
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#050807" />
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#050807" />
+<meta name="color-scheme" id="meta-cs" content="dark" />
+<meta name="theme-color" id="meta-tc" content="#050807" />
+<script>
+(function(){try{var m=localStorage.getItem('cdm_theme')||'auto';var d=m==='dark'||(m!=='light'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=d?'dark':'light';document.documentElement.setAttribute('data-theme',r);var tc=document.getElementById('meta-tc');if(tc)tc.setAttribute('content',d?'#050807':'#F4F7F5');var cs=document.getElementById('meta-cs');if(cs)cs.setAttribute('content',r);}catch(e){}})();
+</script>
 <title>Coach DM</title>
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
@@ -25,7 +27,7 @@
     --brand:#00FFA3; --brand-2:#00D98A; --brand-soft:rgba(0,255,160,.14);
     /* Or bijou métallique — identité/prestige */
     --gold-hi:#FBF3D0; --gold:#E9C767; --gold-mid:#D4A73C; --gold-deep:#9A6E1B; --bronze:#6E4E12;
-    --gold-soft:rgba(212,167,60,.14); --on-gold:#3a2b08;
+    --gold-soft:rgba(212,167,60,.14); --on-gold:#3a2b08; --gold-ink:var(--gold);
     --gold-grad:linear-gradient(176deg,var(--gold-hi) 4%,var(--gold) 30%,#B98C2A 52%,var(--gold-deep) 68%,var(--gold-hi) 96%);
     --prot:#FF5C5C; --carb:#46C8FF; --fat:#B89BFF; --fiber:#34D399;
     --ok:#34D399; --warn:#FF5C5C;
@@ -226,14 +228,14 @@
   .pf-badges{display:flex;gap:7px;flex-wrap:wrap}
   .pf-arrow{flex:0 0 auto;padding:0 16px;font-size:26px;color:var(--muted)}
   .pf-h{font-size:17px;font-weight:800;margin:6px 4px 16px}
-  .pf-week{font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--gold,#D4AF37);margin:20px 4px 11px}
+  .pf-week{font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--gold-ink,#9A6E1B);margin:20px 4px 11px}
   .se-card.locked .se-cover{filter:grayscale(.45)}
   .se-lock{position:absolute;top:10px;right:10px;z-index:2;width:30px;height:30px;border-radius:50%;
     background:rgba(0,0,0,.62);display:grid;place-items:center;font-size:15px;backdrop-filter:blur(2px)}
-  .up-price{color:var(--gold,#D4AF37);font-weight:700;font-size:13px;margin-bottom:2px}
+  .up-price{color:var(--gold-ink,#9A6E1B);font-weight:700;font-size:13px;margin-bottom:2px}
   .up-feats{list-style:none;padding:0;margin:14px 0 18px;display:flex;flex-direction:column;gap:10px;text-align:left}
   .up-feats li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.4}
-  .up-feats li .ck{color:var(--gold,#D4AF37);flex:0 0 auto;font-weight:800}
+  .up-feats li .ck{color:var(--gold-ink,#9A6E1B);flex:0 0 auto;font-weight:800}
   .ia-lock{margin:auto;text-align:center;padding:34px 22px;max-width:340px}
   .ia-lock .lk{font-size:44px;margin-bottom:12px}
   .ia-lock h3{margin:0 0 8px;font-size:18px}
@@ -290,7 +292,7 @@
   .co-seg button{flex:1;padding:10px;border-radius:13px;border:1px solid var(--line);background:var(--surface-2);
     color:var(--muted);font-weight:700;font-size:13.5px}
   .co-seg button.on{color:var(--brand);background:var(--brand-soft);border-color:transparent}
-  .co-pill.invited{background:var(--gold-soft);color:var(--gold)}
+  .co-pill.invited{background:var(--gold-soft);color:var(--gold-ink)}
   .co-day{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:16px 2px 9px}
   .co-card{display:flex;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);
     box-shadow:var(--shadow-soft);padding:13px 14px;margin-bottom:11px}
@@ -576,6 +578,45 @@
   .se-cover.t-wave{background-image:url("data:image/svg+xml,%3Csvg xmlns%3D'http://www.w3.org/2000/svg' viewBox%3D'0 0 120 120' fill%3D'none' stroke%3D'rgba(255,255,255,.22)' stroke-width%3D'3.5' stroke-linecap%3D'round' stroke-linejoin%3D'round'%3E%3Cpath d%3D'M14 72c12-20 24-20 36 0s24 20 36 0M14 48c12-20 24-20 36 0s24 20 36 0'/%3E%3C/svg%3E"),linear-gradient(135deg,color-mix(in srgb,var(--c) 92%,#000),color-mix(in srgb,var(--c) 55%,#000))}
   .ex-thumb{display:grid;place-items:center;background:color-mix(in srgb,var(--bc) 12%,var(--surface-2))}
   .ex-thumb .mus{width:28px;height:28px;color:var(--bc);stroke-width:1.8}
+
+  /* ============ THEME CLAIR ============ */
+  :root[data-theme="light"]{
+    --bg:#F4F7F5; --bg-2:#FFFFFF;
+    --surface:#FFFFFF; --surface-2:#EEF3F0; --line:rgba(12,32,24,.10);
+    --text:#0A1512; --muted:#5A7A6B;
+    --brand:#00A870; --brand-2:#008F5E; --brand-soft:rgba(0,168,112,.12);
+    --go:#00A870;
+    --gold-ink:#9A6E1B; --gold-soft:rgba(212,167,60,.18);
+    --shadow:0 14px 34px rgba(18,44,32,.10);
+    --shadow-soft:0 8px 22px rgba(18,44,32,.07);
+    --glow:0 8px 22px rgba(0,168,112,.18);
+  }
+  :root[data-theme="light"] body{
+    background:
+      radial-gradient(120% 70% at 50% -10%, rgba(0,168,112,.10) 0%, transparent 55%),
+      linear-gradient(180deg,#FFFFFF,#F4F7F5 30%);
+  }
+  /* Or degrade en texte : version profonde lisible sur blanc */
+  :root[data-theme="light"] .hh-hello,
+  :root[data-theme="light"] .sp-name{
+    background:linear-gradient(176deg,#C9992E,#9A6E1B 55%,#6E4E12);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    filter:none;
+  }
+  /* Neutralise les lueurs vertes sur texte/surfaces en clair */
+  :root[data-theme="light"] .ring .kcal,
+  :root[data-theme="light"] .topbar h2,
+  :root[data-theme="light"] .wod-name,
+  :root[data-theme="light"] .hh-hello{ text-shadow:none; }
+  :root[data-theme="light"] .block{ border-color:var(--line); box-shadow:var(--shadow-soft); }
+  :root[data-theme="light"] .go-badge{ background:rgba(0,168,112,.12); }
+  :root[data-theme="light"] .bubble.ai{ box-shadow:var(--shadow-soft); }
+  :root[data-theme="light"] .hh-logo{ background:linear-gradient(145deg,#00A870,#008F5E); box-shadow:0 4px 14px rgba(0,168,112,.28); }
+  /* Selecteur theme = meme style que le selecteur langue */
+  .theme-seg{display:flex;gap:8px;margin-top:4px}
+  .theme-seg button{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);font-weight:700;font-size:13px}
+  .theme-seg button.on{background:var(--brand);color:#04120a;border-color:var(--brand);box-shadow:0 0 14px rgba(0,255,160,.3)}
+  :root[data-theme="light"] .theme-seg button.on{box-shadow:0 4px 12px rgba(0,168,112,.28)}
 </style>
 </head>
 <body>
@@ -851,7 +892,13 @@
 
     <div class="block">
       <h3 data-i18n="prof_options">Options</h3>
-      <div class="opt-row"><span data-i18n="opt_units">Unités</span><span class="fk" data-i18n="opt_metric">Métrique (kg, cm)</span></div>
+      <div class="opt-row" style="margin-bottom:8px"><span data-i18n="lbl_theme">Thème</span></div>
+      <div class="theme-seg" id="theme-seg">
+        <button data-theme-set="auto" data-i18n="th_auto">Auto</button>
+        <button data-theme-set="dark" data-i18n="th_dark">Sombre</button>
+        <button data-theme-set="light" data-i18n="th_light">Clair</button>
+      </div>
+      <div class="opt-row" style="margin-top:14px"><span data-i18n="opt_units">Unités</span><span class="fk" data-i18n="opt_metric">Métrique (kg, cm)</span></div>
       <div class="opt-row"><span data-i18n="opt_notif">Rappels & notifications</span><span class="fk" data-i18n="opt_soon">Bientôt disponible</span></div>
     </div>
 
@@ -1000,7 +1047,7 @@
     <div class="grab"></div>
     <div style="line-height:1;margin:6px 0 10px"><svg class="ic ic-xl" style="color:#D4AF37"><use href="#i-trophy"/></svg></div>
     <h3 id="loop-title" style="margin:0 0 4px">Cycle terminé</h3>
-    <div class="fk" id="loop-cycle" style="color:var(--gold,#D4AF37);font-weight:700;margin-bottom:10px">—</div>
+    <div class="fk" id="loop-cycle" style="color:var(--gold-ink,#9A6E1B);font-weight:700;margin-bottom:10px">—</div>
     <p id="loop-body" style="color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 16px"></p>
     <div id="loop-next" style="font-size:12px;color:var(--muted);margin-bottom:14px"></div>
     <button class="btn" id="loop-restart" data-i18n="loop_restart">Recommencer le cycle</button>
@@ -1334,6 +1381,10 @@ const T = {
  sub_pay_note:{fr:'Le paiement en ligne arrive bientôt. En attendant, contacte le coach pour activer ou renouveler ton accès.',en:'Online payment is coming soon. Meanwhile, contact the coach to activate or renew your access.',nl:'Online betalen komt binnenkort. Neem intussen contact op met de coach om je toegang te activeren of te verlengen.'},
  contact_coach:{fr:'Contacter le coach',en:'Contact the coach',nl:'Contacteer de coach'},
  prof_options:{fr:'Options',en:'Options',nl:'Opties'},
+ lbl_theme:{fr:'Thème',en:'Theme',nl:'Thema'},
+ th_auto:{fr:'Auto',en:'Auto',nl:'Auto'},
+ th_dark:{fr:'Sombre',en:'Dark',nl:'Donker'},
+ th_light:{fr:'Clair',en:'Light',nl:'Licht'},
  opt_units:{fr:'Unités',en:'Units',nl:'Eenheden'},
  opt_metric:{fr:'Métrique (kg, cm)',en:'Metric (kg, cm)',nl:'Metrisch (kg, cm)'},
  opt_imperial:{fr:'Impérial (lb, in)',en:'Imperial (lb, in)',nl:'Imperiaal (lb, in)'},
@@ -1488,6 +1539,26 @@ function setLang(l){
   const active=document.querySelector('.nav button.on')?.dataset.tab;
   if(active && typeof switchTab==='function') switchTab(active);
 }
+
+/* ---- theme clair / sombre ---- */
+let THEME = localStorage.getItem('cdm_theme') || 'auto';
+const themeMQ = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+function resolvedDark(){ return THEME==='dark' || (THEME!=='light' && themeMQ && themeMQ.matches); }
+function renderThemeBtns(){ document.querySelectorAll('#theme-seg button').forEach(b=>b.classList.toggle('on', b.dataset.themeSet===THEME)); }
+function applyTheme(){
+  const dark = resolvedDark();
+  const r = dark ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', r);
+  const tc=document.getElementById('meta-tc'); if(tc) tc.setAttribute('content', dark?'#050807':'#F4F7F5');
+  const cs=document.getElementById('meta-cs'); if(cs) cs.setAttribute('content', r);
+  renderThemeBtns();
+}
+function setTheme(m){
+  if(!['auto','dark','light'].includes(m)) return;
+  THEME=m; localStorage.setItem('cdm_theme',m);
+  applyTheme();
+}
+if(themeMQ){ const _mqTheme=()=>{ if(THEME==='auto') applyTheme(); }; themeMQ.addEventListener ? themeMQ.addEventListener('change',_mqTheme) : themeMQ.addListener(_mqTheme); }
 
 let USER=null, TARGETS=null, SELECTED=null, CONV=null, BUSY=false, IA_LOADED=false, PREMIUM=false;
 
@@ -3719,6 +3790,8 @@ document.addEventListener('click',e=>{
 
 /* ---- language selector + profile name ---- */
 document.querySelectorAll('#lang-seg button').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
+document.querySelectorAll('#theme-seg button').forEach(b=>b.onclick=()=>setTheme(b.dataset.themeSet));
+applyTheme();
 $('#p-name-save').onclick = async ()=>{
   if(!USER) return;
   const name=$('#p-name').value.trim();
