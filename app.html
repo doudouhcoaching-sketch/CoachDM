@@ -290,6 +290,7 @@
   .co-seg button{flex:1;padding:10px;border-radius:13px;border:1px solid var(--line);background:var(--surface-2);
     color:var(--muted);font-weight:700;font-size:13.5px}
   .co-seg button.on{color:var(--brand);background:var(--brand-soft);border-color:transparent}
+  .co-pill.invited{background:var(--gold-soft);color:var(--gold)}
   .co-day{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:16px 2px 9px}
   .co-card{display:flex;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);
     box-shadow:var(--shadow-soft);padding:13px 14px;margin-bottom:11px}
@@ -310,6 +311,8 @@
     background:linear-gradient(135deg,var(--brand),var(--brand-2));box-shadow:0 0 16px rgba(0,255,160,.28)}
   .co-act.cancel{background:transparent;color:var(--warn);border:1.5px solid var(--warn)}
   .co-act[disabled]{opacity:.5;pointer-events:none}
+  .co-ics{margin-top:9px;width:100%;padding:10px;border-radius:12px;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:7px;background:transparent;border:1px solid var(--line);color:var(--muted)}
+  .co-ics .ic{width:16px;height:16px}
   .lang-seg{display:flex;gap:8px}
   .lang-seg button{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);font-weight:700;font-size:13px}
   .lang-seg button.on{background:var(--brand);color:#04120a;border-color:var(--brand);box-shadow:0 0 14px rgba(0,255,160,.3)}
@@ -592,6 +595,7 @@
   <symbol id="i-m-full" viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2.3"/><path d="M12 8v6M12 10.5l-4.5-1.8M12 10.5l4.5-1.8M12 14l-3 6M12 14l3 6"/></symbol>
   <symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="M6.5 12h11"/><rect x="3" y="8.5" width="2.6" height="7" rx="1.1"/><rect x="6.4" y="7" width="2.8" height="10" rx="1.2"/><rect x="18.4" y="8.5" width="2.6" height="7" rx="1.1"/><rect x="14.8" y="7" width="2.8" height="10" rx="1.2"/></symbol>
   <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V16H6.5A2.5 2.5 0 0 1 4 13.5v-7Z"/><path d="M8.5 9h7M8.5 12h4.5"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></symbol>
   <symbol id="i-bowl" viewBox="0 0 24 24"><path d="M4 11.5h16a8 8 0 0 1-8 8 8 8 0 0 1-8-8Z"/><path d="M9 8.5c0-1.5 1.2-1.8 1.2-3M13.5 8.5c0-1.5 1.2-1.8 1.2-3"/></symbol>
   <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8.5h3L8.5 6h7L17 8.5h3A1.5 1.5 0 0 1 21.5 10v8A1.5 1.5 0 0 1 20 19.5H4A1.5 1.5 0 0 1 2.5 18v-8A1.5 1.5 0 0 1 4 8.5Z"/><circle cx="12" cy="13.5" r="3.2"/></symbol>
 </svg>
@@ -1185,7 +1189,9 @@ const T = {
  jo_removed:{fr:'Supprimé',en:'Removed',nl:'Verwijderd'},
  back_home:{fr:'‹ Accueil',en:'‹ Home',nl:'‹ Home'},
  co_upcoming:{fr:'À venir',en:'Upcoming',nl:'Komend'},
- co_mine:{fr:'Mes réservations',en:'My bookings',nl:'Mijn reservaties'},
+ co_mine:{fr:'Mon calendrier',en:'My calendar',nl:'Mijn agenda'},
+ co_invited:{fr:'Invité',en:'Invited',nl:'Uitgenodigd'},
+ co_addcal:{fr:'Ajouter à mon agenda',en:'Add to my calendar',nl:'Aan agenda toevoegen'},
  co_reserve:{fr:'Réserver',en:'Book',nl:'Reserveren'},
  co_waitlist_btn:{fr:"Rejoindre la liste d'attente",en:'Join the waitlist',nl:'Op wachtlijst'},
  co_cancel_btn:{fr:'Annuler ma réservation',en:'Cancel my booking',nl:'Reservatie annuleren'},
@@ -3572,11 +3578,38 @@ async function loadCours(){
   COURS = data || [];
   renderCours();
 }
+function icsDate(d){ return new Date(d).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z'); }
+function icsEscape(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n'); }
+function addToCalendar(c){
+  const uid = 'coachdm-'+c.id+'@coachdm.be';
+  const title = (pick(c,'name')||'Cours')+(c.kind==='personal_training'?' (PT)':'');
+  const desc = [c.coach_name?('Coach: '+c.coach_name):'', 'Coach DM'].filter(Boolean).join(' — ');
+  const lines = [
+    'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Coach DM//FR','CALSCALE:GREGORIAN','METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    'UID:'+uid,
+    'DTSTAMP:'+icsDate(new Date()),
+    'DTSTART:'+icsDate(c.starts_at),
+    'DTEND:'+icsDate(c.ends_at),
+    'SUMMARY:'+icsEscape(title),
+    c.location ? 'LOCATION:'+icsEscape(c.location) : '',
+    'DESCRIPTION:'+icsEscape(desc),
+    'BEGIN:VALARM','TRIGGER:-PT2H','ACTION:DISPLAY','DESCRIPTION:'+icsEscape(title),'END:VALARM',
+    'END:VEVENT','END:VCALENDAR'
+  ].filter(Boolean);
+  const blob = new Blob([lines.join('\r\n')], {type:'text/calendar;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'coachdm-'+c.id+'.ics';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1500);
+}
 function renderCours(){
   const mineOnly = COURS_FILTER==='mine';
   const rows = COURS.filter(c=>{
-    const mine = c.my_status==='booked'||c.my_status==='waitlist';
-    return mineOnly ? mine : (c.status!=='cancelled' || mine);
+    const booked = c.my_status==='booked'||c.my_status==='waitlist';
+    const inCal = booked || c.my_invited;
+    return mineOnly ? inCal : (c.status!=='cancelled' || inCal);
   });
   if(!rows.length){
     $('#co-list').innerHTML='<p class="empty">'+(mineOnly?t('co_none_mine'):t('co_none_up'))+'</p>';
@@ -3588,7 +3621,8 @@ function renderCours(){
     if(day!==lastDay){ h+=`<div class="co-day">${esc(day)}</div>`; lastDay=day; }
     const col=c.color||'#00FFA3';
     const cancelled=c.status==='cancelled';
-    const mine=c.my_status==='booked'||c.my_status==='waitlist';
+    const booked=c.my_status==='booked'||c.my_status==='waitlist';
+    const invitedOnly=c.my_invited && !booked;
     const left=(c.spots_left==null?0:c.spots_left), full=left<=0;
     let spots;
     if(cancelled) spots=`<span class="co-pill off">${t('co_cancelled_label')}</span>`;
@@ -3597,9 +3631,10 @@ function renderCours(){
     let minePill='';
     if(c.my_status==='booked') minePill=`<span class="co-pill mine">${t('co_reserved')}</span>`;
     else if(c.my_status==='waitlist') minePill=`<span class="co-pill warn">${t('co_waitlist')}</span>`;
+    else if(invitedOnly) minePill=`<span class="co-pill invited">${t('co_invited')}</span>`;
     let act='';
     if(cancelled){ act=''; }
-    else if(mine){
+    else if(booked){
       act = c.can_cancel
         ? `<button class="co-act cancel" data-cancel="${c.id}">${t('co_cancel_btn')}</button>`
         : `<div class="co-sub" style="margin-top:9px">${t('co_cancel_closed')}</div>`;
@@ -3614,12 +3649,14 @@ function renderCours(){
         <div class="co-sub">${coHM(c.starts_at)}–${coHM(c.ends_at)}${c.location?' · '+esc(c.location):''}${c.coach_name?' · '+esc(c.coach_name):''}</div>
         <div class="co-row">${spots}${minePill}</div>
         ${act}
+        ${(!cancelled && (booked||c.my_invited)) ? `<button class="co-ics" data-ics="${c.id}"><svg class="ic"><use href="#i-cal"/></svg> ${t('co_addcal')}</button>` : ''}
       </div>
     </div>`;
   });
   $('#co-list').innerHTML=h;
   $('#co-list').querySelectorAll('[data-book]').forEach(b=>b.onclick=()=>bookClass(b.dataset.book,b));
   $('#co-list').querySelectorAll('[data-cancel]').forEach(b=>b.onclick=()=>cancelClass(b.dataset.cancel,b));
+  $('#co-list').querySelectorAll('[data-ics]').forEach(b=>b.onclick=()=>{ const c=COURS.find(x=>x.id===b.dataset.ics); if(c) addToCalendar(c); });
 }
 async function bookClass(id,btn){
   if(btn){ btn.disabled=true; btn.textContent='…'; }
