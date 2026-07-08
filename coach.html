@@ -843,6 +843,8 @@ function openClientForm(){
        <label>Email *</label><input id="c_email" type="email" placeholder="client@email.com">
        <label>Téléphone</label><input id="c_phone" type="tel" placeholder="+32 4XX XX XX XX">
        <label>Objectif principal</label><input id="c_goal" placeholder="Ex : prise de masse, perte de poids, Hyrox…">
+       <label>Langue du client</label>
+       <select id="c_lang"><option value="fr" selected>Français</option><option value="en">English</option><option value="nl">Nederlands</option></select>
        <p class="muted">Le client reçoit une invitation par email + un QR à scanner pour créer son compte lui-même.</p>
        <div id="c_qr_wrap" style="display:none;text-align:center;margin-top:16px;padding:16px;background:#0E1512;border:1px solid var(--line);border-radius:14px">
          <div id="c_qr" style="display:inline-block;background:#fff;padding:12px;border-radius:12px"></div>
@@ -867,7 +869,8 @@ function openClientForm(){
       const phone=($('#c_phone')&&$('#c_phone').value.trim())||'', goal=($('#c_goal')&&$('#c_goal').value.trim())||'';
       if(!name||!email)return toast('Nom et email requis');
       const btn=$('#c_save'); btn.disabled=true; btn.textContent='Envoi…';
-      const {data,error}=await sb.functions.invoke('coach-invite-client',{body:{full_name:name,email:email,phone:phone,goal:goal}});
+      const lang=($('#c_lang')&&$('#c_lang').value)||'fr';
+      const {data,error}=await sb.functions.invoke('coach-invite-client',{body:{full_name:name,email:email,phone:phone,goal:goal,lang:lang}});
       btn.disabled=false; btn.textContent='Envoyer invitation';
       if(error||!data||!data.ok){
         const r=data&&data.reason;
