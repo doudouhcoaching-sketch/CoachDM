@@ -659,6 +659,29 @@
   .ia-home-tx b{display:block;font-size:14px;font-weight:700;color:var(--text)}
   .ia-home-tx span{font-size:12px;color:var(--muted)}
   .ia-home-ar{width:18px;height:18px;color:var(--muted);flex:0 0 auto}
+
+  /* ===== Profil : hub + sous-pages ===== */
+  .pf-back{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--muted);font-family:inherit;font-size:14px;font-weight:600;padding:0 2px 14px;cursor:pointer}
+  .pf-back svg{width:20px;height:20px}
+  .pf-menu{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-soft)}
+  .pf-row{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--line);padding:15px;cursor:pointer;color:var(--text);font-family:inherit;text-decoration:none}
+  .pf-row:last-child{border-bottom:none}
+  .pf-row:active{background:var(--surface-2)}
+  .pf-ic{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center;background:color-mix(in srgb,var(--brand) 14%,transparent);color:var(--brand)}
+  .pf-ic svg{width:18px;height:18px}
+  .pf-lb{flex:1;min-width:0;font-size:14.5px;font-weight:600;letter-spacing:-.01em}
+  .pf-hint{font-size:12px;color:var(--muted);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
+  .pf-ch{width:18px;height:18px;color:var(--muted);flex:0 0 auto}
+  #pane-profile #pf-hub{display:none}
+  #pane-profile[data-view="hub"] #pf-hub{display:block}
+  #pane-profile .pf-sub{display:none}
+  #pane-profile[data-view="infos"] #pf-infos{display:block}
+  #pane-profile[data-view="records"] #pf-records{display:block}
+  #pane-profile[data-view="sub"] #pf-sub{display:block}
+  #pane-profile[data-view="appearance"] #pf-appearance{display:block}
+  #pane-profile[data-view="account"] #pf-account{display:block}
+  #pane-profile #pf-back{display:none}
+  #pane-profile:not([data-view="hub"]) #pf-back{display:flex}
 </style>
 </head>
 <body>
@@ -864,22 +887,28 @@
   </div>
 
   <!-- PROFIL -->
-  <div class="page tabpane" id="pane-profile">
+  <div class="page tabpane" id="pane-profile" data-view="hub">
 
+    <button class="pf-back" id="pf-back" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg><span id="pf-back-title"></span></button>
+
+    <div id="pf-hub">
     <div class="block founder-card" id="p-founder" style="display:none">
       <span class="founder-badge"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.4L12 17.4l-5.8 3 1.1-6.4L2.6 9.4l6.5-.9L12 2.6z"/></svg><span id="p-founder-label" data-i18n="sub_founder_badge">Membre Fondateur</span></span>
       <div class="founder-since"><span data-i18n="founder_since">Fondateur depuis</span> <span id="p-founder-date"></span></div>
     </div>
 
-    <div class="block">
-      <h3 data-i18n="lbl_lang">Langue de l'app</h3>
-      <div class="lang-seg" id="lang-seg">
-        <button data-lang="fr">Français</button>
-        <button data-lang="en">English</button>
-        <button data-lang="nl">Nederlands</button>
+      <div class="pf-menu">
+        <button class="pf-row" data-pf="infos" type="button"><span class="pf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 16 0v1"/></svg></span><span class="pf-lb" data-i18n="pf_infos">Mes infos & objectifs</span><svg class="pf-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button class="pf-row" data-pf="records" type="button"><span class="pf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7v10M18 7v10M3 9.5v5M21 9.5v5M6 12h12"/></svg></span><span class="pf-lb" data-i18n="pf_records">Mes records (1RM)</span><svg class="pf-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button class="pf-row" data-pf="sub" type="button"><span class="pf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/></svg></span><span class="pf-lb" data-i18n="prof_sub">Abonnement & paiement</span><span class="pf-hint" id="pf-sub-hint"></span><svg class="pf-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button class="pf-row" data-pf="appearance" type="button"><span class="pf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></span><span class="pf-lb" data-i18n="pf_appearance">Apparence & langue</span><svg class="pf-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button class="pf-row" data-pf="account" type="button"><span class="pf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M4 12h2M18 12h2M12 4v2M12 18v2M6.4 6.4l1.4 1.4M16.2 16.2l1.4 1.4M17.6 6.4l-1.4 1.4M8.2 16.2l-1.4 1.4"/></svg></span><span class="pf-lb" data-i18n="pf_account">Compte</span><svg class="pf-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+        <a class="pf-row" href="https://coachdm.be/aide.html" target="_blank" rel="noopener"><span class="pf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 0 1 4.6 1.4c0 1.6-2.2 2-2.2 3.1"/><path d="M12 17h.01"/></svg></span><span class="pf-lb" data-i18n="help_center">Centre d'aide</span><svg class="pf-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+        <a class="pf-row" href="https://coachdm.be/privacy.html" target="_blank" rel="noopener"><span class="pf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.6-3 7.6-7 9-4-1.4-7-4.4-7-9V6z"/></svg></span><span class="pf-lb" data-i18n="privacy">Politique de confidentialité</span><svg class="pf-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
       </div>
     </div>
 
+    <div class="pf-sub" id="pf-infos">
     <div class="block">
       <h3 data-i18n="prof_info">Informations</h3>
       <div class="field"><label data-i18n="lbl_fullname">Nom complet</label><input id="p-name" type="text" placeholder="Doudouh M." /></div>
@@ -923,6 +952,9 @@
       <div class="msg" id="p-warn" style="text-align:left"></div>
     </div>
 
+    </div>
+
+    <div class="pf-sub" id="pf-records">
     <div class="block">
       <h3 data-i18n="pr_title">Mes Records (1RM)</h3>
       <p class="empty" style="text-align:left;padding:0 0 10px" data-i18n="pr_sub">Tes maxes alimentent toute l'app : les séances et le Coach IA convertissent les % en kilos exacts, arrondis à 2,5 kg.</p>
@@ -930,6 +962,9 @@
       <button class="btn subtle" id="pr-add" style="margin-top:12px" data-i18n="pr_add">＋ Ajouter / modifier un record</button>
     </div>
 
+    </div>
+
+    <div class="pf-sub" id="pf-sub">
     <div class="block">
       <h3 data-i18n="prof_sub">Abonnement & paiement</h3>
       <div class="fk" id="p-sub" style="margin-bottom:12px">—</div>
@@ -944,6 +979,18 @@
       <button class="btn subtle" id="p-coach-open" style="width:100%" data-i18n="coach_offer_cta">Devenir coach</button>
     </div>
 
+    </div>
+
+    <div class="pf-sub" id="pf-appearance">
+    <div class="block">
+      <h3 data-i18n="lbl_lang">Langue de l'app</h3>
+      <div class="lang-seg" id="lang-seg">
+        <button data-lang="fr">Français</button>
+        <button data-lang="en">English</button>
+        <button data-lang="nl">Nederlands</button>
+      </div>
+    </div>
+
     <div class="block">
       <h3 data-i18n="prof_options">Options</h3>
       <div class="opt-row" style="margin-bottom:8px"><span data-i18n="lbl_theme">Thème</span></div>
@@ -956,14 +1003,16 @@
       <div class="opt-row"><span data-i18n="opt_notif">Rappels & notifications</span><span class="fk" data-i18n="opt_soon">Bientôt disponible</span></div>
     </div>
 
+    </div>
+
+    <div class="pf-sub" id="pf-account">
     <div class="block">
       <h3 data-i18n="prof_account">Compte</h3>
       <div class="empty" style="text-align:left;padding:0 0 12px" id="p-email"></div>
       <a class="btn subtle" id="p-coach-console" href="coach.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_coach_console">Console Coach</a>
       <a class="btn subtle" id="p-admin-console" href="admin.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_admin_console">Console Admin</a>
       <button class="btn subtle" id="p-out" data-i18n="btn_logout">Se déconnecter</button>
-      <a href="https://coachdm.be/aide.html" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:14px;color:var(--muted);font-size:12.5px;text-decoration:none" data-i18n="help_center">Centre d'aide</a>
-      <a href="https://coachdm.be/privacy.html" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:14px;color:var(--muted);font-size:12.5px;text-decoration:none" data-i18n="privacy">Politique de confidentialité</a>
+    </div>
     </div>
   </div>
 
@@ -1367,6 +1416,10 @@ const T = {
  lbl_lang:{fr:'Langue de l\u2019app',en:'App language',nl:'App-taal'},
  btn_save:{fr:'Enregistrer',en:'Save',nl:'Opslaan'},
  prof_sub:{fr:'Abonnement & paiement',en:'Subscription & payment',nl:'Abonnement & betaling'},
+ pf_infos:{fr:'Mes infos & objectifs',en:'My info & goals',nl:'Mijn info & doelen'},
+ pf_records:{fr:'Mes records (1RM)',en:'My records (1RM)',nl:'Mijn records (1RM)'},
+ pf_appearance:{fr:'Apparence & langue',en:'Appearance & language',nl:'Weergave & taal'},
+ pf_account:{fr:'Compte',en:'Account',nl:'Account'},
  sub_cta:{fr:"S'abonner",en:'Subscribe',nl:'Abonneren'},
  sub_manage:{fr:'Gérer mon abonnement',en:'Manage my subscription',nl:'Mijn abonnement beheren'},
  sub_title:{fr:'Deviens membre',en:'Become a member',nl:'Word lid'},
@@ -2722,11 +2775,23 @@ function switchTab(tab){
   if(tab==='seances') loadWorkouts();
   if(tab==='cours') loadCours();
   if(tab==='boutique') loadBoutique();
-  if(tab==='profile') renderPRList();
+  if(tab==='profile'){ renderPRList(); if(typeof pfShow==='function') pfShow('hub'); }
   if(tab==='ia'){ if(!PREMIUM){ renderIALock(); return; } if(!IA_LOADED){ IA_LOADED=true; loadConversation(); } setTimeout(()=>$('#ia-input').focus(),100); }
   window.scrollTo(0,0);
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+/* ---- routeur sous-pages Profil ---- */
+function pfShow(view){
+  const pane=document.getElementById('pane-profile'); if(!pane) return;
+  pane.setAttribute('data-view',view);
+  const T={infos:'pf_infos',records:'pf_records',sub:'prof_sub',appearance:'pf_appearance',account:'pf_account'};
+  const bt=document.getElementById('pf-back-title'); if(bt) bt.textContent = T[view]?t(T[view]):'';
+  const ps=document.getElementById('p-sub'), h=document.getElementById('pf-sub-hint'); if(ps&&h) h.textContent=ps.textContent;
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('#pane-profile [data-pf]').forEach(b=>b.onclick=()=>pfShow(b.dataset.pf));
+{ const bk=document.getElementById('pf-back'); if(bk) bk.onclick=()=>pfShow('hub'); }
+
 
 /* ---------------- helpers ---------------- */
 function setMsg(id,t,cls){ const el=$('#'+id); el.textContent=t; el.className='msg '+(cls||''); }
