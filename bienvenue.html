@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#050807">
+<title>Bienvenue · Coach DM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  html{background:#050807}
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#050807;--surface:#0E1512;--surface-2:#121a16;--line:#221f18;--text:#F2ECDE;--muted:#8A8578;
+    --brand:#00FFA3;--brand-2:#00c47e;
+    --gold-hi:#FBF3D0;--gold:#E9C767;--gold-mid:#D4A73C;--gold-deep:#9A6E1B;--on-gold:#3a2b08;
+    --gold-grad:linear-gradient(176deg,var(--gold-hi) 4%,var(--gold) 30%,#B98C2A 52%,var(--gold-deep) 68%,var(--gold-hi) 96%);
+    --font:'Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  body{background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;
+    min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 20px}
+  .wrap{width:100%;max-width:440px}
+  /* Signature : la médaille or, le seul élément d'éclat */
+  .medal{width:64px;height:64px;border-radius:18px;margin:0 auto 16px;display:grid;place-items:center;
+    font-weight:800;font-size:24px;color:var(--on-gold);
+    background:radial-gradient(circle at 38% 32%,var(--gold-hi),var(--gold) 34%,var(--gold-deep) 74%,#6E4E12);
+    box-shadow:0 0 0 2px rgba(251,243,208,.35),0 12px 30px rgba(212,167,60,.35),inset 0 -3px 8px rgba(0,0,0,.35)}
+  .eyebrow{text-align:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-mid);font-weight:600;margin-bottom:8px}
+  h1{text-align:center;font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-bottom:8px}
+  h1 em{font-style:normal;color:var(--gold);background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .lede{text-align:center;font-size:14px;color:var(--muted);line-height:1.55;margin-bottom:26px}
+  form{display:flex;flex-direction:column;gap:14px}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;letter-spacing:.01em}
+  .field input, .field select{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:14px;color:var(--text);font-family:var(--font);font-size:16px;outline:none}
+  .field input:focus, .field select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(0,255,163,.12)}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:5px}
+  .btn{margin-top:6px;width:100%;padding:16px;border:none;border-radius:14px;cursor:pointer;
+    font-family:var(--font);font-weight:700;font-size:16px;letter-spacing:-.01em;color:#04120a;
+    background:linear-gradient(180deg,var(--brand),var(--brand-2));box-shadow:0 4px 20px rgba(0,255,163,.3)}
+  .btn:disabled{opacity:.55;cursor:default}
+  .msg{margin-top:12px;font-size:13.5px;text-align:center;line-height:1.5;min-height:18px}
+  .msg.err{color:#ff8b8b}
+  .msg.ok{color:var(--brand)}
+  .state{text-align:center;padding:20px 0}
+  .spin{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--gold);margin:0 auto 14px;animation:sp 1s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .foot{text-align:center;font-size:11px;color:#5a564c;margin-top:22px;letter-spacing:.04em}
+  @media (prefers-reduced-motion:reduce){.spin{animation:none}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="medal">DM</div>
+
+    <!-- État chargement -->
+    <div id="loading" class="state">
+      <div class="spin"></div>
+      <p class="lede" style="margin:0">Validation de ton invitation…</p>
+    </div>
+
+    <!-- Lien invalide -->
+    <div id="invalid" class="state" style="display:none">
+      <div class="eyebrow">Lien expiré</div>
+      <h1>Ce lien n'est plus valide</h1>
+      <p class="lede">Demande à ton coach de te renvoyer une invitation. Les liens expirent après un certain temps pour ta sécurité.</p>
+    </div>
+
+    <!-- Formulaire d'activation -->
+    <div id="onboard" style="display:none">
+      <div class="eyebrow">Bienvenue chez Coach DM</div>
+      <h1>Crée ton <em>compte</em></h1>
+      <p class="lede">Choisis un mot de passe et complète ton profil. Ton coach pourra suivre ta progression.</p>
+      <form id="form" autocomplete="on">
+        <div class="field">
+          <label for="f_name">Nom complet</label>
+          <input id="f_name" type="text" autocomplete="name" placeholder="Prénom Nom">
+        </div>
+        <div class="field">
+          <label for="f_pass">Mot de passe</label>
+          <input id="f_pass" type="password" autocomplete="new-password" placeholder="Au moins 8 caractères">
+          <div class="hint">8 caractères minimum.</div>
+        </div>
+        <div class="field">
+          <label for="f_phone">Téléphone</label>
+          <input id="f_phone" type="tel" autocomplete="tel" placeholder="+32 4XX XX XX XX">
+        </div>
+        <div class="field">
+          <label for="f_goal">Ton objectif principal</label>
+          <input id="f_goal" type="text" placeholder="Ex : prise de masse, perte de poids, Hyrox…">
+        </div>
+        <button class="btn" id="submit" type="submit">Activer mon compte</button>
+        <div class="msg" id="msg"></div>
+      </form>
+    </div>
+
+    <!-- Succès -->
+    <div id="done" class="state" style="display:none">
+      <div class="eyebrow">Compte activé</div>
+      <h1>Tout est prêt, <em id="doneName">champion</em></h1>
+      <p class="lede">Tu peux maintenant ouvrir l'app et commencer avec ton coach.</p>
+      <a class="btn" href="https://coachdm.be/app.html" style="display:block;text-align:center;text-decoration:none">Ouvrir l'app</a>
+    </div>
+
+    <div class="foot">POWER · TRANSFORM · EXCEL</div>
+  </div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const sb = createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b',
+  { auth:{ detectSessionInUrl:true, flowType:'implicit', persistSession:true } });
+
+const $ = s => document.querySelector(s);
+const show = id => { ['loading','invalid','onboard','done'].forEach(k=>$('#'+k).style.display = k===id?'':'none'); };
+
+// 1) Récupérer la session depuis le lien d'invitation
+async function boot(){
+  try{
+    // Le SDK lit le hash (#access_token=…) automatiquement avec detectSessionInUrl.
+    let { data:{ session } } = await sb.auth.getSession();
+    // Fallback : tokens dans le hash
+    if(!session && location.hash.includes('access_token')){
+      const p = new URLSearchParams(location.hash.slice(1));
+      const at = p.get('access_token'), rt = p.get('refresh_token');
+      if(at && rt){ const r = await sb.auth.setSession({ access_token:at, refresh_token:rt }); session = r.data.session; }
+    }
+    if(!session){ show('invalid'); return; }
+
+    // Pré-remplir avec ce que le coach a déjà saisi
+    const { data:prof } = await sb.from('profiles').select('full_name, phone, primary_goal').eq('id', session.user.id).single();
+    if(prof){
+      if(prof.full_name) $('#f_name').value = prof.full_name;
+      if(prof.phone) $('#f_phone').value = prof.phone;
+      if(prof.primary_goal) $('#f_goal').value = prof.primary_goal;
+    }
+    show('onboard');
+  }catch(e){ show('invalid'); }
+}
+
+// 2) Activer : mot de passe + profil + lien coach actif
+$('#form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const name=$('#f_name').value.trim(), pass=$('#f_pass').value, phone=$('#f_phone').value.trim(), goal=$('#f_goal').value.trim();
+  const msg=$('#msg'); msg.className='msg'; msg.textContent='';
+  if(pass.length<8){ msg.className='msg err'; msg.textContent='Le mot de passe doit faire au moins 8 caractères.'; return; }
+  const btn=$('#submit'); btn.disabled=true; btn.textContent='Activation…';
+  try{
+    const up = await sb.auth.updateUser({ password:pass });
+    if(up.error) throw up.error;
+    const { data, error } = await sb.rpc('client_complete_onboarding', { p_full_name:name, p_phone:phone, p_goal:goal });
+    if(error || !data?.ok) throw (error||new Error('rpc'));
+    $('#doneName').textContent = name ? name.split(' ')[0] : 'champion';
+    show('done');
+  }catch(err){
+    btn.disabled=false; btn.textContent='Activer mon compte';
+    msg.className='msg err';
+    msg.textContent = /session|jwt|token/i.test(String(err?.message||'')) ? 'Ta session a expiré. Redemande une invitation à ton coach.' : 'Un souci est survenu. Réessaie dans un instant.';
+  }
+});
+
+boot();
+</script>
+</body>
+</html>

@@ -139,6 +139,7 @@
   .rating .rv{font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
   .rating .rl{font-size:10.5px;color:var(--muted);font-weight:600;margin-top:1px}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -834,21 +835,26 @@ function openClientForm(){
   const draw=()=>{
     let h=`<h2>Ajouter un client</h2>
      <div class="seg">
-       <button data-m="create" class="${mode==='create'?'on':''}">Nouveau compte</button>
+       <button data-m="create" class="${mode==='create'?'on':''}">Inviter (email / QR)</button>
        <button data-m="link" class="${mode==='link'?'on':''}">Lier un existant</button>
      </div>`;
     if(mode==='create'){
-      h+=`<label>Nom complet</label><input id="c_name" placeholder="Prénom Nom">
-       <label>Email *</label><input id="c_email" type="email">
-       <label>Mot de passe * (min 6)</label><input id="c_pwd" type="text" value="">
-       <p class="muted">Le client est créé et lié à toi. Donne-lui ces identifiants.</p>`;
+      h+=`<label>Nom complet *</label><input id="c_name" placeholder="Prénom Nom">
+       <label>Email *</label><input id="c_email" type="email" placeholder="client@email.com">
+       <label>Téléphone</label><input id="c_phone" type="tel" placeholder="+32 4XX XX XX XX">
+       <label>Objectif principal</label><input id="c_goal" placeholder="Ex : prise de masse, perte de poids, Hyrox…">
+       <p class="muted">Le client reçoit une invitation par email + un QR à scanner pour créer son compte lui-même.</p>
+       <div id="c_qr_wrap" style="display:none;text-align:center;margin-top:16px;padding:16px;background:#0E1512;border:1px solid var(--line);border-radius:14px">
+         <div id="c_qr" style="display:inline-block;background:#fff;padding:12px;border-radius:12px"></div>
+         <p class="muted" style="margin-top:10px">Fais scanner ce QR au client en présentiel.</p>
+       </div>`;
     }else{
       h+=`<label>Email du membre existant *</label><input id="c_email2" type="email">
        <p class="muted">Le compte doit déjà exister. Il sera lié à toi.</p>`;
     }
     h+=`<div class="row" style="margin-top:16px;gap:8px"><div class="sp"></div>
       <button class="btn sec" id="c_cancel">Fermer</button>
-      <button class="btn" id="c_save">${mode==='create'?'Créer & lier':'Lier'}</button></div>`;
+      <button class="btn" id="c_save">${mode==='create'?'Envoyer invitation':'Lier'}</button></div>`;
     $('#cl-sheet-body').innerHTML=h;
     $('#ov-cl').classList.add('show');
     $('#cl-sheet-body').querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{mode=b.dataset.m;draw();});
@@ -857,12 +863,25 @@ function openClientForm(){
   };
   const save=async()=>{
     if(mode==='create'){
-      const email=$('#c_email').value.trim(), pwd=$('#c_pwd').value, name=$('#c_name').value.trim();
-      if(!email||pwd.length<6)return toast('Email + mot de passe (6+) requis');
-      const {data,error}=await sb.rpc('coach_create_member',{p_email:email,p_password:pwd,p_full_name:name||null});
-      if(data?.reason==='limit_reached')return toast('Quota atteint');
-      if(error||!data?.ok){toast(/déjà utilisé/.test(error?.message||'')?'Email déjà utilisé':'Échec création');return;}
-      toast('Client créé & lié');
+      const email=$('#c_email').value.trim(), name=$('#c_name').value.trim();
+      const phone=($('#c_phone')&&$('#c_phone').value.trim())||'', goal=($('#c_goal')&&$('#c_goal').value.trim())||'';
+      if(!name||!email)return toast('Nom et email requis');
+      const btn=$('#c_save'); btn.disabled=true; btn.textContent='Envoi…';
+      const {data,error}=await sb.functions.invoke('coach-invite-client',{body:{full_name:name,email:email,phone:phone,goal:goal}});
+      btn.disabled=false; btn.textContent='Envoyer invitation';
+      if(error||!data||!data.ok){
+        const r=data&&data.reason;
+        toast(r==='limit_reached'?'Quota clients atteint':r==='forbidden'?'Non autorisé':'Échec de l invitation');
+        return;
+      }
+      toast(data.emailed?'Invitation envoyée ✓':'Client invité (email KO)');
+      if(data.action_link && window.QRCode){
+        const wrap=$('#c_qr_wrap'), box=$('#c_qr');
+        box.innerHTML=''; new QRCode(box,{text:data.action_link,width:180,height:180,correctLevel:QRCode.CorrectLevel.M});
+        wrap.style.display='';
+      }
+      loadClientList();
+      return;
     }else{
       const email=$('#c_email2').value.trim();if(!email)return toast('Email requis');
       const {data,error}=await sb.rpc('coach_link_member',{p_email:email});
