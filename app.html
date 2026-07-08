@@ -911,7 +911,15 @@
 <div class="overlay" id="ck-ov">
   <div class="ck-box">
     <button class="ck-close" id="ck-close" aria-label="Fermer">✕</button>
-    <div id="ck-mount"></div>
+    <div id="ck-consent" style="padding:22px 20px">
+      <h3 style="margin:0 0 12px" data-i18n="ck_consent_title">Avant de payer</h3>
+      <label style="display:flex;gap:11px;align-items:flex-start;cursor:pointer;font-size:13.5px;line-height:1.55;color:var(--muted)">
+        <input type="checkbox" id="ck-agree" style="margin-top:3px;width:18px;height:18px;flex:none;accent-color:var(--brand)"/>
+        <span data-i18n="ck_consent_text">Je demande l’accès immédiat au service et je reconnais qu’en démarrant maintenant, je renonce à mon droit de rétractation de 14 jours dès l’ouverture de mon accès premium (art. VI.53 du Code de droit économique).</span>
+      </label>
+      <button class="btn" id="ck-continue" style="width:100%;margin-top:18px" disabled data-i18n="ck_continue">Continuer vers le paiement</button>
+    </div>
+    <div id="ck-mount" style="display:none"></div>
   </div>
 </div>
 
@@ -1271,6 +1279,9 @@ const T = {
  sub_per_year:{fr:'/an',en:'/year',nl:'/jaar'},
  sub_year_save:{fr:'2 mois offerts par rapport au mensuel',en:'2 months free vs monthly',nl:'2 maanden gratis t.o.v. maandelijks'},
  sub_choose:{fr:'Choisir cette offre',en:'Choose this plan',nl:'Kies dit abonnement'},
+ ck_consent_title:{fr:'Avant de payer',en:'Before you pay',nl:'Voor je betaalt'},
+ ck_consent_text:{fr:'Je demande l’accès immédiat au service et je reconnais qu’en démarrant maintenant, je renonce à mon droit de rétractation de 14 jours dès l’ouverture de mon accès premium (art. VI.53 du Code de droit économique).',en:'I request immediate access to the service and acknowledge that by starting now, I waive my 14-day right of withdrawal as soon as my premium access is opened (art. VI.53 of the Belgian Code of Economic Law).',nl:'Ik vraag onmiddellijke toegang tot de dienst en erken dat ik, door nu te starten, afstand doe van mijn herroepingsrecht van 14 dagen zodra mijn premium-toegang wordt geopend (art. VI.53 van het Wetboek van economisch recht).'},
+ ck_continue:{fr:'Continuer vers le paiement',en:'Continue to payment',nl:'Doorgaan naar betaling'},
  coach_offer_title:{fr:'Espace coach',en:'Coach hub',nl:'Coachruimte'},
  coach_offer_sub:{fr:'Tu es coach ? G\u00e8re tes clients, la messagerie et les appels vid\u00e9o depuis ta propre console.',en:'Are you a coach? Manage your clients, messaging and video calls from your own console.',nl:'Ben je coach? Beheer je klanten, berichten en videogesprekken vanuit je eigen console.'},
  coach_offer_cta:{fr:'Devenir coach',en:'Become a coach',nl:'Coach worden'},
@@ -1662,25 +1673,41 @@ function renderSubPlans(){
   box.innerHTML=h;
   box.querySelectorAll('[data-lk]').forEach(b=>b.onclick=()=>startCheckout(b.dataset.lk));
 }
+let PENDING_CK=null;
+function resetConsent(){
+  const cs=$('#ck-consent'); if(cs) cs.style.display='';
+  const mt=$('#ck-mount'); if(mt){ mt.style.display='none'; mt.innerHTML=''; }
+  const ag=$('#ck-agree'); if(ag) ag.checked=false;
+  const co=$('#ck-continue'); if(co) co.disabled=true;
+}
+// Ouvre l'overlay sur l'étape consentement. Le paiement n'est monté qu'après acceptation.
 async function startCheckout(lk,msgSel){
-  const m=$(msgSel||'#sub-msg'); if(m){ m.className='msg'; m.textContent=t('sub_processing'); }
+  PENDING_CK={lk,msgSel:msgSel||'#sub-msg'};
+  if(CK){ try{CK.destroy();}catch(e){} CK=null; }
+  resetConsent();
+  $('#sub-ov').classList.remove('show');
+  { const c=$('#coach-ov'); if(c) c.classList.remove('show'); }
+  $('#ck-ov').classList.add('show');
+}
+// Consentement donné -> on crée la session Stripe (accord horodaté transmis) et on monte le checkout.
+async function mountCheckout(){
+  if(!PENDING_CK) return;
+  const {lk}=PENDING_CK;
+  const cs=$('#ck-consent'); if(cs) cs.style.display='none';
+  const mt=$('#ck-mount'); if(mt){ mt.style.display=''; mt.innerHTML=''; }
   try{
     const S=await stripeJs();
     if(!STRIPE) STRIPE=S(STRIPE_PK);
     if(CK){ try{CK.destroy();}catch(e){} CK=null; }
     CK = await STRIPE.initEmbeddedCheckout({ fetchClientSecret: async ()=>{
-      const { data, error } = await sb.functions.invoke('stripe-checkout',{ body:{ action:'checkout', lookup_key:lk, locale:LANG } });
+      const { data, error } = await sb.functions.invoke('stripe-checkout',{ body:{ action:'checkout', lookup_key:lk, locale:LANG, consent_withdrawal:true, consent_ts:new Date().toISOString() } });
       if(error || !data || !data.client_secret) throw new Error((data&&data.error)||'checkout');
       return data.client_secret;
     }});
-    $('#sub-ov').classList.remove('show');
-    { const c=$('#coach-ov'); if(c) c.classList.remove('show'); }
-    $('#ck-ov').classList.add('show');
     CK.mount('#ck-mount');
-    if(m) m.textContent='';
-  }catch(e){ if(m){ m.className='msg err'; m.textContent=t('sub_fail'); } }
+  }catch(e){ closeCheckout(); toast(t('sub_fail')); }
 }
-function closeCheckout(){ $('#ck-ov').classList.remove('show'); if(CK){ try{CK.destroy();}catch(e){} CK=null; } }
+function closeCheckout(){ $('#ck-ov').classList.remove('show'); if(CK){ try{CK.destroy();}catch(e){} CK=null; } resetConsent(); PENDING_CK=null; }
 async function openPortal(){
   const b=$('#p-sub-manage'); if(b) b.disabled=true;
   const { data, error } = await sb.functions.invoke('stripe-checkout',{ body:{ action:'portal', locale:LANG } });
@@ -1704,6 +1731,9 @@ async function checkoutReturn(){
 }
 { const el=$('#gate-sub'); if(el) el.onclick=openSubSheet; }
 { const el=$('#p-sub-open'); if(el) el.onclick=openSubSheet; }
+{ const ag=$('#ck-agree'), co=$('#ck-continue');
+  if(ag&&co) ag.onchange=()=>{ co.disabled=!ag.checked; };
+  if(co) co.onclick=mountCheckout; }
 { const el=$('#p-sub-manage'); if(el) el.onclick=openPortal; }
 document.querySelectorAll('#sub-toggle button').forEach(b=>b.onclick=()=>{
   SUB_INT=b.dataset.int;
