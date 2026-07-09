@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#0A0A0A" />
+<meta name="robots" content="noindex" />
+<title>Analyse Squat — Coach DM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0A0A; --surface:#141414; --surface2:#1C1C1C; --line:rgba(255,255,255,.08);
+    --gold:#D4AF37; --neon:#00FFA3; --txt:#F5F5F4; --muted:#9CA3AF; --ok:#10B981; --danger:#EF4444;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--txt)}
+  body{
+    font-family:'Outfit',-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    letter-spacing:-0.02em;-webkit-font-smoothing:antialiased;
+    min-height:100dvh;padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 28px);
+    max-width:560px;margin:0 auto;
+  }
+  button{font-family:inherit;cursor:pointer;border:none;color:inherit;background:transparent;-webkit-appearance:none;appearance:none}
+
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px}
+  .brand{font-weight:800;font-size:18px;letter-spacing:-0.02em}
+  .brand em{font-style:normal;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 45%,#A47F1E 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:12.5px;font-weight:500;margin-top:2px}
+  .lang{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .lang button{font-size:11.5px;font-weight:700;color:var(--muted);padding:5px 9px;border-radius:999px}
+  .lang button.on{color:#0A0A0A;background:var(--neon)}
+
+  .stage{
+    position:relative;border-radius:22px;overflow:hidden;background:#000;
+    border:1px solid var(--line);aspect-ratio:3/4;transition:box-shadow .15s ease;
+  }
+  .stage.deep{box-shadow:0 0 0 2px var(--neon),0 0 34px rgba(0,255,163,.35)}
+  .stage video,.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+  .stage.mirror video,.stage.mirror canvas{transform:scaleX(-1)}
+  .hud{position:absolute;left:0;right:0;top:0;display:flex;justify-content:center;padding:12px;pointer-events:none}
+  .pill{
+    font-size:13px;font-weight:700;padding:8px 14px;border-radius:999px;
+    background:rgba(10,10,10,.72);border:1px solid var(--line);backdrop-filter:blur(8px);
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .pill.ok .dot{background:var(--neon);box-shadow:0 0 10px var(--neon)}
+  .pill.warn .dot{background:var(--gold)}
+  .pill.err .dot{background:var(--danger)}
+  .angle-chip{
+    position:absolute;right:10px;bottom:10px;pointer-events:none;
+    font-size:13px;font-weight:800;color:var(--txt);font-variant-numeric:tabular-nums;
+    background:rgba(10,10,10,.72);border:1px solid var(--line);border-radius:12px;padding:8px 11px;
+  }
+  .angle-chip small{color:var(--muted);font-weight:600;font-size:10px;display:block;letter-spacing:.05em;text-transform:uppercase}
+  .dbg{
+    position:absolute;left:10px;bottom:10px;pointer-events:none;
+    font-size:10px;font-weight:600;color:rgba(0,255,163,.9);
+    font-variant-numeric:tabular-nums;letter-spacing:0;
+    background:rgba(10,10,10,.65);border-radius:8px;padding:5px 8px;line-height:1.45;white-space:pre;
+  }
+  .splash{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;text-align:center;padding:24px;background:radial-gradient(120% 90% at 50% 0%,#161616 0%,#0A0A0A 70%);
+  }
+  .splash p{color:var(--muted);font-size:13.5px;line-height:1.55;max-width:300px}
+  .squatter{width:54px;height:54px;stroke:var(--neon);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+  .controls{display:flex;gap:10px;margin-top:12px}
+  .btn{
+    flex:1;font-size:15px;font-weight:700;padding:14px 12px;border-radius:16px;
+    background:var(--neon);color:#062A1D;letter-spacing:-0.02em;transition:transform .08s ease,opacity .15s;
+  }
+  .btn:active{transform:scale(.97)}
+  .btn.ghost{background:var(--surface);color:var(--txt);border:1px solid var(--line)}
+  .btn[disabled]{opacity:.45;pointer-events:none}
+
+  .result{
+    margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;
+    padding:18px 18px 16px;text-align:center;
+  }
+  .result .lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .big{
+    font-size:64px;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums;
+    background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 45%,#A47F1E 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .meta{display:flex;justify-content:center;gap:18px;margin-top:8px;color:var(--muted);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+  .meta b{color:var(--txt)}
+  .meta .g{color:var(--ok)}
+
+  .card{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px 18px}
+  .card h3{font-size:14.5px;font-weight:700;margin-bottom:10px}
+  .rlist{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .rlist li{
+    background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;
+    font-variant-numeric:tabular-nums;font-size:13.5px;font-weight:600;
+    display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;
+  }
+  .rlist .n{color:var(--muted);font-size:12.5px;min-width:30px}
+  .badge{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid var(--line)}
+  .b-ok{color:var(--ok);border-color:rgba(16,185,129,.4)}
+  .b-no{color:var(--danger);border-color:rgba(239,68,68,.4)}
+  .b-warn{color:var(--gold);border-color:rgba(212,175,55,.4)}
+  .b-mut{color:var(--muted)}
+  .empty{color:var(--muted);font-size:13px}
+
+  details{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:14px 18px}
+  summary{font-size:14.5px;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:'+';color:var(--muted);font-size:18px;font-weight:600}
+  details[open] summary::after{content:'−'}
+  .help{margin-top:10px;color:var(--muted);font-size:13.5px;line-height:1.6}
+  .help li{margin:0 0 6px 16px}
+  .note{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5}
+
+  footer{margin-top:22px;text-align:center;color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.02em}
+  footer b{color:var(--gold)}
+
+  @media (prefers-reduced-motion:reduce){.stage{transition:none}.btn{transition:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="brand">COACH <em>DM</em></div>
+    <div class="sub" id="subline"></div>
+  </div>
+  <div class="lang" id="lang">
+    <button data-lang="fr">FR</button><button data-lang="en">EN</button><button data-lang="nl">NL</button>
+  </div>
+</header>
+
+<div class="stage" id="stage">
+  <video id="cam" playsinline muted autoplay></video>
+  <canvas id="overlay"></canvas>
+  <div class="hud"><span class="pill" id="pill"><span class="dot"></span><span id="pill-txt"></span></span></div>
+  <div class="angle-chip" id="chip" hidden><small id="chip-lbl"></small><span id="chip-val">—</span></div>
+  <div class="dbg" id="dbg" hidden></div>
+  <div class="splash" id="splash">
+    <svg class="squatter" viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><path d="M12 6.5v3.5M12 10l-3.5 3 .5 4M12 10l3.5 3-.5 4M7 9.5l5 .5 5-.5"/><path d="M4 21h16" stroke-dasharray="2 3"/></svg>
+    <p id="splash-p"></p>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn" id="b-start"></button>
+  <button class="btn ghost" id="b-flip" disabled>⇄</button>
+  <button class="btn ghost" id="b-reset" disabled></button>
+</div>
+
+<div class="result">
+  <div class="lbl" id="res-lbl"></div>
+  <div class="big" id="res-reps">0</div>
+  <div class="meta">
+    <span><span id="m-par"></span> <b class="g" id="res-par">—</b></span>
+    <span><span id="m-depth"></span> <b id="res-depth">—</b></span>
+  </div>
+</div>
+
+<div class="card">
+  <h3 id="list-h"></h3>
+  <ul class="rlist" id="rlist"></ul>
+  <div class="empty" id="rempty"></div>
+</div>
+
+<details>
+  <summary id="help-h"></summary>
+  <ol class="help" id="help-ol"></ol>
+  <div class="note" id="help-note"></div>
+</details>
+
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be</footer>
+
+<script type="module">
+import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+
+/* ───────── i18n ───────── */
+const I18N = {
+  subline:{fr:'Analyse Squat — posture en direct par IA',en:'Squat Analysis — live AI posture',nl:'Squatanalyse — live houding via AI'},
+  splash:{fr:'Pose ton téléphone stable (2–4 m), corps entier visible, de profil ou de face, puis lance la caméra.',en:'Set your phone down stable (2–4 m), full body visible, side or front view, then start the camera.',nl:'Zet je telefoon stabiel neer (2–4 m), hele lichaam zichtbaar, zij- of vooraanzicht, en start de camera.'},
+  start:{fr:'Lancer la caméra',en:'Start camera',nl:'Camera starten'},
+  stop:{fr:'Arrêter',en:'Stop',nl:'Stoppen'},
+  reset:{fr:'Remettre à zéro',en:'Reset',nl:'Resetten'},
+  st_loading:{fr:'Chargement du modèle IA…',en:'Loading AI model…',nl:'AI-model laden…'},
+  st_ready:{fr:'Prêt — squatte quand tu veux',en:'Ready — squat whenever you want',nl:'Klaar — squat wanneer je wilt'},
+  st_down:{fr:'DESCENTE…',en:'GOING DOWN…',nl:'DALEN…'},
+  st_deep:{fr:'PARALLÈLE ✓',en:'PARALLEL ✓',nl:'PARALLEL ✓'},
+  st_up:{fr:'REMONTÉE…',en:'COMING UP…',nl:'OMHOOG…'},
+  st_noperson:{fr:'Corps entier non visible — recule',en:'Full body not visible — step back',nl:'Lichaam niet volledig zichtbaar — stap achteruit'},
+  st_err_cam:{fr:'Caméra refusée — autorise l\'accès dans Réglages',en:'Camera denied — allow access in Settings',nl:'Camera geweigerd — sta toegang toe in Instellingen'},
+  st_err_model:{fr:'Modèle IA indisponible — vérifie ta connexion',en:'AI model unavailable — check your connection',nl:'AI-model niet beschikbaar — controleer je verbinding'},
+  chip_lbl:{fr:'Genou',en:'Knee',nl:'Knie'},
+  res_lbl:{fr:'Répétitions',en:'Repetitions',nl:'Herhalingen'},
+  m_par:{fr:'Parallèle',en:'Parallel',nl:'Parallel'},
+  m_depth:{fr:'Meilleure profondeur',en:'Best depth',nl:'Beste diepte'},
+  list_h:{fr:'Reps de la série',en:'Set reps',nl:'Reps deze set'},
+  list_empty:{fr:'Aucune rep détectée pour l\'instant.',en:'No reps detected yet.',nl:'Nog geen reps gedetecteerd.'},
+  b_par:{fr:'Parallèle ✓',en:'Parallel ✓',nl:'Parallel ✓'},
+  b_high:{fr:'Au-dessus ✗',en:'Too high ✗',nl:'Te hoog ✗'},
+  b_torso:{fr:'Dos',en:'Torso',nl:'Romp'},
+  b_torso_w:{fr:'⚠ Dos très penché',en:'⚠ Excessive lean',nl:'⚠ Sterk voorovergebogen'},
+  b_valgus:{fr:'⚠ Genoux qui rentrent',en:'⚠ Knees caving in',nl:'⚠ Knieën naar binnen'},
+  b_knees_ok:{fr:'Genoux ✓',en:'Knees ✓',nl:'Knieën ✓'},
+  view_side:{fr:'profil',en:'side',nl:'zijkant'},
+  view_front:{fr:'face',en:'front',nl:'voorkant'},
+  help_h:{fr:'Comment ça marche',en:'How it works',nl:'Hoe het werkt'},
+  help_1:{fr:'Téléphone posé ou sur trépied, stable, à 2–4 m. Corps entier + pieds dans le cadre, bonne lumière.',en:'Phone resting or on a tripod, stable, 2–4 m away. Full body + feet in frame, good lighting.',nl:'Telefoon neergezet of op statief, stabiel, op 2–4 m. Hele lichaam + voeten in beeld, goed licht.'},
+  help_2:{fr:'De profil : profondeur (hanche sous le genou) + inclinaison du dos. De face : genoux qui rentrent (valgus).',en:'Side view: depth (hip below knee) + torso lean. Front view: knees caving in (valgus).',nl:'Zijaanzicht: diepte (heup onder knie) + romphelling. Vooraanzicht: knieën naar binnen (valgus).'},
+  help_3:{fr:'Squatte à ton rythme : chaque rep est comptée et analysée automatiquement.',en:'Squat at your own pace: every rep is counted and analysed automatically.',nl:'Squat op je eigen tempo: elke rep wordt automatisch geteld en geanalyseerd.'},
+  help_4:{fr:'Le cadre s\'illumine quand tu atteins la parallèle. Bip aigu = rep valide, bip grave = trop haute.',en:'The frame lights up when you hit parallel. High beep = valid rep, low beep = too high.',nl:'Het kader licht op wanneer je parallel bereikt. Hoge piep = geldige rep, lage piep = te hoog.'},
+  help_note:{fr:'Angles calculés en 3D (MediaPipe Pose). Parallèle = crête de la hanche sous le sommet du genou (Schoenfeld, 2010). 100% sur ton téléphone — aucune vidéo n\'est envoyée ni enregistrée. Outil d\'aide au coaching, ne remplace pas l\'œil du coach.',en:'Angles computed in 3D (MediaPipe Pose). Parallel = hip crease below top of knee (Schoenfeld, 2010). Runs 100% on your phone — no video is uploaded or stored. A coaching aid, not a replacement for the coach\'s eye.',nl:'Hoeken berekend in 3D (MediaPipe Pose). Parallel = heupplooi onder de bovenkant van de knie (Schoenfeld, 2010). Draait 100% op je telefoon — er wordt geen video verstuurd of opgeslagen. Een coachingshulpmiddel, geen vervanging voor het oog van de coach.'}
+};
+const LANGS=['fr','en','nl'];
+let LANG=localStorage.getItem('cdm_lang')||'fr'; if(!LANGS.includes(LANG)) LANG='fr';
+const t=k=>{const e=I18N[k];return e?(e[LANG]||e.fr):k;};
+
+/* ───────── DOM ───────── */
+const $=s=>document.querySelector(s);
+const video=$('#cam'), canvas=$('#overlay'), stage=$('#stage'), splash=$('#splash');
+const pill=$('#pill'), pillTxt=$('#pill-txt'), chip=$('#chip');
+const bStart=$('#b-start'), bFlip=$('#b-flip'), bReset=$('#b-reset');
+const ctx=canvas.getContext('2d');
+let du=null;
+
+function applyLang(){
+  document.documentElement.lang=LANG;
+  $('#subline').textContent=t('subline');
+  $('#splash-p').textContent=t('splash');
+  bStart.textContent=running?t('stop'):t('start');
+  bReset.textContent=t('reset');
+  $('#chip-lbl').textContent=t('chip_lbl');
+  $('#res-lbl').textContent=t('res_lbl');
+  $('#m-par').textContent=t('m_par');
+  $('#m-depth').textContent=t('m_depth');
+  $('#list-h').textContent=t('list_h');
+  $('#help-h').textContent=t('help_h');
+  $('#help-ol').innerHTML='';
+  ['help_1','help_2','help_3','help_4'].forEach(k=>{
+    const li=document.createElement('li'); li.textContent=t(k); $('#help-ol').appendChild(li);
+  });
+  $('#help-note').textContent=t('help_note');
+  document.querySelectorAll('#lang button').forEach(b=>b.classList.toggle('on',b.dataset.lang===LANG));
+  renderReps(); setStatus(lastStatus,true);
+}
+document.querySelectorAll('#lang button').forEach(b=>{
+  b.onclick=()=>{LANG=b.dataset.lang;localStorage.setItem('cdm_lang',LANG);applyLang();};
+});
+
+/* ───────── Status ───────── */
+let lastStatus='';
+function setStatus(key,force){
+  if(!key||(key===lastStatus&&!force))return;
+  lastStatus=key;
+  pillTxt.textContent=t(key);
+  pill.classList.remove('ok','warn','err');
+  if(key==='st_ready'||key==='st_deep'||key==='st_up')pill.classList.add('ok');
+  else if(key==='st_down'||key==='st_loading')pill.classList.add('warn');
+  else if(key.startsWith('st_err')||key==='st_noperson')pill.classList.add('err');
+}
+
+/* ───────── Audio ───────── */
+let AC=null;
+function beep(freq,ms){
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.frequency.value=freq;o.type='sine';
+    g.gain.setValueAtTime(0.12,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+ms/1000);
+    o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+ms/1000);
+  }catch(_){}
+}
+
+/* ───────── Squat engine (3D angles + rep state machine) ───────── */
+const STAND=160, DOWN_TRIG=150, REP_MIN=130, PARALLEL_ANGLE=100, TORSO_WARN=60, KASR_WARN=0.85;
+const S={mode:'idle',knee:180,rep:null,lastGoodTs:0};
+let reps=[],bestDepth=180;
+
+function resetSet(){reps=[];bestDepth=180;S.mode='ready';S.knee=180;S.rep=null;renderReps();updateSummary();}
+
+function vis(p){return p?(p.visibility??1):0;}
+function angle3(a,b,c){
+  const v1={x:a.x-b.x,y:a.y-b.y,z:a.z-b.z},v2={x:c.x-b.x,y:c.y-b.y,z:c.z-b.z};
+  const dot=v1.x*v2.x+v1.y*v2.y+v1.z*v2.z;
+  const n=Math.hypot(v1.x,v1.y,v1.z)*Math.hypot(v2.x,v2.y,v2.z)||1e-9;
+  return Math.acos(Math.min(1,Math.max(-1,dot/n)))*180/Math.PI;
+}
+function bodyVisible(lm){
+  const ok=(a,b)=>vis(lm[a])>0.2||vis(lm[b])>0.2;
+  return ok(23,24)&&ok(25,26)&&ok(27,28);
+}
+function pickSide(lm){
+  const L=(vis(lm[23])+vis(lm[25])+vis(lm[27]))/3;
+  const R=(vis(lm[24])+vis(lm[26])+vis(lm[28]))/3;
+  return L>=R?{hip:23,knee:25,ankle:27,sh:11}:{hip:24,knee:26,ankle:28,sh:12};
+}
+function kneeAngle(w,side){return angle3(w[side.hip],w[side.knee],w[side.ankle]);}
+function torsoLean(w,side){
+  const sh=w[side.sh],hip=w[side.hip];
+  const dx=sh.x-hip.x,dy=sh.y-hip.y,dz=sh.z-hip.z;
+  const n=Math.hypot(dx,dy,dz)||1e-9;
+  // world y increases downward → "up" component is -dy
+  return Math.acos(Math.min(1,Math.max(-1,(-dy)/n)))*180/Math.PI;
+}
+function kasr(lm){
+  const kn=Math.abs(lm[25].x-lm[26].x),an=Math.abs(lm[27].x-lm[28].x);
+  return an>0.01?kn/an:null;
+}
+function viewOf(lm,side){
+  const shw=Math.abs(lm[11].x-lm[12].x);
+  const torso=Math.hypot(lm[side.sh].x-lm[side.hip].x,lm[side.sh].y-lm[side.hip].y)||1e-9;
+  const r=shw/torso;
+  return r>0.5?'front':(r<0.35?'side':'mixed');
+}
+
+function handle(lm,w,ts){
+  if(!lm||!w||!bodyVisible(lm)){
+    if(ts-S.lastGoodTs>800){setStatus('st_noperson');chip.hidden=true;}
+    return;
+  }
+  S.lastGoodTs=ts;
+  const side=pickSide(lm);
+  const raw=kneeAngle(w,side);
+  S.knee=S.knee*0.6+raw*0.4; // EMA smoothing
+  const k=S.knee;
+  chip.hidden=false;
+  $('#chip-val').textContent=Math.round(k)+'°';
+
+  if(S.mode==='ready'){
+    setStatus('st_ready');
+    if(k<DOWN_TRIG){
+      S.mode='down';
+      S.rep={minKnee:k,torsoMax:0,kasrMin:99,hipBelowKnee:false,view:viewOf(lm,side)};
+      setStatus('st_down');
+    }
+  }else if(S.mode==='down'||S.mode==='up'){
+    const r=S.rep;
+    if(k<r.minKnee)r.minKnee=k;
+    const tl=torsoLean(w,side);
+    if(tl>r.torsoMax)r.torsoMax=tl;
+    const ka=kasr(lm);
+    if(ka!=null&&k<DOWN_TRIG&&ka<r.kasrMin)r.kasrMin=ka;
+    if(lm[side.hip].y>=lm[side.knee].y-0.005)r.hipBelowKnee=true;
+    r.view=viewOf(lm,side);
+
+    const deep=r.hipBelowKnee||r.minKnee<=PARALLEL_ANGLE;
+    stage.classList.toggle('deep',deep&&k<DOWN_TRIG);
+    if(S.mode==='down'){
+      setStatus(deep?'st_deep':'st_down');
+      if(k>r.minKnee+12&&k>REP_MIN-10){S.mode='up';setStatus('st_up');}
+    }
+    if(k>STAND){
+      stage.classList.remove('deep');
+      if(r.minKnee<REP_MIN)finishRep(r);
+      S.mode='ready';S.rep=null;setStatus('st_ready');
+    }
+  }
+  updateDbg(ts,k,side,lm);
+}
+
+function finishRep(r){
+  const parallel=r.hipBelowKnee||r.minKnee<=PARALLEL_ANGLE;
+  reps.push({
+    minKnee:Math.round(r.minKnee),
+    parallel,
+    torso:Math.round(r.torsoMax),
+    torsoWarn:r.torsoMax>TORSO_WARN,
+    valgus:r.view!=='side'&&r.kasrMin<KASR_WARN,
+    view:r.view
+  });
+  if(r.minKnee<bestDepth)bestDepth=r.minKnee;
+  beep(parallel?1320:440,140);
+  if(navigator.vibrate)navigator.vibrate(parallel?60:[40,60,40]);
+  renderReps();updateSummary();
+}
+
+/* ───────── Results UI ───────── */
+function updateSummary(){
+  $('#res-reps').textContent=reps.length;
+  const par=reps.filter(r=>r.parallel).length;
+  $('#res-par').textContent=reps.length?par+'/'+reps.length:'—';
+  $('#res-depth').textContent=reps.length?Math.round(bestDepth)+'°':'—';
+}
+function renderReps(){
+  const ul=$('#rlist');ul.innerHTML='';
+  $('#rempty').textContent=reps.length?'':t('list_empty');
+  [...reps].reverse().forEach((r,i)=>{
+    const li=document.createElement('li');
+    const badges=[];
+    badges.push(`<span class="badge ${r.parallel?'b-ok':'b-no'}">${t(r.parallel?'b_par':'b_high')} · ${r.minKnee}°</span>`);
+    badges.push(`<span class="badge ${r.torsoWarn?'b-warn':'b-mut'}">${r.torsoWarn?t('b_torso_w'):t('b_torso')} ${r.torso}°</span>`);
+    if(r.view!=='side')badges.push(`<span class="badge ${r.valgus?'b-no':'b-ok'}">${t(r.valgus?'b_valgus':'b_knees_ok')}</span>`);
+    li.innerHTML=`<span class="n">#${reps.length-i}</span>${badges.join('')}`;
+    ul.appendChild(li);
+  });
+}
+
+/* ───────── Drawing ───────── */
+function draw(res){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const lm=res&&res.landmarks&&res.landmarks[0];
+  if(lm&&du){
+    du.drawConnectors(lm,PoseLandmarker.POSE_CONNECTIONS,{color:'rgba(0,255,163,.55)',lineWidth:3});
+    du.drawLandmarks(lm,{color:'#00FFA3',fillColor:'#00FFA3',radius:2.5});
+    // hip↔knee depth guide (gold) on the tracked side
+    const side=pickSide(lm);
+    const hip=lm[side.hip],knee=lm[side.knee];
+    if(vis(hip)>0.2&&vis(knee)>0.2){
+      const yk=knee.y*canvas.height;
+      ctx.save();
+      ctx.strokeStyle='rgba(212,175,55,.85)';ctx.lineWidth=2;ctx.setLineDash([10,8]);
+      ctx.beginPath();ctx.moveTo(0,yk);ctx.lineTo(canvas.width,yk);ctx.stroke();
+      ctx.fillStyle=hip.y>=knee.y-0.005?'#00FFA3':'#D4AF37';
+      ctx.beginPath();ctx.arc(hip.x*canvas.width,hip.y*canvas.height,7,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
+  }
+}
+
+/* live debug HUD */
+const dbgEl=document.getElementById('dbg');
+let dbgFrames=0,dbgFpsT=0,dbgFps=0;
+function updateDbg(ts,k,side,lm){
+  dbgFrames++;
+  if(ts-dbgFpsT>=1000){dbgFps=dbgFrames;dbgFrames=0;dbgFpsT=ts;}
+  dbgEl.hidden=false;
+  dbgEl.textContent=
+    'état: '+S.mode+'  fps: '+dbgFps+'\n'+
+    'genou: '+k.toFixed(0)+'°  vue: '+viewOf(lm,side)+'\n'+
+    'reps: '+reps.length;
+}
+
+/* ───────── Camera + loop ───────── */
+let landmarker=null,stream=null,running=false,facing='environment',lastTs=-1,wakeLock=null;
+
+async function loadModel(){
+  if(landmarker)return;
+  setStatus('st_loading');
+  const base='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm';
+  const model='https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
+  const vision=await FilesetResolver.forVisionTasks(base);
+  const opts=d=>({baseOptions:{modelAssetPath:model,delegate:d},runningMode:'VIDEO',numPoses:1});
+  try{landmarker=await PoseLandmarker.createFromOptions(vision,opts('GPU'));}
+  catch(_){landmarker=await PoseLandmarker.createFromOptions(vision,opts('CPU'));}
+  du=new DrawingUtils(ctx);
+}
+
+async function startCam(){
+  stream=await navigator.mediaDevices.getUserMedia({
+    video:{facingMode:facing,width:{ideal:1280},height:{ideal:720}},audio:false
+  });
+  video.srcObject=stream;
+  await video.play();
+  canvas.width=video.videoWidth||720;
+  canvas.height=video.videoHeight||960;
+  stage.style.aspectRatio=(canvas.width/canvas.height).toString();
+  stage.classList.toggle('mirror',facing==='user');
+  try{wakeLock=await navigator.wakeLock?.request('screen');}catch(_){}
+}
+
+function scheduleFrame(){
+  if(!running)return;
+  if(video.requestVideoFrameCallback){
+    video.requestVideoFrameCallback((now,meta)=>onFrame(meta&&meta.mediaTime?meta.mediaTime*1000:performance.now()));
+  }else{
+    requestAnimationFrame(()=>onFrame(performance.now()));
+  }
+}
+function onFrame(ts){
+  if(!running)return;
+  if(ts<=lastTs)ts=lastTs+1;
+  lastTs=ts;
+  let res=null;
+  try{res=landmarker.detectForVideo(video,ts);}catch(_){}
+  if(res)handle(res.landmarks&&res.landmarks[0],res.worldLandmarks&&res.worldLandmarks[0],ts);
+  draw(res);
+  scheduleFrame();
+}
+
+async function start(){
+  bStart.disabled=true;
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume&&AC.resume();}catch(_){}
+  try{await loadModel();}
+  catch(e){setStatus('st_err_model');bStart.disabled=false;return;}
+  try{await startCam();}
+  catch(e){setStatus('st_err_cam');bStart.disabled=false;return;}
+  splash.style.display='none';
+  running=true;lastTs=-1;
+  bStart.textContent=t('stop');bStart.disabled=false;
+  bFlip.disabled=false;bReset.disabled=false;
+  S.mode='ready';S.knee=180;S.rep=null;S.lastGoodTs=0;
+  setStatus('st_ready',true);
+  scheduleFrame();
+}
+function stop(){
+  running=false;
+  if(stream){stream.getTracks().forEach(tr=>tr.stop());stream=null;}
+  try{wakeLock&&wakeLock.release();}catch(_){}
+  wakeLock=null;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  splash.style.display='flex';
+  stage.classList.remove('deep');
+  chip.hidden=true;dbgEl.hidden=true;
+  S.mode='idle';S.rep=null;
+  bStart.textContent=t('start');
+  bFlip.disabled=true;bReset.disabled=true;
+  pillTxt.textContent='';pill.classList.remove('ok','warn','err');lastStatus='';
+}
+bStart.onclick=()=>{running?stop():start();};
+bReset.onclick=()=>{if(running)resetSet();};
+bFlip.onclick=async()=>{
+  if(!running)return;
+  facing=facing==='environment'?'user':'environment';
+  if(stream)stream.getTracks().forEach(tr=>tr.stop());
+  try{await startCam();}
+  catch(e){setStatus('st_err_cam');}
+};
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&running)stop();
+});
+
+applyLang();
+</script>
+</body>
+</html>
