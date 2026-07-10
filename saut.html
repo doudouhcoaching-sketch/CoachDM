@@ -157,6 +157,10 @@
   </div>
 </div>
 
+<div class="controls" id="save-row" style="display:none">
+  <button class="btn" id="b-save"></button>
+</div>
+
 <div class="card">
   <h3 id="list-h"></h3>
   <ul class="jlist" id="jlist"></ul>
@@ -180,6 +184,11 @@ const I18N = {
   splash:{fr:'Pose ton téléphone stable (2–4 m), corps entier visible, puis lance la caméra.',en:'Set your phone down stable (2–4 m), full body visible, then start the camera.',nl:'Zet je telefoon stabiel neer (2–4 m), hele lichaam zichtbaar, en start de camera.'},
   start:{fr:'Lancer la caméra',en:'Start camera',nl:'Camera starten'},
   stop:{fr:'Arrêter',en:'Stop',nl:'Stoppen'},
+  save:{fr:'💾 Enregistrer la session',en:'💾 Save session',nl:'💾 Sessie opslaan'},
+  saving:{fr:'Enregistrement…',en:'Saving…',nl:'Opslaan…'},
+  saved:{fr:'✓ Session enregistrée',en:'✓ Session saved',nl:'✓ Sessie opgeslagen'},
+  save_fail:{fr:'Échec — vérifie ta connexion',en:'Failed — check your connection',nl:'Mislukt — controleer je verbinding'},
+  save_login:{fr:'Connecte-toi dans l\'app pour enregistrer tes tests.',en:'Log in to the app to save your tests.',nl:'Log in in de app om je tests op te slaan.'},
   recal:{fr:'Recalibrer',en:'Recalibrate',nl:'Herkalibreren'},
   st_loading:{fr:'Chargement du modèle IA…',en:'Loading AI model…',nl:'AI-model laden…'},
   st_calib:{fr:'Calibration — reste immobile, pieds au sol',en:'Calibrating — stand still, feet on the ground',nl:'Kalibratie — sta stil, voeten op de grond'},
@@ -371,6 +380,9 @@ function updateDbg(ts,y){
 /* ───────── Results UI ───────── */
 function addJump(cm,ms){
   jumps.unshift({cm,ms});
+  const sr=$('#save-row'),sb2=$('#b-save');
+  if(sr){sr.style.display='flex';}
+  if(sb2){sb2.disabled=false;sb2.textContent=t('save');}
   if(cm>best)best=cm;
   beep(1320,140);
   if(navigator.vibrate)navigator.vibrate(60);
@@ -505,6 +517,30 @@ bFlip.onclick=async()=>{
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&running)stop();
 });
+
+/* ───────── Sauvegarde Supabase (session partagée avec l'app) ───────── */
+import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient})=>{
+  const sbClient=createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
+  let UID=null;
+  sbClient.auth.getSession().then(({data})=>{UID=data?.session?.user?.id||null;});
+  const btn=$('#b-save');
+  btn.textContent=t('save');
+  btn.onclick=async()=>{
+    if(!jumps.length||btn.disabled)return;
+    if(!UID){alert(t('save_login'));return;}
+    btn.disabled=true;btn.textContent=t('saving');
+    const bestJ=jumps.reduce((a,b)=>b.cm>a.cm?b:a,jumps[0]);
+    const {error}=await sbClient.from('jump_tests').insert({
+      user_id:UID,
+      best_cm:+best.toFixed(1),
+      best_flight_ms:bestJ.ms,
+      jump_count:jumps.length,
+      jumps:jumps.map(j=>({cm:+j.cm.toFixed(1),ms:j.ms}))
+    });
+    if(error){btn.disabled=false;btn.textContent=t('save');alert(t('save_fail'));return;}
+    btn.textContent=t('saved');
+  };
+}).catch(()=>{});
 
 applyLang();
 </script>

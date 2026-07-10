@@ -164,6 +164,10 @@
   </div>
 </div>
 
+<div class="controls" id="save-row" style="display:none">
+  <button class="btn" id="b-save"></button>
+</div>
+
 <div class="card">
   <h3 id="list-h"></h3>
   <ul class="rlist" id="rlist"></ul>
@@ -206,6 +210,11 @@ const I18N = {
   m_depth:{fr:'Meilleure profondeur',en:'Best depth',nl:'Beste diepte'},
   list_h:{fr:'Reps de la série',en:'Set reps',nl:'Reps deze set'},
   list_empty:{fr:'Aucune rep détectée pour l\'instant.',en:'No reps detected yet.',nl:'Nog geen reps gedetecteerd.'},
+  save:{fr:'💾 Enregistrer la série',en:'💾 Save set',nl:'💾 Set opslaan'},
+  saving:{fr:'Enregistrement…',en:'Saving…',nl:'Opslaan…'},
+  saved:{fr:'✓ Série enregistrée',en:'✓ Set saved',nl:'✓ Set opgeslagen'},
+  save_fail:{fr:'Échec — vérifie ta connexion',en:'Failed — check your connection',nl:'Mislukt — controleer je verbinding'},
+  save_login:{fr:'Connecte-toi dans l\'app pour enregistrer tes séries.',en:'Log in to the app to save your sets.',nl:'Log in in de app om je sets op te slaan.'},
   b_par:{fr:'Sous la parallèle ✓',en:'Below parallel ✓',nl:'Onder parallel ✓'},
   b_high:{fr:'Pas cassée ✗',en:'Not below ✗',nl:'Niet onder ✗'},
   b_torso:{fr:'Dos',en:'Torso',nl:'Romp'},
@@ -412,6 +421,9 @@ function finishRep(r){
 /* ───────── Results UI ───────── */
 function updateSummary(){
   $('#res-reps').textContent=reps.length;
+  const sr=$('#save-row'),sb2=$('#b-save');
+  if(sr)sr.style.display=reps.length?'flex':'none';
+  if(sb2&&reps.length&&sb2.textContent!==t('saving')){sb2.disabled=false;sb2.textContent=t('save');}
   const par=reps.filter(r=>r.parallel).length;
   $('#res-par').textContent=reps.length?par+'/'+reps.length:'—';
   $('#res-depth').textContent=reps.length?Math.round(bestDepth)+'°':'—';
@@ -557,6 +569,31 @@ bFlip.onclick=async()=>{
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&running)stop();
 });
+
+/* ───────── Sauvegarde Supabase (session partagée avec l'app) ───────── */
+import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient})=>{
+  const sbClient=createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
+  let UID=null;
+  sbClient.auth.getSession().then(({data})=>{UID=data?.session?.user?.id||null;});
+  const btn=$('#b-save');
+  btn.textContent=t('save');
+  btn.onclick=async()=>{
+    if(!reps.length||btn.disabled)return;
+    if(!UID){alert(t('save_login'));return;}
+    btn.disabled=true;btn.textContent=t('saving');
+    const {error}=await sbClient.from('squat_sets').insert({
+      user_id:UID,
+      rep_count:reps.length,
+      parallel_count:reps.filter(r=>r.parallel).length,
+      best_depth_deg:Math.round(bestDepth),
+      torso_warn_count:reps.filter(r=>r.torsoWarn).length,
+      valgus_count:reps.filter(r=>r.valgus).length,
+      reps:reps
+    });
+    if(error){btn.disabled=false;btn.textContent=t('save');alert(t('save_fail'));return;}
+    btn.textContent=t('saved');
+  };
+}).catch(()=>{});
 
 applyLang();
 </script>
