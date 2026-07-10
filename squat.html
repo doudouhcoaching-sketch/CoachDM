@@ -173,9 +173,13 @@
   <div class="note" id="help-note"></div>
 </details>
 
-<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v2.3</span></footer>
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v2.4</span></footer>
 
 <script type="module">
+/* Shim: MediaPipe's WASM glue references bare globals (dbg/out/err). If any DOM element
+   shadows them via named access, force real functions so the glue never crashes. */
+try{window.dbg=function(){};window.out=window.out&&typeof window.out==='function'?window.out:function(){};window.err=window.err&&typeof window.err==='function'?window.err:function(){};}catch(_){}
+
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
 /* ───────── i18n ───────── */
@@ -227,8 +231,9 @@ function showErr(msg){
     b.textContent='⚠ '+msg;
   }catch(_){}
 }
-window.addEventListener('error',e=>showErr((e.message||'Erreur JS')+(e.lineno?' (ligne '+e.lineno+')':'')));
-window.addEventListener('unhandledrejection',e=>showErr('Promise: '+(e.reason&&e.reason.message||e.reason||'?')));
+const VER='squat v2.4';
+window.addEventListener('error',e=>showErr((e.message||'Erreur JS')+(e.lineno?' (ligne '+e.lineno+')':'')+' ['+VER+']'));
+window.addEventListener('unhandledrejection',e=>showErr('Promise: '+(e.reason&&e.reason.message||e.reason||'?')+' ['+VER+']'));
 
 const LANGS=['fr','en','nl'];
 let LANG=localStorage.getItem('cdm_lang')||'fr'; if(!LANGS.includes(LANG)) LANG='fr';
@@ -501,11 +506,11 @@ async function start(){
   bStart.disabled=true;
   try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume&&AC.resume();}catch(_){}
   try{await startCam();}
-  catch(e){setStatus('st_err_cam');showErr('Caméra: '+(e&&e.name||'')+' '+(e&&e.message||e));bStart.disabled=false;return;}
+  catch(e){setStatus('st_err_cam');showErr('Caméra: '+(e&&e.name||'')+' '+(e&&e.message||e)+' ['+VER+']');bStart.disabled=false;return;}
   splash.style.display='none';
   try{await loadModel();}
   catch(e){
-    setStatus('st_err_model');showErr('Modèle: '+(e&&e.message||e));
+    setStatus('st_err_model');showErr('Modèle: '+(e&&e.message||e)+' ['+VER+']');
     if(stream){stream.getTracks().forEach(tr=>tr.stop());stream=null;}
     splash.style.display='flex';bStart.disabled=false;return;
   }
