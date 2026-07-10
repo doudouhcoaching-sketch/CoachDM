@@ -173,7 +173,7 @@
   <div class="note" id="help-note"></div>
 </details>
 
-<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be</footer>
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v2.2</span></footer>
 
 <script type="module">
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
@@ -214,6 +214,22 @@ const I18N = {
   help_4:{fr:'Le cadre s\'illumine quand tu atteins la parallèle. Bip aigu = rep valide, bip grave = trop haute.',en:'The frame lights up when you hit parallel. High beep = valid rep, low beep = too high.',nl:'Het kader licht op wanneer je parallel bereikt. Hoge piep = geldige rep, lage piep = te hoog.'},
   help_note:{fr:'Angles calculés en 3D (MediaPipe Pose). Parallèle = crête de la hanche sous le sommet du genou (Schoenfeld, 2010). 100% sur ton téléphone — aucune vidéo n\'est envoyée ni enregistrée. Outil d\'aide au coaching, ne remplace pas l\'œil du coach.',en:'Angles computed in 3D (MediaPipe Pose). Parallel = hip crease below top of knee (Schoenfeld, 2010). Runs 100% on your phone — no video is uploaded or stored. A coaching aid, not a replacement for the coach\'s eye.',nl:'Hoeken berekend in 3D (MediaPipe Pose). Parallel = heupplooi onder de bovenkant van de knie (Schoenfeld, 2010). Draait 100% op je telefoon — er wordt geen video verstuurd of opgeslagen. Een coachingshulpmiddel, geen vervanging voor het oog van de coach.'}
 };
+/* ── diagnostic: surface every error on screen ── */
+function showErr(msg){
+  try{
+    let b=document.getElementById('errbar');
+    if(!b){
+      b=document.createElement('div');
+      b.id='errbar';
+      b.style.cssText='margin-top:10px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.5);color:#EF4444;font-size:12px;font-weight:600;border-radius:12px;padding:10px 12px;word-break:break-word;';
+      document.querySelector('.controls').after(b);
+    }
+    b.textContent='⚠ '+msg;
+  }catch(_){}
+}
+window.addEventListener('error',e=>showErr((e.message||'Erreur JS')+(e.lineno?' (ligne '+e.lineno+')':'')));
+window.addEventListener('unhandledrejection',e=>showErr('Promise: '+(e.reason&&e.reason.message||e.reason||'?')));
+
 const LANGS=['fr','en','nl'];
 let LANG=localStorage.getItem('cdm_lang')||'fr'; if(!LANGS.includes(LANG)) LANG='fr';
 const t=k=>{const e=I18N[k];return e?(e[LANG]||e.fr):k;};
@@ -484,11 +500,15 @@ function onFrame(ts){
 async function start(){
   bStart.disabled=true;
   try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume&&AC.resume();}catch(_){}
-  try{await loadModel();}
-  catch(e){setStatus('st_err_model');bStart.disabled=false;return;}
   try{await startCam();}
-  catch(e){setStatus('st_err_cam');bStart.disabled=false;return;}
+  catch(e){setStatus('st_err_cam');showErr('Caméra: '+(e&&e.name||'')+' '+(e&&e.message||e));bStart.disabled=false;return;}
   splash.style.display='none';
+  try{await loadModel();}
+  catch(e){
+    setStatus('st_err_model');showErr('Modèle: '+(e&&e.message||e));
+    if(stream){stream.getTracks().forEach(tr=>tr.stop());stream=null;}
+    splash.style.display='flex';bStart.disabled=false;return;
+  }
   running=true;lastTs=-1;
   bStart.textContent=t('stop');bStart.disabled=false;
   bFlip.disabled=false;bReset.disabled=false;
