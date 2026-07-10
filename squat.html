@@ -176,7 +176,7 @@
   <div class="note" id="help-note"></div>
 </details>
 
-<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v2.4</span></footer>
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v2.5</span></footer>
 
 <script type="module">
 /* Shim: MediaPipe's WASM glue references bare globals (dbg/out/err). If any DOM element
@@ -195,19 +195,19 @@ const I18N = {
   st_loading:{fr:'Chargement du modèle IA…',en:'Loading AI model…',nl:'AI-model laden…'},
   st_ready:{fr:'Prêt — squatte quand tu veux',en:'Ready — squat whenever you want',nl:'Klaar — squat wanneer je wilt'},
   st_down:{fr:'DESCENTE…',en:'GOING DOWN…',nl:'DALEN…'},
-  st_deep:{fr:'PARALLÈLE ✓',en:'PARALLEL ✓',nl:'PARALLEL ✓'},
+  st_deep:{fr:'PARALLÈLE CASSÉE ✓',en:'BELOW PARALLEL ✓',nl:'ONDER PARALLEL ✓'},
   st_up:{fr:'REMONTÉE…',en:'COMING UP…',nl:'OMHOOG…'},
   st_noperson:{fr:'Corps entier non visible — recule',en:'Full body not visible — step back',nl:'Lichaam niet volledig zichtbaar — stap achteruit'},
   st_err_cam:{fr:'Caméra refusée — autorise l\'accès dans Réglages',en:'Camera denied — allow access in Settings',nl:'Camera geweigerd — sta toegang toe in Instellingen'},
   st_err_model:{fr:'Modèle IA indisponible — vérifie ta connexion',en:'AI model unavailable — check your connection',nl:'AI-model niet beschikbaar — controleer je verbinding'},
   chip_lbl:{fr:'Genou',en:'Knee',nl:'Knie'},
   res_lbl:{fr:'Répétitions',en:'Repetitions',nl:'Herhalingen'},
-  m_par:{fr:'Parallèle',en:'Parallel',nl:'Parallel'},
+  m_par:{fr:'Sous la parallèle',en:'Below parallel',nl:'Onder parallel'},
   m_depth:{fr:'Meilleure profondeur',en:'Best depth',nl:'Beste diepte'},
   list_h:{fr:'Reps de la série',en:'Set reps',nl:'Reps deze set'},
   list_empty:{fr:'Aucune rep détectée pour l\'instant.',en:'No reps detected yet.',nl:'Nog geen reps gedetecteerd.'},
-  b_par:{fr:'Parallèle ✓',en:'Parallel ✓',nl:'Parallel ✓'},
-  b_high:{fr:'Au-dessus ✗',en:'Too high ✗',nl:'Te hoog ✗'},
+  b_par:{fr:'Sous la parallèle ✓',en:'Below parallel ✓',nl:'Onder parallel ✓'},
+  b_high:{fr:'Pas cassée ✗',en:'Not below ✗',nl:'Niet onder ✗'},
   b_torso:{fr:'Dos',en:'Torso',nl:'Romp'},
   b_torso_w:{fr:'⚠ Dos très penché',en:'⚠ Excessive lean',nl:'⚠ Sterk voorovergebogen'},
   b_valgus:{fr:'⚠ Genoux qui rentrent',en:'⚠ Knees caving in',nl:'⚠ Knieën naar binnen'},
@@ -216,10 +216,10 @@ const I18N = {
   view_front:{fr:'face',en:'front',nl:'voorkant'},
   help_h:{fr:'Comment ça marche',en:'How it works',nl:'Hoe het werkt'},
   help_1:{fr:'Téléphone posé ou sur trépied, stable, à 2–4 m. Corps entier + pieds dans le cadre, bonne lumière.',en:'Phone resting or on a tripod, stable, 2–4 m away. Full body + feet in frame, good lighting.',nl:'Telefoon neergezet of op statief, stabiel, op 2–4 m. Hele lichaam + voeten in beeld, goed licht.'},
-  help_2:{fr:'De profil : profondeur (hanche sous le genou) + inclinaison du dos. De face : genoux qui rentrent (valgus).',en:'Side view: depth (hip below knee) + torso lean. Front view: knees caving in (valgus).',nl:'Zijaanzicht: diepte (heup onder knie) + romphelling. Vooraanzicht: knieën naar binnen (valgus).'},
+  help_2:{fr:'De profil : parallèle cassée (crête de la hanche sous le genou) + inclinaison du dos. De face : genoux qui rentrent (valgus).',en:'Side view: break parallel (hip crease below the knee) + torso lean. Front view: knees caving in (valgus).',nl:'Zijaanzicht: parallel breken (heupplooi onder de knie) + romphelling. Vooraanzicht: knieën naar binnen (valgus).'},
   help_3:{fr:'Squatte à ton rythme : chaque rep est comptée et analysée automatiquement.',en:'Squat at your own pace: every rep is counted and analysed automatically.',nl:'Squat op je eigen tempo: elke rep wordt automatisch geteld en geanalyseerd.'},
-  help_4:{fr:'Le cadre s\'illumine quand tu atteins la parallèle. Bip aigu = rep valide, bip grave = trop haute.',en:'The frame lights up when you hit parallel. High beep = valid rep, low beep = too high.',nl:'Het kader licht op wanneer je parallel bereikt. Hoge piep = geldige rep, lage piep = te hoog.'},
-  help_note:{fr:'Angles calculés en 3D (MediaPipe Pose). Parallèle = crête de la hanche sous le sommet du genou (Schoenfeld, 2010). 100% sur ton téléphone — aucune vidéo n\'est envoyée ni enregistrée. Outil d\'aide au coaching, ne remplace pas l\'œil du coach.',en:'Angles computed in 3D (MediaPipe Pose). Parallel = hip crease below top of knee (Schoenfeld, 2010). Runs 100% on your phone — no video is uploaded or stored. A coaching aid, not a replacement for the coach\'s eye.',nl:'Hoeken berekend in 3D (MediaPipe Pose). Parallel = heupplooi onder de bovenkant van de knie (Schoenfeld, 2010). Draait 100% op je telefoon — er wordt geen video verstuurd of opgeslagen. Een coachingshulpmiddel, geen vervanging voor het oog van de coach.'}
+  help_4:{fr:'Le cadre s\'illumine quand tu casses la parallèle. Bip aigu = rep valide, bip grave = trop haute.',en:'The frame lights up when you break parallel. High beep = valid rep, low beep = too high.',nl:'Het kader licht op wanneer je parallel breekt. Hoge piep = geldige rep, lage piep = te hoog.'},
+  help_note:{fr:'Angles calculés en 3D (MediaPipe Pose). Parallèle cassée = crête de la hanche sous le sommet du genou, standard CrossFit (Schoenfeld, 2010). 100% sur ton téléphone — aucune vidéo n\'est envoyée ni enregistrée. Outil d\'aide au coaching, ne remplace pas l\'œil du coach.',en:'Angles computed in 3D (MediaPipe Pose). Below parallel = hip crease below top of knee, CrossFit standard (Schoenfeld, 2010). Runs 100% on your phone — no video is uploaded or stored. A coaching aid, not a replacement for the coach\'s eye.',nl:'Hoeken berekend in 3D (MediaPipe Pose). Onder parallel = heupplooi onder de bovenkant van de knie, CrossFit-standaard (Schoenfeld, 2010). Draait 100% op je telefoon — er wordt geen video verstuurd of opgeslagen. Een coachingshulpmiddel, geen vervanging voor het oog van de coach.'}
 };
 /* ── diagnostic: surface every error on screen ── */
 function showErr(msg){
@@ -234,7 +234,7 @@ function showErr(msg){
     b.textContent='⚠ '+msg;
   }catch(_){}
 }
-const VER='squat v2.4';
+const VER='squat v2.5';
 window.addEventListener('error',e=>showErr((e.message||'Erreur JS')+(e.lineno?' (ligne '+e.lineno+')':'')+' ['+VER+']'));
 window.addEventListener('unhandledrejection',e=>showErr('Promise: '+(e.reason&&e.reason.message||e.reason||'?')+' ['+VER+']'));
 
@@ -300,7 +300,7 @@ function beep(freq,ms){
 }
 
 /* ───────── Squat engine (3D angles + rep state machine) ───────── */
-const STAND=160, DOWN_TRIG=150, REP_MIN=130, PARALLEL_ANGLE=100, TORSO_WARN=60, KASR_WARN=0.85;
+const STAND=160, DOWN_TRIG=150, REP_MIN=130, BELOW_PARALLEL_ANGLE=90, TORSO_WARN=60, KASR_WARN=0.85;
 const S={mode:'idle',knee:180,rep:null,lastGoodTs:0};
 let reps=[],bestDepth=180;
 
@@ -368,10 +368,10 @@ function handle(lm,w,ts){
     if(tl>r.torsoMax)r.torsoMax=tl;
     const ka=kasr(lm);
     if(ka!=null&&k<DOWN_TRIG&&ka<r.kasrMin)r.kasrMin=ka;
-    if(lm[side.hip].y>=lm[side.knee].y-0.005)r.hipBelowKnee=true;
+    if(lm[side.hip].y>lm[side.knee].y+0.01)r.hipBelowKnee=true; // crête de hanche SOUS le genou (standard CrossFit)
     r.view=viewOf(lm,side);
 
-    const deep=r.hipBelowKnee||r.minKnee<=PARALLEL_ANGLE;
+    const deep=r.hipBelowKnee||r.minKnee<=BELOW_PARALLEL_ANGLE;
     stage.classList.toggle('deep',deep&&k<DOWN_TRIG);
     if(S.mode==='down'){
       setStatus(deep?'st_deep':'st_down');
@@ -387,7 +387,7 @@ function handle(lm,w,ts){
 }
 
 function finishRep(r){
-  const parallel=r.hipBelowKnee||r.minKnee<=PARALLEL_ANGLE;
+  const parallel=r.hipBelowKnee||r.minKnee<=BELOW_PARALLEL_ANGLE;
   reps.push({
     minKnee:Math.round(r.minKnee),
     parallel,
