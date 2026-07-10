@@ -176,7 +176,7 @@
   <div class="note" id="help-note"></div>
 </details>
 
-<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v2.5</span></footer>
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v2.6</span></footer>
 
 <script type="module">
 /* Shim: MediaPipe's WASM glue references bare globals (dbg/out/err). If any DOM element
@@ -234,7 +234,7 @@ function showErr(msg){
     b.textContent='⚠ '+msg;
   }catch(_){}
 }
-const VER='squat v2.5';
+const VER='squat v2.6';
 window.addEventListener('error',e=>showErr((e.message||'Erreur JS')+(e.lineno?' (ligne '+e.lineno+')':'')+' ['+VER+']'));
 window.addEventListener('unhandledrejection',e=>showErr('Promise: '+(e.reason&&e.reason.message||e.reason||'?')+' ['+VER+']'));
 
@@ -301,7 +301,8 @@ function beep(freq,ms){
 
 /* ───────── Squat engine (3D angles + rep state machine) ───────── */
 const STAND=160, DOWN_TRIG=150, REP_MIN=130, BELOW_PARALLEL_ANGLE=90, TORSO_WARN=60, KASR_WARN=0.85;
-const S={mode:'idle',knee:180,rep:null,lastGoodTs:0};
+const WARMUP_FRAMES=15, MIN_REP_MS=900;
+const S={mode:'idle',knee:180,rep:null,lastGoodTs:0,good:0};
 let reps=[],bestDepth=180;
 
 function resetSet(){reps=[];bestDepth=180;S.mode='ready';S.knee=180;S.rep=null;renderReps();updateSummary();}
@@ -314,8 +315,9 @@ function angle3(a,b,c){
   return Math.acos(Math.min(1,Math.max(-1,dot/n)))*180/Math.PI;
 }
 function bodyVisible(lm){
-  const ok=(a,b)=>vis(lm[a])>0.2||vis(lm[b])>0.2;
-  return ok(23,24)&&ok(25,26)&&ok(27,28);
+  // chaîne complète requise (épaule+hanche+genou+cheville) avec confiance élevée sur au moins un côté
+  const chain=(sh,hip,kn,an)=>Math.min(vis(lm[sh]),vis(lm[hip]),vis(lm[kn]),vis(lm[an]));
+  return Math.max(chain(11,23,25,27),chain(12,24,26,28))>0.6;
 }
 function pickSide(lm){
   const L=(vis(lm[23])+vis(lm[25])+vis(lm[27]))/3;
@@ -343,7 +345,11 @@ function viewOf(lm,side){
 
 function handle(lm,w,ts){
   if(!lm||!w||!bodyVisible(lm)){
-    if(ts-S.lastGoodTs>800){setStatus('st_noperson');chip.hidden=true;}
+    S.good=0;
+    if(ts-S.lastGoodTs>800){
+      setStatus('st_noperson');chip.hidden=true;
+      if(S.mode==='down'||S.mode==='up'){S.mode='ready';S.rep=null;stage.classList.remove('deep');} // rep en cours annulée
+    }
     return;
   }
   S.lastGoodTs=ts;
@@ -351,6 +357,7 @@ function handle(lm,w,ts){
   const raw=kneeAngle(w,side);
   S.knee=S.knee*0.6+raw*0.4; // EMA smoothing
   const k=S.knee;
+  if(S.good<WARMUP_FRAMES){S.good++;updateDbg(ts,k,side,lm);return;} // ~0.75 s de présence stable avant d'armer
   chip.hidden=false;
   $('#chip-val').textContent=Math.round(k)+'°';
 
@@ -358,7 +365,7 @@ function handle(lm,w,ts){
     setStatus('st_ready');
     if(k<DOWN_TRIG){
       S.mode='down';
-      S.rep={minKnee:k,torsoMax:0,kasrMin:99,hipBelowKnee:false,view:viewOf(lm,side)};
+      S.rep={t0:ts,minKnee:k,torsoMax:0,kasrMin:99,hipBelowKnee:false,view:viewOf(lm,side)};
       setStatus('st_down');
     }
   }else if(S.mode==='down'||S.mode==='up'){
@@ -379,7 +386,7 @@ function handle(lm,w,ts){
     }
     if(k>STAND){
       stage.classList.remove('deep');
-      if(r.minKnee<REP_MIN)finishRep(r);
+      if(r.minKnee<REP_MIN&&ts-r.t0>=MIN_REP_MS)finishRep(r); // rep < 900 ms = bruit, rejetée
       S.mode='ready';S.rep=null;setStatus('st_ready');
     }
   }
@@ -467,7 +474,7 @@ async function loadModel(){
   const base='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm';
   const model='https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
   const vision=await FilesetResolver.forVisionTasks(base);
-  const opts=d=>({baseOptions:{modelAssetPath:model,delegate:d},runningMode:'VIDEO',numPoses:1});
+  const opts=d=>({baseOptions:{modelAssetPath:model,delegate:d},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:0.6,minPosePresenceConfidence:0.6,minTrackingConfidence:0.6});
   try{landmarker=await PoseLandmarker.createFromOptions(vision,opts('GPU'));}
   catch(_){landmarker=await PoseLandmarker.createFromOptions(vision,opts('CPU'));}
   du=new DrawingUtils(ctx);

@@ -169,7 +169,7 @@
   <div class="note" id="help-note"></div>
 </details>
 
-<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">saut v2.1</span></footer>
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">saut v2.2</span></footer>
 
 <script type="module">
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
@@ -275,7 +275,7 @@ function resetCalib(){S.mode='search';S.base=null;S.win=[];S.hist=[];setStatus('
 
 function footY(lm){
   // prefer toe tips (31/32): last to leave the ground, first to touch
-  const pick=(i)=>{const p=lm[i];return p&&(p.visibility??1)>0.25?p.y:null;};
+  const pick=(i)=>{const p=lm[i];return p&&(p.visibility??1)>0.5?p.y:null;};
   const lt=pick(31),rt=pick(32);
   if(lt!=null&&rt!=null)return (lt+rt)/2;
   if(lt!=null)return lt; if(rt!=null)return rt;
@@ -285,7 +285,8 @@ function footY(lm){
   return null;
 }
 function bodyVisible(lm){
-  const ok=(a,b)=>{const p=lm[a],q=lm[b];return (p&&(p.visibility??1)>0.2)||(q&&(q.visibility??1)>0.2);};
+  const v=i=>{const p=lm[i];return p?(p.visibility??1):0;};
+  const ok=(a,b)=>v(a)>0.6||v(b)>0.6;
   return ok(23,24)&&(ok(27,28)||ok(31,32));
 }
 function median(a){const b=[...a].sort((x,y)=>x-y);const m=b.length>>1;return b.length%2?b[m]:(b[m-1]+b[m])/2;}
@@ -426,7 +427,7 @@ async function loadModel(){
   const base='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm';
   const model='https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
   const vision=await FilesetResolver.forVisionTasks(base);
-  const opts=d=>({baseOptions:{modelAssetPath:model,delegate:d},runningMode:'VIDEO',numPoses:1});
+  const opts=d=>({baseOptions:{modelAssetPath:model,delegate:d},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:0.6,minPosePresenceConfidence:0.6,minTrackingConfidence:0.6});
   try{landmarker=await PoseLandmarker.createFromOptions(vision,opts('GPU'));}
   catch(_){landmarker=await PoseLandmarker.createFromOptions(vision,opts('CPU'));}
   du=new DrawingUtils(ctx);
