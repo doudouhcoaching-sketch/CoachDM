@@ -139,7 +139,7 @@
   <canvas id="overlay"></canvas>
   <div class="hud"><span class="pill" id="pill"><span class="dot"></span><span id="pill-txt"></span></span></div>
   <div class="angle-chip" id="chip" hidden><small id="chip-lbl"></small><span id="chip-val">—</span></div>
-  <div class="dbg" id="dbg" hidden></div>
+  <div class="dbg" id="cdm-dbg" hidden></div>
   <div class="splash" id="splash">
     <svg class="squatter" viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><path d="M12 6.5v3.5M12 10l-3.5 3 .5 4M12 10l3.5 3-.5 4M7 9.5l5 .5 5-.5"/><path d="M4 21h16" stroke-dasharray="2 3"/></svg>
     <p id="splash-p"></p>
@@ -173,7 +173,7 @@
   <div class="note" id="help-note"></div>
 </details>
 
-<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v2.2</span></footer>
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v2.3</span></footer>
 
 <script type="module">
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
@@ -438,7 +438,7 @@ function draw(res){
 }
 
 /* live debug HUD */
-const dbgEl=document.getElementById('dbg');
+const dbgEl=document.getElementById('cdm-dbg');
 let dbgFrames=0,dbgFpsT=0,dbgFps=0;
 function updateDbg(ts,k,side,lm){
   dbgFrames++;
