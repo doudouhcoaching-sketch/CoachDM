@@ -471,6 +471,23 @@
   .rest-track i{display:block;height:100%;width:100%;background:#E9C767;border-radius:99px;transition:width 1s linear}
   .rest-btn{height:38px;min-width:44px;padding:0 12px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;font-weight:800}
   .rest-btn:active{transform:scale(.95)}
+  .wod-bar{display:none;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px;border-radius:16px;
+    background:color-mix(in srgb,var(--brand) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--brand) 40%,transparent);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+  .wod-bar.on{display:flex}
+  .wod-bar.warn{background:color-mix(in srgb,#EF4444 14%,var(--surface));border-color:color-mix(in srgb,#EF4444 44%,transparent)}
+  .wod-num{font-variant-numeric:tabular-nums;font-size:26px;font-weight:900;color:var(--brand);min-width:76px;line-height:1}
+  .wod-bar.warn .wod-num{color:#EF4444}
+  .wod-sub{font-size:9px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+  .wod-round{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
+  .wod-btn{height:38px;padding:0 14px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;font-weight:800}
+  .wod-btn:active{transform:scale(.95)}
+  .wod-banner{display:flex;align-items:center;gap:10px;margin-top:14px;padding:13px 14px;border-radius:14px;
+    background:color-mix(in srgb,var(--brand) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--brand) 34%,transparent);
+    font-size:13px;font-weight:700;line-height:1.35}
+  .wod-banner b{color:var(--brand)}
+  .wsc-row{display:flex;gap:10px;margin-bottom:12px}
+  .wsc-row .field{flex:1;margin-bottom:0}
   @keyframes pillpop{0%{transform:scale(.6)}55%{transform:scale(1.22)}100%{transform:scale(1)}}
   .pill.done{animation:pillpop .32s cubic-bezier(.22,1.4,.36,1)}
   .sum-stats{display:flex;gap:10px;margin:14px 0 18px}
@@ -1188,6 +1205,14 @@
   </div>
 </div>
 
+<div class="overlay" id="wsc-ov">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 id="wsc-title" style="margin:0 0 14px">Ton score</h3>
+    <div id="wsc-body"></div>
+  </div>
+</div>
+
 <div class="overlay" id="goal-ov"><div class="sheet">
   <div class="grab"></div>
   <div id="goal-body"></div>
@@ -1610,6 +1635,30 @@ const T = {
  sum_sets:{fr:'séries validées',en:'sets logged',nl:'sets gelogd'},
  sum_vol:{fr:'kg soulevés',en:'kg lifted',nl:'kg getild'},
  sum_close:{fr:'Continuer',en:'Continue',nl:'Doorgaan'},
+ wodb_amrap:{fr:'Max de rounds en',en:'Max rounds in',nl:'Max rondes in'},
+ wodb_ft:{fr:'Le plus vite possible · cap',en:'As fast as possible · cap',nl:'Zo snel mogelijk · cap'},
+ wodb_rft:{fr:'rounds For Time · cap',en:'rounds For Time · cap',nl:'rondes For Time · cap'},
+ wodb_emom:{fr:'toutes les',en:'every',nl:'elke'},
+ wod_min_u:{fr:'min',en:'min',nl:'min'},
+ wod_elapsed:{fr:'Chrono',en:'Clock',nl:'Klok'},
+ wod_left:{fr:'Restant',en:'Left',nl:'Resterend'},
+ wod_interval:{fr:'Intervalle',en:'Interval',nl:'Interval'},
+ wod_round:{fr:'Round',en:'Round',nl:'Ronde'},
+ wod_finish_btn:{fr:'✓ Terminé',en:'✓ Done',nl:'✓ Klaar'},
+ wod_score_btn:{fr:'Score',en:'Score',nl:'Score'},
+ wod_cap_hit:{fr:'Time cap atteint',en:'Time cap reached',nl:'Time cap bereikt'},
+ wod_emom_done:{fr:'EMOM terminé !',en:'EMOM complete!',nl:'EMOM voltooid!'},
+ wsc_title:{fr:'Ton score',en:'Your score',nl:'Jouw score'},
+ wsc_rounds:{fr:'Rounds complets',en:'Full rounds',nl:'Volledige rondes'},
+ wsc_reps:{fr:'+ reps',en:'+ reps',nl:'+ reps'},
+ wsc_time_m:{fr:'Minutes',en:'Minutes',nl:'Minuten'},
+ wsc_time_s:{fr:'Secondes',en:'Seconds',nl:'Seconden'},
+ wsc_load:{fr:'Charge (kg)',en:'Load (kg)',nl:'Belasting (kg)'},
+ wsc_capped:{fr:'Cap atteint — score enregistré comme cappé',en:'Cap reached — score saved as capped',nl:'Cap bereikt — score opgeslagen als capped'},
+ wsc_rx:{fr:'RX (tel que prescrit)',en:'RX (as prescribed)',nl:'RX (zoals voorgeschreven)'},
+ wsc_save:{fr:'Enregistrer le score',en:'Save score',nl:'Score opslaan'},
+ wsc_saved:{fr:'Score enregistré 💪',en:'Score saved 💪',nl:'Score opgeslagen 💪'},
+ wsc_fail:{fr:'Échec de l\'enregistrement',en:'Save failed',nl:'Opslaan mislukt'},
  wod_continue:{fr:'Reprends ton programme',en:'Continue your program',nl:'Hervat je programma'},
  wod_week:{fr:'Semaine',en:'Week',nl:'Week'},
  wod_day:{fr:'Jour',en:'Day',nl:'Dag'},
@@ -3015,7 +3064,7 @@ function loadInsight(){
 /* ================= SEANCES ================= */
 async function fetchWorkouts(){
   const { data:ws } = await sb.from('workouts')
-    .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url,program_slug,is_free,week_number,day_number')
+    .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url,program_slug,is_free,week_number,day_number,wod_format,time_cap_seconds,emom_interval_seconds,emom_rounds,rft_rounds,score_type')
     .eq('is_published',true).not('program_slug','is',null).order('created_at',{ascending:true});
   SE_WORKOUTS = ws||[]; SE_COUNTS={};
   const ids=SE_WORKOUTS.map(w=>w.id);
@@ -3438,14 +3487,14 @@ async function deleteGoal(id,title){
   }catch(e){ toast(t('go_del_err')); }
 }
 
-function backToList(){ const d=$('#se-detail'),l=$('#se-list'); if(d) d.classList.add('hidden'); if(l) l.classList.remove('hidden'); }
+function backToList(){ stopWOD(); const d=$('#se-detail'),l=$('#se-list'); if(d) d.classList.add('hidden'); if(l) l.classList.remove('hidden'); }
 
 async function openWorkout(id){
   if(!SE_WORKOUTS) await fetchWorkouts();
   let w=(SE_WORKOUTS||[]).find(x=>x.id===id);
   if(!w){
     const { data:one } = await sb.from('workouts')
-      .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url,program_slug,is_free,week_number,day_number')
+      .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url,program_slug,is_free,week_number,day_number,wod_format,time_cap_seconds,emom_interval_seconds,emom_rounds,rft_rounds,score_type')
       .eq('id',id).maybeSingle();
     w=one; if(!w) return;
   }
@@ -3487,7 +3536,7 @@ function renderDetail(w,items,tips){
       <span class="badge c" style="--c:${col}">${typeL(w.type)}</span>
       <span class="badge">${diffL(w.difficulty)}</span>
       <span class="badge">${w.estimated_duration_min||'—'} min</span>
-    </div>`;
+    </div>${wodBanner(w)}`;
   let lastBlock=null;
   items.forEach(it=>{
     const ex=it.exercise||{}, bc=BLOCK_COLOR[it.block]||col;
@@ -3548,6 +3597,11 @@ function renderDetail(w,items,tips){
   });
   if(lastBlock!==null) html+=`</div>`;
   html+=`<div class="se-action">
+    <div class="wod-bar" id="wod-bar">
+      <span class="wod-num" id="wod-num">0:00</span>
+      <div style="flex:1;min-width:0"><div class="wod-sub" id="wod-sub"></div><div class="wod-round" id="wod-round"></div></div>
+      <button class="wod-btn" id="wod-act"></button>
+    </div>
     <div class="rest-bar" id="rest-bar">
       <span class="rest-num" id="rest-num">0:00</span>
       <div style="flex:1"><div class="rest-lbl">${t('rest_lbl')}</div><div class="rest-track"><i id="rest-fill"></i></div></div>
@@ -3658,6 +3712,108 @@ function startRest(sec){
   },1000);
 }
 function stopRest(){ if(REST&&REST.iv) clearInterval(REST.iv); REST=null; const b=$('#rest-bar'); if(b) b.classList.remove('on'); }
+
+/* ---- Moteur WOD : EMOM / AMRAP / For Time / RFT ---- */
+let WOD=null, WOD_SCORE_SAVED=false;
+function wodClock(s){ s=Math.max(0,s); const m=Math.floor(s/60); return m+':'+String(s%60).padStart(2,'0'); }
+function wodFmtMin(s){ s=+s||0; return s%60===0 ? (s/60)+' '+t('wod_min_u') : wodClock(s); }
+function wodBanner(w){
+  const f=w&&w.wod_format;
+  if(!f||f==='classic') return '';
+  if(f==='amrap')    return `<div class="wod-banner">⏱ <span><b>AMRAP</b> — ${t('wodb_amrap')} <b>${wodFmtMin(w.time_cap_seconds)}</b></span></div>`;
+  if(f==='for_time') return `<div class="wod-banner">⏱ <span><b>For Time</b> — ${t('wodb_ft')} <b>${wodFmtMin(w.time_cap_seconds)}</b></span></div>`;
+  if(f==='rft')      return `<div class="wod-banner">⏱ <span><b>${w.rft_rounds||0} ${t('wodb_rft')} ${wodFmtMin(w.time_cap_seconds)}</b></span></div>`;
+  if(f==='emom')     return `<div class="wod-banner">⏱ <span><b>EMOM ${wodFmtMin((w.emom_interval_seconds||60)*(w.emom_rounds||0))}</b> — ${w.emom_rounds||0} × ${t('wodb_emom')} ${wodFmtMin(w.emom_interval_seconds||60)}</span></div>`;
+  return '';
+}
+function startWOD(w){
+  stopWOD();
+  const bar=$('#wod-bar'); if(!bar) return;
+  const f=w.wod_format; if(!f||f==='classic') return;
+  WOD={f, t0:Date.now(), cap:w.time_cap_seconds||0, itv:w.emom_interval_seconds||60, rounds:w.emom_rounds||0, rft:w.rft_rounds||0, ended:false, _last:0};
+  WOD_SCORE_SAVED=false;
+  bar.classList.add('on'); bar.classList.remove('warn');
+  $('#wod-round').textContent='';
+  const act=$('#wod-act');
+  if(f==='amrap'){ $('#wod-sub').textContent='AMRAP · '+t('wod_left'); act.textContent=t('wod_score_btn'); act.onclick=()=>openScoreSheet(false); }
+  else if(f==='emom'){ $('#wod-sub').textContent='EMOM · '+t('wod_interval'); act.textContent=t('rest_skip'); act.onclick=()=>stopWOD(); }
+  else { $('#wod-sub').textContent=(f==='rft'?(WOD.rft+' RFT'):'FOR TIME')+' · '+t('wod_elapsed'); act.textContent=t('wod_finish_btn'); act.onclick=()=>wodFinish(); }
+  wodTick();
+  WOD.iv=setInterval(wodTick,250);
+}
+function wodTick(){
+  if(!WOD||WOD.ended) return;
+  const el=Math.floor((Date.now()-WOD.t0)/1000);
+  const bar=$('#wod-bar');
+  if(WOD.f==='amrap'){
+    const left=WOD.cap-el;
+    if(left<=0){ WOD.ended=true; clearInterval(WOD.iv); $('#wod-num').textContent='0:00'; SND.finish(); buzz(300); toast(t('wod_cap_hit')); openScoreSheet(false); return; }
+    $('#wod-num').textContent=wodClock(left);
+    if(left<=60) bar.classList.add('warn');
+    if((left===60||left===30||left===10)&&WOD._warn!==left){ WOD._warn=left; SND.rest(); }
+  } else if(WOD.f==='emom'){
+    const total=WOD.itv*WOD.rounds;
+    if(el>=total){ WOD.ended=true; clearInterval(WOD.iv); $('#wod-num').textContent='0:00'; SND.finish(); buzz(300); toast(t('wod_emom_done')); openScoreSheet(false); return; }
+    const rnd=Math.floor(el/WOD.itv)+1, left=WOD.itv-(el%WOD.itv);
+    $('#wod-num').textContent=wodClock(left);
+    $('#wod-round').textContent=t('wod_round')+' '+rnd+'/'+WOD.rounds;
+    if(WOD._last!==rnd){ if(WOD._last>0){ SND.start(); buzz(120); } WOD._last=rnd; }
+    bar.classList.toggle('warn',left<=5);
+  } else {
+    if(WOD.cap&&el>=WOD.cap){ WOD.ended=true; WOD.elapsed=WOD.cap; clearInterval(WOD.iv); $('#wod-num').textContent=wodClock(WOD.cap); SND.finish(); buzz(300); toast(t('wod_cap_hit')); openScoreSheet(true); return; }
+    $('#wod-num').textContent=wodClock(el);
+    if(WOD.cap&&WOD.cap-el<=60) bar.classList.add('warn');
+  }
+}
+function wodFinish(){
+  if(!WOD||WOD.ended){ return; }
+  WOD.ended=true; if(WOD.iv) clearInterval(WOD.iv);
+  WOD.elapsed=Math.min(WOD.cap||1e9,Math.floor((Date.now()-WOD.t0)/1000));
+  $('#wod-num').textContent=wodClock(WOD.elapsed);
+  SND.finish(); buzz(120);
+  openScoreSheet(false);
+}
+function stopWOD(){ if(WOD&&WOD.iv) clearInterval(WOD.iv); WOD=null; const b=$('#wod-bar'); if(b) b.classList.remove('on','warn'); }
+function openScoreSheet(capped){
+  if(WOD_SCORE_SAVED) return;
+  const w=SE_CUR&&SE_CUR.w; if(!w) return;
+  const st=w.score_type||'none'; if(st==='none') return;
+  const secs=WOD?(WOD.elapsed!=null?WOD.elapsed:Math.min(WOD.cap||1e9,Math.floor((Date.now()-WOD.t0)/1000))):0;
+  const em=Math.floor(secs/60), es=secs%60;
+  let inner='';
+  if(st==='time'){
+    inner+=`<div class="wsc-row"><div class="field"><label>${t('wsc_time_m')}</label><input id="wsc-m" type="number" inputmode="numeric" min="0" max="180" value="${capped?'':em}"></div>
+      <div class="field"><label>${t('wsc_time_s')}</label><input id="wsc-s" type="number" inputmode="numeric" min="0" max="59" value="${capped?'':es}"></div></div>`;
+  } else if(st==='rounds_reps'){
+    inner+=`<div class="wsc-row"><div class="field"><label>${t('wsc_rounds')}</label><input id="wsc-r" type="number" inputmode="numeric" min="0" max="200"></div>
+      <div class="field"><label>${t('wsc_reps')}</label><input id="wsc-p" type="number" inputmode="numeric" min="0" max="500" value="0"></div></div>`;
+  } else if(st==='reps'){
+    inner+=`<div class="wsc-row"><div class="field"><label>${t('wsc_reps')}</label><input id="wsc-p" type="number" inputmode="numeric" min="0" max="2000"></div></div>`;
+  } else if(st==='load'){
+    inner+=`<div class="wsc-row"><div class="field"><label>${t('wsc_load')}</label><input id="wsc-k" type="number" inputmode="decimal" min="0" max="500" step="0.5"></div></div>`;
+  }
+  if(capped) inner+=`<p style="margin:0 0 12px;font-size:12.5px;color:#EF4444;font-weight:700">⏱ ${t('wsc_capped')}</p>`;
+  inner+=`<label style="display:flex;align-items:center;gap:9px;margin:4px 2px 16px;font-size:13.5px;font-weight:700"><input id="wsc-rx" type="checkbox" checked style="width:19px;height:19px;accent-color:var(--brand)"> ${t('wsc_rx')}</label>`;
+  inner+=`<button class="btn" id="wsc-save">${t('wsc_save')}</button>`;
+  $('#wsc-title').textContent=t('wsc_title');
+  $('#wsc-body').innerHTML=inner;
+  $('#wsc-ov').classList.add('show');
+  $('#wsc-save').onclick=async()=>{
+    const row={ user_id:USER.id, workout_id:w.id, capped:!!capped, rx:$('#wsc-rx').checked };
+    if(st==='time'){ const m=+(($('#wsc-m')||{}).value||0), s2=+(($('#wsc-s')||{}).value||0); if(!capped&&(m||s2)) row.score_time_seconds=m*60+s2; }
+    if(st==='rounds_reps'){ row.score_rounds=+(($('#wsc-r')||{}).value||0); row.score_reps=+(($('#wsc-p')||{}).value||0); }
+    if(st==='reps'){ row.score_reps=+(($('#wsc-p')||{}).value||0); }
+    if(st==='load'){ row.score_load_kg=+(($('#wsc-k')||{}).value||0); }
+    const btn=$('#wsc-save'); btn.disabled=true;
+    const { error } = await sb.from('wod_scores').insert(row);
+    btn.disabled=false;
+    if(error){ toast(t('wsc_fail')); return; }
+    WOD_SCORE_SAVED=true;
+    $('#wsc-ov').classList.remove('show');
+    toast(t('wsc_saved'));
+  };
+}
+if($('#wsc-ov')) $('#wsc-ov').onclick=(e)=>{ if(e.target.id==='wsc-ov') $('#wsc-ov').classList.remove('show'); };
 function updHud(){ const f=$('#wo-fill'),c=$('#wo-count'); if(!f||!c) return;
   c.textContent=WO_DONE+'/'+WO_TOTAL;
   f.style.width=(WO_TOTAL?Math.round(WO_DONE/WO_TOTAL*100):0)+'%'; }
@@ -3689,10 +3845,16 @@ async function startOrFinish(){
     WO_VOL=0; LAST_SET={};
     $('#wo-hud').classList.add('on'); updHud();
     SND.start();
+    if(SE_CUR.w.wod_format&&SE_CUR.w.wod_format!=='classic') startWOD(SE_CUR.w);
     toast(t('tap_hint'));
   } else {
     btn.disabled=true;
     stopRest();
+    if(WOD&&!WOD_SCORE_SAVED&&(SE_CUR.w.score_type||'none')!=='none'){
+      if(WOD.elapsed==null) WOD.elapsed=Math.min(WOD.cap||1e9,Math.floor((Date.now()-WOD.t0)/1000));
+      openScoreSheet(false);
+    }
+    stopWOD();
     const mins=Math.max(1,Math.round((Date.now()-SESSION.started)/60000));
     await sb.from('workout_sessions').update({status:'completed',completed_at:new Date().toISOString(),duration_min:mins}).eq('id',SESSION.id);
     SESSION=null; btn.disabled=false;
