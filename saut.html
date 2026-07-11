@@ -115,6 +115,60 @@
   footer{margin-top:22px;text-align:center;color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.02em}
   footer b{color:var(--gold)}
 
+  /* ── Modes ── */
+  .modes{display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:5px;margin-bottom:12px}
+  .modes button{flex:1;font-size:13.5px;font-weight:700;padding:10px 8px;border-radius:12px;color:var(--muted)}
+  .modes button.on{background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);color:#0A0A0A}
+
+  /* ── F-V panel ── */
+  .fvcard{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:18px}
+  .fvcard h3{font-size:14.5px;font-weight:700;margin-bottom:4px}
+  .fvcard .hint{color:var(--muted);font-size:12.5px;line-height:1.5;margin-bottom:12px}
+  .fvgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .fvfield{display:flex;flex-direction:column;gap:5px}
+  .fvfield label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .fvfield input{background:var(--surface2);border:1px solid var(--line);border-radius:12px;color:var(--txt);font-family:inherit;font-size:16px;font-weight:700;padding:12px;width:100%;font-variant-numeric:tabular-nums}
+  .fvfield input:focus{outline:none;border-color:rgba(212,175,55,.6)}
+  .fv-hpo{grid-column:1/-1;text-align:center;font-size:13px;font-weight:600;color:var(--muted)}
+  .fv-hpo b{color:var(--gold);font-size:15px}
+  .fvbtn{margin-top:12px;width:100%;font-size:15px;font-weight:700;padding:14px;border-radius:16px;background:var(--neon);color:#062A1D}
+  .fvbtn.gold{background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);color:#0A0A0A}
+  .fvbtn.ghost{background:var(--surface2);color:var(--txt);border:1px solid var(--line)}
+  .fvbtn[disabled]{opacity:.45;pointer-events:none}
+  .fvrow{display:flex;gap:10px;margin-top:12px}
+  .fvrow .fvbtn{margin-top:0}
+
+  .loadchips{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .loadchip{font-size:13px;font-weight:700;padding:9px 13px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);color:var(--muted);font-variant-numeric:tabular-nums}
+  .loadchip.cur{border-color:var(--neon);color:var(--neon);box-shadow:0 0 12px rgba(0,255,163,.25)}
+  .loadchip.done{border-color:rgba(212,175,55,.6);color:var(--gold)}
+  .loadchip.done::after{content:' ✓'}
+
+  .fvbig{text-align:center;margin:10px 0 4px}
+  .fvbig .load{font-size:38px;font-weight:800;font-variant-numeric:tabular-nums;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 45%,#A47F1E 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .fvbig .bl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .fvbig .bb{margin-top:4px;font-size:14px;font-weight:700;color:var(--txt);font-variant-numeric:tabular-nums}
+
+  .fvres{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+  .fvres .m{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center}
+  .fvres .m .v{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--txt)}
+  .fvres .m .v small{font-size:11px;font-weight:700;color:var(--muted)}
+  .fvres .m .k{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:3px}
+
+  .gauge{margin-top:14px}
+  .gauge .bar{position:relative;height:14px;border-radius:999px;overflow:hidden;background:linear-gradient(90deg,#EF4444 0%,#D4AF37 30%,#00FFA3 44%,#00FFA3 56%,#D4AF37 70%,#EF4444 100%)}
+  .gauge .needle{position:absolute;top:-3px;width:4px;height:20px;border-radius:2px;background:#fff;box-shadow:0 0 8px rgba(255,255,255,.8);transform:translateX(-50%)}
+  .gauge .scale{display:flex;justify-content:space-between;color:var(--muted);font-size:10.5px;font-weight:700;margin-top:5px;font-variant-numeric:tabular-nums}
+  .gauge .verdict{text-align:center;margin-top:10px;font-size:16px;font-weight:800}
+  .gauge .verdict.f{color:var(--danger)}
+  .gauge .verdict.b{color:var(--neon)}
+  .gauge .verdict.v{color:var(--gold)}
+  .gauge .imbv{text-align:center;font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:8px}
+  .fvreco{margin-top:12px;background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.55;color:var(--txt)}
+  .fvreco b{color:var(--gold)}
+  .fvwarn{margin-top:10px;font-size:12px;font-weight:600;color:var(--danger)}
+  #fvchart{width:100%;height:220px;margin-top:14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line)}
+
   @media (prefers-reduced-motion:reduce){.stage{transition:none}.btn{transition:none}}
 </style>
 </head>
@@ -130,6 +184,11 @@
     <button data-lang="fr">FR</button><button data-lang="en">EN</button><button data-lang="nl">NL</button>
   </div>
 </header>
+
+<div class="modes" id="modes">
+  <button data-mode="jump" class="on" id="tab-jump"></button>
+  <button data-mode="fv" id="tab-fv"></button>
+</div>
 
 <div class="stage" id="stage">
   <video id="cam" playsinline muted autoplay></video>
@@ -161,7 +220,55 @@
   <button class="btn" id="b-save"></button>
 </div>
 
-<div class="card">
+<!-- ══ Profil Force-Vitesse ══ -->
+<div class="fvcard" id="fv-setup" style="display:none">
+  <h3 id="fv-setup-h"></h3>
+  <div class="hint" id="fv-setup-hint"></div>
+  <div class="fvgrid">
+    <div class="fvfield"><label id="l-mass"></label><input id="in-mass" type="number" inputmode="decimal" min="30" max="200" step="0.1" placeholder="75"></div>
+    <div class="fvfield"><label id="l-leg"></label><input id="in-leg" type="number" inputmode="decimal" min="60" max="130" step="0.5" placeholder="95"></div>
+    <div class="fvfield"><label id="l-h90"></label><input id="in-h90" type="number" inputmode="decimal" min="30" max="90" step="0.5" placeholder="58"></div>
+    <div class="fvfield"><label id="l-loads"></label><input id="in-loads" type="text" inputmode="numeric" placeholder="0, 10, 20, 30"></div>
+    <div class="fv-hpo" id="fv-hpo"></div>
+  </div>
+  <button class="fvbtn gold" id="b-fv-start"></button>
+</div>
+
+<div class="fvcard" id="fv-capture" style="display:none">
+  <h3 id="fv-cap-h"></h3>
+  <div class="loadchips" id="loadchips"></div>
+  <div class="fvbig">
+    <div class="bl" id="fv-cap-lbl"></div>
+    <div class="load" id="fv-cap-load">—</div>
+    <div class="bb" id="fv-cap-best">—</div>
+  </div>
+  <div class="fvrow">
+    <button class="fvbtn ghost" id="b-fv-next" disabled></button>
+    <button class="fvbtn gold" id="b-fv-finish" disabled></button>
+  </div>
+</div>
+
+<div class="fvcard" id="fv-results" style="display:none">
+  <h3 id="fv-res-h"></h3>
+  <div class="fvres">
+    <div class="m"><div class="v"><span id="r-f0">—</span><small> N/kg</small></div><div class="k">F0</div></div>
+    <div class="m"><div class="v"><span id="r-v0">—</span><small> m/s</small></div><div class="k">V0</div></div>
+    <div class="m"><div class="v"><span id="r-pmax">—</span><small> W/kg</small></div><div class="k">Pmax</div></div>
+  </div>
+  <div class="gauge">
+    <div class="imbv" id="r-imb">—</div>
+    <div class="bar"><div class="needle" id="g-needle" style="left:50%"></div></div>
+    <div class="scale"><span>40%</span><span>90%</span><span>110%</span><span>160%</span></div>
+    <div class="verdict" id="r-verdict"></div>
+  </div>
+  <canvas id="fvchart"></canvas>
+  <div class="fvreco" id="r-reco"></div>
+  <div class="fvwarn" id="r-warn" style="display:none"></div>
+  <button class="fvbtn" id="b-fv-save"></button>
+  <button class="fvbtn ghost" id="b-fv-redo"></button>
+</div>
+
+<div class="card" id="jump-card">
   <h3 id="list-h"></h3>
   <ul class="jlist" id="jlist"></ul>
   <div class="empty" id="jempty"></div>
@@ -173,7 +280,7 @@
   <div class="note" id="help-note"></div>
 </details>
 
-<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">saut v2.2</span></footer>
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">saut v3.0</span></footer>
 
 <script type="module">
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
@@ -208,6 +315,34 @@ const I18N = {
   help_2:{fr:'Reste immobile ~1 s : l\'IA calibre ta position au sol.',en:'Stand still ~1 s: the AI calibrates your ground position.',nl:'Sta ~1 s stil: de AI kalibreert je grondpositie.'},
   help_3:{fr:'Saute (contre-mouvement libre) et atterris jambes tendues, même position qu\'au décollage.',en:'Jump (free countermovement) and land with legs extended, same position as takeoff.',nl:'Spring (vrije countermovement) en land met gestrekte benen, zelfde positie als bij de afzet.'},
   help_4:{fr:'La hauteur s\'affiche après l\'atterrissage. Enchaîne autant de sauts que tu veux.',en:'Your height shows after landing. Chain as many jumps as you like.',nl:'Je hoogte verschijnt na de landing. Doe zoveel sprongen als je wilt.'},
+  tab_jump:{fr:'Saut simple',en:'Jump test',nl:'Sprongtest'},
+  tab_fv:{fr:'Profil Force-Vitesse',en:'Force-Velocity profile',nl:'Kracht-Snelheid profiel'},
+  fv_setup_h:{fr:'Profil F-V — mesures',en:'F-V profile — measurements',nl:'K-S profiel — metingen'},
+  fv_setup_hint:{fr:'Une seule fois : longueur de jambe = grand trochanter → pointe de pied, jambe et cheville tendues (allongé). Hauteur hanche 90° = trochanter → sol en position de départ, genoux à 90°. Charges en kg, séparées par des virgules (0 = sans charge).',en:'One time only: leg length = greater trochanter → toe tip, leg and ankle extended (lying down). 90° hip height = trochanter → floor in start position, knees at 90°. Loads in kg, comma-separated (0 = bodyweight).',nl:'Eenmalig: beenlengte = trochanter major → teenpunt, been en enkel gestrekt (liggend). Heuphoogte 90° = trochanter → vloer in startpositie, knieën op 90°. Belastingen in kg, gescheiden door komma\'s (0 = lichaamsgewicht).'},
+  fv_mass:{fr:'Poids corporel (kg)',en:'Body mass (kg)',nl:'Lichaamsgewicht (kg)'},
+  fv_leg:{fr:'Longueur jambe (cm)',en:'Leg length (cm)',nl:'Beenlengte (cm)'},
+  fv_h90:{fr:'Hanche à 90° (cm)',en:'Hip at 90° (cm)',nl:'Heup op 90° (cm)'},
+  fv_loads:{fr:'Charges (kg)',en:'Loads (kg)',nl:'Belastingen (kg)'},
+  fv_hpo:{fr:'Distance de poussée hPO',en:'Push-off distance hPO',nl:'Afzetafstand hPO'},
+  fv_hpo_err:{fr:'hPO hors limites — vérifie tes deux mesures',en:'hPO out of range — check your two measurements',nl:'hPO buiten bereik — controleer je twee metingen'},
+  fv_go:{fr:'Commencer le protocole',en:'Start protocol',nl:'Protocol starten'},
+  fv_cap_h:{fr:'Protocole — saute à chaque charge',en:'Protocol — jump at each load',nl:'Protocol — spring bij elke belasting'},
+  fv_cur_load:{fr:'Charge actuelle',en:'Current load',nl:'Huidige belasting'},
+  fv_best_none:{fr:'Aucun saut à cette charge',en:'No jump at this load yet',nl:'Nog geen sprong bij deze belasting'},
+  fv_best_at:{fr:'Meilleur',en:'Best',nl:'Beste'},
+  fv_next:{fr:'Charge suivante →',en:'Next load →',nl:'Volgende belasting →'},
+  fv_finish:{fr:'Calculer le profil',en:'Compute profile',nl:'Profiel berekenen'},
+  fv_res_h:{fr:'Ton Profil Force-Vitesse',en:'Your Force-Velocity profile',nl:'Jouw Kracht-Snelheid profiel'},
+  fv_ori_force:{fr:'DÉFICIT DE FORCE',en:'FORCE DEFICIT',nl:'KRACHTTEKORT'},
+  fv_ori_bal:{fr:'PROFIL ÉQUILIBRÉ',en:'WELL-BALANCED PROFILE',nl:'EVENWICHTIG PROFIEL'},
+  fv_ori_vel:{fr:'DÉFICIT DE VITESSE',en:'VELOCITY DEFICIT',nl:'SNELHEIDSTEKORT'},
+  fv_reco_force:{fr:'<b>Priorité force.</b> Ton prochain cycle : squats et soulevés lourds 80-90% 1RM, 3-5 reps, tempo contrôlé. Les sauts lestés lourds (trap bar jump) accélèrent le rééquilibrage. Re-teste dans 6-8 semaines.',en:'<b>Force first.</b> Next cycle: heavy squats and pulls at 80-90% 1RM, 3-5 reps, controlled tempo. Heavy loaded jumps (trap bar jump) speed up rebalancing. Re-test in 6-8 weeks.',nl:'<b>Kracht eerst.</b> Volgende cyclus: zware squats en trekbewegingen op 80-90% 1RM, 3-5 reps, gecontroleerd tempo. Zwaar beladen sprongen (trap bar jump) versnellen het herstel van de balans. Hertest na 6-8 weken.'},
+  fv_reco_bal:{fr:'<b>Profil optimal.</b> Entretiens les deux qualités : mix force lourde (85%) et travail ballistique (sauts, médecine ball). Ta puissance est là où elle doit être — continue et re-teste dans 8-10 semaines.',en:'<b>Optimal profile.</b> Maintain both qualities: mix heavy strength (85%) and ballistic work (jumps, med ball). Your power is where it should be — keep going and re-test in 8-10 weeks.',nl:'<b>Optimaal profiel.</b> Onderhoud beide kwaliteiten: mix zware kracht (85%) en ballistisch werk (sprongen, med ball). Je vermogen zit waar het moet zitten — ga door en hertest na 8-10 weken.'},
+  fv_reco_vel:{fr:'<b>Priorité vitesse.</b> Ton prochain cycle : sauts sans charge et légers (<30% 1RM), pliométrie, sprints, intention maximale sur chaque rep. Réduis le volume lourd. Re-teste dans 6-8 semaines.',en:'<b>Velocity first.</b> Next cycle: unloaded and light jumps (<30% 1RM), plyometrics, sprints, maximal intent on every rep. Cut heavy volume. Re-test in 6-8 weeks.',nl:'<b>Snelheid eerst.</b> Volgende cyclus: onbelaste en lichte sprongen (<30% 1RM), plyometrie, sprints, maximale intentie bij elke rep. Verminder zwaar volume. Hertest na 6-8 weken.'},
+  fv_r2_warn:{fr:'⚠ Régression peu fiable (R² < 0.95) — refais le protocole en soignant chaque saut (mains sur les hanches, atterrissage jambes tendues).',en:'⚠ Unreliable regression (R² < 0.95) — redo the protocol with clean jumps (hands on hips, stiff landing).',nl:'⚠ Onbetrouwbare regressie (R² < 0.95) — doe het protocol opnieuw met propere sprongen (handen op de heupen, landing met gestrekte benen).'},
+  fv_save:{fr:'💾 Enregistrer le profil',en:'💾 Save profile',nl:'💾 Profiel opslaan'},
+  fv_redo:{fr:'Refaire le protocole',en:'Redo protocol',nl:'Protocol opnieuw doen'},
+  fv_need_fields:{fr:'Remplis les 4 champs (au moins 2 charges).',en:'Fill in all 4 fields (at least 2 loads).',nl:'Vul alle 4 velden in (minstens 2 belastingen).'},
   help_note:{fr:'Méthode du temps de vol : h = g·t²/8 (Balsalobre-Fernández et al., 2015). 100% sur ton téléphone — aucune vidéo n\'est envoyée ni enregistrée. Précision ±2–3 cm ; plier les jambes à l\'atterrissage fausse la mesure.',en:'Flight-time method: h = g·t²/8 (Balsalobre-Fernández et al., 2015). Runs 100% on your phone — no video is uploaded or stored. Accuracy ±2–3 cm; bending your legs on landing skews the result.',nl:'Vluchttijdmethode: h = g·t²/8 (Balsalobre-Fernández et al., 2015). Draait 100% op je telefoon — er wordt geen video verstuurd of opgeslagen. Nauwkeurigheid ±2–3 cm; benen buigen bij de landing vertekent het resultaat.'}
 };
 const LANGS=['fr','en','nl'];
@@ -238,6 +373,23 @@ function applyLang(){
     const li=document.createElement('li'); li.textContent=t(k); $('#help-ol').appendChild(li);
   });
   $('#help-note').textContent=t('help_note');
+  $('#tab-jump').textContent=t('tab_jump');
+  $('#tab-fv').textContent=t('tab_fv');
+  $('#fv-setup-h').textContent=t('fv_setup_h');
+  $('#fv-setup-hint').textContent=t('fv_setup_hint');
+  $('#l-mass').textContent=t('fv_mass');
+  $('#l-leg').textContent=t('fv_leg');
+  $('#l-h90').textContent=t('fv_h90');
+  $('#l-loads').textContent=t('fv_loads');
+  $('#b-fv-start').textContent=t('fv_go');
+  $('#fv-cap-h').textContent=t('fv_cap_h');
+  $('#fv-cap-lbl').textContent=t('fv_cur_load');
+  $('#b-fv-next').textContent=t('fv_next');
+  $('#b-fv-finish').textContent=t('fv_finish');
+  $('#fv-res-h').textContent=t('fv_res_h');
+  $('#b-fv-save').textContent=t('fv_save');
+  $('#b-fv-redo').textContent=t('fv_redo');
+  fvHpoUI(); fvCapUI();
   document.querySelectorAll('#lang button').forEach(b=>b.classList.toggle('on',b.dataset.lang===LANG));
   renderJumps(); setStatus(lastStatus,true);
 }
@@ -379,9 +531,10 @@ function updateDbg(ts,y){
 }
 /* ───────── Results UI ───────── */
 function addJump(cm,ms){
+  if(FV.on&&FV.step==='capture'){fvOnJump(cm,ms);}
   jumps.unshift({cm,ms});
   const sr=$('#save-row'),sb2=$('#b-save');
-  if(sr){sr.style.display='flex';}
+  if(sr&&!FV.on){sr.style.display='flex';}
   if(sb2){sb2.disabled=false;sb2.textContent=t('save');}
   if(cm>best)best=cm;
   beep(1320,140);
@@ -518,6 +671,180 @@ document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&running)stop();
 });
 
+/* ═════════ Profil Force-Vitesse (Samozino & Morin) ═════════ */
+const FV={on:false,step:'setup',mass:0,hpo:0,legCm:0,h90Cm:0,loads:[],idx:0,byLoad:{},res:null};
+const fvSetup=$('#fv-setup'),fvCapture=$('#fv-capture'),fvResults=$('#fv-results'),jumpCard=$('#jump-card');
+const inMass=$('#in-mass'),inLeg=$('#in-leg'),inH90=$('#in-h90'),inLoads=$('#in-loads');
+
+/* persisted measurements */
+try{
+  const st=JSON.parse(localStorage.getItem('cdm_fv')||'{}');
+  if(st.mass)inMass.value=st.mass; if(st.leg)inLeg.value=st.leg;
+  if(st.h90)inH90.value=st.h90; inLoads.value=st.loads||'0, 10, 20, 30';
+}catch(_){inLoads.value='0, 10, 20, 30';}
+
+function fvHpoM(){
+  const L=parseFloat(inLeg.value),h=parseFloat(inH90.value);
+  if(!isFinite(L)||!isFinite(h))return null;
+  const hpo=(L-h)/100;
+  return (hpo>=0.15&&hpo<=0.65)?hpo:NaN;
+}
+function fvHpoUI(){
+  const el=$('#fv-hpo'),hpo=fvHpoM();
+  if(hpo==null){el.textContent='';return;}
+  el.innerHTML=isNaN(hpo)?('<span style="color:var(--danger)">'+t('fv_hpo_err')+'</span>')
+    :(t('fv_hpo')+' : <b>'+(hpo*100).toFixed(1)+' cm</b>');
+}
+inLeg.oninput=fvHpoUI; inH90.oninput=fvHpoUI;
+
+function setMode(m){
+  FV.on=(m==='fv');
+  document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));
+  jumpCard.style.display=FV.on?'none':'';
+  $('#save-row').style.display=(!FV.on&&jumps.length)?'flex':'none';
+  fvSetup.style.display=FV.on&&FV.step==='setup'?'':'none';
+  fvCapture.style.display=FV.on&&FV.step==='capture'?'':'none';
+  fvResults.style.display=FV.on&&FV.step==='done'?'':'none';
+}
+document.querySelectorAll('#modes button').forEach(b=>{b.onclick=()=>setMode(b.dataset.mode);});
+
+$('#b-fv-start').onclick=()=>{
+  const mass=parseFloat(inMass.value),hpo=fvHpoM();
+  const loads=(inLoads.value||'').split(/[,;]/).map(x=>parseFloat(x.trim())).filter(x=>isFinite(x)&&x>=0&&x<=150);
+  const uniq=[...new Set(loads)].sort((a,b)=>a-b);
+  if(!isFinite(mass)||mass<30||!hpo||isNaN(hpo)||uniq.length<2){alert(t('fv_need_fields'));fvHpoUI();return;}
+  try{localStorage.setItem('cdm_fv',JSON.stringify({mass:inMass.value,leg:inLeg.value,h90:inH90.value,loads:inLoads.value}));}catch(_){}
+  FV.mass=mass;FV.hpo=hpo;FV.legCm=parseFloat(inLeg.value);FV.h90Cm=parseFloat(inH90.value);
+  FV.loads=uniq;FV.idx=0;FV.byLoad={};FV.res=null;FV.step='capture';
+  setMode('fv');fvCapUI();
+};
+
+function fvOnJump(cm,ms){
+  const L=FV.loads[FV.idx];
+  const cur=FV.byLoad[L];
+  if(!cur||cm>cur.cm)FV.byLoad[L]={cm,ms};
+  fvCapUI();
+}
+function fvDoneCount(){return FV.loads.filter(L=>FV.byLoad[L]).length;}
+function fvCapUI(){
+  if(!fvCapture||FV.step!=='capture')return;
+  const chips=$('#loadchips');chips.innerHTML='';
+  FV.loads.forEach((L,i)=>{
+    const c=document.createElement('button');
+    c.className='loadchip'+(i===FV.idx?' cur':'')+(FV.byLoad[L]?' done':'');
+    c.textContent=L===0?'PDC':('+'+L+' kg');
+    c.onclick=()=>{FV.idx=i;fvCapUI();};
+    chips.appendChild(c);
+  });
+  const L=FV.loads[FV.idx];
+  $('#fv-cap-load').textContent=L===0?'PDC':('+'+L+' kg');
+  const b=FV.byLoad[L];
+  $('#fv-cap-best').textContent=b?(t('fv_best_at')+' : '+b.cm.toFixed(1)+' cm · '+b.ms+' ms'):t('fv_best_none');
+  $('#b-fv-next').disabled=!(b&&FV.idx<FV.loads.length-1);
+  $('#b-fv-finish').disabled=fvDoneCount()<2;
+}
+$('#b-fv-next').onclick=()=>{if(FV.idx<FV.loads.length-1){FV.idx++;fvCapUI();beep(880,80);}};
+$('#b-fv-redo').onclick=()=>{FV.step='setup';setMode('fv');};
+
+/* ── physics ── */
+const GG=9.81;
+function fvRegression(pts){ /* pts: [{F,v}] -> F = F0 + Sfv·v */
+  const n=pts.length;
+  let sx=0,sy=0,sxx=0,sxy=0;
+  pts.forEach(p=>{sx+=p.v;sy+=p.F;sxx+=p.v*p.v;sxy+=p.v*p.F;});
+  const Sfv=(n*sxy-sx*sy)/(n*sxx-sx*sx);
+  const F0=(sy-Sfv*sx)/n;
+  const my=sy/n;let ssr=0,sst=0;
+  pts.forEach(p=>{const f=F0+Sfv*p.v;ssr+=(p.F-f)*(p.F-f);sst+=(p.F-my)*(p.F-my);});
+  return {F0,Sfv,r2:sst>0?1-ssr/sst:1};
+}
+/* Samozino 2012 — cadre "valeurs moyennes" cohérent avec la mesure :
+   F̄ = F0(1 − v̄/V0)  et  F̄ = m·g·(h/hPO + 1)  avec  h = 2v̄²/g
+   → (2m/hPO)·v̄² + (F0/V0)·v̄ + (m·g − F0) = 0 */
+function hFromProfile(F0c,V0c,m,hpo){
+  const A=2*m/hpo,B=F0c/V0c,C=m*GG-F0c;
+  const d=B*B-4*A*C;
+  if(d<=0)return 0;
+  const v=(-B+Math.sqrt(d))/(2*A);
+  return v>0?2*v*v/GG:0;
+}
+function fvOptimalSlope(Pmax,m,hpo){ /* pente optimale — recherche numérique */
+  let bestH=-1,bestF0=0;
+  const lo=m*GG*1.02,hi=m*GG*9;
+  for(let F0c=lo;F0c<=hi;F0c+=(hi-lo)/1200){
+    const h=hFromProfile(F0c,4*Pmax/F0c,m,hpo);
+    if(h>bestH){bestH=h;bestF0=F0c;}
+  }
+  const V0o=4*Pmax/bestF0;
+  return {slope:-bestF0/V0o,F0:bestF0,V0:V0o,h:bestH};
+}
+function fvCompute(){
+  const pts=[];
+  FV.loads.forEach(L=>{
+    const b=FV.byLoad[L];if(!b)return;
+    const h=b.cm/100,M=FV.mass+L;
+    pts.push({load:L,cm:b.cm,ms:b.ms,
+      F:M*GG*(h/FV.hpo+1),
+      v:Math.sqrt(2*GG*h)/2});
+  });
+  const {F0,Sfv,r2}=fvRegression(pts);
+  const V0=-F0/Sfv,Pmax=F0*V0/4;
+  const opt=fvOptimalSlope(Pmax,FV.mass,FV.hpo);
+  const imb=100*Sfv/opt.slope;
+  const ori=imb<90?'force':(imb>110?'velocity':'balanced');
+  FV.res={pts,F0,V0,Sfv,r2,Pmax,sfvOpt:opt.slope,f0Opt:opt.F0,v0Opt:opt.V0,imb,ori};
+}
+$('#b-fv-finish').onclick=()=>{
+  if(fvDoneCount()<2)return;
+  fvCompute();FV.step='done';setMode('fv');fvResUI();beep(1320,160);
+};
+
+function fvResUI(){
+  const r=FV.res;if(!r)return;
+  $('#r-f0').textContent=(r.F0/FV.mass).toFixed(1);
+  $('#r-v0').textContent=r.V0.toFixed(2);
+  $('#r-pmax').textContent=(r.Pmax/FV.mass).toFixed(1);
+  $('#r-imb').textContent=r.imb.toFixed(0)+' %';
+  const pct=Math.max(0,Math.min(100,(r.imb-40)/(160-40)*100));
+  $('#g-needle').style.left=pct+'%';
+  const vd=$('#r-verdict');
+  vd.className='verdict '+(r.ori==='force'?'f':r.ori==='velocity'?'v':'b');
+  vd.textContent=t(r.ori==='force'?'fv_ori_force':r.ori==='velocity'?'fv_ori_vel':'fv_ori_bal');
+  $('#r-reco').innerHTML=t(r.ori==='force'?'fv_reco_force':r.ori==='velocity'?'fv_reco_vel':'fv_reco_bal');
+  const w=$('#r-warn');
+  if(r.r2<0.95){w.style.display='';w.textContent=t('fv_r2_warn')+' (R²='+r.r2.toFixed(3)+')';}
+  else w.style.display='none';
+  const sb=$('#b-fv-save');sb.disabled=false;sb.textContent=t('fv_save');
+  fvDrawChart();
+}
+function fvDrawChart(){
+  const cv=$('#fvchart'),r=FV.res;if(!cv||!r)return;
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.clientWidth||320,H=220;
+  cv.width=W*dpr;cv.height=H*dpr;
+  const c=cv.getContext('2d');c.scale(dpr,dpr);c.clearRect(0,0,W,H);
+  const padL=34,padB=24,padT=12,padR=10;
+  const xmax=Math.max(r.V0,r.v0Opt)*1.08,ymax=Math.max(r.F0,r.f0Opt)/FV.mass*1.08;
+  const X=v=>padL+(v/xmax)*(W-padL-padR);
+  const Y=f=>H-padB-(f/ymax)*(H-padB-padT);
+  c.strokeStyle='rgba(255,255,255,.14)';c.lineWidth=1;
+  c.beginPath();c.moveTo(padL,padT);c.lineTo(padL,H-padB);c.lineTo(W-padR,H-padB);c.stroke();
+  c.fillStyle='rgba(156,163,175,.9)';c.font='600 10px Outfit';
+  c.fillText('N/kg',4,padT+8);c.fillText('m/s',W-30,H-8);
+  c.strokeStyle='rgba(0,255,163,.7)';c.setLineDash([6,5]);c.lineWidth=2;
+  c.beginPath();c.moveTo(X(0),Y(r.f0Opt/FV.mass));c.lineTo(X(r.v0Opt),Y(0));c.stroke();
+  c.setLineDash([]);
+  const grd=c.createLinearGradient(X(0),0,X(r.V0),0);
+  grd.addColorStop(0,'#F6E27A');grd.addColorStop(.5,'#D4AF37');grd.addColorStop(1,'#A47F1E');
+  c.strokeStyle=grd;c.lineWidth=3;
+  c.beginPath();c.moveTo(X(0),Y(r.F0/FV.mass));c.lineTo(X(r.V0),Y(0));c.stroke();
+  r.pts.forEach(p=>{
+    c.fillStyle='#F5F5F4';c.strokeStyle='#D4AF37';c.lineWidth=2;
+    c.beginPath();c.arc(X(p.v),Y(p.F/FV.mass),4.5,0,7);c.fill();c.stroke();
+  });
+}
+window.addEventListener('resize',()=>{if(FV.step==='done')fvDrawChart();});
+
 /* ───────── Sauvegarde Supabase (session partagée avec l'app) ───────── */
 import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient})=>{
   const sbClient=createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
@@ -540,9 +867,35 @@ import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({creat
     if(error){btn.disabled=false;btn.textContent=t('save');alert(t('save_fail'));return;}
     btn.textContent=t('saved');
   };
+  const fvBtn=$('#b-fv-save');
+  fvBtn.onclick=async()=>{
+    const r=FV.res;
+    if(!r||fvBtn.disabled)return;
+    if(!UID){alert(t('save_login'));return;}
+    fvBtn.disabled=true;fvBtn.textContent=t('saving');
+    const {error}=await sbClient.from('fv_profiles').insert({
+      user_id:UID,
+      body_mass_kg:+FV.mass.toFixed(1),
+      hpo_cm:+(FV.hpo*100).toFixed(1),
+      points:r.pts.map(p=>({load_kg:p.load,best_cm:+p.cm.toFixed(1),flight_ms:p.ms,f_n:+p.F.toFixed(1),v_ms:+p.v.toFixed(3)})),
+      f0_n:+r.F0.toFixed(1),
+      f0_rel:+(r.F0/FV.mass).toFixed(2),
+      v0_ms:+r.V0.toFixed(3),
+      pmax_w:+r.Pmax.toFixed(1),
+      pmax_rel:+(r.Pmax/FV.mass).toFixed(2),
+      sfv:+r.Sfv.toFixed(2),
+      sfv_opt:+r.sfvOpt.toFixed(2),
+      fv_imbalance:+r.imb.toFixed(1),
+      orientation:r.ori,
+      r2:+r.r2.toFixed(4)
+    });
+    if(error){fvBtn.disabled=false;fvBtn.textContent=t('fv_save');alert(t('save_fail'));return;}
+    fvBtn.textContent=t('saved');
+  };
 }).catch(()=>{});
 
 applyLang();
+setMode('jump');
 </script>
 </body>
 </html>
