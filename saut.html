@@ -218,6 +218,7 @@
 
 <div class="controls" id="save-row" style="display:none">
   <button class="btn" id="b-save"></button>
+  <button class="btn ghost" id="b-share-jump" style="flex:0 0 56px;font-size:19px">📤</button>
 </div>
 
 <!-- ══ Profil Force-Vitesse ══ -->
@@ -265,6 +266,7 @@
   <div class="fvreco" id="r-reco"></div>
   <div class="fvwarn" id="r-warn" style="display:none"></div>
   <button class="fvbtn" id="b-fv-save"></button>
+  <button class="fvbtn gold" id="b-fv-share"></button>
   <button class="fvbtn ghost" id="b-fv-redo"></button>
 </div>
 
@@ -280,7 +282,7 @@
   <div class="note" id="help-note"></div>
 </details>
 
-<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">saut v3.0</span></footer>
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">saut v3.1</span></footer>
 
 <script type="module">
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
@@ -341,6 +343,12 @@ const I18N = {
   fv_reco_vel:{fr:'<b>Priorité vitesse.</b> Ton prochain cycle : sauts sans charge et légers (<30% 1RM), pliométrie, sprints, intention maximale sur chaque rep. Réduis le volume lourd. Re-teste dans 6-8 semaines.',en:'<b>Velocity first.</b> Next cycle: unloaded and light jumps (<30% 1RM), plyometrics, sprints, maximal intent on every rep. Cut heavy volume. Re-test in 6-8 weeks.',nl:'<b>Snelheid eerst.</b> Volgende cyclus: onbelaste en lichte sprongen (<30% 1RM), plyometrie, sprints, maximale intentie bij elke rep. Verminder zwaar volume. Hertest na 6-8 weken.'},
   fv_r2_warn:{fr:'⚠ Régression peu fiable (R² < 0.95) — refais le protocole en soignant chaque saut (mains sur les hanches, atterrissage jambes tendues).',en:'⚠ Unreliable regression (R² < 0.95) — redo the protocol with clean jumps (hands on hips, stiff landing).',nl:'⚠ Onbetrouwbare regressie (R² < 0.95) — doe het protocol opnieuw met propere sprongen (handen op de heupen, landing met gestrekte benen).'},
   fv_save:{fr:'💾 Enregistrer le profil',en:'💾 Save profile',nl:'💾 Profiel opslaan'},
+  fv_share:{fr:'📤 Partager mon profil',en:'📤 Share my profile',nl:'📤 Deel mijn profiel'},
+  sh_jump_t:{fr:'TEST DE SAUT',en:'JUMP TEST',nl:'SPRONGTEST'},
+  sh_fv_t:{fr:'PROFIL FORCE-VITESSE',en:'FORCE-VELOCITY PROFILE',nl:'KRACHT-SNELHEID PROFIEL'},
+  sh_height:{fr:'HAUTEUR',en:'HEIGHT',nl:'HOOGTE'},
+  sh_flight:{fr:'TEMPS DE VOL',en:'FLIGHT TIME',nl:'VLUCHTTIJD'},
+  sh_fail:{fr:'Partage impossible sur ce navigateur — image téléchargée.',en:'Sharing unavailable on this browser — image downloaded.',nl:'Delen niet beschikbaar in deze browser — afbeelding gedownload.'},
   fv_redo:{fr:'Refaire le protocole',en:'Redo protocol',nl:'Protocol opnieuw doen'},
   fv_need_fields:{fr:'Remplis les 4 champs (au moins 2 charges).',en:'Fill in all 4 fields (at least 2 loads).',nl:'Vul alle 4 velden in (minstens 2 belastingen).'},
   help_note:{fr:'Méthode du temps de vol : h = g·t²/8 (Balsalobre-Fernández et al., 2015). 100% sur ton téléphone — aucune vidéo n\'est envoyée ni enregistrée. Précision ±2–3 cm ; plier les jambes à l\'atterrissage fausse la mesure.',en:'Flight-time method: h = g·t²/8 (Balsalobre-Fernández et al., 2015). Runs 100% on your phone — no video is uploaded or stored. Accuracy ±2–3 cm; bending your legs on landing skews the result.',nl:'Vluchttijdmethode: h = g·t²/8 (Balsalobre-Fernández et al., 2015). Draait 100% op je telefoon — er wordt geen video verstuurd of opgeslagen. Nauwkeurigheid ±2–3 cm; benen buigen bij de landing vertekent het resultaat.'}
@@ -389,6 +397,7 @@ function applyLang(){
   $('#fv-res-h').textContent=t('fv_res_h');
   $('#b-fv-save').textContent=t('fv_save');
   $('#b-fv-redo').textContent=t('fv_redo');
+  $('#b-fv-share').textContent=t('fv_share');
   fvHpoUI(); fvCapUI();
   document.querySelectorAll('#lang button').forEach(b=>b.classList.toggle('on',b.dataset.lang===LANG));
   renderJumps(); setStatus(lastStatus,true);
@@ -844,6 +853,113 @@ function fvDrawChart(){
   });
 }
 window.addEventListener('resize',()=>{if(FV.step==='done')fvDrawChart();});
+
+/* ═════════ Carte partageable (story 1080×1920) ═════════ */
+function shGoldGrad(c,x0,y0,x1,y1){
+  const g=c.createLinearGradient(x0,y0,x1,y1);
+  g.addColorStop(0,'#F6E27A');g.addColorStop(.45,'#D4AF37');g.addColorStop(1,'#A47F1E');
+  return g;
+}
+function shBase(c,W,H,title){
+  c.fillStyle='#0A0A0A';c.fillRect(0,0,W,H);
+  const rg=c.createRadialGradient(W/2,0,0,W/2,0,H*.8);
+  rg.addColorStop(0,'rgba(212,175,55,.10)');rg.addColorStop(1,'rgba(212,175,55,0)');
+  c.fillStyle=rg;c.fillRect(0,0,W,H);
+  c.textAlign='center';
+  c.font='800 78px Outfit';c.fillStyle='#F5F5F4';
+  c.fillText('COACH ',W/2-92,170);
+  c.fillStyle=shGoldGrad(c,W/2,110,W/2+240,190);
+  c.fillText('DM',W/2+158,170);
+  c.font='700 40px Outfit';c.fillStyle='#9CA3AF';
+  c.fillText(title,W/2,255);
+  c.strokeStyle='rgba(212,175,55,.5)';c.lineWidth=3;
+  c.beginPath();c.moveTo(W/2-130,295);c.lineTo(W/2+130,295);c.stroke();
+  /* footer */
+  c.font='700 42px Outfit';c.fillStyle=shGoldGrad(c,W/2-220,H-150,W/2+220,H-110);
+  c.fillText('Power · Transform · Excel',W/2,H-150);
+  c.font='600 36px Outfit';c.fillStyle='#9CA3AF';
+  c.fillText('coachdm.be  ·  @coachdm.be',W/2,H-85);
+}
+function shCardJump(){
+  const W=1080,H=1920,cv=document.createElement('canvas');
+  cv.width=W;cv.height=H;const c=cv.getContext('2d');
+  shBase(c,W,H,t('sh_jump_t'));
+  const bestJ=jumps.reduce((a,b)=>b.cm>a.cm?b:a,jumps[0]);
+  c.textAlign='center';
+  c.font='700 44px Outfit';c.fillStyle='#9CA3AF';c.fillText(t('sh_height'),W/2,720);
+  c.font='800 300px Outfit';c.fillStyle=shGoldGrad(c,W/2-320,800,W/2+320,1060);
+  c.fillText(best.toFixed(1),W/2,1040);
+  c.font='800 84px Outfit';c.fillStyle='#F5F5F4';c.fillText('cm',W/2,1150);
+  c.font='700 44px Outfit';c.fillStyle='#9CA3AF';c.fillText(t('sh_flight'),W/2,1330);
+  c.font='800 96px Outfit';c.fillStyle='#00FFA3';c.fillText(bestJ.ms+' ms',W/2,1440);
+  return cv;
+}
+function shCardFV(){
+  const r=FV.res,W=1080,H=1920,cv=document.createElement('canvas');
+  cv.width=W;cv.height=H;const c=cv.getContext('2d');
+  shBase(c,W,H,t('sh_fv_t'));
+  c.textAlign='center';
+  /* verdict + imbalance */
+  const col=r.ori==='force'?'#EF4444':r.ori==='velocity'?'#D4AF37':'#00FFA3';
+  c.font='800 168px Outfit';c.fillStyle=shGoldGrad(c,W/2-260,420,W/2+260,560);
+  c.fillText(r.imb.toFixed(0)+' %',W/2,560);
+  c.font='800 56px Outfit';c.fillStyle=col;
+  c.fillText(t(r.ori==='force'?'fv_ori_force':r.ori==='velocity'?'fv_ori_vel':'fv_ori_bal'),W/2,650);
+  /* gauge */
+  const gx=140,gw=W-280,gy=710,gh=26;
+  const gg=c.createLinearGradient(gx,0,gx+gw,0);
+  gg.addColorStop(0,'#EF4444');gg.addColorStop(.30,'#D4AF37');gg.addColorStop(.44,'#00FFA3');
+  gg.addColorStop(.56,'#00FFA3');gg.addColorStop(.70,'#D4AF37');gg.addColorStop(1,'#EF4444');
+  c.fillStyle=gg;
+  c.beginPath();c.roundRect(gx,gy,gw,gh,13);c.fill();
+  const pct=Math.max(0,Math.min(1,(r.imb-40)/120));
+  c.fillStyle='#FFFFFF';
+  c.beginPath();c.roundRect(gx+pct*gw-5,gy-9,10,gh+18,5);c.fill();
+  /* metrics row */
+  const mets=[[(r.F0/FV.mass).toFixed(1),'F0 · N/kg'],[r.V0.toFixed(2),'V0 · m/s'],[(r.Pmax/FV.mass).toFixed(1),'Pmax · W/kg']];
+  mets.forEach((mm,i)=>{
+    const x=W/6+(i*W/3);
+    c.font='800 92px Outfit';c.fillStyle='#F5F5F4';c.fillText(mm[0],x,930);
+    c.font='700 34px Outfit';c.fillStyle='#9CA3AF';c.fillText(mm[1],x,990);
+  });
+  /* chart */
+  const px=150,pw=W-300,py=1090,ph=520;
+  c.strokeStyle='rgba(255,255,255,.15)';c.lineWidth=3;
+  c.beginPath();c.moveTo(px,py);c.lineTo(px,py+ph);c.lineTo(px+pw,py+ph);c.stroke();
+  const xmax=Math.max(r.V0,r.v0Opt)*1.08,ymax=Math.max(r.F0,r.f0Opt)/FV.mass*1.08;
+  const X=v=>px+(v/xmax)*pw, Y=f=>py+ph-(f/ymax)*ph;
+  c.strokeStyle='rgba(0,255,163,.75)';c.setLineDash([16,13]);c.lineWidth=5;
+  c.beginPath();c.moveTo(X(0),Y(r.f0Opt/FV.mass));c.lineTo(X(r.v0Opt),Y(0));c.stroke();
+  c.setLineDash([]);
+  c.strokeStyle=shGoldGrad(c,X(0),0,X(r.V0),0);c.lineWidth=8;
+  c.beginPath();c.moveTo(X(0),Y(r.F0/FV.mass));c.lineTo(X(r.V0),Y(0));c.stroke();
+  r.pts.forEach(p=>{
+    c.fillStyle='#F5F5F4';c.strokeStyle='#D4AF37';c.lineWidth=5;
+    c.beginPath();c.arc(X(p.v),Y(p.F/FV.mass),13,0,7);c.fill();c.stroke();
+  });
+  c.font='600 30px Outfit';c.fillStyle='#9CA3AF';c.textAlign='left';
+  c.fillText('N/kg',px-110,py+30);c.textAlign='right';c.fillText('m/s',px+pw,py+ph+50);
+  c.textAlign='center';
+  return cv;
+}
+async function shShare(cv,name){
+  const blob=await new Promise(res=>cv.toBlob(res,'image/png'));
+  const file=new File([blob],name,{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file]});return;}catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  alert(t('sh_fail'));
+}
+async function shGo(kind){
+  try{await document.fonts.load('800 300px Outfit');await document.fonts.load('700 44px Outfit');}catch(_){}
+  const cv=kind==='fv'?shCardFV():shCardJump();
+  await shShare(cv,kind==='fv'?'coachdm-profil-fv.png':'coachdm-saut.png');
+}
+$('#b-share-jump').onclick=()=>{if(jumps.length)shGo('jump');};
+$('#b-fv-share').onclick=()=>{if(FV.res)shGo('fv');};
 
 /* ───────── Sauvegarde Supabase (session partagée avec l'app) ───────── */
 import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient})=>{
