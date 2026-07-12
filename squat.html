@@ -275,7 +275,7 @@
   </div>
 </div>
 
-<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v3.2</span></footer>
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v3.3</span></footer>
 
 <script type="module">
 /* Shim: MediaPipe's WASM glue references bare globals (dbg/out/err). If any DOM element
@@ -371,7 +371,7 @@ function showErr(msg){
     b.textContent='⚠ '+msg;
   }catch(_){}
 }
-const VER='squat v3.2';
+const VER='squat v3.3';
 window.addEventListener('error',e=>showErr((e.message||'Erreur JS')+(e.lineno?' (ligne '+e.lineno+')':'')+' ['+VER+']'));
 window.addEventListener('unhandledrejection',e=>showErr('Promise: '+(e.reason&&e.reason.message||e.reason||'?')+' ['+VER+']'));
 
@@ -982,7 +982,7 @@ async function shShare(cv,name){
   const blob=await new Promise(res=>cv.toBlob(res,'image/png'));
   const file=new File([blob],name,{type:'image/png'});
   if(navigator.canShare&&navigator.canShare({files:[file]})){
-    try{await navigator.share({files:[file]});return;}catch(e){if(e&&e.name==='AbortError')return;}
+    try{await navigator.share({files:[file],title:'Coach DM'});return;}catch(e){if(e&&e.name==='AbortError')return;}
   }
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=name;a.click();
@@ -990,9 +990,9 @@ async function shShare(cv,name){
   alert(t('sh_fail'));
 }
 async function shGo(){
-  try{await document.fonts.load('800 300px Outfit');await document.fonts.load('700 44px Outfit');}catch(_){}
-  const logo=await loadLogo();
-  await shShare(shCardSquat(logo),'coachdm-squat.png');
+  /* iOS : navigator.share doit rester dans la fenêtre du geste utilisateur —
+     zéro attente ici, logo & polices préchargés au démarrage de la page. */
+  await shShare(shCardSquat(LOGO),'coachdm-squat.png');
 }
 document.getElementById('b-share').onclick=()=>{if(reps.length)shGo();};
 
@@ -1043,6 +1043,9 @@ import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({creat
 
 applyLang();
 proUI();
+/* Préchargement partage : logo + polices prêts avant le premier tap 📤 */
+loadLogo();
+try{document.fonts.load('800 300px Outfit');document.fonts.load('700 44px Outfit');document.fonts.load('700 40px Outfit');}catch(_){}
 </script>
 </body>
 </html>

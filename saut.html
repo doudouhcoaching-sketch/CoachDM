@@ -318,7 +318,7 @@
   </div>
 </div>
 
-<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">saut v3.4</span></footer>
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">saut v3.5</span></footer>
 
 <script type="module">
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
@@ -1037,7 +1037,7 @@ async function shShare(cv,name){
   const blob=await new Promise(res=>cv.toBlob(res,'image/png'));
   const file=new File([blob],name,{type:'image/png'});
   if(navigator.canShare&&navigator.canShare({files:[file]})){
-    try{await navigator.share({files:[file]});return;}catch(e){if(e&&e.name==='AbortError')return;}
+    try{await navigator.share({files:[file],title:'Coach DM'});return;}catch(e){if(e&&e.name==='AbortError')return;}
   }
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=name;a.click();
@@ -1045,9 +1045,9 @@ async function shShare(cv,name){
   alert(t('sh_fail'));
 }
 async function shGo(kind){
-  try{await document.fonts.load('800 300px Outfit');await document.fonts.load('700 44px Outfit');}catch(_){}
-  const logo=await loadLogo();
-  const cv=kind==='fv'?shCardFV(logo):shCardJump(logo);
+  /* iOS : navigator.share doit rester dans la fenêtre du geste utilisateur —
+     zéro attente ici, logo & polices préchargés au démarrage de la page. */
+  const cv=kind==='fv'?shCardFV(LOGO):shCardJump(LOGO);
   await shShare(cv,kind==='fv'?'coachdm-profil-fv.png':'coachdm-saut.png');
 }
 $('#b-share-jump').onclick=()=>{if(jumps.length)shGo('jump');};
@@ -1206,6 +1206,9 @@ import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({creat
 
 applyLang();
 setMode('jump');
+/* Préchargement partage : logo + polices prêts avant le premier tap 📤 */
+loadLogo();
+try{document.fonts.load('800 300px Outfit');document.fonts.load('700 44px Outfit');document.fonts.load('700 40px Outfit');}catch(_){}
 </script>
 </body>
 </html>
