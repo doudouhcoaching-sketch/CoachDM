@@ -154,6 +154,19 @@
   footer{margin-top:22px;text-align:center;color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.02em}
   footer b{color:var(--gold)}
 
+  .plans{display:grid;gap:10px;text-align:left}
+  .plan{border:1px solid rgba(212,175,55,.45);border-radius:16px;padding:14px;background:rgba(212,175,55,.06)}
+  .plan .pb{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#0A0A0A;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);border-radius:999px;padding:4px 10px;margin-bottom:8px}
+  .plan .pp{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+  .plan .pp small{font-size:13px;color:var(--muted);font-weight:600}
+  .plan .old{font-size:14px;color:var(--muted);text-decoration:line-through;margin-left:8px;font-weight:600}
+  .plan .pn{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.4}
+  .plan .pcta{margin-top:11px;width:100%;font-size:14px;font-weight:700;padding:12px;border-radius:13px;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);color:#0A0A0A}
+  .plan .pcta:active{transform:scale(.98)}
+  .pwov{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:14px}
+  .pwov.show{display:flex}
+  .pwbox{position:relative;width:100%;max-width:480px;max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:14px}
+  .pwclose{position:absolute;top:10px;right:10px;z-index:2;background:#eee;color:#333;width:32px;height:32px;border-radius:50%;font-size:15px;line-height:1}
   @media (prefers-reduced-motion:reduce){.stage{transition:none}.btn{transition:none}.vbar i{transition:none}}
 </style>
 </head>
@@ -207,7 +220,7 @@
 <div class="card pro" id="vbt-gate" style="display:none;text-align:center">
   <h3 id="vbt-gate-h" style="margin-bottom:8px"></h3>
   <p class="gatep" id="vbt-gate-p"></p>
-  <a class="goldbtn" id="b-vbt-gate" href="app.html"></a>
+  <div class="plans" id="gate-plans"></div>
 </div>
 
 <!-- ══ Analyse Pro (VBT) — panneau Premium ══ -->
@@ -246,7 +259,23 @@
   <div class="note" id="help-note"></div>
 </details>
 
-<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v3.1</span></footer>
+<!-- ══ Paiement Stripe sur place — Coach & Coach+ ══ -->
+<div class="pwov" id="pw-ov">
+  <div class="pwbox">
+    <button class="pwclose" id="pw-close" aria-label="Fermer">✕</button>
+    <div id="pw-consent" style="padding:20px 16px">
+      <h3 id="pw-consent-h" style="color:#111;font-size:16px;margin:0 0 12px"></h3>
+      <label style="display:flex;gap:11px;align-items:flex-start;cursor:pointer;font-size:13.5px;line-height:1.55;color:#555">
+        <input type="checkbox" id="pw-agree" style="margin-top:3px;width:18px;height:18px;flex:none;accent-color:#00A870"/>
+        <span id="pw-consent-txt"></span>
+      </label>
+      <button id="pw-continue" disabled style="width:100%;margin-top:18px;font-size:15px;font-weight:700;padding:14px;border-radius:16px;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);color:#0A0A0A;opacity:1"></button>
+    </div>
+    <div id="ck-mount" style="display:none"></div>
+  </div>
+</div>
+
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v3.2</span></footer>
 
 <script type="module">
 /* Shim: MediaPipe's WASM glue references bare globals (dbg/out/err). If any DOM element
@@ -297,8 +326,21 @@ const I18N = {
   view_side:{fr:'profil',en:'side',nl:'zijkant'},
   view_front:{fr:'face',en:'front',nl:'voorkant'},
   vbt_gate_h:{fr:'Analyse Pro (VBT) — fonctionnalité Premium',en:'Pro Analysis (VBT) — Premium feature',nl:'Pro-analyse (VBT) — Premium functie'},
-  vbt_gate_p:{fr:'Le compteur de reps et la profondeur (parallèle cassée) sont gratuits pour tous. L\'Analyse Pro — inclinaison du dos, valgus des genoux, vitesse de chaque rep (VBT), perte de vitesse et 1RM estimé en direct — est réservée aux membres Premium et aux athlètes coachés. Connecte-toi ou active ton abonnement dans l\'app.',en:'Rep counting and depth (below parallel) are free for everyone. Pro Analysis — torso lean, knee valgus, per-rep bar speed (VBT), velocity loss and live estimated 1RM — is for Premium members and coached athletes. Log in or activate your subscription in the app.',nl:'Reps tellen en de diepte (onder parallel) zijn gratis voor iedereen. Pro-analyse — romphelling, knievalgus, snelheid per rep (VBT), snelheidsverlies en live geschatte 1RM — is voor Premium-leden en gecoachte atleten. Log in of activeer je abonnement in de app.'},
-  vbt_gate_btn:{fr:'Ouvrir l\'app Coach DM',en:'Open the Coach DM app',nl:'Open de Coach DM app'},
+  vbt_gate_p:{fr:'Le compteur de reps et la profondeur (parallèle cassée) sont gratuits pour tous. L\'Analyse Pro — inclinaison du dos, valgus des genoux, vitesse de chaque rep (VBT), perte de vitesse et 1RM estimé en direct — est réservée aux offres Coach & Coach+. Abonne-toi directement ici, sans quitter la page.',en:'Rep counting and depth (below parallel) are free for everyone. Pro Analysis — torso lean, knee valgus, per-rep bar speed (VBT), velocity loss and live estimated 1RM — is for the Coach & Coach+ plans. Subscribe right here, without leaving the page.',nl:'Reps tellen en de diepte (onder parallel) zijn gratis voor iedereen. Pro-analyse — romphelling, knievalgus, snelheid per rep (VBT), snelheidsverlies en live geschatte 1RM — is voor de Coach & Coach+ abonnementen. Abonneer je hier, zonder de pagina te verlaten.'},
+  pw_choose:{fr:'Choisir cette offre',en:'Choose this plan',nl:'Kies dit abonnement'},
+  pw_month:{fr:'/mois',en:'/month',nl:'/maand'},
+  pw_note20:{fr:'Jusqu\'à 20 clients actifs',en:'Up to 20 active clients',nl:'Tot 20 actieve klanten'},
+  pw_note30:{fr:'Jusqu\'à 30 clients actifs — exclusivité fondateur',en:'Up to 30 active clients — founder exclusive',nl:'Tot 30 actieve klanten — exclusief voor oprichters'},
+  pw_note50:{fr:'Jusqu\'à 50 clients actifs',en:'Up to 50 active clients',nl:'Tot 50 actieve klanten'},
+  pw_note60:{fr:'Jusqu\'à 60 clients actifs — exclusivité fondateur',en:'Up to 60 active clients — founder exclusive',nl:'Tot 60 actieve klanten — exclusief voor oprichters'},
+  pw_coach_f:{fr:'Coach Fondateur',en:'Founding Coach',nl:'Oprichtende coach'},
+  pw_coachp_f:{fr:'Coach+ Fondateur',en:'Founding Coach+',nl:'Oprichtend Coach+'},
+  pw_left:{fr:'Plus que {n} places fondateur',en:'Only {n} founder spots left',nl:'Nog {n} oprichtersplaatsen'},
+  pw_consent_h:{fr:'Avant de payer',en:'Before you pay',nl:'Voor je betaalt'},
+  pw_consent:{fr:'Je demande l\'accès immédiat au service et je reconnais qu\'en démarrant maintenant, je renonce à mon droit de rétractation de 14 jours dès l\'ouverture de mon accès premium (art. VI.53 du Code de droit économique).',en:'I request immediate access to the service and acknowledge that by starting now, I waive my 14-day right of withdrawal as soon as my premium access is opened (art. VI.53 of the Belgian Code of Economic Law).',nl:'Ik vraag onmiddellijke toegang tot de dienst en erken dat ik, door nu te starten, afstand doe van mijn herroepingsrecht van 14 dagen zodra mijn premium-toegang wordt geopend (art. VI.53 van het Wetboek van economisch recht).'},
+  pw_continue:{fr:'Continuer vers le paiement',en:'Continue to payment',nl:'Doorgaan naar betaling'},
+  pw_fail:{fr:'Paiement indisponible. Réessaie dans un instant.',en:'Payment unavailable. Try again shortly.',nl:'Betaling niet beschikbaar. Probeer straks opnieuw.'},
+
   vbt_h:{fr:'Analyse Pro — Vitesse (VBT)',en:'Pro Analysis — Bar speed (VBT)',nl:'Pro-analyse — Snelheid (VBT)'},
   vbt_hint:{fr:'Entre ta taille (une fois) et la charge sur la barre. Chaque rep : vitesse concentrique moyenne, perte de vitesse et 1RM estimé. Coupe ta série à −20% de vitesse : tu gagnes autant de force avec moins de fatigue (Pareja-Blanco 2017).',en:'Enter your height (once) and the load on the bar. Every rep: mean concentric velocity, velocity loss and estimated 1RM. Cut your set at −20% velocity: same strength gains with less fatigue (Pareja-Blanco 2017).',nl:'Vul één keer je lengte in en de belasting op de bar. Elke rep: gemiddelde concentrische snelheid, snelheidsverlies en geschatte 1RM. Stop je set bij −20% snelheid: evenveel krachtwinst met minder vermoeidheid (Pareja-Blanco 2017).'},
   vbt_height:{fr:'Taille (cm)',en:'Height (cm)',nl:'Lengte (cm)'},
@@ -308,7 +350,7 @@ const I18N = {
   vbt_loss:{fr:'Perte vitesse',en:'Velocity loss',nl:'Snelheidsverlies'},
   vbt_stop:{fr:'⛔ Perte de vitesse ≥ 20% — arrête ta série : les reps suivantes ne construisent que de la fatigue, pas de la force.',en:'⛔ Velocity loss ≥ 20% — end your set: further reps only build fatigue, not strength.',nl:'⛔ Snelheidsverlies ≥ 20% — stop je set: verdere reps bouwen alleen vermoeidheid op, geen kracht.'},
   vbt_note:{fr:'Vitesse mesurée sur la hanche, calibrée sur ta taille. Sans taille renseignée, la vitesse reste vide. 1RM estimé : indication, pas une vérité absolue.',en:'Velocity measured at the hip, calibrated on your height. Without a height, velocity stays empty. Estimated 1RM is an indication, not an absolute truth.',nl:'Snelheid gemeten op de heup, gekalibreerd op je lengte. Zonder lengte blijft de snelheid leeg. Geschatte 1RM is een indicatie, geen absolute waarheid.'},
-  pro_note:{fr:'Dos, valgus & vitesse (VBT) : Analyse Pro — Premium',en:'Torso, valgus & speed (VBT): Pro Analysis — Premium',nl:'Romp, valgus & snelheid (VBT): Pro-analyse — Premium'},
+  pro_note:{fr:'Dos, valgus & vitesse (VBT) : offres Coach & Coach+',en:'Torso, valgus & speed (VBT): Coach & Coach+ plans',nl:'Romp, valgus & snelheid (VBT): Coach & Coach+ abonnementen'},
   help_h:{fr:'Comment ça marche',en:'How it works',nl:'Hoe het werkt'},
   help_1:{fr:'Téléphone posé ou sur trépied, stable, à 2–4 m. Corps entier + pieds dans le cadre, bonne lumière.',en:'Phone resting or on a tripod, stable, 2–4 m away. Full body + feet in frame, good lighting.',nl:'Telefoon neergezet of op statief, stabiel, op 2–4 m. Hele lichaam + voeten in beeld, goed licht.'},
   help_2:{fr:'Gratuit : reps comptées + parallèle cassée (crête de la hanche sous le genou). Pro : dos, valgus (de face) et vitesse VBT.',en:'Free: rep counting + below parallel (hip crease below the knee). Pro: torso, valgus (front view) and VBT speed.',nl:'Gratis: reps tellen + onder parallel (heupplooi onder de knie). Pro: romp, valgus (vooraanzicht) en VBT-snelheid.'},
@@ -329,7 +371,7 @@ function showErr(msg){
     b.textContent='⚠ '+msg;
   }catch(_){}
 }
-const VER='squat v3.1';
+const VER='squat v3.2';
 window.addEventListener('error',e=>showErr((e.message||'Erreur JS')+(e.lineno?' (ligne '+e.lineno+')':'')+' ['+VER+']'));
 window.addEventListener('unhandledrejection',e=>showErr('Promise: '+(e.reason&&e.reason.message||e.reason||'?')+' ['+VER+']'));
 
@@ -345,6 +387,7 @@ const bStart=$('#b-start'), bFlip=$('#b-flip'), bReset=$('#b-reset');
 const inVH=$('#in-vh'), inVL=$('#in-vl');
 const ctx=canvas.getContext('2d');
 let du=null;
+let SB=null,UIDG=null;
 
 /* ───────── Accès (freemium) ─────────
    Gratuit pour tous : compteur de reps + parallèle + profondeur.
@@ -365,7 +408,10 @@ function applyLang(){
   $('#list-h').textContent=t('list_h');
   $('#vbt-gate-h').textContent=t('vbt_gate_h');
   $('#vbt-gate-p').textContent=t('vbt_gate_p');
-  $('#b-vbt-gate').textContent=t('vbt_gate_btn');
+  const pwch=document.getElementById('pw-consent-h'); if(pwch)pwch.textContent=t('pw_consent_h');
+  const pwct=document.getElementById('pw-consent-txt'); if(pwct)pwct.textContent=t('pw_consent');
+  const pwco=document.getElementById('pw-continue'); if(pwco)pwco.textContent=t('pw_continue');
+  if(typeof pwRender==='function')pwRender();
   $('#vbt-h').textContent=t('vbt_h');
   $('#vbt-hint').textContent=t('vbt_hint');
   $('#l-vh').textContent=t('vbt_height');
@@ -477,6 +523,7 @@ function renderVBT(){
 }
 function proUI(){
   $('#vbt-gate').style.display=(ENT.known&&!PRO)?'':'none';
+  if(ENT.known&&!PRO)pwLoad();
   $('#vbt-card').style.display=PRO?'':'none';
   $('#pro-note').style.display=(ENT.known&&!PRO)?'':'none';
   if(PRO){vbtInputs();}
@@ -763,6 +810,97 @@ document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&running)stop();
 });
 
+/* ═════════ Paywall Coach & Coach+ — Stripe embarqué sur place ═════════ */
+const STRIPE_PK='pk_live_51TpzX7J0YSDZQQHK1pZpLyBD1QX0c95OWwdhGO1BpTvs3vb99GAq8D9JA9voqURFI5GpkfeQmORt8fnwWaipMLGq00re93zamr';
+let STRIPE=null,CKI=null;
+const PW={prices:null,slots:null,pending:null,loading:false};
+function pwLocale(){return LANG==='fr'?'fr-BE':(LANG==='nl'?'nl-BE':'en-GB');}
+function pwMoney(c){return (c/100).toLocaleString(pwLocale(),{style:'currency',currency:'EUR'});}
+async function stripeJs(){
+  if(window.Stripe)return window.Stripe;
+  await new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://js.stripe.com/v3/';sc.onload=res;sc.onerror=rej;document.head.appendChild(sc);});
+  return window.Stripe;
+}
+function pwSlotsLeft(kind){const r=(PW.slots||[]).find(x=>x.kind===kind);return r?+r.left_count:null;}
+async function pwLoad(){
+  if(!SB||PW.loading)return;
+  if(PW.prices){pwRender();return;}
+  PW.loading=true;
+  try{const {data}=await SB.from('billing_prices').select('*').eq('audience','coach').eq('active',true);PW.prices=data||[];}catch(_){PW.prices=[];}
+  try{const {data}=await SB.rpc('founder_slots');PW.slots=data||[];}catch(_){PW.slots=[];}
+  PW.loading=false;
+  pwRender();
+}
+function pwRender(){
+  const box=document.getElementById('gate-plans');
+  if(!box||!PW.prices)return;
+  const ps=PW.prices.filter(p=>p.billing_interval==='month');
+  const left=pwSlotsLeft('coach');
+  const f=(left===0)?null:ps.find(p=>p.tier==='coach'&&p.founder);
+  const r=ps.find(p=>p.tier==='coach'&&!p.founder);
+  const fp=(left===0)?null:ps.find(p=>p.tier==='coach_plus'&&p.founder);
+  const rp=ps.find(p=>p.tier==='coach_plus'&&!p.founder);
+  const mk=(off,reg,fBadge,rBadge,fNote,rNote)=>{
+    if(!off)return '';
+    const isF=!!off.founder;
+    let h='<div class="plan"><span class="pb">'+(isF?fBadge:rBadge)+'</span>';
+    h+='<div class="pp">'+pwMoney(off.amount_cents)+'<small>'+t('pw_month')+'</small>';
+    if(isF&&reg)h+='<span class="old">'+pwMoney(reg.amount_cents)+'</span>';
+    h+='</div><div class="pn">'+(isF?fNote:rNote)+'</div>';
+    if(isF&&left!==null&&left>0&&left<=15)h+='<div class="pn" style="color:var(--neon)">'+t('pw_left').replace('{n}',left)+'</div>';
+    h+='<button class="pcta" data-lk="'+off.lookup_key+'">'+t('pw_choose')+'</button></div>';
+    return h;
+  };
+  box.innerHTML=mk(f||r,r,t('pw_coach_f'),'Coach',t('pw_note30'),t('pw_note20'))
+              + mk(fp||rp,rp,t('pw_coachp_f'),'Coach+',t('pw_note60'),t('pw_note50'));
+  box.querySelectorAll('[data-lk]').forEach(b=>{b.onclick=()=>pwOpen(b.dataset.lk);});
+}
+function pwReset(){
+  const c=document.getElementById('pw-consent'),m=document.getElementById('ck-mount');
+  const a=document.getElementById('pw-agree'),k=document.getElementById('pw-continue');
+  if(c)c.style.display='';
+  if(m){m.style.display='none';m.innerHTML='';}
+  if(a)a.checked=false;
+  if(k)k.disabled=true;
+}
+function pwOpen(lk){
+  if(!UIDG){alert(t('save_login'));return;}
+  PW.pending=lk;
+  if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
+  pwReset();
+  document.getElementById('pw-ov').classList.add('show');
+}
+function pwClose(){
+  document.getElementById('pw-ov').classList.remove('show');
+  if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
+  pwReset();PW.pending=null;
+}
+async function pwMount(){
+  if(!PW.pending||!SB)return;
+  const lk=PW.pending;
+  document.getElementById('pw-consent').style.display='none';
+  const m=document.getElementById('ck-mount');m.style.display='';m.innerHTML='';
+  try{
+    const Sj=await stripeJs();
+    if(!STRIPE)STRIPE=Sj(STRIPE_PK);
+    if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
+    CKI=await STRIPE.initEmbeddedCheckout({fetchClientSecret:async()=>{
+      const {data,error}=await SB.functions.invoke('stripe-checkout',{body:{action:'checkout',lookup_key:lk,locale:LANG,consent_withdrawal:true,consent_ts:new Date().toISOString()}});
+      if(error||!data||!data.client_secret)throw new Error((data&&data.error)||'checkout');
+      return data.client_secret;
+    }});
+    CKI.mount('#ck-mount');
+  }catch(_){pwClose();alert(t('pw_fail'));}
+}
+(function(){
+  const ov=document.getElementById('pw-ov');
+  const a=document.getElementById('pw-agree'),k=document.getElementById('pw-continue'),x=document.getElementById('pw-close');
+  if(a&&k)a.onchange=()=>{k.disabled=!a.checked;};
+  if(k)k.onclick=pwMount;
+  if(x)x.onclick=pwClose;
+  if(ov)ov.addEventListener('click',e=>{if(e.target===ov)pwClose();});
+})();
+
 /* ═════════ Carte partageable (story 1080×1920) — vrai logo Coach DM ═════════ */
 let LOGO=null,LOGO_TRIED=false;
 function loadLogo(){
@@ -861,9 +999,11 @@ document.getElementById('b-share').onclick=()=>{if(reps.length)shGo();};
 /* ───────── Sauvegarde Supabase (session partagée avec l'app) ───────── */
 import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient})=>{
   const sbClient=createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
+  SB=sbClient;
   let UID=null;
   sbClient.auth.getSession().then(async({data})=>{
     UID=data?.session?.user?.id||null;
+    UIDG=UID;
     if(UID){
       try{
         const {data:ok}=await sbClient.rpc('fn_can_analyze',{p_user:UID});

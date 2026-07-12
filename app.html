@@ -1565,7 +1565,7 @@ const T = {
  an_squat_sub:{fr:'Gratuit : reps + parall\u00e8le \u00b7 Pro : dos, valgus, vitesse (VBT)',en:'Free: reps + parallel \u00b7 Pro: torso, valgus, speed (VBT)',nl:'Gratis: reps + parallel \u00b7 Pro: romp, valgus, snelheid (VBT)'},
  an_jump:{fr:'Test de Saut',en:'Jump Test',nl:'Sprongtest'},
  an_jump_sub:{fr:'Gratuit : hauteur en cm \u00b7 Pro : Profil Force-Vitesse',en:'Free: height in cm \u00b7 Pro: Force-Velocity profile',nl:'Gratis: hoogte in cm \u00b7 Pro: Kracht-Snelheid profiel'},
- an_pro:{fr:'Analyses Pro (VBT, Profil F-V) incluses dans Premium',en:'Pro analyses (VBT, F-V profile) included in Premium',nl:'Pro-analyses (VBT, K-S profiel) inbegrepen in Premium'},
+ an_pro:{fr:'Analyses Pro (VBT, Profil F-V) \u2014 offres Coach & Coach+',en:'Pro analyses (VBT, F-V profile) \u2014 Coach & Coach+ plans',nl:'Pro-analyses (VBT, K-S profiel) \u2014 Coach & Coach+ abonnementen'},
  pf_week:{fr:'Semaine',en:'Week',nl:'Week'},
  au_email:{fr:'Email',en:'Email',nl:'E-mail'},
  au_pass:{fr:'Mot de passe',en:'Password',nl:'Wachtwoord'},
@@ -3116,7 +3116,7 @@ function renderAnalyseSection(){
     <div class="an-body"><div class="an-t">${t('an_jump')}</div><div class="an-d">${t('an_jump_sub')}</div></div>
     <span class="an-end">›</span>
   </div>
-  ${PREMIUM?'':`<div class="an-lock-note">${lockIc} ${t('an_pro')}</div>`}`;
+  ${IS_COACH?'':`<div class="an-lock-note">${lockIc} ${t('an_pro')}</div>`}`;
   host.querySelectorAll('.an-card').forEach(c=>{
     c.onclick=()=>{ location.href=c.dataset.an; };
   });
