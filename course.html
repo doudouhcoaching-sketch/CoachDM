@@ -1,0 +1,1115 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#0A0A0A" />
+<meta name="robots" content="noindex" />
+<title>Analyse Course — Posture & Technique — Coach DM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0A0A; --surface:#141414; --surface2:#1C1C1C; --line:rgba(255,255,255,.08);
+    --gold:#D4AF37; --neon:#00FFA3; --txt:#F5F5F4; --muted:#9CA3AF; --ok:#10B981; --danger:#EF4444;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--txt)}
+  body{
+    font-family:'Outfit',-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    letter-spacing:-0.02em;-webkit-font-smoothing:antialiased;
+    min-height:100dvh;padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 28px);
+    max-width:560px;margin:0 auto;
+  }
+  button{font-family:inherit;cursor:pointer;border:none;color:inherit;background:transparent;-webkit-appearance:none;appearance:none}
+
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px}
+  .backapp{flex:0 0 auto;display:grid;place-items:center;width:36px;height:36px;border-radius:12px;border:1px solid rgba(255,255,255,.14);color:#D4AF37;text-decoration:none;font-size:20px;font-weight:800;line-height:1;margin-right:2px}
+  .backapp:active{transform:scale(.94)}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:18px;letter-spacing:-0.02em}
+  .brandlogo{width:26px;height:26px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px rgba(212,175,55,.55)}
+  .brand em{font-style:normal;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 45%,#A47F1E 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:12.5px;font-weight:500;margin-top:2px}
+  .lang{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .lang button{font-size:11.5px;font-weight:700;color:var(--muted);padding:5px 9px;border-radius:999px}
+  .lang button.on{color:#0A0A0A;background:var(--neon)}
+
+  .stage{
+    position:relative;border-radius:22px;overflow:hidden;background:#000;
+    border:1px solid var(--line);aspect-ratio:3/4;transition:box-shadow .15s ease;
+  }
+  .stage.deep{box-shadow:0 0 0 2px var(--neon),0 0 34px rgba(0,255,163,.35)}
+  .stage video,.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+  .stage.mirror video,.stage.mirror canvas{transform:scaleX(-1)}
+  .hud{position:absolute;left:0;right:0;top:0;display:flex;justify-content:center;padding:12px;pointer-events:none}
+  .pill{
+    font-size:13px;font-weight:700;padding:8px 14px;border-radius:999px;
+    background:rgba(10,10,10,.72);border:1px solid var(--line);backdrop-filter:blur(8px);
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .pill.ok .dot{background:var(--neon);box-shadow:0 0 10px var(--neon)}
+  .pill.warn .dot{background:var(--gold)}
+  .pill.err .dot{background:var(--danger)}
+  .angle-chip{
+    position:absolute;right:10px;bottom:10px;pointer-events:none;
+    font-size:13px;font-weight:800;color:var(--txt);font-variant-numeric:tabular-nums;
+    background:rgba(10,10,10,.72);border:1px solid var(--line);border-radius:12px;padding:8px 11px;
+  }
+  .angle-chip small{color:var(--muted);font-weight:600;font-size:10px;display:block;letter-spacing:.05em;text-transform:uppercase}
+  .speed-chip{
+    position:absolute;right:10px;bottom:74px;pointer-events:none;
+    font-size:13px;font-weight:800;color:var(--neon);font-variant-numeric:tabular-nums;
+    background:rgba(10,10,10,.72);border:1px solid rgba(0,255,163,.35);border-radius:12px;padding:8px 11px;
+  }
+  .speed-chip small{color:var(--muted);font-weight:600;font-size:10px;display:block;letter-spacing:.05em;text-transform:uppercase}
+  .dbg{
+    position:absolute;left:10px;bottom:10px;pointer-events:none;
+    font-size:10px;font-weight:600;color:rgba(0,255,163,.9);
+    font-variant-numeric:tabular-nums;letter-spacing:0;
+    background:rgba(10,10,10,.65);border-radius:8px;padding:5px 8px;line-height:1.45;white-space:pre;
+  }
+  .splash{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;text-align:center;padding:24px;background:radial-gradient(120% 90% at 50% 0%,#161616 0%,#0A0A0A 70%);
+  }
+  .splash p{color:var(--muted);font-size:13.5px;line-height:1.55;max-width:300px}
+  .squatter{width:54px;height:54px;stroke:var(--neon);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+  .controls{display:flex;gap:10px;margin-top:12px}
+  .btn{
+    flex:1;font-size:15px;font-weight:700;padding:14px 12px;border-radius:16px;
+    background:var(--neon);color:#062A1D;letter-spacing:-0.02em;transition:transform .08s ease,opacity .15s;
+  }
+  .btn:active{transform:scale(.97)}
+  .btn.ghost{background:var(--surface);color:var(--txt);border:1px solid var(--line)}
+  .btn[disabled]{opacity:.45;pointer-events:none}
+
+  .result{
+    margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;
+    padding:18px 18px 16px;text-align:center;
+  }
+  .result .lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .big{
+    font-size:64px;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums;
+    background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 45%,#A47F1E 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .meta{display:flex;justify-content:center;gap:18px;margin-top:8px;color:var(--muted);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+  .meta b{color:var(--txt)}
+  .meta .g{color:var(--ok)}
+
+  .card{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px 18px}
+  .card h3{font-size:14.5px;font-weight:700;margin-bottom:10px}
+  .card.pro{border-color:rgba(212,175,55,.45)}
+  .gatep{color:var(--muted);font-size:13px;line-height:1.55;margin:0 0 14px}
+  .goldbtn{display:block;text-decoration:none;font-size:15px;font-weight:700;padding:14px;border-radius:16px;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);color:#0A0A0A;text-align:center}
+  .protag{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.06em;color:#0A0A0A;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);border-radius:6px;padding:2px 7px;vertical-align:2px;margin-left:6px}
+
+  .vrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .vfield{display:flex;flex-direction:column;gap:5px}
+  .vfield label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .vfield input{background:var(--surface2);border:1px solid var(--line);border-radius:12px;color:var(--txt);font-family:inherit;font-size:16px;font-weight:700;padding:12px;width:100%;font-variant-numeric:tabular-nums}
+  .vfield input:focus{outline:none;border-color:rgba(212,175,55,.6)}
+  .vres{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .vres .m{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:11px 4px;text-align:center}
+  .vres .m .v{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--txt)}
+  .vres .m .v small{font-size:10px;font-weight:700;color:var(--muted)}
+  .vres .m .k{font-size:9.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:3px}
+  .vbar{position:relative;height:12px;border-radius:999px;background:var(--surface2);overflow:hidden;margin-top:14px}
+  .vbar i{display:block;height:100%;width:0;border-radius:999px;background:var(--neon);transition:width .3s ease}
+  .vbar.warn i{background:var(--gold)}
+  .vbar.stop i{background:var(--danger)}
+  .vmark{position:absolute;top:-2px;left:50%;width:2px;height:16px;background:rgba(255,255,255,.55)}
+  .vscale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);font-weight:700;margin-top:5px;font-variant-numeric:tabular-nums}
+  .vstop{margin-top:12px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.5);color:#EF4444;font-size:13px;font-weight:700;border-radius:12px;padding:11px 13px;line-height:1.5}
+  .vnote{margin-top:10px;font-size:11.5px;color:var(--muted);line-height:1.5}
+
+  .rlist{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .rlist li{
+    background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;
+    font-variant-numeric:tabular-nums;font-size:13.5px;font-weight:600;
+    display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;
+  }
+  .rlist .n{color:var(--muted);font-size:12.5px;min-width:30px}
+  .badge{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid var(--line)}
+  .b-ok{color:var(--ok);border-color:rgba(16,185,129,.4)}
+  .b-no{color:var(--danger);border-color:rgba(239,68,68,.4)}
+  .b-warn{color:var(--gold);border-color:rgba(212,175,55,.4)}
+  .b-mut{color:var(--muted)}
+  .b-spd{color:var(--neon);border-color:rgba(0,255,163,.4)}
+  .empty{color:var(--muted);font-size:13px}
+  .pro-note{margin-top:12px;font-size:12px;font-weight:700;color:var(--gold);display:flex;align-items:center;gap:7px}
+
+  details{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:14px 18px}
+  summary{font-size:14.5px;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:'+';color:var(--muted);font-size:18px;font-weight:600}
+  details[open] summary::after{content:'−'}
+  .help{margin-top:10px;color:var(--muted);font-size:13.5px;line-height:1.6}
+  .help li{margin:0 0 6px 16px}
+  .pdiag{width:100%;max-width:300px;display:block;margin:8px auto 2px}
+  .note{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5}
+
+  footer{margin-top:22px;text-align:center;color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.02em}
+  footer b{color:var(--gold)}
+
+  .plans{display:grid;gap:10px;text-align:left}
+  .plan{border:1px solid rgba(212,175,55,.45);border-radius:16px;padding:14px;background:rgba(212,175,55,.06)}
+  .plan .pb{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#0A0A0A;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);border-radius:999px;padding:4px 10px;margin-bottom:8px}
+  .plan .pp{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+  .plan .pp small{font-size:13px;color:var(--muted);font-weight:600}
+  .plan .old{font-size:14px;color:var(--muted);text-decoration:line-through;margin-left:8px;font-weight:600}
+  .plan .pn{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.4}
+  .plan .pcta{margin-top:11px;width:100%;font-size:14px;font-weight:700;padding:12px;border-radius:13px;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);color:#0A0A0A}
+  .plan .pcta:active{transform:scale(.98)}
+  .pwov{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:14px}
+  .pwov.show{display:flex}
+  .pwbox{position:relative;width:100%;max-width:480px;max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:14px}
+  .pwclose{position:absolute;top:10px;right:10px;z-index:2;background:#eee;color:#333;width:32px;height:32px;border-radius:50%;font-size:15px;line-height:1}
+  .mvseg{display:flex;gap:7px;margin:0 0 12px}
+  .mvseg button{flex:1;padding:10px 4px;border-radius:13px;font-size:13.5px;font-weight:800;letter-spacing:.02em;background:rgba(255,255,255,.05);color:var(--muted);border:1px solid rgba(255,255,255,.09)}
+  .mvseg button.on{background:linear-gradient(135deg,rgba(212,175,55,.22),rgba(212,175,55,.10));color:var(--gold);border-color:rgba(212,175,55,.55)}
+  @media (prefers-reduced-motion:reduce){.stage{transition:none}.btn{transition:none}.vbar i{transition:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="backapp" href="app.html" aria-label="Coach DM App">‹</a>
+  <div>
+    <div class="brand"><img class="brandlogo" src="/logo-dm.png" alt="" onerror="this.remove()"><span>COACH <em>DM</em></span></div>
+    <div class="sub" id="subline"></div>
+  </div>
+  <div class="lang" id="lang">
+    <button data-lang="fr">FR</button><button data-lang="en">EN</button><button data-lang="nl">NL</button>
+  </div>
+</header>
+
+<div class="stage" id="stage">
+  <video id="cam" playsinline muted autoplay></video>
+  <canvas id="overlay"></canvas>
+  <div class="hud"><span class="pill" id="pill"><span class="dot"></span><span id="pill-txt"></span></span></div>
+  <div class="speed-chip" id="spd" hidden><small>m/s</small><span id="spd-val">—</span></div>
+  <div class="angle-chip" id="chip" hidden><small id="chip-lbl"></small><span id="chip-val">—</span></div>
+  <div class="dbg" id="cdm-dbg" hidden></div>
+  <div class="splash" id="splash">
+    <svg class="squatter" viewBox="0 0 24 24"><circle cx="13.5" cy="4.5" r="2"/><path d="M13 7l-2.5 4.5L7 13M10.5 11.5l2 3-1.5 5M12.5 14.5l3.5 1.5 2 4M13 7l4 1.5 2.5 3"/></svg>
+    <p id="splash-p"></p>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn" id="b-start"></button>
+  <button class="btn ghost" id="b-flip" disabled>⇄</button>
+  <button class="btn ghost" id="b-reset" disabled></button>
+</div>
+
+<div class="result">
+  <div class="lbl" id="res-lbl"></div>
+  <div class="big" id="res-reps">0</div>
+  <div class="meta">
+    <span><span id="m-par"></span> <b class="g" id="res-par">—</b></span>
+    <span><span id="m-depth"></span> <b id="res-depth">—</b></span>
+  </div>
+</div>
+
+<div class="controls" id="save-row" style="display:none">
+  <button class="btn" id="b-save"></button>
+  <button class="btn ghost" id="b-share" style="flex:0 0 56px;font-size:19px">📤</button>
+</div>
+
+<!-- ══ Analyse Pro (VBT) — verrou Premium ══ -->
+<div class="card pro" id="vbt-gate" style="display:none;text-align:center">
+  <h3 id="vbt-gate-h" style="margin-bottom:8px"></h3>
+  <p class="gatep" id="vbt-gate-p"></p>
+  <div class="plans" id="gate-plans"></div>
+</div>
+
+<!-- ══ Analyse Pro (VBT) — panneau Premium ══ -->
+<div class="card pro" id="vbt-card" style="display:none">
+  <h3><span id="vbt-h"></span><span class="protag">PRO</span></h3>
+  <p class="gatep" id="vbt-hint" style="margin-bottom:12px"></p>
+  <div class="vrow">
+    <div class="vfield"><label id="l-vh"></label><input id="in-vh" type="number" inputmode="decimal" min="120" max="220" step="0.5" placeholder="180"></div>
+  </div>
+  <div class="vres">
+    <div class="m"><div class="v"><span id="v-lean">—</span><small> °</small></div><div class="k" id="k-lean"></div></div>
+    <div class="m"><div class="v"><span id="v-osc">—</span><small> cm</small></div><div class="k" id="k-osc"></div></div>
+    <div class="m"><div class="v"><span id="v-gct">—</span><small> ms</small></div><div class="k" id="k-gct"></div></div>
+    <div class="m"><div class="v"><span id="v-ovs">—</span><small> %</small></div><div class="k" id="k-ovs"></div></div>
+  </div>
+  <div class="vbar" id="v-bar"><i id="v-fill"></i><span class="vmark"></span></div>
+  <div class="vscale"><span>140</span><span>170 spm</span><span>200</span></div>
+  <div class="vstop" id="v-stop" style="display:none"></div>
+  <div class="vnote" id="vbt-note"></div>
+</div>
+
+<div class="card">
+  <h3 id="list-h"></h3>
+  <ul class="rlist" id="rlist"></ul>
+  <div class="empty" id="rempty"></div>
+  <div class="pro-note" id="pro-note" style="display:none">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    <span id="pro-note-txt"></span>
+  </div>
+</div>
+
+<details>
+  <summary id="place-h"></summary>
+  <svg class="pdiag" viewBox="0 0 320 190" aria-hidden="true">
+    <ellipse cx="150" cy="62" rx="30" ry="11" fill="none" stroke="#9CA3AF" stroke-width="2"/>
+    <circle cx="150" cy="62" r="7.5" fill="#F5F5F4"/>
+    <line x1="188" y1="62" x2="252" y2="62" stroke="rgba(0,255,163,.45)" stroke-width="2" stroke-dasharray="5 5"/>
+    <rect x="258" y="49" width="17" height="27" rx="4.5" fill="none" stroke="#00FFA3" stroke-width="2.5"/>
+    <text x="266" y="97" fill="#00FFA3" font-size="12" font-weight="800" text-anchor="middle">90° ✓</text>
+    <line x1="150" y1="80" x2="150" y2="128" stroke="rgba(0,255,163,.45)" stroke-width="2" stroke-dasharray="5 5"/>
+    <rect x="141" y="134" width="17" height="27" rx="4.5" fill="none" stroke="#00FFA3" stroke-width="2.5"/>
+    <text x="150" y="182" fill="#00FFA3" font-size="12" font-weight="800" text-anchor="middle">0° ✓</text>
+    <line x1="176" y1="80" x2="222" y2="122" stroke="rgba(239,68,68,.45)" stroke-width="2" stroke-dasharray="5 5"/>
+    <rect x="226" y="126" width="17" height="27" rx="4.5" fill="none" stroke="#EF4444" stroke-width="2.5"/>
+    <text x="235" y="174" fill="#EF4444" font-size="12" font-weight="800" text-anchor="middle">45° ✗</text>
+  </svg>
+  <ol class="help" id="place-ol"></ol>
+</details>
+
+<details>
+  <summary id="help-h"></summary>
+  <ol class="help" id="help-ol"></ol>
+  <div class="note" id="help-note"></div>
+</details>
+
+<!-- ══ Paiement Stripe sur place — Coach & Coach+ ══ -->
+<div class="pwov" id="pw-ov">
+  <div class="pwbox">
+    <button class="pwclose" id="pw-close" aria-label="Fermer">✕</button>
+    <div id="pw-consent" style="padding:20px 16px">
+      <h3 id="pw-consent-h" style="color:#111;font-size:16px;margin:0 0 12px"></h3>
+      <label style="display:flex;gap:11px;align-items:flex-start;cursor:pointer;font-size:13.5px;line-height:1.55;color:#555">
+        <input type="checkbox" id="pw-agree" style="margin-top:3px;width:18px;height:18px;flex:none;accent-color:#00A870"/>
+        <span id="pw-consent-txt"></span>
+      </label>
+      <button id="pw-continue" disabled style="width:100%;margin-top:18px;font-size:15px;font-weight:700;padding:14px;border-radius:16px;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);color:#0A0A0A;opacity:1"></button>
+    </div>
+    <div id="ck-mount" style="display:none"></div>
+  </div>
+</div>
+
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">course v1.0</span></footer>
+
+<script type="module">
+/* Shim: MediaPipe's WASM glue references bare globals (dbg/out/err). If any DOM element
+   shadows them via named access, force real functions so the glue never crashes. */
+try{window.dbg=function(){};window.out=window.out&&typeof window.out==='function'?window.out:function(){};window.err=window.err&&typeof window.err==='function'?window.err:function(){};}catch(_){}
+
+import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+
+/* ───────── i18n ───────── */
+const I18N = {
+  subline:{fr:'Analyse Course — cadence gratuite · Technique en Pro',en:'Running Analysis — free cadence · Technique in Pro',nl:'Loopanalyse — gratis cadans · Techniek in Pro'},
+  splash:{fr:'Idéal sur tapis : téléphone stable à 3–5 m, DE PROFIL (90°), corps entier dans le cadre. Cours, tout se mesure en direct.',en:'Best on a treadmill: stable phone at 3–5 m, SIDE-ON (90°), full body in frame. Run — everything is measured live.',nl:'Ideaal op de loopband: stabiele telefoon op 3–5 m, ZIJWAARTS (90°), hele lichaam in beeld. Loop — alles wordt live gemeten.'},
+  start:{fr:'Lancer la caméra',en:'Start camera',nl:'Camera starten'},
+  stop:{fr:'Arrêter',en:'Stop',nl:'Stoppen'},
+  reset:{fr:'Remettre à zéro',en:'Reset',nl:'Resetten'},
+  st_loading:{fr:'Chargement du modèle IA…',en:'Loading AI model…',nl:'AI-model laden…'},
+  st_ready:{fr:'Prêt — cours quand tu veux',en:'Ready — run whenever you want',nl:'Klaar — loop wanneer je wilt'},
+  st_run:{fr:'COURSE…',en:'RUNNING…',nl:'LOPEN…'},
+  st_noperson:{fr:'Corps entier non visible — recule',en:'Full body not visible — step back',nl:'Lichaam niet volledig zichtbaar — stap achteruit'},
+  st_err_cam:{fr:'Caméra refusée — autorise l\'accès dans Réglages',en:'Camera denied — allow access in Settings',nl:'Camera geweigerd — sta toegang toe in Instellingen'},
+  st_err_model:{fr:'Modèle IA indisponible — vérifie ta connexion',en:'AI model unavailable — check your connection',nl:'AI-model niet beschikbaar — controleer je verbinding'},
+  chip_lbl:{fr:'Cadence',en:'Cadence',nl:'Cadans'},
+  res_lbl:{fr:'Cadence (pas/min)',en:'Cadence (steps/min)',nl:'Cadans (stappen/min)'},
+  m_par:{fr:'Pas totaux',en:'Total steps',nl:'Totaal stappen'},
+  m_depth:{fr:'Oscillation',en:'Oscillation',nl:'Oscillatie'},
+  list_h:{fr:'Splits par minute',en:'Per-minute splits',nl:'Splits per minuut'},
+  list_empty:{fr:'Cours au moins une minute pour voir tes splits.',en:'Run at least one minute to see your splits.',nl:'Loop minstens één minuut om je splits te zien.'},
+  split_min:{fr:'min',en:'min',nl:'min'},
+  save:{fr:'💾 Enregistrer la session',en:'💾 Save session',nl:'💾 Sessie opslaan'},
+  saving:{fr:'Enregistrement…',en:'Saving…',nl:'Opslaan…'},
+  saved:{fr:'✓ Session enregistrée',en:'✓ Session saved',nl:'✓ Sessie opgeslagen'},
+  save_fail:{fr:'Échec — vérifie ta connexion',en:'Failed — check your connection',nl:'Mislukt — controleer je verbinding'},
+  save_login:{fr:'Connecte-toi dans l\'app pour enregistrer tes sessions.',en:'Log in to the app to save your sessions.',nl:'Log in in de app om je sessies op te slaan.'},
+  sh_run_t:{fr:'ANALYSE COURSE',en:'RUNNING ANALYSIS',nl:'LOOPANALYSE'},
+  sh_cad:{fr:'CADENCE MOYENNE',en:'AVERAGE CADENCE',nl:'GEMIDDELDE CADANS'},
+  sh_spm:{fr:'pas/min',en:'steps/min',nl:'stappen/min'},
+  sh_steps:{fr:'pas',en:'steps',nl:'stappen'},
+  sh_lean:{fr:'TRONC (°)',en:'TRUNK (°)',nl:'ROMP (°)'},
+  sh_osc:{fr:'OSCILL. (cm)',en:'OSCILL. (cm)',nl:'OSCILL. (cm)'},
+  sh_gct:{fr:'CONTACT (ms)',en:'CONTACT (ms)',nl:'CONTACT (ms)'},
+  sh_fail:{fr:'Partage impossible sur ce navigateur — image téléchargée.',en:'Sharing unavailable on this browser — image downloaded.',nl:'Delen niet beschikbaar in deze browser — afbeelding gedownload.'},
+  b_ovs:{fr:'⚠ Overstride',en:'⚠ Overstride',nl:'⚠ Overstride'},
+  vbt_gate_h:{fr:'Analyse Pro (Technique) — fonctionnalité Premium',en:'Pro Analysis (Technique) — Premium feature',nl:'Pro-analyse (Techniek) — Premium functie'},
+  vbt_gate_p:{fr:'La cadence en direct et le compteur de pas sont gratuits pour tous. L\'Analyse Pro — inclinaison du tronc, oscillation verticale en cm, temps de contact au sol et détection de l\'overstride (pied qui atterrit trop loin devant) — est réservée aux offres Coach & Coach+. Abonne-toi directement ici, sans quitter la page.',en:'Live cadence and step counting are free for everyone. Pro Analysis — trunk lean, vertical oscillation in cm, ground contact time and overstride detection (foot landing too far ahead) — is for the Coach & Coach+ plans. Subscribe right here, without leaving the page.',nl:'Live cadans en stappen tellen zijn gratis voor iedereen. Pro-analyse — romphelling, verticale oscillatie in cm, grondcontacttijd en overstride-detectie (voet die te ver vooruit landt) — is voor de Coach & Coach+ abonnementen. Abonneer je hier, zonder de pagina te verlaten.'},
+  pw_choose:{fr:'Choisir cette offre',en:'Choose this plan',nl:'Kies dit abonnement'},
+  pw_month:{fr:'/mois',en:'/month',nl:'/maand'},
+  pw_native:{fr:'Les abonnements ne sont pas disponibles dans cette version de l\u2019app.',en:'Subscriptions are not available in this version of the app.',nl:'Abonnementen zijn niet beschikbaar in deze versie van de app.'},
+  pw_note20:{fr:'Jusqu\'à 20 clients actifs',en:'Up to 20 active clients',nl:'Tot 20 actieve klanten'},
+  pw_note30:{fr:'Jusqu\'à 30 clients actifs — exclusivité fondateur',en:'Up to 30 active clients — founder exclusive',nl:'Tot 30 actieve klanten — exclusief voor oprichters'},
+  pw_note50:{fr:'Jusqu\'à 50 clients actifs',en:'Up to 50 active clients',nl:'Tot 50 actieve klanten'},
+  pw_note60:{fr:'Jusqu\'à 60 clients actifs — exclusivité fondateur',en:'Up to 60 active clients — founder exclusive',nl:'Tot 60 actieve klanten — exclusief voor oprichters'},
+  pw_coach_f:{fr:'Coach Fondateur',en:'Founding Coach',nl:'Oprichtende coach'},
+  pw_coachp_f:{fr:'Coach+ Fondateur',en:'Founding Coach+',nl:'Oprichtend Coach+'},
+  pw_left:{fr:'Plus que {n} places fondateur',en:'Only {n} founder spots left',nl:'Nog {n} oprichtersplaatsen'},
+  pw_consent_h:{fr:'Avant de payer',en:'Before you pay',nl:'Voor je betaalt'},
+  pw_consent:{fr:'Je demande l\'accès immédiat au service et je reconnais qu\'en démarrant maintenant, je renonce à mon droit de rétractation de 14 jours dès l\'ouverture de mon accès premium (art. VI.53 du Code de droit économique).',en:'I request immediate access to the service and acknowledge that by starting now, I waive my 14-day right of withdrawal as soon as my premium access is opened (art. VI.53 of the Belgian Code of Economic Law).',nl:'Ik vraag onmiddellijke toegang tot de dienst en erken dat ik, door nu te starten, afstand doe van mijn herroepingsrecht van 14 dagen zodra mijn premium-toegang wordt geopend (art. VI.53 van het Wetboek van economisch recht).'},
+  pw_continue:{fr:'Continuer vers le paiement',en:'Continue to payment',nl:'Doorgaan naar betaling'},
+  pw_fail:{fr:'Paiement indisponible. Réessaie dans un instant.',en:'Payment unavailable. Try again shortly.',nl:'Betaling niet beschikbaar. Probeer straks opnieuw.'},
+
+  vbt_h:{fr:'Analyse Pro — Posture & Technique',en:'Pro Analysis — Posture & Technique',nl:'Pro-analyse — Houding & Techniek'},
+  vbt_hint:{fr:'Entre ta taille (une fois). En direct : inclinaison du tronc (5–10° vers l\'avant = idéal), oscillation verticale (6–10 cm = économique), temps de contact au sol et % de pas en overstride. Vise 170–180 pas/min : moins de charge d\'impact, meilleure économie de course (Heiderscheit 2011).',en:'Enter your height (once). Live: trunk lean (5–10° forward = ideal), vertical oscillation (6–10 cm = economical), ground contact time and % of overstriding steps. Aim for 170–180 steps/min: lower impact load, better running economy (Heiderscheit 2011).',nl:'Vul één keer je lengte in. Live: romphelling (5–10° voorover = ideaal), verticale oscillatie (6–10 cm = zuinig), grondcontacttijd en % overstride-stappen. Mik op 170–180 stappen/min: minder impact, betere loopeconomie (Heiderscheit 2011).'},
+  vbt_height:{fr:'Taille (cm)',en:'Height (cm)',nl:'Lengte (cm)'},
+  vbt_lean:{fr:'Tronc',en:'Trunk',nl:'Romp'},
+  vbt_osc:{fr:'Oscillation',en:'Oscillation',nl:'Oscillatie'},
+  vbt_gct:{fr:'Contact sol',en:'Ground contact',nl:'Grondcontact'},
+  vbt_ovs:{fr:'Overstride',en:'Overstride',nl:'Overstride'},
+  vbt_stop:{fr:'⚠ Overstride sur plus de 30% de tes pas — raccourcis ta foulée et augmente ta cadence : le pied doit atterrir sous le genou, pas devant.',en:'⚠ Overstriding on more than 30% of your steps — shorten your stride and raise your cadence: the foot should land under the knee, not ahead of it.',nl:'⚠ Overstride op meer dan 30% van je stappen — verkort je pas en verhoog je cadans: de voet moet onder de knie landen, niet ervoor.'},
+  vbt_note:{fr:'Oscillation calibrée sur ta taille — sans taille renseignée, les cm restent vides. Temps de contact au sol : approximatif à 30 images/s (±33 ms), fiable en tendance sur la session. Repères : cadence 170–180 spm · oscillation 6–10 cm · contact < 300 ms (Heiderscheit 2011 ; Moore 2016).',en:'Oscillation calibrated on your height — without a height, cm stay empty. Ground contact time: approximate at 30 fps (±33 ms), reliable as a session trend. References: cadence 170–180 spm · oscillation 6–10 cm · contact < 300 ms (Heiderscheit 2011; Moore 2016).',nl:'Oscillatie gekalibreerd op je lengte — zonder lengte blijven de cm leeg. Grondcontacttijd: benaderend bij 30 fps (±33 ms), betrouwbaar als trend. Referenties: cadans 170–180 spm · oscillatie 6–10 cm · contact < 300 ms (Heiderscheit 2011; Moore 2016).'},
+  pro_note:{fr:'Tronc, oscillation, contact & overstride : offres Coach & Coach+',en:'Trunk, oscillation, contact & overstride: Coach & Coach+ plans',nl:'Romp, oscillatie, contact & overstride: Coach & Coach+ abonnementen'},
+  help_h:{fr:'Comment ça marche',en:'How it works',nl:'Hoe het werkt'},
+  help_1:{fr:'Idéal sur tapis de course : tu restes dans le cadre en continu. Téléphone posé ou sur trépied, stable, à 3–5 m, DE PROFIL.',en:'Best on a treadmill: you stay in frame continuously. Phone resting or on a tripod, stable, 3–5 m away, SIDE-ON.',nl:'Ideaal op de loopband: je blijft continu in beeld. Telefoon neergezet of op statief, stabiel, op 3–5 m, ZIJWAARTS.'},
+  help_2:{fr:'Gratuit : cadence en direct + compteur de pas + splits par minute. Pro : tronc, oscillation, contact au sol et overstride.',en:'Free: live cadence + step counter + per-minute splits. Pro: trunk, oscillation, ground contact and overstride.',nl:'Gratis: live cadans + stappenteller + splits per minuut. Pro: romp, oscillatie, grondcontact en overstride.'},
+  help_3:{fr:'Chaque appui est détecté par la position de tes chevilles : cours normalement, tout se mesure automatiquement.',en:'Every foot strike is detected from your ankle positions: run normally, everything is measured automatically.',nl:'Elke voetlanding wordt gedetecteerd via je enkels: loop gewoon, alles wordt automatisch gemeten.'},
+  help_4:{fr:'La jauge dorée montre ta cadence dans la zone cible 170–180 pas/min.',en:'The gold gauge shows your cadence against the 170–180 steps/min target zone.',nl:'De gouden meter toont je cadans t.o.v. de doelzone 170–180 stappen/min.'},
+  st_view:{fr:'Mets-toi bien de profil (90°) pour une analyse fiable',en:'Go fully side-on (90°) for a reliable analysis',nl:'Ga volledig zijwaarts (90°) voor een betrouwbare analyse'},
+  place_h:{fr:'📐 Placement caméra — précision maximale',en:'📐 Camera placement — maximum accuracy',nl:'📐 Cameraplaatsing — maximale nauwkeurigheid'},
+  place_1:{fr:'De profil (90°) obligatoire : l\'overstride, le tronc et l\'oscillation se mesurent vus de côté — c\'est la seule vue valable.',en:'Side-on (90°) is mandatory: overstride, trunk lean and oscillation are side-view measurements — the only valid view.',nl:'Zijaanzicht (90°) is verplicht: overstride, romphelling en oscillatie zijn zijaanzicht-metingen — de enige geldige hoek.'},
+  place_2:{fr:'Sur tapis : téléphone à hauteur de hanche, à 3–5 m, tout le corps dans le cadre — tête et pieds compris.',en:'On a treadmill: phone at hip height, 3–5 m away, whole body in frame — head and feet included.',nl:'Op de loopband: telefoon op heuphoogte, 3–5 m ver, hele lichaam in beeld — hoofd en voeten inbegrepen.'},
+  place_3:{fr:'En extérieur : cadre fixe, l\'analyse tourne pendant tes passages devant la caméra.',en:'Outdoors: fixed frame, the analysis runs while you pass in front of the camera.',nl:'Buiten: vast kader, de analyse loopt terwijl je voor de camera passeert.'},
+  place_4:{fr:'Piste dégagée : personne d\'autre dans le cadre.',en:'Clear lane: nobody else in frame.',nl:'Vrije baan: niemand anders in beeld.'},
+  place_5:{fr:'Lumière de face — jamais de fenêtre derrière toi — et tenue contrastée avec le fond.',en:'Light facing you — never a window behind you — and clothing that contrasts with the background.',nl:'Licht van voren — nooit een raam achter je — en kleding die contrasteert met de achtergrond.'},
+  help_note:{fr:'Appuis détectés par le suivi des chevilles (MediaPipe Pose). Cadence 170–180 spm et foulée raccourcie : réduction de la charge d\'impact articulaire (Heiderscheit 2011). Économie de course : oscillation verticale et temps de contact (Moore 2016). Contact au sol approximatif à 30 images/s. 100% sur ton téléphone — aucune vidéo n\'est envoyée ni enregistrée. Outil d\'aide au coaching, ne remplace pas l\'œil du coach.',en:'Foot strikes detected by ankle tracking (MediaPipe Pose). Cadence 170–180 spm and a shorter stride: lower joint impact load (Heiderscheit 2011). Running economy: vertical oscillation and contact time (Moore 2016). Ground contact approximate at 30 fps. Runs 100% on your phone — no video is uploaded or stored. A coaching aid, not a replacement for the coach\'s eye.',nl:'Voetlandingen gedetecteerd via enkeltracking (MediaPipe Pose). Cadans 170–180 spm en een kortere pas: minder gewrichtsbelasting (Heiderscheit 2011). Loopeconomie: verticale oscillatie en contacttijd (Moore 2016). Grondcontact benaderend bij 30 fps. Draait 100% op je telefoon — er wordt geen video verstuurd of opgeslagen. Een coachingshulpmiddel, geen vervanging voor het oog van de coach.'}
+};
+/* ── diagnostic: surface every error on screen ── */
+function showErr(msg){
+  try{
+    let b=document.getElementById('errbar');
+    if(!b){
+      b=document.createElement('div');
+      b.id='errbar';
+      b.style.cssText='margin-top:10px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.5);color:#EF4444;font-size:12px;font-weight:600;border-radius:12px;padding:10px 12px;word-break:break-word;';
+      document.querySelector('.controls').after(b);
+    }
+    b.textContent='⚠ '+msg;
+  }catch(_){}
+}
+const VER='course v1.0';
+window.addEventListener('error',e=>showErr((e.message||'Erreur JS')+(e.lineno?' (ligne '+e.lineno+')':'')+' ['+VER+']'));
+window.addEventListener('unhandledrejection',e=>showErr('Promise: '+(e.reason&&e.reason.message||e.reason||'?')+' ['+VER+']'));
+
+const LANGS=['fr','en','nl'];
+let LANG=localStorage.getItem('cdm_lang')||'fr'; if(!LANGS.includes(LANG)) LANG='fr';
+const t=k=>{const e=I18N[k];return e?(e[LANG]||e.fr):k;};
+
+/* ───────── DOM ───────── */
+const $=s=>document.querySelector(s);
+const video=$('#cam'), canvas=$('#overlay'), stage=$('#stage'), splash=$('#splash');
+const pill=$('#pill'), pillTxt=$('#pill-txt'), chip=$('#chip'), spdChip=$('#spd');
+const bStart=$('#b-start'), bFlip=$('#b-flip'), bReset=$('#b-reset');
+const inVH=$('#in-vh');
+const ctx=canvas.getContext('2d');
+let du=null;
+let SB=null,UIDG=null;
+
+/* ───────── Accès (freemium) ─────────
+   Gratuit pour tous : cadence en direct + compteur de pas + splits.
+   Pro (fn_can_analyze) : tronc, oscillation, contact au sol, overstride. */
+const ENT={known:false,ok:false};
+let PRO=false;
+
+function applyLang(){
+  document.documentElement.lang=LANG;
+  $('#subline').textContent=t('subline');
+  $('#splash-p').textContent=t('splash');
+  bStart.textContent=running?t('stop'):t('start');
+  bReset.textContent=t('reset');
+  $('#chip-lbl').textContent=t('chip_lbl');
+  $('#res-lbl').textContent=t('res_lbl');
+  $('#m-par').textContent=t('m_par');
+  $('#m-depth').textContent=t('m_depth');
+  $('#list-h').textContent=t('list_h');
+  $('#vbt-gate-h').textContent=t('vbt_gate_h');
+  $('#vbt-gate-p').textContent=t('vbt_gate_p');
+  const pwch=document.getElementById('pw-consent-h'); if(pwch)pwch.textContent=t('pw_consent_h');
+  const pwct=document.getElementById('pw-consent-txt'); if(pwct)pwct.textContent=t('pw_consent');
+  const pwco=document.getElementById('pw-continue'); if(pwco)pwco.textContent=t('pw_continue');
+  if(typeof pwRender==='function')pwRender();
+  $('#vbt-h').textContent=t('vbt_h');
+  $('#vbt-hint').textContent=t('vbt_hint');
+  $('#l-vh').textContent=t('vbt_height');
+  $('#k-lean').textContent=t('vbt_lean');
+  $('#k-osc').textContent=t('vbt_osc');
+  $('#k-gct').textContent=t('vbt_gct');
+  $('#k-ovs').textContent=t('vbt_ovs');
+  $('#v-stop').textContent=t('vbt_stop');
+  $('#vbt-note').textContent=t('vbt_note');
+  $('#pro-note-txt').textContent=t('pro_note');
+  $('#help-h').textContent=t('help_h');
+  $('#help-ol').innerHTML='';
+  ['help_1','help_2','help_3','help_4'].forEach(k=>{
+    const li=document.createElement('li'); li.textContent=t(k); $('#help-ol').appendChild(li);
+  });
+  $('#help-note').textContent=t('help_note');
+  $('#place-h').textContent=t('place_h');
+  $('#place-ol').innerHTML='';
+  ['place_1','place_2','place_3','place_4','place_5'].forEach(k=>{
+    const li=document.createElement('li'); li.textContent=t(k); $('#place-ol').appendChild(li);
+  });
+  document.querySelectorAll('#lang button').forEach(b=>b.classList.toggle('on',b.dataset.lang===LANG));
+  renderReps(); setStatus(lastStatus,true);
+}
+document.querySelectorAll('#lang button').forEach(b=>{
+  b.onclick=()=>{LANG=b.dataset.lang;localStorage.setItem('cdm_lang',LANG);applyLang();};
+});
+
+/* ───────── Status ───────── */
+let lastStatus='';
+function setStatus(key,force){
+  if(!key||(key===lastStatus&&!force))return;
+  lastStatus=key;
+  pillTxt.textContent=t(key);
+  pill.classList.remove('ok','warn','err');
+  if(key==='st_ready'||key==='st_run')pill.classList.add('ok');
+  else if(key==='st_loading'||key==='st_view')pill.classList.add('warn');
+  else if(key.startsWith('st_err')||key==='st_noperson')pill.classList.add('err');
+}
+
+/* ───────── Audio ───────── */
+let AC=null;
+function beep(freq,ms){
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.frequency.value=freq;o.type='sine';
+    g.gain.setValueAtTime(0.12,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+ms/1000);
+    o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+ms/1000);
+  }catch(_){}
+}
+
+/* ───────── Analyse Pro course : calibration & état ─────────
+   Échelle métrique : hauteur du grand trochanter ≈ 0.53 × stature (anthropométrie).
+   Calibration au moment de l'extension complète de la jambe d'appui (genou > 160°),
+   qui survient à chaque foulée. */
+const VBT={heightCm:null,hip0:null,an0:null,scale:null};
+const RUN={lean:null,osc:null,gct:null,ovsPct:null,ovsCount:0,warn:false};
+try{
+  const st=JSON.parse(localStorage.getItem('cdm_vbt')||'{}');
+  if(st.h)inVH.value=st.h;
+}catch(_){}
+function vbtInputs(){
+  VBT.heightCm=parseFloat(inVH.value)||null;
+  try{localStorage.setItem('cdm_vbt',JSON.stringify({h:inVH.value}));}catch(_){}
+  renderRun();
+}
+inVH.oninput=vbtInputs;
+function vbtCalib(lm,side){
+  const hy=lm[side.hip].y, ay=lm[side.ankle].y;
+  if(VBT.hip0==null){VBT.hip0=hy;VBT.an0=ay;}
+  else{VBT.hip0=VBT.hip0*0.9+hy*0.1;VBT.an0=VBT.an0*0.9+ay*0.1;}
+  if(VBT.heightCm){
+    const d=VBT.an0-VBT.hip0;
+    if(d>0.05)VBT.scale=(0.53*VBT.heightCm/100)/d;
+  }else VBT.scale=null;
+}
+function runReset(){RUN.lean=null;RUN.osc=null;RUN.gct=null;RUN.ovsPct=null;RUN.ovsCount=0;RUN.warn=false;renderRun();}
+function ema(prev,val,a){return prev==null?val:prev*(1-a)+val*a;}
+function renderRun(){
+  if(!PRO)return;
+  $('#v-lean').textContent=RUN.lean==null?'—':RUN.lean.toFixed(0);
+  $('#v-osc').textContent=RUN.osc==null?'—':RUN.osc.toFixed(1);
+  $('#v-gct').textContent=RUN.gct==null?'—':Math.round(RUN.gct);
+  $('#v-ovs').textContent=RUN.ovsPct==null?'—':RUN.ovsPct.toFixed(0);
+  const show=RUN.ovsPct!=null&&steps>=20&&RUN.ovsPct>30;
+  if(show&&!RUN.warn){RUN.warn=true;beep(300,180);if(navigator.vibrate)navigator.vibrate([80,60,80]);}
+  if(RUN.ovsPct!=null&&RUN.ovsPct<=25)RUN.warn=false;
+  $('#v-stop').style.display=RUN.warn?'':'none';
+}
+function renderGauge(){
+  const bar=$('#v-bar');
+  if(cadence==null){$('#v-fill').style.width='0%';bar.classList.remove('warn','stop');return;}
+  const c=Math.min(200,Math.max(140,cadence));
+  $('#v-fill').style.width=((c-140)/60*100)+'%';
+  bar.classList.toggle('warn',cadence<160);
+  bar.classList.remove('stop');
+}
+function proUI(){
+  $('#vbt-gate').style.display=(ENT.known&&!PRO)?'':'none';
+  if(ENT.known&&!PRO)pwLoad();
+  $('#vbt-card').style.display=PRO?'':'none';
+  $('#pro-note').style.display=(ENT.known&&!PRO)?'':'none';
+  if(PRO){vbtInputs();}
+  renderSplits();
+}
+
+/* ───────── Run engine (appuis par suivi des chevilles) ─────────
+   Appui = la cheville, après une phase aérienne, revient au niveau du sol
+   (maximum glissant de sa position Y). Cadence = fenêtre glissante des 12
+   derniers appuis. Overstride = à l'appui, cheville nettement devant le genou
+   dans le sens de course. Oscillation = amplitude verticale de la hanche par
+   cycle. Contact au sol = appui → décollage (approximatif à 30 fps). */
+const WARMUP_FRAMES=15, AIR_TH=0.045, GROUND_TH=0.02, OVS_TH=0.035, CAD_WIN=12;
+const S={mode:'idle',lastGoodTs:0,good:0};
+const FEET={l:{ankle:27,knee:25,g:null,air:false,downTs:0},r:{ankle:28,knee:26,g:null,air:false,downTs:0}};
+let steps=0,cadence=null,strikes=[],runT0=null,activeMs=0,lastFrameTs=null;
+let hipMin=null,hipMax=null,hipWinT=0;
+let SPLITS=[],splitT0=null,splitSteps=0,splitLean=[],splitOsc=[];
+let leanSamples=0,gctN=0,ovsN=0;
+
+function resetSet(){
+  steps=0;cadence=null;strikes=[];runT0=null;activeMs=0;lastFrameTs=null;
+  hipMin=null;hipMax=null;hipWinT=0;
+  SPLITS=[];splitT0=null;splitSteps=0;splitLean=[];splitOsc=[];
+  leanSamples=0;gctN=0;ovsN=0;
+  FEET.l.g=null;FEET.l.air=false;FEET.r.g=null;FEET.r.air=false;
+  S.mode='ready';runReset();renderSplits();updateSummary();renderGauge();
+}
+
+function vis(p){return p?(p.visibility??1):0;}
+function angle3(a,b,c){
+  const v1={x:a.x-b.x,y:a.y-b.y,z:a.z-b.z},v2={x:c.x-b.x,y:c.y-b.y,z:c.z-b.z};
+  const dot=v1.x*v2.x+v1.y*v2.y+v1.z*v2.z;
+  const n=Math.hypot(v1.x,v1.y,v1.z)*Math.hypot(v2.x,v2.y,v2.z)||1e-9;
+  return Math.acos(Math.min(1,Math.max(-1,dot/n)))*180/Math.PI;
+}
+function bodyVisible(lm){
+  const chain=(sh,hip,kn,an)=>Math.min(vis(lm[sh]),vis(lm[hip]),vis(lm[kn]),vis(lm[an]));
+  return Math.max(chain(11,23,25,27),chain(12,24,26,28))>0.6;
+}
+function pickSide(lm){
+  const L=(vis(lm[23])+vis(lm[25])+vis(lm[27]))/3;
+  const R=(vis(lm[24])+vis(lm[26])+vis(lm[28]))/3;
+  return L>=R?{hip:23,knee:25,ankle:27,sh:11}:{hip:24,knee:26,ankle:28,sh:12};
+}
+function kneeAngle(w,side){return angle3(w[side.hip],w[side.knee],w[side.ankle]);}
+function torsoLean(w,side){
+  const sh=w[side.sh],hip=w[side.hip];
+  const dx=sh.x-hip.x,dy=sh.y-hip.y,dz=sh.z-hip.z;
+  const n=Math.hypot(dx,dy,dz)||1e-9;
+  return Math.acos(Math.min(1,Math.max(-1,(-dy)/n)))*180/Math.PI;
+}
+function viewOf(lm,side){
+  const shw=Math.abs(lm[11].x-lm[12].x);
+  const torso=Math.hypot(lm[side.sh].x-lm[side.hip].x,lm[side.sh].y-lm[side.hip].y)||1e-9;
+  const r=shw/torso;
+  return r>0.5?'front':(r<0.35?'side':'mixed');
+}
+function faceDir(lm){ // sens de course : nez devant les hanches
+  const hx=(lm[23].x+lm[24].x)/2;
+  return lm[0].x>=hx?1:-1;
+}
+function updateCadence(ts){
+  strikes.push(ts);
+  if(strikes.length>CAD_WIN)strikes.shift();
+  if(strikes.length>=4){
+    const span=(strikes[strikes.length-1]-strikes[0])/1000;
+    if(span>1.2)cadence=Math.round(60*(strikes.length-1)/span);
+  }
+}
+function onStrike(ts,foot,lm,w,side){
+  steps++;splitSteps++;
+  updateCadence(ts);
+  if(runT0==null){runT0=ts;splitT0=ts;}
+  // ── Pro : overstride + tronc à l'appui ──
+  if(PRO){
+    const dir=faceDir(lm);
+    const an=lm[FEET[foot].ankle],kn=lm[FEET[foot].knee];
+    if(vis(an)>0.5&&vis(kn)>0.5){
+      const over=(an.x-kn.x)*dir>OVS_TH;
+      ovsN++;
+      if(over)RUN.ovsCount++;
+      RUN.ovsPct=ovsN>0?RUN.ovsCount/ovsN*100:null;
+    }
+    if(w){
+      const tl=torsoLean(w,side);
+      RUN.lean=ema(RUN.lean,tl,0.2);leanSamples++;
+      splitLean.push(tl);
+    }
+    renderRun();
+  }
+  beep(cadence!=null&&cadence>=170&&cadence<=180?1320:880,45);
+  updateSummary();renderGauge();
+}
+function handle(lm,w,ts){
+  if(!lm||!bodyVisible(lm)){
+    S.good=0;
+    if(ts-S.lastGoodTs>800){setStatus('st_noperson');chip.hidden=true;}
+    lastFrameTs=null;
+    return;
+  }
+  S.lastGoodTs=ts;
+  const side=pickSide(lm);
+  if(S.good<WARMUP_FRAMES){S.good++;updateDbg(ts,side,lm);return;}
+
+  // temps actif de session
+  if(lastFrameTs!=null&&ts-lastFrameTs<500&&runT0!=null)activeMs+=ts-lastFrameTs;
+  lastFrameTs=ts;
+
+  // calibration métrique à l'extension de la jambe d'appui
+  if(w){
+    const k=kneeAngle(w,side);
+    if(k>160)vbtCalib(lm,side);
+  }
+
+  // ── détection d'appui par cheville (sol = max glissant) ──
+  ['l','r'].forEach(f=>{
+    const F=FEET[f],a=lm[F.ankle];
+    if(vis(a)<0.5)return;
+    const y=a.y;
+    if(F.g==null)F.g=y;
+    else if(y>F.g)F.g=y;
+    else F.g=F.g*0.995+y*0.005; // décroissance lente du niveau du sol
+    if(F.air&&y>F.g-GROUND_TH){ // retour au sol = appui
+      F.air=false;F.downTs=ts;
+      onStrike(ts,f,lm,w,side);
+    }else if(!F.air&&y<F.g-AIR_TH){ // décollage
+      F.air=true;
+      if(PRO&&F.downTs>0){
+        const g=ts-F.downTs;
+        if(g>80&&g<600){RUN.gct=ema(RUN.gct,g,0.2);gctN++;}
+      }
+    }
+  });
+
+  // ── oscillation verticale de la hanche (fenêtre ~1 s) ──
+  const hy=(lm[23].y+lm[24].y)/2;
+  if(hipMin==null||hy<hipMin)hipMin=hy;
+  if(hipMax==null||hy>hipMax)hipMax=hy;
+  if(ts-hipWinT>1000){
+    if(PRO&&VBT.scale&&hipMin!=null&&hipMax!=null&&cadence!=null){
+      const osc=(hipMax-hipMin)*VBT.scale*100;
+      if(osc>1&&osc<25){RUN.osc=ema(RUN.osc,osc,0.25);splitOsc.push(osc);renderRun();}
+    }
+    hipMin=hy;hipMax=hy;hipWinT=ts;
+  }
+
+  // ── splits par minute ──
+  if(splitT0!=null&&ts-splitT0>=60000){
+    const mins=SPLITS.length+1;
+    const cadAvg=Math.round(splitSteps*(60000/(ts-splitT0)));
+    const leanAvg=splitLean.length?splitLean.reduce((a,b)=>a+b,0)/splitLean.length:null;
+    const oscAvg=splitOsc.length?splitOsc.reduce((a,b)=>a+b,0)/splitOsc.length:null;
+    SPLITS.push({min:mins,cad:cadAvg,lean:leanAvg,osc:oscAvg});
+    splitT0=ts;splitSteps=0;splitLean=[];splitOsc=[];
+    renderSplits();
+  }
+
+  // statut
+  if(cadence!=null&&ts-(strikes[strikes.length-1]||0)<1500){
+    setStatus('st_run');
+    chip.hidden=false;$('#chip-val').textContent=cadence;
+    stage.classList.toggle('deep',cadence>=170&&cadence<=180);
+  }else{
+    stage.classList.remove('deep');
+    setStatus(viewOf(lm,side)!=='side'?'st_view':'st_ready');
+    if(ts-(strikes[strikes.length-1]||0)>2500)cadence=null;
+  }
+  updateSummary();renderGauge();
+  updateDbg(ts,side,lm);
+}
+
+/* ───────── Results UI ───────── */
+function updateSummary(){
+  $('#res-reps').textContent=cadence!=null?cadence:(steps?'—':0);
+  const sr=$('#save-row'),sb2=$('#b-save');
+  if(sr)sr.style.display=steps>10?'flex':'none';
+  if(sb2&&steps>10&&sb2.textContent!==t('saving')){sb2.disabled=false;sb2.textContent=t('save');}
+  $('#res-par').textContent=steps||'—';
+  $('#res-depth').textContent=(PRO&&RUN.osc!=null)?RUN.osc.toFixed(1)+' cm':'—';
+}
+function renderSplits(){
+  const ul=$('#rlist');ul.innerHTML='';
+  $('#rempty').textContent=SPLITS.length?'':t('list_empty');
+  [...SPLITS].reverse().forEach(sp=>{
+    const li=document.createElement('li');
+    const badges=[`<span class="badge b-ok">${sp.cad} spm</span>`];
+    if(PRO){
+      if(sp.lean!=null)badges.push(`<span class="badge b-mut">${t('vbt_lean')} ${sp.lean.toFixed(0)}°</span>`);
+      if(sp.osc!=null)badges.push(`<span class="badge b-mut">${t('vbt_osc')} ${sp.osc.toFixed(1)} cm</span>`);
+    }
+    li.innerHTML=`<span class="n">${t('split_min')} ${sp.min}</span>${badges.join('')}`;
+    ul.appendChild(li);
+  });
+}
+const renderReps=renderSplits; /* alias : applyLang appelle renderReps */
+
+/* ───────── Drawing : squelette + niveau du sol + marqueurs chevilles ───────── */
+function draw(res){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const lm=res&&res.landmarks&&res.landmarks[0];
+  if(lm&&du){
+    du.drawConnectors(lm,PoseLandmarker.POSE_CONNECTIONS,{color:'rgba(0,255,163,.4)',lineWidth:2.5});
+    du.drawLandmarks(lm,{color:'rgba(0,255,163,.85)',fillColor:'rgba(0,255,163,.85)',radius:2});
+    ctx.save();
+    // niveau du sol estimé (or pointillé)
+    const gl=Math.max(FEET.l.g||0,FEET.r.g||0);
+    if(gl>0){
+      const yg=gl*canvas.height;
+      ctx.strokeStyle='rgba(212,175,55,.7)';ctx.lineWidth=2;ctx.setLineDash([10,8]);
+      ctx.beginPath();ctx.moveTo(0,yg);ctx.lineTo(canvas.width,yg);ctx.stroke();
+    }
+    // chevilles : vert = au sol, or = en l'air
+    ctx.setLineDash([]);
+    ['l','r'].forEach(f=>{
+      const F=FEET[f],a=lm[F.ankle];
+      if(vis(a)>0.5){
+        ctx.fillStyle=F.air?'#D4AF37':'#00FFA3';
+        ctx.beginPath();ctx.arc(a.x*canvas.width,a.y*canvas.height,7,0,Math.PI*2);ctx.fill();
+      }
+    });
+    ctx.restore();
+  }
+}
+
+/* live debug HUD */
+const dbgEl=document.getElementById('cdm-dbg');
+let dbgFrames=0,dbgFpsT=0,dbgFps=0;
+function updateDbg(ts,side,lm){
+  dbgFrames++;
+  if(ts-dbgFpsT>=1000){dbgFps=dbgFrames;dbgFrames=0;dbgFpsT=ts;}
+  dbgEl.hidden=false;
+  dbgEl.textContent=
+    'cadence: '+(cadence==null?'—':cadence)+'  fps: '+dbgFps+'\n'+
+    'pas: '+steps+'  vue: '+viewOf(lm,side)+'\n'+
+    'sol L/R: '+(FEET.l.g==null?'—':FEET.l.g.toFixed(2))+'/'+(FEET.r.g==null?'—':FEET.r.g.toFixed(2))+(PRO&&VBT.scale?'  éch: '+VBT.scale.toFixed(2):'');
+}
+
+/* ───────── Camera + loop ───────── */
+let landmarker=null,stream=null,running=false,facing='environment',lastTs=-1,wakeLock=null;
+
+async function loadModel(){
+  if(landmarker)return;
+  setStatus('st_loading');
+  const base='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm';
+  const model='https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
+  const vision=await FilesetResolver.forVisionTasks(base);
+  const opts=d=>({baseOptions:{modelAssetPath:model,delegate:d},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:0.6,minPosePresenceConfidence:0.6,minTrackingConfidence:0.6});
+  try{landmarker=await PoseLandmarker.createFromOptions(vision,opts('GPU'));}
+  catch(_){landmarker=await PoseLandmarker.createFromOptions(vision,opts('CPU'));}
+  du=new DrawingUtils(ctx);
+}
+
+async function startCam(){
+  stream=await navigator.mediaDevices.getUserMedia({
+    video:{facingMode:facing,width:{ideal:1280},height:{ideal:720}},audio:false
+  });
+  video.srcObject=stream;
+  await video.play();
+  canvas.width=video.videoWidth||720;
+  canvas.height=video.videoHeight||960;
+  stage.style.aspectRatio=(canvas.width/canvas.height).toString();
+  stage.classList.toggle('mirror',facing==='user');
+  try{wakeLock=await navigator.wakeLock?.request('screen');}catch(_){}
+}
+
+function scheduleFrame(){
+  if(!running)return;
+  if(video.requestVideoFrameCallback){
+    video.requestVideoFrameCallback((now,meta)=>onFrame(meta&&meta.mediaTime?meta.mediaTime*1000:performance.now()));
+  }else{
+    requestAnimationFrame(()=>onFrame(performance.now()));
+  }
+}
+function onFrame(ts){
+  if(!running)return;
+  if(ts<=lastTs)ts=lastTs+1;
+  lastTs=ts;
+  let res=null;
+  try{res=landmarker.detectForVideo(video,ts);}catch(_){}
+  if(res)handle(res.landmarks&&res.landmarks[0],res.worldLandmarks&&res.worldLandmarks[0],ts);
+  draw(res);
+  scheduleFrame();
+}
+
+async function start(){
+  bStart.disabled=true;
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume&&AC.resume();}catch(_){}
+  try{await startCam();}
+  catch(e){setStatus('st_err_cam');showErr('Caméra: '+(e&&e.name||'')+' '+(e&&e.message||e)+' ['+VER+']');bStart.disabled=false;return;}
+  splash.style.display='none';
+  try{await loadModel();}
+  catch(e){
+    setStatus('st_err_model');showErr('Modèle: '+(e&&e.message||e)+' ['+VER+']');
+    if(stream){stream.getTracks().forEach(tr=>tr.stop());stream=null;}
+    splash.style.display='flex';bStart.disabled=false;return;
+  }
+  running=true;lastTs=-1;
+  bStart.textContent=t('stop');bStart.disabled=false;
+  bFlip.disabled=false;bReset.disabled=false;
+  S.mode='ready';S.lastGoodTs=0;S.good=0;lastFrameTs=null;
+  FEET.l.g=null;FEET.l.air=false;FEET.r.g=null;FEET.r.air=false;
+  VBT.hip0=null;VBT.an0=null;VBT.scale=null;
+  setStatus('st_ready',true);
+  scheduleFrame();
+}
+function stop(){
+  running=false;
+  if(stream){stream.getTracks().forEach(tr=>tr.stop());stream=null;}
+  try{wakeLock&&wakeLock.release();}catch(_){}
+  wakeLock=null;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  splash.style.display='flex';
+  stage.classList.remove('deep');
+  chip.hidden=true;spdChip.hidden=true;dbgEl.hidden=true;
+  S.mode='idle';lastFrameTs=null;
+  bStart.textContent=t('start');
+  bFlip.disabled=true;bReset.disabled=true;
+  pillTxt.textContent='';pill.classList.remove('ok','warn','err');lastStatus='';
+}
+bStart.onclick=()=>{running?stop():start();};
+bReset.onclick=()=>{if(running)resetSet();};
+bFlip.onclick=async()=>{
+  if(!running)return;
+  facing=facing==='environment'?'user':'environment';
+  if(stream)stream.getTracks().forEach(tr=>tr.stop());
+  VBT.hip0=null;VBT.an0=null;VBT.scale=null;
+  try{await startCam();}
+  catch(e){setStatus('st_err_cam');}
+};
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&running)stop();
+});
+
+/* ═════════ Paywall Coach & Coach+ — Stripe embarqué sur place ═════════ */
+const STRIPE_PK='pk_live_51TpzX7J0YSDZQQHK1pZpLyBD1QX0c95OWwdhGO1BpTvs3vb99GAq8D9JA9voqURFI5GpkfeQmORt8fnwWaipMLGq00re93zamr';
+let STRIPE=null,CKI=null;
+const PW={prices:null,slots:null,pending:null,loading:false};
+function pwLocale(){return LANG==='fr'?'fr-BE':(LANG==='nl'?'nl-BE':'en-GB');}
+function pwMoney(c){return (c/100).toLocaleString(pwLocale(),{style:'currency',currency:'EUR'});}
+async function stripeJs(){
+  if(window.Stripe)return window.Stripe;
+  await new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://js.stripe.com/v3/';sc.onload=res;sc.onerror=rej;document.head.appendChild(sc);});
+  return window.Stripe;
+}
+const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+function pwSlotsLeft(kind){const r=(PW.slots||[]).find(x=>x.kind===kind);return r?+r.left_count:null;}
+async function pwLoad(){
+  if(!SB||PW.loading)return;
+  if(PW.prices){pwRender();return;}
+  PW.loading=true;
+  try{const {data}=await SB.from('billing_prices').select('*').eq('audience','coach').eq('active',true);PW.prices=data||[];}catch(_){PW.prices=[];}
+  try{const {data}=await SB.rpc('founder_slots');PW.slots=data||[];}catch(_){PW.slots=[];}
+  PW.loading=false;
+  pwRender();
+}
+function pwRender(){
+  const box=document.getElementById('gate-plans');
+  if(!box||!PW.prices)return;
+  if(IS_NATIVE){box.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center;padding:10px 4px">'+t('pw_native')+'</p>';return;}
+  const ps=PW.prices.filter(p=>p.billing_interval==='month');
+  const left=pwSlotsLeft('coach');
+  const f=(left===0)?null:ps.find(p=>p.tier==='coach'&&p.founder);
+  const r=ps.find(p=>p.tier==='coach'&&!p.founder);
+  const fp=(left===0)?null:ps.find(p=>p.tier==='coach_plus'&&p.founder);
+  const rp=ps.find(p=>p.tier==='coach_plus'&&!p.founder);
+  const mk=(off,reg,fBadge,rBadge,fNote,rNote)=>{
+    if(!off)return '';
+    const isF=!!off.founder;
+    let h='<div class="plan"><span class="pb">'+(isF?fBadge:rBadge)+'</span>';
+    h+='<div class="pp">'+pwMoney(off.amount_cents)+'<small>'+t('pw_month')+'</small>';
+    if(isF&&reg)h+='<span class="old">'+pwMoney(reg.amount_cents)+'</span>';
+    h+='</div><div class="pn">'+(isF?fNote:rNote)+'</div>';
+    if(isF&&left!==null&&left>0&&left<=15)h+='<div class="pn" style="color:var(--neon)">'+t('pw_left').replace('{n}',left)+'</div>';
+    h+='<button class="pcta" data-lk="'+off.lookup_key+'">'+t('pw_choose')+'</button></div>';
+    return h;
+  };
+  box.innerHTML=mk(f||r,r,t('pw_coach_f'),'Coach',t('pw_note30'),t('pw_note20'))
+              + mk(fp||rp,rp,t('pw_coachp_f'),'Coach+',t('pw_note60'),t('pw_note50'));
+  box.querySelectorAll('[data-lk]').forEach(b=>{b.onclick=()=>pwOpen(b.dataset.lk);});
+}
+function pwReset(){
+  const c=document.getElementById('pw-consent'),m=document.getElementById('ck-mount');
+  const a=document.getElementById('pw-agree'),k=document.getElementById('pw-continue');
+  if(c)c.style.display='';
+  if(m){m.style.display='none';m.innerHTML='';}
+  if(a)a.checked=false;
+  if(k)k.disabled=true;
+}
+function pwOpen(lk){
+  if(IS_NATIVE)return;
+  if(!UIDG){alert(t('save_login'));return;}
+  PW.pending=lk;
+  if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
+  pwReset();
+  document.getElementById('pw-ov').classList.add('show');
+}
+function pwClose(){
+  document.getElementById('pw-ov').classList.remove('show');
+  if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
+  pwReset();PW.pending=null;
+}
+async function pwMount(){
+  if(!PW.pending||!SB)return;
+  const lk=PW.pending;
+  document.getElementById('pw-consent').style.display='none';
+  const m=document.getElementById('ck-mount');m.style.display='';m.innerHTML='';
+  try{
+    const Sj=await stripeJs();
+    if(!STRIPE)STRIPE=Sj(STRIPE_PK);
+    if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
+    CKI=await STRIPE.initEmbeddedCheckout({fetchClientSecret:async()=>{
+      const {data,error}=await SB.functions.invoke('stripe-checkout',{body:{action:'checkout',lookup_key:lk,locale:LANG,consent_withdrawal:true,consent_ts:new Date().toISOString()}});
+      if(error||!data||!data.client_secret)throw new Error((data&&data.error)||'checkout');
+      return data.client_secret;
+    }});
+    CKI.mount('#ck-mount');
+  }catch(_){pwClose();alert(t('pw_fail'));}
+}
+(function(){
+  const ov=document.getElementById('pw-ov');
+  const a=document.getElementById('pw-agree'),k=document.getElementById('pw-continue'),x=document.getElementById('pw-close');
+  if(a&&k)a.onchange=()=>{k.disabled=!a.checked;};
+  if(k)k.onclick=pwMount;
+  if(x)x.onclick=pwClose;
+  if(ov)ov.addEventListener('click',e=>{if(e.target===ov)pwClose();});
+})();
+
+/* ═════════ Carte partageable (story 1080×1920) — vrai logo Coach DM ═════════ */
+let LOGO=null,LOGO_TRIED=false;
+function loadLogo(){
+  return new Promise(res=>{
+    if(LOGO)return res(LOGO);
+    if(LOGO_TRIED)return res(null);
+    const im=new Image();
+    const done=ok=>{LOGO_TRIED=true;if(ok)LOGO=im;res(ok?im:null);};
+    im.onload=()=>done(true);
+    im.onerror=()=>done(false);
+    im.src='/logo-dm.png';
+    setTimeout(()=>{if(!LOGO&&!LOGO_TRIED)done(false);},2000);
+  });
+}
+function shGoldGrad(c,x0,y0,x1,y1){
+  const g=c.createLinearGradient(x0,y0,x1,y1);
+  g.addColorStop(0,'#F6E27A');g.addColorStop(.45,'#D4AF37');g.addColorStop(1,'#A47F1E');
+  return g;
+}
+function shBase(c,W,H,title,logo){
+  c.fillStyle='#0A0A0A';c.fillRect(0,0,W,H);
+  const rg=c.createRadialGradient(W/2,0,0,W/2,0,H*.8);
+  rg.addColorStop(0,'rgba(212,175,55,.10)');rg.addColorStop(1,'rgba(212,175,55,0)');
+  c.fillStyle=rg;c.fillRect(0,0,W,H);
+  c.textAlign='center';
+  if(logo){
+    const r=88,cx=W/2,cy=150;
+    c.save();
+    c.beginPath();c.arc(cx,cy,r,0,Math.PI*2);c.closePath();c.clip();
+    c.fillStyle='#0A0A0A';c.fillRect(cx-r,cy-r,r*2,r*2);
+    c.drawImage(logo,cx-r,cy-r,r*2,r*2);
+    c.restore();
+    c.lineWidth=6;c.strokeStyle=shGoldGrad(c,cx-r,cy-r,cx+r,cy+r);
+    c.beginPath();c.arc(cx,cy,r+4,0,Math.PI*2);c.stroke();
+  }else{
+    c.font='800 78px Outfit';c.fillStyle='#F5F5F4';
+    c.fillText('COACH ',W/2-92,170);
+    c.fillStyle=shGoldGrad(c,W/2,110,W/2+240,190);
+    c.fillText('DM',W/2+158,170);
+  }
+  c.font='700 40px Outfit';c.fillStyle='#9CA3AF';
+  c.fillText(title,W/2,logo?312:255);
+  c.strokeStyle='rgba(212,175,55,.5)';c.lineWidth=3;
+  const dy=logo?352:295;
+  c.beginPath();c.moveTo(W/2-130,dy);c.lineTo(W/2+130,dy);c.stroke();
+  c.font='700 42px Outfit';c.fillStyle=shGoldGrad(c,W/2-220,H-150,W/2+220,H-110);
+  c.fillText('Power · Transform · Excel',W/2,H-150);
+  c.font='600 36px Outfit';c.fillStyle='#9CA3AF';
+  c.fillText('coachdm.be  ·  @coachdm.be',W/2,H-85);
+}
+function shCardRun(logo){
+  const W=1080,H=1920,cv=document.createElement('canvas');
+  cv.width=W;cv.height=H;const c=cv.getContext('2d');
+  shBase(c,W,H,t('sh_run_t'),logo);
+  c.textAlign='center';
+  const cadAvg=SPLITS.length
+    ? Math.round(SPLITS.reduce((a,b)=>a+b.cad,0)/SPLITS.length)
+    : (cadence!=null?cadence:(runT0&&activeMs>3000?Math.round(steps/(activeMs/60000)):0));
+  c.font='700 44px Outfit';c.fillStyle='#9CA3AF';c.fillText(t('sh_cad'),W/2,600);
+  c.font='800 280px Outfit';c.fillStyle=shGoldGrad(c,W/2-320,660,W/2+320,900);
+  c.fillText(String(cadAvg||'—'),W/2,900);
+  c.font='800 60px Outfit';c.fillStyle='#00FFA3';
+  c.fillText(t('sh_spm'),W/2,990);
+  c.font='700 50px Outfit';c.fillStyle='#F5F5F4';
+  const mins=Math.floor(activeMs/60000),secs=Math.round(activeMs%60000/1000);
+  c.fillText(steps+' '+t('sh_steps')+' · '+mins+':'+String(secs).padStart(2,'0'),W/2,1120);
+  if(PRO&&(RUN.lean!=null||RUN.osc!=null||RUN.gct!=null)){
+    const mets=[
+      [RUN.lean!=null?RUN.lean.toFixed(0)+'°':'—',t('sh_lean')],
+      [RUN.osc!=null?RUN.osc.toFixed(1):'—',t('sh_osc')],
+      [RUN.gct!=null?String(Math.round(RUN.gct)):'—',t('sh_gct')]
+    ];
+    mets.forEach((mm,i)=>{
+      const x=W/6+(i*W/3);
+      c.font='800 92px Outfit';c.fillStyle='#F5F5F4';c.fillText(mm[0],x,1420);
+      c.font='700 32px Outfit';c.fillStyle='#9CA3AF';c.fillText(mm[1],x,1482);
+    });
+  }
+  return cv;
+}
+async function shShare(cv,name){
+  const blob=await new Promise(res=>cv.toBlob(res,'image/png'));
+  const file=new File([blob],name,{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:'Coach DM'});return;}catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  alert(t('sh_fail'));
+}
+async function shGo(){
+  /* iOS : navigator.share doit rester dans la fenêtre du geste utilisateur —
+     zéro attente ici, logo & polices préchargés au démarrage de la page. */
+  await shShare(shCardRun(LOGO),'coachdm-course.png');
+}
+document.getElementById('b-share').onclick=()=>{if(steps>10)shGo();};
+
+/* ───────── Sauvegarde Supabase (session partagée avec l'app) ───────── */
+import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient})=>{
+  const sbClient=createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
+  SB=sbClient;
+  let UID=null;
+  sbClient.auth.getSession().then(async({data})=>{
+    UID=data?.session?.user?.id||null;
+    UIDG=UID;
+    if(UID){
+      try{
+        const {data:ok}=await sbClient.rpc('fn_can_analyze',{p_user:UID});
+        ENT.known=true;ENT.ok=!!ok;
+      }catch(_){ENT.known=true;ENT.ok=false;}
+    }else{ENT.known=true;ENT.ok=false;}
+    PRO=ENT.ok;
+    proUI();
+  });
+  const btn=$('#b-save');
+  btn.textContent=t('save');
+  btn.onclick=async()=>{
+    if(steps<=10||btn.disabled)return;
+    if(!UID){alert(t('save_login'));return;}
+    btn.disabled=true;btn.textContent=t('saving');
+    const cadAvg=SPLITS.length?Math.round(SPLITS.reduce((a,b)=>a+b.cad,0)/SPLITS.length):(cadence!=null?cadence:null);
+    const row={
+      user_id:UID,
+      duration_s:Math.round(activeMs/1000),
+      steps:steps,
+      cadence_avg:cadAvg,
+      splits:SPLITS
+    };
+    if(PRO){
+      row.trunk_lean_avg_deg=RUN.lean!=null?+RUN.lean.toFixed(1):null;
+      row.osc_avg_cm=RUN.osc!=null?+RUN.osc.toFixed(1):null;
+      row.gct_avg_ms=RUN.gct!=null?Math.round(RUN.gct):null;
+      row.overstride_pct=RUN.ovsPct!=null?+RUN.ovsPct.toFixed(1):null;
+    }
+    const {error}=await sbClient.from('run_sessions').insert(row);
+    if(error){btn.disabled=false;btn.textContent=t('save');alert(t('save_fail'));return;}
+    btn.textContent=t('saved');
+  };
+}).catch(()=>{ENT.known=true;ENT.ok=false;PRO=false;proUI();});
+
+applyLang();
+proUI();
+/* Préchargement partage : logo + polices prêts avant le premier tap 📤 */
+loadLogo();
+try{document.fonts.load('800 300px Outfit');document.fonts.load('700 44px Outfit');document.fonts.load('700 40px Outfit');}catch(_){}
+</script>
+</body>
+</html>
