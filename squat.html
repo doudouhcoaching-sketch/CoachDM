@@ -27,7 +27,8 @@
   header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px}
   .backapp{flex:0 0 auto;display:grid;place-items:center;width:36px;height:36px;border-radius:12px;border:1px solid rgba(255,255,255,.14);color:#D4AF37;text-decoration:none;font-size:20px;font-weight:800;line-height:1;margin-right:2px}
   .backapp:active{transform:scale(.94)}
-  .brand{font-weight:800;font-size:18px;letter-spacing:-0.02em}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:18px;letter-spacing:-0.02em}
+  .brandlogo{width:26px;height:26px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px rgba(212,175,55,.55)}
   .brand em{font-style:normal;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 45%,#A47F1E 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
   .sub{color:var(--muted);font-size:12.5px;font-weight:500;margin-top:2px}
   .lang{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
@@ -161,7 +162,7 @@
 <header>
   <a class="backapp" href="app.html" aria-label="Coach DM App">‹</a>
   <div>
-    <div class="brand">COACH <em>DM</em></div>
+    <div class="brand"><img class="brandlogo" src="/logo-dm.png" alt="" onerror="this.remove()"><span>COACH <em>DM</em></span></div>
     <div class="sub" id="subline"></div>
   </div>
   <div class="lang" id="lang">
@@ -199,6 +200,7 @@
 
 <div class="controls" id="save-row" style="display:none">
   <button class="btn" id="b-save"></button>
+  <button class="btn ghost" id="b-share" style="flex:0 0 56px;font-size:19px">📤</button>
 </div>
 
 <!-- ══ Analyse Pro (VBT) — verrou Premium ══ -->
@@ -244,7 +246,7 @@
   <div class="note" id="help-note"></div>
 </details>
 
-<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v3.0</span></footer>
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v3.1</span></footer>
 
 <script type="module">
 /* Shim: MediaPipe's WASM glue references bare globals (dbg/out/err). If any DOM element
@@ -279,6 +281,13 @@ const I18N = {
   saved:{fr:'✓ Série enregistrée',en:'✓ Set saved',nl:'✓ Set opgeslagen'},
   save_fail:{fr:'Échec — vérifie ta connexion',en:'Failed — check your connection',nl:'Mislukt — controleer je verbinding'},
   save_login:{fr:'Connecte-toi dans l\'app pour enregistrer tes séries.',en:'Log in to the app to save your sets.',nl:'Log in in de app om je sets op te slaan.'},
+  sh_squat_t:{fr:'ANALYSE SQUAT',en:'SQUAT ANALYSIS',nl:'SQUATANALYSE'},
+  sh_reps:{fr:'RÉPÉTITIONS',en:'REPS',nl:'HERHALINGEN'},
+  sh_par:{fr:'sous la parallèle',en:'below parallel',nl:'onder parallel'},
+  sh_depth:{fr:'Meilleure profondeur',en:'Best depth',nl:'Beste diepte'},
+  sh_vl:{fr:'PERTE VITESSE',en:'VELOCITY LOSS',nl:'SNELH.VERLIES'},
+  sh_e1:{fr:'1RM EST. (kg)',en:'EST. 1RM (kg)',nl:'GESCH. 1RM (kg)'},
+  sh_fail:{fr:'Partage impossible sur ce navigateur — image téléchargée.',en:'Sharing unavailable on this browser — image downloaded.',nl:'Delen niet beschikbaar in deze browser — afbeelding gedownload.'},
   b_par:{fr:'Sous la parallèle ✓',en:'Below parallel ✓',nl:'Onder parallel ✓'},
   b_high:{fr:'Pas cassée ✗',en:'Not below ✗',nl:'Niet onder ✗'},
   b_torso:{fr:'Dos',en:'Torso',nl:'Romp'},
@@ -320,7 +329,7 @@ function showErr(msg){
     b.textContent='⚠ '+msg;
   }catch(_){}
 }
-const VER='squat v3.0';
+const VER='squat v3.1';
 window.addEventListener('error',e=>showErr((e.message||'Erreur JS')+(e.lineno?' (ligne '+e.lineno+')':'')+' ['+VER+']'));
 window.addEventListener('unhandledrejection',e=>showErr('Promise: '+(e.reason&&e.reason.message||e.reason||'?')+' ['+VER+']'));
 
@@ -753,6 +762,101 @@ bFlip.onclick=async()=>{
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&running)stop();
 });
+
+/* ═════════ Carte partageable (story 1080×1920) — vrai logo Coach DM ═════════ */
+let LOGO=null,LOGO_TRIED=false;
+function loadLogo(){
+  return new Promise(res=>{
+    if(LOGO)return res(LOGO);
+    if(LOGO_TRIED)return res(null);
+    const im=new Image();
+    const done=ok=>{LOGO_TRIED=true;if(ok)LOGO=im;res(ok?im:null);};
+    im.onload=()=>done(true);
+    im.onerror=()=>done(false);
+    im.src='/logo-dm.png';
+    setTimeout(()=>{if(!LOGO&&!LOGO_TRIED)done(false);},2000);
+  });
+}
+function shGoldGrad(c,x0,y0,x1,y1){
+  const g=c.createLinearGradient(x0,y0,x1,y1);
+  g.addColorStop(0,'#F6E27A');g.addColorStop(.45,'#D4AF37');g.addColorStop(1,'#A47F1E');
+  return g;
+}
+function shBase(c,W,H,title,logo){
+  c.fillStyle='#0A0A0A';c.fillRect(0,0,W,H);
+  const rg=c.createRadialGradient(W/2,0,0,W/2,0,H*.8);
+  rg.addColorStop(0,'rgba(212,175,55,.10)');rg.addColorStop(1,'rgba(212,175,55,0)');
+  c.fillStyle=rg;c.fillRect(0,0,W,H);
+  c.textAlign='center';
+  if(logo){
+    const r=88,cx=W/2,cy=150;
+    c.save();
+    c.beginPath();c.arc(cx,cy,r,0,Math.PI*2);c.closePath();c.clip();
+    c.fillStyle='#0A0A0A';c.fillRect(cx-r,cy-r,r*2,r*2);
+    c.drawImage(logo,cx-r,cy-r,r*2,r*2);
+    c.restore();
+    c.lineWidth=6;c.strokeStyle=shGoldGrad(c,cx-r,cy-r,cx+r,cy+r);
+    c.beginPath();c.arc(cx,cy,r+4,0,Math.PI*2);c.stroke();
+  }else{
+    c.font='800 78px Outfit';c.fillStyle='#F5F5F4';
+    c.fillText('COACH ',W/2-92,170);
+    c.fillStyle=shGoldGrad(c,W/2,110,W/2+240,190);
+    c.fillText('DM',W/2+158,170);
+  }
+  c.font='700 40px Outfit';c.fillStyle='#9CA3AF';
+  c.fillText(title,W/2,logo?312:255);
+  c.strokeStyle='rgba(212,175,55,.5)';c.lineWidth=3;
+  const dy=logo?352:295;
+  c.beginPath();c.moveTo(W/2-130,dy);c.lineTo(W/2+130,dy);c.stroke();
+  c.font='700 42px Outfit';c.fillStyle=shGoldGrad(c,W/2-220,H-150,W/2+220,H-110);
+  c.fillText('Power · Transform · Excel',W/2,H-150);
+  c.font='600 36px Outfit';c.fillStyle='#9CA3AF';
+  c.fillText('coachdm.be  ·  @coachdm.be',W/2,H-85);
+}
+function shCardSquat(logo){
+  const W=1080,H=1920,cv=document.createElement('canvas');
+  cv.width=W;cv.height=H;const c=cv.getContext('2d');
+  shBase(c,W,H,t('sh_squat_t'),logo);
+  c.textAlign='center';
+  const par=reps.filter(r=>r.parallel).length;
+  c.font='700 44px Outfit';c.fillStyle='#9CA3AF';c.fillText(t('sh_reps'),W/2,620);
+  c.font='800 300px Outfit';c.fillStyle=shGoldGrad(c,W/2-320,700,W/2+320,960);
+  c.fillText(String(reps.length),W/2,940);
+  c.font='800 66px Outfit';c.fillStyle='#00FFA3';
+  c.fillText(par+'/'+reps.length+' '+t('sh_par'),W/2,1100);
+  c.font='700 44px Outfit';c.fillStyle='#9CA3AF';
+  c.fillText(t('sh_depth')+' : '+Math.round(bestDepth)+'°',W/2,1185);
+  if(PRO&&VBT.best!=null){
+    const mets=[
+      [VBT.best.toFixed(2),'m/s · VBT'],
+      [VBT.vl!=null?('−'+VBT.vl.toFixed(0)+'%'):'—',t('sh_vl')],
+      [VBT.e1?String(Math.round(VBT.e1/2.5)*2.5):'—',t('sh_e1')]
+    ];
+    mets.forEach((mm,i)=>{
+      const x=W/6+(i*W/3);
+      c.font='800 92px Outfit';c.fillStyle='#F5F5F4';c.fillText(mm[0],x,1420);
+      c.font='700 32px Outfit';c.fillStyle='#9CA3AF';c.fillText(mm[1],x,1482);
+    });
+  }
+  return cv;
+}
+async function shShare(cv,name){
+  const blob=await new Promise(res=>cv.toBlob(res,'image/png'));
+  const file=new File([blob],name,{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file]});return;}catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  alert(t('sh_fail'));
+}
+async function shGo(){
+  try{await document.fonts.load('800 300px Outfit');await document.fonts.load('700 44px Outfit');}catch(_){}
+  const logo=await loadLogo();
+  await shShare(shCardSquat(logo),'coachdm-squat.png');
+}
+document.getElementById('b-share').onclick=()=>{if(reps.length)shGo();};
 
 /* ───────── Sauvegarde Supabase (session partagée avec l'app) ───────── */
 import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient})=>{

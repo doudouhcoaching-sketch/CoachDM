@@ -27,7 +27,8 @@
   header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px}
   .backapp{flex:0 0 auto;display:grid;place-items:center;width:36px;height:36px;border-radius:12px;border:1px solid rgba(255,255,255,.14);color:#D4AF37;text-decoration:none;font-size:20px;font-weight:800;line-height:1;margin-right:2px}
   .backapp:active{transform:scale(.94)}
-  .brand{font-weight:800;font-size:18px;letter-spacing:-0.02em}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:18px;letter-spacing:-0.02em}
+  .brandlogo{width:26px;height:26px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px rgba(212,175,55,.55)}
   .brand em{font-style:normal;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 45%,#A47F1E 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
   .sub{color:var(--muted);font-size:12.5px;font-weight:500;margin-top:2px}
   .sub .nl{font-style:italic}
@@ -177,7 +178,7 @@
 <header>
   <a class="backapp" href="app.html" aria-label="Coach DM App">‹</a>
   <div>
-    <div class="brand">COACH <em>DM</em></div>
+    <div class="brand"><img class="brandlogo" src="/logo-dm.png" alt="" onerror="this.remove()"><span>COACH <em>DM</em></span></div>
     <div class="sub" id="subline"></div>
   </div>
   <div class="lang" id="lang">
@@ -222,6 +223,12 @@
 </div>
 
 <!-- ══ Profil Force-Vitesse ══ -->
+<div class="fvcard" id="fv-gate" style="display:none;text-align:center">
+  <h3 id="fv-gate-h" style="margin-bottom:8px"></h3>
+  <div class="hint" id="fv-gate-p" style="margin-bottom:14px"></div>
+  <a class="fvbtn gold" id="b-fv-gate" style="display:block;text-decoration:none" href="app.html"></a>
+</div>
+
 <div class="fvcard" id="fv-setup" style="display:none">
   <h3 id="fv-setup-h"></h3>
   <div class="hint" id="fv-setup-hint"></div>
@@ -282,7 +289,7 @@
   <div class="note" id="help-note"></div>
 </details>
 
-<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">saut v3.1</span></footer>
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">saut v3.3</span></footer>
 
 <script type="module">
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
@@ -320,6 +327,10 @@ const I18N = {
   tab_jump:{fr:'Saut simple',en:'Jump test',nl:'Sprongtest'},
   tab_fv:{fr:'Profil Force-Vitesse',en:'Force-Velocity profile',nl:'Kracht-Snelheid profiel'},
   fv_setup_h:{fr:'Profil F-V — mesures',en:'F-V profile — measurements',nl:'K-S profiel — metingen'},
+  fv_gate_h:{fr:'Profil F-V — fonctionnalité Premium',en:'F-V profile — Premium feature',nl:'K-S profiel — Premium functie'},
+  fv_gate_p:{fr:'Le test de saut simple est gratuit pour tous. Le Profil Force-Vitesse complet — analyse Samozino, recommandations et historique — est réservé aux membres Premium et aux athlètes coachés. Connecte-toi ou active ton abonnement dans l\'app.',en:'The simple jump test is free for everyone. The full Force-Velocity profile — Samozino analysis, recommendations and history — is for Premium members and coached athletes. Log in or activate your subscription in the app.',nl:'De eenvoudige sprongtest is gratis voor iedereen. Het volledige Kracht-Snelheid profiel — Samozino-analyse, aanbevelingen en geschiedenis — is voor Premium-leden en gecoachte atleten. Log in of activeer je abonnement in de app.'},
+  fv_gate_btn:{fr:'Ouvrir l\'app Coach DM',en:'Open the Coach DM app',nl:'Open de Coach DM app'},
+  fv_safety:{fr:' ⚠ Sécurité : charges portées en gilet lesté ou haltères tenus près du corps, progression graduelle, atterrissage amorti maîtrisé — arrête au moindre inconfort.',en:' ⚠ Safety: carry loads with a weighted vest or dumbbells held close to the body, progress gradually, controlled soft landing — stop at any discomfort.',nl:' ⚠ Veiligheid: draag belasting met een gewichtsvest of dumbbells dicht bij het lichaam, bouw geleidelijk op, gecontroleerde zachte landing — stop bij enig ongemak.'},
   fv_setup_hint:{fr:'Une seule fois : longueur de jambe = grand trochanter → pointe de pied, jambe et cheville tendues (allongé). Hauteur hanche 90° = trochanter → sol en position de départ, genoux à 90°. Charges en kg, séparées par des virgules (0 = sans charge).',en:'One time only: leg length = greater trochanter → toe tip, leg and ankle extended (lying down). 90° hip height = trochanter → floor in start position, knees at 90°. Loads in kg, comma-separated (0 = bodyweight).',nl:'Eenmalig: beenlengte = trochanter major → teenpunt, been en enkel gestrekt (liggend). Heuphoogte 90° = trochanter → vloer in startpositie, knieën op 90°. Belastingen in kg, gescheiden door komma\'s (0 = lichaamsgewicht).'},
   fv_mass:{fr:'Poids corporel (kg)',en:'Body mass (kg)',nl:'Lichaamsgewicht (kg)'},
   fv_leg:{fr:'Longueur jambe (cm)',en:'Leg length (cm)',nl:'Beenlengte (cm)'},
@@ -384,7 +395,10 @@ function applyLang(){
   $('#tab-jump').textContent=t('tab_jump');
   $('#tab-fv').textContent=t('tab_fv');
   $('#fv-setup-h').textContent=t('fv_setup_h');
-  $('#fv-setup-hint').textContent=t('fv_setup_hint');
+  $('#fv-setup-hint').textContent=t('fv_setup_hint')+t('fv_safety');
+  $('#fv-gate-h').textContent=t('fv_gate_h');
+  $('#fv-gate-p').textContent=t('fv_gate_p');
+  $('#b-fv-gate').textContent=t('fv_gate_btn');
   $('#l-mass').textContent=t('fv_mass');
   $('#l-leg').textContent=t('fv_leg');
   $('#l-h90').textContent=t('fv_h90');
@@ -682,6 +696,7 @@ document.addEventListener('visibilitychange',()=>{
 
 /* ═════════ Profil Force-Vitesse (Samozino & Morin) ═════════ */
 const FV={on:false,step:'setup',mass:0,hpo:0,legCm:0,h90Cm:0,loads:[],idx:0,byLoad:{},res:null};
+const ENT={known:false,ok:false}; /* droit d'accès Premium/coach/client coaché */
 const fvSetup=$('#fv-setup'),fvCapture=$('#fv-capture'),fvResults=$('#fv-results'),jumpCard=$('#jump-card');
 const inMass=$('#in-mass'),inLeg=$('#in-leg'),inH90=$('#in-h90'),inLoads=$('#in-loads');
 
@@ -711,9 +726,11 @@ function setMode(m){
   document.querySelectorAll('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));
   jumpCard.style.display=FV.on?'none':'';
   $('#save-row').style.display=(!FV.on&&jumps.length)?'flex':'none';
-  fvSetup.style.display=FV.on&&FV.step==='setup'?'':'none';
-  fvCapture.style.display=FV.on&&FV.step==='capture'?'':'none';
-  fvResults.style.display=FV.on&&FV.step==='done'?'':'none';
+  const gated=FV.on&&!(ENT.known&&ENT.ok);
+  $('#fv-gate').style.display=gated?'':'none';
+  fvSetup.style.display=(FV.on&&!gated&&FV.step==='setup')?'':'none';
+  fvCapture.style.display=(FV.on&&!gated&&FV.step==='capture')?'':'none';
+  fvResults.style.display=(FV.on&&!gated&&FV.step==='done')?'':'none';
 }
 document.querySelectorAll('#modes button').forEach(b=>{b.onclick=()=>setMode(b.dataset.mode);});
 
@@ -854,36 +871,63 @@ function fvDrawChart(){
 }
 window.addEventListener('resize',()=>{if(FV.step==='done')fvDrawChart();});
 
-/* ═════════ Carte partageable (story 1080×1920) ═════════ */
+/* ═════════ Carte partageable (story 1080×1920) — vrai logo Coach DM ═════════ */
+let LOGO=null,LOGO_TRIED=false;
+function loadLogo(){
+  return new Promise(res=>{
+    if(LOGO)return res(LOGO);
+    if(LOGO_TRIED)return res(null);
+    const im=new Image();
+    const done=ok=>{LOGO_TRIED=true;if(ok)LOGO=im;res(ok?im:null);};
+    im.onload=()=>done(true);
+    im.onerror=()=>done(false);
+    im.src='/logo-dm.png';
+    setTimeout(()=>{if(!LOGO&&!LOGO_TRIED)done(false);},2000);
+  });
+}
 function shGoldGrad(c,x0,y0,x1,y1){
   const g=c.createLinearGradient(x0,y0,x1,y1);
   g.addColorStop(0,'#F6E27A');g.addColorStop(.45,'#D4AF37');g.addColorStop(1,'#A47F1E');
   return g;
 }
-function shBase(c,W,H,title){
+function shBase(c,W,H,title,logo){
   c.fillStyle='#0A0A0A';c.fillRect(0,0,W,H);
   const rg=c.createRadialGradient(W/2,0,0,W/2,0,H*.8);
   rg.addColorStop(0,'rgba(212,175,55,.10)');rg.addColorStop(1,'rgba(212,175,55,0)');
   c.fillStyle=rg;c.fillRect(0,0,W,H);
   c.textAlign='center';
-  c.font='800 78px Outfit';c.fillStyle='#F5F5F4';
-  c.fillText('COACH ',W/2-92,170);
-  c.fillStyle=shGoldGrad(c,W/2,110,W/2+240,190);
-  c.fillText('DM',W/2+158,170);
+  if(logo){
+    /* vrai logo — pièce ronde cerclée d'or */
+    const r=88,cx=W/2,cy=150;
+    c.save();
+    c.beginPath();c.arc(cx,cy,r,0,Math.PI*2);c.closePath();c.clip();
+    c.fillStyle='#0A0A0A';c.fillRect(cx-r,cy-r,r*2,r*2);
+    c.drawImage(logo,cx-r,cy-r,r*2,r*2);
+    c.restore();
+    c.lineWidth=6;c.strokeStyle=shGoldGrad(c,cx-r,cy-r,cx+r,cy+r);
+    c.beginPath();c.arc(cx,cy,r+4,0,Math.PI*2);c.stroke();
+  }else{
+    /* repli texte si le logo ne charge pas */
+    c.font='800 78px Outfit';c.fillStyle='#F5F5F4';
+    c.fillText('COACH ',W/2-92,170);
+    c.fillStyle=shGoldGrad(c,W/2,110,W/2+240,190);
+    c.fillText('DM',W/2+158,170);
+  }
   c.font='700 40px Outfit';c.fillStyle='#9CA3AF';
-  c.fillText(title,W/2,255);
+  c.fillText(title,W/2,logo?312:255);
   c.strokeStyle='rgba(212,175,55,.5)';c.lineWidth=3;
-  c.beginPath();c.moveTo(W/2-130,295);c.lineTo(W/2+130,295);c.stroke();
+  const dy=logo?352:295;
+  c.beginPath();c.moveTo(W/2-130,dy);c.lineTo(W/2+130,dy);c.stroke();
   /* footer */
   c.font='700 42px Outfit';c.fillStyle=shGoldGrad(c,W/2-220,H-150,W/2+220,H-110);
   c.fillText('Power · Transform · Excel',W/2,H-150);
   c.font='600 36px Outfit';c.fillStyle='#9CA3AF';
   c.fillText('coachdm.be  ·  @coachdm.be',W/2,H-85);
 }
-function shCardJump(){
+function shCardJump(logo){
   const W=1080,H=1920,cv=document.createElement('canvas');
   cv.width=W;cv.height=H;const c=cv.getContext('2d');
-  shBase(c,W,H,t('sh_jump_t'));
+  shBase(c,W,H,t('sh_jump_t'),logo);
   const bestJ=jumps.reduce((a,b)=>b.cm>a.cm?b:a,jumps[0]);
   c.textAlign='center';
   c.font='700 44px Outfit';c.fillStyle='#9CA3AF';c.fillText(t('sh_height'),W/2,720);
@@ -894,19 +938,19 @@ function shCardJump(){
   c.font='800 96px Outfit';c.fillStyle='#00FFA3';c.fillText(bestJ.ms+' ms',W/2,1440);
   return cv;
 }
-function shCardFV(){
+function shCardFV(logo){
   const r=FV.res,W=1080,H=1920,cv=document.createElement('canvas');
   cv.width=W;cv.height=H;const c=cv.getContext('2d');
-  shBase(c,W,H,t('sh_fv_t'));
+  shBase(c,W,H,t('sh_fv_t'),logo);
   c.textAlign='center';
   /* verdict + imbalance */
   const col=r.ori==='force'?'#EF4444':r.ori==='velocity'?'#D4AF37':'#00FFA3';
-  c.font='800 168px Outfit';c.fillStyle=shGoldGrad(c,W/2-260,420,W/2+260,560);
-  c.fillText(r.imb.toFixed(0)+' %',W/2,560);
+  c.font='800 168px Outfit';c.fillStyle=shGoldGrad(c,W/2-260,440,W/2+260,580);
+  c.fillText(r.imb.toFixed(0)+' %',W/2,580);
   c.font='800 56px Outfit';c.fillStyle=col;
-  c.fillText(t(r.ori==='force'?'fv_ori_force':r.ori==='velocity'?'fv_ori_vel':'fv_ori_bal'),W/2,650);
+  c.fillText(t(r.ori==='force'?'fv_ori_force':r.ori==='velocity'?'fv_ori_vel':'fv_ori_bal'),W/2,668);
   /* gauge */
-  const gx=140,gw=W-280,gy=710,gh=26;
+  const gx=140,gw=W-280,gy=724,gh=26;
   const gg=c.createLinearGradient(gx,0,gx+gw,0);
   gg.addColorStop(0,'#EF4444');gg.addColorStop(.30,'#D4AF37');gg.addColorStop(.44,'#00FFA3');
   gg.addColorStop(.56,'#00FFA3');gg.addColorStop(.70,'#D4AF37');gg.addColorStop(1,'#EF4444');
@@ -919,11 +963,11 @@ function shCardFV(){
   const mets=[[(r.F0/FV.mass).toFixed(1),'F0 · N/kg'],[r.V0.toFixed(2),'V0 · m/s'],[(r.Pmax/FV.mass).toFixed(1),'Pmax · W/kg']];
   mets.forEach((mm,i)=>{
     const x=W/6+(i*W/3);
-    c.font='800 92px Outfit';c.fillStyle='#F5F5F4';c.fillText(mm[0],x,930);
-    c.font='700 34px Outfit';c.fillStyle='#9CA3AF';c.fillText(mm[1],x,990);
+    c.font='800 92px Outfit';c.fillStyle='#F5F5F4';c.fillText(mm[0],x,940);
+    c.font='700 34px Outfit';c.fillStyle='#9CA3AF';c.fillText(mm[1],x,1000);
   });
   /* chart */
-  const px=150,pw=W-300,py=1090,ph=520;
+  const px=150,pw=W-300,py=1100,ph=510;
   c.strokeStyle='rgba(255,255,255,.15)';c.lineWidth=3;
   c.beginPath();c.moveTo(px,py);c.lineTo(px,py+ph);c.lineTo(px+pw,py+ph);c.stroke();
   const xmax=Math.max(r.V0,r.v0Opt)*1.08,ymax=Math.max(r.F0,r.f0Opt)/FV.mass*1.08;
@@ -955,7 +999,8 @@ async function shShare(cv,name){
 }
 async function shGo(kind){
   try{await document.fonts.load('800 300px Outfit');await document.fonts.load('700 44px Outfit');}catch(_){}
-  const cv=kind==='fv'?shCardFV():shCardJump();
+  const logo=await loadLogo();
+  const cv=kind==='fv'?shCardFV(logo):shCardJump(logo);
   await shShare(cv,kind==='fv'?'coachdm-profil-fv.png':'coachdm-saut.png');
 }
 $('#b-share-jump').onclick=()=>{if(jumps.length)shGo('jump');};
@@ -965,7 +1010,16 @@ $('#b-fv-share').onclick=()=>{if(FV.res)shGo('fv');};
 import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient})=>{
   const sbClient=createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
   let UID=null;
-  sbClient.auth.getSession().then(({data})=>{UID=data?.session?.user?.id||null;});
+  sbClient.auth.getSession().then(async({data})=>{
+    UID=data?.session?.user?.id||null;
+    if(UID){
+      try{
+        const {data:ok}=await sbClient.rpc('fn_can_analyze',{p_user:UID});
+        ENT.known=true;ENT.ok=!!ok;
+      }catch(_){ENT.known=true;ENT.ok=false;}
+    }else{ENT.known=true;ENT.ok=false;}
+    if(FV.on)setMode('fv');
+  });
   const btn=$('#b-save');
   btn.textContent=t('save');
   btn.onclick=async()=>{
@@ -1008,7 +1062,7 @@ import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({creat
     if(error){fvBtn.disabled=false;fvBtn.textContent=t('fv_save');alert(t('save_fail'));return;}
     fvBtn.textContent=t('saved');
   };
-}).catch(()=>{});
+}).catch(()=>{ENT.known=true;ENT.ok=false;if(FV.on)setMode('fv');});
 
 applyLang();
 setMode('jump');
