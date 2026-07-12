@@ -149,6 +149,7 @@
   details[open] summary::after{content:'−'}
   .help{margin-top:10px;color:var(--muted);font-size:13.5px;line-height:1.6}
   .help li{margin:0 0 6px 16px}
+  .pdiag{width:100%;max-width:300px;display:block;margin:8px auto 2px}
   .note{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5}
 
   footer{margin-top:22px;text-align:center;color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.02em}
@@ -254,6 +255,24 @@
 </div>
 
 <details>
+  <summary id="place-h"></summary>
+  <svg class="pdiag" viewBox="0 0 320 190" aria-hidden="true">
+    <ellipse cx="150" cy="62" rx="30" ry="11" fill="none" stroke="#9CA3AF" stroke-width="2"/>
+    <circle cx="150" cy="62" r="7.5" fill="#F5F5F4"/>
+    <line x1="188" y1="62" x2="252" y2="62" stroke="rgba(0,255,163,.45)" stroke-width="2" stroke-dasharray="5 5"/>
+    <rect x="258" y="49" width="17" height="27" rx="4.5" fill="none" stroke="#00FFA3" stroke-width="2.5"/>
+    <text x="266" y="97" fill="#00FFA3" font-size="12" font-weight="800" text-anchor="middle">90° ✓</text>
+    <line x1="150" y1="80" x2="150" y2="128" stroke="rgba(0,255,163,.45)" stroke-width="2" stroke-dasharray="5 5"/>
+    <rect x="141" y="134" width="17" height="27" rx="4.5" fill="none" stroke="#00FFA3" stroke-width="2.5"/>
+    <text x="150" y="182" fill="#00FFA3" font-size="12" font-weight="800" text-anchor="middle">0° ✓</text>
+    <line x1="176" y1="80" x2="222" y2="122" stroke="rgba(239,68,68,.45)" stroke-width="2" stroke-dasharray="5 5"/>
+    <rect x="226" y="126" width="17" height="27" rx="4.5" fill="none" stroke="#EF4444" stroke-width="2.5"/>
+    <text x="235" y="174" fill="#EF4444" font-size="12" font-weight="800" text-anchor="middle">45° ✗</text>
+  </svg>
+  <ol class="help" id="place-ol"></ol>
+</details>
+
+<details>
   <summary id="help-h"></summary>
   <ol class="help" id="help-ol"></ol>
   <div class="note" id="help-note"></div>
@@ -275,7 +294,7 @@
   </div>
 </div>
 
-<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v3.3</span></footer>
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v3.4</span></footer>
 
 <script type="module">
 /* Shim: MediaPipe's WASM glue references bare globals (dbg/out/err). If any DOM element
@@ -287,7 +306,7 @@ import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdel
 /* ───────── i18n ───────── */
 const I18N = {
   subline:{fr:'Analyse Squat — reps gratuits · VBT en Pro',en:'Squat Analysis — free reps · VBT in Pro',nl:'Squatanalyse — gratis reps · VBT in Pro'},
-  splash:{fr:'Pose ton téléphone stable (2–4 m), corps entier visible, de profil ou de face, puis lance la caméra.',en:'Set your phone down stable (2–4 m), full body visible, side or front view, then start the camera.',nl:'Zet je telefoon stabiel neer (2–4 m), hele lichaam zichtbaar, zij- of vooraanzicht, en start de camera.'},
+  splash:{fr:'Téléphone stable à 2–4 m, corps entier visible. Profil (90°) = profondeur & vitesse · Face (0°) = valgus. Évite le 45°.',en:'Stable phone at 2–4 m, full body visible. Side (90°) = depth & speed · Front (0°) = valgus. Avoid 45°.',nl:'Stabiele telefoon op 2–4 m, hele lichaam zichtbaar. Zijkant (90°) = diepte & snelheid · Voorkant (0°) = valgus. Vermijd 45°.'},
   start:{fr:'Lancer la caméra',en:'Start camera',nl:'Camera starten'},
   stop:{fr:'Arrêter',en:'Stop',nl:'Stoppen'},
   reset:{fr:'Remettre à zéro',en:'Reset',nl:'Resetten'},
@@ -356,6 +375,13 @@ const I18N = {
   help_2:{fr:'Gratuit : reps comptées + parallèle cassée (crête de la hanche sous le genou). Pro : dos, valgus (de face) et vitesse VBT.',en:'Free: rep counting + below parallel (hip crease below the knee). Pro: torso, valgus (front view) and VBT speed.',nl:'Gratis: reps tellen + onder parallel (heupplooi onder de knie). Pro: romp, valgus (vooraanzicht) en VBT-snelheid.'},
   help_3:{fr:'Squatte à ton rythme : chaque rep est comptée et analysée automatiquement.',en:'Squat at your own pace: every rep is counted and analysed automatically.',nl:'Squat op je eigen tempo: elke rep wordt automatisch geteld en geanalyseerd.'},
   help_4:{fr:'Le cadre s\'illumine quand tu casses la parallèle. Bip aigu = rep valide, bip grave = trop haute.',en:'The frame lights up when you break parallel. High beep = valid rep, low beep = too high.',nl:'Het kader licht op wanneer je parallel breekt. Hoge piep = geldige rep, lage piep = te hoog.'},
+  st_view:{fr:'Angle 45° détecté — mets-toi de face ou de profil',en:'45° angle detected — face the camera or go side-on',nl:'45°-hoek gedetecteerd — ga frontaal of zijwaarts staan'},
+  place_h:{fr:'📐 Placement caméra — précision maximale',en:'📐 Camera placement — maximum accuracy',nl:'📐 Cameraplaatsing — maximale nauwkeurigheid'},
+  place_1:{fr:'De profil (90°) : la vue la plus précise — profondeur, parallèle cassée, inclinaison du dos et vitesse VBT.',en:'Side-on (90°): the most accurate view — depth, below parallel, torso lean and VBT speed.',nl:'Zijaanzicht (90°): het nauwkeurigst — diepte, onder parallel, romphelling en VBT-snelheid.'},
+  place_2:{fr:'De face (0°) : indispensable pour détecter le valgus (genoux qui rentrent).',en:'Front-on (0°): required to detect valgus (knees caving in).',nl:'Vooraanzicht (0°): nodig om valgus te detecteren (knieën naar binnen).'},
+  place_3:{fr:'Évite le 45° : les angles sont déformés, ni la profondeur ni le valgus ne sont fiables — la page te prévient en direct.',en:'Avoid 45°: angles get distorted, neither depth nor valgus is reliable — the page warns you live.',nl:'Vermijd 45°: de hoeken vervormen, diepte noch valgus is betrouwbaar — de pagina waarschuwt je live.'},
+  place_4:{fr:'Téléphone posé ou sur trépied à hauteur de hanche, 2–4 m, corps entier + pieds dans le cadre.',en:'Phone resting or on a tripod at hip height, 2–4 m, full body + feet in frame.',nl:'Telefoon neergezet of op statief op heuphoogte, 2–4 m, hele lichaam + voeten in beeld.'},
+  place_5:{fr:'Lumière de face — jamais de fenêtre derrière toi — et tenue contrastée avec le fond.',en:'Light facing you — never a window behind you — and clothing that contrasts with the background.',nl:'Licht van voren — nooit een raam achter je — en kleding die contrasteert met de achtergrond.'},
   help_note:{fr:'Angles calculés en 3D (MediaPipe Pose). Parallèle cassée = crête de la hanche sous le sommet du genou, standard CrossFit (Schoenfeld, 2010). VBT : perte de vitesse comme index de fatigue (Sánchez-Medina & González-Badillo, 2011 ; Pareja-Blanco, 2017). 100% sur ton téléphone — aucune vidéo n\'est envoyée ni enregistrée. Outil d\'aide au coaching, ne remplace pas l\'œil du coach.',en:'Angles computed in 3D (MediaPipe Pose). Below parallel = hip crease below top of knee, CrossFit standard (Schoenfeld, 2010). VBT: velocity loss as fatigue index (Sánchez-Medina & González-Badillo, 2011; Pareja-Blanco, 2017). Runs 100% on your phone — no video is uploaded or stored. A coaching aid, not a replacement for the coach\'s eye.',nl:'Hoeken berekend in 3D (MediaPipe Pose). Onder parallel = heupplooi onder de bovenkant van de knie, CrossFit-standaard (Schoenfeld, 2010). VBT: snelheidsverlies als vermoeidheidsindex (Sánchez-Medina & González-Badillo, 2011; Pareja-Blanco, 2017). Draait 100% op je telefoon — er wordt geen video verstuurd of opgeslagen. Een coachingshulpmiddel, geen vervanging voor het oog van de coach.'}
 };
 /* ── diagnostic: surface every error on screen ── */
@@ -371,7 +397,7 @@ function showErr(msg){
     b.textContent='⚠ '+msg;
   }catch(_){}
 }
-const VER='squat v3.3';
+const VER='squat v3.4';
 window.addEventListener('error',e=>showErr((e.message||'Erreur JS')+(e.lineno?' (ligne '+e.lineno+')':'')+' ['+VER+']'));
 window.addEventListener('unhandledrejection',e=>showErr('Promise: '+(e.reason&&e.reason.message||e.reason||'?')+' ['+VER+']'));
 
@@ -428,6 +454,11 @@ function applyLang(){
     const li=document.createElement('li'); li.textContent=t(k); $('#help-ol').appendChild(li);
   });
   $('#help-note').textContent=t('help_note');
+  $('#place-h').textContent=t('place_h');
+  $('#place-ol').innerHTML='';
+  ['place_1','place_2','place_3','place_4','place_5'].forEach(k=>{
+    const li=document.createElement('li'); li.textContent=t(k); $('#place-ol').appendChild(li);
+  });
   document.querySelectorAll('#lang button').forEach(b=>b.classList.toggle('on',b.dataset.lang===LANG));
   renderReps(); setStatus(lastStatus,true);
 }
@@ -443,7 +474,7 @@ function setStatus(key,force){
   pillTxt.textContent=t(key);
   pill.classList.remove('ok','warn','err');
   if(key==='st_ready'||key==='st_deep'||key==='st_up')pill.classList.add('ok');
-  else if(key==='st_down'||key==='st_loading')pill.classList.add('warn');
+  else if(key==='st_down'||key==='st_loading'||key==='st_view')pill.classList.add('warn');
   else if(key.startsWith('st_err')||key==='st_noperson')pill.classList.add('err');
 }
 
@@ -594,7 +625,7 @@ function handle(lm,w,ts){
 
   if(S.mode==='ready'){
     if(PRO)vbtCalib(lm,side); // référence debout + échelle, mise à jour en continu
-    setStatus('st_ready');
+    setStatus(viewOf(lm,side)==='mixed'?'st_view':'st_ready'); // coaching placement en direct
     if(k<DOWN_TRIG){
       S.mode='down';
       S.rep={t0:ts,minKnee:k,torsoMax:0,kasrMin:99,hipBelowKnee:false,view:viewOf(lm,side),hipMax:lm[side.hip].y,hipMaxT:ts};

@@ -111,6 +111,7 @@
   details[open] summary::after{content:'−'}
   .help{margin-top:10px;color:var(--muted);font-size:13.5px;line-height:1.6}
   .help li{margin:0 0 6px 16px}
+  .pdiag{width:100%;max-width:300px;display:block;margin:8px auto 2px}
   .note{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5}
 
   footer{margin-top:22px;text-align:center;color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.02em}
@@ -297,6 +298,19 @@
 </div>
 
 <details>
+  <summary id="place-h"></summary>
+  <svg class="pdiag" viewBox="0 0 320 150" aria-hidden="true">
+    <ellipse cx="150" cy="40" rx="30" ry="11" fill="none" stroke="#9CA3AF" stroke-width="2"/>
+    <circle cx="150" cy="40" r="7.5" fill="#F5F5F4"/>
+    <line x1="150" y1="58" x2="150" y2="98" stroke="rgba(0,255,163,.45)" stroke-width="2" stroke-dasharray="5 5"/>
+    <text x="163" y="82" fill="#9CA3AF" font-size="11" font-weight="700">2–4 m</text>
+    <rect x="141" y="104" width="17" height="27" rx="4.5" fill="none" stroke="#00FFA3" stroke-width="2.5"/>
+    <text x="150" y="147" fill="#00FFA3" font-size="12" font-weight="800" text-anchor="middle">0° ✓</text>
+  </svg>
+  <ol class="help" id="place-ol"></ol>
+</details>
+
+<details>
   <summary id="help-h"></summary>
   <ol class="help" id="help-ol"></ol>
   <div class="note" id="help-note"></div>
@@ -318,7 +332,7 @@
   </div>
 </div>
 
-<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">saut v3.5</span></footer>
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">saut v3.6</span></footer>
 
 <script type="module">
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
@@ -326,7 +340,7 @@ import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdel
 /* ───────── i18n ───────── */
 const I18N = {
   subline:{fr:'Test de Saut — hauteur en direct par IA',en:'Jump Test — live AI jump height',nl:'Sprongtest — live spronghoogte via AI'},
-  splash:{fr:'Pose ton téléphone stable (2–4 m), corps entier visible, puis lance la caméra.',en:'Set your phone down stable (2–4 m), full body visible, then start the camera.',nl:'Zet je telefoon stabiel neer (2–4 m), hele lichaam zichtbaar, en start de camera.'},
+  splash:{fr:'Téléphone stable à 2–4 m, de face, corps entier et orteils visibles, puis lance la caméra.',en:'Stable phone at 2–4 m, facing you, full body and toes visible, then start the camera.',nl:'Stabiele telefoon op 2–4 m, frontaal, hele lichaam en tenen zichtbaar, en start de camera.'},
   start:{fr:'Lancer la caméra',en:'Start camera',nl:'Camera starten'},
   stop:{fr:'Arrêter',en:'Stop',nl:'Stoppen'},
   save:{fr:'💾 Enregistrer la session',en:'💾 Save session',nl:'💾 Sessie opslaan'},
@@ -353,6 +367,12 @@ const I18N = {
   help_2:{fr:'Reste immobile ~1 s : l\'IA calibre ta position au sol.',en:'Stand still ~1 s: the AI calibrates your ground position.',nl:'Sta ~1 s stil: de AI kalibreert je grondpositie.'},
   help_3:{fr:'Saute (contre-mouvement libre) et atterris jambes tendues, même position qu\'au décollage.',en:'Jump (free countermovement) and land with legs extended, same position as takeoff.',nl:'Spring (vrije countermovement) en land met gestrekte benen, zelfde positie als bij de afzet.'},
   help_4:{fr:'La hauteur s\'affiche après l\'atterrissage. Enchaîne autant de sauts que tu veux.',en:'Your height shows after landing. Chain as many jumps as you like.',nl:'Je hoogte verschijnt na de landing. Doe zoveel sprongen als je wilt.'},
+  place_h:{fr:'📐 Placement caméra — précision maximale',en:'📐 Camera placement — maximum accuracy',nl:'📐 Cameraplaatsing — maximale nauwkeurigheid'},
+  place_1:{fr:'De face (0°), orteils bien visibles : la mesure part des pointes de pieds.',en:'Front-on (0°), toes clearly visible: the measurement starts from the toe tips.',nl:'Frontaal (0°), tenen goed zichtbaar: de meting vertrekt vanaf de teenpunten.'},
+  place_2:{fr:'Téléphone posé ou sur trépied à hauteur de genou/hanche, 2–4 m.',en:'Phone resting or on a tripod at knee/hip height, 2–4 m.',nl:'Telefoon neergezet of op statief op knie-/heuphoogte, 2–4 m.'},
+  place_3:{fr:'Saute et atterris au même endroit, sol dégagé et visible dans le cadre.',en:'Take off and land in the same spot, clear floor visible in frame.',nl:'Spring en land op dezelfde plek, vrije vloer zichtbaar in beeld.'},
+  place_4:{fr:'Lumière de face, évite le contre-jour ; short ou leggings contrastés avec le fond.',en:'Light facing you, avoid backlight; shorts or leggings that contrast with the background.',nl:'Licht van voren, vermijd tegenlicht; short of legging die contrasteert met de achtergrond.'},
+  place_5:{fr:'Ne déplace plus le téléphone après la calibration — sinon tape Recalibrer.',en:'Don\'t move the phone after calibration — otherwise tap Recalibrate.',nl:'Verplaats de telefoon niet meer na de kalibratie — tik anders op Herkalibreren.'},
   tab_jump:{fr:'Saut simple',en:'Jump test',nl:'Sprongtest'},
   tab_fv:{fr:'Profil Force-Vitesse',en:'Force-Velocity profile',nl:'Kracht-Snelheid profiel'},
   fv_setup_h:{fr:'Profil F-V — mesures',en:'F-V profile — measurements',nl:'K-S profiel — metingen'},
@@ -435,6 +455,11 @@ function applyLang(){
     const li=document.createElement('li'); li.textContent=t(k); $('#help-ol').appendChild(li);
   });
   $('#help-note').textContent=t('help_note');
+  $('#place-h').textContent=t('place_h');
+  $('#place-ol').innerHTML='';
+  ['place_1','place_2','place_3','place_4','place_5'].forEach(k=>{
+    const li=document.createElement('li'); li.textContent=t(k); $('#place-ol').appendChild(li);
+  });
   $('#tab-jump').textContent=t('tab_jump');
   $('#tab-fv').textContent=t('tab_fv');
   $('#fv-setup-h').textContent=t('fv_setup_h');
