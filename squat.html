@@ -57,6 +57,12 @@
     background:rgba(10,10,10,.72);border:1px solid var(--line);border-radius:12px;padding:8px 11px;
   }
   .angle-chip small{color:var(--muted);font-weight:600;font-size:10px;display:block;letter-spacing:.05em;text-transform:uppercase}
+  .speed-chip{
+    position:absolute;right:10px;bottom:74px;pointer-events:none;
+    font-size:13px;font-weight:800;color:var(--neon);font-variant-numeric:tabular-nums;
+    background:rgba(10,10,10,.72);border:1px solid rgba(0,255,163,.35);border-radius:12px;padding:8px 11px;
+  }
+  .speed-chip small{color:var(--muted);font-weight:600;font-size:10px;display:block;letter-spacing:.05em;text-transform:uppercase}
   .dbg{
     position:absolute;left:10px;bottom:10px;pointer-events:none;
     font-size:10px;font-weight:600;color:rgba(0,255,163,.9);
@@ -95,6 +101,30 @@
 
   .card{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px 18px}
   .card h3{font-size:14.5px;font-weight:700;margin-bottom:10px}
+  .card.pro{border-color:rgba(212,175,55,.45)}
+  .gatep{color:var(--muted);font-size:13px;line-height:1.55;margin:0 0 14px}
+  .goldbtn{display:block;text-decoration:none;font-size:15px;font-weight:700;padding:14px;border-radius:16px;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);color:#0A0A0A;text-align:center}
+  .protag{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.06em;color:#0A0A0A;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);border-radius:6px;padding:2px 7px;vertical-align:2px;margin-left:6px}
+
+  .vrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .vfield{display:flex;flex-direction:column;gap:5px}
+  .vfield label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .vfield input{background:var(--surface2);border:1px solid var(--line);border-radius:12px;color:var(--txt);font-family:inherit;font-size:16px;font-weight:700;padding:12px;width:100%;font-variant-numeric:tabular-nums}
+  .vfield input:focus{outline:none;border-color:rgba(212,175,55,.6)}
+  .vres{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .vres .m{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:11px 4px;text-align:center}
+  .vres .m .v{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--txt)}
+  .vres .m .v small{font-size:10px;font-weight:700;color:var(--muted)}
+  .vres .m .k{font-size:9.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:3px}
+  .vbar{position:relative;height:12px;border-radius:999px;background:var(--surface2);overflow:hidden;margin-top:14px}
+  .vbar i{display:block;height:100%;width:0;border-radius:999px;background:var(--neon);transition:width .3s ease}
+  .vbar.warn i{background:var(--gold)}
+  .vbar.stop i{background:var(--danger)}
+  .vmark{position:absolute;top:-2px;left:50%;width:2px;height:16px;background:rgba(255,255,255,.55)}
+  .vscale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);font-weight:700;margin-top:5px;font-variant-numeric:tabular-nums}
+  .vstop{margin-top:12px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.5);color:#EF4444;font-size:13px;font-weight:700;border-radius:12px;padding:11px 13px;line-height:1.5}
+  .vnote{margin-top:10px;font-size:11.5px;color:var(--muted);line-height:1.5}
+
   .rlist{list-style:none;display:flex;flex-direction:column;gap:8px}
   .rlist li{
     background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;
@@ -107,7 +137,9 @@
   .b-no{color:var(--danger);border-color:rgba(239,68,68,.4)}
   .b-warn{color:var(--gold);border-color:rgba(212,175,55,.4)}
   .b-mut{color:var(--muted)}
+  .b-spd{color:var(--neon);border-color:rgba(0,255,163,.4)}
   .empty{color:var(--muted);font-size:13px}
+  .pro-note{margin-top:12px;font-size:12px;font-weight:700;color:var(--gold);display:flex;align-items:center;gap:7px}
 
   details{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:14px 18px}
   summary{font-size:14.5px;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
@@ -121,7 +153,7 @@
   footer{margin-top:22px;text-align:center;color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.02em}
   footer b{color:var(--gold)}
 
-  @media (prefers-reduced-motion:reduce){.stage{transition:none}.btn{transition:none}}
+  @media (prefers-reduced-motion:reduce){.stage{transition:none}.btn{transition:none}.vbar i{transition:none}}
 </style>
 </head>
 <body>
@@ -141,6 +173,7 @@
   <video id="cam" playsinline muted autoplay></video>
   <canvas id="overlay"></canvas>
   <div class="hud"><span class="pill" id="pill"><span class="dot"></span><span id="pill-txt"></span></span></div>
+  <div class="speed-chip" id="spd" hidden><small>m/s</small><span id="spd-val">—</span></div>
   <div class="angle-chip" id="chip" hidden><small id="chip-lbl"></small><span id="chip-val">—</span></div>
   <div class="dbg" id="cdm-dbg" hidden></div>
   <div class="splash" id="splash">
@@ -168,10 +201,41 @@
   <button class="btn" id="b-save"></button>
 </div>
 
+<!-- ══ Analyse Pro (VBT) — verrou Premium ══ -->
+<div class="card pro" id="vbt-gate" style="display:none;text-align:center">
+  <h3 id="vbt-gate-h" style="margin-bottom:8px"></h3>
+  <p class="gatep" id="vbt-gate-p"></p>
+  <a class="goldbtn" id="b-vbt-gate" href="app.html"></a>
+</div>
+
+<!-- ══ Analyse Pro (VBT) — panneau Premium ══ -->
+<div class="card pro" id="vbt-card" style="display:none">
+  <h3><span id="vbt-h"></span><span class="protag">PRO</span></h3>
+  <p class="gatep" id="vbt-hint" style="margin-bottom:12px"></p>
+  <div class="vrow">
+    <div class="vfield"><label id="l-vh"></label><input id="in-vh" type="number" inputmode="decimal" min="120" max="220" step="0.5" placeholder="180"></div>
+    <div class="vfield"><label id="l-vl"></label><input id="in-vl" type="number" inputmode="decimal" min="0" max="400" step="0.5" placeholder="100"></div>
+  </div>
+  <div class="vres">
+    <div class="m"><div class="v"><span id="v-last">—</span><small> m/s</small></div><div class="k" id="k-last"></div></div>
+    <div class="m"><div class="v"><span id="v-best">—</span><small> m/s</small></div><div class="k" id="k-best"></div></div>
+    <div class="m"><div class="v"><span id="v-vl">—</span></div><div class="k" id="k-vl"></div></div>
+    <div class="m"><div class="v"><span id="v-e1">—</span></div><div class="k">1RM est.</div></div>
+  </div>
+  <div class="vbar" id="v-bar"><i id="v-fill"></i><span class="vmark"></span></div>
+  <div class="vscale"><span>0%</span><span>−20%</span><span>−40%</span></div>
+  <div class="vstop" id="v-stop" style="display:none"></div>
+  <div class="vnote" id="vbt-note"></div>
+</div>
+
 <div class="card">
   <h3 id="list-h"></h3>
   <ul class="rlist" id="rlist"></ul>
   <div class="empty" id="rempty"></div>
+  <div class="pro-note" id="pro-note" style="display:none">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    <span id="pro-note-txt"></span>
+  </div>
 </div>
 
 <details>
@@ -180,7 +244,7 @@
   <div class="note" id="help-note"></div>
 </details>
 
-<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v2.6</span></footer>
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v3.0</span></footer>
 
 <script type="module">
 /* Shim: MediaPipe's WASM glue references bare globals (dbg/out/err). If any DOM element
@@ -191,7 +255,7 @@ import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdel
 
 /* ───────── i18n ───────── */
 const I18N = {
-  subline:{fr:'Analyse Squat — posture en direct par IA',en:'Squat Analysis — live AI posture',nl:'Squatanalyse — live houding via AI'},
+  subline:{fr:'Analyse Squat — reps gratuits · VBT en Pro',en:'Squat Analysis — free reps · VBT in Pro',nl:'Squatanalyse — gratis reps · VBT in Pro'},
   splash:{fr:'Pose ton téléphone stable (2–4 m), corps entier visible, de profil ou de face, puis lance la caméra.',en:'Set your phone down stable (2–4 m), full body visible, side or front view, then start the camera.',nl:'Zet je telefoon stabiel neer (2–4 m), hele lichaam zichtbaar, zij- of vooraanzicht, en start de camera.'},
   start:{fr:'Lancer la caméra',en:'Start camera',nl:'Camera starten'},
   stop:{fr:'Arrêter',en:'Stop',nl:'Stoppen'},
@@ -223,12 +287,25 @@ const I18N = {
   b_knees_ok:{fr:'Genoux ✓',en:'Knees ✓',nl:'Knieën ✓'},
   view_side:{fr:'profil',en:'side',nl:'zijkant'},
   view_front:{fr:'face',en:'front',nl:'voorkant'},
+  vbt_gate_h:{fr:'Analyse Pro (VBT) — fonctionnalité Premium',en:'Pro Analysis (VBT) — Premium feature',nl:'Pro-analyse (VBT) — Premium functie'},
+  vbt_gate_p:{fr:'Le compteur de reps et la profondeur (parallèle cassée) sont gratuits pour tous. L\'Analyse Pro — inclinaison du dos, valgus des genoux, vitesse de chaque rep (VBT), perte de vitesse et 1RM estimé en direct — est réservée aux membres Premium et aux athlètes coachés. Connecte-toi ou active ton abonnement dans l\'app.',en:'Rep counting and depth (below parallel) are free for everyone. Pro Analysis — torso lean, knee valgus, per-rep bar speed (VBT), velocity loss and live estimated 1RM — is for Premium members and coached athletes. Log in or activate your subscription in the app.',nl:'Reps tellen en de diepte (onder parallel) zijn gratis voor iedereen. Pro-analyse — romphelling, knievalgus, snelheid per rep (VBT), snelheidsverlies en live geschatte 1RM — is voor Premium-leden en gecoachte atleten. Log in of activeer je abonnement in de app.'},
+  vbt_gate_btn:{fr:'Ouvrir l\'app Coach DM',en:'Open the Coach DM app',nl:'Open de Coach DM app'},
+  vbt_h:{fr:'Analyse Pro — Vitesse (VBT)',en:'Pro Analysis — Bar speed (VBT)',nl:'Pro-analyse — Snelheid (VBT)'},
+  vbt_hint:{fr:'Entre ta taille (une fois) et la charge sur la barre. Chaque rep : vitesse concentrique moyenne, perte de vitesse et 1RM estimé. Coupe ta série à −20% de vitesse : tu gagnes autant de force avec moins de fatigue (Pareja-Blanco 2017).',en:'Enter your height (once) and the load on the bar. Every rep: mean concentric velocity, velocity loss and estimated 1RM. Cut your set at −20% velocity: same strength gains with less fatigue (Pareja-Blanco 2017).',nl:'Vul één keer je lengte in en de belasting op de bar. Elke rep: gemiddelde concentrische snelheid, snelheidsverlies en geschatte 1RM. Stop je set bij −20% snelheid: evenveel krachtwinst met minder vermoeidheid (Pareja-Blanco 2017).'},
+  vbt_height:{fr:'Taille (cm)',en:'Height (cm)',nl:'Lengte (cm)'},
+  vbt_load:{fr:'Charge barre (kg)',en:'Bar load (kg)',nl:'Bar belasting (kg)'},
+  vbt_last:{fr:'Dernière rep',en:'Last rep',nl:'Laatste rep'},
+  vbt_best:{fr:'Meilleure',en:'Best',nl:'Beste'},
+  vbt_loss:{fr:'Perte vitesse',en:'Velocity loss',nl:'Snelheidsverlies'},
+  vbt_stop:{fr:'⛔ Perte de vitesse ≥ 20% — arrête ta série : les reps suivantes ne construisent que de la fatigue, pas de la force.',en:'⛔ Velocity loss ≥ 20% — end your set: further reps only build fatigue, not strength.',nl:'⛔ Snelheidsverlies ≥ 20% — stop je set: verdere reps bouwen alleen vermoeidheid op, geen kracht.'},
+  vbt_note:{fr:'Vitesse mesurée sur la hanche, calibrée sur ta taille. Sans taille renseignée, la vitesse reste vide. 1RM estimé : indication, pas une vérité absolue.',en:'Velocity measured at the hip, calibrated on your height. Without a height, velocity stays empty. Estimated 1RM is an indication, not an absolute truth.',nl:'Snelheid gemeten op de heup, gekalibreerd op je lengte. Zonder lengte blijft de snelheid leeg. Geschatte 1RM is een indicatie, geen absolute waarheid.'},
+  pro_note:{fr:'Dos, valgus & vitesse (VBT) : Analyse Pro — Premium',en:'Torso, valgus & speed (VBT): Pro Analysis — Premium',nl:'Romp, valgus & snelheid (VBT): Pro-analyse — Premium'},
   help_h:{fr:'Comment ça marche',en:'How it works',nl:'Hoe het werkt'},
   help_1:{fr:'Téléphone posé ou sur trépied, stable, à 2–4 m. Corps entier + pieds dans le cadre, bonne lumière.',en:'Phone resting or on a tripod, stable, 2–4 m away. Full body + feet in frame, good lighting.',nl:'Telefoon neergezet of op statief, stabiel, op 2–4 m. Hele lichaam + voeten in beeld, goed licht.'},
-  help_2:{fr:'De profil : parallèle cassée (crête de la hanche sous le genou) + inclinaison du dos. De face : genoux qui rentrent (valgus).',en:'Side view: break parallel (hip crease below the knee) + torso lean. Front view: knees caving in (valgus).',nl:'Zijaanzicht: parallel breken (heupplooi onder de knie) + romphelling. Vooraanzicht: knieën naar binnen (valgus).'},
+  help_2:{fr:'Gratuit : reps comptées + parallèle cassée (crête de la hanche sous le genou). Pro : dos, valgus (de face) et vitesse VBT.',en:'Free: rep counting + below parallel (hip crease below the knee). Pro: torso, valgus (front view) and VBT speed.',nl:'Gratis: reps tellen + onder parallel (heupplooi onder de knie). Pro: romp, valgus (vooraanzicht) en VBT-snelheid.'},
   help_3:{fr:'Squatte à ton rythme : chaque rep est comptée et analysée automatiquement.',en:'Squat at your own pace: every rep is counted and analysed automatically.',nl:'Squat op je eigen tempo: elke rep wordt automatisch geteld en geanalyseerd.'},
   help_4:{fr:'Le cadre s\'illumine quand tu casses la parallèle. Bip aigu = rep valide, bip grave = trop haute.',en:'The frame lights up when you break parallel. High beep = valid rep, low beep = too high.',nl:'Het kader licht op wanneer je parallel breekt. Hoge piep = geldige rep, lage piep = te hoog.'},
-  help_note:{fr:'Angles calculés en 3D (MediaPipe Pose). Parallèle cassée = crête de la hanche sous le sommet du genou, standard CrossFit (Schoenfeld, 2010). 100% sur ton téléphone — aucune vidéo n\'est envoyée ni enregistrée. Outil d\'aide au coaching, ne remplace pas l\'œil du coach.',en:'Angles computed in 3D (MediaPipe Pose). Below parallel = hip crease below top of knee, CrossFit standard (Schoenfeld, 2010). Runs 100% on your phone — no video is uploaded or stored. A coaching aid, not a replacement for the coach\'s eye.',nl:'Hoeken berekend in 3D (MediaPipe Pose). Onder parallel = heupplooi onder de bovenkant van de knie, CrossFit-standaard (Schoenfeld, 2010). Draait 100% op je telefoon — er wordt geen video verstuurd of opgeslagen. Een coachingshulpmiddel, geen vervanging voor het oog van de coach.'}
+  help_note:{fr:'Angles calculés en 3D (MediaPipe Pose). Parallèle cassée = crête de la hanche sous le sommet du genou, standard CrossFit (Schoenfeld, 2010). VBT : perte de vitesse comme index de fatigue (Sánchez-Medina & González-Badillo, 2011 ; Pareja-Blanco, 2017). 100% sur ton téléphone — aucune vidéo n\'est envoyée ni enregistrée. Outil d\'aide au coaching, ne remplace pas l\'œil du coach.',en:'Angles computed in 3D (MediaPipe Pose). Below parallel = hip crease below top of knee, CrossFit standard (Schoenfeld, 2010). VBT: velocity loss as fatigue index (Sánchez-Medina & González-Badillo, 2011; Pareja-Blanco, 2017). Runs 100% on your phone — no video is uploaded or stored. A coaching aid, not a replacement for the coach\'s eye.',nl:'Hoeken berekend in 3D (MediaPipe Pose). Onder parallel = heupplooi onder de bovenkant van de knie, CrossFit-standaard (Schoenfeld, 2010). VBT: snelheidsverlies als vermoeidheidsindex (Sánchez-Medina & González-Badillo, 2011; Pareja-Blanco, 2017). Draait 100% op je telefoon — er wordt geen video verstuurd of opgeslagen. Een coachingshulpmiddel, geen vervanging voor het oog van de coach.'}
 };
 /* ── diagnostic: surface every error on screen ── */
 function showErr(msg){
@@ -243,7 +320,7 @@ function showErr(msg){
     b.textContent='⚠ '+msg;
   }catch(_){}
 }
-const VER='squat v2.6';
+const VER='squat v3.0';
 window.addEventListener('error',e=>showErr((e.message||'Erreur JS')+(e.lineno?' (ligne '+e.lineno+')':'')+' ['+VER+']'));
 window.addEventListener('unhandledrejection',e=>showErr('Promise: '+(e.reason&&e.reason.message||e.reason||'?')+' ['+VER+']'));
 
@@ -254,10 +331,17 @@ const t=k=>{const e=I18N[k];return e?(e[LANG]||e.fr):k;};
 /* ───────── DOM ───────── */
 const $=s=>document.querySelector(s);
 const video=$('#cam'), canvas=$('#overlay'), stage=$('#stage'), splash=$('#splash');
-const pill=$('#pill'), pillTxt=$('#pill-txt'), chip=$('#chip');
+const pill=$('#pill'), pillTxt=$('#pill-txt'), chip=$('#chip'), spdChip=$('#spd');
 const bStart=$('#b-start'), bFlip=$('#b-flip'), bReset=$('#b-reset');
+const inVH=$('#in-vh'), inVL=$('#in-vl');
 const ctx=canvas.getContext('2d');
 let du=null;
+
+/* ───────── Accès (freemium) ─────────
+   Gratuit pour tous : compteur de reps + parallèle + profondeur.
+   Pro (fn_can_analyze) : dos, valgus, VBT (vitesse, perte, e1RM). */
+const ENT={known:false,ok:false};
+let PRO=false;
 
 function applyLang(){
   document.documentElement.lang=LANG;
@@ -270,6 +354,19 @@ function applyLang(){
   $('#m-par').textContent=t('m_par');
   $('#m-depth').textContent=t('m_depth');
   $('#list-h').textContent=t('list_h');
+  $('#vbt-gate-h').textContent=t('vbt_gate_h');
+  $('#vbt-gate-p').textContent=t('vbt_gate_p');
+  $('#b-vbt-gate').textContent=t('vbt_gate_btn');
+  $('#vbt-h').textContent=t('vbt_h');
+  $('#vbt-hint').textContent=t('vbt_hint');
+  $('#l-vh').textContent=t('vbt_height');
+  $('#l-vl').textContent=t('vbt_load');
+  $('#k-last').textContent=t('vbt_last');
+  $('#k-best').textContent=t('vbt_best');
+  $('#k-vl').textContent=t('vbt_loss');
+  $('#v-stop').textContent=t('vbt_stop');
+  $('#vbt-note').textContent=t('vbt_note');
+  $('#pro-note-txt').textContent=t('pro_note');
   $('#help-h').textContent=t('help_h');
   $('#help-ol').innerHTML='';
   ['help_1','help_2','help_3','help_4'].forEach(k=>{
@@ -308,13 +405,82 @@ function beep(freq,ms){
   }catch(_){}
 }
 
+/* ───────── VBT (Pro) : calibration & état ─────────
+   Échelle métrique : hauteur du grand trochanter ≈ 0.53 × stature (anthropométrie).
+   scale (m / unité normalisée) = (0.53 × taille_m) / (ankleY − hipY) debout. */
+const VBT={heightCm:null,loadKg:0,hip0:null,an0:null,scale:null,best:null,last:null,vl:null,e1:null,stop:false};
+try{
+  const st=JSON.parse(localStorage.getItem('cdm_vbt')||'{}');
+  if(st.h)inVH.value=st.h; if(st.l)inVL.value=st.l;
+}catch(_){}
+function vbtE1(){
+  if(VBT.best!=null&&VBT.loadKg>0){
+    const v=VBT.best;
+    let pct=-5.96*v*v-50.71*v+117; /* profil charge-vitesse squat générique (Sánchez-Medina 2017) */
+    pct=Math.min(105,Math.max(40,pct));
+    VBT.e1=VBT.loadKg*100/pct;
+  }else VBT.e1=null;
+}
+function vbtInputs(){
+  VBT.heightCm=parseFloat(inVH.value)||null;
+  VBT.loadKg=parseFloat(inVL.value)||0;
+  try{localStorage.setItem('cdm_vbt',JSON.stringify({h:inVH.value,l:inVL.value}));}catch(_){}
+  vbtE1(); renderVBT();
+}
+inVH.oninput=vbtInputs; inVL.oninput=vbtInputs;
+function vbtCalib(lm,side){
+  const hy=lm[side.hip].y, ay=lm[side.ankle].y;
+  if(VBT.hip0==null){VBT.hip0=hy;VBT.an0=ay;}
+  else{VBT.hip0=VBT.hip0*0.9+hy*0.1;VBT.an0=VBT.an0*0.9+ay*0.1;}
+  if(VBT.heightCm){
+    const d=VBT.an0-VBT.hip0;
+    if(d>0.05)VBT.scale=(0.53*VBT.heightCm/100)/d;
+  }else VBT.scale=null;
+}
+function vbtOnRep(mcv){
+  if(mcv==null){renderVBT();return;}
+  VBT.last=mcv;
+  if(VBT.best==null||mcv>VBT.best)VBT.best=mcv;
+  VBT.vl=VBT.best>0?Math.max(0,(1-VBT.last/VBT.best)*100):null;
+  vbtE1();
+  if(VBT.vl!=null&&VBT.vl>=20&&!VBT.stop){
+    VBT.stop=true;
+    beep(300,180);setTimeout(()=>beep(300,180),230);setTimeout(()=>beep(240,320),460);
+    if(navigator.vibrate)navigator.vibrate([80,60,80,60,180]);
+  }
+  renderVBT();
+}
+function vbtResetSet(){VBT.best=null;VBT.last=null;VBT.vl=null;VBT.e1=null;VBT.stop=false;renderVBT();}
+function renderVBT(){
+  if(!PRO)return;
+  const f=x=>x==null?'—':x.toFixed(2);
+  $('#v-last').textContent=f(VBT.last);
+  $('#v-best').textContent=f(VBT.best);
+  $('#v-vl').textContent=VBT.vl==null?'—':('−'+VBT.vl.toFixed(0)+'%');
+  $('#v-e1').textContent=VBT.e1?(Math.round(VBT.e1/2.5)*2.5+' kg'):'—';
+  const bar=$('#v-bar');
+  const vl=VBT.vl==null?0:Math.min(40,VBT.vl);
+  $('#v-fill').style.width=(vl/40*100)+'%';
+  bar.classList.toggle('warn',VBT.vl!=null&&VBT.vl>=10&&VBT.vl<20);
+  bar.classList.toggle('stop',VBT.vl!=null&&VBT.vl>=20);
+  $('#v-stop').style.display=VBT.stop?'':'none';
+  if(VBT.last!=null){spdChip.hidden=false;$('#spd-val').textContent=VBT.last.toFixed(2);}
+}
+function proUI(){
+  $('#vbt-gate').style.display=(ENT.known&&!PRO)?'':'none';
+  $('#vbt-card').style.display=PRO?'':'none';
+  $('#pro-note').style.display=(ENT.known&&!PRO)?'':'none';
+  if(PRO){vbtInputs();}
+  renderReps();
+}
+
 /* ───────── Squat engine (3D angles + rep state machine) ───────── */
 const STAND=160, DOWN_TRIG=150, REP_MIN=130, BELOW_PARALLEL_ANGLE=90, TORSO_WARN=60, KASR_WARN=0.85;
 const WARMUP_FRAMES=15, MIN_REP_MS=900;
 const S={mode:'idle',knee:180,rep:null,lastGoodTs:0,good:0};
 let reps=[],bestDepth=180;
 
-function resetSet(){reps=[];bestDepth=180;S.mode='ready';S.knee=180;S.rep=null;renderReps();updateSummary();}
+function resetSet(){reps=[];bestDepth=180;S.mode='ready';S.knee=180;S.rep=null;vbtResetSet();renderReps();updateSummary();}
 
 function vis(p){return p?(p.visibility??1):0;}
 function angle3(a,b,c){
@@ -366,19 +532,22 @@ function handle(lm,w,ts){
   const raw=kneeAngle(w,side);
   S.knee=S.knee*0.6+raw*0.4; // EMA smoothing
   const k=S.knee;
-  if(S.good<WARMUP_FRAMES){S.good++;updateDbg(ts,k,side,lm);return;} // ~0.75 s de présence stable avant d'armer
+  if(S.good<WARMUP_FRAMES){S.good++;if(PRO)vbtCalib(lm,side);updateDbg(ts,k,side,lm);return;} // ~0.75 s de présence stable avant d'armer
   chip.hidden=false;
   $('#chip-val').textContent=Math.round(k)+'°';
 
   if(S.mode==='ready'){
+    if(PRO)vbtCalib(lm,side); // référence debout + échelle, mise à jour en continu
     setStatus('st_ready');
     if(k<DOWN_TRIG){
       S.mode='down';
-      S.rep={t0:ts,minKnee:k,torsoMax:0,kasrMin:99,hipBelowKnee:false,view:viewOf(lm,side)};
+      S.rep={t0:ts,minKnee:k,torsoMax:0,kasrMin:99,hipBelowKnee:false,view:viewOf(lm,side),hipMax:lm[side.hip].y,hipMaxT:ts};
       setStatus('st_down');
     }
   }else if(S.mode==='down'||S.mode==='up'){
     const r=S.rep;
+    const hy=lm[side.hip].y;
+    if(hy>r.hipMax){r.hipMax=hy;r.hipMaxT=ts;} // point bas de la hanche = début du concentrique
     if(k<r.minKnee)r.minKnee=k;
     const tl=torsoLean(w,side);
     if(tl>r.torsoMax)r.torsoMax=tl;
@@ -395,14 +564,22 @@ function handle(lm,w,ts){
     }
     if(k>STAND){
       stage.classList.remove('deep');
-      if(r.minKnee<REP_MIN&&ts-r.t0>=MIN_REP_MS)finishRep(r); // rep < 900 ms = bruit, rejetée
+      if(r.minKnee<REP_MIN&&ts-r.t0>=MIN_REP_MS){
+        let mcv=null;
+        if(PRO&&VBT.scale){ // vitesse concentrique moyenne = déplacement vertical hanche / durée montée
+          const dur=(ts-r.hipMaxT)/1000;
+          const disp=(r.hipMax-hy)*VBT.scale;
+          if(dur>0.15&&dur<4&&disp>0.10&&disp<1.2)mcv=disp/dur;
+        }
+        finishRep(r,mcv); // rep < 900 ms = bruit, rejetée
+      }
       S.mode='ready';S.rep=null;setStatus('st_ready');
     }
   }
   updateDbg(ts,k,side,lm);
 }
 
-function finishRep(r){
+function finishRep(r,mcv){
   const parallel=r.hipBelowKnee||r.minKnee<=BELOW_PARALLEL_ANGLE;
   reps.push({
     minKnee:Math.round(r.minKnee),
@@ -410,11 +587,13 @@ function finishRep(r){
     torso:Math.round(r.torsoMax),
     torsoWarn:r.torsoMax>TORSO_WARN,
     valgus:r.view!=='side'&&r.kasrMin<KASR_WARN,
-    view:r.view
+    view:r.view,
+    mcv:mcv!=null?+mcv.toFixed(3):null
   });
   if(r.minKnee<bestDepth)bestDepth=r.minKnee;
   beep(parallel?1320:440,140);
   if(navigator.vibrate)navigator.vibrate(parallel?60:[40,60,40]);
+  if(PRO)vbtOnRep(mcv);
   renderReps();updateSummary();
 }
 
@@ -435,8 +614,11 @@ function renderReps(){
     const li=document.createElement('li');
     const badges=[];
     badges.push(`<span class="badge ${r.parallel?'b-ok':'b-no'}">${t(r.parallel?'b_par':'b_high')} · ${r.minKnee}°</span>`);
-    badges.push(`<span class="badge ${r.torsoWarn?'b-warn':'b-mut'}">${r.torsoWarn?t('b_torso_w'):t('b_torso')} ${r.torso}°</span>`);
-    if(r.view!=='side')badges.push(`<span class="badge ${r.valgus?'b-no':'b-ok'}">${t(r.valgus?'b_valgus':'b_knees_ok')}</span>`);
+    if(PRO){
+      badges.push(`<span class="badge ${r.torsoWarn?'b-warn':'b-mut'}">${r.torsoWarn?t('b_torso_w'):t('b_torso')} ${r.torso}°</span>`);
+      if(r.view!=='side')badges.push(`<span class="badge ${r.valgus?'b-no':'b-ok'}">${t(r.valgus?'b_valgus':'b_knees_ok')}</span>`);
+      if(r.mcv!=null)badges.push(`<span class="badge b-spd">${r.mcv.toFixed(2)} m/s</span>`);
+    }
     li.innerHTML=`<span class="n">#${reps.length-i}</span>${badges.join('')}`;
     ul.appendChild(li);
   });
@@ -474,7 +656,7 @@ function updateDbg(ts,k,side,lm){
   dbgEl.textContent=
     'état: '+S.mode+'  fps: '+dbgFps+'\n'+
     'genou: '+k.toFixed(0)+'°  vue: '+viewOf(lm,side)+'\n'+
-    'reps: '+reps.length;
+    'reps: '+reps.length+(PRO&&VBT.scale?'  éch: '+VBT.scale.toFixed(2):'');
 }
 
 /* ───────── Camera + loop ───────── */
@@ -539,7 +721,8 @@ async function start(){
   running=true;lastTs=-1;
   bStart.textContent=t('stop');bStart.disabled=false;
   bFlip.disabled=false;bReset.disabled=false;
-  S.mode='ready';S.knee=180;S.rep=null;S.lastGoodTs=0;
+  S.mode='ready';S.knee=180;S.rep=null;S.lastGoodTs=0;S.good=0;
+  VBT.hip0=null;VBT.an0=null;VBT.scale=null;
   setStatus('st_ready',true);
   scheduleFrame();
 }
@@ -551,7 +734,7 @@ function stop(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   splash.style.display='flex';
   stage.classList.remove('deep');
-  chip.hidden=true;dbgEl.hidden=true;
+  chip.hidden=true;spdChip.hidden=true;dbgEl.hidden=true;
   S.mode='idle';S.rep=null;
   bStart.textContent=t('start');
   bFlip.disabled=true;bReset.disabled=true;
@@ -563,6 +746,7 @@ bFlip.onclick=async()=>{
   if(!running)return;
   facing=facing==='environment'?'user':'environment';
   if(stream)stream.getTracks().forEach(tr=>tr.stop());
+  VBT.hip0=null;VBT.an0=null;VBT.scale=null;
   try{await startCam();}
   catch(e){setStatus('st_err_cam');}
 };
@@ -574,14 +758,24 @@ document.addEventListener('visibilitychange',()=>{
 import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient})=>{
   const sbClient=createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
   let UID=null;
-  sbClient.auth.getSession().then(({data})=>{UID=data?.session?.user?.id||null;});
+  sbClient.auth.getSession().then(async({data})=>{
+    UID=data?.session?.user?.id||null;
+    if(UID){
+      try{
+        const {data:ok}=await sbClient.rpc('fn_can_analyze',{p_user:UID});
+        ENT.known=true;ENT.ok=!!ok;
+      }catch(_){ENT.known=true;ENT.ok=false;}
+    }else{ENT.known=true;ENT.ok=false;}
+    PRO=ENT.ok;
+    proUI();
+  });
   const btn=$('#b-save');
   btn.textContent=t('save');
   btn.onclick=async()=>{
     if(!reps.length||btn.disabled)return;
     if(!UID){alert(t('save_login'));return;}
     btn.disabled=true;btn.textContent=t('saving');
-    const {error}=await sbClient.from('squat_sets').insert({
+    const row={
       user_id:UID,
       rep_count:reps.length,
       parallel_count:reps.filter(r=>r.parallel).length,
@@ -589,13 +783,22 @@ import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({creat
       torso_warn_count:reps.filter(r=>r.torsoWarn).length,
       valgus_count:reps.filter(r=>r.valgus).length,
       reps:reps
-    });
+    };
+    if(PRO&&VBT.best!=null){
+      row.load_kg=VBT.loadKg>0?VBT.loadKg:null;
+      row.mcv_best=+VBT.best.toFixed(3);
+      row.mcv_last=VBT.last!=null?+VBT.last.toFixed(3):null;
+      row.velocity_loss_pct=VBT.vl!=null?+VBT.vl.toFixed(1):null;
+      row.est_1rm_kg=VBT.e1?Math.round(VBT.e1):null;
+    }
+    const {error}=await sbClient.from('squat_sets').insert(row);
     if(error){btn.disabled=false;btn.textContent=t('save');alert(t('save_fail'));return;}
     btn.textContent=t('saved');
   };
-}).catch(()=>{});
+}).catch(()=>{ENT.known=true;ENT.ok=false;PRO=false;proUI();});
 
 applyLang();
+proUI();
 </script>
 </body>
 </html>

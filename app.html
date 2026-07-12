@@ -471,21 +471,21 @@
   .rest-track i{display:block;height:100%;width:100%;background:#E9C767;border-radius:99px;transition:width 1s linear}
   .rest-btn{height:38px;min-width:44px;padding:0 12px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;font-weight:800}
   .rest-btn:active{transform:scale(.95)}
-  .wt-bar{display:none;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px;border-radius:16px;
+  .wod-bar{display:none;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px;border-radius:16px;
     background:color-mix(in srgb,var(--brand) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--brand) 40%,transparent);
     backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-  .wt-bar.on{display:flex}
-  .wt-bar.warn{background:color-mix(in srgb,#EF4444 14%,var(--surface));border-color:color-mix(in srgb,#EF4444 44%,transparent)}
-  .wt-num{font-variant-numeric:tabular-nums;font-size:26px;font-weight:900;color:var(--brand);min-width:76px;line-height:1}
-  .wt-bar.warn .wt-num{color:#EF4444}
-  .wt-sub{font-size:9px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
-  .wt-round{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
-  .wt-btn{height:38px;padding:0 14px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;font-weight:800;width:auto;margin:0;flex:0 0 auto;animation:none;box-shadow:none}
-  .wt-btn:active{transform:scale(.95)}
-  .wt-banner{display:flex;align-items:center;gap:10px;margin-top:14px;padding:13px 14px;border-radius:14px;
+  .wod-bar.on{display:flex}
+  .wod-bar.warn{background:color-mix(in srgb,#EF4444 14%,var(--surface));border-color:color-mix(in srgb,#EF4444 44%,transparent)}
+  .wod-num{font-variant-numeric:tabular-nums;font-size:26px;font-weight:900;color:var(--brand);min-width:76px;line-height:1}
+  .wod-bar.warn .wod-num{color:#EF4444}
+  .wod-sub{font-size:9px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+  .wod-round{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
+  .wod-btn{height:38px;padding:0 14px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;font-weight:800}
+  .wod-btn:active{transform:scale(.95)}
+  .wod-banner{display:flex;align-items:center;gap:10px;margin-top:14px;padding:13px 14px;border-radius:14px;
     background:color-mix(in srgb,var(--brand) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--brand) 34%,transparent);
     font-size:13px;font-weight:700;line-height:1.35}
-  .wt-banner b{color:var(--brand)}
+  .wod-banner b{color:var(--brand)}
   .wsc-row{display:flex;gap:10px;margin-bottom:12px}
   .wsc-row .field{flex:1;margin-bottom:0}
   @keyframes pillpop{0%{transform:scale(.6)}55%{transform:scale(1.22)}100%{transform:scale(1)}}
@@ -1562,10 +1562,10 @@ const T = {
  an_title:{fr:'Analyse vid\u00e9o IA',en:'AI Video Analysis',nl:'AI-video-analyse'},
  an_sub:{fr:'Cam\u00e9ra en direct \u2014 100% sur ton t\u00e9l\u00e9phone, aucune vid\u00e9o envoy\u00e9e.',en:'Live camera \u2014 100% on your phone, no video uploaded.',nl:'Live camera \u2014 100% op je telefoon, geen video verstuurd.'},
  an_squat:{fr:'Analyse Squat',en:'Squat Analysis',nl:'Squatanalyse'},
- an_squat_sub:{fr:'Reps, parall\u00e8le, dos, valgus + vitesse (VBT)',en:'Reps, parallel, torso, valgus + bar speed (VBT)',nl:'Reps, parallel, romp, valgus + snelheid (VBT)'},
+ an_squat_sub:{fr:'Gratuit : reps + parall\u00e8le \u00b7 Pro : dos, valgus, vitesse (VBT)',en:'Free: reps + parallel \u00b7 Pro: torso, valgus, speed (VBT)',nl:'Gratis: reps + parallel \u00b7 Pro: romp, valgus, snelheid (VBT)'},
  an_jump:{fr:'Test de Saut',en:'Jump Test',nl:'Sprongtest'},
- an_jump_sub:{fr:'Hauteur en cm par temps de vol',en:'Height in cm via flight time',nl:'Hoogte in cm via vluchttijd'},
- an_locked:{fr:'R\u00e9serv\u00e9 aux offres Coach & Coach+',en:'Coach & Coach+ plans only',nl:'Alleen voor Coach & Coach+'},
+ an_jump_sub:{fr:'Gratuit : hauteur en cm \u00b7 Pro : Profil Force-Vitesse',en:'Free: height in cm \u00b7 Pro: Force-Velocity profile',nl:'Gratis: hoogte in cm \u00b7 Pro: Kracht-Snelheid profiel'},
+ an_pro:{fr:'Analyses Pro (VBT, Profil F-V) incluses dans Premium',en:'Pro analyses (VBT, F-V profile) included in Premium',nl:'Pro-analyses (VBT, K-S profiel) inbegrepen in Premium'},
  pf_week:{fr:'Semaine',en:'Week',nl:'Week'},
  au_email:{fr:'Email',en:'Email',nl:'E-mail'},
  au_pass:{fr:'Mot de passe',en:'Password',nl:'Wachtwoord'},
@@ -3101,25 +3101,24 @@ async function loadWorkouts(){
 }
 function renderAnalyseSection(){
   const host=$('#analyse-section'); if(!host) return;
-  const lock=!IS_COACH;
   const lockIc='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
   const squatIc='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><path d="M12 6.5v3.5M12 10l-3.5 3 .5 4M12 10l3.5 3-.5 4M7 9.5l5 .5 5-.5"/></svg>';
   const jumpIc='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><path d="M12 6.5v4.5M12 11l-4 3.5M12 11l4 3.5M8 8l4 1.5L16 8"/></svg>';
   host.innerHTML=`<div class="an-h"><h3>${t('an_title')}</h3><span class="an-live">LIVE</span></div>
   <div class="an-sub">${t('an_sub')}</div>
-  <div class="an-card${lock?' locked':''}" data-an="squat.html">
+  <div class="an-card" data-an="squat.html">
     <span class="an-ic">${squatIc}</span>
     <div class="an-body"><div class="an-t">${t('an_squat')}</div><div class="an-d">${t('an_squat_sub')}</div></div>
-    <span class="an-end">${lock?lockIc:'›'}</span>
+    <span class="an-end">›</span>
   </div>
-  <div class="an-card${lock?' locked':''}" data-an="saut.html">
+  <div class="an-card" data-an="saut.html">
     <span class="an-ic">${jumpIc}</span>
     <div class="an-body"><div class="an-t">${t('an_jump')}</div><div class="an-d">${t('an_jump_sub')}</div></div>
-    <span class="an-end">${lock?lockIc:'›'}</span>
+    <span class="an-end">›</span>
   </div>
-  ${lock?`<div class="an-lock-note">${lockIc} ${t('an_locked')}</div>`:''}`;
+  ${PREMIUM?'':`<div class="an-lock-note">${lockIc} ${t('an_pro')}</div>`}`;
   host.querySelectorAll('.an-card').forEach(c=>{
-    c.onclick=()=>{ if(IS_COACH){ location.href=c.dataset.an; } else { openCoachSheet(); } };
+    c.onclick=()=>{ location.href=c.dataset.an; };
   });
 }
 function renderProgramFolders(CAT){
@@ -3597,10 +3596,10 @@ function renderDetail(w,items,tips){
   });
   if(lastBlock!==null) html+=`</div>`;
   html+=`<div class="se-action">
-    <div class="wt-bar" id="wod-bar">
-      <span class="wt-num" id="wod-num">0:00</span>
-      <div style="flex:1;min-width:0"><div class="wt-sub" id="wod-sub"></div><div class="wt-round" id="wod-round"></div></div>
-      <button class="wt-btn" id="wod-act"></button>
+    <div class="wod-bar" id="wod-bar">
+      <span class="wod-num" id="wod-num">0:00</span>
+      <div style="flex:1;min-width:0"><div class="wod-sub" id="wod-sub"></div><div class="wod-round" id="wod-round"></div></div>
+      <button class="wod-btn" id="wod-act"></button>
     </div>
     <div class="rest-bar" id="rest-bar">
       <span class="rest-num" id="rest-num">0:00</span>
@@ -3720,10 +3719,10 @@ function wodFmtMin(s){ s=+s||0; return s%60===0 ? (s/60)+' '+t('wod_min_u') : wo
 function wodBanner(w){
   const f=w&&w.wod_format;
   if(!f||f==='classic') return '';
-  if(f==='amrap')    return `<div class="wt-banner">⏱ <span><b>AMRAP</b> — ${t('wodb_amrap')} <b>${wodFmtMin(w.time_cap_seconds)}</b></span></div>`;
-  if(f==='for_time') return `<div class="wt-banner">⏱ <span><b>For Time</b> — ${t('wodb_ft')} <b>${wodFmtMin(w.time_cap_seconds)}</b></span></div>`;
-  if(f==='rft')      return `<div class="wt-banner">⏱ <span><b>${w.rft_rounds||0} ${t('wodb_rft')} ${wodFmtMin(w.time_cap_seconds)}</b></span></div>`;
-  if(f==='emom')     return `<div class="wt-banner">⏱ <span><b>EMOM ${wodFmtMin((w.emom_interval_seconds||60)*(w.emom_rounds||0))}</b> — ${w.emom_rounds||0} × ${t('wodb_emom')} ${wodFmtMin(w.emom_interval_seconds||60)}</span></div>`;
+  if(f==='amrap')    return `<div class="wod-banner">⏱ <span><b>AMRAP</b> — ${t('wodb_amrap')} <b>${wodFmtMin(w.time_cap_seconds)}</b></span></div>`;
+  if(f==='for_time') return `<div class="wod-banner">⏱ <span><b>For Time</b> — ${t('wodb_ft')} <b>${wodFmtMin(w.time_cap_seconds)}</b></span></div>`;
+  if(f==='rft')      return `<div class="wod-banner">⏱ <span><b>${w.rft_rounds||0} ${t('wodb_rft')} ${wodFmtMin(w.time_cap_seconds)}</b></span></div>`;
+  if(f==='emom')     return `<div class="wod-banner">⏱ <span><b>EMOM ${wodFmtMin((w.emom_interval_seconds||60)*(w.emom_rounds||0))}</b> — ${w.emom_rounds||0} × ${t('wodb_emom')} ${wodFmtMin(w.emom_interval_seconds||60)}</span></div>`;
   return '';
 }
 function startWOD(w){
