@@ -435,6 +435,16 @@
   .ex-thumb img{width:100%;height:100%;object-fit:cover}
   .ex-thumb .play{position:absolute;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.55);
     display:grid;place-items:center;color:#fff;font-size:13px;padding-left:2px}
+  .yt-ov{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;padding:16px}
+  .yt-ov.show{display:flex}
+  .yt-box{width:100%;max-width:520px}
+  .yt-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .yt-name{font-size:14px;font-weight:700;color:#fff;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .yt-close{flex:0 0 36px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.25);
+    background:rgba(255,255,255,.08);color:#fff;font-size:16px;display:grid;place-items:center;cursor:pointer}
+  .yt-frame{position:relative;width:100%;padding-top:56.25%;border-radius:14px;overflow:hidden;background:#000;
+    box-shadow:0 12px 40px rgba(0,0,0,.6)}
+  .yt-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
   .ex-main{flex:1;min-width:0}
   .ex-name{font-size:14.5px;font-weight:700;line-height:1.25}
   .ex-tr{font-size:12px;color:var(--muted);line-height:1.3} .ex-tr i{font-style:italic}
@@ -1191,6 +1201,16 @@
   </div>
 </div>
 
+<div class="yt-ov" id="yt-ov">
+  <div class="yt-box">
+    <div class="yt-top">
+      <div class="yt-name" id="yt-name"></div>
+      <button class="yt-close" id="yt-close" aria-label="Fermer">✕</button>
+    </div>
+    <div class="yt-frame" id="yt-slot"></div>
+  </div>
+</div>
+
 <div class="overlay" id="sum-ov">
   <div class="sheet" style="text-align:center">
     <div class="grab"></div>
@@ -1297,11 +1317,6 @@ const T = {
  nav_ia:{fr:'Coach IA',en:'AI Coach',nl:'AI-coach'},
  nav_profile:{fr:'Profil',en:'Profile',nl:'Profiel'},
  nav_boutique:{fr:'Boutique',en:'Shop',nl:'Shop'},
- native_nosub:{fr:'Les abonnements ne sont pas disponibles dans cette version de l\u2019app.',en:'Subscriptions are not available in this version of the app.',nl:'Abonnementen zijn niet beschikbaar in deze versie van de app.'},
- lead_h:{fr:'Coaching avec Coach DM',en:'Coaching with Coach DM',nl:'Coaching met Coach DM'},
- lead_p:{fr:'Programmation sur mesure, suivi personnalis\u00e9 et acc\u00e8s coach. Places limit\u00e9es.',en:'Custom programming, personal follow-up and coach access. Limited spots.',nl:'Programmering op maat, persoonlijke opvolging en coach-toegang. Beperkte plaatsen.'},
- lead_mail:{fr:'\u00c9crire un e-mail',en:'Send an email',nl:'Stuur een e-mail'},
- lead_ig:{fr:'Instagram',en:'Instagram',nl:'Instagram'},
  go_title:{fr:'Mes objectifs',en:'My goals',nl:'Mijn doelen'},
  go_new:{fr:'Objectif',en:'Goal',nl:'Doel'},
  go_empty_t:{fr:'Fixe ton premier objectif',en:'Set your first goal',nl:'Stel je eerste doel in'},
@@ -1570,10 +1585,6 @@ const T = {
  an_squat_sub:{fr:'Gratuit : reps + parall\u00e8le \u00b7 Pro : dos, valgus, vitesse (VBT)',en:'Free: reps + parallel \u00b7 Pro: torso, valgus, speed (VBT)',nl:'Gratis: reps + parallel \u00b7 Pro: romp, valgus, snelheid (VBT)'},
  an_jump:{fr:'Test de Saut',en:'Jump Test',nl:'Sprongtest'},
  an_jump_sub:{fr:'Gratuit : hauteur en cm \u00b7 Pro : Profil Force-Vitesse',en:'Free: height in cm \u00b7 Pro: Force-Velocity profile',nl:'Gratis: hoogte in cm \u00b7 Pro: Kracht-Snelheid profiel'},
- an_bar:{fr:'Analyse Barre',en:'Barbell Analysis',nl:'Barbell-analyse'},
- an_bar_sub:{fr:'Gratuit : reps + bar path live \u00b7 Pro : vitesse pic & d\u00e9viation',en:'Free: reps + live bar path \u00b7 Pro: peak velocity & deviation',nl:'Gratis: reps + live bar path \u00b7 Pro: pieksnelheid & afwijking'},
- an_run:{fr:'Analyse Course',en:'Running Analysis',nl:'Loopanalyse'},
- an_run_sub:{fr:'Gratuit : cadence + pas \u00b7 Pro : tronc, oscillation, overstride',en:'Free: cadence + steps \u00b7 Pro: trunk, oscillation, overstride',nl:'Gratis: cadans + stappen \u00b7 Pro: romp, oscillatie, overstride'},
  an_pro:{fr:'Analyses Pro (VBT, Profil F-V) \u2014 offres Coach & Coach+',en:'Pro analyses (VBT, F-V profile) \u2014 Coach & Coach+ plans',nl:'Pro-analyses (VBT, K-S profiel) \u2014 Coach & Coach+ abonnementen'},
  pf_week:{fr:'Semaine',en:'Week',nl:'Week'},
  au_email:{fr:'Email',en:'Email',nl:'E-mail'},
@@ -1751,8 +1762,6 @@ function setTheme(m){
 if(themeMQ){ const _mqTheme=()=>{ if(THEME==='auto') applyTheme(); }; themeMQ.addEventListener ? themeMQ.addEventListener('change',_mqTheme) : themeMQ.addListener(_mqTheme); }
 
 let USER=null, TARGETS=null, SELECTED=null, CONV=null, BUSY=false, IA_LOADED=false, PREMIUM=false, IS_COACH=false;
-// iOS natif (Capacitor) : aucune vente in-app — Apple 3.1.1 (modèle login-only acté)
-const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
 
 const todayStr = ()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
 const r0=(n)=>Math.round(n||0);
@@ -1913,7 +1922,6 @@ function founderCounter(kind){
   return (left!==null && left>0 && left<=15) ? `<div class="plan-save">${t('founder_left').replace('{n}',left)}</div>` : '';
 }
 async function openSubSheet(){
-  if(IS_NATIVE){ toast(t('native_nosub')); return; }
   $('#sub-ov').classList.add('show');
   if(!SUB_PRICES){
     try{
@@ -1953,7 +1961,6 @@ function resetConsent(){
 }
 // Ouvre l'overlay sur l'étape consentement. Le paiement n'est monté qu'après acceptation.
 async function startCheckout(lk,msgSel){
-  if(IS_NATIVE){ toast(t('native_nosub')); return; }
   PENDING_CK={lk,msgSel:msgSel||'#sub-msg'};
   if(CK){ try{CK.destroy();}catch(e){} CK=null; }
   resetConsent();
@@ -2001,8 +2008,8 @@ async function checkoutReturn(){
   }
   toast(t('sub_wait'));
 }
-{ const el=$('#gate-sub'); if(el){ if(IS_NATIVE) el.style.display='none'; else el.onclick=openSubSheet; } }
-{ const el=$('#p-sub-open'); if(el){ if(IS_NATIVE) el.style.display='none'; else el.onclick=openSubSheet; } }
+{ const el=$('#gate-sub'); if(el) el.onclick=openSubSheet; }
+{ const el=$('#p-sub-open'); if(el) el.onclick=openSubSheet; }
 { const ag=$('#ck-agree'), co=$('#ck-continue');
   if(ag&&co) ag.onchange=()=>{ co.disabled=!ag.checked; };
   if(co) co.onclick=mountCheckout; }
@@ -2073,27 +2080,17 @@ document.querySelectorAll('#coach-toggle button').forEach(b=>b.onclick=()=>{
 { const el=$('#ck-close'); if(el) el.onclick=closeCheckout; }
 { const ov=$('#ck-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) closeCheckout(); }); }
 checkoutReturn();
-if(IS_NATIVE){ document.querySelectorAll('[data-go="boutique"]').forEach(b=>b.style.display='none'); }
 
 /* ---------------- CHAT COACH ---------------- */
 let COACH_THREAD=null, CHAT_CH=null, CHAT_OPEN=false;
 function ccInitials(n){ return (n||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
-function renderLeadCard(box){
-  box.innerHTML=`<div class="block" style="border:1px solid rgba(233,199,103,.35)">
-    <h3 style="color:var(--brand)">${t('lead_h')}</h3>
-    <p class="empty" style="text-align:left;padding:4px 0 10px">${t('lead_p')}</p>
-    <div style="display:flex;gap:8px">
-      <a class="btn" style="flex:1;text-align:center;text-decoration:none" href="mailto:doudouh.coaching@gmail.com?subject=Coaching%20Coach%20DM">${t('lead_mail')}</a>
-      <a class="btn subtle" style="flex:1;text-align:center;text-decoration:none" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener">${t('lead_ig')}</a>
-    </div></div>`;
-}
 async function loadCoachCard(){
   const box=$('#coach-card'); if(!box) return;
   try{
     const { data } = await sb.rpc('msg_threads');
     COACH_THREAD = (data||[]).find(t=>t.peer_is_coach) || null;
   }catch(e){ COACH_THREAD=null; }
-  if(!COACH_THREAD){ if(!IS_COACH) renderLeadCard(box); else box.innerHTML=''; return; }
+  if(!COACH_THREAD){ box.innerHTML=''; return; }
   const th=COACH_THREAD;
   const preview = th.last_kind==='image' ? t('chat_photo')
     : th.last_kind==='video' ? t('chat_video')
@@ -2842,10 +2839,8 @@ async function upsellPrice(){
 }
 function showUpsell(kind){
   const sub=$('#up-sub'); if(sub) sub.textContent=t(kind==='ia'?'up_ia':'up_workout');
-  const cta=$('#up-cta'); if(cta) cta.style.display=IS_NATIVE?'none':'';
-  const pr=$('#up-price'); if(pr) pr.style.display=IS_NATIVE?'none':'';
   const ov=$('#up-ov'); if(ov) ov.classList.add('show');
-  if(!IS_NATIVE) upsellPrice();
+  upsellPrice();
 }
 function renderIALock(){
   const sc=$('#ia-scroll');
@@ -3010,6 +3005,35 @@ const TYPE_MOTIF={strength:'t-str',hypertrophy:'t-str',hiit:'t-bolt',hyrox:'t-pu
 function exThumb(ex){ if(ex.thumbnail_url) return ex.thumbnail_url; const id=ytId(ex.video_url); return id?('https://i.ytimg.com/vi/'+id+'/hqdefault.jpg'):null; }
 function exDemo(ex){ if(ex.video_url) return ex.video_url; if(ex.youtube_query) return 'https://www.youtube.com/results?search_query='+encodeURIComponent(ex.youtube_query); return null; }
 
+/* ── Lecteur YouTube intégré (pas de sortie de l'app) ── */
+function openDemo(url,name){
+  const id=ytId(url);
+  if(!id){ window.open(url,'_blank','noopener'); return; }
+  const ov=$('#yt-ov'), slot=$('#yt-slot'); if(!ov||!slot) return;
+  const nm=$('#yt-name'); if(nm) nm.textContent=name||'';
+  slot.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+id
+    +'?autoplay=1&playsinline=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';
+  ov.classList.add('show');
+}
+function closeDemo(){
+  const ov=$('#yt-ov'); if(!ov||!ov.classList.contains('show')) return;
+  ov.classList.remove('show');
+  const slot=$('#yt-slot'); if(slot) slot.innerHTML='';
+}
+document.addEventListener('click',(e)=>{
+  const a=e.target.closest('a.ex-thumb[href],a.ex-demo[href]');
+  if(a){
+    const vid=ytId(a.getAttribute('href'));
+    if(vid){
+      e.preventDefault();
+      const nm=a.closest('.exrow')?.querySelector('.ex-name')?.textContent||'';
+      openDemo(a.getAttribute('href'),nm);
+    }
+    return; // pas d'ID YouTube (recherche) → comportement externe conservé
+  }
+  if(e.target.closest('#yt-close') || e.target.id==='yt-ov') closeDemo();
+});
+
 let SE_WORKOUTS=null, SE_COUNTS={}, SE_CUR=null, SESSION=null, SET_CTX=null;
 
 async function loadWod(){
@@ -3129,8 +3153,6 @@ function renderAnalyseSection(){
   const lockIc='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
   const squatIc='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><path d="M12 6.5v3.5M12 10l-3.5 3 .5 4M12 10l3.5 3-.5 4M7 9.5l5 .5 5-.5"/></svg>';
   const jumpIc='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><path d="M12 6.5v4.5M12 11l-4 3.5M12 11l4 3.5M8 8l4 1.5L16 8"/></svg>';
-  const barIc='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="2"/><path d="M12 9v4M12 13l-3 4M12 13l3 4M12 10l-5-4M12 10l5-4"/><rect x="3" y="4.5" width="2.6" height="3" rx=".6"/><rect x="18.4" y="4.5" width="2.6" height="3" rx=".6"/></svg>';
-  const runIc='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="4.5" r="2"/><path d="M13 7l-2.5 4.5L7 13M10.5 11.5l2 3-1.5 5M12.5 14.5l3.5 1.5 2 4M13 7l4 1.5 2.5 3"/></svg>';
   host.innerHTML=`<div class="an-h"><h3>${t('an_title')}</h3><span class="an-live">LIVE</span></div>
   <div class="an-sub">${t('an_sub')}</div>
   <div class="an-card" data-an="squat.html">
@@ -3141,16 +3163,6 @@ function renderAnalyseSection(){
   <div class="an-card" data-an="saut.html">
     <span class="an-ic">${jumpIc}</span>
     <div class="an-body"><div class="an-t">${t('an_jump')}</div><div class="an-d">${t('an_jump_sub')}</div></div>
-    <span class="an-end">›</span>
-  </div>
-  <div class="an-card" data-an="barre.html">
-    <span class="an-ic">${barIc}</span>
-    <div class="an-body"><div class="an-t">${t('an_bar')}</div><div class="an-d">${t('an_bar_sub')}</div></div>
-    <span class="an-end">›</span>
-  </div>
-  <div class="an-card" data-an="course.html">
-    <span class="an-ic">${runIc}</span>
-    <div class="an-body"><div class="an-t">${t('an_run')}</div><div class="an-d">${t('an_run_sub')}</div></div>
     <span class="an-end">›</span>
   </div>
   ${IS_COACH?'':`<div class="an-lock-note">${lockIc} ${t('an_pro')}</div>`}`;
