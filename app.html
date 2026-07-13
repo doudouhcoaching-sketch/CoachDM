@@ -446,6 +446,17 @@
     box-shadow:0 12px 40px rgba(0,0,0,.6)}
   .yt-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
   .yt-attr{margin-top:10px;font-size:11px;line-height:1.5;color:rgba(255,255,255,.55);text-align:center}
+  .ld-chips{display:flex;gap:7px;flex-wrap:wrap;margin:2px 0 4px}
+  .ld-chip{flex:1 1 auto;min-width:calc(50% - 4px);padding:10px 8px;border-radius:12px;border:1.5px solid var(--line);
+    background:var(--surface-2);color:var(--muted);font-size:13px;font-weight:700;text-align:center;cursor:pointer}
+  .ld-chip.on{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
+  .ld-ok{text-align:center;padding:8px 4px 4px}
+  .ld-ok-ic{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;margin:0 auto 12px;
+    background:var(--brand-soft);color:var(--brand);font-size:26px}
+  #ld-msg-in{width:100%;min-height:82px;max-height:150px;resize:vertical;background:var(--surface-2);
+    border:1.5px solid var(--line);border-radius:var(--radius-sm);color:var(--text);padding:12px 14px;
+    font-size:15px;font-family:inherit;outline:none}
+  #ld-msg-in:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
   .ex-main{flex:1;min-width:0}
   .ex-name{font-size:14.5px;font-weight:700;line-height:1.25}
   .ex-tr{font-size:12px;color:var(--muted);line-height:1.3} .ex-tr i{font-style:italic}
@@ -1014,7 +1025,8 @@
       <div class="fk" id="p-sub" style="margin-bottom:12px">—</div>
       <button class="btn" id="p-sub-open" style="width:100%;margin-bottom:9px;display:none" data-i18n="sub_cta">S'abonner</button>
       <button class="btn subtle" id="p-sub-manage" style="width:100%;margin-bottom:9px;display:none" data-i18n="sub_manage">Gérer mon abonnement</button>
-      <a class="btn subtle" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none" data-i18n="contact_coach">Contacter le coach</a>
+      <button class="btn subtle" id="p-lead-open" style="width:100%;margin-bottom:9px" data-i18n="lead_cta">Demander un coaching</button>
+      <a class="btn subtle" id="p-contact-coach" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none" data-i18n="contact_coach">Contacter le coach</a>
     </div>
 
     <div class="block" id="p-coach-offer" style="display:none">
@@ -1213,6 +1225,35 @@
   </div>
 </div>
 
+<div class="overlay" id="lead-ov">
+  <div class="sheet" style="max-height:92dvh;overflow-y:auto">
+    <div class="grab"></div>
+    <div id="lead-form">
+      <h3 data-i18n="ld_title">Coaching avec Coach DM</h3>
+      <div class="fk" style="margin-bottom:16px" data-i18n="ld_sub">Dis-moi où tu en es, je te réponds personnellement.</div>
+      <div class="field"><label data-i18n="ld_name">Nom</label><input id="ld-name" type="text" autocomplete="name" /></div>
+      <div class="field"><label data-i18n="ld_email">Email</label><input id="ld-email" type="email" inputmode="email" autocomplete="email" /></div>
+      <div class="field"><label data-i18n="ld_goal">Ton objectif</label><div class="ld-chips" id="ld-goal"></div></div>
+      <div class="field"><label data-i18n="ld_level">Ton niveau</label><div class="ld-chips" id="ld-level"></div></div>
+      <div class="field"><label data-i18n="ld_avail">Tes disponibilités</label><div class="ld-chips" id="ld-avail"></div></div>
+      <div class="field"><label data-i18n="ld_msg">Ton message</label><textarea id="ld-msg-in" data-i18n-ph="ld_msg_ph" placeholder="Parle-moi de toi, de ton contexte…"></textarea></div>
+      <div class="msg" id="ld-msg"></div>
+      <button class="btn" id="ld-send" data-i18n="ld_send">Envoyer ma demande</button>
+      <a class="btn subtle" style="display:block;text-align:center;text-decoration:none;margin-top:10px" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener" data-i18n="ld_ig">Voir @coachdm.be sur Instagram</a>
+      <button class="btn subtle" id="ld-cancel" style="margin-top:10px" data-i18n="btn_cancel">Annuler</button>
+    </div>
+    <div id="lead-done" style="display:none">
+      <div class="ld-ok">
+        <div class="ld-ok-ic"><svg class="ic"><use href="#i-check"/></svg></div>
+        <h3 style="margin:0 0 8px" data-i18n="ld_ok_t">Demande envoyée</h3>
+        <p class="empty" style="padding:0 0 6px" data-i18n="ld_ok_p">Je la reçois directement. Réponse sous 48 h ouvrées.</p>
+      </div>
+      <a class="btn subtle" style="display:block;text-align:center;text-decoration:none;margin-top:6px" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener" data-i18n="ld_ig">Voir @coachdm.be sur Instagram</a>
+      <button class="btn" id="ld-close" style="margin-top:10px" data-i18n="ld_ok_btn">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="sum-ov">
   <div class="sheet" style="text-align:center">
     <div class="grab"></div>
@@ -1324,6 +1365,37 @@ const T = {
  lead_p:{fr:'Programmation sur mesure, suivi personnalis\u00e9 et acc\u00e8s coach. Places limit\u00e9es.',en:'Custom programming, personal follow-up and coach access. Limited spots.',nl:'Programmering op maat, persoonlijke opvolging en coach-toegang. Beperkte plaatsen.'},
  lead_mail:{fr:'\u00c9crire un e-mail',en:'Send an email',nl:'Stuur een e-mail'},
  lead_ig:{fr:'Instagram',en:'Instagram',nl:'Instagram'},
+ lead_cta:{fr:'Demander un coaching',en:'Request coaching',nl:'Coaching aanvragen'},
+ ld_title:{fr:'Coaching avec Coach DM',en:'Coaching with Coach DM',nl:'Coaching met Coach DM'},
+ ld_sub:{fr:'Dis-moi o\u00f9 tu en es, je te r\u00e9ponds personnellement.',en:'Tell me where you stand, I answer personally.',nl:'Vertel me waar je staat, ik antwoord persoonlijk.'},
+ ld_name:{fr:'Nom',en:'Name',nl:'Naam'},
+ ld_email:{fr:'Email',en:'Email',nl:'E-mail'},
+ ld_goal:{fr:'Ton objectif',en:'Your goal',nl:'Je doel'},
+ ld_level:{fr:'Ton niveau',en:'Your level',nl:'Je niveau'},
+ ld_avail:{fr:'Tes disponibilit\u00e9s',en:'Your availability',nl:'Je beschikbaarheid'},
+ ld_msg:{fr:'Ton message',en:'Your message',nl:'Je bericht'},
+ ld_msg_ph:{fr:'Parle-moi de toi, de ton contexte\u2026',en:'Tell me about you and your context\u2026',nl:'Vertel me over jezelf en je context\u2026'},
+ ld_send:{fr:'Envoyer ma demande',en:'Send my request',nl:'Mijn aanvraag versturen'},
+ ld_ig:{fr:'Voir @coachdm.be sur Instagram',en:'See @coachdm.be on Instagram',nl:'Bekijk @coachdm.be op Instagram'},
+ ld_ok_t:{fr:'Demande envoy\u00e9e',en:'Request sent',nl:'Aanvraag verstuurd'},
+ ld_ok_p:{fr:'Je la re\u00e7ois directement. R\u00e9ponse sous 48 h ouvr\u00e9es.',en:'It reaches me directly. Reply within 48 working hours.',nl:'Ik ontvang ze rechtstreeks. Antwoord binnen 48 werkuren.'},
+ ld_ok_btn:{fr:'Fermer',en:'Close',nl:'Sluiten'},
+ ld_g_fat:{fr:'Perte de gras',en:'Fat loss',nl:'Vetverlies'},
+ ld_g_muscle:{fr:'Prise de muscle',en:'Build muscle',nl:'Spieropbouw'},
+ ld_g_perf:{fr:'Performance',en:'Performance',nl:'Prestatie'},
+ ld_g_health:{fr:'Sant\u00e9 & remise en forme',en:'Health & getting back in shape',nl:'Gezondheid & terug in vorm'},
+ ld_l_beg:{fr:'D\u00e9butant',en:'Beginner',nl:'Beginner'},
+ ld_l_int:{fr:'Interm\u00e9diaire',en:'Intermediate',nl:'Gemiddeld'},
+ ld_l_adv:{fr:'Avanc\u00e9',en:'Advanced',nl:'Gevorderd'},
+ ld_a_morning:{fr:'Matin',en:'Morning',nl:'Ochtend'},
+ ld_a_noon:{fr:'Midi',en:'Midday',nl:'Middag'},
+ ld_a_evening:{fr:'Soir',en:'Evening',nl:'Avond'},
+ ld_a_week:{fr:'Week-end',en:'Weekend',nl:'Weekend'},
+ ld_err_name:{fr:'Indique ton nom.',en:'Enter your name.',nl:'Vul je naam in.'},
+ ld_err_email:{fr:'Indique un email valide.',en:'Enter a valid email.',nl:'Vul een geldig e-mailadres in.'},
+ ld_err_rate:{fr:'Tu as d\u00e9j\u00e0 envoy\u00e9 plusieurs demandes. Laisse-moi le temps de te r\u00e9pondre.',en:'You already sent several requests. Give me time to reply.',nl:'Je stuurde al meerdere aanvragen. Geef me tijd om te antwoorden.'},
+ ld_err_coach:{fr:'Tu es suivi par un coach : passe par lui dans la messagerie.',en:'You are followed by a coach: reach out to them in the chat.',nl:'Je wordt door een coach begeleid: neem contact op via de chat.'},
+ ld_err:{fr:'Envoi impossible. R\u00e9essaie dans un instant.',en:'Could not send. Try again shortly.',nl:'Verzenden mislukt. Probeer straks opnieuw.'},
  go_title:{fr:'Mes objectifs',en:'My goals',nl:'Mijn doelen'},
  go_new:{fr:'Objectif',en:'Goal',nl:'Doel'},
  go_empty_t:{fr:'Fixe ton premier objectif',en:'Set your first goal',nl:'Stel je eerste doel in'},
@@ -1835,7 +1907,7 @@ async function enter(user){
 async function loadProfileInfo(user){
   try{
     const { data:prof } = await sb.from('profiles').select('full_name').eq('id',user.id).maybeSingle();
-    if(prof && prof.full_name && $('#p-name')) $('#p-name').value = prof.full_name;
+    if(prof && prof.full_name){ PROFILE_NAME = prof.full_name; if($('#p-name')) $('#p-name').value = prof.full_name; }
   }catch(e){}
   try{
     const { data:prof2 } = await sb.from('profiles').select('role,is_founder,founder_kind,founder_since').eq('id',user.id).maybeSingle();
@@ -1863,6 +1935,8 @@ async function loadProfileInfo(user){
       if(role==='admin'){ const ac=$('#p-admin-console'); if(ac) ac.style.display='block'; }
     }
     { const co=$('#p-coach-offer'); if(co) co.style.display=(role==='coach'||role==='admin')?'none':'block'; }
+    { const lo=$('#p-lead-open'); if(lo) lo.onclick=openLead; }
+    applyCoachIsolation();
     const { data:sub } = await sb.from('subscriptions')
       .select('status,current_period_end,trial_end').eq('user_id',user.id)
       .order('current_period_end',{ascending:false,nullsFirst:false}).limit(1).maybeSingle();
@@ -2099,16 +2173,82 @@ checkoutReturn();
 if(IS_NATIVE){ document.querySelectorAll('[data-go="boutique"]').forEach(b=>b.style.display='none'); }
 
 /* ---------------- CHAT COACH ---------------- */
-let COACH_THREAD=null, CHAT_CH=null, CHAT_OPEN=false;
+let COACH_THREAD=null, CHAT_CH=null, CHAT_OPEN=false, HAS_COACH=false, PROFILE_NAME='';
 function ccInitials(n){ return (n||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
 function renderLeadCard(box){
   box.innerHTML=`<div class="block" style="border:1px solid rgba(233,199,103,.35)">
     <h3 style="color:var(--brand)">${t('lead_h')}</h3>
     <p class="empty" style="text-align:left;padding:4px 0 10px">${t('lead_p')}</p>
     <div style="display:flex;gap:8px">
-      <a class="btn" style="flex:1;text-align:center;text-decoration:none" href="mailto:doudouh.coaching@gmail.com?subject=Coaching%20Coach%20DM">${t('lead_mail')}</a>
+      <button class="btn" style="flex:1" id="lead-open">${t('lead_cta')}</button>
       <a class="btn subtle" style="flex:1;text-align:center;text-decoration:none" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener">${t('lead_ig')}</a>
     </div></div>`;
+  const b=$('#lead-open'); if(b) b.onclick=openLead;
+}
+
+/* ---- Fiche de demande de coaching (in-app, jamais de mailto) ----
+   Regle d'etancheite : visible uniquement si le membre n'est lie a AUCUN coach.
+   Un client de coach passe par son coach. Le serveur (lead_submit) refuse de toute facon. */
+const LD_GOALS=[['fat','ld_g_fat'],['muscle','ld_g_muscle'],['perf','ld_g_perf'],['health','ld_g_health']];
+const LD_LEVELS=[['beginner','ld_l_beg'],['intermediate','ld_l_int'],['advanced','ld_l_adv']];
+const LD_AVAIL=[['morning','ld_a_morning'],['noon','ld_a_noon'],['evening','ld_a_evening'],['weekend','ld_a_week']];
+const LEAD={goal:null,level:null,avail:null};
+function ldChips(host,list,key){
+  const el=$(host); if(!el) return;
+  el.innerHTML=list.map(([v,k])=>`<button type="button" class="ld-chip" data-v="${v}">${t(k)}</button>`).join('');
+  el.querySelectorAll('.ld-chip').forEach(b=>b.onclick=()=>{
+    el.querySelectorAll('.ld-chip').forEach(x=>x.classList.toggle('on',x===b));
+    LEAD[key]=b.dataset.v;
+  });
+}
+function openLead(){
+  if(HAS_COACH){ toast(t('ld_err_coach')); return; }
+  LEAD.goal=LEAD.level=LEAD.avail=null;
+  const f=$('#lead-form'), d=$('#lead-done');
+  if(f) f.style.display=''; if(d) d.style.display='none';
+  const nm=$('#ld-name'); if(nm && !nm.value) nm.value=(PROFILE_NAME||'');
+  const em=$('#ld-email'); if(em && !em.value) em.value=(USER&&USER.email)||'';
+  const tx=$('#ld-msg-in'); if(tx) tx.value='';
+  setMsg('ld-msg','','');
+  ldChips('#ld-goal',LD_GOALS,'goal');
+  ldChips('#ld-level',LD_LEVELS,'level');
+  ldChips('#ld-avail',LD_AVAIL,'avail');
+  $('#lead-ov').classList.add('show');
+}
+function closeLead(){ const ov=$('#lead-ov'); if(ov) ov.classList.remove('show'); }
+async function sendLead(){
+  const name=($('#ld-name').value||'').trim();
+  const email=($('#ld-email').value||'').trim();
+  if(name.length<2){ setMsg('ld-msg',t('ld_err_name'),'err'); return; }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ setMsg('ld-msg',t('ld_err_email'),'err'); return; }
+  setMsg('ld-msg','','');
+  setBtn('#ld-send',true,'\u2026');
+  const { data, error } = await sb.rpc('lead_submit',{
+    p_name:name, p_email:email, p_goal:LEAD.goal, p_level:LEAD.level,
+    p_availability:LEAD.avail, p_message:($('#ld-msg-in').value||'').trim()||null,
+    p_phone:null, p_lang:LANG });
+  setBtn('#ld-send',false,t('ld_send'));
+  if(error || !data || !data.ok){
+    const r=data&&data.reason;
+    setMsg('ld-msg', r==='rate_limit'?t('ld_err_rate') : r==='has_coach'?t('ld_err_coach')
+      : r==='email'?t('ld_err_email') : r==='name'?t('ld_err_name') : t('ld_err'), 'err');
+    return;
+  }
+  try{ sb.functions.invoke('lead-mail',{ body:{ lead_id:data.id } }); }catch(e){}
+  $('#lead-form').style.display='none';
+  $('#lead-done').style.display='';
+}
+{ const b=$('#ld-send');   if(b) b.onclick=sendLead; }
+{ const b=$('#ld-cancel'); if(b) b.onclick=closeLead; }
+{ const b=$('#ld-close');  if(b) b.onclick=closeLead; }
+{ const ov=$('#lead-ov');  if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) closeLead(); }); }
+/* Un client suivi par un coach ne doit voir AUCUN canal vers Coach DM :
+   ni fiche de demande, ni Instagram, ni offre coach. Il ne parle qu'a son coach. */
+function applyCoachIsolation(){
+  const hide = HAS_COACH && !IS_COACH;
+  const ig=$('#p-contact-coach'); if(ig) ig.style.display = hide ? 'none' : '';
+  const lead=$('#p-lead-open');   if(lead) lead.style.display = hide ? 'none' : '';
+  const off=$('#p-coach-offer');  if(off && hide) off.style.display='none';
 }
 async function loadCoachCard(){
   const box=$('#coach-card'); if(!box) return;
@@ -2116,7 +2256,9 @@ async function loadCoachCard(){
     const { data } = await sb.rpc('msg_threads');
     COACH_THREAD = (data||[]).find(t=>t.peer_is_coach) || null;
   }catch(e){ COACH_THREAD=null; }
-  if(!COACH_THREAD){ if(!IS_COACH) renderLeadCard(box); else box.innerHTML=''; return; }
+  HAS_COACH = !!COACH_THREAD || ACCESS==='coach_client';
+  applyCoachIsolation();
+  if(!COACH_THREAD){ if(!IS_COACH && !HAS_COACH) renderLeadCard(box); else box.innerHTML=''; return; }
   const th=COACH_THREAD;
   const preview = th.last_kind==='image' ? t('chat_photo')
     : th.last_kind==='video' ? t('chat_video')
