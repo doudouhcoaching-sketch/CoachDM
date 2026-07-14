@@ -757,6 +757,42 @@
   #pane-profile[data-view="appearance"] #pf-appearance{display:block}
   #pane-profile[data-view="account"] #pf-account{display:block}
   #pane-profile #pf-back{display:none}
+  /* ---- Recettes ---- */
+  .rc-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:2px}
+  .rc-filters{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:4px 0 12px;margin:0 -2px;scrollbar-width:none}
+  .rc-filters::-webkit-scrollbar{display:none}
+  .rc-chip{flex:0 0 auto;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);border-radius:999px;padding:7px 13px;font-size:12.5px;font-weight:600;white-space:nowrap;cursor:pointer;transition:.15s}
+  .rc-chip.on{background:var(--brand-soft);border-color:color-mix(in srgb,var(--brand) 45%,var(--line));color:var(--brand)}
+  .rc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .rc-card{position:relative;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--surface-2);cursor:pointer;transition:transform .12s,border-color .12s}
+  .rc-card:active{transform:scale(.975);border-color:color-mix(in srgb,var(--brand) 40%,var(--line))}
+  .rc-thumb{position:relative;aspect-ratio:16/11;display:flex;align-items:flex-end;padding:10px;background-size:cover;background-position:center}
+  .rc-thumb .rc-ic{position:absolute;top:9px;right:9px;width:24px;height:24px;opacity:.85}
+  .rc-thumb .rc-ic svg{width:100%;height:100%;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .rc-kcal{font-size:12px;font-weight:800;color:#fff;background:rgba(0,0,0,.42);backdrop-filter:blur(4px);border-radius:999px;padding:4px 9px;letter-spacing:.2px}
+  .rc-body{padding:10px 11px 12px}
+  .rc-name{font-size:13.5px;font-weight:700;line-height:1.25;margin-bottom:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .rc-macros{display:flex;gap:9px;font-size:11px;font-weight:700}
+  .rc-macros span{display:inline-flex;align-items:center;gap:3px}
+  .rc-dot{width:7px;height:7px;border-radius:50%}
+  .rc-meta{display:flex;gap:9px;align-items:center;margin-top:8px;font-size:10.5px;color:var(--muted);font-weight:600;flex-wrap:wrap}
+  .rc-hp{position:absolute;top:9px;left:9px;background:var(--brand);color:#04120a;font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;border-radius:999px;padding:3px 8px}
+  .rc-sheet{max-height:88vh;overflow-y:auto}
+  .rc-hero{border-radius:16px;aspect-ratio:16/9;background-size:cover;background-position:center;margin-bottom:14px}
+  .rc-sub{color:var(--muted);font-size:13.5px;line-height:1.5;margin-bottom:14px}
+  .rc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+  .rc-stat{background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:10px 6px;text-align:center}
+  .rc-stat b{display:block;font-size:15px;font-weight:800}
+  .rc-stat small{color:var(--muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+  .rc-sec{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--brand);margin:16px 0 9px}
+  .rc-ing{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .rc-ing span:last-child{color:var(--muted);flex:0 0 auto}
+  .rc-steps{counter-reset:st;padding:0;margin:0;list-style:none}
+  .rc-steps li{position:relative;padding:2px 0 14px 34px;font-size:13.5px;line-height:1.5}
+  .rc-steps li::before{counter-increment:st;content:counter(st);position:absolute;left:0;top:0;width:24px;height:24px;border-radius:50%;background:var(--brand-soft);color:var(--brand);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .rc-srv{display:flex;align-items:center;gap:12px;margin:6px 0 14px}
+  .rc-srv button{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-size:20px;font-weight:700;cursor:pointer}
+  .rc-srv b{min-width:40px;text-align:center;font-size:16px}
   #pane-profile:not([data-view="hub"]) #pf-back{display:flex}
 </style>
 </head>
@@ -913,6 +949,21 @@
       <button class="btn subtle" id="jo-photo" style="width:100%;margin-top:10px"><svg class="ic"><use href="#i-camera"/></svg> <span id="jo-photo-lbl" data-i18n="ph_btn">Photo IA — calcule mes calories</span></button>
       <input type="file" id="jo-photo-file" accept="image/*" capture="environment" style="display:none" />
       <div id="jo-results"></div>
+    </div>
+    <div class="block">
+      <div class="rc-head"><h3 data-i18n="rc_title">Recettes Coach DM</h3></div>
+      <p class="empty" style="text-align:left;padding:0 0 10px" data-i18n="rc_sub">Des repas prêts à logger, calés sur tes objectifs.</p>
+      <div class="rc-filters" id="rc-filters">
+        <button class="rc-chip on" data-rf="all" data-i18n="rc_all">Tout</button>
+        <button class="rc-chip" data-rf="hp" data-i18n="rc_hp">Haute protéine</button>
+        <button class="rc-chip" data-rf="pre_workout" data-i18n="meal_pre_workout">Pré-training</button>
+        <button class="rc-chip" data-rf="post_workout" data-i18n="meal_post_workout">Post-training</button>
+        <button class="rc-chip" data-rf="breakfast" data-i18n="meal_breakfast">Petit-déj</button>
+        <button class="rc-chip" data-rf="lunch" data-i18n="meal_lunch">Déjeuner</button>
+        <button class="rc-chip" data-rf="dinner" data-i18n="meal_dinner">Dîner</button>
+        <button class="rc-chip" data-rf="snack" data-i18n="meal_snack">Collation</button>
+      </div>
+      <div class="rc-grid" id="rc-grid"><div class="spin"></div></div>
     </div>
     <div class="block">
       <h3 data-i18n="jo_today">Aujourd'hui</h3>
@@ -1230,6 +1281,14 @@
   </div>
 </div>
 
+<!-- RECETTE SHEET -->
+<div class="overlay" id="rc-ov">
+  <div class="sheet rc-sheet">
+    <div class="grab"></div>
+    <div id="rc-detail"></div>
+  </div>
+</div>
+
 <!-- LOG-SET SHEET -->
 <div class="overlay" id="set-ov">
   <div class="sheet">
@@ -1408,6 +1467,25 @@ if(!['fr','en','nl'].includes(LANG)) LANG='fr';
 const T = {
  nav_home:{fr:'Accueil',en:'Home',nl:'Home'},
  nav_journal:{fr:'Journal',en:'Diary',nl:'Dagboek'},
+ rc_title:{fr:'Recettes Coach DM',en:'Coach DM recipes',nl:'Coach DM recepten'},
+ rc_sub:{fr:'Des repas prêts à logger, calés sur tes objectifs.',en:'Ready-to-log meals, built around your goals.',nl:'Kant-en-klare maaltijden, afgestemd op je doelen.'},
+ rc_all:{fr:'Tout',en:'All',nl:'Alles'},
+ rc_hp:{fr:'Haute protéine',en:'High protein',nl:'Eiwitrijk'},
+ rc_none:{fr:'Aucune recette.',en:'No recipe.',nl:'Geen recept.'},
+ rc_ing:{fr:'Ingrédients',en:'Ingredients',nl:'Ingrediënten'},
+ rc_steps:{fr:'Préparation',en:'Method',nl:'Bereiding'},
+ rc_servings:{fr:'Portions',en:'Servings',nl:'Porties'},
+ rc_prep:{fr:'Prépa',en:'Prep',nl:'Voorb.'},
+ rc_cook:{fr:'Cuisson',en:'Cook',nl:'Koken'},
+ rc_min:{fr:'min',en:'min',nl:'min'},
+ rc_p:{fr:'Prot',en:'Prot',nl:'Eiw'},
+ rc_c:{fr:'Gluc',en:'Carb',nl:'Kool'},
+ rc_f:{fr:'Lip',en:'Fat',nl:'Vet'},
+ rc_add:{fr:'Ajouter à mon journal',en:'Add to my diary',nl:'Toevoegen aan dagboek'},
+ rc_added:{fr:'Recette ajoutée ✓',en:'Recipe added ✓',nl:'Recept toegevoegd ✓'},
+ rc_diff_easy:{fr:'Facile',en:'Easy',nl:'Makkelijk'},
+ rc_diff_medium:{fr:'Moyen',en:'Medium',nl:'Gemiddeld'},
+ rc_diff_hard:{fr:'Difficile',en:'Hard',nl:'Moeilijk'},
  nav_seances:{fr:'Séances',en:'Workouts',nl:'Trainingen'},
  nav_cours:{fr:'Cours',en:'Classes',nl:'Lessen'},
  nav_ia:{fr:'Coach IA',en:'AI Coach',nl:'AI-coach'},
@@ -2778,6 +2856,134 @@ async function loadLogs(){
 }
 
 /* ---------------- PHOTO IA (plat → calories) ---------------- */
+/* ---------------- RECETTES ---------------- */
+let RECIPES=null, RC_FILTER='all', RC_CUR=null, RC_SRV=1;
+const RC_HUES={breakfast:38,lunch:150,dinner:262,snack:12,pre_workout:190,post_workout:330};
+function rcHue(r){ return (r.meal_type in RC_HUES) ? RC_HUES[r.meal_type] : 150; }
+function rcBg(r,dark){
+  if(r.image_url) return `background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,${dark})),url('${esc(r.image_url)}')`;
+  const h=rcHue(r);
+  return `background-image:linear-gradient(150deg,hsl(${h} 55% 22%),hsl(${(h+40)%360} 50% 13%))`;
+}
+function rcCard(r,i){
+  const hp = (+r.protein_per_serving>=30) ? `<span class="rc-hp">${(+r.protein_per_serving>=40)?'40g+':'30g+'} P</span>` : '';
+  const diff = r.difficulty ? `<span>${esc(t('rc_diff_'+r.difficulty))}</span>` : '';
+  const time = (+r.prep_time_min||0)+(+r.cook_time_min||0);
+  return `<div class="rc-card" data-i="${i}">
+    <div class="rc-thumb" style="${rcBg(r,'.55')}">
+      ${hp}
+      <span class="rc-ic"><svg viewBox="0 0 24 24"><path d="M4 3v6a3 3 0 0 0 6 0V3M7 3v18M20 3c-1.8 0-3 2-3 5s1.2 4 3 4v9"/></svg></span>
+      <span class="rc-kcal">${r0(r.kcal_per_serving)} kcal</span>
+    </div>
+    <div class="rc-body">
+      <div class="rc-name">${esc(pick(r,'name'))}</div>
+      <div class="rc-macros">
+        <span><i class="rc-dot" style="background:var(--prot)"></i>${r0(r.protein_per_serving)}</span>
+        <span><i class="rc-dot" style="background:var(--carb)"></i>${r0(r.carbs_per_serving)}</span>
+        <span><i class="rc-dot" style="background:var(--fat)"></i>${r0(r.fat_per_serving)}</span>
+      </div>
+      <div class="rc-meta">${time?('<span>'+time+' '+t('rc_min')+'</span>'):''}${diff}</div>
+    </div>
+  </div>`;
+}
+function rcApplyFilter(){
+  const grid=$('#rc-grid'); if(!grid||!RECIPES) return;
+  let list=RECIPES.slice();
+  if(RC_FILTER==='hp') list=list.filter(r=>+r.protein_per_serving>=30);
+  else if(RC_FILTER!=='all') list=list.filter(r=>r.meal_type===RC_FILTER);
+  if(!list.length){ grid.innerHTML=emptyIllus('i-bowl',t('rc_none')); return; }
+  grid.innerHTML=list.map(r=>rcCard(r,RECIPES.indexOf(r))).join('');
+  grid.querySelectorAll('.rc-card').forEach(el=>el.onclick=()=>rcOpen(RECIPES[+el.dataset.i]));
+}
+async function loadRecipes(){
+  if(RECIPES){ rcApplyFilter(); return; }
+  const grid=$('#rc-grid'); if(grid) grid.innerHTML='<div class="spin"></div>';
+  const { data, error } = await sb.from('recipes')
+    .select('id,name_fr,name_en,name_nl,description_fr,description_en,description_nl,servings,prep_time_min,cook_time_min,kcal_per_serving,protein_per_serving,carbs_per_serving,fat_per_serving,image_url,difficulty,meal_type,instructions_fr,instructions_en,instructions_nl')
+    .eq('is_published',true)
+    .order('protein_per_serving',{ascending:false});
+  if(error||!data){ if(grid) grid.innerHTML=emptyIllus('i-bowl',t('rc_none')); return; }
+  RECIPES=data; rcApplyFilter();
+}
+document.querySelectorAll('#rc-filters .rc-chip').forEach(b=>b.onclick=()=>{
+  RC_FILTER=b.dataset.rf;
+  document.querySelectorAll('#rc-filters .rc-chip').forEach(x=>x.classList.toggle('on',x===b));
+  rcApplyFilter();
+});
+async function rcOpen(r){
+  RC_CUR=r; RC_SRV=1;
+  const box=$('#rc-detail'); if(!box) return;
+  const desc=pick(r,'description');
+  const steps=(r['instructions_'+LANG]||r.instructions_fr||[]);
+  box.innerHTML=`
+    <div class="rc-hero" style="${rcBg(r,'.5')}"></div>
+    <h3>${esc(pick(r,'name'))}</h3>
+    ${desc?`<div class="rc-sub">${esc(desc)}</div>`:'<div style="height:4px"></div>'}
+    <div class="rc-stats">
+      <div class="rc-stat"><b>${r0(r.kcal_per_serving)}</b><small>kcal</small></div>
+      <div class="rc-stat"><b style="color:var(--prot)">${r0(r.protein_per_serving)}</b><small data-i18n="rc_p">Prot</small></div>
+      <div class="rc-stat"><b style="color:var(--carb)">${r0(r.carbs_per_serving)}</b><small data-i18n="rc_c">Gluc</small></div>
+      <div class="rc-stat"><b style="color:var(--fat)">${r0(r.fat_per_serving)}</b><small data-i18n="rc_f">Lip</small></div>
+    </div>
+    <div class="rc-meta" style="justify-content:flex-start;gap:16px">
+      ${r.prep_time_min?`<span>${t('rc_prep')} ${r.prep_time_min} ${t('rc_min')}</span>`:''}
+      ${r.cook_time_min?`<span>${t('rc_cook')} ${r.cook_time_min} ${t('rc_min')}</span>`:''}
+      ${r.difficulty?`<span>${esc(t('rc_diff_'+r.difficulty))}</span>`:''}
+    </div>
+    <div class="rc-sec" data-i18n="rc_ing">Ingr\u00e9dients</div>
+    <div id="rc-ing-list"><div class="spin"></div></div>
+    ${steps.length?`<div class="rc-sec" data-i18n="rc_steps">Pr\u00e9paration</div><ol class="rc-steps">${steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`:''}
+    <div class="rc-sec" data-i18n="rc_servings">Portions</div>
+    <div class="rc-srv">
+      <button id="rc-minus" type="button">\u2212</button><b id="rc-srv-n">1</b><button id="rc-plus" type="button">+</button>
+      <span class="rc-sub" style="margin:0" id="rc-srv-kcal"></span>
+    </div>
+    <div class="field" style="margin-bottom:12px"><label data-i18n="sh_meal">Repas</label>
+      <select id="rc-meal">
+        <option value="breakfast" data-i18n="meal_breakfast">Petit-d\u00e9j</option>
+        <option value="lunch" data-i18n="meal_lunch">D\u00e9jeuner</option>
+        <option value="dinner" data-i18n="meal_dinner">D\u00eener</option>
+        <option value="snack" data-i18n="meal_snack">Collation</option>
+        <option value="pre_workout" data-i18n="meal_pre_workout">Pr\u00e9-training</option>
+        <option value="post_workout" data-i18n="meal_post_workout">Post-training</option>
+      </select></div>
+    <button class="btn" id="rc-add" data-i18n="rc_add">Ajouter \u00e0 mon journal</button>
+    <button class="btn subtle" id="rc-cancel" style="margin-top:10px" data-i18n="btn_cancel">Annuler</button>`;
+  applyI18n();
+  if(r.meal_type){ const m=$('#rc-meal'); if(m) m.value=r.meal_type; }
+  rcSrvUpdate();
+  const { data:ings } = await sb.from('recipe_ingredients')
+    .select('quantity_g,display_order,food_id').eq('recipe_id',r.id).order('display_order',{ascending:true});
+  const box2=$('#rc-ing-list');
+  if(ings && ings.length){
+    const ids=[...new Set(ings.map(x=>x.food_id))];
+    const { data:fs } = await sb.from('foods').select('id,name_fr,name_en,name_nl').in('id',ids);
+    const nm={}; (fs||[]).forEach(f=>nm[f.id]=pick(f,'name'));
+    if(box2) box2.innerHTML=ings.map(x=>`<div class="rc-ing"><span>${esc(nm[x.food_id]||'\u2014')}</span><span>${r0(x.quantity_g)} g</span></div>`).join('');
+  } else if(box2){ box2.innerHTML='<div class="rc-sub" style="margin:0">\u2014</div>'; }
+  const mn=$('#rc-minus'), pl=$('#rc-plus');
+  if(mn) mn.onclick=()=>{ RC_SRV=Math.max(0.5,Math.round((RC_SRV-0.5)*2)/2); rcSrvUpdate(); };
+  if(pl) pl.onclick=()=>{ RC_SRV=Math.min(10,Math.round((RC_SRV+0.5)*2)/2); rcSrvUpdate(); };
+  const ad=$('#rc-add'); if(ad) ad.onclick=rcAdd;
+  const cn=$('#rc-cancel'); if(cn) cn.onclick=rcClose;
+  $('#rc-ov').classList.add('show');
+}
+function rcSrvUpdate(){
+  const n=$('#rc-srv-n'); if(n) n.textContent=(RC_SRV%1?RC_SRV.toFixed(1):String(RC_SRV));
+  const k=$('#rc-srv-kcal'); if(k&&RC_CUR) k.textContent='\u2248 '+r0(RC_CUR.kcal_per_serving*RC_SRV)+' kcal \u00b7 '+r0(RC_CUR.protein_per_serving*RC_SRV)+'g P';
+}
+function rcClose(){ const ov=$('#rc-ov'); if(ov) ov.classList.remove('show'); RC_CUR=null; }
+{ const ov=$('#rc-ov'); if(ov) ov.onclick=(e)=>{ if(e.target.id==='rc-ov') rcClose(); }; }
+async function rcAdd(){
+  if(!RC_CUR||!USER) return;
+  const btn=$('#rc-add'); if(btn) btn.disabled=true;
+  const { data, error } = await sb.rpc('log_recipe',{ p_recipe_id:RC_CUR.id, p_meal:$('#rc-meal').value, p_servings:RC_SRV, p_date:todayStr() });
+  if(btn) btn.disabled=false;
+  if(error || !data || data.ok===false){ toast(t('ph_fail')); return; }
+  rcClose(); toast(t('rc_added'));
+  await loadLogs(); await loadToday();
+}
+
 let PH_ITEMS=[];
 function phBusy(on){
   $('#jo-photo').disabled=on;
@@ -3260,7 +3466,7 @@ function switchTab(tab){
   $('#tb-sub').textContent = SUBS[tab] ? t(SUBS[tab]) : '';
   $('.topbar').style.display = (tab==='ia'||tab==='home') ? 'none' : 'block';
   if(tab==='home') loadHome();
-  if(tab==='journal') loadLogs();
+  if(tab==='journal'){ loadLogs(); loadRecipes(); }
   if(tab==='seances') loadWorkouts();
   if(tab==='cours') loadCours();
   if(tab==='boutique') loadBoutique();
