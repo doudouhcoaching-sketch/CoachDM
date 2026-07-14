@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coach DM · Mode d'emploi / User Guide / Handleiding</title>
+<meta name="description" content="Mode d'emploi complet de l'app Coach DM — côté membre et côté coach : programmes, objectifs, cycles, analyse vidéo IA, nutrition, cours (FR/EN/NL).">
+<link rel="icon" href="favicon.png">
+<style>
+:root{
+  --bg:#0A0A0A;--card:#141414;--surf2:#1A1A1A;--line:#2A2A2A;--txt:#F5F5F5;--mut:#9A9A9A;
+  --gold-hi:#FBF3D0;--gold:#E9C767;--gold-mid:#D4A73C;--gold-deep:#9A6E1B;
+  --grn:#00FFA3;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,system-ui,Segoe UI,Roboto,Helvetica,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.6}
+.wrap{max-width:820px;margin:0 auto;padding:28px 18px 60px}
+.brand{text-align:center;margin-bottom:6px}
+.brand .name{font-size:28px;font-weight:900;letter-spacing:3px;
+  background:linear-gradient(180deg,var(--gold-hi),var(--gold) 55%,var(--gold-deep));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.brand .tag{font-size:11px;letter-spacing:4px;color:var(--mut);margin-top:6px;text-transform:uppercase}
+h1{font-size:22px;text-align:center;margin:22px 0 4px}
+.upd{text-align:center;color:var(--mut);font-size:12px;margin-bottom:20px}
+.langbar{display:flex;gap:8px;justify-content:center;margin-bottom:14px;flex-wrap:wrap}
+.langbar button{border:1px solid var(--line);background:var(--card);color:var(--mut);font-weight:700;font-size:13px;
+  padding:8px 16px;border-radius:999px;cursor:pointer}
+.langbar button.on{color:#0A0A0A;background:var(--grn);border-color:var(--grn)}
+.rolebar{display:flex;gap:8px;justify-content:center;margin-bottom:24px}
+.rolebar button{border:1px solid var(--line);background:var(--card);color:var(--mut);font-weight:800;font-size:13px;
+  padding:9px 22px;border-radius:999px;cursor:pointer;letter-spacing:.5px}
+.rolebar button.on{color:#0A0A0A;background:linear-gradient(180deg,var(--gold),var(--gold-deep));border-color:var(--gold)}
+section.lang{display:none}
+section.lang.on{display:block}
+.role{display:none}
+.role.on{display:block}
+.intro{color:var(--mut);font-size:13.5px;margin-bottom:6px}
+.cat{margin:28px 0 12px;font-size:12.5px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:800;
+  border-bottom:1px solid var(--line);padding-bottom:8px}
+.step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:11px;
+  display:flex;gap:14px;align-items:flex-start}
+.step .n{flex:none;width:28px;height:28px;border-radius:9px;background:rgba(0,255,163,.12);border:1px solid rgba(0,255,163,.35);
+  color:var(--grn);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+.step .c{flex:1;min-width:0}
+.step h3{margin:0 0 6px;font-size:15px;color:#fff;font-weight:800}
+.step p{margin:0 0 7px;font-size:14px;color:#D8D8D8;line-height:1.62}
+.step p:last-child{margin-bottom:0}
+.step b{color:#fff}
+.step .path{display:inline-block;background:var(--surf2);border:1px solid var(--line);border-radius:7px;
+  padding:2px 8px;font-size:12.5px;color:var(--grn);font-weight:700;margin:2px 0}
+.step ul{margin:6px 0 0;padding-left:18px}
+.step li{margin:4px 0;font-size:14px;color:#D8D8D8}
+.note{background:linear-gradient(135deg,rgba(233,199,103,.08),rgba(233,199,103,.03));
+  border:1px solid rgba(233,199,103,.28);border-left:3px solid var(--gold);border-radius:0 12px 12px 0;
+  padding:13px 15px;margin:12px 0 16px}
+.note .t{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.note p{margin:0;font-size:13.5px;color:#D8D8D8}
+.warn{background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(239,68,68,.03));
+  border:1px solid rgba(239,68,68,.28);border-left:3px solid #EF4444;border-radius:0 12px 12px 0;
+  padding:13px 15px;margin:12px 0 16px}
+.warn .t{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:#EF4444;margin-bottom:5px}
+.warn p{margin:0;font-size:13.5px;color:#D8D8D8}
+table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:13.5px}
+th{text-align:left;padding:9px 10px;background:var(--surf2);color:var(--gold);font-size:11.5px;
+  text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--line)}
+td{padding:9px 10px;border-bottom:1px solid var(--line);color:#D8D8D8}
+td b{color:#fff}
+.cta{background:linear-gradient(135deg,rgba(0,255,163,.09),rgba(233,199,103,.07));
+  border:1px solid var(--line);border-radius:16px;padding:20px 18px;text-align:center;margin-top:28px}
+.cta h3{margin:0 0 6px;font-size:16px;color:var(--txt)}
+.cta p{margin:0;font-size:13.5px;color:var(--mut)}
+.cta a{color:var(--grn);text-decoration:none;font-weight:700}
+footer{margin-top:36px;border-top:1px solid var(--line);padding-top:18px;text-align:center;color:var(--mut);font-size:12px}
+footer a{color:var(--gold);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <div class="name">COACH DM</div>
+    <div class="tag">Power · Transform · Excel</div>
+  </div>
+  <h1>Mode d'emploi · User Guide · Handleiding</h1>
+  <div class="upd">Dernière mise à jour · Last updated · Laatst bijgewerkt : 14/07/2026</div>
+
+  <div class="langbar">
+    <button class="on" data-l="fr">Français</button>
+    <button data-l="en">English</button>
+    <button data-l="nl">Nederlands</button>
+  </div>
+
+  <div class="rolebar">
+    <button class="on" data-r="membre">👤 Membre</button>
+    <button data-r="coach">🎯 Coach</button>
+  </div>
+
+<!-- =========================================================== FR -->
+<section class="lang on" id="fr">
+
+  <!-- ---------- MEMBRE FR ---------- -->
+  <div class="role on" data-role="membre">
+    <p class="intro">Tout ce que l'app sait faire, dans l'ordre où tu vas t'en servir. Compte 10 minutes pour la première fois, puis tu n'y reviens plus.</p>
+
+    <div class="cat">1 · Démarrer</div>
+
+    <div class="step"><div class="n">1</div><div class="c">
+      <h3>Complète ton profil</h3>
+      <p><span class="path">Profil → Mes infos</span></p>
+      <p>Poids, taille, âge, niveau d'activité, objectif. L'app calcule immédiatement tes calories et tes macros (méthode <b>Mifflin-St Jeor</b>, la référence en nutrition sportive).</p>
+      <p>Choisis aussi ta langue : <b>français, anglais ou néerlandais</b>. Tout l'app suit, y compris les consignes d'exercices.</p>
+    </div></div>
+
+    <div class="step"><div class="n">2</div><div class="c">
+      <h3>Renseigne tes maxes (1RM)</h3>
+      <p><span class="path">Profil → Mes records</span></p>
+      <p>Six mouvements suffisent : <b>Squat, Soulevé de terre, Développé couché, Développé militaire, Arraché, Épaulé-jeté</b>. Toutes les variantes en héritent automatiquement (le Hang Snatch se calcule sur ton Arraché, le Front Squat sur ton Squat…).</p>
+      <p>C'est ce qui transforme « 4 × 5 @ 75 % » en <b>« 4 × 5 @ 82,5 kg »</b>, arrondi au 2,5 kg le plus proche. Sans tes maxes, tu verras des pourcentages ; avec, tu verras des kilos.</p>
+    </div></div>
+
+    <div class="note"><div class="t">Pas de max connu ?</div>
+      <p>Ne teste pas un 1RM le premier jour. Fais une série de 5 répétitions difficiles mais propres, et laisse l'app estimer ton max. Tu le corrigeras plus tard.</p>
+    </div>
+
+    <div class="cat">2 · Choisir un programme</div>
+
+    <div class="step"><div class="n">3</div><div class="c">
+      <h3>Le catalogue</h3>
+      <p><span class="path">Séances</span></p>
+      <p>Dix programmes complets, un par discipline. Chacun est un <b>cycle structuré</b> de 8 à 12 semaines, avec mésocycles et semaines de décharge — pas une pile de séances au hasard.</p>
+      <table>
+        <tr><th>Programme</th><th>Pour qui</th></tr>
+        <tr><td><b>Foundation 8W</b></td><td>Débutant · 3 j/sem · apprendre les patterns</td></tr>
+        <tr><td><b>Barbell Strength 12W</b></td><td>Force & haltérophilie · %1RM en vagues</td></tr>
+        <tr><td><b>Hyrox Engine 12W</b></td><td>Hyrox · 8 stations, compromised running, simulation complète</td></tr>
+        <tr><td><b>Gravity 10W</b></td><td>Gymnastique · anneaux, ATR, muscle-ups</td></tr>
+        <tr><td><b>Physique 12W</b></td><td>Hypertrophie · push/pull/legs</td></tr>
+        <tr><td><b>Fat Burner 10W</b></td><td>Perte de gras · force + HIIT</td></tr>
+        <tr><td><b>Football Elite 12W</b></td><td>Football/Futsal · sprint, prévention, FIFA 11+</td></tr>
+        <tr><td><b>Open Prep 8W</b></td><td>CrossFit · prépa Open</td></tr>
+        <tr><td><b>Engine AMRAP 10W</b></td><td>Cardio · moteur, AMRAP</td></tr>
+        <tr><td><b>Metcon EMOM 8W</b></td><td>Conditionnement court et dense</td></tr>
+      </table>
+      <p>La <b>semaine 1 est gratuite</b> sur chaque programme. Le reste est premium.</p>
+    </div></div>
+
+    <div class="step"><div class="n">4</div><div class="c">
+      <h3>La structure d'une séance</h3>
+      <p>Chaque séance suit la même architecture, sans exception :</p>
+      <ul>
+        <li><b>Échauffement (RAMP)</b> — 5 à 7 lignes : montée en température, mobilité, activation, puis <b>montée en charge réelle</b> sur le mouvement du jour.</li>
+        <li><b>Travail</b> — force, conditionnement, accessoires, gainage.</li>
+        <li><b>Retour au calme</b> — 4 à 6 lignes : Zone 1, étirements <b>ciblés sur ce que tu viens de faire</b>, respiration 4-7-8.</li>
+      </ul>
+      <p>L'échauffement change à chaque séance. Il est calculé d'après le contenu réel du jour : tu ne feras jamais un primer de sled un jour sans sled.</p>
+    </div></div>
+
+    <div class="warn"><div class="t">Ne saute pas l'échauffement</div>
+      <p>Sauter l'échauffement augmente nettement le risque de blessure (Fradkin 2006), et un corps froid produit 2 à 5 % de puissance en moins. Les cinq minutes que tu « gagnes » te coûtent la séance.</p>
+    </div>
+
+    <div class="cat">3 · Faire ta séance</div>
+
+    <div class="step"><div class="n">5</div><div class="c">
+      <h3>Le Workout Player</h3>
+      <p>Tape sur une séance → <b>Commencer</b>. Ensuite :</p>
+      <ul>
+        <li>Valide chaque série d'un tap ; le <b>minuteur de repos</b> démarre seul (vibration + son à la fin).</li>
+        <li>Les charges s'affichent <b>en kg</b>, calculées sur tes maxes.</li>
+        <li>Chaque exercice a sa <b>vidéo de démonstration</b>, son <b>tempo</b>, son <b>RPE cible</b> et son <b>cue de coaching</b> sourcé.</li>
+        <li>À la fin : résumé de la séance, tonnage, durée.</li>
+      </ul>
+    </div></div>
+
+    <div class="step"><div class="n">6</div><div class="c">
+      <h3>Le cycle (LOOP)</h3>
+      <p>Quand tu termines un programme, l'app te propose de le <b>relancer</b>. Tes nouveaux records sont pris en compte : les mêmes pourcentages deviennent des <b>kilos plus lourds</b>. Un compteur affiche « Cycle n°2 », « Cycle n°3 »…</p>
+      <p>C'est la surcharge progressive automatisée : tu ne changes pas de plan, tu deviens plus fort dedans.</p>
+    </div></div>
+
+    <div class="cat">4 · Tes objectifs personnels</div>
+
+    <div class="step"><div class="n">7</div><div class="c">
+      <h3>Créer un objectif</h3>
+      <p><span class="path">Séances → Objectifs → ＋</span></p>
+      <p>Deux types, et l'app génère un <b>cycle complet sur mesure</b> :</p>
+      <ul>
+        <li><b>Objectif de charge</b> — « je veux 130 kg au développé couché ». Tu choisis le mouvement et le kg cible. L'app construit une périodisation en vagues, conforme au tableau de <b>Prilepin</b>, à partir de ton max actuel.</li>
+        <li><b>Objectif de skill</b> — Bar Muscle-Up, Ring Muscle-Up, Handstand Push-Up, Handstand Walk, Toes-to-Bar. Tu choisis <b>Intermédiaire ou Avancé</b>. L'app construit un cycle en 4 phases nommées, avec les drills décomposés (position, tirage, transition, négative, kip, enchaînement).</li>
+      </ul>
+      <p>Si ton objectif est irréaliste (trop d'écart avec ton max actuel), l'app te le dit et te propose une cible atteignable. Elle ne te vend pas du rêve.</p>
+    </div></div>
+
+    <div class="cat">5 · L'analyse vidéo IA</div>
+
+    <div class="step"><div class="n">8</div><div class="c">
+      <h3>Quatre modules, filmés par ton téléphone</h3>
+      <p>Aucune vidéo n'est enregistrée ni envoyée : <b>tout est analysé en direct sur ton appareil</b>.</p>
+      <table>
+        <tr><th>Module</th><th>Ce qu'il mesure</th></tr>
+        <tr><td><b>Squat</b></td><td>Comptage des reps, <b>profondeur</b> (pli de hanche sous le genou, standard CrossFit), vitesse concentrique moyenne, puissance estimée, alerte perte de vitesse à −20 %</td></tr>
+        <tr><td><b>Saut</b></td><td>Hauteur par temps de vol, <b>profil Force-Vitesse</b> (méthode Samozino) : F0, V0, Pmax, déséquilibre F-V</td></tr>
+        <tr><td><b>Barre</b></td><td><b>Trajectoire de barre</b>, déviation horizontale en cm, vitesse pic par rep, alerte perte de vitesse à −10 %</td></tr>
+        <tr><td><b>Course</b></td><td>Cadence et splits par minute, inclinaison du buste, oscillation verticale, temps de contact au sol, détection de sur-foulée</td></tr>
+      </table>
+      <p>Le gratuit te donne la métrique visuelle principale. Le premium te donne <b>toutes les données</b> et l'historique.</p>
+    </div></div>
+
+    <div class="cat">6 · Nutrition, Coach IA, Cours</div>
+
+    <div class="step"><div class="n">9</div><div class="c">
+      <h3>Nutrition — gratuite et complète</h3>
+      <p><span class="path">Journal</span></p>
+      <p>244 aliments (bases Ciqual et USDA), classement <b>NOVA 1 à 4</b> pour repérer l'ultra-transformé, suppléments sportifs inclus. Cherche, ajoute, l'app suit tes macros de la journée.</p>
+      <p><b>Photo IA</b> (premium) : prends ton assiette en photo, l'app estime calories et macros, et les ajoute au journal.</p>
+    </div></div>
+
+    <div class="step"><div class="n">10</div><div class="c">
+      <h3>Coach IA</h3>
+      <p><span class="path">Coach IA</span> — premium</p>
+      <p>Il connaît ton profil, ton journal, tes records et tes séances. Demande-lui de calculer une charge, d'expliquer un mouvement, d'analyser un plateau ou d'adapter une séance à ton matériel du jour.</p>
+    </div></div>
+
+    <div class="step"><div class="n">11</div><div class="c">
+      <h3>Cours</h3>
+      <p><span class="path">Cours</span> — premium</p>
+      <p>Réserve ta place sur le planning. Le nombre de places restantes est affiché en direct. Tu peux annuler jusqu'à la limite fixée par le coach. Ton coach marque la présence.</p>
+    </div></div>
+
+    <div class="step"><div class="n">12</div><div class="c">
+      <h3>Ton coach</h3>
+      <p>Si tu es suivi, la carte <b>« Ton coach »</b> apparaît sur l'accueil : messagerie texte, photo et vidéo (form check), check-ins, et les plans qu'il t'a assignés.</p>
+      <p>Pas encore de coach ? <span class="path">Accueil → Demander un coaching</span> : tu choisis ton objectif, ton format (<b>30 ou 50 min</b>), ton niveau et tes disponibilités. Coach DM te répond directement.</p>
+    </div></div>
+
+    <div class="cta">
+      <h3>Une question qui reste ?</h3>
+      <p>Le <a href="https://coachdm.be/aide.html">Centre d'aide</a> répond aux questions fréquentes. Sinon écris à <a href="mailto:doudouh.coaching@gmail.com">doudouh.coaching@gmail.com</a> ou sur Instagram <a href="https://instagram.com/coachdm.be">@coachdm.be</a>.</p>
+    </div>
+  </div>
+
+  <!-- ---------- COACH FR ---------- -->
+  <div class="role" data-role="coach">
+    <p class="intro">La console coach, du premier client à la séance publiée. Réservé aux offres Coach, Coach Fondateur et Coach+.</p>
+
+    <div class="cat">1 · Ta console</div>
+
+    <div class="step"><div class="n">1</div><div class="c">
+      <h3>Y accéder</h3>
+      <p><span class="path">coachdm.be/coach.html</span></p>
+      <p>Trois onglets : <b>Clients</b>, <b>Séances</b>, <b>Cours</b>. Ton quota de clients dépend de ton offre :</p>
+      <table>
+        <tr><th>Offre</th><th>Clients</th></tr>
+        <tr><td><b>Coach Fondateur</b></td><td>30</td></tr>
+        <tr><td><b>Coach</b></td><td>20</td></tr>
+        <tr><td><b>Coach+</b></td><td>50 · appels vidéo inclus</td></tr>
+      </table>
+    </div></div>
+
+    <div class="cat">2 · Tes clients</div>
+
+    <div class="step"><div class="n">2</div><div class="c">
+      <h3>Ajouter un client</h3>
+      <p><span class="path">Clients → ＋ Ajouter un client</span></p>
+      <ul>
+        <li><b>Inviter</b> — tu saisis son email, il reçoit une invitation trilingue. Il crée son compte, le lien se fait tout seul.</li>
+        <li><b>Créer le compte</b> — utile en salle : tu crées son accès sur place, il change son mot de passe ensuite.</li>
+      </ul>
+    </div></div>
+
+    <div class="step"><div class="n">3</div><div class="c">
+      <h3>La fiche client</h3>
+      <p>Tape sur un client et tu vois tout : dernier check-in, <b>adhérence au plan en %</b>, records, séances faites, plans assignés, historique de messages.</p>
+      <p>La messagerie accepte <b>texte, photo et vidéo</b> — c'est là que se font les form checks.</p>
+    </div></div>
+
+    <div class="cat">3 · Créer une séance</div>
+
+    <div class="step"><div class="n">4</div><div class="c">
+      <h3>Composer les exercices</h3>
+      <p><span class="path">Séances → une séance → Composer les exercices</span></p>
+      <p>Pour chaque ligne, tu renseignes :</p>
+      <table>
+        <tr><th>Champ</th><th>À quoi ça sert</th></tr>
+        <tr><td><b>Bloc</b></td><td>Activation · Sprint/Plyo · Force · Conditionnement · Accessoire · Récupération. Il pilote l'ordre d'affichage.</td></tr>
+        <tr><td><b>Séries / Reps</b></td><td>Reps en texte libre : « 5 », « 8 /côté », « 400 m », « 45 s ».</td></tr>
+        <tr><td><b>% 1RM</b></td><td>Le client verra directement des <b>kg</b>, calculés sur SON max. C'est la plus-value de l'app.</td></tr>
+        <tr><td><b>Repos · Tempo · RPE</b></td><td>Repos en secondes, tempo type « 3-1-1-0 », RPE cible.</td></tr>
+        <tr><td><b>Note</b></td><td>Ton cue de coaching. <b>Trilingue FR/EN/NL.</b></td></tr>
+      </table>
+    </div></div>
+
+    <div class="note"><div class="t">Règle Coach DM — structure obligatoire</div>
+      <p>Toute séance publiée contient un <b>échauffement RAMP</b> (montée en température → mobilité → activation → montée en charge sur le mouvement du jour) et un <b>retour au calme ciblé</b>. Une séance sans ces deux blocs n'est pas une séance Coach DM.</p>
+    </div>
+
+    <div class="step"><div class="n">5</div><div class="c">
+      <h3>Les quatre règles de contenu</h3>
+      <ul>
+        <li><b>Zéro redondance</b> — deux séances d'un même programme n'ont jamais le même échauffement, ni le même contenu.</li>
+        <li><b>Zéro doublon interne</b> — un exercice au programme du jour ne peut pas apparaître dans l'échauffement.</li>
+        <li><b>Chaque conseil est sourcé</b> — auteur + année, visible par le client (Jeffreys 2006, Contreras 2017, McGowan 2015…).</li>
+        <li><b>Trilingue partout</b> — FR en priorité, EN, NL. Aucune ligne sans ses trois langues.</li>
+      </ul>
+    </div></div>
+
+    <div class="cat">4 · Objectifs & moteurs</div>
+
+    <div class="step"><div class="n">6</div><div class="c">
+      <h3>Ce que le client génère seul</h3>
+      <p>Le client crée ses propres objectifs (<span class="path">Séances → Objectifs</span>) et l'app produit un cycle complet :</p>
+      <ul>
+        <li><b>Moteur de charge</b> — périodisation en vagues conforme à <b>Prilepin</b>, calée sur son max réel, sensible à la famille de mouvement (haut du corps, arraché, épaulé-jeté, squat, soulevé).</li>
+        <li><b>Moteur de skill</b> — 5 familles × 2 niveaux, 4 phases, drills décomposés par rôle.</li>
+      </ul>
+      <p>Tu gardes la main : le chemin de <b>validation semi-automatique</b> te permet de relire et corriger un cycle avant qu'il ne parte.</p>
+    </div></div>
+
+    <div class="cat">5 · Cours</div>
+
+    <div class="step"><div class="n">7</div><div class="c">
+      <h3>Modèles et planning</h3>
+      <p><span class="path">Cours → Modèles</span> : tu crées un type de cours (nom, durée, capacité, couleur, délai d'annulation).</p>
+      <p><span class="path">Cours → Planning → Programmer une séance</span> : tu poses des créneaux, en série si besoin. Les clients réservent, tu vois le remplissage en direct et tu <b>marques la présence</b> après le cours.</p>
+    </div></div>
+
+    <div class="cta">
+      <h3>Besoin d'un coup de main ?</h3>
+      <p><a href="mailto:doudouh.coaching@gmail.com">doudouh.coaching@gmail.com</a> · Instagram <a href="https://instagram.com/coachdm.be">@coachdm.be</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== EN -->
+<section class="lang" id="en">
+
+  <div class="role on" data-role="membre">
+    <p class="intro">Everything the app does, in the order you will use it. Ten minutes the first time, then you never come back here.</p>
+
+    <div class="cat">1 · Get started</div>
+
+    <div class="step"><div class="n">1</div><div class="c">
+      <h3>Complete your profile</h3>
+      <p><span class="path">Profile → My details</span></p>
+      <p>Weight, height, age, activity level, goal. The app immediately calculates your calories and macros (<b>Mifflin-St Jeor</b>, the reference method in sports nutrition).</p>
+      <p>Pick your language too: <b>French, English or Dutch</b>. The whole app follows, exercise cues included.</p>
+    </div></div>
+
+    <div class="step"><div class="n">2</div><div class="c">
+      <h3>Enter your maxes (1RM)</h3>
+      <p><span class="path">Profile → My records</span></p>
+      <p>Six lifts are enough: <b>Squat, Deadlift, Bench Press, Overhead Press, Snatch, Clean & Jerk</b>. Every variation inherits from them automatically (Hang Snatch off your Snatch, Front Squat off your Squat…).</p>
+      <p>That is what turns "4 × 5 @ 75 %" into <b>"4 × 5 @ 82.5 kg"</b>, rounded to the nearest 2.5 kg. Without your maxes you see percentages; with them you see kilos.</p>
+    </div></div>
+
+    <div class="note"><div class="t">No known max?</div>
+      <p>Do not test a 1RM on day one. Do a hard but clean set of 5 and let the app estimate your max. You will correct it later.</p>
+    </div>
+
+    <div class="cat">2 · Pick a programme</div>
+
+    <div class="step"><div class="n">3</div><div class="c">
+      <h3>The catalogue</h3>
+      <p><span class="path">Workouts</span></p>
+      <p>Ten complete programmes, one per discipline. Each is a <b>structured cycle</b> of 8 to 12 weeks with mesocycles and deload weeks — not a pile of random sessions.</p>
+      <table>
+        <tr><th>Programme</th><th>Who for</th></tr>
+        <tr><td><b>Foundation 8W</b></td><td>Beginner · 3 d/week · learn the patterns</td></tr>
+        <tr><td><b>Barbell Strength 12W</b></td><td>Strength & weightlifting · %1RM wave loading</td></tr>
+        <tr><td><b>Hyrox Engine 12W</b></td><td>Hyrox · 8 stations, compromised running, full simulation</td></tr>
+        <tr><td><b>Gravity 10W</b></td><td>Gymnastics · rings, handstands, muscle-ups</td></tr>
+        <tr><td><b>Physique 12W</b></td><td>Hypertrophy · push/pull/legs</td></tr>
+        <tr><td><b>Fat Burner 10W</b></td><td>Fat loss · strength + HIIT</td></tr>
+        <tr><td><b>Football Elite 12W</b></td><td>Football/Futsal · sprint, prevention, FIFA 11+</td></tr>
+        <tr><td><b>Open Prep 8W</b></td><td>CrossFit · Open preparation</td></tr>
+        <tr><td><b>Engine AMRAP 10W</b></td><td>Cardio · engine, AMRAP</td></tr>
+        <tr><td><b>Metcon EMOM 8W</b></td><td>Short, dense conditioning</td></tr>
+      </table>
+      <p><b>Week 1 is free</b> on every programme. The rest is premium.</p>
+    </div></div>
+
+    <div class="step"><div class="n">4</div><div class="c">
+      <h3>How a session is built</h3>
+      <ul>
+        <li><b>Warm-up (RAMP)</b> — 5 to 7 lines: raise temperature, mobilise, activate, then a <b>real load ramp-up</b> on the day's movement.</li>
+        <li><b>Work</b> — strength, conditioning, accessories, core.</li>
+        <li><b>Cool-down</b> — 4 to 6 lines: Zone 1, stretches <b>targeted at what you just did</b>, 4-7-8 breathing.</li>
+      </ul>
+      <p>The warm-up changes every session and is built from the day's actual content: you will never get a sled primer on a day without a sled.</p>
+    </div></div>
+
+    <div class="warn"><div class="t">Do not skip the warm-up</div>
+      <p>Skipping the warm-up clearly raises injury risk (Fradkin 2006), and a cold body produces 2 to 5 % less power. The five minutes you "save" cost you the session.</p>
+    </div>
+
+    <div class="cat">3 · Train</div>
+
+    <div class="step"><div class="n">5</div><div class="c">
+      <h3>The Workout Player</h3>
+      <ul>
+        <li>Tick each set with one tap; the <b>rest timer</b> starts on its own (vibration + sound).</li>
+        <li>Loads show <b>in kilos</b>, computed from your maxes.</li>
+        <li>Every exercise has its <b>demo video</b>, <b>tempo</b>, <b>target RPE</b> and a <b>sourced coaching cue</b>.</li>
+        <li>At the end: session summary, tonnage, duration.</li>
+      </ul>
+    </div></div>
+
+    <div class="step"><div class="n">6</div><div class="c">
+      <h3>The cycle (LOOP)</h3>
+      <p>Finish a programme and the app offers to <b>restart it</b>. Your new records are taken into account: the same percentages become <b>heavier kilos</b>. A counter shows "Cycle 2", "Cycle 3"…</p>
+      <p>Progressive overload, automated: you do not change the plan, you get stronger inside it.</p>
+    </div></div>
+
+    <div class="cat">4 · Your own goals</div>
+
+    <div class="step"><div class="n">7</div><div class="c">
+      <h3>Create a goal</h3>
+      <p><span class="path">Workouts → Goals → ＋</span></p>
+      <ul>
+        <li><b>Load goal</b> — "I want a 130 kg bench". Pick the lift and the target. The app builds wave periodisation compliant with the <b>Prilepin</b> chart from your current max.</li>
+        <li><b>Skill goal</b> — Bar Muscle-Up, Ring Muscle-Up, Handstand Push-Up, Handstand Walk, Toes-to-Bar. Pick <b>Intermediate or Advanced</b>. The app builds a 4-phase cycle with the skill broken into drills (position, pull, transition, negative, kip, linking).</li>
+      </ul>
+      <p>If your target is unrealistic, the app says so and proposes a reachable one. It does not sell you a dream.</p>
+    </div></div>
+
+    <div class="cat">5 · AI video analysis</div>
+
+    <div class="step"><div class="n">8</div><div class="c">
+      <h3>Four modules, filmed with your phone</h3>
+      <p>No video is recorded or uploaded: <b>everything is analysed live on your device</b>.</p>
+      <table>
+        <tr><th>Module</th><th>What it measures</th></tr>
+        <tr><td><b>Squat</b></td><td>Rep count, <b>depth</b> (hip crease below the knee, CrossFit standard), mean concentric velocity, estimated power, velocity-loss alert at −20 %</td></tr>
+        <tr><td><b>Jump</b></td><td>Height from flight time, <b>Force-Velocity profile</b> (Samozino): F0, V0, Pmax, F-V imbalance</td></tr>
+        <tr><td><b>Barbell</b></td><td><b>Bar path</b>, horizontal deviation in cm, peak velocity per rep, velocity-loss alert at −10 %</td></tr>
+        <tr><td><b>Running</b></td><td>Cadence and per-minute splits, trunk lean, vertical oscillation, ground contact time, overstride detection</td></tr>
+      </table>
+      <p>Free gives you the headline metric. Premium gives you <b>all the data</b> and the history.</p>
+    </div></div>
+
+    <div class="cat">6 · Nutrition, AI Coach, Classes</div>
+
+    <div class="step"><div class="n">9</div><div class="c">
+      <h3>Nutrition — free and complete</h3>
+      <p><span class="path">Journal</span></p>
+      <p>244 foods (Ciqual and USDA), <b>NOVA 1 to 4</b> classification to spot ultra-processed food, sports supplements included.</p>
+      <p><b>AI photo</b> (premium): photograph your plate, the app estimates calories and macros and logs them.</p>
+    </div></div>
+
+    <div class="step"><div class="n">10</div><div class="c">
+      <h3>AI Coach</h3>
+      <p><span class="path">AI Coach</span> — premium</p>
+      <p>It knows your profile, journal, records and sessions. Ask it to compute a load, explain a movement, analyse a plateau or adapt a session to the equipment you actually have today.</p>
+    </div></div>
+
+    <div class="step"><div class="n">11</div><div class="c">
+      <h3>Classes</h3>
+      <p><span class="path">Classes</span> — premium</p>
+      <p>Book your spot. Remaining places show live. Cancel up to the coach's cut-off. Your coach marks attendance.</p>
+    </div></div>
+
+    <div class="step"><div class="n">12</div><div class="c">
+      <h3>Your coach</h3>
+      <p>If you are coached, the <b>"Your coach"</b> card appears on the home screen: text, photo and video messaging (form checks), check-ins and assigned plans.</p>
+      <p>No coach yet? <span class="path">Home → Request coaching</span>: pick your goal, your format (<b>30 or 50 min</b>), your level and your availability. Coach DM answers you directly.</p>
+    </div></div>
+
+    <div class="cta">
+      <h3>Still stuck?</h3>
+      <p>The <a href="https://coachdm.be/aide.html">Help Center</a> covers the FAQs. Otherwise write to <a href="mailto:doudouh.coaching@gmail.com">doudouh.coaching@gmail.com</a> or Instagram <a href="https://instagram.com/coachdm.be">@coachdm.be</a>.</p>
+    </div>
+  </div>
+
+  <div class="role" data-role="coach">
+    <p class="intro">The coach console, from your first client to a published session. Coach, Founding Coach and Coach+ plans only.</p>
+
+    <div class="cat">1 · Your console</div>
+
+    <div class="step"><div class="n">1</div><div class="c">
+      <h3>Access it</h3>
+      <p><span class="path">coachdm.be/coach.html</span></p>
+      <p>Three tabs: <b>Clients</b>, <b>Workouts</b>, <b>Classes</b>. Your client quota depends on your plan:</p>
+      <table>
+        <tr><th>Plan</th><th>Clients</th></tr>
+        <tr><td><b>Founding Coach</b></td><td>30</td></tr>
+        <tr><td><b>Coach</b></td><td>20</td></tr>
+        <tr><td><b>Coach+</b></td><td>50 · video calls included</td></tr>
+      </table>
+    </div></div>
+
+    <div class="cat">2 · Your clients</div>
+
+    <div class="step"><div class="n">2</div><div class="c">
+      <h3>Add a client</h3>
+      <p><span class="path">Clients → ＋ Add a client</span></p>
+      <ul>
+        <li><b>Invite</b> — enter their email, they get a trilingual invitation. They create their account and the link is made automatically.</li>
+        <li><b>Create the account</b> — useful in the gym: you set up their access on the spot, they change the password afterwards.</li>
+      </ul>
+    </div></div>
+
+    <div class="step"><div class="n">3</div><div class="c">
+      <h3>The client sheet</h3>
+      <p>Tap a client and you see everything: last check-in, <b>plan adherence in %</b>, records, completed sessions, assigned plans, message history.</p>
+      <p>Messaging accepts <b>text, photo and video</b> — that is where form checks happen.</p>
+    </div></div>
+
+    <div class="cat">3 · Build a session</div>
+
+    <div class="step"><div class="n">4</div><div class="c">
+      <h3>Compose the exercises</h3>
+      <p><span class="path">Workouts → a session → Compose exercises</span></p>
+      <table>
+        <tr><th>Field</th><th>What it does</th></tr>
+        <tr><td><b>Block</b></td><td>Activation · Sprint/Plyo · Strength · Conditioning · Accessory · Recovery. It drives the display order.</td></tr>
+        <tr><td><b>Sets / Reps</b></td><td>Free text reps: "5", "8 /side", "400 m", "45 s".</td></tr>
+        <tr><td><b>% 1RM</b></td><td>The client sees actual <b>kilos</b>, computed from THEIR max. This is the app's edge.</td></tr>
+        <tr><td><b>Rest · Tempo · RPE</b></td><td>Rest in seconds, tempo like "3-1-1-0", target RPE.</td></tr>
+        <tr><td><b>Note</b></td><td>Your coaching cue. <b>Trilingual FR/EN/NL.</b></td></tr>
+      </table>
+    </div></div>
+
+    <div class="note"><div class="t">Coach DM rule — mandatory structure</div>
+      <p>Every published session contains a <b>RAMP warm-up</b> (raise → mobilise → activate → load ramp-up on the day's movement) and a <b>targeted cool-down</b>. A session without both is not a Coach DM session.</p>
+    </div>
+
+    <div class="step"><div class="n">5</div><div class="c">
+      <h3>The four content rules</h3>
+      <ul>
+        <li><b>Zero redundancy</b> — two sessions of the same programme never share a warm-up or content.</li>
+        <li><b>Zero internal duplicate</b> — an exercise programmed for the day cannot appear in the warm-up.</li>
+        <li><b>Every cue is sourced</b> — author + year, visible to the client (Jeffreys 2006, Contreras 2017, McGowan 2015…).</li>
+        <li><b>Trilingual everywhere</b> — FR first, then EN, NL. No line without its three languages.</li>
+      </ul>
+    </div></div>
+
+    <div class="cat">4 · Goals & engines</div>
+
+    <div class="step"><div class="n">6</div><div class="c">
+      <h3>What the client generates alone</h3>
+      <ul>
+        <li><b>Load engine</b> — wave periodisation compliant with <b>Prilepin</b>, built on their real max, movement-family aware.</li>
+        <li><b>Skill engine</b> — 5 families × 2 levels, 4 phases, drills broken down by role.</li>
+      </ul>
+      <p>You keep control: the <b>semi-automatic validation</b> path lets you review and fix a cycle before it ships.</p>
+    </div></div>
+
+    <div class="cat">5 · Classes</div>
+
+    <div class="step"><div class="n">7</div><div class="c">
+      <h3>Templates and planning</h3>
+      <p><span class="path">Classes → Templates</span>: create a class type (name, duration, capacity, colour, cancellation cut-off).</p>
+      <p><span class="path">Classes → Planning → Schedule a session</span>: drop slots, in series if needed. Clients book, you see the fill rate live and <b>mark attendance</b> afterwards.</p>
+    </div></div>
+
+    <div class="cta">
+      <h3>Need a hand?</h3>
+      <p><a href="mailto:doudouh.coaching@gmail.com">doudouh.coaching@gmail.com</a> · Instagram <a href="https://instagram.com/coachdm.be">@coachdm.be</a></p>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================== NL -->
+<section class="lang" id="nl">
+
+  <div class="role on" data-role="membre">
+    <p class="intro">Alles wat de app kan, in de volgorde waarin je het gebruikt. Tien minuten de eerste keer, daarna kom je hier niet meer terug.</p>
+
+    <div class="cat">1 · Starten</div>
+
+    <div class="step"><div class="n">1</div><div class="c">
+      <h3>Vul je profiel in</h3>
+      <p><span class="path">Profiel → Mijn gegevens</span></p>
+      <p>Gewicht, lengte, leeftijd, activiteitsniveau, doel. De app berekent meteen je calorieën en macro's (<b>Mifflin-St Jeor</b>, de referentiemethode in sportvoeding).</p>
+      <p>Kies ook je taal: <b>Frans, Engels of Nederlands</b>. De hele app volgt, inclusief de oefeningsinstructies.</p>
+    </div></div>
+
+    <div class="step"><div class="n">2</div><div class="c">
+      <h3>Vul je maxima in (1RM)</h3>
+      <p><span class="path">Profiel → Mijn records</span></p>
+      <p>Zes oefeningen volstaan: <b>Squat, Deadlift, Bankdrukken, Militair drukken, Snatch, Clean & Jerk</b>. Alle varianten erven daarvan automatisch.</p>
+      <p>Zo wordt "4 × 5 @ 75 %" ineens <b>"4 × 5 @ 82,5 kg"</b>, afgerond op 2,5 kg. Zonder maxima zie je percentages; mét maxima zie je kilo's.</p>
+    </div></div>
+
+    <div class="note"><div class="t">Geen max bekend?</div>
+      <p>Test geen 1RM op dag één. Doe een zware maar zuivere set van 5 en laat de app je max schatten. Corrigeren doe je later.</p>
+    </div>
+
+    <div class="cat">2 · Een programma kiezen</div>
+
+    <div class="step"><div class="n">3</div><div class="c">
+      <h3>De catalogus</h3>
+      <p><span class="path">Sessies</span></p>
+      <p>Tien volledige programma's, één per discipline. Elk is een <b>gestructureerde cyclus</b> van 8 tot 12 weken met mesocycli en deloadweken — geen stapel willekeurige sessies.</p>
+      <table>
+        <tr><th>Programma</th><th>Voor wie</th></tr>
+        <tr><td><b>Foundation 8W</b></td><td>Beginner · 3 d/week · patronen leren</td></tr>
+        <tr><td><b>Barbell Strength 12W</b></td><td>Kracht & gewichtheffen · %1RM in golven</td></tr>
+        <tr><td><b>Hyrox Engine 12W</b></td><td>Hyrox · 8 stations, compromised running, volledige simulatie</td></tr>
+        <tr><td><b>Gravity 10W</b></td><td>Gymnastiek · ringen, handstand, muscle-ups</td></tr>
+        <tr><td><b>Physique 12W</b></td><td>Hypertrofie · push/pull/legs</td></tr>
+        <tr><td><b>Fat Burner 10W</b></td><td>Vetverlies · kracht + HIIT</td></tr>
+        <tr><td><b>Football Elite 12W</b></td><td>Voetbal/Futsal · sprint, preventie, FIFA 11+</td></tr>
+        <tr><td><b>Open Prep 8W</b></td><td>CrossFit · Open-voorbereiding</td></tr>
+        <tr><td><b>Engine AMRAP 10W</b></td><td>Cardio · motor, AMRAP</td></tr>
+        <tr><td><b>Metcon EMOM 8W</b></td><td>Korte, dichte conditionering</td></tr>
+      </table>
+      <p><b>Week 1 is gratis</b> bij elk programma. De rest is premium.</p>
+    </div></div>
+
+    <div class="step"><div class="n">4</div><div class="c">
+      <h3>De opbouw van een sessie</h3>
+      <ul>
+        <li><b>Warming-up (RAMP)</b> — 5 tot 7 regels: temperatuur omhoog, mobiliteit, activatie, en een <b>echte belastingsopbouw</b> op de beweging van de dag.</li>
+        <li><b>Werk</b> — kracht, conditionering, accessoires, core.</li>
+        <li><b>Cooling-down</b> — 4 tot 6 regels: Zone 1, rekoefeningen <b>gericht op wat je net deed</b>, 4-7-8 ademhaling.</li>
+      </ul>
+      <p>De warming-up verandert elke sessie en wordt opgebouwd uit de echte inhoud van de dag.</p>
+    </div></div>
+
+    <div class="warn"><div class="t">Sla de warming-up nooit over</div>
+      <p>De warming-up overslaan verhoogt het blessurerisico duidelijk (Fradkin 2006), en een koud lichaam levert 2 tot 5 % minder vermogen. De vijf minuten die je "wint" kosten je de sessie.</p>
+    </div>
+
+    <div class="cat">3 · Trainen</div>
+
+    <div class="step"><div class="n">5</div><div class="c">
+      <h3>De Workout Player</h3>
+      <ul>
+        <li>Vink elke set af met één tik; de <b>rusttimer</b> start vanzelf (trilling + geluid).</li>
+        <li>Belastingen verschijnen <b>in kilo's</b>, berekend op jouw maxima.</li>
+        <li>Elke oefening heeft een <b>demovideo</b>, <b>tempo</b>, <b>doel-RPE</b> en een <b>onderbouwde coaching-cue</b>.</li>
+        <li>Op het einde: samenvatting, tonnage, duur.</li>
+      </ul>
+    </div></div>
+
+    <div class="step"><div class="n">6</div><div class="c">
+      <h3>De cyclus (LOOP)</h3>
+      <p>Als je een programma afrondt, stelt de app voor het <b>opnieuw te starten</b>. Je nieuwe records tellen mee: dezelfde percentages worden <b>zwaardere kilo's</b>. Een teller toont "Cyclus 2", "Cyclus 3"…</p>
+    </div></div>
+
+    <div class="cat">4 · Je eigen doelen</div>
+
+    <div class="step"><div class="n">7</div><div class="c">
+      <h3>Een doel aanmaken</h3>
+      <p><span class="path">Sessies → Doelen → ＋</span></p>
+      <ul>
+        <li><b>Belastingsdoel</b> — "ik wil 130 kg bankdrukken". De app bouwt een golfperiodisering volgens de <b>Prilepin</b>-tabel, vertrekkend van je huidige max.</li>
+        <li><b>Skill-doel</b> — Bar Muscle-Up, Ring Muscle-Up, Handstand Push-Up, Handstand Walk, Toes-to-Bar, in <b>Intermediate of Advanced</b>. Vier fases, opgesplitste drills.</li>
+      </ul>
+      <p>Is je doel onrealistisch, dan zegt de app dat en stelt een haalbaar doel voor. Ze verkoopt je geen droom.</p>
+    </div></div>
+
+    <div class="cat">5 · AI-video-analyse</div>
+
+    <div class="step"><div class="n">8</div><div class="c">
+      <h3>Vier modules, gefilmd met je telefoon</h3>
+      <p>Geen enkele video wordt opgeslagen of verzonden: <b>alles wordt live op je toestel geanalyseerd</b>.</p>
+      <table>
+        <tr><th>Module</th><th>Wat het meet</th></tr>
+        <tr><td><b>Squat</b></td><td>Reps tellen, <b>diepte</b> (heupplooi onder de knie, CrossFit-standaard), gemiddelde concentrische snelheid, geschat vermogen, alarm bij −20 % snelheidsverlies</td></tr>
+        <tr><td><b>Sprong</b></td><td>Hoogte via vluchttijd, <b>Kracht-Snelheidsprofiel</b> (Samozino): F0, V0, Pmax, F-V-onbalans</td></tr>
+        <tr><td><b>Stang</b></td><td><b>Stangpad</b>, horizontale afwijking in cm, pieksnelheid per rep, alarm bij −10 %</td></tr>
+        <tr><td><b>Lopen</b></td><td>Cadans en splits per minuut, romphelling, verticale oscillatie, bodemcontacttijd, overstride-detectie</td></tr>
+      </table>
+      <p>Gratis geeft je de hoofdmetriek. Premium geeft <b>alle data</b> en de historiek.</p>
+    </div></div>
+
+    <div class="cat">6 · Voeding, AI-coach, Lessen</div>
+
+    <div class="step"><div class="n">9</div><div class="c">
+      <h3>Voeding — gratis en volledig</h3>
+      <p><span class="path">Dagboek</span></p>
+      <p>244 voedingsmiddelen (Ciqual en USDA), <b>NOVA 1 tot 4</b> om ultrabewerkte voeding te herkennen, sportsupplementen inbegrepen.</p>
+      <p><b>AI-foto</b> (premium): fotografeer je bord, de app schat calorieën en macro's en logt ze.</p>
+    </div></div>
+
+    <div class="step"><div class="n">10</div><div class="c">
+      <h3>AI-coach</h3>
+      <p><span class="path">AI-coach</span> — premium</p>
+      <p>Hij kent je profiel, dagboek, records en sessies. Vraag hem een belasting te berekenen, een beweging uit te leggen of een sessie aan te passen aan jouw materiaal.</p>
+    </div></div>
+
+    <div class="step"><div class="n">11</div><div class="c">
+      <h3>Lessen</h3>
+      <p><span class="path">Lessen</span> — premium</p>
+      <p>Reserveer je plaats. Resterende plaatsen zie je live. Annuleren kan tot de limiet van de coach. Je coach registreert de aanwezigheid.</p>
+    </div></div>
+
+    <div class="step"><div class="n">12</div><div class="c">
+      <h3>Je coach</h3>
+      <p>Word je begeleid, dan verschijnt de kaart <b>"Je coach"</b> op het startscherm: berichten met tekst, foto en video (form check), check-ins en toegewezen plannen.</p>
+      <p>Nog geen coach? <span class="path">Start → Coaching aanvragen</span>: kies je doel, je formaat (<b>30 of 50 min</b>), je niveau en je beschikbaarheid.</p>
+    </div></div>
+
+    <div class="cta">
+      <h3>Nog een vraag?</h3>
+      <p>Het <a href="https://coachdm.be/aide.html">Helpcentrum</a> behandelt de veelgestelde vragen. Anders: <a href="mailto:doudouh.coaching@gmail.com">doudouh.coaching@gmail.com</a> · Instagram <a href="https://instagram.com/coachdm.be">@coachdm.be</a>.</p>
+    </div>
+  </div>
+
+  <div class="role" data-role="coach">
+    <p class="intro">De coachconsole, van je eerste client tot een gepubliceerde sessie. Enkel voor Coach, Founding Coach en Coach+.</p>
+
+    <div class="cat">1 · Je console</div>
+
+    <div class="step"><div class="n">1</div><div class="c">
+      <h3>Toegang</h3>
+      <p><span class="path">coachdm.be/coach.html</span></p>
+      <p>Drie tabbladen: <b>Clients</b>, <b>Sessies</b>, <b>Lessen</b>. Je quotum hangt af van je formule:</p>
+      <table>
+        <tr><th>Formule</th><th>Clients</th></tr>
+        <tr><td><b>Founding Coach</b></td><td>30</td></tr>
+        <tr><td><b>Coach</b></td><td>20</td></tr>
+        <tr><td><b>Coach+</b></td><td>50 · videogesprekken inbegrepen</td></tr>
+      </table>
+    </div></div>
+
+    <div class="cat">2 · Je clients</div>
+
+    <div class="step"><div class="n">2</div><div class="c">
+      <h3>Een client toevoegen</h3>
+      <p><span class="path">Clients → ＋ Client toevoegen</span></p>
+      <ul>
+        <li><b>Uitnodigen</b> — geef zijn e-mail, hij krijgt een drietalige uitnodiging. De koppeling gebeurt automatisch.</li>
+        <li><b>Account aanmaken</b> — handig in de zaal: je maakt zijn toegang ter plaatse aan.</li>
+      </ul>
+    </div></div>
+
+    <div class="step"><div class="n">3</div><div class="c">
+      <h3>De clientfiche</h3>
+      <p>Tik op een client en je ziet alles: laatste check-in, <b>therapietrouw aan het plan in %</b>, records, voltooide sessies, toegewezen plannen, berichtenhistoriek.</p>
+      <p>Berichten met <b>tekst, foto en video</b> — daar gebeuren de form checks.</p>
+    </div></div>
+
+    <div class="cat">3 · Een sessie bouwen</div>
+
+    <div class="step"><div class="n">4</div><div class="c">
+      <h3>Oefeningen samenstellen</h3>
+      <p><span class="path">Sessies → een sessie → Oefeningen samenstellen</span></p>
+      <table>
+        <tr><th>Veld</th><th>Waarvoor</th></tr>
+        <tr><td><b>Blok</b></td><td>Activatie · Sprint/Plyo · Kracht · Conditionering · Accessoire · Herstel.</td></tr>
+        <tr><td><b>Sets / Reps</b></td><td>Vrije tekst: "5", "8 /kant", "400 m", "45 s".</td></tr>
+        <tr><td><b>% 1RM</b></td><td>De client ziet echte <b>kilo's</b>, berekend op ZIJN max.</td></tr>
+        <tr><td><b>Rust · Tempo · RPE</b></td><td>Rust in seconden, tempo als "3-1-1-0", doel-RPE.</td></tr>
+        <tr><td><b>Notitie</b></td><td>Je coaching-cue. <b>Drietalig FR/EN/NL.</b></td></tr>
+      </table>
+    </div></div>
+
+    <div class="note"><div class="t">Coach DM-regel — verplichte structuur</div>
+      <p>Elke gepubliceerde sessie bevat een <b>RAMP-warming-up</b> en een <b>gerichte cooling-down</b>. Een sessie zonder die twee blokken is geen Coach DM-sessie.</p>
+    </div>
+
+    <div class="step"><div class="n">5</div><div class="c">
+      <h3>De vier inhoudsregels</h3>
+      <ul>
+        <li><b>Nul redundantie</b> — twee sessies van hetzelfde programma delen nooit dezelfde warming-up of inhoud.</li>
+        <li><b>Nul intern duplicaat</b> — een oefening van de dag mag niet in de warming-up staan.</li>
+        <li><b>Elke cue is onderbouwd</b> — auteur + jaar, zichtbaar voor de client.</li>
+        <li><b>Overal drietalig</b> — FR eerst, dan EN, NL.</li>
+      </ul>
+    </div></div>
+
+    <div class="cat">4 · Doelen & motoren</div>
+
+    <div class="step"><div class="n">6</div><div class="c">
+      <h3>Wat de client zelf genereert</h3>
+      <ul>
+        <li><b>Belastingsmotor</b> — golfperiodisering volgens <b>Prilepin</b>, op zijn echte max, bewust van de bewegingsfamilie.</li>
+        <li><b>Skill-motor</b> — 5 families × 2 niveaus, 4 fases, drills per rol opgesplitst.</li>
+      </ul>
+      <p>Jij houdt de controle: via <b>semi-automatische validatie</b> herlees en corrigeer je een cyclus voor hij vertrekt.</p>
+    </div></div>
+
+    <div class="cat">5 · Lessen</div>
+
+    <div class="step"><div class="n">7</div><div class="c">
+      <h3>Sjablonen en planning</h3>
+      <p><span class="path">Lessen → Sjablonen</span>: maak een lestype (naam, duur, capaciteit, kleur, annulatielimiet).</p>
+      <p><span class="path">Lessen → Planning → Sessie plannen</span>: plaats tijdsloten, in reeks indien nodig. Clients reserveren, jij ziet de bezetting live en <b>registreert de aanwezigheid</b>.</p>
+    </div></div>
+
+    <div class="cta">
+      <h3>Hulp nodig?</h3>
+      <p><a href="mailto:doudouh.coaching@gmail.com">doudouh.coaching@gmail.com</a> · Instagram <a href="https://instagram.com/coachdm.be">@coachdm.be</a></p>
+    </div>
+  </div>
+</section>
+
+  <footer>
+    Coach DM · Doudouh M. · Reasfit Vilvoorde, Belgique · <a href="https://coachdm.be">coachdm.be</a><br>
+    BCE BE0840.260.421 · <a href="https://coachdm.be/aide.html">Centre d'aide</a> · <a href="https://coachdm.be/privacy.html">Confidentialité</a>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var lang='fr', role='membre';
+  function apply(){
+    document.querySelectorAll('section.lang').forEach(function(s){ s.classList.toggle('on', s.id===lang); });
+    document.querySelectorAll('.role').forEach(function(r){ r.classList.toggle('on', r.dataset.role===role); });
+    document.querySelectorAll('.langbar button').forEach(function(b){ b.classList.toggle('on', b.dataset.l===lang); });
+    document.querySelectorAll('.rolebar button').forEach(function(b){ b.classList.toggle('on', b.dataset.r===role); });
+    document.documentElement.lang=lang;
+    try{ localStorage.setItem('cdm_lang', lang); }catch(e){}
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  document.querySelectorAll('.langbar button').forEach(function(b){
+    b.addEventListener('click', function(){ lang=b.dataset.l; apply(); });
+  });
+  document.querySelectorAll('.rolebar button').forEach(function(b){
+    b.addEventListener('click', function(){ role=b.dataset.r; apply(); });
+  });
+  try{
+    var saved=localStorage.getItem('cdm_lang');
+    if(saved==='en'||saved==='nl'||saved==='fr'){ lang=saved; }
+  }catch(e){}
+  apply();
+})();
+</script>
+</body>
+</html>
