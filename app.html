@@ -1142,6 +1142,19 @@
 </div>
 
 <!-- CHECKOUT STRIPE EMBARQUÉ -->
+<!-- ══ Avertissement fondateur avant résiliation ══ -->
+<div class="overlay" id="fw-ov">
+  <div class="sheet">
+    <h3 id="fw-t"></h3>
+    <p id="fw-p" style="font-size:13.5px;line-height:1.6;color:var(--txt);margin:10px 0 0"></p>
+    <p id="fw-p2" style="font-size:12.5px;line-height:1.55;color:var(--muted);margin:10px 0 0"></p>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button class="btn subtle" id="fw-keep" style="flex:1"></button>
+      <button class="btn" id="fw-go" style="flex:1;background:transparent;color:var(--muted);border:1px solid var(--line)"></button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="ck-ov">
   <div class="ck-box">
     <button class="ck-close" id="ck-close" aria-label="Fermer">✕</button>
@@ -1623,6 +1636,12 @@ const T = {
  btn_save:{fr:'Enregistrer',en:'Save',nl:'Opslaan'},
  prof_sub:{fr:'Abonnement & paiement',en:'Subscription & payment',nl:'Abonnement & betaling'},
  pf_infos:{fr:'Mes infos & objectifs',en:'My info & goals',nl:'Mijn info & doelen'},
+ fw_t:{fr:'Attention — tu vas perdre ton tarif Fondateur',en:'Warning — you will lose your Founder price',nl:'Let op — je verliest je Oprichterstarief'},
+ fw_p:{fr:'Ton tarif Fondateur à <b>{f}</b> est garanti à vie <b>tant que ton abonnement reste actif</b>. Si tu résilies, tu le perds définitivement : un retour se fera au tarif public de <b>{r}</b>.',en:'Your Founder price of <b>{f}</b> is guaranteed for life <b>as long as your subscription stays active</b>. If you cancel, you lose it permanently: coming back means paying the public price of <b>{r}</b>.',nl:'Je Oprichterstarief van <b>{f}</b> geldt levenslang <b>zolang je abonnement actief blijft</b>. Zeg je op, dan verlies je het definitief: terugkomen betekent het publieke tarief van <b>{r}</b>.'},
+ fw_p2:{fr:'Ta place de Fondateur ne sera pas remise en vente : elle reste la tienne, mais le tarif préférentiel, lui, ne revient pas.',en:'Your Founder seat will not be resold: it stays yours, but the preferential price does not come back.',nl:'Je Oprichtersplaats wordt niet opnieuw verkocht: die blijft van jou, maar het voorkeurstarief komt niet terug.'},
+ fw_keep:{fr:'Garder mon tarif',en:'Keep my price',nl:'Mijn tarief behouden'},
+ fw_go:{fr:'Continuer quand même',en:'Continue anyway',nl:'Toch doorgaan'},
+ plan_already:{fr:'Tu es déjà abonné.',en:'You are already subscribed.',nl:'Je bent al geabonneerd.'},
  coach_home_t:{fr:'Espace Coach',en:'Coach workspace',nl:'Coach-ruimte'},
  coach_home_sub:{fr:'Gère tes clients dans Coach DM · dès 29,99 €/mois',en:'Manage your clients in Coach DM · from €29.99/month',nl:'Beheer je klanten in Coach DM · vanaf € 29,99/maand'},
  pf_records:{fr:'Mes records (1RM)',en:'My records (1RM)',nl:'Mijn records (1RM)'},
@@ -1925,6 +1944,29 @@ function show(id){['boot','auth','gate','app'].forEach(s=>$('#'+s).classList.tog
 function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1900);}
 
 /* ---------------- AUTH ---------------- */
+/* Plan choisi sur tarifs.html : memorise pour survivre a l'inscription
+   et a la confirmation d'e-mail, puis rejoue une fois la session ouverte. */
+const PLAN_KEY='cdm_pending_plan';
+(function grabPlan(){
+  try{
+    const lk=new URLSearchParams(location.search).get('plan');
+    if(lk && /^[a-z0-9_]+$/i.test(lk)) localStorage.setItem(PLAN_KEY, lk);
+    if(lk){ history.replaceState(null,'',location.pathname); }
+  }catch(_){}
+})();
+async function resumePendingPlan(){
+  if(IS_NATIVE) { try{ localStorage.removeItem(PLAN_KEY); }catch(_){} return; }
+  let lk=null;
+  try{ lk=localStorage.getItem(PLAN_KEY); }catch(_){}
+  if(!lk) return;
+  try{ localStorage.removeItem(PLAN_KEY); }catch(_){}
+  try{
+    const { data } = await sb.from('billing_prices').select('lookup_key').eq('lookup_key',lk).eq('active',true).maybeSingle();
+    if(!data) return;                       /* plan inconnu ou desactive : on ignore */
+  }catch(_){ return; }
+  if(await hasAccess(USER.id)) { toast(t('plan_already')); return; }
+  startCheckout(lk);
+}
 async function boot(){
   const { data:{ session } } = await sb.auth.getSession();
   if(session?.user){ await enter(session.user); } else { show('auth'); }
@@ -1969,6 +2011,7 @@ async function enter(user){
   await loadToday();
   switchTab('home');
   loadCoachCard(); loadCalls(); initChatLive();
+  resumePendingPlan();
 }
 
 async function loadProfileInfo(user){
@@ -1981,6 +2024,8 @@ async function loadProfileInfo(user){
     const role = prof2 && prof2.role;
     IS_COACH = (role==='coach'||role==='admin');
     if(typeof renderAnalyseSection==='function') renderAnalyseSection();
+    IS_FOUNDER = !!(prof2 && prof2.is_founder);
+    FOUNDER_KIND = (prof2 && prof2.founder_kind) || null;
     if(prof2 && prof2.is_founder){
       const card=$('#p-founder');
       if(card){
@@ -2006,7 +2051,7 @@ async function loadProfileInfo(user){
     { const lo=$('#p-lead-open'); if(lo) lo.onclick=openLead; }
     applyCoachIsolation();
     const { data:sub } = await sb.from('subscriptions')
-      .select('status,current_period_end,trial_end').eq('user_id',user.id)
+      .select('status,current_period_end,trial_end,amount_cents').eq('user_id',user.id)
       .order('current_period_end',{ascending:false,nullsFirst:false}).limit(1).maybeSingle();
     const now=Date.now();
     let key='sub_status_none', extra='';
@@ -2026,6 +2071,7 @@ async function loadProfileInfo(user){
     const bOpen=$('#p-sub-open'), bMan=$('#p-sub-manage');
     if(bOpen) bOpen.style.display = (canPay && !active && !trialing) ? 'block' : 'none';
     if(bMan)  bMan.style.display  = (canPay && sub && (active||trialing)) ? 'block' : 'none';
+    FOUNDER_AMOUNT = (sub && sub.amount_cents!=null) ? sub.amount_cents : null;
   }catch(e){}
 }
 
@@ -2073,6 +2119,20 @@ function slotsLeft(kind){
   const r=(FOUNDER_SLOTS||[]).find(x=>x.kind===kind);
   return r ? +r.left_count : null; /* null = inconnu -> on affiche, le serveur verrouille */
 }
+/* Un fondateur "verrouille" (>= 12 mois cumules) retrouve son tarif meme a guichet
+   ferme : sa place lui reste acquise, il ne double personne. Source de verite : serveur. */
+let FOUNDER_CAN = {};
+async function loadFounderCan(){
+  for(const k of ['membre','coach']){
+    try{ const { data } = await sb.rpc('founder_can_buy',{ p_kind:k }); FOUNDER_CAN[k] = data===true; }
+    catch(_){ FOUNDER_CAN[k] = false; }
+  }
+}
+function founderOpen(kind){
+  const left = slotsLeft(kind);
+  if(left===null) return true;          /* inconnu -> on affiche, le serveur tranche */
+  return left>0 || FOUNDER_CAN[kind]===true;
+}
 function founderCounter(kind){
   const left=slotsLeft(kind);
   return (left!==null && left>0 && left<=15) ? `<div class="plan-save">${t('founder_left').replace('{n}',left)}</div>` : '';
@@ -2086,14 +2146,13 @@ async function openSubSheet(){
       SUB_PRICES = data||[];
     }catch(e){ SUB_PRICES=[]; }
   }
-  await loadFounderSlots();
+  await loadFounderSlots(); await loadFounderCan();
   renderSubPlans();
 }
 function renderSubPlans(){
   const box=$('#sub-plans'); if(!box) return;
   const ps=SUB_PRICES||[];
-  const memLeft=slotsLeft('membre');
-  const f=(memLeft===0)?null:ps.find(p=>p.founder && p.billing_interval===SUB_INT);
+  const f=!founderOpen('membre')?null:ps.find(p=>p.founder && p.billing_interval===SUB_INT);
   const r=ps.find(p=>!p.founder && p.billing_interval===SUB_INT);
   const offer=f||r;
   if(!offer){ box.innerHTML='<p class="empty">—</p>'; return; }
@@ -2145,7 +2204,35 @@ async function mountCheckout(){
   }catch(e){ closeCheckout(); toast(t('sub_fail')); }
 }
 function closeCheckout(){ $('#ck-ov').classList.remove('show'); if(CK){ try{CK.destroy();}catch(e){} CK=null; } resetConsent(); PENDING_CK=null; }
+let IS_FOUNDER=false, FOUNDER_KIND=null, FOUNDER_AMOUNT=null;
+/* Le portail Stripe gere la resiliation : impossible d'y injecter un message.
+   L'avertissement doit donc etre montre AVANT de l'ouvrir. */
 async function openPortal(){
+  if(IS_FOUNDER){ const shown=await warnFounder(); if(!shown) return; }
+  await reallyOpenPortal();
+}
+async function warnFounder(){
+  let pub=null;
+  try{
+    const kind = FOUNDER_KIND==='coach' ? 'coach' : 'client';
+    const { data } = await sb.from('billing_prices').select('amount_cents,founder,audience,billing_interval')
+      .eq('audience',kind).eq('active',true);
+    const f=(data||[]).find(p=>p.founder && p.amount_cents===FOUNDER_AMOUNT);
+    if(f) pub=(data||[]).find(p=>!p.founder && p.billing_interval===f.billing_interval);
+  }catch(_){}
+  if(FOUNDER_AMOUNT==null || !pub) return true;   /* prix inconnu : on n'invente rien, on laisse passer */
+  $('#fw-t').textContent=t('fw_t');
+  $('#fw-p').innerHTML=t('fw_p').replace('{f}',money(FOUNDER_AMOUNT)).replace('{r}',money(pub.amount_cents));
+  $('#fw-p2').textContent=t('fw_p2');
+  $('#fw-keep').textContent=t('fw_keep');
+  $('#fw-go').textContent=t('fw_go');
+  $('#fw-ov').classList.add('show');
+  return false;
+}
+{ const k=$('#fw-keep'); if(k) k.onclick=()=>$('#fw-ov').classList.remove('show'); }
+{ const g=$('#fw-go'); if(g) g.onclick=async()=>{ $('#fw-ov').classList.remove('show'); await reallyOpenPortal(); }; }
+{ const o=$('#fw-ov'); if(o) o.onclick=e=>{ if(e.target.id==='fw-ov') o.classList.remove('show'); }; }
+async function reallyOpenPortal(){
   const b=$('#p-sub-manage'); if(b) b.disabled=true;
   const { data, error } = await sb.functions.invoke('stripe-checkout',{ body:{ action:'portal', locale:LANG } });
   if(b) b.disabled=false;
@@ -2187,7 +2274,7 @@ async function openCoachSheet(){
       COACH_PRICES = data||[];
     }catch(e){ COACH_PRICES=[]; }
   }
-  await loadFounderSlots();
+  await loadFounderSlots(); await loadFounderCan();
   const hasYear = (COACH_PRICES||[]).some(p=>p.billing_interval==='year');
   const tg=$('#coach-toggle'); if(tg) tg.style.display = hasYear ? 'flex' : 'none';
   renderCoachPlans();
@@ -2195,10 +2282,10 @@ async function openCoachSheet(){
 function renderCoachPlans(){
   const box=$('#coach-plans'); if(!box) return;
   const ps=(COACH_PRICES||[]).filter(p=>p.billing_interval===COACH_INT);
-  const coachLeft=slotsLeft('coach');
-  const f=(coachLeft===0)?null:ps.find(p=>p.tier==='coach' && p.founder);
+  const coachOK=founderOpen('coach');
+  const f=!coachOK?null:ps.find(p=>p.tier==='coach' && p.founder);
   const r=ps.find(p=>p.tier==='coach' && !p.founder);
-  const fplus=(coachLeft===0)?null:ps.find(p=>p.tier==='coach_plus' && p.founder);
+  const fplus=!coachOK?null:ps.find(p=>p.tier==='coach_plus' && p.founder);
   const rplus=ps.find(p=>p.tier==='coach_plus' && !p.founder);
   const plus=fplus||rplus;
   const base=f||r;

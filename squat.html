@@ -917,6 +917,7 @@ async function pwLoad(){
   PW.loading=true;
   try{const {data}=await SB.from('billing_prices').select('*').eq('audience','client').eq('active',true);PW.prices=data||[];}catch(_){PW.prices=[];}
   try{const {data}=await SB.rpc('founder_slots');PW.slots=data||[];}catch(_){PW.slots=[];}
+  try{const {data}=await SB.rpc('founder_can_buy',{p_kind:'membre'});PW.canF=(data===true);}catch(_){PW.canF=false;}
   PW.loading=false;
   pwRender();
 }
@@ -925,9 +926,11 @@ function pwRender(){
   if(!box||!PW.prices)return;
   if(IS_NATIVE){box.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center;padding:10px 4px">'+t('pw_native')+'</p>';return;}
   const left=pwSlotsLeft('membre');
+  /* Fondateur verrouille (>= 12 mois) : son tarif lui reste ouvert meme a guichet ferme. */
+  const fOpen=(left===null)||left>0||PW.canF===true;
   const pickIv=(iv)=>{
     const ps=PW.prices.filter(p=>p.billing_interval===iv&&p.tier==='membre');
-    const f=(left===0)?null:ps.find(p=>p.founder);
+    const f=!fOpen?null:ps.find(p=>p.founder);
     const r=ps.find(p=>!p.founder);
     return {off:f||r, reg:r};
   };
