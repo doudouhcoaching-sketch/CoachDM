@@ -172,6 +172,8 @@
   #fvchart{width:100%;height:220px;margin-top:14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line)}
 
   .plans{display:grid;gap:10px;text-align:left}
+  .pcoach{font-size:12.5px;color:var(--muted);text-align:center;padding:10px 4px 2px;line-height:1.5}
+  .pcoach a{color:var(--gold);font-weight:800;text-decoration:none;border-bottom:1px solid rgba(212,175,55,.4)}
   .plan{border:1px solid rgba(212,175,55,.45);border-radius:16px;padding:14px;background:rgba(212,175,55,.06)}
   .plan .pb{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#0A0A0A;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);border-radius:999px;padding:4px 10px;margin-bottom:8px}
   .plan .pp{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
@@ -377,7 +379,15 @@ const I18N = {
   tab_fv:{fr:'Profil Force-Vitesse',en:'Force-Velocity profile',nl:'Kracht-Snelheid profiel'},
   fv_setup_h:{fr:'Profil F-V — mesures',en:'F-V profile — measurements',nl:'K-S profiel — metingen'},
   fv_gate_h:{fr:'Profil F-V — fonctionnalité Premium',en:'F-V profile — Premium feature',nl:'K-S profiel — Premium functie'},
-  fv_gate_p:{fr:'Le test de saut simple est gratuit pour tous. Le Profil Force-Vitesse complet — analyse Samozino, recommandations et historique — est réservé aux offres Coach & Coach+. Abonne-toi directement ici, sans quitter la page.',en:'The simple jump test is free for everyone. The full Force-Velocity profile — Samozino analysis, recommendations and history — is for the Coach & Coach+ plans. Subscribe right here, without leaving the page.',nl:'De eenvoudige sprongtest is gratis voor iedereen. Het volledige Kracht-Snelheid profiel — Samozino-analyse, aanbevelingen en geschiedenis — is voor de Coach & Coach+ abonnementen. Abonneer je hier, zonder de pagina te verlaten.'},
+  fv_gate_p:{fr:'Le test de saut simple est gratuit pour tous. Le Profil Force-Vitesse complet — analyse Samozino, recommandations et historique — est inclus dans l’abonnement. Abonne-toi directement ici, sans quitter la page.',en:'The simple jump test is free for everyone. The full Force-Velocity profile — Samozino analysis, recommendations and history — is included with your subscription. Subscribe right here, without leaving the page.',nl:'De eenvoudige sprongtest is gratis voor iedereen. Het volledige Kracht-Snelheid profiel — Samozino-analyse, aanbevelingen en geschiedenis — is inbegrepen in je abonnement. Abonneer je hier, zonder de pagina te verlaten.'},
+  pw_native:{fr:'Les abonnements ne sont pas disponibles dans cette version de l\u2019app.',en:'Subscriptions are not available in this version of the app.',nl:'Abonnementen zijn niet beschikbaar in deze versie van de app.'},
+  pw_year:{fr:'/an',en:'/year',nl:'/jaar'},
+  pw_membre_f:{fr:'Membre Fondateur',en:'Founding Member',nl:'Oprichtend lid'},
+  pw_membre:{fr:'Membre',en:'Member',nl:'Lid'},
+  pw_note_m:{fr:'Toutes les analyses Pro, le Coach IA, la photo-calories et les 10 programmes. Sans engagement.',en:'All Pro analyses, the AI Coach, photo-calories and the 10 programs. Cancel anytime.',nl:'Alle Pro-analyses, de AI-coach, foto-calorie\u00ebn en de 10 programma\u2019s. Maandelijks opzegbaar.'},
+  pw_note_y:{fr:'La m\u00eame chose, factur\u00e9e \u00e0 l\u2019ann\u00e9e : deux mois offerts.',en:'Same thing, billed yearly: two months free.',nl:'Hetzelfde, jaarlijks gefactureerd: twee maanden gratis.'},
+  pw_coach_link:{fr:'Tu es coach et tu g\u00e8res des clients ?',en:'Are you a coach managing clients?',nl:'Ben je coach met klanten?'},
+  pw_coach_link_a:{fr:'Voir les offres Coach',en:'See Coach plans',nl:'Bekijk Coach-abonnementen'},
   pw_choose:{fr:'Choisir cette offre',en:'Choose this plan',nl:'Kies dit abonnement'},
   pw_month:{fr:'/mois',en:'/month',nl:'/maand'},
   pw_note20:{fr:'Jusqu\'à 20 clients actifs',en:'Up to 20 active clients',nl:'Tot 20 actieve klanten'},
@@ -1089,12 +1099,13 @@ async function stripeJs(){
   await new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://js.stripe.com/v3/';sc.onload=res;sc.onerror=rej;document.head.appendChild(sc);});
   return window.Stripe;
 }
+const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
 function pwSlotsLeft(kind){const r=(PW.slots||[]).find(x=>x.kind===kind);return r?+r.left_count:null;}
 async function pwLoad(){
   if(!SB||PW.loading)return;
   if(PW.prices){pwRender();return;}
   PW.loading=true;
-  try{const {data}=await SB.from('billing_prices').select('*').eq('audience','coach').eq('active',true);PW.prices=data||[];}catch(_){PW.prices=[];}
+  try{const {data}=await SB.from('billing_prices').select('*').eq('audience','client').eq('active',true);PW.prices=data||[];}catch(_){PW.prices=[];}
   try{const {data}=await SB.rpc('founder_slots');PW.slots=data||[];}catch(_){PW.slots=[];}
   PW.loading=false;
   pwRender();
@@ -1102,25 +1113,27 @@ async function pwLoad(){
 function pwRender(){
   const box=document.getElementById('gate-plans');
   if(!box||!PW.prices)return;
-  const ps=PW.prices.filter(p=>p.billing_interval==='month');
-  const left=pwSlotsLeft('coach');
-  const f=(left===0)?null:ps.find(p=>p.tier==='coach'&&p.founder);
-  const r=ps.find(p=>p.tier==='coach'&&!p.founder);
-  const fp=(left===0)?null:ps.find(p=>p.tier==='coach_plus'&&p.founder);
-  const rp=ps.find(p=>p.tier==='coach_plus'&&!p.founder);
-  const mk=(off,reg,fBadge,rBadge,fNote,rNote)=>{
-    if(!off)return '';
-    const isF=!!off.founder;
-    let h='<div class="plan"><span class="pb">'+(isF?fBadge:rBadge)+'</span>';
-    h+='<div class="pp">'+pwMoney(off.amount_cents)+'<small>'+t('pw_month')+'</small>';
-    if(isF&&reg)h+='<span class="old">'+pwMoney(reg.amount_cents)+'</span>';
-    h+='</div><div class="pn">'+(isF?fNote:rNote)+'</div>';
+  if(IS_NATIVE){box.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center;padding:10px 4px">'+t('pw_native')+'</p>';return;}
+  const left=pwSlotsLeft('membre');
+  const pickIv=(iv)=>{
+    const ps=PW.prices.filter(p=>p.billing_interval===iv&&p.tier==='membre');
+    const f=(left===0)?null:ps.find(p=>p.founder);
+    const r=ps.find(p=>!p.founder);
+    return {off:f||r, reg:r};
+  };
+  const mk=(o,iv)=>{
+    if(!o.off)return '';
+    const isF=!!o.off.founder;
+    let h='<div class="plan"><span class="pb">'+(isF?t('pw_membre_f'):t('pw_membre'))+'</span>';
+    h+='<div class="pp">'+pwMoney(o.off.amount_cents)+'<small>'+t(iv==='year'?'pw_year':'pw_month')+'</small>';
+    if(isF&&o.reg)h+='<span class="old">'+pwMoney(o.reg.amount_cents)+'</span>';
+    h+='</div><div class="pn">'+t(iv==='year'?'pw_note_y':'pw_note_m')+'</div>';
     if(isF&&left!==null&&left>0&&left<=15)h+='<div class="pn" style="color:var(--neon)">'+t('pw_left').replace('{n}',left)+'</div>';
-    h+='<button class="pcta" data-lk="'+off.lookup_key+'">'+t('pw_choose')+'</button></div>';
+    h+='<button class="pcta" data-lk="'+o.off.lookup_key+'">'+t('pw_choose')+'</button></div>';
     return h;
   };
-  box.innerHTML=mk(f||r,r,t('pw_coach_f'),'Coach',t('pw_note30'),t('pw_note20'))
-              + mk(fp||rp,rp,t('pw_coachp_f'),'Coach+',t('pw_note60'),t('pw_note50'));
+  box.innerHTML=mk(pickIv('month'),'month')+mk(pickIv('year'),'year')
+    +'<div class="pcoach">'+t('pw_coach_link')+' <a href="https://coachdm.be/tarifs.html" target="_blank" rel="noopener">'+t('pw_coach_link_a')+'</a></div>';
   box.querySelectorAll('[data-lk]').forEach(b=>{b.onclick=()=>pwOpen(b.dataset.lk);});
 }
 function pwReset(){
@@ -1132,6 +1145,7 @@ function pwReset(){
   if(k)k.disabled=true;
 }
 function pwOpen(lk){
+  if(IS_NATIVE)return;
   if(!UIDG){alert(t('save_login'));return;}
   PW.pending=lk;
   if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}

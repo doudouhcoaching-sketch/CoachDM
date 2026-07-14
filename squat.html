@@ -141,6 +141,14 @@
   .b-spd{color:var(--neon);border-color:rgba(0,255,163,.4)}
   .empty{color:var(--muted);font-size:13px}
   .pro-note{margin-top:12px;font-size:12px;font-weight:700;color:var(--gold);display:flex;align-items:center;gap:7px}
+  #day-card{border:1px solid rgba(212,175,55,.45);background:linear-gradient(180deg,rgba(212,175,55,.10),rgba(212,175,55,.03))}
+  #day-card h3{color:var(--gold)}
+  .dbig{font-size:38px;font-weight:800;line-height:1.05;letter-spacing:-.5px}
+  .dbig small{font-size:16px;font-weight:700;color:var(--muted)}
+  .ddelta{font-size:15px;font-weight:800;margin-top:4px}
+  .ddelta.up{color:var(--ok)} .ddelta.dn{color:var(--gold)} .ddelta.flat{color:var(--muted)}
+  .dsub{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:10px}
+  .dstale{margin-top:10px;padding:9px 11px;border-radius:10px;border:1px solid rgba(212,175,55,.4);background:rgba(212,175,55,.08);font-size:12.5px;font-weight:700;color:var(--gold);line-height:1.45}
 
   details{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:14px 18px}
   summary{font-size:14.5px;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
@@ -156,6 +164,8 @@
   footer b{color:var(--gold)}
 
   .plans{display:grid;gap:10px;text-align:left}
+  .pcoach{font-size:12.5px;color:var(--muted);text-align:center;padding:10px 4px 2px;line-height:1.5}
+  .pcoach a{color:var(--gold);font-weight:800;text-decoration:none;border-bottom:1px solid rgba(212,175,55,.4)}
   .plan{border:1px solid rgba(212,175,55,.45);border-radius:16px;padding:14px;background:rgba(212,175,55,.06)}
   .plan .pb{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#0A0A0A;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);border-radius:999px;padding:4px 10px;margin-bottom:8px}
   .plan .pp{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
@@ -215,6 +225,16 @@
 <div class="controls" id="save-row" style="display:none">
   <button class="btn" id="b-save"></button>
   <button class="btn ghost" id="b-share" style="flex:0 0 56px;font-size:19px">📤</button>
+</div>
+
+<!-- ══ 1RM du jour — boucle VBT → charge ══ -->
+<div class="card" id="day-card" style="display:none">
+  <h3><span id="day-h"></span><span class="protag">PRO</span></h3>
+  <div class="dbig"><span id="day-val">—</span><small> kg</small></div>
+  <div class="ddelta" id="day-delta"></div>
+  <div class="dsub" id="day-sub"></div>
+  <div class="dstale" id="day-stale" style="display:none"></div>
+  <div class="vnote" id="day-note"></div>
 </div>
 
 <!-- ══ Analyse Pro (VBT) — verrou Premium ══ -->
@@ -345,7 +365,15 @@ const I18N = {
   view_side:{fr:'profil',en:'side',nl:'zijkant'},
   view_front:{fr:'face',en:'front',nl:'voorkant'},
   vbt_gate_h:{fr:'Analyse Pro (VBT) — fonctionnalité Premium',en:'Pro Analysis (VBT) — Premium feature',nl:'Pro-analyse (VBT) — Premium functie'},
-  vbt_gate_p:{fr:'Le compteur de reps et la profondeur (parallèle cassée) sont gratuits pour tous. L\'Analyse Pro — inclinaison du dos, valgus des genoux, vitesse de chaque rep (VBT), perte de vitesse et 1RM estimé en direct — est réservée aux offres Coach & Coach+. Abonne-toi directement ici, sans quitter la page.',en:'Rep counting and depth (below parallel) are free for everyone. Pro Analysis — torso lean, knee valgus, per-rep bar speed (VBT), velocity loss and live estimated 1RM — is for the Coach & Coach+ plans. Subscribe right here, without leaving the page.',nl:'Reps tellen en de diepte (onder parallel) zijn gratis voor iedereen. Pro-analyse — romphelling, knievalgus, snelheid per rep (VBT), snelheidsverlies en live geschatte 1RM — is voor de Coach & Coach+ abonnementen. Abonneer je hier, zonder de pagina te verlaten.'},
+  vbt_gate_p:{fr:'Le compteur de reps et la profondeur (parallèle cassée) sont gratuits pour tous. L\'Analyse Pro — inclinaison du dos, valgus des genoux, vitesse de chaque rep (VBT), perte de vitesse et 1RM estimé en direct — est incluse dans l’abonnement. Abonne-toi directement ici, sans quitter la page.',en:'Rep counting and depth (below parallel) are free for everyone. Pro Analysis — torso lean, knee valgus, per-rep bar speed (VBT), velocity loss and live estimated 1RM — is for the subscription. Subscribe right here, without leaving the page.',nl:'Reps tellen en de diepte (onder parallel) zijn gratis voor iedereen. Pro-analyse — romphelling, knievalgus, snelheid per rep (VBT), snelheidsverlies en live geschatte 1RM — is voor de abonnement. Abonneer je hier, zonder de pagina te verlaten.'},
+  pw_native:{fr:'Les abonnements ne sont pas disponibles dans cette version de l\u2019app.',en:'Subscriptions are not available in this version of the app.',nl:'Abonnementen zijn niet beschikbaar in deze versie van de app.'},
+  pw_year:{fr:'/an',en:'/year',nl:'/jaar'},
+  pw_membre_f:{fr:'Membre Fondateur',en:'Founding Member',nl:'Oprichtend lid'},
+  pw_membre:{fr:'Membre',en:'Member',nl:'Lid'},
+  pw_note_m:{fr:'Toutes les analyses Pro, le Coach IA, la photo-calories et les 10 programmes. Sans engagement.',en:'All Pro analyses, the AI Coach, photo-calories and the 10 programs. Cancel anytime.',nl:'Alle Pro-analyses, de AI-coach, foto-calorie\u00ebn en de 10 programma\u2019s. Maandelijks opzegbaar.'},
+  pw_note_y:{fr:'La m\u00eame chose, factur\u00e9e \u00e0 l\u2019ann\u00e9e : deux mois offerts.',en:'Same thing, billed yearly: two months free.',nl:'Hetzelfde, jaarlijks gefactureerd: twee maanden gratis.'},
+  pw_coach_link:{fr:'Tu es coach et tu g\u00e8res des clients ?',en:'Are you a coach managing clients?',nl:'Ben je coach met klanten?'},
+  pw_coach_link_a:{fr:'Voir les offres Coach',en:'See Coach plans',nl:'Bekijk Coach-abonnementen'},
   pw_choose:{fr:'Choisir cette offre',en:'Choose this plan',nl:'Kies dit abonnement'},
   pw_month:{fr:'/mois',en:'/month',nl:'/maand'},
   pw_note20:{fr:'Jusqu\'à 20 clients actifs',en:'Up to 20 active clients',nl:'Tot 20 actieve klanten'},
@@ -360,6 +388,15 @@ const I18N = {
   pw_continue:{fr:'Continuer vers le paiement',en:'Continue to payment',nl:'Doorgaan naar betaling'},
   pw_fail:{fr:'Paiement indisponible. Réessaie dans un instant.',en:'Payment unavailable. Try again shortly.',nl:'Betaling niet beschikbaar. Probeer straks opnieuw.'},
 
+  day_h:{fr:'1RM du jour',en:'Daily 1RM',nl:'1RM van vandaag'},
+  day_up:{fr:'{d} % au-dessus de ta référence — bonne journée, les charges de ta séance montent.',en:'{d}% above your reference — good day, today\u2019s loads go up.',nl:'{d}% boven je referentie — goede dag, je belastingen gaan omhoog.'},
+  day_dn:{fr:'{d} % sous ta référence — journée moyenne, les charges de ta séance s\u2019allègent automatiquement.',en:'{d}% below your reference — off day, today\u2019s loads are automatically reduced.',nl:'{d}% onder je referentie — mindere dag, je belastingen worden automatisch verlaagd.'},
+  day_flat:{fr:'Pile sur ta référence — charges nominales aujourd\u2019hui.',en:'Right on your reference — nominal loads today.',nl:'Precies op je referentie — nominale belastingen vandaag.'},
+  day_sub_i:{fr:'Calculé sur <b>ton profil charge-vitesse personnel</b> (au moins 3 charges différentes mesurées). Ouvre ta séance : toutes les charges en %1RM sont recalculées sur ce chiffre, pas sur ton vieux record.',en:'Computed from <b>your personal load-velocity profile</b> (at least 3 different loads measured). Open your session: every %1RM load is recalculated on this figure, not on your old record.',nl:'Berekend op <b>je persoonlijke belasting-snelheidsprofiel</b> (minstens 3 verschillende belastingen gemeten). Open je sessie: elke %1RM-belasting wordt op dit cijfer herberekend, niet op je oude record.'},
+  day_sub_g:{fr:'Calculé sur le profil charge-vitesse générique (Sánchez-Medina 2010). Mesure 3 séries à des charges différentes et l\u2019app bascule sur <b>ton profil personnel</b>, bien plus précis.',en:'Computed from the generic load-velocity profile (Sánchez-Medina 2010). Measure 3 sets at different loads and the app switches to <b>your personal profile</b>, far more accurate.',nl:'Berekend op het generieke belasting-snelheidsprofiel (Sánchez-Medina 2010). Meet 3 sets met verschillende belastingen en de app schakelt over naar <b>je persoonlijke profiel</b>, veel nauwkeuriger.'},
+  day_stale:{fr:'⚠ Ton profil vitesse estime ton 1RM à <b>{p} kg</b>, mais ton record enregistré dit <b>{r} kg</b>. Mets ton record à jour dans l\u2019app (Profil → Mes records) : sinon tu t\u2019entraînes trop léger.',en:'⚠ Your velocity profile estimates your 1RM at <b>{p} kg</b>, but your saved record says <b>{r} kg</b>. Update it in the app (Profile → My records): otherwise you are training too light.',nl:'⚠ Je snelheidsprofiel schat je 1RM op <b>{p} kg</b>, maar je opgeslagen record zegt <b>{r} kg</b>. Werk het bij in de app (Profiel → Mijn records): anders train je te licht.'},
+  day_clamp:{fr:'Valeur bornée à ±15 % : la force fluctue, elle ne double pas d\u2019un jour à l\u2019autre (Jovanović & Flanagan 2014).',en:'Value capped at ±15%: strength fluctuates, it does not double overnight (Jovanović & Flanagan 2014).',nl:'Waarde begrensd op ±15%: kracht schommelt, maar verdubbelt niet van de ene dag op de andere (Jovanović & Flanagan 2014).'},
+  day_note:{fr:'Le 1RM du jour vaut pour aujourd\u2019hui seulement. Il repart de zéro demain — c\u2019est le principe : on prescrit sur ta forme réelle, pas sur un chiffre figé.',en:'The daily 1RM applies to today only. It resets tomorrow — that is the point: we prescribe on your actual readiness, not on a frozen number.',nl:'De 1RM van vandaag geldt alleen voor vandaag. Morgen begint hij opnieuw — dat is het principe: we schrijven voor op je werkelijke vorm, niet op een vast getal.'},
   vbt_h:{fr:'Analyse Pro — Vitesse (VBT)',en:'Pro Analysis — Bar speed (VBT)',nl:'Pro-analyse — Snelheid (VBT)'},
   vbt_hint:{fr:'Entre ta taille (une fois) et la charge sur la barre. Chaque rep : vitesse concentrique moyenne, perte de vitesse et 1RM estimé. Coupe ta série à −20% de vitesse : tu gagnes autant de force avec moins de fatigue (Pareja-Blanco 2017).',en:'Enter your height (once) and the load on the bar. Every rep: mean concentric velocity, velocity loss and estimated 1RM. Cut your set at −20% velocity: same strength gains with less fatigue (Pareja-Blanco 2017).',nl:'Vul één keer je lengte in en de belasting op de bar. Elke rep: gemiddelde concentrische snelheid, snelheidsverlies en geschatte 1RM. Stop je set bij −20% snelheid: evenveel krachtwinst met minder vermoeidheid (Pareja-Blanco 2017).'},
   vbt_height:{fr:'Taille (cm)',en:'Height (cm)',nl:'Lengte (cm)'},
@@ -369,7 +406,7 @@ const I18N = {
   vbt_loss:{fr:'Perte vitesse',en:'Velocity loss',nl:'Snelheidsverlies'},
   vbt_stop:{fr:'⛔ Perte de vitesse ≥ 20% — arrête ta série : les reps suivantes ne construisent que de la fatigue, pas de la force.',en:'⛔ Velocity loss ≥ 20% — end your set: further reps only build fatigue, not strength.',nl:'⛔ Snelheidsverlies ≥ 20% — stop je set: verdere reps bouwen alleen vermoeidheid op, geen kracht.'},
   vbt_note:{fr:'Vitesse mesurée sur la hanche, calibrée sur ta taille. Sans taille renseignée, la vitesse reste vide. 1RM estimé : indication, pas une vérité absolue.',en:'Velocity measured at the hip, calibrated on your height. Without a height, velocity stays empty. Estimated 1RM is an indication, not an absolute truth.',nl:'Snelheid gemeten op de heup, gekalibreerd op je lengte. Zonder lengte blijft de snelheid leeg. Geschatte 1RM is een indicatie, geen absolute waarheid.'},
-  pro_note:{fr:'Dos, valgus & vitesse (VBT) : offres Coach & Coach+',en:'Torso, valgus & speed (VBT): Coach & Coach+ plans',nl:'Romp, valgus & snelheid (VBT): Coach & Coach+ abonnementen'},
+  pro_note:{fr:'Analyse Pro \u2014 incluse dans l\u2019abonnement',en:'Pro Analysis \u2014 included with your subscription',nl:'Pro-analyse \u2014 inbegrepen in je abonnement'},
   help_h:{fr:'Comment ça marche',en:'How it works',nl:'Hoe het werkt'},
   help_1:{fr:'Téléphone posé ou sur trépied, stable, à 2–4 m. Corps entier + pieds dans le cadre, bonne lumière.',en:'Phone resting or on a tripod, stable, 2–4 m away. Full body + feet in frame, good lighting.',nl:'Telefoon neergezet of op statief, stabiel, op 2–4 m. Hele lichaam + voeten in beeld, goed licht.'},
   help_2:{fr:'Gratuit : reps comptées + parallèle cassée (crête de la hanche sous le genou). Pro : dos, valgus (de face) et vitesse VBT.',en:'Free: rep counting + below parallel (hip crease below the knee). Pro: torso, valgus (front view) and VBT speed.',nl:'Gratis: reps tellen + onder parallel (heupplooi onder de knie). Pro: romp, valgus (vooraanzicht) en VBT-snelheid.'},
@@ -551,6 +588,26 @@ function renderVBT(){
   bar.classList.toggle('stop',VBT.vl!=null&&VBT.vl>=20);
   $('#v-stop').style.display=VBT.stop?'':'none';
   if(VBT.last!=null){spdChip.hidden=false;$('#spd-val').textContent=VBT.last.toFixed(2);}
+}
+function renderDay(d){
+  const c=$('#day-card'); if(!c)return;
+  $('#day-h').textContent=t('day_h');
+  $('#day-val').textContent=(Math.round(d.e1rm_today/2.5)*2.5).toFixed(1).replace(/\.0$/,'');
+  const dl=d.delta_pct==null?null:+d.delta_pct, el=$('#day-delta');
+  if(dl==null||Math.abs(dl)<1){el.className='ddelta flat';el.textContent=t('day_flat');}
+  else if(dl>0){el.className='ddelta up';el.textContent=t('day_up').replace('{d}','+'+dl.toFixed(1));}
+  else{el.className='ddelta dn';el.textContent=t('day_dn').replace('{d}',dl.toFixed(1));}
+  let sub=t(d.source==='individual'?'day_sub_i':'day_sub_g');
+  if(d.clamped)sub+=' '+t('day_clamp');
+  $('#day-sub').innerHTML=sub;
+  const st=$('#day-stale');
+  if(d.pr_stale&&d.e1rm_profile!=null&&d.e1rm_ref!=null){
+    st.innerHTML=t('day_stale').replace('{p}',Math.round(d.e1rm_profile)).replace('{r}',Math.round(d.e1rm_ref));
+    st.style.display='';
+  }else st.style.display='none';
+  $('#day-note').textContent=t('day_note');
+  c.style.display='';
+  c.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function proUI(){
   $('#vbt-gate').style.display=(ENT.known&&!PRO)?'':'none';
@@ -852,12 +909,13 @@ async function stripeJs(){
   await new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://js.stripe.com/v3/';sc.onload=res;sc.onerror=rej;document.head.appendChild(sc);});
   return window.Stripe;
 }
+const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
 function pwSlotsLeft(kind){const r=(PW.slots||[]).find(x=>x.kind===kind);return r?+r.left_count:null;}
 async function pwLoad(){
   if(!SB||PW.loading)return;
   if(PW.prices){pwRender();return;}
   PW.loading=true;
-  try{const {data}=await SB.from('billing_prices').select('*').eq('audience','coach').eq('active',true);PW.prices=data||[];}catch(_){PW.prices=[];}
+  try{const {data}=await SB.from('billing_prices').select('*').eq('audience','client').eq('active',true);PW.prices=data||[];}catch(_){PW.prices=[];}
   try{const {data}=await SB.rpc('founder_slots');PW.slots=data||[];}catch(_){PW.slots=[];}
   PW.loading=false;
   pwRender();
@@ -865,25 +923,27 @@ async function pwLoad(){
 function pwRender(){
   const box=document.getElementById('gate-plans');
   if(!box||!PW.prices)return;
-  const ps=PW.prices.filter(p=>p.billing_interval==='month');
-  const left=pwSlotsLeft('coach');
-  const f=(left===0)?null:ps.find(p=>p.tier==='coach'&&p.founder);
-  const r=ps.find(p=>p.tier==='coach'&&!p.founder);
-  const fp=(left===0)?null:ps.find(p=>p.tier==='coach_plus'&&p.founder);
-  const rp=ps.find(p=>p.tier==='coach_plus'&&!p.founder);
-  const mk=(off,reg,fBadge,rBadge,fNote,rNote)=>{
-    if(!off)return '';
-    const isF=!!off.founder;
-    let h='<div class="plan"><span class="pb">'+(isF?fBadge:rBadge)+'</span>';
-    h+='<div class="pp">'+pwMoney(off.amount_cents)+'<small>'+t('pw_month')+'</small>';
-    if(isF&&reg)h+='<span class="old">'+pwMoney(reg.amount_cents)+'</span>';
-    h+='</div><div class="pn">'+(isF?fNote:rNote)+'</div>';
+  if(IS_NATIVE){box.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center;padding:10px 4px">'+t('pw_native')+'</p>';return;}
+  const left=pwSlotsLeft('membre');
+  const pickIv=(iv)=>{
+    const ps=PW.prices.filter(p=>p.billing_interval===iv&&p.tier==='membre');
+    const f=(left===0)?null:ps.find(p=>p.founder);
+    const r=ps.find(p=>!p.founder);
+    return {off:f||r, reg:r};
+  };
+  const mk=(o,iv)=>{
+    if(!o.off)return '';
+    const isF=!!o.off.founder;
+    let h='<div class="plan"><span class="pb">'+(isF?t('pw_membre_f'):t('pw_membre'))+'</span>';
+    h+='<div class="pp">'+pwMoney(o.off.amount_cents)+'<small>'+t(iv==='year'?'pw_year':'pw_month')+'</small>';
+    if(isF&&o.reg)h+='<span class="old">'+pwMoney(o.reg.amount_cents)+'</span>';
+    h+='</div><div class="pn">'+t(iv==='year'?'pw_note_y':'pw_note_m')+'</div>';
     if(isF&&left!==null&&left>0&&left<=15)h+='<div class="pn" style="color:var(--neon)">'+t('pw_left').replace('{n}',left)+'</div>';
-    h+='<button class="pcta" data-lk="'+off.lookup_key+'">'+t('pw_choose')+'</button></div>';
+    h+='<button class="pcta" data-lk="'+o.off.lookup_key+'">'+t('pw_choose')+'</button></div>';
     return h;
   };
-  box.innerHTML=mk(f||r,r,t('pw_coach_f'),'Coach',t('pw_note30'),t('pw_note20'))
-              + mk(fp||rp,rp,t('pw_coachp_f'),'Coach+',t('pw_note60'),t('pw_note50'));
+  box.innerHTML=mk(pickIv('month'),'month')+mk(pickIv('year'),'year')
+    +'<div class="pcoach">'+t('pw_coach_link')+' <a href="https://coachdm.be/tarifs.html" target="_blank" rel="noopener">'+t('pw_coach_link_a')+'</a></div>';
   box.querySelectorAll('[data-lk]').forEach(b=>{b.onclick=()=>pwOpen(b.dataset.lk);});
 }
 function pwReset(){
@@ -895,6 +955,7 @@ function pwReset(){
   if(k)k.disabled=true;
 }
 function pwOpen(lk){
+  if(IS_NATIVE)return;
   if(!UIDG){alert(t('save_login'));return;}
   PW.pending=lk;
   if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
@@ -1069,6 +1130,13 @@ import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({creat
     const {error}=await sbClient.from('squat_sets').insert(row);
     if(error){btn.disabled=false;btn.textContent=t('save');alert(t('save_fail'));return;}
     btn.textContent=t('saved');
+    /* Boucle VBT → charge : la charge + la vitesse du jour deviennent le 1RM du jour. */
+    if(PRO&&VBT.best!=null&&VBT.loadKg>20&&VBT.best>=0.10&&VBT.best<=1.50){
+      try{
+        const {data:d}=await sbClient.rpc('vbt_log_day',{p_ref_slug:'back-squat',p_load:VBT.loadKg,p_velocity:+VBT.best.toFixed(3)});
+        if(d)renderDay(d);
+      }catch(_){}
+    }
   };
 }).catch(()=>{ENT.known=true;ENT.ok=false;PRO=false;proUI();});
 

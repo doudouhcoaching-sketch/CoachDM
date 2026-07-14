@@ -548,6 +548,18 @@
   /* ===== Prescription premium ===== */
   .chip.pct{background:var(--brand-soft);color:var(--brand);border:1px solid rgba(0,255,160,.28);font-weight:700}
   .chip.pct.miss{background:transparent;color:var(--muted);border:1px dashed var(--line)}
+  .chip.pct.day{background:rgba(233,199,103,.12);color:var(--gold);border:1px solid rgba(233,199,103,.42)}
+  .day-bn{margin-top:14px;padding:13px 14px;border-radius:14px;border:1px solid rgba(233,199,103,.42);background:linear-gradient(180deg,rgba(233,199,103,.10),rgba(233,199,103,.03))}
+  .day-bn .t{font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--gold)}
+  .day-bn .v{font-size:26px;font-weight:800;margin-top:3px;color:var(--txt)}
+  .day-bn .v small{font-size:14px;color:var(--muted);font-weight:700}
+  .day-bn .d{font-size:13px;font-weight:800;margin-top:2px}
+  .day-bn .d.up{color:var(--brand)} .day-bn .d.dn{color:var(--gold)} .day-bn .d.flat{color:var(--muted)}
+  .day-bn .p{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:8px}
+  .day-bn .stale{margin-top:11px;padding:10px 12px;border-radius:11px;border:1px solid rgba(233,199,103,.45);background:rgba(233,199,103,.09)}
+  .day-bn .stale p{font-size:12.5px;line-height:1.45;color:var(--txt);margin:0 0 9px}
+  .day-bn .stale b{color:var(--gold)}
+  .day-bn .stale button{width:100%;padding:10px;border-radius:10px;border:0;background:var(--gold);color:#1a1405;font-weight:800;font-size:13px}
   .chip.tempo{color:var(--carb)}
   .chip.rpe{color:var(--fat)}
   .chip.ss{color:var(--fiber)}
@@ -867,6 +879,12 @@
     <button class="ia-home" id="home-ia" type="button">
       <span class="ia-home-ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 5.6L19 9l-5.3 1.4L12 16l-1.7-5.6L5 9l5.3-1.4z"/></svg></span>
       <span class="ia-home-tx"><b>Coach IA</b><span data-i18n="ia_home_sub">Demande ton plan du jour</span></span>
+      <svg class="ia-home-ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
+
+    <button class="ia-home gold" id="home-coach" type="button" style="display:none">
+      <span class="ia-home-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20v-1.5a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3V20"/><circle cx="9.5" cy="7.5" r="3"/><path d="M18 8.5h4M20 6.5v4"/></svg></span>
+      <span class="ia-home-tx"><b data-i18n="coach_home_t">Espace Coach</b><span data-i18n="coach_home_sub">Gère tes clients dans Coach DM · dès 29,99 €/mois</span></span>
       <svg class="ia-home-ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
     </button>
 
@@ -1559,6 +1577,16 @@ const T = {
  pr_add:{fr:'＋ Ajouter / modifier un record',en:'＋ Add / update a record',nl:'＋ Record toevoegen / bijwerken'},
  pr_sheet_title:{fr:'Enregistrer un record',en:'Save a record',nl:'Record opslaan'},
  pr_hint:{fr:'Ton 1RM sert de référence : les variantes du mouvement en héritent automatiquement.',en:'Your 1RM is the reference: movement variations inherit it automatically.',nl:'Je 1RM is de referentie: varianten van de beweging erven die automatisch.'},
+ day_t:{fr:'1RM du jour · Squat',en:'Daily 1RM · Squat',nl:'1RM van vandaag · Squat'},
+ day_up:{fr:'+{d} % au-dessus de ta référence. Bonne journée : les charges du squat et de ses variantes montent d\u2019autant.',en:'+{d}% above your reference. Good day: squat and its variations go up by the same amount.',nl:'+{d}% boven je referentie. Goede dag: squat en varianten gaan evenveel omhoog.'},
+ day_dn:{fr:'{d} % sous ta référence. Journée moyenne : les charges du squat et de ses variantes s\u2019allègent d\u2019autant.',en:'{d}% below your reference. Off day: squat and its variations are reduced by the same amount.',nl:'{d}% onder je referentie. Mindere dag: squat en varianten worden evenveel verlaagd.'},
+ day_flat:{fr:'Pile sur ta référence. Charges nominales.',en:'Right on your reference. Nominal loads.',nl:'Precies op je referentie. Nominale belastingen.'},
+ day_p_i:{fr:'Mesuré ce matin dans l\u2019Analyse Squat, sur ton profil charge-vitesse personnel. Seuls le squat et ses variantes sont ajustés — les autres mouvements gardent ton record habituel.',en:'Measured today in Squat Analysis, from your personal load-velocity profile. Only the squat and its variations are adjusted — other lifts keep your usual record.',nl:'Vandaag gemeten in Squat-analyse, op je persoonlijke belasting-snelheidsprofiel. Alleen de squat en varianten worden aangepast — andere oefeningen behouden je gewone record.'},
+ day_p_g:{fr:'Mesuré ce matin dans l\u2019Analyse Squat, sur le profil charge-vitesse générique (Sánchez-Medina 2010). Mesure 3 séries à des charges différentes pour passer sur ton profil personnel.',en:'Measured today in Squat Analysis, from the generic load-velocity profile (Sánchez-Medina 2010). Measure 3 sets at different loads to switch to your personal profile.',nl:'Vandaag gemeten in Squat-analyse, op het generieke belasting-snelheidsprofiel (Sánchez-Medina 2010). Meet 3 sets met verschillende belastingen om over te schakelen op je persoonlijke profiel.'},
+ day_chip:{fr:'jour',en:'today',nl:'vandaag'},
+ day_stale_p:{fr:'Ton profil vitesse estime ton 1RM de squat à <b>{p} kg</b>. Ton record enregistré est de <b>{r} kg</b>. Si c\u2019est cohérent avec ce que tu ressens à la barre, enregistre-le — sinon tu t\u2019entraînes trop léger.',en:'Your velocity profile estimates your squat 1RM at <b>{p} kg</b>. Your saved record is <b>{r} kg</b>. If that matches what you feel under the bar, save it — otherwise you are training too light.',nl:'Je snelheidsprofiel schat je squat-1RM op <b>{p} kg</b>. Je opgeslagen record is <b>{r} kg</b>. Als dat klopt met wat je onder de bar voelt, sla het op — anders train je te licht.'},
+ day_stale_b:{fr:'Enregistrer {p} kg comme nouveau record',en:'Save {p} kg as my new record',nl:'{p} kg opslaan als nieuw record'},
+ day_stale_ok:{fr:'Record mis à jour',en:'Record updated',nl:'Record bijgewerkt'},
  pr_lift:{fr:'Mouvement',en:'Movement',nl:'Beweging'},
  pr_kg:{fr:'1RM (kg)',en:'1RM (kg)',nl:'1RM (kg)'},
  pr_save:{fr:'Enregistrer le record',en:'Save record',nl:'Record opslaan'},
@@ -1595,6 +1623,8 @@ const T = {
  btn_save:{fr:'Enregistrer',en:'Save',nl:'Opslaan'},
  prof_sub:{fr:'Abonnement & paiement',en:'Subscription & payment',nl:'Abonnement & betaling'},
  pf_infos:{fr:'Mes infos & objectifs',en:'My info & goals',nl:'Mijn info & doelen'},
+ coach_home_t:{fr:'Espace Coach',en:'Coach workspace',nl:'Coach-ruimte'},
+ coach_home_sub:{fr:'Gère tes clients dans Coach DM · dès 29,99 €/mois',en:'Manage your clients in Coach DM · from €29.99/month',nl:'Beheer je klanten in Coach DM · vanaf € 29,99/maand'},
  pf_records:{fr:'Mes records (1RM)',en:'My records (1RM)',nl:'Mijn records (1RM)'},
  pf_appearance:{fr:'Apparence & langue',en:'Appearance & language',nl:'Weergave & taal'},
  pf_account:{fr:'Compte',en:'Account',nl:'Account'},
@@ -1972,6 +2002,7 @@ async function loadProfileInfo(user){
       if(role==='admin'){ const ac=$('#p-admin-console'); if(ac) ac.style.display='block'; }
     }
     { const co=$('#p-coach-offer'); if(co) co.style.display=(role==='coach'||role==='admin')?'none':'block'; }
+    syncCoachHome(role);
     { const lo=$('#p-lead-open'); if(lo) lo.onclick=openLead; }
     applyCoachIsolation();
     const { data:sub } = await sb.from('subscriptions')
@@ -2202,6 +2233,12 @@ document.querySelectorAll('#coach-toggle button').forEach(b=>b.onclick=()=>{
   renderCoachPlans();
 });
 { const el=$('#p-coach-open'); if(el) el.onclick=openCoachSheet; }
+/* Entree Coach sur l'accueil. Apple 3.1.1 : invisible dans le wrapper natif. */
+{ const el=$('#home-coach'); if(el) el.onclick=openCoachSheet; }
+function syncCoachHome(role){
+  const el=$('#home-coach'); if(!el) return;
+  el.style.display = (IS_NATIVE || role==='coach' || role==='admin') ? 'none' : 'flex';
+}
 { const ov=$('#coach-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); }); }
 { const ov=$('#sub-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); }); }
 { const el=$('#ck-close'); if(el) el.onclick=closeCheckout; }
@@ -2287,6 +2324,7 @@ function applyCoachIsolation(){
   const ig=$('#p-contact-coach'); if(ig) ig.style.display = hide ? 'none' : '';
   const lead=$('#p-lead-open');   if(lead) lead.style.display = hide ? 'none' : '';
   const off=$('#p-coach-offer');  if(off && hide) off.style.display='none';
+  const hc=$('#home-coach');      if(hc && hide) hc.style.display='none';
 }
 async function loadCoachCard(){
   const box=$('#coach-card'); if(!box) return;
@@ -2878,13 +2916,75 @@ async function loadPRLifts(){
   (data||[]).forEach(x=>{ if(!seen[x.id]){ seen[x.id]=1; PR_LIFTS.push(x); } });
   return PR_LIFTS;
 }
+/* Boucle VBT -> charge : 1RM du jour mesuré dans l'Analyse Squat.
+   Décision produit : il ne pilote QUE le squat et ses variantes (pct_ref_slug = back-squat). */
+let VBTDAY=null;
+async function loadVBTDay(force){
+  if(VBTDAY&&!force) return VBTDAY;
+  VBTDAY={};
+  try{
+    const { data } = await sb.rpc('vbt_today');
+    (data||[]).forEach(d=>{ VBTDAY[d.ref_slug]=d; });
+  }catch(_){}
+  return VBTDAY;
+}
+function dayRefOf(ex){
+  if(!ex) return null;
+  const ref = ex.slug || (ex.pct_ref_slug||null);
+  if(ex.slug==='back-squat' || ex.pct_ref_slug==='back-squat') return 'back-squat';
+  return null;
+}
 function oneRMFor(ex){
   if(!PRMAP||!ex) return null;
+  const dref=dayRefOf(ex);
+  if(dref&&VBTDAY&&VBTDAY[dref]&&VBTDAY[dref].e1rm_today!=null)
+    return {v:+VBTDAY[dref].e1rm_today, inherited:(ex.slug!=='back-squat'), daily:true};
   if(PRMAP[ex.id]!=null) return {v:PRMAP[ex.id], inherited:false};
   if(ex.pct_ref_slug&&PRSLUG&&PRSLUG[ex.pct_ref_slug]&&PRMAP[PRSLUG[ex.pct_ref_slug].id]!=null)
     return {v:PRMAP[PRSLUG[ex.pct_ref_slug].id], inherited:true};
   return null;
 }
+function dayBanner(items){
+  const d=VBTDAY&&VBTDAY['back-squat'];
+  if(!d) return '';
+  const used=(items||[]).some(it=>it.load_pct_1rm!=null&&dayRefOf(it.exercise||{}));
+  if(!used) return '';
+  const dl=d.delta_pct==null?null:+d.delta_pct;
+  let dc='flat', dt=t('day_flat');
+  if(dl!=null&&dl>=1){ dc='up'; dt=t('day_up').replace('{d}',dl.toFixed(1)); }
+  else if(dl!=null&&dl<=-1){ dc='dn'; dt=t('day_dn').replace('{d}',dl.toFixed(1)); }
+  const stale=(d.pr_stale&&d.e1rm_profile!=null&&d.e1rm_ref!=null);
+  const pk=stale?kg25(+d.e1rm_profile):null;
+  return `<div class="day-bn">
+    <div class="t">${t('day_t')}</div>
+    <div class="v">${kg25(+d.e1rm_today)}<small> kg</small></div>
+    <div class="d ${dc}">${dt}</div>
+    <div class="p">${t(d.source==='individual'?'day_p_i':'day_p_g')}</div>
+    ${stale?`<div class="stale">
+      <p>${t('day_stale_p').replace('{p}',pk).replace('{r}',kg25(+d.e1rm_ref))}</p>
+      <button type="button" data-day-pr="${pk}">${t('day_stale_b').replace('{p}',pk)}</button>
+    </div>`:''}
+  </div>`;
+}
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-day-pr]'); if(!b) return;
+  const kg=parseFloat(b.getAttribute('data-day-pr'));
+  await loadPRSlugMap();
+  const par=PRSLUG&&PRSLUG['back-squat'];
+  if(!par||!kg){ return; }
+  b.disabled=true; b.textContent='…';
+  const prev=PRMAP?PRMAP[par.id]:null;
+  const { error } = await sb.from('personal_records').upsert({
+    user_id:USER.id, category:'strength_1rm', exercise_id:par.id, pr_key:'manual_1rm_'+par.id,
+    value:kg, unit:'kg', prev_value:(prev!=null&&prev!==kg)?prev:null,
+    achieved_at:new Date().toISOString(), source_table:'vbt_profile'
+  },{ onConflict:'user_id,pr_key' });
+  if(error){ b.disabled=false; b.textContent=t('day_stale_b').replace('{p}',kg); toast(error.message); return; }
+  await loadPRMap(true);
+  if(VBTDAY&&VBTDAY['back-squat']){ VBTDAY['back-squat'].pr_stale=false; VBTDAY['back-squat'].e1rm_ref=kg; }
+  toast(t('day_stale_ok'));
+  const box=b.closest('.stale'); if(box) box.remove();
+});
 async function renderPRList(){
   const box=$('#pr-list'); if(!box) return;
   box.innerHTML=skel(1,64);
@@ -3781,7 +3881,7 @@ async function openWorkout(id){
     sb.from('workout_exercises')
       .select('id,block,display_order,sets,reps,rest_sec,tempo,target_rpe,load_pct_1rm,superset_group,notes_fr,notes_en,notes_nl,exercise:exercises(id,slug,pct_ref_slug,name_fr,name_en,name_nl,primary_muscle,equipment,load_type,video_url,youtube_query,thumbnail_url,cue_fr,cue_en,cue_nl)')
       .eq('workout_id',id).order('display_order',{ascending:true}),
-    loadPRMap(), loadPRSlugMap()
+    loadPRMap(), loadPRSlugMap(), loadVBTDay(true)
   ]);
   const list=items||[];
   const exIds=[...new Set(list.map(it=>it.exercise&&it.exercise.id).filter(Boolean))];
@@ -3805,7 +3905,7 @@ function renderDetail(w,items,tips){
       <span class="badge c" style="--c:${col}">${typeL(w.type)}</span>
       <span class="badge">${diffL(w.difficulty)}</span>
       <span class="badge">${w.estimated_duration_min||'—'} min</span>
-    </div>${wodBanner(w)}`;
+    </div>${wodBanner(w)}${dayBanner(items)}`;
   let lastBlock=null;
   items.forEach(it=>{
     const ex=it.exercise||{}, bc=BLOCK_COLOR[it.block]||col;
@@ -3834,7 +3934,7 @@ function renderDetail(w,items,tips){
     const pctChip=(()=>{
       if(it.load_pct_1rm==null) return '';
       if(rm){ const kg=kg25(rm.v*it.load_pct_1rm/100);
-        return `<span class="chip pct">${it.load_pct_1rm}% = ${kg} kg</span>`; }
+        return `<span class="chip pct${rm.daily?' day':''}">${it.load_pct_1rm}% = ${kg} kg${rm.daily?' · '+t('day_chip'):''}</span>`; }
       return `<button class="chip pct miss" data-pr-open="${ex.pct_ref_slug&&PRSLUG[ex.pct_ref_slug]?PRSLUG[ex.pct_ref_slug].id:ex.id}">${it.load_pct_1rm}% · ${t('pr_add_missing')}</button>`;
     })();
     const note=pick(it,'notes');

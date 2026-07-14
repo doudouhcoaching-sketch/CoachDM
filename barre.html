@@ -156,6 +156,8 @@
   footer b{color:var(--gold)}
 
   .plans{display:grid;gap:10px;text-align:left}
+  .pcoach{font-size:12.5px;color:var(--muted);text-align:center;padding:10px 4px 2px;line-height:1.5}
+  .pcoach a{color:var(--gold);font-weight:800;text-decoration:none;border-bottom:1px solid rgba(212,175,55,.4)}
   .plan{border:1px solid rgba(212,175,55,.45);border-radius:16px;padding:14px;background:rgba(212,175,55,.06)}
   .plan .pb{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#0A0A0A;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);border-radius:999px;padding:4px 10px;margin-bottom:8px}
   .plan .pp{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
@@ -349,7 +351,14 @@ const I18N = {
   mv_clean:{fr:'Clean',en:'Clean',nl:'Clean'},
   mv_jerk:{fr:'Jerk',en:'Jerk',nl:'Jerk'},
   vbt_gate_h:{fr:'Analyse Pro (Bar Path + VBT) — fonctionnalité Premium',en:'Pro Analysis (Bar Path + VBT) — Premium feature',nl:'Pro-analyse (Bar Path + VBT) — Premium functie'},
-  vbt_gate_p:{fr:'Le compteur de reps et le tracé de la barre en direct sont gratuits pour tous. L\'Analyse Pro — vitesse pic de chaque rep (m/s), perte de vitesse avec alerte, déviation horizontale de la barre en cm — est réservée aux offres Coach & Coach+. Abonne-toi directement ici, sans quitter la page.',en:'Rep counting and the live bar path trace are free for everyone. Pro Analysis — per-rep peak bar velocity (m/s), velocity loss with alert, horizontal bar deviation in cm — is for the Coach & Coach+ plans. Subscribe right here, without leaving the page.',nl:'Reps tellen en het live bar path zijn gratis voor iedereen. Pro-analyse — pieksnelheid per rep (m/s), snelheidsverlies met waarschuwing, horizontale afwijking van de bar in cm — is voor de Coach & Coach+ abonnementen. Abonneer je hier, zonder de pagina te verlaten.'},
+  vbt_gate_p:{fr:'Le compteur de reps et le tracé de la barre en direct sont gratuits pour tous. L\'Analyse Pro — vitesse pic de chaque rep (m/s), perte de vitesse avec alerte, déviation horizontale de la barre en cm — est incluse dans l’abonnement. Abonne-toi directement ici, sans quitter la page.',en:'Rep counting and the live bar path trace are free for everyone. Pro Analysis — per-rep peak bar velocity (m/s), velocity loss with alert, horizontal bar deviation in cm — is for the subscription. Subscribe right here, without leaving the page.',nl:'Reps tellen en het live bar path zijn gratis voor iedereen. Pro-analyse — pieksnelheid per rep (m/s), snelheidsverlies met waarschuwing, horizontale afwijking van de bar in cm — is voor de abonnement. Abonneer je hier, zonder de pagina te verlaten.'},
+  pw_year:{fr:'/an',en:'/year',nl:'/jaar'},
+  pw_membre_f:{fr:'Membre Fondateur',en:'Founding Member',nl:'Oprichtend lid'},
+  pw_membre:{fr:'Membre',en:'Member',nl:'Lid'},
+  pw_note_m:{fr:'Toutes les analyses Pro, le Coach IA, la photo-calories et les 10 programmes. Sans engagement.',en:'All Pro analyses, the AI Coach, photo-calories and the 10 programs. Cancel anytime.',nl:'Alle Pro-analyses, de AI-coach, foto-calorie\u00ebn en de 10 programma\u2019s. Maandelijks opzegbaar.'},
+  pw_note_y:{fr:'La m\u00eame chose, factur\u00e9e \u00e0 l\u2019ann\u00e9e : deux mois offerts.',en:'Same thing, billed yearly: two months free.',nl:'Hetzelfde, jaarlijks gefactureerd: twee maanden gratis.'},
+  pw_coach_link:{fr:'Tu es coach et tu g\u00e8res des clients ?',en:'Are you a coach managing clients?',nl:'Ben je coach met klanten?'},
+  pw_coach_link_a:{fr:'Voir les offres Coach',en:'See Coach plans',nl:'Bekijk Coach-abonnementen'},
   pw_choose:{fr:'Choisir cette offre',en:'Choose this plan',nl:'Kies dit abonnement'},
   pw_month:{fr:'/mois',en:'/month',nl:'/maand'},
   pw_native:{fr:'Les abonnements ne sont pas disponibles dans cette version de l\u2019app.',en:'Subscriptions are not available in this version of the app.',nl:'Abonnementen zijn niet beschikbaar in deze versie van de app.'},
@@ -375,7 +384,7 @@ const I18N = {
   vbt_dev:{fr:'Déviation',en:'Deviation',nl:'Afwijking'},
   vbt_stop:{fr:'⛔ Perte de vitesse ≥ 10% — arrête ta série : en haltérophilie, la qualité du geste prime, les reps lentes détruisent la technique.',en:'⛔ Velocity loss ≥ 10% — end your set: in weightlifting movement quality comes first, slow reps destroy technique.',nl:'⛔ Snelheidsverlies ≥ 10% — stop je set: in gewichtheffen komt bewegingskwaliteit eerst, trage reps breken de techniek af.'},
   vbt_note:{fr:'Vitesse et déviation mesurées sur la barre (point milieu des poignets), calibrées sur ta taille. Sans taille renseignée, les mesures en m/s et cm restent vides. Repères vitesse pic au max : Snatch ≈ 1,6–2,0 m/s · Clean ≈ 1,4–1,8 m/s (Garhammer 1985).',en:'Velocity and deviation measured on the bar (wrist midpoint), calibrated on your height. Without a height, m/s and cm stay empty. Peak velocity references at max: Snatch ≈ 1.6–2.0 m/s · Clean ≈ 1.4–1.8 m/s (Garhammer 1985).',nl:'Snelheid en afwijking gemeten op de bar (middenpunt polsen), gekalibreerd op je lengte. Zonder lengte blijven m/s en cm leeg. Referenties pieksnelheid op max: Snatch ≈ 1,6–2,0 m/s · Clean ≈ 1,4–1,8 m/s (Garhammer 1985).'},
-  pro_note:{fr:'Vitesse pic, perte & déviation : offres Coach & Coach+',en:'Peak velocity, loss & deviation: Coach & Coach+ plans',nl:'Pieksnelheid, verlies & afwijking: Coach & Coach+ abonnementen'},
+  pro_note:{fr:'Analyse Pro \u2014 incluse dans l\u2019abonnement',en:'Pro Analysis \u2014 included with your subscription',nl:'Pro-analyse \u2014 inbegrepen in je abonnement'},
   help_h:{fr:'Comment ça marche',en:'How it works',nl:'Hoe het werkt'},
   help_1:{fr:'Téléphone posé ou sur trépied, stable, à 3–5 m, DE PROFIL. Corps entier + barre dans le cadre, bonne lumière.',en:'Phone resting or on a tripod, stable, 3–5 m away, SIDE-ON. Full body + bar in frame, good lighting.',nl:'Telefoon neergezet of op statief, stabiel, op 3–5 m, ZIJWAARTS. Hele lichaam + bar in beeld, goed licht.'},
   help_2:{fr:'Choisis ton mouvement (Snatch / Clean / Jerk). Gratuit : reps comptées + tracé de la barre en direct. Pro : vitesse pic, perte de vitesse et déviation en cm.',en:'Pick your movement (Snatch / Clean / Jerk). Free: rep counting + live bar path. Pro: peak velocity, velocity loss and deviation in cm.',nl:'Kies je beweging (Snatch / Clean / Jerk). Gratis: reps tellen + live bar path. Pro: pieksnelheid, snelheidsverlies en afwijking in cm.'},
@@ -903,7 +912,7 @@ async function pwLoad(){
   if(!SB||PW.loading)return;
   if(PW.prices){pwRender();return;}
   PW.loading=true;
-  try{const {data}=await SB.from('billing_prices').select('*').eq('audience','coach').eq('active',true);PW.prices=data||[];}catch(_){PW.prices=[];}
+  try{const {data}=await SB.from('billing_prices').select('*').eq('audience','client').eq('active',true);PW.prices=data||[];}catch(_){PW.prices=[];}
   try{const {data}=await SB.rpc('founder_slots');PW.slots=data||[];}catch(_){PW.slots=[];}
   PW.loading=false;
   pwRender();
@@ -912,25 +921,26 @@ function pwRender(){
   const box=document.getElementById('gate-plans');
   if(!box||!PW.prices)return;
   if(IS_NATIVE){box.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center;padding:10px 4px">'+t('pw_native')+'</p>';return;}
-  const ps=PW.prices.filter(p=>p.billing_interval==='month');
-  const left=pwSlotsLeft('coach');
-  const f=(left===0)?null:ps.find(p=>p.tier==='coach'&&p.founder);
-  const r=ps.find(p=>p.tier==='coach'&&!p.founder);
-  const fp=(left===0)?null:ps.find(p=>p.tier==='coach_plus'&&p.founder);
-  const rp=ps.find(p=>p.tier==='coach_plus'&&!p.founder);
-  const mk=(off,reg,fBadge,rBadge,fNote,rNote)=>{
-    if(!off)return '';
-    const isF=!!off.founder;
-    let h='<div class="plan"><span class="pb">'+(isF?fBadge:rBadge)+'</span>';
-    h+='<div class="pp">'+pwMoney(off.amount_cents)+'<small>'+t('pw_month')+'</small>';
-    if(isF&&reg)h+='<span class="old">'+pwMoney(reg.amount_cents)+'</span>';
-    h+='</div><div class="pn">'+(isF?fNote:rNote)+'</div>';
+  const left=pwSlotsLeft('membre');
+  const pickIv=(iv)=>{
+    const ps=PW.prices.filter(p=>p.billing_interval===iv&&p.tier==='membre');
+    const f=(left===0)?null:ps.find(p=>p.founder);
+    const r=ps.find(p=>!p.founder);
+    return {off:f||r, reg:r};
+  };
+  const mk=(o,iv)=>{
+    if(!o.off)return '';
+    const isF=!!o.off.founder;
+    let h='<div class="plan"><span class="pb">'+(isF?t('pw_membre_f'):t('pw_membre'))+'</span>';
+    h+='<div class="pp">'+pwMoney(o.off.amount_cents)+'<small>'+t(iv==='year'?'pw_year':'pw_month')+'</small>';
+    if(isF&&o.reg)h+='<span class="old">'+pwMoney(o.reg.amount_cents)+'</span>';
+    h+='</div><div class="pn">'+t(iv==='year'?'pw_note_y':'pw_note_m')+'</div>';
     if(isF&&left!==null&&left>0&&left<=15)h+='<div class="pn" style="color:var(--neon)">'+t('pw_left').replace('{n}',left)+'</div>';
-    h+='<button class="pcta" data-lk="'+off.lookup_key+'">'+t('pw_choose')+'</button></div>';
+    h+='<button class="pcta" data-lk="'+o.off.lookup_key+'">'+t('pw_choose')+'</button></div>';
     return h;
   };
-  box.innerHTML=mk(f||r,r,t('pw_coach_f'),'Coach',t('pw_note30'),t('pw_note20'))
-              + mk(fp||rp,rp,t('pw_coachp_f'),'Coach+',t('pw_note60'),t('pw_note50'));
+  box.innerHTML=mk(pickIv('month'),'month')+mk(pickIv('year'),'year')
+    +'<div class="pcoach">'+t('pw_coach_link')+' <a href="https://coachdm.be/tarifs.html" target="_blank" rel="noopener">'+t('pw_coach_link_a')+'</a></div>';
   box.querySelectorAll('[data-lk]').forEach(b=>{b.onclick=()=>pwOpen(b.dataset.lk);});
 }
 function pwReset(){
