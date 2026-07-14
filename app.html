@@ -1234,6 +1234,9 @@
       <div class="field"><label data-i18n="ld_name">Nom</label><input id="ld-name" type="text" autocomplete="name" /></div>
       <div class="field"><label data-i18n="ld_email">Email</label><input id="ld-email" type="email" inputmode="email" autocomplete="email" /></div>
       <div class="field"><label data-i18n="ld_goal">Ton objectif</label><div class="ld-chips" id="ld-goal"></div></div>
+      <div class="field"><label data-i18n="ld_fmt">Format de séance</label><div class="ld-chips" id="ld-fmt"></div>
+        <div class="fk" id="ld-price" style="margin-top:6px;line-height:1.5" data-i18n="ld_price">Séance individuelle · à partir de 50 € les 30 min et 100 € les 50 min. Tarif indicatif, confirmé après notre échange.</div>
+      </div>
       <div class="field"><label data-i18n="ld_level">Ton niveau</label><div class="ld-chips" id="ld-level"></div></div>
       <div class="field"><label data-i18n="ld_avail">Tes disponibilités</label><div class="ld-chips" id="ld-avail"></div></div>
       <div class="field"><label data-i18n="ld_msg">Ton message</label><textarea id="ld-msg-in" data-i18n-ph="ld_msg_ph" placeholder="Parle-moi de toi, de ton contexte…"></textarea></div>
@@ -1362,7 +1365,7 @@ const T = {
  nav_boutique:{fr:'Boutique',en:'Shop',nl:'Shop'},
  native_nosub:{fr:'Les abonnements ne sont pas disponibles dans cette version de l\u2019app.',en:'Subscriptions are not available in this version of the app.',nl:'Abonnementen zijn niet beschikbaar in deze versie van de app.'},
  lead_h:{fr:'Coaching avec Coach DM',en:'Coaching with Coach DM',nl:'Coaching met Coach DM'},
- lead_p:{fr:'Programmation sur mesure, suivi personnalis\u00e9 et acc\u00e8s coach. Places limit\u00e9es.',en:'Custom programming, personal follow-up and coach access. Limited spots.',nl:'Programmering op maat, persoonlijke opvolging en coach-toegang. Beperkte plaatsen.'},
+ lead_p:{fr:'Coaching individuel : cours de 30 ou 50 min, programmation sur mesure et suivi personnalis\u00e9. \u00c0 partir de 50 \u20ac les 30 min. Places limit\u00e9es.',en:'One-to-one coaching: 30 or 50 min sessions, custom programming and personal follow-up. From \u20ac50 for 30 min. Limited spots.',nl:'Individuele coaching: sessies van 30 of 50 min, programmering op maat en persoonlijke opvolging. Vanaf \u20ac50 voor 30 min. Beperkte plaatsen.'},
  lead_mail:{fr:'\u00c9crire un e-mail',en:'Send an email',nl:'Stuur een e-mail'},
  lead_ig:{fr:'Instagram',en:'Instagram',nl:'Instagram'},
  lead_cta:{fr:'Demander un coaching',en:'Request coaching',nl:'Coaching aanvragen'},
@@ -1380,10 +1383,18 @@ const T = {
  ld_ok_t:{fr:'Demande envoy\u00e9e',en:'Request sent',nl:'Aanvraag verstuurd'},
  ld_ok_p:{fr:'Je la re\u00e7ois directement. R\u00e9ponse sous 48 h ouvr\u00e9es.',en:'It reaches me directly. Reply within 48 working hours.',nl:'Ik ontvang ze rechtstreeks. Antwoord binnen 48 werkuren.'},
  ld_ok_btn:{fr:'Fermer',en:'Close',nl:'Sluiten'},
- ld_g_fat:{fr:'Perte de gras',en:'Fat loss',nl:'Vetverlies'},
- ld_g_muscle:{fr:'Prise de muscle',en:'Build muscle',nl:'Spieropbouw'},
+ ld_g_fitness:{fr:'Remise en forme',en:'Getting back in shape',nl:'Terug in vorm'},
+ ld_g_fatloss:{fr:'Perte de poids',en:'Weight loss',nl:'Gewichtsverlies'},
+ ld_g_mass:{fr:'Prise de masse',en:'Muscle gain',nl:'Massa opbouwen'},
  ld_g_perf:{fr:'Performance',en:'Performance',nl:'Prestatie'},
- ld_g_health:{fr:'Sant\u00e9 & remise en forme',en:'Health & getting back in shape',nl:'Gezondheid & terug in vorm'},
+ ld_g_gym:{fr:'Skill Gymnastique',en:'Gymnastics skills',nl:'Gymnastiek-skills'},
+ ld_g_wl:{fr:'Skill Halt\u00e9rophilie',en:'Weightlifting skills',nl:'Gewichtheffen-skills'},
+ ld_g_hybrid:{fr:'Hybrid Training',en:'Hybrid Training',nl:'Hybrid Training'},
+ ld_g_foot:{fr:'Pr\u00e9pa Football / Futsal',en:'Football / Futsal prep',nl:'Voetbal / Futsal-voorbereiding'},
+ ld_fmt:{fr:'Format de s\u00e9ance',en:'Session format',nl:'Sessieformaat'},
+ ld_f_30:{fr:'30 min \u00b7 d\u00e8s 50 \u20ac',en:'30 min \u00b7 from \u20ac50',nl:'30 min \u00b7 vanaf \u20ac50'},
+ ld_f_50:{fr:'50 min \u00b7 d\u00e8s 100 \u20ac',en:'50 min \u00b7 from \u20ac100',nl:'50 min \u00b7 vanaf \u20ac100'},
+ ld_price:{fr:'S\u00e9ance individuelle en pr\u00e9sentiel \u00b7 \u00e0 partir de 50 \u20ac les 30 min et 100 \u20ac les 50 min. Tarif indicatif, confirm\u00e9 apr\u00e8s notre \u00e9change.',en:'One-to-one in-person session \u00b7 from \u20ac50 for 30 min and \u20ac100 for 50 min. Indicative price, confirmed after we talk.',nl:'Individuele sessie ter plaatse \u00b7 vanaf \u20ac50 voor 30 min en \u20ac100 voor 50 min. Indicatieve prijs, bevestigd na ons gesprek.'},
  ld_l_beg:{fr:'D\u00e9butant',en:'Beginner',nl:'Beginner'},
  ld_l_int:{fr:'Interm\u00e9diaire',en:'Intermediate',nl:'Gemiddeld'},
  ld_l_adv:{fr:'Avanc\u00e9',en:'Advanced',nl:'Gevorderd'},
@@ -2189,10 +2200,12 @@ function renderLeadCard(box){
 /* ---- Fiche de demande de coaching (in-app, jamais de mailto) ----
    Regle d'etancheite : visible uniquement si le membre n'est lie a AUCUN coach.
    Un client de coach passe par son coach. Le serveur (lead_submit) refuse de toute facon. */
-const LD_GOALS=[['fat','ld_g_fat'],['muscle','ld_g_muscle'],['perf','ld_g_perf'],['health','ld_g_health']];
+const LD_GOALS=[['fitness','ld_g_fitness'],['fatloss','ld_g_fatloss'],['mass','ld_g_mass'],['perf','ld_g_perf'],
+  ['gym','ld_g_gym'],['wl','ld_g_wl'],['hybrid','ld_g_hybrid'],['football','ld_g_foot']];
+const LD_FORMATS=[['30','ld_f_30'],['50','ld_f_50']];
 const LD_LEVELS=[['beginner','ld_l_beg'],['intermediate','ld_l_int'],['advanced','ld_l_adv']];
 const LD_AVAIL=[['morning','ld_a_morning'],['noon','ld_a_noon'],['evening','ld_a_evening'],['weekend','ld_a_week']];
-const LEAD={goal:null,level:null,avail:null};
+const LEAD={goal:null,fmt:null,level:null,avail:null};
 function ldChips(host,list,key){
   const el=$(host); if(!el) return;
   el.innerHTML=list.map(([v,k])=>`<button type="button" class="ld-chip" data-v="${v}">${t(k)}</button>`).join('');
@@ -2203,7 +2216,7 @@ function ldChips(host,list,key){
 }
 function openLead(){
   if(HAS_COACH){ toast(t('ld_err_coach')); return; }
-  LEAD.goal=LEAD.level=LEAD.avail=null;
+  LEAD.goal=LEAD.fmt=LEAD.level=LEAD.avail=null;
   const f=$('#lead-form'), d=$('#lead-done');
   if(f) f.style.display=''; if(d) d.style.display='none';
   const nm=$('#ld-name'); if(nm && !nm.value) nm.value=(PROFILE_NAME||'');
@@ -2211,6 +2224,7 @@ function openLead(){
   const tx=$('#ld-msg-in'); if(tx) tx.value='';
   setMsg('ld-msg','','');
   ldChips('#ld-goal',LD_GOALS,'goal');
+  ldChips('#ld-fmt',LD_FORMATS,'fmt');
   ldChips('#ld-level',LD_LEVELS,'level');
   ldChips('#ld-avail',LD_AVAIL,'avail');
   $('#lead-ov').classList.add('show');
@@ -2226,7 +2240,7 @@ async function sendLead(){
   const { data, error } = await sb.rpc('lead_submit',{
     p_name:name, p_email:email, p_goal:LEAD.goal, p_level:LEAD.level,
     p_availability:LEAD.avail, p_message:($('#ld-msg-in').value||'').trim()||null,
-    p_phone:null, p_lang:LANG });
+    p_phone:null, p_lang:LANG, p_format:LEAD.fmt });
   setBtn('#ld-send',false,t('ld_send'));
   if(error || !data || !data.ok){
     const r=data&&data.reason;
