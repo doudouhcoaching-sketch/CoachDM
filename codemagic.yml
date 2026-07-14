@@ -30,6 +30,8 @@ workflows:
 
       - name: Icones et splash (fond noir Coach DM)
         script: |
+          mkdir -p assets
+          cp logo.png assets/logo.png
           npx @capacitor/assets generate --ios \
             --iconBackgroundColor '#050807' \
             --iconBackgroundColorDark '#050807' \
