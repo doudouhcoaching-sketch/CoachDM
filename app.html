@@ -757,6 +757,19 @@
   #pane-profile[data-view="appearance"] #pf-appearance{display:block}
   #pane-profile[data-view="account"] #pf-account{display:block}
   #pane-profile #pf-back{display:none}
+  /* ---- Coach du jour ---- */
+  .coach-card{background:linear-gradient(150deg,color-mix(in srgb,var(--brand) 12%,var(--surface)),var(--surface));border:1px solid color-mix(in srgb,var(--brand) 30%,var(--line))}
+  .ct-head{margin-bottom:8px}
+  .ct-badge{display:inline-flex;align-items:center;gap:6px;background:var(--brand-soft);color:var(--brand);font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;border-radius:999px;padding:5px 11px}
+  .ct-line{font-size:14.5px;line-height:1.5;font-weight:600;margin:0 0 12px}
+  .ct-line b{color:var(--brand)}
+  .ct-reco{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:16px;padding:10px;cursor:pointer;transition:transform .12s,border-color .12s;background:var(--surface-2)}
+  .ct-reco:active{transform:scale(.98);border-color:color-mix(in srgb,var(--brand) 40%,var(--line))}
+  .ct-thumb{width:58px;height:58px;border-radius:12px;flex:0 0 auto;background-size:cover;background-position:center}
+  .ct-info{flex:1;min-width:0}
+  .ct-name{font-size:13.5px;font-weight:700;line-height:1.25;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ct-macro{font-size:11.5px;color:var(--muted);font-weight:600}
+  .ct-go{flex:0 0 auto;color:var(--brand)}
   /* ---- Recettes ---- */
   .rc-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:2px}
   .rc-filters{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:4px 0 12px;margin:0 -2px;scrollbar-width:none}
@@ -901,6 +914,11 @@
         </div>
       </div>
       <div class="macros" id="macros"></div>
+    </div>
+    <div class="block coach-card hidden" id="coach-today">
+      <div class="ct-head"><span class="ct-badge" data-i18n="ct_badge">Coach du jour</span></div>
+      <p class="ct-line" id="ct-line"></p>
+      <div class="ct-reco" id="ct-reco"></div>
     </div>
     <div class="block hidden" id="today-empty">
       <p class="empty"><span data-i18n="empty_targets">Pas encore d'objectifs.</span><br><span data-i18n="empty_targets_sub">Calcule-les dans Profil pour suivre ta journée en temps réel.</span></p>
@@ -1619,6 +1637,11 @@ const T = {
  macro_carb:{fr:'Glucides',en:'Carbs',nl:'Koolhydraten'},
  macro_fat:{fr:'Lipides',en:'Fat',nl:'Vetten'},
  macro_fiber:{fr:'Fibres',en:'Fiber',nl:'Vezels'},
+ ct_badge:{fr:'Coach du jour',en:'Coach of the day',nl:'Coach van de dag'},
+ ct_morning:{fr:'Nouvelle journ\u00e9e. Objectif {P}g de prot\u00e9ines \u2014 on lance fort :',en:'New day. Target {P}g of protein \u2014 start strong:',nl:'Nieuwe dag. Doel {P}g eiwit \u2014 sterk beginnen:'},
+ ct_left:{fr:'Il te reste {P}g de prot\u00e9ines aujourd\u2019hui. De quoi combler :',en:'You have {P}g of protein left today. Here\u2019s how to top up:',nl:'Je hebt vandaag nog {P}g eiwit. Zo vul je aan:'},
+ ct_low:{fr:'Presque boucl\u00e9 \u2014 encore {P}g de prot\u00e9ines. Termine avec :',en:'Almost there \u2014 {P}g of protein to go. Finish with:',nl:'Bijna klaar \u2014 nog {P}g eiwit. Sluit af met:'},
+ ct_hit:{fr:'Prot\u00e9ines valid\u00e9es. Envie d\u2019un extra l\u00e9ger ? Essaie :',en:'Protein hit. Fancy a light extra? Try:',nl:'Eiwit gehaald. Zin in iets lichts? Probeer:'},
  empty_targets:{fr:"Pas encore d'objectifs.",en:'No targets yet.',nl:'Nog geen doelen.'},
  empty_targets_sub:{fr:'Calcule-les dans Profil pour suivre ta journée en temps réel.',en:'Set them in Profile to track your day in real time.',nl:'Stel ze in bij Profiel om je dag live te volgen.'},
  define_goals:{fr:'Définir mes objectifs',en:'Set my targets',nl:'Mijn doelen instellen'},
@@ -2683,6 +2706,7 @@ async function loadToday(){
   if(!TARGETS){
     $('#today-card').classList.add('hidden');
     $('#today-empty').classList.remove('hidden');
+    { const c=$('#coach-today'); if(c) c.classList.add('hidden'); }
     return;
   }
   $('#today-card').classList.remove('hidden');
@@ -2709,8 +2733,44 @@ async function loadToday(){
       <div class="mrow-bar"><i style="width:${p}%;background:var(${m.c})"></i></div>
     </div>`;
   }).join('');
+  buildCoachToday(sum);
 }
 
+function ctPick(mealPref, needProtein){
+  if(!RECIPES||!RECIPES.length) return null;
+  let pool=RECIPES.filter(r=>r.meal_type===mealPref);
+  if(pool.length<2) pool=RECIPES.slice();
+  if(needProtein) pool=pool.slice().sort((a,b)=>b.protein_per_serving-a.protein_per_serving).slice(0,8);
+  const seed=parseInt(todayStr().replace(/-/g,''),10)||0;
+  return pool[seed % pool.length];
+}
+async function buildCoachToday(sum){
+  const card=$('#coach-today'); if(!card||!TARGETS) return;
+  try{ await loadRecipes(); }catch(_){}
+  const remP = Math.round((TARGETS.protein_g||0) - (sum.p||0));
+  const showP = Math.max(remP,0);
+  const h = new Date().getHours();
+  let meal = h<11?'breakfast':(h<15?'lunch':(h<18?'snack':'dinner'));
+  let key, need=true;
+  if(remP<=0){ key='ct_hit'; meal='snack'; need=false; }
+  else if((sum.kcal||0)<50 && h<11){ key='ct_morning'; }
+  else if(remP <= (TARGETS.protein_g||0)*0.25){ key='ct_low'; }
+  else { key='ct_left'; }
+  const r=ctPick(meal, need);
+  if(!r){ card.classList.add('hidden'); return; }
+  const lineEl=$('#ct-line');
+  if(lineEl) lineEl.innerHTML = t(key).replace('{P}', '<b>'+showP+'</b>');
+  const reco=$('#ct-reco');
+  if(reco){
+    const time=(r.prep_time_min||0)+(r.cook_time_min||0);
+    reco.innerHTML = `<div class="ct-thumb" style="${rcBg(r,'.5')}"></div>
+      <div class="ct-info"><div class="ct-name">${esc(pick(r,'name'))}</div>
+      <div class="ct-macro">${r0(r.protein_per_serving)}g P \u00b7 ${r0(r.kcal_per_serving)} kcal${time?(' \u00b7 '+time+' '+t('rc_min')):''}</div></div>
+      <span class="ct-go"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>`;
+    reco.onclick=()=>rcOpen(r);
+  }
+  card.classList.remove('hidden');
+}
 $('#go-profile').onclick = ()=>switchTab('profile');
 { const _hb=document.getElementById('home-bell'); if(_hb) _hb.onclick=()=>switchTab('profile'); }
 { const _hia=document.getElementById('home-ia'); if(_hia) _hia.onclick=()=>switchTab('ia'); }
@@ -2899,7 +2959,7 @@ async function loadRecipes(){
   if(RECIPES){ rcApplyFilter(); return; }
   const grid=$('#rc-grid'); if(grid) grid.innerHTML='<div class="spin"></div>';
   const { data, error } = await sb.from('recipes')
-    .select('id,name_fr,name_en,name_nl,description_fr,description_en,description_nl,servings,prep_time_min,cook_time_min,kcal_per_serving,protein_per_serving,carbs_per_serving,fat_per_serving,image_url,difficulty,meal_type,instructions_fr,instructions_en,instructions_nl')
+    .select('id,name_fr,name_en,name_nl,description_fr,description_en,description_nl,servings,prep_time_min,cook_time_min,kcal_per_serving,protein_per_serving,carbs_per_serving,fat_per_serving,image_url,difficulty,meal_type,instructions_fr,instructions_en,instructions_nl,ingredients_fr,ingredients_en,ingredients_nl')
     .eq('is_published',true)
     .order('protein_per_serving',{ascending:false});
   if(error||!data){ if(grid) grid.innerHTML=emptyIllus('i-bowl',t('rc_none')); return; }
@@ -2952,15 +3012,20 @@ async function rcOpen(r){
   applyI18n();
   if(r.meal_type){ const m=$('#rc-meal'); if(m) m.value=r.meal_type; }
   rcSrvUpdate();
-  const { data:ings } = await sb.from('recipe_ingredients')
-    .select('quantity_g,display_order,food_id').eq('recipe_id',r.id).order('display_order',{ascending:true});
   const box2=$('#rc-ing-list');
-  if(ings && ings.length){
-    const ids=[...new Set(ings.map(x=>x.food_id))];
-    const { data:fs } = await sb.from('foods').select('id,name_fr,name_en,name_nl').in('id',ids);
-    const nm={}; (fs||[]).forEach(f=>nm[f.id]=pick(f,'name'));
-    if(box2) box2.innerHTML=ings.map(x=>`<div class="rc-ing"><span>${esc(nm[x.food_id]||'\u2014')}</span><span>${r0(x.quantity_g)} g</span></div>`).join('');
-  } else if(box2){ box2.innerHTML='<div class="rc-sub" style="margin:0">\u2014</div>'; }
+  const txtIng = r['ingredients_'+LANG] || r.ingredients_fr;
+  if(txtIng && txtIng.length){
+    if(box2) box2.innerHTML=txtIng.map(x=>`<div class="rc-ing"><span>${esc(x)}</span><span></span></div>`).join('');
+  } else {
+    const { data:ings } = await sb.from('recipe_ingredients')
+      .select('quantity_g,display_order,food_id').eq('recipe_id',r.id).order('display_order',{ascending:true});
+    if(ings && ings.length){
+      const ids=[...new Set(ings.map(x=>x.food_id))];
+      const { data:fs } = await sb.from('foods').select('id,name_fr,name_en,name_nl').in('id',ids);
+      const nm={}; (fs||[]).forEach(f=>nm[f.id]=pick(f,'name'));
+      if(box2) box2.innerHTML=ings.map(x=>`<div class="rc-ing"><span>${esc(nm[x.food_id]||'\u2014')}</span><span>${r0(x.quantity_g)} g</span></div>`).join('');
+    } else if(box2){ box2.innerHTML='<div class="rc-sub" style="margin:0">\u2014</div>'; }
+  }
   const mn=$('#rc-minus'), pl=$('#rc-plus');
   if(mn) mn.onclick=()=>{ RC_SRV=Math.max(0.5,Math.round((RC_SRV-0.5)*2)/2); rcSrvUpdate(); };
   if(pl) pl.onclick=()=>{ RC_SRV=Math.min(10,Math.round((RC_SRV+0.5)*2)/2); rcSrvUpdate(); };
