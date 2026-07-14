@@ -713,6 +713,16 @@
   .ia-home-tx b{display:block;font-size:14px;font-weight:700;color:var(--text)}
   .ia-home-tx span{font-size:12px;color:var(--muted)}
   .ia-home-ar{width:18px;height:18px;color:var(--muted);flex:0 0 auto}
+  .ia-home.gold{border-left-color:var(--gold);box-shadow:none}
+  .ia-home.gold .ia-home-ic{background:color-mix(in srgb,var(--gold) 14%,transparent);color:var(--gold)}
+  .ld-offer{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:10px}
+  .ld-offer.hi{border-color:rgba(0,255,163,.32);background:linear-gradient(135deg,rgba(0,255,163,.07),transparent)}
+  .ld-offer .o-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:5px}
+  .ld-offer .o-n{font-size:14px;font-weight:800;color:var(--text)}
+  .ld-offer.hi .o-n{color:var(--brand)}
+  .ld-offer .o-p{font-size:13.5px;font-weight:800;color:var(--gold);white-space:nowrap}
+  .ld-offer .o-d{font-size:12.5px;color:var(--muted);line-height:1.5}
+  .ld-note{font-size:11.5px;color:var(--muted);line-height:1.5;margin:2px 0 16px}
 
   /* ===== Profil : hub + sous-pages ===== */
   .pf-back{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--muted);font-family:inherit;font-size:14px;font-weight:600;padding:0 2px 14px;cursor:pointer}
@@ -1230,16 +1240,25 @@
     <div class="grab"></div>
     <div id="lead-form">
       <h3 data-i18n="ld_title">Coaching avec Coach DM</h3>
-      <div class="fk" style="margin-bottom:16px" data-i18n="ld_sub">Dis-moi où tu en es, je te réponds personnellement.</div>
-      <div class="field"><label data-i18n="ld_name">Nom</label><input id="ld-name" type="text" autocomplete="name" /></div>
-      <div class="field"><label data-i18n="ld_email">Email</label><input id="ld-email" type="email" inputmode="email" autocomplete="email" /></div>
-      <div class="field"><label data-i18n="ld_goal">Ton objectif</label><div class="ld-chips" id="ld-goal"></div></div>
-      <div class="field"><label data-i18n="ld_fmt">Format de séance</label><div class="ld-chips" id="ld-fmt"></div>
-        <div class="fk" id="ld-price" style="margin-top:6px;line-height:1.5" data-i18n="ld_price">Séance individuelle · à partir de 50 € les 30 min et 100 € les 50 min. Tarif indicatif, confirmé après notre échange.</div>
+      <div class="fk" style="margin-bottom:14px" data-i18n="ld_sub">Tous les tarifs sont affichés ci-dessous. Pas besoin d'écrire pour les connaître.</div>
+
+      <div class="ld-offer hi">
+        <div class="o-top"><span class="o-n" data-i18n="ld_on_t">Coaching en ligne</span><span class="o-p" data-i18n="ld_on_p">dès 150 €/mois</span></div>
+        <div class="o-d" data-i18n="ld_on_d">Programmation sur mesure, nutrition incluse, feedback sous 24 h, ajustements chaque semaine. Où que tu sois.</div>
       </div>
+      <div class="ld-offer">
+        <div class="o-top"><span class="o-n" data-i18n="ld_ip_t">Présentiel · Reasfit Vilvoorde</span><span class="o-p" data-i18n="ld_ip_p">dès 50 €</span></div>
+        <div class="o-d" data-i18n="ld_ip_d">30 min dès 50 € · 50 min dès 100 €. Tarif réservé aux membres de l'app (tarif public : 120 € les 50 min).</div>
+      </div>
+      <div class="ld-note" data-i18n="ld_transp">Je réponds personnellement à chaque demande, sous 48 h ouvrées.</div>
+
+      <div class="field"><label data-i18n="ld_fmt">Ce qui t'intéresse</label><div class="ld-chips" id="ld-fmt"></div></div>
+      <div class="field"><label data-i18n="ld_goal">Ton objectif</label><div class="ld-chips" id="ld-goal"></div></div>
       <div class="field"><label data-i18n="ld_level">Ton niveau</label><div class="ld-chips" id="ld-level"></div></div>
       <div class="field"><label data-i18n="ld_avail">Tes disponibilités</label><div class="ld-chips" id="ld-avail"></div></div>
-      <div class="field"><label data-i18n="ld_msg">Ton message</label><textarea id="ld-msg-in" data-i18n-ph="ld_msg_ph" placeholder="Parle-moi de toi, de ton contexte…"></textarea></div>
+      <div class="field"><label data-i18n="ld_name">Nom</label><input id="ld-name" type="text" autocomplete="name" /></div>
+      <div class="field"><label data-i18n="ld_email">Email</label><input id="ld-email" type="email" inputmode="email" autocomplete="email" /></div>
+      <div class="field"><label data-i18n="ld_msg">Ton message (optionnel)</label><textarea id="ld-msg-in" data-i18n-ph="ld_msg_ph" placeholder="Une contrainte, une blessure, un délai ? Dis-le-moi."></textarea></div>
       <div class="msg" id="ld-msg"></div>
       <button class="btn" id="ld-send" data-i18n="ld_send">Envoyer ma demande</button>
       <a class="btn subtle" style="display:block;text-align:center;text-decoration:none;margin-top:10px" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener" data-i18n="ld_ig">Voir @coachdm.be sur Instagram</a>
@@ -1365,7 +1384,7 @@ const T = {
  nav_boutique:{fr:'Boutique',en:'Shop',nl:'Shop'},
  native_nosub:{fr:'Les abonnements ne sont pas disponibles dans cette version de l\u2019app.',en:'Subscriptions are not available in this version of the app.',nl:'Abonnementen zijn niet beschikbaar in deze versie van de app.'},
  lead_h:{fr:'Coaching avec Coach DM',en:'Coaching with Coach DM',nl:'Coaching met Coach DM'},
- lead_p:{fr:'Coaching individuel : cours de 30 ou 50 min, programmation sur mesure et suivi personnalis\u00e9. \u00c0 partir de 50 \u20ac les 30 min. Places limit\u00e9es.',en:'One-to-one coaching: 30 or 50 min sessions, custom programming and personal follow-up. From \u20ac50 for 30 min. Limited spots.',nl:'Individuele coaching: sessies van 30 of 50 min, programmering op maat en persoonlijke opvolging. Vanaf \u20ac50 voor 30 min. Beperkte plaatsen.'},
+ lead_row:{fr:'En ligne d\u00e8s 150 \u20ac/mois \u00b7 Reasfit d\u00e8s 50 \u20ac',en:'Online from \u20ac150/month \u00b7 Reasfit from \u20ac50',nl:'Online vanaf \u20ac150/maand \u00b7 Reasfit vanaf \u20ac50'},
  lead_mail:{fr:'\u00c9crire un e-mail',en:'Send an email',nl:'Stuur een e-mail'},
  lead_ig:{fr:'Instagram',en:'Instagram',nl:'Instagram'},
  lead_cta:{fr:'Demander un coaching',en:'Request coaching',nl:'Coaching aanvragen'},
@@ -1376,8 +1395,8 @@ const T = {
  ld_goal:{fr:'Ton objectif',en:'Your goal',nl:'Je doel'},
  ld_level:{fr:'Ton niveau',en:'Your level',nl:'Je niveau'},
  ld_avail:{fr:'Tes disponibilit\u00e9s',en:'Your availability',nl:'Je beschikbaarheid'},
- ld_msg:{fr:'Ton message',en:'Your message',nl:'Je bericht'},
- ld_msg_ph:{fr:'Parle-moi de toi, de ton contexte\u2026',en:'Tell me about you and your context\u2026',nl:'Vertel me over jezelf en je context\u2026'},
+ ld_msg:{fr:'Ton message (optionnel)',en:'Your message (optional)',nl:'Je bericht (optioneel)'},
+ ld_msg_ph:{fr:'Une contrainte, une blessure, un d\u00e9lai ? Dis-le-moi.',en:'A constraint, an injury, a deadline? Tell me.',nl:'Een beperking, een blessure, een deadline? Laat het weten.'},
  ld_send:{fr:'Envoyer ma demande',en:'Send my request',nl:'Mijn aanvraag versturen'},
  ld_ig:{fr:'Voir @coachdm.be sur Instagram',en:'See @coachdm.be on Instagram',nl:'Bekijk @coachdm.be op Instagram'},
  ld_ok_t:{fr:'Demande envoy\u00e9e',en:'Request sent',nl:'Aanvraag verstuurd'},
@@ -1391,10 +1410,17 @@ const T = {
  ld_g_wl:{fr:'Skill Halt\u00e9rophilie',en:'Weightlifting skills',nl:'Gewichtheffen-skills'},
  ld_g_hybrid:{fr:'Hybrid Training',en:'Hybrid Training',nl:'Hybrid Training'},
  ld_g_foot:{fr:'Pr\u00e9pa Football / Futsal',en:'Football / Futsal prep',nl:'Voetbal / Futsal-voorbereiding'},
- ld_fmt:{fr:'Format de s\u00e9ance',en:'Session format',nl:'Sessieformaat'},
- ld_f_30:{fr:'30 min \u00b7 d\u00e8s 50 \u20ac',en:'30 min \u00b7 from \u20ac50',nl:'30 min \u00b7 vanaf \u20ac50'},
- ld_f_50:{fr:'50 min \u00b7 d\u00e8s 100 \u20ac',en:'50 min \u00b7 from \u20ac100',nl:'50 min \u00b7 vanaf \u20ac100'},
- ld_price:{fr:'S\u00e9ance individuelle en pr\u00e9sentiel \u00b7 \u00e0 partir de 50 \u20ac les 30 min et 100 \u20ac les 50 min. Tarif indicatif, confirm\u00e9 apr\u00e8s notre \u00e9change.',en:'One-to-one in-person session \u00b7 from \u20ac50 for 30 min and \u20ac100 for 50 min. Indicative price, confirmed after we talk.',nl:'Individuele sessie ter plaatse \u00b7 vanaf \u20ac50 voor 30 min en \u20ac100 voor 50 min. Indicatieve prijs, bevestigd na ons gesprek.'},
+ ld_fmt:{fr:'Ce qui t\u2019int\u00e9resse',en:'What you are after',nl:'Wat je zoekt'},
+ ld_f_on:{fr:'En ligne \u00b7 d\u00e8s 150 \u20ac/mois',en:'Online \u00b7 from \u20ac150/month',nl:'Online \u00b7 vanaf \u20ac150/maand'},
+ ld_f_30:{fr:'Reasfit 30 min \u00b7 d\u00e8s 50 \u20ac',en:'Reasfit 30 min \u00b7 from \u20ac50',nl:'Reasfit 30 min \u00b7 vanaf \u20ac50'},
+ ld_f_50:{fr:'Reasfit 50 min \u00b7 d\u00e8s 100 \u20ac',en:'Reasfit 50 min \u00b7 from \u20ac100',nl:'Reasfit 50 min \u00b7 vanaf \u20ac100'},
+ ld_on_t:{fr:'Coaching en ligne',en:'Online coaching',nl:'Online coaching'},
+ ld_on_p:{fr:'d\u00e8s 150 \u20ac/mois',en:'from \u20ac150/month',nl:'vanaf \u20ac150/maand'},
+ ld_on_d:{fr:'Programmation sur mesure, nutrition incluse, feedback sous 24 h, ajustements chaque semaine. O\u00f9 que tu sois.',en:'Custom programming, nutrition included, feedback within 24 h, weekly adjustments. Wherever you are.',nl:'Programmering op maat, voeding inbegrepen, feedback binnen 24 u, wekelijkse bijsturing. Waar je ook bent.'},
+ ld_ip_t:{fr:'Pr\u00e9sentiel \u00b7 Reasfit Vilvoorde',en:'In person \u00b7 Reasfit Vilvoorde',nl:'Ter plaatse \u00b7 Reasfit Vilvoorde'},
+ ld_ip_p:{fr:'d\u00e8s 50 \u20ac',en:'from \u20ac50',nl:'vanaf \u20ac50'},
+ ld_ip_d:{fr:'30 min d\u00e8s 50 \u20ac \u00b7 50 min d\u00e8s 100 \u20ac. Tarif r\u00e9serv\u00e9 aux membres de l\u2019app (tarif public : 120 \u20ac les 50 min).',en:'30 min from \u20ac50 \u00b7 50 min from \u20ac100. Reserved for app members (public rate: \u20ac120 for 50 min).',nl:'30 min vanaf \u20ac50 \u00b7 50 min vanaf \u20ac100. Voorbehouden aan app-leden (publiek tarief: \u20ac120 voor 50 min).'},
+ ld_transp:{fr:'Je r\u00e9ponds personnellement \u00e0 chaque demande, sous 48 h ouvr\u00e9es.',en:'I answer every request personally, within 48 working hours.',nl:'Ik beantwoord elke aanvraag persoonlijk, binnen 48 werkuren.'},
  ld_l_beg:{fr:'D\u00e9butant',en:'Beginner',nl:'Beginner'},
  ld_l_int:{fr:'Interm\u00e9diaire',en:'Intermediate',nl:'Gemiddeld'},
  ld_l_adv:{fr:'Avanc\u00e9',en:'Advanced',nl:'Gevorderd'},
@@ -2187,13 +2213,11 @@ if(IS_NATIVE){ document.querySelectorAll('[data-go="boutique"]').forEach(b=>b.st
 let COACH_THREAD=null, CHAT_CH=null, CHAT_OPEN=false, HAS_COACH=false, PROFILE_NAME='';
 function ccInitials(n){ return (n||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
 function renderLeadCard(box){
-  box.innerHTML=`<div class="block" style="border:1px solid rgba(233,199,103,.35)">
-    <h3 style="color:var(--brand)">${t('lead_h')}</h3>
-    <p class="empty" style="text-align:left;padding:4px 0 10px">${t('lead_p')}</p>
-    <div style="display:flex;gap:8px">
-      <button class="btn" style="flex:1" id="lead-open">${t('lead_cta')}</button>
-      <a class="btn subtle" style="flex:1;text-align:center;text-decoration:none" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener">${t('lead_ig')}</a>
-    </div></div>`;
+  box.innerHTML=`<button class="ia-home gold" id="lead-open" type="button">
+    <span class="ia-home-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.4 7.2L3 21l1.8-6.6A8 8 0 1 1 21 12z"/></svg></span>
+    <span class="ia-home-tx"><b>${t('lead_h')}</b><span>${t('lead_row')}</span></span>
+    <svg class="ia-home-ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+  </button>`;
   const b=$('#lead-open'); if(b) b.onclick=openLead;
 }
 
@@ -2202,7 +2226,7 @@ function renderLeadCard(box){
    Un client de coach passe par son coach. Le serveur (lead_submit) refuse de toute facon. */
 const LD_GOALS=[['fitness','ld_g_fitness'],['fatloss','ld_g_fatloss'],['mass','ld_g_mass'],['perf','ld_g_perf'],
   ['gym','ld_g_gym'],['wl','ld_g_wl'],['hybrid','ld_g_hybrid'],['football','ld_g_foot']];
-const LD_FORMATS=[['30','ld_f_30'],['50','ld_f_50']];
+const LD_FORMATS=[['online','ld_f_on'],['30','ld_f_30'],['50','ld_f_50']];
 const LD_LEVELS=[['beginner','ld_l_beg'],['intermediate','ld_l_int'],['advanced','ld_l_adv']];
 const LD_AVAIL=[['morning','ld_a_morning'],['noon','ld_a_noon'],['evening','ld_a_evening'],['weekend','ld_a_week']];
 const LEAD={goal:null,fmt:null,level:null,avail:null};
