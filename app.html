@@ -1227,15 +1227,7 @@
 <div class="overlay" id="ck-ov">
   <div class="ck-box">
     <button class="ck-close" id="ck-close" aria-label="Fermer">✕</button>
-    <div id="ck-consent" style="padding:22px 20px">
-      <h3 style="margin:0 0 12px" data-i18n="ck_consent_title">Avant de payer</h3>
-      <label style="display:flex;gap:11px;align-items:flex-start;cursor:pointer;font-size:13.5px;line-height:1.55;color:var(--muted)">
-        <input type="checkbox" id="ck-agree" style="margin-top:3px;width:18px;height:18px;flex:none;accent-color:var(--brand)"/>
-        <span data-i18n="ck_consent_text">Je demande l’accès immédiat au service et je reconnais qu’en démarrant maintenant, je renonce à mon droit de rétractation de 14 jours dès l’ouverture de mon accès premium (art. VI.53 du Code de droit économique).</span>
-      </label>
-      <button class="btn" id="ck-continue" style="width:100%;margin-top:18px" disabled data-i18n="ck_continue">Continuer vers le paiement</button>
-    </div>
-    <div id="ck-mount" style="display:none"></div>
+    <div id="ck-mount" style="min-height:40px"></div>
   </div>
 </div>
 
@@ -2285,6 +2277,7 @@ async function startCheckout(lk,msgSel){
   $('#sub-ov').classList.remove('show');
   { const c=$('#coach-ov'); if(c) c.classList.remove('show'); }
   $('#ck-ov').classList.add('show');
+  mountCheckout();
 }
 // Consentement donné -> on crée la session Stripe (accord horodaté transmis) et on monte le checkout.
 async function mountCheckout(){
@@ -2297,7 +2290,7 @@ async function mountCheckout(){
     if(!STRIPE) STRIPE=S(STRIPE_PK);
     if(CK){ try{CK.destroy();}catch(e){} CK=null; }
     CK = await STRIPE.initEmbeddedCheckout({ fetchClientSecret: async ()=>{
-      const { data, error } = await sb.functions.invoke('stripe-checkout',{ body:{ action:'checkout', lookup_key:lk, locale:LANG, consent_withdrawal:true, consent_ts:new Date().toISOString() } });
+      const { data, error } = await sb.functions.invoke('stripe-checkout',{ body:{ action:'checkout', lookup_key:lk, locale:LANG } });
       if(error || !data || !data.client_secret) throw new Error((data&&data.error)||'checkout');
       return data.client_secret;
     }});
@@ -2356,9 +2349,7 @@ async function checkoutReturn(){
 }
 { const el=$('#gate-sub'); if(el){ if(IS_NATIVE) el.style.display='none'; else el.onclick=openSubSheet; } }
 { const el=$('#p-sub-open'); if(el){ if(IS_NATIVE) el.style.display='none'; else el.onclick=openSubSheet; } }
-{ const ag=$('#ck-agree'), co=$('#ck-continue');
-  if(ag&&co) ag.onchange=()=>{ co.disabled=!ag.checked; };
-  if(co) co.onclick=mountCheckout; }
+/* consentement collecté dans Stripe (art. VI.53) — plus d'étape locale */
 { const el=$('#p-sub-manage'); if(el) el.onclick=openPortal; }
 document.querySelectorAll('#sub-toggle button').forEach(b=>b.onclick=()=>{
   SUB_INT=b.dataset.int;

@@ -286,15 +286,7 @@
 <div class="pwov" id="pw-ov">
   <div class="pwbox">
     <button class="pwclose" id="pw-close" aria-label="Fermer">✕</button>
-    <div id="pw-consent" style="padding:20px 16px">
-      <h3 id="pw-consent-h" style="color:#111;font-size:16px;margin:0 0 12px"></h3>
-      <label style="display:flex;gap:11px;align-items:flex-start;cursor:pointer;font-size:13.5px;line-height:1.55;color:#555">
-        <input type="checkbox" id="pw-agree" style="margin-top:3px;width:18px;height:18px;flex:none;accent-color:#00A870"/>
-        <span id="pw-consent-txt"></span>
-      </label>
-      <button id="pw-continue" disabled style="width:100%;margin-top:18px;font-size:15px;font-weight:700;padding:14px;border-radius:16px;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);color:#0A0A0A;opacity:1"></button>
-    </div>
-    <div id="ck-mount" style="display:none"></div>
+    <div id="ck-mount" style="min-height:40px"></div>
   </div>
 </div>
 
@@ -945,6 +937,7 @@ function pwOpen(lk){
   if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
   pwReset();
   document.getElementById('pw-ov').classList.add('show');
+  pwMount();
 }
 function pwClose(){
   document.getElementById('pw-ov').classList.remove('show');
@@ -954,14 +947,13 @@ function pwClose(){
 async function pwMount(){
   if(!PW.pending||!SB)return;
   const lk=PW.pending;
-  document.getElementById('pw-consent').style.display='none';
   const m=document.getElementById('ck-mount');m.style.display='';m.innerHTML='';
   try{
     const Sj=await stripeJs();
     if(!STRIPE)STRIPE=Sj(STRIPE_PK);
     if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
     CKI=await STRIPE.initEmbeddedCheckout({fetchClientSecret:async()=>{
-      const {data,error}=await SB.functions.invoke('stripe-checkout',{body:{action:'checkout',lookup_key:lk,locale:LANG,consent_withdrawal:true,consent_ts:new Date().toISOString()}});
+      const {data,error}=await SB.functions.invoke('stripe-checkout',{body:{action:'checkout',lookup_key:lk,locale:LANG}});
       if(error||!data||!data.client_secret)throw new Error((data&&data.error)||'checkout');
       return data.client_secret;
     }});
@@ -970,9 +962,7 @@ async function pwMount(){
 }
 (function(){
   const ov=document.getElementById('pw-ov');
-  const a=document.getElementById('pw-agree'),k=document.getElementById('pw-continue'),x=document.getElementById('pw-close');
-  if(a&&k)a.onchange=()=>{k.disabled=!a.checked;};
-  if(k)k.onclick=pwMount;
+  const x=document.getElementById('pw-close');
   if(x)x.onclick=pwClose;
   if(ov)ov.addEventListener('click',e=>{if(e.target===ov)pwClose();});
 })();
