@@ -13,15 +13,15 @@ body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,sy
 .brand{text-align:center;margin-bottom:8px}
 .brand .name{font-size:30px;font-weight:900;letter-spacing:3px;color:var(--gold)}
 .brand .tag{font-size:12px;letter-spacing:4px;color:var(--mut);margin-top:6px;text-transform:uppercase}
-.lead{text-align:center;max-width:620px;margin:18px auto 0}
+.lang-seg{display:flex;gap:6px;justify-content:center;margin:14px auto 0;width:fit-content}
+.lang-seg button{padding:7px 15px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--mut);font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit}
+.lang-seg button.on{background:var(--gold);color:#0A0A0A;border-color:var(--gold)}
+.lead{text-align:center;max-width:620px;margin:16px auto 0}
 .lead b{display:block;font-size:16px}
-.lead span{display:block;font-size:14px;color:var(--mut)}
-.lead i{display:block;font-size:13px;color:var(--mut)}
 .sec-title{text-align:center;margin:46px 0 18px}
 .sec-title b{display:block;font-size:20px;color:var(--gold);letter-spacing:1px}
-.sec-title span{display:block;font-size:13px;color:var(--mut)}
 .toggle{display:flex;justify-content:center;gap:0;margin:0 auto 18px;width:fit-content;border:1px solid var(--line);border-radius:999px;padding:4px;background:var(--card)}
-.toggle button{border:0;background:transparent;color:var(--mut);font-weight:800;font-size:13px;padding:8px 18px;border-radius:999px;cursor:pointer}
+.toggle button{border:0;background:transparent;color:var(--mut);font-weight:800;font-size:13px;padding:8px 18px;border-radius:999px;cursor:pointer;font-family:inherit}
 .toggle button.on{background:var(--gold);color:#0A0A0A}
 .founder{border:1.5px solid var(--gold);border-radius:20px;padding:20px 18px;background:linear-gradient(180deg,rgba(212,175,55,.08),rgba(212,175,55,0))}
 .founder .head{text-align:center;margin-bottom:6px}
@@ -33,8 +33,6 @@ body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,sy
 .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-direction:column}
 .card.hl{border-color:var(--gold)}
 .tier{font-weight:800;font-size:17px}
-.tier .en{font-weight:500;color:var(--mut);font-size:14px}
-.tier .nl{font-style:italic;color:var(--mut);font-size:13px}
 .price{margin:12px 0 2px;font-size:30px;font-weight:900;color:var(--gold)}
 .price small{font-size:14px;color:var(--mut);font-weight:600}
 .price .old{font-size:15px;color:var(--mut);font-weight:700;text-decoration:line-through;margin-left:8px}
@@ -81,57 +79,60 @@ footer a{color:var(--gold);text-decoration:none}
     <div class="name">COACH DM</div>
     <div class="tag">Power · Transform · Excel</div>
   </div>
+
+  <div class="lang-seg" id="lang-seg">
+    <button data-lang="fr">Français</button>
+    <button data-lang="en">English</button>
+    <button data-lang="nl">Nederlands</button>
+  </div>
+
   <div class="lead">
-    <b>L'app fitness &amp; coaching premium. Science. Sur-mesure. Trilingue.</b>
-    <span>The premium fitness &amp; coaching app. Science-based, tailored, trilingual.</span>
-    <i>De premium fitness- &amp; coaching-app. Wetenschappelijk, op maat, drietalig.</i>
+    <b data-i18n="lead_hero">L'app fitness &amp; coaching premium. Science. Sur-mesure. Trilingue.</b>
   </div>
 
   <div class="toggle" id="iv-toggle" style="margin-top:26px">
-    <button data-iv="month" class="on">Mensuel · Monthly</button>
-    <button data-iv="year">Annuel · Yearly</button>
+    <button data-iv="month" class="on" data-i18n="iv_month">Mensuel</button>
+    <button data-iv="year" data-i18n="iv_year">Annuel</button>
   </div>
 
   <!-- ===================== FONDATEUR ===================== -->
   <div class="sec-title">
-    <b>Offre Fondateur — à vie</b>
-    <span>Founder offer — lifetime &nbsp;·&nbsp; <i>Oprichtersaanbod — levenslang</i></span>
+    <b data-i18n="founder_offer">Offre Fondateur — à vie</b>
   </div>
 
   <div class="founder">
     <div class="head">
-      <span class="k">Places limitées · Limited · Beperkt</span>
-      <h2>Bloque ton tarif à vie</h2>
-      <p>Tarif garanti tant que l'abonnement reste actif · Locked for life while your subscription stays active</p>
+      <span class="k" data-i18n="limited">Places limitées</span>
+      <h2 data-i18n="lock_title">Bloque ton tarif à vie</h2>
+      <p data-i18n="lock_sub">Tarif garanti tant que l'abonnement reste actif</p>
     </div>
-    <div class="cards" id="founder-cards"><p class="note">Chargement des tarifs…</p></div>
-    <p class="note">Le tarif fondateur reste bloqué tant que l'abonnement n'est pas interrompu. En cas d'annulation, retour au tarif public.</p>
+    <div class="cards" id="founder-cards"><p class="note" data-i18n="loading">Chargement des tarifs…</p></div>
+    <p class="note" data-i18n="founder_note">Le tarif fondateur reste bloqué tant que l'abonnement n'est pas interrompu. En cas d'annulation, retour au tarif public.</p>
   </div>
 
   <!-- ===================== TARIFS PUBLICS ===================== -->
   <div class="sec-title">
-    <b>Tarifs publics</b>
-    <span>Standard pricing &nbsp;·&nbsp; <i>Standaardtarieven</i></span>
+    <b data-i18n="public_pricing">Tarifs publics</b>
   </div>
 
-  <div class="cards three" id="public-cards"><p class="note">Chargement des tarifs…</p></div>
+  <div class="cards three" id="public-cards"><p class="note" data-i18n="loading">Chargement des tarifs…</p></div>
 
   <!-- ===================== POURQUOI ===================== -->
   <div class="why">
     <div class="card">
-      <h3>Pourquoi Coach DM</h3>
+      <h3 data-i18n="why_title">Pourquoi Coach DM</h3>
       <ul>
-        <li><b>Expertise vérifiable</b> — coach certifié (12 certifications), méthodes science-based avec références.</li>
-        <li><b>Tout inclus</b> — nutrition, séances, Coach IA, analyses vidéo IA, suivi : pas d'add-ons facturés en plus.</li>
-        <li><b>Trilingue FR / EN / NL</b> — pensé pour la Belgique et au-delà.</li>
-        <li><b>Coachs : clients gratuits</b> — tu paies l'outil, pas tes clients ; quota d'actifs clair.</li>
+        <li data-i18n-html="why_1"><b>Expertise vérifiable</b> — coach certifié (12 certifications), méthodes science-based avec références.</li>
+        <li data-i18n-html="why_2"><b>Tout inclus</b> — nutrition, séances, Coach IA, analyses vidéo IA, suivi : pas d'add-ons facturés en plus.</li>
+        <li data-i18n-html="why_3"><b>Trilingue FR / EN / NL</b> — pensé pour la Belgique et au-delà.</li>
+        <li data-i18n-html="why_4"><b>Coachs : clients gratuits</b> — tu paies l'outil, pas tes clients ; quota d'actifs clair.</li>
       </ul>
     </div>
   </div>
 
   <footer>
     Coach DM · Doudouh M. · BCE BE0840.260.421<br>
-    Régime particulier de franchise — art. 56bis du Code de la TVA. TVA non applicable.<br>
+    <span data-i18n="vat_line">Régime particulier de franchise — art. 56bis du Code de la TVA. TVA non applicable.</span><br>
     <a href="https://coachdm.be">coachdm.be</a> ·
     <a href="mailto:doudouh.coaching@gmail.com">doudouh.coaching@gmail.com</a> ·
     <a href="https://instagram.com/coachdm.be">@coachdm.be</a>
@@ -142,13 +143,12 @@ footer a{color:var(--gold);text-decoration:none}
 <div class="ov" id="ck-ov">
   <div class="ovbox">
     <div id="ck-consent">
-      <h3>Avant de payer</h3>
-      <p class="cn"><b>Je demande l'accès immédiat au service et je reconnais qu'en démarrant maintenant, je renonce à mon droit de rétractation de 14 jours dès l'ouverture de mon accès premium (art. VI.53 du Code de droit économique).</b></p>
-      <p class="cn" style="color:var(--mut);margin-top:8px">I request immediate access and waive my 14-day right of withdrawal once my premium access opens.<br><i>Ik vraag onmiddellijke toegang en doe afstand van mijn herroepingsrecht van 14 dagen zodra mijn premium-toegang opent.</i></p>
-      <label class="agree"><input type="checkbox" id="ck-agree"><span>J'accepte · I agree · Ik ga akkoord</span></label>
+      <h3 data-i18n="ck_title">Avant de payer</h3>
+      <p class="cn" data-i18n-html="ck_consent"><b>Je demande l'accès immédiat au service et je reconnais qu'en démarrant maintenant, je renonce à mon droit de rétractation de 14 jours dès l'ouverture de mon accès premium (art. VI.53 du Code de droit économique).</b></p>
+      <label class="agree"><input type="checkbox" id="ck-agree"><span data-i18n="ck_agree">J'accepte</span></label>
       <div class="ovact">
-        <button class="cx" id="ck-cancel">Annuler</button>
-        <button class="go" id="ck-go" disabled>Continuer vers le paiement</button>
+        <button class="cx" id="ck-cancel" data-i18n="ck_cancel">Annuler</button>
+        <button class="go" id="ck-go" disabled data-i18n="ck_go">Continuer vers le paiement</button>
       </div>
       <div class="msg" id="ck-msg"></div>
     </div>
@@ -164,10 +164,101 @@ const STRIPE_PK='pk_live_51TpzX7J0YSDZQQHK1pZpLyBD1QX0c95OWwdhGO1BpTvs3vb99GAq8D
 const $=s=>document.querySelector(s);
 let PRICES=null, SLOTS={}, CANF={}, IV='month', STRIPE=null, CK=null, PENDING=null, SESSION=null;
 
+/* ══════════ i18n (clé cdm_lang partagée avec l'app) ══════════ */
+let LANG = localStorage.getItem('cdm_lang') || 'fr';
+if(!['fr','en','nl'].includes(LANG)) LANG='fr';
+
+const T = {
+  lead_hero:{fr:"L'app fitness & coaching premium. Science. Sur-mesure. Trilingue.",en:"The premium fitness & coaching app. Science-based, tailored, trilingual.",nl:"De premium fitness- & coaching-app. Wetenschappelijk, op maat, drietalig."},
+  iv_month:{fr:"Mensuel",en:"Monthly",nl:"Maandelijks"},
+  iv_year:{fr:"Annuel",en:"Yearly",nl:"Jaarlijks"},
+  founder_offer:{fr:"Offre Fondateur — à vie",en:"Founder offer — for life",nl:"Oprichtersaanbod — levenslang"},
+  limited:{fr:"Places limitées",en:"Limited places",nl:"Beperkte plaatsen"},
+  lock_title:{fr:"Bloque ton tarif à vie",en:"Lock your price for life",nl:"Zet je tarief levenslang vast"},
+  lock_sub:{fr:"Tarif garanti tant que l'abonnement reste actif",en:"Price guaranteed as long as your subscription stays active",nl:"Tarief gegarandeerd zolang je abonnement actief blijft"},
+  founder_note:{fr:"Le tarif fondateur reste bloqué tant que l'abonnement n'est pas interrompu. En cas d'annulation, retour au tarif public.",en:"The founder price stays locked as long as the subscription isn't interrupted. If you cancel, you return to the standard price.",nl:"Het oprichterstarief blijft vast zolang het abonnement niet wordt onderbroken. Bij annulering keer je terug naar het standaardtarief."},
+  public_pricing:{fr:"Tarifs publics",en:"Standard pricing",nl:"Standaardtarieven"},
+  loading:{fr:"Chargement des tarifs…",en:"Loading prices…",nl:"Tarieven laden…"},
+  prices_unavailable:{fr:"Tarifs momentanément indisponibles. Réessaie dans un instant.",en:"Prices temporarily unavailable. Please try again shortly.",nl:"Tarieven tijdelijk niet beschikbaar. Probeer het zo meteen opnieuw."},
+  why_title:{fr:"Pourquoi Coach DM",en:"Why Coach DM",nl:"Waarom Coach DM"},
+  why_1:{fr:"<b>Expertise vérifiable</b> — coach certifié (12 certifications), méthodes science-based avec références.",en:"<b>Verifiable expertise</b> — certified coach (12 certifications), science-based methods with references.",nl:"<b>Verifieerbare expertise</b> — gecertificeerde coach (12 certificeringen), wetenschappelijk onderbouwde methodes met bronnen."},
+  why_2:{fr:"<b>Tout inclus</b> — nutrition, séances, Coach IA, analyses vidéo IA, suivi : pas d'add-ons facturés en plus.",en:"<b>All included</b> — nutrition, workouts, AI Coach, AI video analysis, tracking: no add-ons billed on top.",nl:"<b>Alles inbegrepen</b> — voeding, trainingen, AI-coach, AI-video-analyse, opvolging: geen extra add-ons."},
+  why_3:{fr:"<b>Trilingue FR / EN / NL</b> — pensé pour la Belgique et au-delà.",en:"<b>Trilingual FR / EN / NL</b> — built for Belgium and beyond.",nl:"<b>Drietalig FR / EN / NL</b> — gemaakt voor België en daarbuiten."},
+  why_4:{fr:"<b>Coachs : clients gratuits</b> — tu paies l'outil, pas tes clients ; quota d'actifs clair.",en:"<b>Coaches: free clients</b> — you pay for the tool, not your clients; a clear active-client quota.",nl:"<b>Coaches: gratis klanten</b> — je betaalt voor de tool, niet voor je klanten; een duidelijk quotum actieve klanten."},
+  vat_line:{fr:"Régime particulier de franchise — art. 56bis du Code de la TVA. TVA non applicable.",en:"Special exemption scheme — art. 56bis of the Belgian VAT Code. VAT not applicable.",nl:"Bijzondere vrijstellingsregeling — art. 56bis van het btw-wetboek. Btw niet van toepassing."},
+  /* ── Consentement checkout ── */
+  ck_title:{fr:"Avant de payer",en:"Before paying",nl:"Vóór je betaalt"},
+  ck_consent:{fr:"<b>Je demande l'accès immédiat au service et je reconnais qu'en démarrant maintenant, je renonce à mon droit de rétractation de 14 jours dès l'ouverture de mon accès premium (art. VI.53 du Code de droit économique).</b>",en:"<b>I request immediate access to the service and acknowledge that, by starting now, I waive my 14-day right of withdrawal as soon as my premium access opens (art. VI.53 of the Belgian Code of Economic Law).</b>",nl:"<b>Ik vraag onmiddellijke toegang tot de dienst en erken dat ik, door nu te starten, afstand doe van mijn herroepingsrecht van 14 dagen zodra mijn premium-toegang wordt geopend (art. VI.53 van het Wetboek van economisch recht).</b>"},
+  ck_agree:{fr:"J'accepte",en:"I agree",nl:"Ik ga akkoord"},
+  ck_cancel:{fr:"Annuler",en:"Cancel",nl:"Annuleren"},
+  ck_go:{fr:"Continuer vers le paiement",en:"Continue to payment",nl:"Doorgaan naar betaling"},
+  ck_err:{fr:"Paiement indisponible. Réessaie dans un instant.",en:"Payment unavailable. Please try again shortly.",nl:"Betaling niet beschikbaar. Probeer het zo meteen opnieuw."},
+  /* ── Cartes (rendues en JS) ── */
+  per_month:{fr:" / mois",en:" / month",nl:" / maand"},
+  per_year:{fr:" / an",en:" / year",nl:" / jaar"},
+  note_month:{fr:"Sans engagement · résiliable à tout moment",en:"No commitment · cancel anytime",nl:"Zonder verplichting · altijd opzegbaar"},
+  note_year:{fr:"Facturé à l'année · deux mois offerts",en:"Billed yearly · two months free",nl:"Jaarlijks gefactureerd · twee maanden gratis"},
+  locked_life:{fr:"Tarif bloqué à vie",en:"Price locked for life",nl:"Tarief levenslang vast"},
+  cap_coach_f:{fr:"30 clients actifs (au lieu de 20)",en:"30 active clients (instead of 20)",nl:"30 actieve klanten (i.p.v. 20)"},
+  cap_coachplus_f:{fr:"60 clients actifs (au lieu de 50)",en:"60 active clients (instead of 50)",nl:"60 actieve klanten (i.p.v. 50)"},
+  cap_coach:{fr:"20 clients actifs · tout inclus",en:"20 active clients · all included",nl:"20 actieve klanten · alles inbegrepen"},
+  cap_coachplus:{fr:"50 clients actifs · tout inclus",en:"50 active clients · all included",nl:"50 actieve klanten · alles inbegrepen"},
+  soldout:{fr:"Complet",en:"Sold out",nl:"Volzet"},
+  reserve:{fr:"Réserver ma place",en:"Reserve my spot",nl:"Reserveer mijn plaats"},
+  start:{fr:"Commencer",en:"Get started",nl:"Beginnen"},
+  tier_membre_f:{fr:"Membre Fondateur",en:"Founder Member",nl:"Oprichter-lid"},
+  tier_coach_f:{fr:"Coach Fondateur",en:"Founder Coach",nl:"Oprichter-coach"},
+  tier_coachplus_f:{fr:"Coach+ Fondateur",en:"Founder Coach+",nl:"Oprichter Coach+"},
+  tier_membre:{fr:"Membre",en:"Member",nl:"Lid"},
+  tier_coach:{fr:"Coach",en:"Coach",nl:"Coach"},
+  tier_coachplus:{fr:"Coach+",en:"Coach+",nl:"Coach+"},
+  f_all_member:{fr:"Tout le contenu membre",en:"All member content",nl:"Alle ledeninhoud"},
+  f_4analyses:{fr:"Les 4 analyses vidéo IA (squat, saut, barre, course)",en:"All 4 AI video analyses (squat, jump, barbell, run)",nl:"Alle 4 AI-video-analyses (squat, sprong, barbell, hardlopen)"},
+  f_ai_photo:{fr:"Coach IA + photo-calories",en:"AI Coach + photo-calories",nl:"AI-coach + foto-calorieën"},
+  f_badge:{fr:"Badge « Fondateur » + accès prioritaire aux nouveautés",en:"“Founder” badge + priority access to new features",nl:"“Oprichter”-badge + voorrang op nieuwe functies"},
+  f_client_mgmt:{fr:"Gestion clients, planning, présences",en:"Client management, scheduling, attendance",nl:"Klantenbeheer, planning, aanwezigheden"},
+  f_msg_checkins:{fr:"Messagerie et check-ins",en:"Messaging and check-ins",nl:"Berichten en check-ins"},
+  f_featured:{fr:"Mis en avant dans l'app",en:"Featured in the app",nl:"Uitgelicht in de app"},
+  f_onboarding:{fr:"Onboarding direct avec Coach DM",en:"Direct onboarding with Coach DM",nl:"Directe onboarding met Coach DM"},
+  f_all_coach_ext:{fr:"Tout Coach, capacité étendue",en:"Everything in Coach, extended capacity",nl:"Alles van Coach, uitgebreide capaciteit"},
+  f_video_clients:{fr:"Appels vidéo avec tes clients",en:"Video calls with your clients",nl:"Videogesprekken met je klanten"},
+  f_gyms:{fr:"Idéal salles & gros volumes",en:"Ideal for gyms & high volume",nl:"Ideaal voor sportscholen & grote volumes"},
+  f_nutrition:{fr:"Nutrition, macros sur-mesure",en:"Nutrition, tailored macros",nl:"Voeding, macro's op maat"},
+  f_sessions_ai:{fr:"Séances + Coach IA",en:"Workouts + AI Coach",nl:"Trainingen + AI-coach"},
+  f_4analyses_short:{fr:"Les 4 analyses vidéo IA",en:"All 4 AI video analyses",nl:"Alle 4 AI-video-analyses"},
+  f_tracking:{fr:"Suivi & progression",en:"Tracking & progression",nl:"Opvolging & progressie"},
+  f_clients_free:{fr:"Tes clients ne paient rien",en:"Your clients pay nothing",nl:"Je klanten betalen niets"},
+  f_planning:{fr:"Planning, réservations, présences",en:"Scheduling, bookings, attendance",nl:"Planning, reserveringen, aanwezigheden"},
+  f_video:{fr:"Appels vidéo",en:"Video calls",nl:"Videogesprekken"},
+  f_no_addons:{fr:"Sans add-ons à empiler",en:"No add-ons to stack",nl:"Geen op te stapelen add-ons"}
+};
+const t = k => (T[k] ? (T[k][LANG] ?? T[k].fr) : k);
+
+function applyI18n(){
+  document.documentElement.lang=LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(T[k]) el.textContent=t(k); });
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{ const k=el.getAttribute('data-i18n-html'); if(T[k]) el.innerHTML=t(k); });
+}
+function renderLangBtns(){ document.querySelectorAll('#lang-seg button').forEach(b=>b.classList.toggle('on', b.dataset.lang===LANG)); }
+function setLang(l){
+  if(!['fr','en','nl'].includes(l)) return;
+  LANG=l; localStorage.setItem('cdm_lang',l);
+  applyI18n(); renderLangBtns();
+  if(PRICES && PRICES.length) render();
+}
+document.querySelectorAll('#lang-seg button').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
+
+/* ══════════════════════════════════════════════════════════════ */
+
 const money=c=>(c/100).toFixed(2).replace('.',',').replace(/,00$/,'')+'\u202f€';
-const per=iv=>iv==='year'?' / an':' / mois';
+const per=iv=>iv==='year'?t('per_year'):t('per_month');
 const slotsLeft=k=>SLOTS[k]?+SLOTS[k].left_count:null;
 const find=(tier,founder,iv)=>(PRICES||[]).find(p=>p.tier===tier&&!!p.founder===founder&&p.billing_interval===iv);
+function slotsHtml(n){
+  if(LANG==='en') return 'Only <span class="n">'+n+'</span> spot'+(n>1?'s':'')+' left';
+  if(LANG==='nl') return 'Nog <span class="n">'+n+'</span> plaats'+(n>1?'en':'');
+  return 'Plus que <span class="n">'+n+'</span> place'+(n>1?'s':'');
+}
 
 /* Stripe.js chargé à la demande */
 function stripeJs(){
@@ -182,7 +273,7 @@ function stripeJs(){
 }
 
 function card(opts){
-  const {tier,founder,badge,en,nl,note,feats,hl,capKind}=opts;
+  const {tier,founder,badge,note,feats,hl,capKind}=opts;
   const off=find(tier,founder,IV);
   const reg=founder?find(tier,false,IV):null;
   if(!off) return '';
@@ -191,43 +282,43 @@ function card(opts){
   const fOpen=!capKind||left===null||left>0||CANF[capKind]===true;
   const sold=founder&&!fOpen;
   let h='<div class="card'+(hl?' hl':'')+'">';
-  h+='<div class="tier">'+badge+(en?' <span class="en">'+en+'</span>':'')+(nl?'<span class="nl">'+nl+'</span>':'')+'</div>';
+  h+='<div class="tier">'+badge+'</div>';
   h+='<div class="price">'+money(off.amount_cents)+'<small>'+per(IV)+'</small>';
   if(founder&&reg)h+='<span class="old">'+money(reg.amount_cents)+'</span>';
   h+='</div>';
   h+='<div class="peryear">'+note+'</div>';
   if(founder&&capKind){
     if(left===null) h+='<div class="slots">…</div>';
-    else if(left<=0) h+='<div class="slots out">Complet · Sold out · Volzet</div>';
-    else h+='<div class="slots">Plus que <span class="n">'+left+'</span> place'+(left>1?'s':'')+'</div>';
+    else if(left<=0) h+='<div class="slots out">'+t('soldout')+'</div>';
+    else h+='<div class="slots">'+slotsHtml(left)+'</div>';
   }
   h+='<ul class="feat">'+feats.map(f=>'<li>'+f+'</li>').join('')+'</ul>';
-  if(sold) h+='<button class="cta disabled" disabled>Complet</button>';
-  else h+='<button class="cta'+(founder?'':' ghost')+'" data-lk="'+off.lookup_key+'">'+(founder?'Réserver ma place':'Commencer')+'</button>';
+  if(sold) h+='<button class="cta disabled" disabled>'+t('soldout')+'</button>';
+  else h+='<button class="cta'+(founder?'':' ghost')+'" data-lk="'+off.lookup_key+'">'+(founder?t('reserve'):t('start'))+'</button>';
   return h+'</div>';
 }
 
 function render(){
-  const yearNote=IV==='year'?'Facturé à l\u2019année · deux mois offerts':'Sans engagement · résiliable à tout moment';
+  const yearNote = IV==='year' ? t('note_year') : t('note_month');
 
   $('#founder-cards').innerHTML =
-    card({tier:'membre',founder:true,badge:'Membre Fondateur',en:'Founder Member',nl:'Oprichter-lid',
-          note:'Tarif bloqué à vie · '+yearNote,hl:true,capKind:'membre',
-          feats:['Tout le contenu membre','Les 4 analyses vidéo IA (squat, saut, barre, course)','Coach IA + photo-calories','Badge « Fondateur » + accès prioritaire aux nouveautés']})
-  + card({tier:'coach',founder:true,badge:'Coach Fondateur',en:'Founder Coach',nl:'Oprichter-coach',
-          note:'Tarif bloqué à vie · 30 clients actifs (au lieu de 20)',hl:true,capKind:'coach',
-          feats:['Gestion clients, planning, présences','Messagerie et check-ins','Mis en avant dans l\u2019app','Onboarding direct avec Coach DM']})
-  + card({tier:'coach_plus',founder:true,badge:'Coach+ Fondateur',en:'Founder Coach+',nl:'Oprichter Coach+',
-          note:'Tarif bloqué à vie · 60 clients actifs (au lieu de 50)',hl:true,capKind:'coach',
-          feats:['Tout Coach, capacité étendue','Appels vidéo avec tes clients','Idéal salles & gros volumes']});
+    card({tier:'membre',founder:true,badge:t('tier_membre_f'),
+          note:t('locked_life')+' · '+yearNote,hl:true,capKind:'membre',
+          feats:[t('f_all_member'),t('f_4analyses'),t('f_ai_photo'),t('f_badge')]})
+  + card({tier:'coach',founder:true,badge:t('tier_coach_f'),
+          note:t('locked_life')+' · '+t('cap_coach_f'),hl:true,capKind:'coach',
+          feats:[t('f_client_mgmt'),t('f_msg_checkins'),t('f_featured'),t('f_onboarding')]})
+  + card({tier:'coach_plus',founder:true,badge:t('tier_coachplus_f'),
+          note:t('locked_life')+' · '+t('cap_coachplus_f'),hl:true,capKind:'coach',
+          feats:[t('f_all_coach_ext'),t('f_video_clients'),t('f_gyms')]});
 
   $('#public-cards').innerHTML =
-    card({tier:'membre',founder:false,badge:'Membre',en:'Member',nl:'Lid',note:yearNote,
-          feats:['Nutrition, macros sur-mesure','Séances + Coach IA','Les 4 analyses vidéo IA','Suivi & progression']})
-  + card({tier:'coach',founder:false,badge:'Coach',en:'',nl:'',note:'20 clients actifs · tout inclus',
-          feats:['Tes clients ne paient rien','Planning, réservations, présences','Messagerie et check-ins']})
-  + card({tier:'coach_plus',founder:false,badge:'Coach+',en:'',nl:'',note:'50 clients actifs · tout inclus',
-          feats:['Tout Coach, capacité étendue','Appels vidéo','Sans add-ons à empiler']});
+    card({tier:'membre',founder:false,badge:t('tier_membre'),note:yearNote,
+          feats:[t('f_nutrition'),t('f_sessions_ai'),t('f_4analyses_short'),t('f_tracking')]})
+  + card({tier:'coach',founder:false,badge:t('tier_coach'),note:t('cap_coach'),
+          feats:[t('f_clients_free'),t('f_planning'),t('f_msg_checkins')]})
+  + card({tier:'coach_plus',founder:false,badge:t('tier_coachplus'),note:t('cap_coachplus'),
+          feats:[t('f_all_coach_ext'),t('f_video'),t('f_no_addons')]});
 
   document.querySelectorAll('[data-lk]').forEach(b=>{ b.onclick=()=>onChoose(b.dataset.lk); });
 }
@@ -262,7 +353,7 @@ async function mountCk(){
     if(!STRIPE) STRIPE=S(STRIPE_PK);
     CK=await STRIPE.initEmbeddedCheckout({ fetchClientSecret: async ()=>{
       const { data, error } = await sb.functions.invoke('stripe-checkout',{ body:{
-        action:'checkout', lookup_key:lk, locale:'fr',
+        action:'checkout', lookup_key:lk, locale:LANG,
         consent_withdrawal:true, consent_ts:new Date().toISOString()
       }});
       if(error||!data||!data.client_secret) throw new Error((data&&data.error)||'checkout');
@@ -272,7 +363,7 @@ async function mountCk(){
   }catch(e){
     $('#ck-consent').style.display='';
     $('#ck-mount').style.display='none';
-    $('#ck-msg').textContent='Paiement indisponible. Réessaie dans un instant.';
+    $('#ck-msg').textContent=t('ck_err');
   }
 }
 
@@ -287,6 +378,9 @@ document.querySelectorAll('#iv-toggle button').forEach(b=>{
     render();
   };
 });
+
+/* langue au chargement (statique traduit avant l'arrivée des prix) */
+applyI18n(); renderLangBtns();
 
 (async()=>{
   try{ const { data } = await sb.auth.getSession(); SESSION=data&&data.session?data.session:null; }catch(e){ SESSION=null; }
@@ -305,7 +399,7 @@ document.querySelectorAll('#iv-toggle button').forEach(b=>{
     }
   }
   if(!PRICES.length){
-    $('#founder-cards').innerHTML='<p class="note">Tarifs momentanément indisponibles. Réessaie dans un instant.</p>';
+    $('#founder-cards').innerHTML='<p class="note">'+t('prices_unavailable')+'</p>';
     $('#public-cards').innerHTML='';
     return;
   }
