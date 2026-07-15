@@ -68,7 +68,8 @@ footer a{color:var(--gold);text-decoration:none}
 .ovact .go{background:var(--gold);color:#0A0A0A}
 .ovact .go:disabled{background:#333;color:#888;cursor:not-allowed}
 .ovact .cx{background:transparent;color:var(--mut);border:1px solid var(--line)}
-#ck-mount{margin-top:14px}
+#ck-mount{margin-top:6px}
+.ck-x{display:block;margin-left:auto;background:transparent;border:0;color:var(--mut);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;padding:2px 4px}
 .msg{margin-top:10px;font-size:12.5px;color:var(--red);text-align:center;min-height:16px}
 </style>
 </head>
@@ -139,20 +140,12 @@ footer a{color:var(--gold);text-decoration:none}
   </footer>
 </div>
 
-<!-- ══ Consentement (art. VI.53 CDE) + checkout Stripe embarqué ══ -->
+<!-- ══ Checkout Stripe embarqué — le consentement (art. VI.53 CDE) est collecté DANS Stripe ══ -->
 <div class="ov" id="ck-ov">
   <div class="ovbox">
-    <div id="ck-consent">
-      <h3 data-i18n="ck_title">Avant de payer</h3>
-      <p class="cn" data-i18n-html="ck_consent"><b>Je demande l'accès immédiat au service et je reconnais qu'en démarrant maintenant, je renonce à mon droit de rétractation de 14 jours dès l'ouverture de mon accès premium (art. VI.53 du Code de droit économique).</b></p>
-      <label class="agree"><input type="checkbox" id="ck-agree"><span data-i18n="ck_agree">J'accepte</span></label>
-      <div class="ovact">
-        <button class="cx" id="ck-cancel" data-i18n="ck_cancel">Annuler</button>
-        <button class="go" id="ck-go" disabled data-i18n="ck_go">Continuer vers le paiement</button>
-      </div>
-      <div class="msg" id="ck-msg"></div>
-    </div>
-    <div id="ck-mount" style="display:none"></div>
+    <button class="ck-x" id="ck-cancel" data-i18n="ck_close" aria-label="Fermer">Fermer ✕</button>
+    <div id="ck-mount"></div>
+    <div class="msg" id="ck-msg"></div>
   </div>
 </div>
 
@@ -186,12 +179,8 @@ const T = {
   why_3:{fr:"<b>Trilingue FR / EN / NL</b> — pensé pour la Belgique et au-delà.",en:"<b>Trilingual FR / EN / NL</b> — built for Belgium and beyond.",nl:"<b>Drietalig FR / EN / NL</b> — gemaakt voor België en daarbuiten."},
   why_4:{fr:"<b>Coachs : clients gratuits</b> — tu paies l'outil, pas tes clients ; quota d'actifs clair.",en:"<b>Coaches: free clients</b> — you pay for the tool, not your clients; a clear active-client quota.",nl:"<b>Coaches: gratis klanten</b> — je betaalt voor de tool, niet voor je klanten; een duidelijk quotum actieve klanten."},
   vat_line:{fr:"Régime particulier de franchise — art. 56bis du Code de la TVA. TVA non applicable.",en:"Special exemption scheme — art. 56bis of the Belgian VAT Code. VAT not applicable.",nl:"Bijzondere vrijstellingsregeling — art. 56bis van het btw-wetboek. Btw niet van toepassing."},
-  /* ── Consentement checkout ── */
-  ck_title:{fr:"Avant de payer",en:"Before paying",nl:"Vóór je betaalt"},
-  ck_consent:{fr:"<b>Je demande l'accès immédiat au service et je reconnais qu'en démarrant maintenant, je renonce à mon droit de rétractation de 14 jours dès l'ouverture de mon accès premium (art. VI.53 du Code de droit économique).</b>",en:"<b>I request immediate access to the service and acknowledge that, by starting now, I waive my 14-day right of withdrawal as soon as my premium access opens (art. VI.53 of the Belgian Code of Economic Law).</b>",nl:"<b>Ik vraag onmiddellijke toegang tot de dienst en erken dat ik, door nu te starten, afstand doe van mijn herroepingsrecht van 14 dagen zodra mijn premium-toegang wordt geopend (art. VI.53 van het Wetboek van economisch recht).</b>"},
-  ck_agree:{fr:"J'accepte",en:"I agree",nl:"Ik ga akkoord"},
-  ck_cancel:{fr:"Annuler",en:"Cancel",nl:"Annuleren"},
-  ck_go:{fr:"Continuer vers le paiement",en:"Continue to payment",nl:"Doorgaan naar betaling"},
+  /* ── Checkout ── */
+  ck_close:{fr:"Fermer",en:"Close",nl:"Sluiten"},
   ck_err:{fr:"Paiement indisponible. Réessaie dans un instant.",en:"Payment unavailable. Please try again shortly.",nl:"Betaling niet beschikbaar. Probeer het zo meteen opnieuw."},
   /* ── Cartes (rendues en JS) ── */
   per_month:{fr:" / mois",en:" / month",nl:" / maand"},
@@ -329,13 +318,10 @@ function onChoose(lk){
   if(!SESSION){ location.href='app.html?plan='+encodeURIComponent(lk); return; }
   PENDING=lk;
   if(CK){ try{CK.destroy();}catch(e){} CK=null; }
-  $('#ck-consent').style.display='';
-  $('#ck-mount').style.display='none';
   $('#ck-mount').innerHTML='';
-  $('#ck-agree').checked=false;
-  $('#ck-go').disabled=true;
   $('#ck-msg').textContent='';
   $('#ck-ov').classList.add('show');
+  mountCk();
 }
 function closeCk(){
   $('#ck-ov').classList.remove('show');
@@ -345,30 +331,23 @@ function closeCk(){
 async function mountCk(){
   if(!PENDING) return;
   const lk=PENDING;
-  $('#ck-consent').style.display='none';
-  $('#ck-mount').style.display='';
   $('#ck-mount').innerHTML='';
   try{
     const S=await stripeJs();
     if(!STRIPE) STRIPE=S(STRIPE_PK);
     CK=await STRIPE.initEmbeddedCheckout({ fetchClientSecret: async ()=>{
       const { data, error } = await sb.functions.invoke('stripe-checkout',{ body:{
-        action:'checkout', lookup_key:lk, locale:LANG,
-        consent_withdrawal:true, consent_ts:new Date().toISOString()
+        action:'checkout', lookup_key:lk, locale:LANG
       }});
       if(error||!data||!data.client_secret) throw new Error((data&&data.error)||'checkout');
       return data.client_secret;
     }});
     CK.mount('#ck-mount');
   }catch(e){
-    $('#ck-consent').style.display='';
-    $('#ck-mount').style.display='none';
     $('#ck-msg').textContent=t('ck_err');
   }
 }
 
-$('#ck-agree').onchange=e=>{ $('#ck-go').disabled=!e.target.checked; };
-$('#ck-go').onclick=mountCk;
 $('#ck-cancel').onclick=closeCk;
 $('#ck-ov').onclick=e=>{ if(e.target.id==='ck-ov') closeCk(); };
 document.querySelectorAll('#iv-toggle button').forEach(b=>{
