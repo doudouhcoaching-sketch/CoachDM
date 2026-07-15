@@ -974,7 +974,6 @@
       <div class="rc-filters" id="rc-filters">
         <button class="rc-chip on" data-rf="all" data-i18n="rc_all">Tout</button>
         <button class="rc-chip" data-rf="hp" data-i18n="rc_hp">Haute protéine</button>
-        <button class="rc-chip" data-rf="moroccan" data-i18n="rc_moroccan">Marocain</button>
         <button class="rc-chip" data-rf="pre_workout" data-i18n="meal_pre_workout">Pré-training</button>
         <button class="rc-chip" data-rf="post_workout" data-i18n="meal_post_workout">Post-training</button>
         <button class="rc-chip" data-rf="breakfast" data-i18n="meal_breakfast">Petit-déj</button>
@@ -1490,7 +1489,6 @@ const T = {
  rc_sub:{fr:'Des repas prêts à logger, calés sur tes objectifs.',en:'Ready-to-log meals, built around your goals.',nl:'Kant-en-klare maaltijden, afgestemd op je doelen.'},
  rc_all:{fr:'Tout',en:'All',nl:'Alles'},
  rc_hp:{fr:'Haute protéine',en:'High protein',nl:'Eiwitrijk'},
- rc_moroccan:{fr:'Marocain',en:'Moroccan',nl:'Marokkaans'},
  rc_none:{fr:'Aucune recette.',en:'No recipe.',nl:'Geen recept.'},
  rc_ing:{fr:'Ingrédients',en:'Ingredients',nl:'Ingrediënten'},
  rc_steps:{fr:'Préparation',en:'Method',nl:'Bereiding'},
@@ -2953,7 +2951,6 @@ function rcApplyFilter(){
   const grid=$('#rc-grid'); if(!grid||!RECIPES) return;
   let list=RECIPES.slice();
   if(RC_FILTER==='hp') list=list.filter(r=>+r.protein_per_serving>=30);
-  else if(RC_FILTER==='moroccan') list=list.filter(r=>Array.isArray(r.tags)&&r.tags.includes('moroccan'));
   else if(RC_FILTER!=='all') list=list.filter(r=>r.meal_type===RC_FILTER);
   if(!list.length){ grid.innerHTML=emptyIllus('i-bowl',t('rc_none')); return; }
   grid.innerHTML=list.map(r=>rcCard(r,RECIPES.indexOf(r))).join('');
@@ -2963,7 +2960,7 @@ async function loadRecipes(){
   if(RECIPES){ rcApplyFilter(); return; }
   const grid=$('#rc-grid'); if(grid) grid.innerHTML='<div class="spin"></div>';
   const { data, error } = await sb.from('recipes')
-    .select('id,name_fr,name_en,name_nl,description_fr,description_en,description_nl,servings,prep_time_min,cook_time_min,kcal_per_serving,protein_per_serving,carbs_per_serving,fat_per_serving,image_url,difficulty,meal_type,instructions_fr,instructions_en,instructions_nl,ingredients_fr,ingredients_en,ingredients_nl,tags')
+    .select('id,name_fr,name_en,name_nl,description_fr,description_en,description_nl,servings,prep_time_min,cook_time_min,kcal_per_serving,protein_per_serving,carbs_per_serving,fat_per_serving,image_url,difficulty,meal_type,instructions_fr,instructions_en,instructions_nl,ingredients_fr,ingredients_en,ingredients_nl')
     .eq('is_published',true)
     .order('protein_per_serving',{ascending:false});
   if(error||!data){ if(grid) grid.innerHTML=emptyIllus('i-bowl',t('rc_none')); return; }
