@@ -780,6 +780,17 @@
   .rc-filters::-webkit-scrollbar{display:none}
   .rc-chip{flex:0 0 auto;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);border-radius:999px;padding:7px 13px;font-size:12.5px;font-weight:600;white-space:nowrap;cursor:pointer;transition:.15s}
   .rc-chip.on{background:var(--brand-soft);border-color:color-mix(in srgb,var(--brand) 45%,var(--line));color:var(--brand)}
+  .tr-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+  .tr-head h3{margin:0}
+  .tr-toggle{display:flex;gap:6px}
+  .tr-chart{width:100%;height:auto;display:block}
+  .tr-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;font-size:11.5px;color:var(--muted);font-weight:600}
+  .tr-legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .tr-legend .dash{width:14px;height:0;border-top:2px dashed var(--amber,#D4AF37);border-radius:0;vertical-align:2px}
+  .tr-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px;margin-top:12px}
+  .tr-stat{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center}
+  .tr-stat b{display:block;font-size:17px;font-weight:800}
+  .tr-stat small{font-size:10.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
   .rc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .rc-card{position:relative;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--surface-2);cursor:pointer;transition:transform .12s,border-color .12s}
   .rc-card:active{transform:scale(.975);border-color:color-mix(in srgb,var(--brand) 40%,var(--line))}
@@ -990,6 +1001,16 @@
     <div class="block">
       <h3 data-i18n="jo_today">Aujourd'hui</h3>
       <div id="jo-logs"><p class="empty" data-i18n="jo_none">Aucun aliment enregistré.</p></div>
+    </div>
+    <div class="block">
+      <div class="tr-head">
+        <h3 data-i18n="tr_title">Tendances</h3>
+        <div class="tr-toggle">
+          <button class="rc-chip on" data-tr="7" data-i18n="tr_d7">7 j</button>
+          <button class="rc-chip" data-tr="30" data-i18n="tr_d30">30 j</button>
+        </div>
+      </div>
+      <div id="tr-body"><p class="empty" data-i18n="tr_empty">Logge tes repas 2 jours ou plus pour voir tes tendances.</p></div>
     </div>
   </div>
 
@@ -1501,6 +1522,15 @@ const T = {
  rc_diff_easy:{fr:'Facile',en:'Easy',nl:'Makkelijk'},
  rc_diff_medium:{fr:'Moyen',en:'Medium',nl:'Gemiddeld'},
  rc_diff_hard:{fr:'Difficile',en:'Hard',nl:'Moeilijk'},
+ tr_title:{fr:'Tendances',en:'Trends',nl:'Trends'},
+ tr_d7:{fr:'7 j',en:'7 d',nl:'7 d'},
+ tr_d30:{fr:'30 j',en:'30 d',nl:'30 d'},
+ tr_empty:{fr:'Logge tes repas 2 jours ou plus pour voir tes tendances.',en:'Log your meals on 2+ days to see your trends.',nl:'Log je maaltijden op 2+ dagen om je trends te zien.'},
+ tr_avg_kcal:{fr:'kcal / jour',en:'kcal / day',nl:'kcal / dag'},
+ tr_avg_prot:{fr:'prot / jour',en:'protein / day',nl:'eiwit / dag'},
+ tr_adh:{fr:'adh\u00e9rence',en:'adherence',nl:'naleving'},
+ tr_target:{fr:'Objectif',en:'Target',nl:'Doel'},
+ tr_inrange:{fr:'Dans la cible',en:'On target',nl:'Op doel'},
  nav_seances:{fr:'Séances',en:'Workouts',nl:'Trainingen'},
  nav_cours:{fr:'Cours',en:'Classes',nl:'Lessen'},
  nav_ia:{fr:'Coach IA',en:'AI Coach',nl:'AI-coach'},
@@ -2902,6 +2932,7 @@ $('#sh-add').onclick = async ()=>{
 };
 
 async function loadLogs(){
+  loadTrends();
   const { data } = await sb.from('food_logs')
     .select('id,food_id,meal_type,quantity_g,kcal')
     .eq('user_id',USER.id).eq('logged_date',todayStr())
@@ -3558,6 +3589,80 @@ function renderIALock(){
 if($('#up-cta')) $('#up-cta').onclick=()=>{ $('#up-ov').classList.remove('show'); openSubSheet(); };
 if($('#up-later')) $('#up-later').onclick=()=>$('#up-ov').classList.remove('show');
 if($('#up-ov')) $('#up-ov').onclick=(e)=>{ if(e.target.id==='up-ov') $('#up-ov').classList.remove('show'); };
+
+/* ---------------- TENDANCES ---------------- */
+let TR_DAYS=7, TR_DATA=null, TR_BUSY=false;
+const trDstr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+async function loadTrends(){
+  const body=$('#tr-body'); if(!body||!USER||TR_BUSY) return;
+  TR_BUSY=true;
+  const from=new Date(); from.setDate(from.getDate()-29);
+  const { data } = await sb.from('food_logs')
+    .select('logged_date,kcal,protein_g')
+    .eq('user_id',USER.id).gte('logged_date',trDstr(from));
+  TR_BUSY=false;
+  TR_DATA=data||[];
+  renderTrends();
+}
+function renderTrends(){
+  const body=$('#tr-body'); if(!body||TR_DATA===null) return;
+  const map={};
+  TR_DATA.forEach(l=>{ const k=l.logged_date; if(!map[k]) map[k]={k:0,p:0}; map[k].k+=(+l.kcal||0); map[k].p+=(+l.protein_g||0); });
+  const days=[];
+  for(let i=TR_DAYS-1;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const key=trDstr(d);
+    days.push({key,d,k:(map[key]?map[key].k:0),p:(map[key]?map[key].p:0)});
+  }
+  const logged=days.filter(x=>x.k>0);
+  if(logged.length<2){ body.innerHTML=`<p class="empty">${t('tr_empty')}</p>`; return; }
+  const tgtK=TARGETS?(+TARGETS.daily_calories_kcal||0):0;
+  const avgK=Math.round(logged.reduce((a,x)=>a+x.k,0)/logged.length);
+  const avgP=Math.round(logged.reduce((a,x)=>a+x.p,0)/logged.length);
+  const adh=tgtK?Math.round(100*logged.filter(x=>Math.abs(x.k-tgtK)<=tgtK*.1).length/logged.length):null;
+
+  const W=340,H=158,PT=10,PB=24,PL=4,PR=4;
+  const iw=W-PL-PR, ih=H-PT-PB;
+  const maxY=(Math.max(tgtK,...days.map(x=>x.k))*1.12)||1;
+  const n=days.length, gap=n>14?2:6;
+  const bw=(iw-gap*(n-1))/n;
+  const loc = LANG==='fr'?'fr-BE':(LANG==='nl'?'nl-BE':'en-GB');
+  let bars='', labels='';
+  days.forEach((x,i)=>{
+    const bx=PL+i*(bw+gap);
+    const h=x.k===0?2:Math.max(3, ih*x.k/maxY);
+    const by=PT+ih-h;
+    const inRange=tgtK && x.k>0 && Math.abs(x.k-tgtK)<=tgtK*.1;
+    const fill=x.k===0?'var(--line)':(inRange?'var(--ok)':'var(--brand)');
+    bars+=`<rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="${Math.min(3,bw/2).toFixed(1)}" fill="${fill}"/>`;
+    const show = n<=7 ? true : (i%7===0 || i===n-1);
+    if(show){
+      const lbl = n<=7 ? x.d.toLocaleDateString(loc,{weekday:'short'}).slice(0,2) : String(x.d.getDate());
+      labels+=`<text x="${(bx+bw/2).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="9.5" font-weight="600" fill="var(--muted)">${lbl}</text>`;
+    }
+  });
+  let target='';
+  if(tgtK && tgtK<maxY){
+    const ty=PT+ih-ih*tgtK/maxY;
+    target=`<line x1="${PL}" y1="${ty.toFixed(1)}" x2="${W-PR}" y2="${ty.toFixed(1)}" stroke="var(--amber,#D4AF37)" stroke-width="1.6" stroke-dasharray="5 4"/>`;
+  }
+  body.innerHTML=`
+    <svg class="tr-chart" viewBox="0 0 ${W} ${H}" role="img">${bars}${target}${labels}</svg>
+    <div class="tr-legend">
+      <span><i style="background:var(--brand)"></i>kcal</span>
+      ${tgtK?`<span><i style="background:var(--ok)"></i>${t('tr_inrange')} \u00b110%</span><span><i class="dash"></i>${t('tr_target')} ${r0(tgtK)}</span>`:''}
+    </div>
+    <div class="tr-stats">
+      <div class="tr-stat"><b>${avgK}</b><small>${t('tr_avg_kcal')}</small></div>
+      <div class="tr-stat"><b>${avgP} g</b><small>${t('tr_avg_prot')}</small></div>
+      ${adh!==null?`<div class="tr-stat"><b>${adh}%</b><small>${t('tr_adh')}</small></div>`:''}
+    </div>`;
+}
+document.querySelectorAll('.tr-toggle .rc-chip').forEach(b=>b.onclick=()=>{
+  TR_DAYS=+b.dataset.tr;
+  document.querySelectorAll('.tr-toggle .rc-chip').forEach(x=>x.classList.toggle('on',x===b));
+  if(TR_DATA===null) loadTrends(); else renderTrends();
+});
 
 /* ---------------- TABS ---------------- */
 const TITLES={home:["Accueil",""],journal:["Journal","Cherche, ajoute, suis tes repas"],seances:["Séances","Tes programmes Coach DM"],cours:["Cours","Réserve tes séances collectives & PT"],boutique:["Boutique","Programmes PDF premium"],ia:["Coach IA",""],profile:["Profil",""]};
