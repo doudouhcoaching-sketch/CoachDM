@@ -164,6 +164,10 @@
   .food .fk{font-size:12px;color:var(--muted);margin-top:2px}
   .food .add{flex:0 0 auto;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;
     background:var(--brand-soft);color:var(--brand);font-size:20px;font-weight:700}
+  .pchips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px}
+  .pchip{font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:transparent;cursor:pointer;transition:.15s}
+  .pchip.on{border-color:var(--brand);color:var(--brand);background:rgba(0,255,163,.08)}
+  .pverif{font-size:10px;font-weight:700;color:var(--brand);border:1px solid var(--brand);border-radius:999px;padding:1px 6px;margin-left:6px;vertical-align:middle}
   .logitem{display:flex;justify-content:space-between;align-items:center;padding:12px 4px;border-bottom:1px solid var(--line)}
   .logitem:last-child{border-bottom:none}
   .logitem .meal{font-size:11px;color:var(--brand);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
@@ -1263,6 +1267,7 @@
           <option value="post_workout" data-i18n="meal_post_workout">Post-training</option>
         </select></div>
     </div>
+    <div class="pchips" id="sh-portions"></div>
     <div class="fk" id="sh-preview" style="margin:2px 0 16px"></div>
     <button class="btn" id="sh-add" data-i18n="sh_add">Ajouter au journal</button>
     <button class="btn subtle" id="sh-cancel" style="margin-top:10px" data-i18n="btn_cancel">Annuler</button>
@@ -2834,12 +2839,30 @@ function openSheet(food){
   $('#sh-per').textContent = `${r0(food.kcal_per_100g)} kcal / 100 g`;
   $('#sh-qty').value = food.default_serving_g || 100;
   updatePreview();
+  loadPortions(food);
   $('#sheet-ov').classList.add('show');
+}
+async function loadPortions(food){
+  const box=$('#sh-portions'); box.innerHTML='';
+  if(!food.id) return;
+  const { data } = await sb.from('food_portions')
+    .select('label_fr,label_en,label_nl,grams,sort_order')
+    .eq('food_id',food.id).order('sort_order').limit(8);
+  if(!data||!data.length||SELECTED!==food) return;
+  box.innerHTML = data.map((p,i)=>`<button type="button" class="pchip" data-pg="${+p.grams}">${esc(pick(p,'label')||p.label_fr)} · ${r0(p.grams)}g</button>`).join('');
+  box.querySelectorAll('.pchip').forEach(ch=>{
+    ch.onclick=()=>{
+      $('#sh-qty').value = +ch.dataset.pg;
+      box.querySelectorAll('.pchip').forEach(c=>c.classList.remove('on'));
+      ch.classList.add('on');
+      updatePreview();
+    };
+  });
 }
 function closeSheet(){ $('#sheet-ov').classList.remove('show'); SELECTED=null; }
 $('#sh-cancel').onclick = closeSheet;
 $('#sheet-ov').onclick = (e)=>{ if(e.target.id==='sheet-ov') closeSheet(); };
-$('#sh-qty').oninput = updatePreview;
+$('#sh-qty').oninput = ()=>{ $('#sh-portions').querySelectorAll('.pchip').forEach(c=>c.classList.remove('on')); updatePreview(); };
 function updatePreview(){
   if(!SELECTED) return;
   const q=parseFloat($('#sh-qty').value)||0, k=q/100;
@@ -3100,18 +3123,38 @@ function phRender(){
         <span style="opacity:.6;font-size:12px">× ${esc(pick(it,'unit')||it.unit_fr||'')} · <span data-phgv="${i}">${r0(it.grams)}</span> g</span>`
       : `<input type="number" inputmode="numeric" value="${r0(it.grams)}" data-phg="${i}" style="width:64px;text-align:right" />
         <span style="opacity:.6;font-size:12px">g</span>`;
+    const chips = (!countable && it.portions && it.portions.length)
+      ? `<div class="pchips" style="margin:6px 0 2px">${it.portions.slice(0,5).map(p=>
+          `<button type="button" class="pchip${Math.round(p.grams)===Math.round(it.grams)?' on':''}" data-phch="${i}" data-pg="${+p.grams}">${esc(pick(p,'label')||p.label_fr)} · ${r0(p.grams)}g</button>`).join('')}</div>`
+      : '';
     return `
-    <div class="logitem">
-      <div style="flex:1;min-width:0"><div class="ln">${esc(pick(it,'name')||it.name_fr)}</div>
+    <div class="logitem" style="flex-wrap:wrap">
+      <div style="flex:1;min-width:0"><div class="ln">${esc(pick(it,'name')||it.name_fr)}${it.matched?'<span class="pverif">✓ Ciqual</span>':''}</div>
         <div class="lq">${r0(it.kcal_per_100g)} kcal/100g · P ${r1(it.protein_per_100g)} · G ${r1(it.carbs_per_100g)} · L ${r1(it.fat_per_100g)}</div></div>
       <div style="display:flex;align-items:center;gap:4px">
         ${qty}
         <span class="del" data-phx="${i}" title="Retirer">✕</span>
       </div>
+      ${chips?'<div style="flex-basis:100%">'+chips+'</div>':''}
     </div>`;
   }).join('');
+  $('#ph-items').querySelectorAll('[data-phch]').forEach(ch=>{
+    ch.onclick=()=>{
+      const i=+ch.dataset.phch, g=+ch.dataset.pg, it=PH_ITEMS[i];
+      it.grams=g;
+      const inp=$('#ph-items').querySelector('[data-phg="'+i+'"]'); if(inp) inp.value=r0(g);
+      ch.parentElement.querySelectorAll('.pchip').forEach(c=>c.classList.remove('on'));
+      ch.classList.add('on');
+      phTotal();
+    };
+  });
   $('#ph-items').querySelectorAll('[data-phg]').forEach(inp=>{
-    inp.oninput = ()=>{ PH_ITEMS[+inp.dataset.phg].grams = parseFloat(inp.value)||0; phTotal(); };
+    inp.oninput = ()=>{
+      const i=+inp.dataset.phg;
+      PH_ITEMS[i].grams = parseFloat(inp.value)||0;
+      $('#ph-items').querySelectorAll('[data-phch="'+i+'"]').forEach(c=>c.classList.remove('on'));
+      phTotal();
+    };
   });
   $('#ph-items').querySelectorAll('[data-phc]').forEach(inp=>{
     inp.oninput = ()=>{
