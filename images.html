@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="robots" content="noindex,nofollow" />
+<meta name="theme-color" content="#050807" />
+<title>Coach DM · Images</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#050807; --surface:#0D1310; --surface-2:#131B16; --line:#1E2A22;
+    --text:#F2F7F4; --muted:#8FA398; --green:#00FFA3; --green-soft:rgba(0,255,163,.12);
+    --gold:#E9C767; --gold-2:#9A6E1B; --warn:#F87171; --ok:#34D399;
+    --radius:20px; --radius-sm:13px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%}
+  body{font-family:'Outfit',-apple-system,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;border:none;color:inherit;background:none}
+  input{font-family:inherit;font-size:16px}
+  .hidden{display:none!important}
+
+  .screen{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:32px 22px;max-width:440px;margin:0 auto}
+  .mark{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;margin:0 auto 14px;
+    background:linear-gradient(145deg,var(--gold),var(--gold-2));font-weight:800;font-size:24px;color:#050807;
+    box-shadow:0 12px 30px rgba(233,199,103,.25)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+  h1{font-size:22px;font-weight:800;margin:0 0 4px;text-align:center}
+  .sub{color:var(--muted);font-size:13px;text-align:center;margin:0 0 20px}
+  .field{margin-bottom:13px}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 6px 2px;text-transform:uppercase;letter-spacing:.5px}
+  .field input{width:100%;padding:13px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);outline:none}
+  .field input:focus{border-color:var(--green);box-shadow:0 0 0 4px var(--green-soft)}
+  .btn{width:100%;padding:14px;border-radius:var(--radius-sm);font-weight:700;font-size:15px;
+    background:var(--green);color:#04110B}
+  .btn:active{transform:scale(.99)}
+  .btn[disabled]{opacity:.55;pointer-events:none}
+  .msg{margin-top:12px;font-size:13px;text-align:center;min-height:16px}
+  .msg.err{color:var(--warn)} .msg.ok{color:var(--ok)}
+
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(5,8,7,.82);backdrop-filter:blur(16px);
+    padding:calc(14px + env(safe-area-inset-top)) 18px 12px;border-bottom:1px solid var(--line)}
+  .topbar .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .topbar h2{margin:0;font-size:19px;font-weight:800}
+  .topbar h2 span{color:var(--gold)}
+  .count{font-size:13px;font-weight:700;color:var(--green);background:var(--green-soft);
+    border:1px solid rgba(0,255,163,.25);border-radius:999px;padding:5px 12px;white-space:nowrap}
+  .out{font-size:13px;color:var(--muted);padding:6px 10px}
+
+  .wrap{max-width:640px;margin:0 auto;padding:16px 16px calc(40px + env(safe-area-inset-bottom))}
+  .hint{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);
+    padding:12px 14px;font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:16px}
+  .hint b{color:var(--gold)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+  .rc{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden;position:relative}
+  .rc .thumb{width:100%;aspect-ratio:4/3;background-size:cover;background-position:center;
+    display:grid;place-items:center;position:relative}
+  .rc .thumb.empty{background:linear-gradient(150deg,#101913,#0A0F0C)}
+  .rc .thumb.empty::after{content:'📷 Ajouter';font-size:13px;font-weight:700;color:var(--green);
+    background:rgba(5,8,7,.6);border:1px dashed rgba(0,255,163,.4);border-radius:10px;padding:8px 12px}
+  .rc .thumb .spin{position:absolute;inset:0;display:grid;place-items:center;background:rgba(5,8,7,.65)}
+  .rc .thumb .spin::after{content:'';width:26px;height:26px;border-radius:50%;
+    border:3px solid rgba(0,255,163,.25);border-top-color:var(--green);animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .rc .body{padding:10px 12px 12px}
+  .rc .nm{font-size:14px;font-weight:700;line-height:1.25;min-height:35px}
+  .rc .mt{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+  .rc .acts{display:flex;gap:6px;margin-top:9px}
+  .rc .acts button{flex:1;font-size:12px;font-weight:700;padding:8px 6px;border-radius:9px;
+    background:var(--surface-2);border:1px solid var(--line)}
+  .rc .acts .up{color:var(--green)}
+  .rc .acts .pr{color:var(--gold)}
+  .rc .del{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;
+    background:rgba(5,8,7,.7);border:1px solid var(--line);color:var(--warn);font-size:13px;font-weight:800;
+    display:grid;place-items:center}
+
+  .toast{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
+    background:var(--surface-2);border:1px solid var(--line);color:var(--text);font-size:14px;font-weight:600;
+    padding:12px 18px;border-radius:14px;opacity:0;transition:.25s;z-index:60;max-width:88vw;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="screen" id="scr-login">
+  <div class="mark">DM</div>
+  <div class="card">
+    <h1>Images · Recettes</h1>
+    <p class="sub">Réservé Coach DM (admin)</p>
+    <div class="field"><label>Email</label><input id="lg-email" type="email" autocomplete="email" /></div>
+    <div class="field"><label>Mot de passe</label><input id="lg-pass" type="password" autocomplete="current-password" /></div>
+    <button class="btn" id="lg-btn">Se connecter</button>
+    <div class="msg" id="lg-msg"></div>
+  </div>
+</div>
+
+<!-- GATE -->
+<div class="screen hidden" id="scr-gate">
+  <div class="mark">DM</div>
+  <div class="card">
+    <h1>Accès refusé</h1>
+    <p class="sub">Cette page est réservée à l'administrateur.</p>
+    <button class="btn" id="gate-out">Se déconnecter</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="hidden" id="scr-main">
+  <div class="topbar">
+    <div class="row">
+      <h2><span>Images</span> · Recettes</h2>
+      <span class="count" id="cnt">—</span>
+      <button class="out" id="btn-out">Quitter</button>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="hint">
+      <b>Workflow :</b> « Prompt » copie un prompt Gemini prêt à coller (style Coach DM verrouillé, sans texte dans l'image).
+      Génère l'image, enregistre-la dans Photos, puis « Ajouter » ici. L'image est compressée et visible immédiatement dans l'app.
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+</div>
+
+<input type="file" id="fpick" accept="image/*" class="hidden" />
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const sb = createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
+
+const BUCKET = 'food-images';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let RECIPES = [], CUR = null;
+
+const MEALS = {breakfast:'Petit-déj',lunch:'Déjeuner',dinner:'Dîner',snack:'Collation',pre_workout:'Pré-training',post_workout:'Post-training'};
+
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2600); }
+function show(id){ ['scr-login','scr-gate','scr-main'].forEach(s=>$('#'+s).classList.toggle('hidden', s!==id)); }
+
+/* ---------- AUTH ---------- */
+async function boot(){
+  const { data:{ user } } = await sb.auth.getUser();
+  if(!user){ show('scr-login'); return; }
+  const { data:prof } = await sb.from('profiles').select('role').eq('id',user.id).maybeSingle();
+  if(!prof || prof.role!=='admin'){ show('scr-gate'); return; }
+  show('scr-main');
+  await loadRecipes();
+}
+$('#lg-btn').onclick = async ()=>{
+  const m=$('#lg-msg'); m.className='msg'; m.textContent='';
+  $('#lg-btn').disabled = true;
+  const { error } = await sb.auth.signInWithPassword({ email:$('#lg-email').value.trim(), password:$('#lg-pass').value });
+  $('#lg-btn').disabled = false;
+  if(error){ m.className='msg err'; m.textContent='Connexion impossible.'; return; }
+  boot();
+};
+$('#btn-out').onclick = $('#gate-out').onclick = async ()=>{ await sb.auth.signOut(); show('scr-login'); };
+
+/* ---------- LIST ---------- */
+async function loadRecipes(){
+  const { data, error } = await sb.from('recipes')
+    .select('id,name_fr,description_fr,meal_type,image_url,kcal_per_serving,protein_per_serving')
+    .order('meal_type').order('name_fr');
+  if(error){ toast('Erreur de chargement'); return; }
+  RECIPES = data || [];
+  render();
+}
+function render(){
+  const done = RECIPES.filter(r=>r.image_url).length;
+  $('#cnt').textContent = `${done}/${RECIPES.length} photos`;
+  $('#grid').innerHTML = RECIPES.map(r=>{
+    const has = !!r.image_url;
+    const th = has
+      ? `<div class="thumb" style="background-image:url('${esc(r.image_url)}')"></div>`
+      : `<div class="thumb empty"></div>`;
+    return `<div class="rc" data-id="${r.id}">
+      ${th}
+      ${has?`<button class="del" title="Retirer la photo">✕</button>`:''}
+      <div class="body">
+        <div class="nm">${esc(r.name_fr)}</div>
+        <div class="mt">${MEALS[r.meal_type]||esc(r.meal_type||'')}</div>
+        <div class="acts">
+          <button class="pr">Prompt</button>
+          <button class="up">${has?'Remplacer':'Ajouter'}</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('#grid .rc').forEach(el=>{
+    const r = RECIPES.find(x=>x.id===el.dataset.id);
+    el.querySelector('.up').onclick = ()=>{ CUR=r; $('#fpick').value=''; $('#fpick').click(); };
+    el.querySelector('.thumb').onclick = ()=>{ CUR=r; $('#fpick').value=''; $('#fpick').click(); };
+    el.querySelector('.pr').onclick = ()=>copyPrompt(r);
+    const del = el.querySelector('.del');
+    if(del) del.onclick = ()=>removeImage(r);
+  });
+}
+
+/* ---------- GEMINI PROMPT ---------- */
+function copyPrompt(r){
+  const p = `Professional food photography of "${r.name_fr}"${r.description_fr?` (${r.description_fr})`:''}. `+
+`Single plated dish, 45-degree angle, dark matte background (#050807), warm directional light, subtle steam, `+
+`shallow depth of field, premium sports-nutrition aesthetic, appetizing and realistic. `+
+`Strictly NO text, NO letters, NO watermark, NO logo, NO hands. 4:3 landscape.`;
+  navigator.clipboard.writeText(p).then(
+    ()=>toast('Prompt Gemini copié ✓'),
+    ()=>{ prompt('Copie le prompt :', p); }
+  );
+}
+
+/* ---------- UPLOAD ---------- */
+$('#fpick').onchange = async e=>{
+  const file = e.target.files && e.target.files[0];
+  if(!file || !CUR) return;
+  const r = CUR;
+  const card = document.querySelector(`.rc[data-id="${r.id}"] .thumb`);
+  const spin = document.createElement('div'); spin.className='spin';
+  if(card) card.appendChild(spin);
+  try{
+    const blob = await compress(file, 1200, .85);
+    const path = `recipes/${r.id}.jpg`;
+    const { error:ue } = await sb.storage.from(BUCKET).upload(path, blob, { upsert:true, contentType:'image/jpeg', cacheControl:'31536000' });
+    if(ue) throw ue;
+    const { data:pu } = sb.storage.from(BUCKET).getPublicUrl(path);
+    const url = pu.publicUrl + '?v=' + Date.now();
+    const { error:re } = await sb.from('recipes').update({ image_url:url }).eq('id', r.id);
+    if(re) throw re;
+    r.image_url = url;
+    render();
+    toast('Photo enregistrée ✓');
+  }catch(err){
+    console.error(err);
+    spin.remove();
+    toast('Échec de l\u2019upload');
+  }
+};
+
+async function compress(file, maxDim, quality){
+  const img = await new Promise((res,rej)=>{
+    const i = new Image();
+    i.onload = ()=>res(i); i.onerror = rej;
+    i.src = URL.createObjectURL(file);
+  });
+  let { width:w, height:h } = img;
+  if(Math.max(w,h) > maxDim){
+    const k = maxDim / Math.max(w,h);
+    w = Math.round(w*k); h = Math.round(h*k);
+  }
+  const cv = document.createElement('canvas');
+  cv.width = w; cv.height = h;
+  cv.getContext('2d').drawImage(img, 0, 0, w, h);
+  URL.revokeObjectURL(img.src);
+  const blob = await new Promise(res=>cv.toBlob(res, 'image/jpeg', quality));
+  if(!blob) throw new Error('compress failed');
+  return blob;
+}
+
+/* ---------- DELETE ---------- */
+async function removeImage(r){
+  if(!confirm(`Retirer la photo de « ${r.name_fr} » ?`)) return;
+  await sb.storage.from(BUCKET).remove([`recipes/${r.id}.jpg`]);
+  const { error } = await sb.from('recipes').update({ image_url:null }).eq('id', r.id);
+  if(error){ toast('Échec'); return; }
+  r.image_url = null;
+  render();
+  toast('Photo retirée');
+}
+
+boot();
+</script>
+</body>
+</html>
