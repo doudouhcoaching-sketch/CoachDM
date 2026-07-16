@@ -769,7 +769,7 @@
   .ct-line b{color:var(--brand)}
   .ct-reco{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:16px;padding:10px;cursor:pointer;transition:transform .12s,border-color .12s;background:var(--surface-2)}
   .ct-reco:active{transform:scale(.98);border-color:color-mix(in srgb,var(--brand) 40%,var(--line))}
-  .ct-thumb{width:58px;height:58px;border-radius:12px;flex:0 0 auto;background-size:cover;background-position:center}
+  .ct-thumb{width:88px;height:88px;border-radius:14px;flex:0 0 auto;background-size:cover;background-position:center;box-shadow:0 4px 14px rgba(0,0,0,.18)}
   .ct-info{flex:1;min-width:0}
   .ct-name{font-size:13.5px;font-weight:700;line-height:1.25;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ct-macro{font-size:11.5px;color:var(--muted);font-weight:600}
@@ -2759,7 +2759,7 @@ async function buildCoachToday(sum){
   const reco=$('#ct-reco');
   if(reco){
     const time=(r.prep_time_min||0)+(r.cook_time_min||0);
-    reco.innerHTML = `<div class="ct-thumb" style="${rcBg(r,'.5')}"></div>
+    reco.innerHTML = `<div class="ct-thumb" style="${rcBg(r,0)}"></div>
       <div class="ct-info"><div class="ct-name">${esc(pick(r,'name'))}</div>
       <div class="ct-macro">${r0(r.protein_per_serving)}g P \u00b7 ${r0(r.kcal_per_serving)} kcal${time?(' \u00b7 '+time+' '+t('rc_min')):''}</div></div>
       <span class="ct-go"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>`;
@@ -2935,7 +2935,11 @@ let RECIPES=null, RC_FILTER='all', RC_CUR=null, RC_SRV=1;
 const RC_HUES={breakfast:38,lunch:150,dinner:262,snack:12,pre_workout:190,post_workout:330};
 function rcHue(r){ return (r.meal_type in RC_HUES) ? RC_HUES[r.meal_type] : 150; }
 function rcBg(r,dark){
-  if(r.image_url) return `background-image:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,${dark})),url('${esc(r.image_url)}')`;
+  if(r.image_url){
+    const d=parseFloat(dark)||0;
+    if(!d) return `background-image:url('${esc(r.image_url)}')`;
+    return `background-image:linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(0,0,0,${d})),url('${esc(r.image_url)}')`;
+  }
   const h=rcHue(r);
   return `background-image:linear-gradient(150deg,hsl(${h} 55% 22%),hsl(${(h+40)%360} 50% 13%))`;
 }
@@ -2945,7 +2949,7 @@ function rcCard(r,i){
   const diff = r.difficulty ? `<span>${esc(t('rc_diff_'+r.difficulty))}</span>` : '';
   const time = (+r.prep_time_min||0)+(+r.cook_time_min||0);
   return `<div class="rc-card" data-i="${i}">
-    <div class="rc-thumb" style="${rcBg(r,'.55')}">
+    <div class="rc-thumb" style="${rcBg(r,'.45')}">
       ${hp}
       <span class="rc-ic"><svg viewBox="0 0 24 24"><path d="M4 3v6a3 3 0 0 0 6 0V3M7 3v18M20 3c-1.8 0-3 2-3 5s1.2 4 3 4v9"/></svg></span>
       <span class="rc-kcal">${r0(r.kcal_per_serving)} kcal</span>
@@ -2991,7 +2995,7 @@ async function rcOpen(r){
   const desc=pick(r,'description');
   const steps=(r['instructions_'+LANG]||r.instructions_fr||[]);
   box.innerHTML=`
-    <div class="rc-hero" style="${rcBg(r,'.5')}"></div>
+    <div class="rc-hero" style="${rcBg(r,'.2')}"></div>
     <h3>${esc(pick(r,'name'))}</h3>
     ${desc?`<div class="rc-sub">${esc(desc)}</div>`:'<div style="height:4px"></div>'}
     <div class="rc-stats">
