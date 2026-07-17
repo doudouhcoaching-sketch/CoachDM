@@ -2124,7 +2124,7 @@ const PLAN_KEY='cdm_pending_plan';
   try{
     const lk=new URLSearchParams(location.search).get('plan');
     if(lk && /^[a-z0-9_]+$/i.test(lk)) localStorage.setItem(PLAN_KEY, lk);
-    if(lk){ history.replaceState(null,'',location.pathname); }
+    if(lk){ history.replaceState(history.state,'',location.pathname+location.hash); }
   }catch(_){}
 })();
 async function resumePendingPlan(){
@@ -2417,7 +2417,7 @@ async function checkoutReturn(){
   const q=new URLSearchParams(location.search);
   if(!q.get('checkout') && !q.get('portal')) return;
   const success=q.get('checkout')==='success';
-  history.replaceState(null,'',location.pathname);
+  history.replaceState(history.state,'',location.pathname+location.hash);
   if(!success) return;
   toast(t('sub_success'));
   try{ await sb.auth.getSession(); }catch(e){}
@@ -5081,6 +5081,108 @@ $('#p-name-save').onclick = async ()=>{
   const ok={fr:'Enregistré ✓',en:'Saved ✓',nl:'Opgeslagen ✓'}[LANG];
   const ko={fr:'Échec',en:'Failed',nl:'Mislukt'}[LANG];
   setMsg('p-name-msg', error?ko:ok, error?'err':'ok');
+};
+
+/* ---------------- HISTORIQUE DE NAVIGATION (bouton retour) ----------------
+   Objectif : que le bouton "retour" du navigateur / du téléphone navigue
+   DANS l'app (ferme les popups, revient à l'onglet précédent) au lieu de
+   sortir vers coachdm.be ou le site précédent. Comportement type "vraie app". */
+let NAV_POP=false, NAV_READY=false, EXIT_ARMED=0;
+
+function curTab(){ return document.querySelector('.tabpane.active')?.id.replace('pane-','') || 'home'; }
+function curNavState(){
+  const pane=document.getElementById('pane-profile');
+  const pf=(curTab()==='profile' && pane && pane.dataset.view && pane.dataset.view!=='hub') ? pane.dataset.view : null;
+  return pf ? {tab:'profile', pf} : {tab:curTab()};
+}
+function navHash(st){ return '#'+(st.pf ? 'profile-'+st.pf : st.tab); }
+
+/* Chaque changement d'onglet = une entrée dans l'historique */
+const _switchTab_hist = switchTab;
+switchTab = function(tab){
+  const prev = curTab();
+  _switchTab_hist(tab);
+  if(NAV_READY && !NAV_POP && tab!==prev){
+    history.pushState({tab},'','#'+tab);
+  }
+};
+
+/* Idem pour les sous-pages du Profil (infos, records, abonnement...) */
+const _pfShow_hist = pfShow;
+pfShow = function(view){
+  const pane=document.getElementById('pane-profile');
+  const prev=pane ? (pane.dataset.view||'hub') : 'hub';
+  _pfShow_hist(view);
+  if(NAV_READY && !NAV_POP && view!==prev && view!=='hub'){
+    history.pushState({tab:'profile', pf:view},'','#profile-'+view);
+  }
+};
+
+/* "Retour" ferme d'abord la popup ouverte (paiement, fiche recette, chat...) */
+function navCloseTopOverlay(){
+  const pairs=[
+    ['ck-ov',   ()=>{ try{ closeCheckout(); }catch(_){ $('#ck-ov')?.classList.remove('show'); } }],
+    ['yt-ov',   ()=>{ try{ closeDemo(); }catch(_){ $('#yt-ov')?.classList.remove('show'); } }],
+    ['chat-ov', ()=>{ try{ closeCoachChat(); }catch(_){ $('#chat-ov')?.classList.remove('show'); } }],
+    ['sheet-ov',()=>{ try{ closeSheet(); }catch(_){ $('#sheet-ov')?.classList.remove('show'); } }],
+    ['rc-ov',   ()=>{ try{ rcClose(); }catch(_){ $('#rc-ov')?.classList.remove('show'); } }],
+    ['lead-ov', ()=>{ try{ closeLead(); }catch(_){ $('#lead-ov')?.classList.remove('show'); } }],
+    ['sub-ov',  el=>el.classList.remove('show')],
+    ['coach-ov',el=>el.classList.remove('show')],
+    ['fw-ov',   el=>el.classList.remove('show')],
+    ['ph-ov',   el=>el.classList.remove('show')],
+    ['pr-ov',   el=>el.classList.remove('show')],
+  ];
+  for(const [id,close] of pairs){
+    const el=document.getElementById(id);
+    if(el && el.classList.contains('show')){ close(el); return true; }
+  }
+  return false;
+}
+
+window.addEventListener('popstate',(e)=>{
+  if(!NAV_READY) return;
+
+  /* 1) Une popup est ouverte -> on la ferme, on reste sur place */
+  if(navCloseTopOverlay()){
+    const st=curNavState();
+    history.pushState(st,'',navHash(st));
+    return;
+  }
+
+  const st=e.state;
+  if(st && st.tab){
+    /* 2) Navigation interne : revenir à l'écran précédent */
+    NAV_POP=true;
+    try{
+      switchTab(st.tab);
+      if(st.tab==='profile' && st.pf) pfShow(st.pf);
+    } finally { NAV_POP=false; }
+    EXIT_ARMED=0;
+  } else {
+    /* 3) Entrée de garde : double-retour pour vraiment quitter l'app */
+    const now=Date.now();
+    if(now-EXIT_ARMED<2200){ history.go(-1); return; }
+    EXIT_ARMED=now;
+    NAV_POP=true; try{ switchTab('home'); } finally { NAV_POP=false; }
+    history.pushState({tab:'home'},'','#home');
+    try{
+      toast(({fr:'Appuyez encore sur retour pour quitter',
+              en:'Press back again to exit',
+              nl:'Druk nogmaals op terug om af te sluiten'})[LANG]||'Appuyez encore sur retour pour quitter');
+    }catch(_){}
+  }
+});
+
+/* Mise en place au moment où l'utilisateur entre dans l'app */
+const _enter_hist = enter;
+enter = async function(u){
+  await _enter_hist(u);
+  if(!NAV_READY){
+    NAV_READY=true;
+    history.replaceState({guard:true},'',location.pathname); /* entrée de garde */
+    history.pushState({tab:'home'},'','#home');              /* point de départ */
+  }
 };
 
 applyI18n(); renderLangBtns();
