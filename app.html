@@ -763,6 +763,51 @@
   #pane-profile #pf-back{display:none}
   /* ---- Coach du jour ---- */
   .coach-card{background:linear-gradient(150deg,color-mix(in srgb,var(--brand) 12%,var(--surface)),var(--surface));border:1px solid color-mix(in srgb,var(--brand) 30%,var(--line))}
+  /* --- accueil v2 : fusion nutrition --- */
+  #today-card:has(+ #coach-today:not(.hidden)){border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:none;margin-bottom:0}
+  #today-card:has(+ #coach-today:not(.hidden)) + #coach-today{border-top-left-radius:0;border-top-right-radius:0;border-top:1px dashed var(--line)}
+  /* --- accueil v2 : héro séance --- */
+  .hero-w{position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);
+    aspect-ratio:16/10.5;background:#000;box-shadow:0 16px 40px rgba(0,0,0,.45);margin-bottom:14px}
+  .hero-bg{position:absolute;inset:0;background-size:cover;background-position:center}
+  .hero-bg.none{background:linear-gradient(150deg,color-mix(in srgb,var(--c) 30%,#0A0F0C),#0A0F0C)}
+  .hero-veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,8,7,.05) 30%,rgba(5,8,7,.78) 78%,rgba(5,8,7,.92) 100%)}
+  .hero-in{position:absolute;inset:0;padding:15px;display:flex;flex-direction:column;justify-content:space-between}
+  .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .hero-prog{font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#04120a;
+    background:var(--brand);border-radius:999px;padding:5px 11px;max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hero-prog.gold{background:linear-gradient(135deg,#E9C767,#C9A24B)}
+  .hero-lock{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#E9C767;
+    background:rgba(5,8,7,.55);backdrop-filter:blur(8px);border:1px solid rgba(233,199,103,.35);border-radius:999px;padding:5px 10px}
+  .hero-lock svg{width:12px;height:12px}
+  .hero-wd{font-size:11.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--brand);margin-bottom:3px}
+  .hero-wd.gold{color:#E9C767}
+  .hero-name{font-size:21px;font-weight:800;line-height:1.12;letter-spacing:-0.03em;color:#F2F7F4;margin-bottom:3px}
+  .hero-meta{font-size:12.5px;color:rgba(242,247,244,.75);font-weight:600;margin-bottom:11px}
+  .hero-cta{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:800;color:#04120a;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));border:none;border-radius:999px;padding:10px 17px;cursor:pointer}
+  .hero-cta.gold{background:linear-gradient(135deg,#E9C767,#C9A24B)}
+  .hero-cta svg{width:14px;height:14px}
+  /* --- accueil v2 : hub coach --- */
+  .coach-hub.on{background:var(--surface);border:1px solid var(--line);border-left:3px solid #E9C767;
+    border-radius:var(--radius);padding:14px;margin-bottom:14px}
+  .ch-hd{display:flex;align-items:center;gap:11px;cursor:pointer;margin-bottom:10px}
+  .ch-ic{width:42px;height:42px;border-radius:12px;background:rgba(233,199,103,.13);display:grid;place-items:center;color:#E9C767;flex:0 0 auto}
+  .ch-hd b{font-size:15px;display:block}
+  .ch-sub{display:block;font-size:12.5px;color:var(--muted);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ch-ar{width:17px;height:17px;color:var(--muted);flex:0 0 auto}
+  .ch-row{display:flex;align-items:center;gap:10px;background:var(--surface-2);border:1px solid var(--line);
+    border-radius:13px;padding:11px 12px;font-size:13.5px;font-weight:600;cursor:pointer;margin-bottom:8px}
+  .ch-row svg{width:17px;height:17px;flex:0 0 auto;color:#E9C767}
+  .ch-badge{margin-left:auto;font-size:11px;font-weight:800;color:#04120a;background:var(--brand);border-radius:999px;padding:3px 9px;white-space:nowrap}
+  .ch-when{margin-left:auto;font-size:12px;color:var(--muted);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:45%}
+  .coach-hub.on .call-row{background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:11px 12px;margin-bottom:8px}
+  .ch-call-lbl{font-size:12px;font-weight:800;color:#E9C767;letter-spacing:.3px;margin-bottom:4px}
+  /* --- accueil v2 : boutique discrète --- */
+  .shop-line{display:flex;align-items:center;gap:9px;justify-content:center;width:100%;margin-top:4px;
+    font-family:inherit;font-size:13px;font-weight:700;color:var(--muted);padding:11px;border-radius:14px;
+    border:1px dashed var(--line);background:none;cursor:pointer}
+  .shop-line svg{width:15px;height:15px;color:#E9C767}
   .ct-head{margin-bottom:8px}
   .ct-badge{display:inline-flex;align-items:center;gap:6px;background:var(--brand-soft);color:var(--brand);font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;border-radius:999px;padding:5px 11px}
   .ct-line{font-size:14.5px;line-height:1.5;font-weight:600;margin:0 0 12px}
@@ -940,11 +985,12 @@
       <button class="btn" id="go-profile" data-i18n="define_goals">Définir mes objectifs</button>
     </div>
 
-    <div id="myplan"></div>
-    <div id="coach-card"></div>
-    <div id="calls-card"></div>
-
     <div id="wod"></div>
+    <div id="myplan"></div>
+    <div class="coach-hub" id="coach-hub">
+      <div id="coach-card"></div>
+      <div id="calls-card"></div>
+    </div>
     <button class="ia-home" id="home-ia" type="button">
       <span class="ia-home-ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 5.6L19 9l-5.3 1.4L12 16l-1.7-5.6L5 9l5.3-1.4z"/></svg></span>
       <span class="ia-home-tx"><b>Coach IA</b><span data-i18n="ia_home_sub">Demande ton plan du jour</span></span>
@@ -957,18 +1003,11 @@
       <svg class="ia-home-ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
     </button>
 
-    <div class="qtiles">
-      <button class="qtile" data-go="journal" style="--c:var(--carb)">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M9 12h6M12 9v6"/></svg><span data-i18n="nav_journal">Journal</span></button>
-      <button class="qtile" data-go="seances" style="--c:var(--brand)">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg><span data-i18n="nav_seances">Séances</span></button>
-      <button class="qtile" data-go="ia" style="--c:#E9C767">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg><span data-i18n="nav_ia">Coach IA</span></button>
-      <button class="qtile" data-go="boutique" style="--c:#E9C767">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1.2 12.5H4.8z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span data-i18n="nav_boutique">Boutique</span></button>
-    </div>
-
     <div id="home-insight"></div>
+    <button class="shop-line" id="home-shop" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1.2 12.5H4.8z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+      <span data-i18n="shop_line">Programmes PDF · Boutique</span>
+    </button>
   </div>
 
   <!-- JOURNAL -->
@@ -1927,6 +1966,12 @@ const T = {
  exercises:{fr:'exercices',en:'exercises',nl:'oefeningen'},
  wod_reco:{fr:'Séance recommandée',en:'Recommended workout',nl:'Aanbevolen training'},
  home_training:{fr:'Ton entraînement',en:'Your training',nl:'Jouw training'},
+ hub_title:{fr:'Mon coach',en:'My coach',nl:'Mijn coach'},
+ hub_msgs:{fr:'Messages',en:'Messages',nl:'Berichten'},
+ hub_unread:{fr:'non lus',en:'unread',nl:'ongelezen'},
+ hub_call:{fr:'Appel vid\u00e9o \u00b7 Zoom/Meet',en:'Video call \u00b7 Zoom/Meet',nl:'Videogesprek \u00b7 Zoom/Meet'},
+ wod_premium:{fr:'Premium',en:'Premium',nl:'Premium'},
+ shop_line:{fr:'Programmes PDF \u00b7 Boutique',en:'PDF programs \u00b7 Shop',nl:'PDF-programma\u2019s \u00b7 Shop'},
  ia_home_sub:{fr:'Demande ton plan du jour',en:'Ask for your daily plan',nl:'Vraag je dagplan'},
  wod_see:{fr:'▸ Voir la séance',en:'▸ View workout',nl:'▸ Bekijk training'},
  cat_muscle:{fr:'Muscle',en:'Muscle',nl:'Spier'},
@@ -2548,23 +2593,33 @@ async function loadCoachCard(){
   }catch(e){ COACH_THREAD=null; }
   HAS_COACH = !!COACH_THREAD || ACCESS==='coach_client';
   applyCoachIsolation();
-  if(!COACH_THREAD){ if(!IS_COACH && !HAS_COACH) renderLeadCard(box); else box.innerHTML=''; return; }
+  const hub=$('#coach-hub');
+  if(!COACH_THREAD){
+    if(hub) hub.classList.remove('on');
+    if(!IS_COACH && !HAS_COACH) renderLeadCard(box); else box.innerHTML='';
+    return;
+  }
+  if(hub) hub.classList.add('on');
   const th=COACH_THREAD;
   const preview = th.last_kind==='image' ? t('chat_photo')
     : th.last_kind==='video' ? t('chat_video')
-    : (th.last_body ? esc(th.last_body.slice(0,80)) : t('chat_empty'));
-  const badge = +th.unread>0 ? `<span class="cc-badge">${th.unread}</span>` : '';
-  box.innerHTML = `<div class="block">
-    <h3 data-i18n="coach_card">${t('coach_card')}</h3>
-    <div class="cc-row" id="cc-open">
-      <div class="cc-ava">${esc(ccInitials(th.peer_name||th.peer_email))}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-weight:700">${esc(th.peer_name||th.peer_email||'')}</div>
-        <div class="empty" style="text-align:left;padding:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${preview}</div>
-      </div>
+    : (th.last_body ? esc(th.last_body.slice(0,60)) : t('chat_empty'));
+  const badge = +th.unread>0
+    ? `<span class="ch-badge">${th.unread} ${t('hub_unread')}</span>`
+    : `<span class="ch-when">${preview}</span>`;
+  box.innerHTML = `
+    <div class="ch-hd" id="cc-open">
+      <div class="ch-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M16 20v-1.5a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3V20"/><circle cx="9.5" cy="7.5" r="3"/></svg></div>
+      <div style="flex:1;min-width:0"><b>${t('hub_title')}</b><span class="ch-sub">${esc(th.peer_name||th.peer_email||'')}</span></div>
+      <svg class="ch-ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+    <div class="ch-row" id="cc-msg">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>${t('hub_msgs')}</span>
       ${badge}
-    </div></div>`;
+    </div>`;
   $('#cc-open').onclick=openCoachChat;
+  { const m=$('#cc-msg'); if(m) m.onclick=openCoachChat; }
 }
 /* ---- Appels vidéo (Lot 6) : le client confirme ou décline, jamais d'initiation ---- */
 let CALLS=[];
@@ -2575,7 +2630,7 @@ async function loadCalls(){
     CALLS = data||[];
   }catch(e){ CALLS=[]; }
   if(!CALLS.length){ box.innerHTML=''; return; }
-  box.innerHTML = `<div class="block"><h3 data-i18n="call_sec">${t('call_sec')}</h3>` + CALLS.map(c=>{
+  box.innerHTML = CALLS.map(c=>{
     const soon = c.slot_status==='confirmed' && (new Date(c.starts_at).getTime()-Date.now()) < 24*3600*1000;
     let inner='';
     if(c.slot_status==='proposed'){
@@ -2590,8 +2645,8 @@ async function loadCalls(){
         <div class="call-when">${fmtCallAt(c.starts_at)}</div>`
         + (c.meeting_url?`<a class="btn sm" style="text-decoration:none;text-align:center;display:block" href="${esc(c.meeting_url)}" target="_blank" rel="noopener">${t('call_join')}</a>`:'');
     }
-    return `<div class="call-row">${inner}</div>`;
-  }).join('') + `</div>`;
+    return `<div class="call-row"><div class="ch-call-lbl">${t('hub_call')}</div>${inner}</div>`;
+  }).join('');
   box.querySelectorAll('[data-callok]').forEach(b=>{ b.onclick=()=>respondCall(b.getAttribute('data-callok'),true); });
   box.querySelectorAll('[data-callno]').forEach(b=>{ b.onclick=()=>respondCall(b.getAttribute('data-callno'),false); });
 }
@@ -3684,6 +3739,7 @@ function switchTab(tab){
   window.scrollTo(0,0);
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+{ const sh=$('#home-shop'); if(sh) sh.onclick=()=>switchTab('boutique'); }
 /* ---- routeur sous-pages Profil ---- */
 function pfShow(view){
   const pane=document.getElementById('pane-profile'); if(!pane) return;
@@ -3874,19 +3930,26 @@ async function loadWod(){
   }
   const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
   const cov = w.cover_image_url ? `background-image:url('${esc(w.cover_image_url)}')` : '';
-  const wk=(w.week_number&&w.day_number)?(t('wod_week')+' '+w.week_number+' · '+t('wod_day')+' '+w.day_number+' · '):'';
-  const btn=locked
-    ? `<button class="wod2-chip gold" data-wod-up="1">${t('wod_unlock')}</button>`
-    : `<button class="wod2-chip" data-open="${w.id}">${label===t('wod_continue')?t('wod_continue'):t('wod_see')}</button>`;
+  const wk=(w.week_number&&w.day_number)?(t('wod_week')+' '+w.week_number+' · '+t('wod_day')+' '+w.day_number):label;
+  const cta=locked
+    ? `<button class="hero-cta gold" data-wod-up="1">${t('wod_unlock')}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>`
+    : `<button class="hero-cta" data-open="${w.id}">${label===t('wod_continue')?t('wod_continue'):t('wod_see')}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>`;
   $('#wod').innerHTML=`<div class="home-eyebrow">${t('home_training')}</div>
-  <div class="wod2" style="--c:${col}">
-    <div class="wod2-thumb" style="${cov}"></div>
-    <div class="wod2-body">
-      <div class="wod2-k">${wk?wk.replace(/ · $/,''):label}</div>
-      <div class="wod2-name">${esc(pick(w,'name'))}</div>
-      <div class="wod2-sub">${typeL(w.type)} · ${n} ${t('exercises')} · ${diffL(w.difficulty)}</div>
+  <div class="hero-w" style="--c:${col}">
+    <div class="hero-bg${cov?'':' none'}" style="${cov}"></div>
+    <div class="hero-veil"></div>
+    <div class="hero-in">
+      <div class="hero-top">
+        <span class="hero-prog${locked?' gold':''}">${esc(w.source||typeL(w.type))}</span>
+        ${locked?`<span class="hero-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>${t('wod_premium')}</span>`:''}
+      </div>
+      <div class="hero-bot">
+        <div class="hero-wd${locked?' gold':''}">${wk}</div>
+        <div class="hero-name">${esc(pick(w,'name'))}</div>
+        <div class="hero-meta">${typeL(w.type)} · ${n} ${t('exercises')} · ${diffL(w.difficulty)}</div>
+        ${cta}
+      </div>
     </div>
-    ${btn}
   </div>`;
   const up=$('#wod [data-wod-up]'); if(up) up.onclick=()=>showUpsell('workout');
 }
