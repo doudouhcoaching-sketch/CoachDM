@@ -140,6 +140,17 @@
   .rating .rl{font-size:10.5px;color:var(--muted);font-weight:600;margin-top:1px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+.cl-list{max-height:280px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.cl-row{display:flex;align-items:center;gap:11px;width:100%;padding:12px 13px;background:none;border:0;border-bottom:1px solid var(--line);color:var(--text);font-family:inherit;text-align:left;cursor:pointer}
+.cl-row:last-child{border-bottom:0}
+.cl-chk{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line);flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800}
+.cl-row.on .cl-chk{background:var(--brand);border-color:var(--brand);color:#04120a}
+.cl-row.on .cl-chk::before{content:'\2713'}
+.cl-info{min-width:0}
+.cl-info b{display:block;font-size:14.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cl-info small{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+</style>
 </head>
 <body>
 
@@ -1209,7 +1220,7 @@ $('#comp-save').onclick = async ()=>{
   async function pickMember(instId){
     if(!CLIENTS.length){const {data}=await sb.rpc('class_my_clients');CLIENTS=data||[];}
     if(!CLIENTS.length){toast('Aucun client lié. Ajoute-en dans Clients.');return;}
-    const opts=CLIENTS.map(c=>`<option value="${c.client_id}">${esc(c.full_name||c.email)}</option>`).join('');
+    const opts=CLIENTS.map(c=>`<option value="${c.client_id}">${esc((c.full_name||c.email||'')+(c.full_name&&c.email?' — '+c.email:''))}</option>`).join('');
     let h=`<h2>Ajouter un client</h2>
      <label>Choisis un de tes clients</label>
      <select id="pm_sel">${opts}</select>
@@ -1321,7 +1332,8 @@ $('#comp-save').onclick = async ()=>{
      <label>Visibilité</label><select id="s_vis"><option value="private" selected>Privé — clients choisis uniquement</option>
      <option value="public">Public — visible par tous les membres</option></select>
      <div id="s_invite_wrap"><label>Clients autorisés à voir ce cours</label>
-       <div class="chips" id="s_clients"><div class="muted" style="font-size:12px">Chargement…</div></div>
+       <input id="s_cl_search" type="text" placeholder="Rechercher un client…" autocomplete="off" style="margin-bottom:8px">
+       <div class="cl-list" id="s_clients"><div class="muted" style="font-size:12px;padding:10px">Chargement…</div></div>
        <div class="muted" style="font-size:11.5px;margin-top:4px">Touche pour sélectionner. Eux seuls verront ce cours privé dans leur calendrier.</div></div>
      <label>Nom — FR *</label><input id="s_fr" value="${esc(e.name_fr)}">
      <div class="grid2"><div><label>Nom — EN</label><input id="s_en" value="${esc(e.name_en)}"></div>
@@ -1351,8 +1363,11 @@ $('#comp-save').onclick = async ()=>{
       if(!CLIENTS.length){const {data}=await sb.rpc('class_my_clients');CLIENTS=data||[];}
       const box=$('#s_clients');
       if(!CLIENTS.length){ box.innerHTML='<div class="muted" style="font-size:12px">Aucun client lié. Ajoute-en dans l\'onglet Clients.</div>'; return; }
-      box.innerHTML=CLIENTS.map(c=>`<button type="button" data-cid="${c.client_id}">${esc(c.full_name||c.email)}</button>`).join('');
+      const rowHtml=c=>`<button type="button" class="cl-row" data-cid="${c.client_id}" data-q="${esc(((c.full_name||'')+' '+(c.email||'')).toLowerCase())}"><span class="cl-chk"></span><span class="cl-info"><b>${esc(c.full_name||c.email||'—')}</b><small>${esc(c.email||'')}</small></span></button>`;
+      box.innerHTML=CLIENTS.map(rowHtml).join('');
       box.querySelectorAll('[data-cid]').forEach(b=>b.onclick=()=>{b.classList.toggle('on');b.classList.contains('on')?inviteSel.add(b.dataset.cid):inviteSel.delete(b.dataset.cid);});
+      const se=document.getElementById('s_cl_search');
+      if(se) se.oninput=()=>{const q=se.value.trim().toLowerCase();box.querySelectorAll('.cl-row').forEach(r=>{r.style.display=!q||r.dataset.q.includes(q)?'':'none';});};
     })();
     $('#s_cancel').onclick=closeSheet;
     $('#s_save').onclick=async()=>{

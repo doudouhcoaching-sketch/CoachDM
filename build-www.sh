@@ -9,7 +9,7 @@ mkdir -p www
 
 cp app.html www/index.html
 
-PAGES="app.html coach.html saut.html squat.html barre.html course.html aide.html privacy.html bienvenue.html"
+PAGES="app.html coach.html saut.html squat.html barre.html course.html aide.html privacy.html bienvenue.html admin.html admin-seances.html images.html"
 for f in $PAGES; do
   if [ -f "$f" ]; then cp "$f" www/; fi
 done
