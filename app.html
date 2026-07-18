@@ -104,6 +104,22 @@
   .btn.ghost{background:transparent;color:var(--brand);box-shadow:none;
     border:1.5px solid var(--line);margin-top:10px}
   .btn.subtle{background:var(--surface-2);color:var(--text);box-shadow:none;border:1px solid var(--line)}
+  .ai-photo{position:relative;overflow:hidden;width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-sm);cursor:pointer;text-align:left;
+    background:linear-gradient(180deg,#0d100e,#0a0d0b) padding-box,linear-gradient(135deg,rgba(233,199,103,.85),rgba(154,110,27,.5) 45%,rgba(233,199,103,.85)) border-box;
+    border:1px solid transparent;color:var(--text);font-weight:800;font-size:15px;letter-spacing:-.02em;
+    box-shadow:0 6px 22px rgba(0,0,0,.35),0 0 16px rgba(233,199,103,.10),inset 0 1px 0 rgba(255,255,255,.05);transition:transform .1s,filter .15s}
+  .ai-photo:active{transform:scale(.985);filter:brightness(1.05)}
+  .ai-photo .ap-ic{flex:0 0 42px;width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#E9C767;
+    background:linear-gradient(135deg,rgba(233,199,103,.16),rgba(154,110,27,.08));border:1px solid rgba(233,199,103,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+  .ai-photo .ap-ic .ic{width:20px;height:20px}
+  .ai-photo .ap-tx{flex:1;min-width:0;line-height:1.25;white-space:normal}
+  .ai-photo .ap-pro{flex:0 0 auto;padding:4px 9px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.08em;color:#1a1405;
+    background:linear-gradient(135deg,#E9C767,#c49a3f 55%,#9A6E1B);box-shadow:0 2px 8px rgba(233,199,103,.35)}
+  .ai-photo::after{content:'';position:absolute;top:0;left:-60%;width:45%;height:100%;pointer-events:none;
+    background:linear-gradient(105deg,transparent,rgba(233,199,103,.10) 45%,rgba(255,255,255,.14) 50%,rgba(233,199,103,.10) 55%,transparent);
+    animation:apShine 4.5s ease-in-out infinite}
+  @keyframes apShine{0%,55%{left:-60%}85%,100%{left:130%}}
+  @media (prefers-reduced-motion:reduce){.ai-photo::after{animation:none}}
   .btn[disabled]{opacity:.55;pointer-events:none}
   .msg{margin-top:14px;font-size:13px;text-align:center;min-height:18px}
   .msg.err{color:var(--warn)}
@@ -1018,7 +1034,7 @@
         <input id="jo-q" type="text" placeholder="Riz, poulet, banane…" data-i18n-ph="jo_ph" enterkeyhint="search" />
         <button id="jo-search" data-i18n="jo_search">Chercher</button>
       </div>
-      <button class="btn subtle" id="jo-photo" style="width:100%;margin-top:10px"><svg class="ic"><use href="#i-camera"/></svg> <span id="jo-photo-lbl" data-i18n="ph_btn">Photo IA — calcule mes calories</span></button>
+      <button class="ai-photo" id="jo-photo" style="margin-top:10px"><span class="ap-ic"><svg class="ic"><use href="#i-camera"/></svg></span><span class="ap-tx"><span id="jo-photo-lbl" data-i18n="ph_btn">Photo IA — calcule mes calories</span></span><span class="ap-pro">PRO</span></button>
       <input type="file" id="jo-photo-file" accept="image/*" capture="environment" style="display:none" />
       <div id="jo-results"></div>
     </div>
@@ -1509,6 +1525,119 @@
   .call-actions{display:flex;gap:8px}
   .call-actions .btn{flex:1}
   .call-pill{display:inline-block;background:var(--brand);color:#04120a;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:700;margin-right:6px}
+
+  /* ===================== PREMIUM 2026 — couche finale ===================== */
+  ::selection{background:rgba(0,255,163,.28);color:var(--text)}
+
+  /* --- Cartes : profondeur + liseré lumineux haut --- */
+  .block{position:relative;border-color:rgba(255,255,255,.07);
+    background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 92%,#fff 3%),var(--surface) 40%);
+    box-shadow:0 14px 34px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.05)}
+  .block::before{content:'';position:absolute;top:0;left:18px;right:18px;height:1px;pointer-events:none;
+    background:linear-gradient(90deg,transparent,rgba(0,255,163,.28),transparent)}
+  .block h3{font-size:16px;letter-spacing:-.02em;font-weight:800}
+  :root[data-theme="light"] .block{background:var(--surface);box-shadow:var(--shadow-soft)}
+  :root[data-theme="light"] .block::before{background:linear-gradient(90deg,transparent,rgba(0,168,112,.22),transparent)}
+
+  /* --- Topbar : hairline dégradée --- */
+  .topbar{border-bottom-color:transparent;
+    background-image:linear-gradient(90deg,transparent,var(--line) 22%,var(--line) 78%,transparent);
+    background-repeat:no-repeat;background-position:bottom;background-size:100% 1px}
+  .topbar h2{letter-spacing:-.02em}
+
+  /* --- Recherche aliment : verre + bouton contrasté --- */
+  .search-row input{border-radius:16px;background:color-mix(in srgb,var(--surface-2) 82%,transparent);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-color:rgba(255,255,255,.12);
+    transition:border-color .15s,box-shadow .15s}
+  .search-row input:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft),0 0 18px rgba(0,255,163,.14)}
+  .search-row button{color:#04120a;border-radius:16px;letter-spacing:-.01em;font-weight:800;
+    box-shadow:0 6px 18px rgba(0,255,160,.32),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .1s,filter .15s}
+  .search-row button:active{transform:scale(.96);filter:brightness(.95)}
+  :root[data-theme="light"] .search-row button{color:#fff}
+  :root[data-theme="light"] .search-row input{background:var(--surface-2);border-color:var(--line)}
+
+  /* --- Résultats aliments : bouton + en dégradé --- */
+  .food{border-radius:16px}
+  .food .add{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#04120a;
+    box-shadow:0 4px 14px rgba(0,255,160,.3),inset 0 1px 0 rgba(255,255,255,.3);transition:transform .1s}
+  .food .add:active{transform:scale(.9)}
+  :root[data-theme="light"] .food .add{color:#fff}
+
+  /* --- Stats Tendances : cartes accentuées --- */
+  .tr-stat{border-radius:15px;padding:13px 6px 11px;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--tsc,var(--brand)) 10%,var(--surface-2)),var(--surface-2) 72%);
+    border-color:color-mix(in srgb,var(--tsc,var(--brand)) 26%,var(--line));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+  .tr-stat b{font-size:19px;letter-spacing:-.02em;color:var(--tsc,var(--text))}
+  .tr-stat small{margin-top:2px;display:block;letter-spacing:.06em}
+  .tr-stats>.tr-stat:nth-child(1){--tsc:var(--brand)}
+  .tr-stats>.tr-stat:nth-child(2){--tsc:var(--prot)}
+  .tr-stats>.tr-stat:nth-child(3){--tsc:var(--gold)}
+  :root[data-theme="light"] .tr-stats>.tr-stat:nth-child(1){--tsc:#00A870}
+  :root[data-theme="light"] .tr-stats>.tr-stat:nth-child(3){--tsc:#9A6E1B}
+
+  /* --- Toggle 7j/30j --- */
+  .tr-toggle .rc-chip{font-weight:700;padding:7px 14px}
+  .tr-toggle .rc-chip.on{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#04120a;border-color:transparent;
+    box-shadow:0 4px 14px rgba(0,255,160,.3)}
+  :root[data-theme="light"] .tr-toggle .rc-chip.on{color:#fff}
+
+  /* --- Nav : dock premium (géométrie inchangée) --- */
+  .nav{border-top-color:transparent;
+    background:color-mix(in srgb,var(--surface) 78%,transparent);
+    box-shadow:0 -12px 34px rgba(0,0,0,.38)}
+  .nav::before{content:'';position:absolute;top:0;left:8%;right:8%;height:1px;pointer-events:none;
+    background:linear-gradient(90deg,transparent,rgba(0,255,163,.30),transparent)}
+  .nav{position:fixed}
+  .nav button{position:relative;transition:color .18s,background .18s,transform .12s}
+  .nav button:active{transform:scale(.94)}
+  .nav button.on{background:linear-gradient(180deg,rgba(0,255,163,.16),rgba(0,255,163,.07));
+    box-shadow:inset 0 0 0 1px rgba(0,255,163,.22),0 0 18px rgba(0,255,163,.10)}
+  .nav button.on::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);
+    width:4px;height:4px;border-radius:50%;background:var(--brand);box-shadow:0 0 8px rgba(0,255,163,.8)}
+  :root[data-theme="light"] .nav{box-shadow:0 -10px 30px rgba(18,44,32,.10)}
+  :root[data-theme="light"] .nav::before{background:linear-gradient(90deg,transparent,rgba(0,168,112,.25),transparent)}
+  :root[data-theme="light"] .nav button.on{background:rgba(0,168,112,.10);box-shadow:inset 0 0 0 1px rgba(0,168,112,.22)}
+
+  /* --- Sheets & overlays : verre profond --- */
+  .overlay{background:rgba(3,6,5,.62);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  .sheet{border:1px solid rgba(255,255,255,.08);border-bottom:0;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 94%,#fff 3%),var(--surface) 30%);
+    box-shadow:0 -18px 60px rgba(0,0,0,.5)}
+  :root[data-theme="light"] .sheet{background:var(--surface);border-color:var(--line)}
+
+  /* --- Séances : covers plus riches --- */
+  .se-cover{height:104px}
+  .se-cover::after{background:linear-gradient(180deg,rgba(0,0,0,.06),rgba(0,0,0,.55))}
+  .se-card{border-radius:var(--radius)}
+  .se-card:active{transform:scale(.985)}
+  .badge{border-radius:10px}
+
+  /* --- Bulles Coach IA --- */
+  .bubble{border-radius:20px}
+  .bubble.me{box-shadow:0 6px 18px rgba(0,255,160,.22)}
+  .bubble.ai{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 92%,#fff 3%),var(--surface) 45%)}
+  .chat-bar button{color:#04120a}
+  :root[data-theme="light"] .chat-bar button{color:#fff}
+
+  /* --- Boutons primaires : relief --- */
+  .btn:not(.ghost):not(.subtle){box-shadow:0 8px 22px rgba(0,255,160,.34),inset 0 1px 0 rgba(255,255,255,.35)}
+  .wod-btn,.co-act:not(.cancel){box-shadow:0 6px 18px rgba(0,255,160,.28),inset 0 1px 0 rgba(255,255,255,.3)}
+  .prod-buy{color:#04120a;box-shadow:0 5px 16px rgba(0,255,160,.28),inset 0 1px 0 rgba(255,255,255,.3)}
+  :root[data-theme="light"] .prod-buy{color:#fff}
+
+  /* --- Photo IA : adaptation thème clair --- */
+  :root[data-theme="light"] .ai-photo{
+    background:linear-gradient(180deg,#FFFDF6,#FBF5E4) padding-box,linear-gradient(135deg,rgba(201,153,46,.8),rgba(154,110,27,.5) 45%,rgba(201,153,46,.8)) border-box;
+    color:var(--text);box-shadow:0 6px 18px rgba(154,110,27,.14),inset 0 1px 0 rgba(255,255,255,.6)}
+  :root[data-theme="light"] .ai-photo .ap-ic{color:#9A6E1B;background:rgba(201,153,46,.14);border-color:rgba(154,110,27,.35)}
+
+  /* --- Divers --- */
+  .toast{border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.45)}
+  .field input:focus,.field select:focus,#ld-msg-in:focus{box-shadow:0 0 0 4px var(--brand-soft),0 0 16px rgba(0,255,163,.12)}
+  .qtile{box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+  .mcard{box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+  @media (prefers-reduced-motion:reduce){.nav button,.search-row button{transition:none}}
 </style>
 <div class="overlay" id="up-ov"><div class="sheet" style="text-align:center">
   <div class="grab"></div>
