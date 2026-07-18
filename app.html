@@ -18,7 +18,8 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"></noscript>
 <style>
   :root{
     --bg:#050807; --bg-2:#0A0F0C;
@@ -465,6 +466,10 @@
   .yt-frame{position:relative;width:100%;padding-top:56.25%;border-radius:14px;overflow:hidden;background:#000;
     box-shadow:0 12px 40px rgba(0,0,0,.6)}
   .yt-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .yt-fb{display:none;width:100%;margin-top:10px;padding:12px 14px;border-radius:12px;
+    background:var(--surface-2);border:1px solid var(--line);color:var(--txt);
+    font-size:13.5px;font-weight:600;letter-spacing:-.01em;text-align:center}
+  .yt-fb:active{opacity:.7}
   .yt-attr{margin-top:10px;font-size:11px;line-height:1.5;color:rgba(255,255,255,.55);text-align:center}
   .ld-chips{display:flex;gap:7px;flex-wrap:wrap;margin:2px 0 4px}
   .ld-chip{flex:1 1 auto;min-width:calc(50% - 4px);padding:10px 8px;border-radius:12px;border:1.5px solid var(--line);
@@ -1412,6 +1417,7 @@
       <button class="yt-close" id="yt-close" aria-label="Fermer">✕</button>
     </div>
     <div class="yt-frame" id="yt-slot"></div>
+    <button class="yt-fb" id="yt-fallback" type="button"></button>
     <div class="yt-attr" data-i18n="yt_attr">Vidéo © sa chaîne YouTube — lue via le lecteur officiel YouTube. Coach DM ne copie ni n'héberge aucune vidéo.</div>
   </div>
 </div>
@@ -2302,27 +2308,48 @@ function humanAuth(m){
   return m;
 }
 
+/* Cache de demarrage : toutes les requetes du boot en un seul aller-retour parallele */
+let _PRE=null;
+async function prefetchBoot(uid){
+  try{
+    const [prof,sub,tg,lg] = await Promise.all([
+      sb.from('profiles').select('full_name,role,is_founder,founder_kind,founder_since').eq('id',uid).maybeSingle(),
+      sb.from('subscriptions').select('status,current_period_end,trial_end,amount_cents')
+        .eq('user_id',uid).order('current_period_end',{ascending:false,nullsFirst:false}).limit(1).maybeSingle(),
+      sb.from('nutrition_targets').select('*').eq('user_id',uid).eq('is_active',true).maybeSingle(),
+      sb.from('food_logs').select('kcal,protein_g,carbs_g,fat_g,fiber_g').eq('user_id',uid).eq('logged_date',todayStr())
+    ]);
+    _PRE={ prof:prof.data||null, sub:sub.data||null, targets:tg.data||null, logs:lg.data||[] };
+  }catch(e){ _PRE=null; }
+}
+
 async function enter(user){
   USER=user;
   show('boot');
-  PREMIUM = await hasAccess(user.id);
+  const [access] = await Promise.all([ hasAccess(user.id), prefetchBoot(user.id) ]);
+  PREMIUM = access;
   show('app');
   $('#p-email').textContent = user.email || '';
   await loadProfileInfo(user);
   await loadTargets();
   await loadToday();
+  _PRE=null;
   switchTab('home');
   loadCoachCard(); loadCalls(); initChatLive();
   resumePendingPlan();
 }
 
 async function loadProfileInfo(user){
+  let prof2=null;
+  if(_PRE){ prof2=_PRE.prof; }
+  else {
+    try{
+      const r = await sb.from('profiles').select('full_name,role,is_founder,founder_kind,founder_since').eq('id',user.id).maybeSingle();
+      prof2 = r.data || null;
+    }catch(e){}
+  }
+  if(prof2 && prof2.full_name){ PROFILE_NAME = prof2.full_name; if($('#p-name')) $('#p-name').value = prof2.full_name; }
   try{
-    const { data:prof } = await sb.from('profiles').select('full_name').eq('id',user.id).maybeSingle();
-    if(prof && prof.full_name){ PROFILE_NAME = prof.full_name; if($('#p-name')) $('#p-name').value = prof.full_name; }
-  }catch(e){}
-  try{
-    const { data:prof2 } = await sb.from('profiles').select('role,is_founder,founder_kind,founder_since').eq('id',user.id).maybeSingle();
     const role = prof2 && prof2.role;
     IS_COACH = (role==='coach'||role==='admin');
     if(typeof renderAnalyseSection==='function') renderAnalyseSection();
@@ -2352,9 +2379,14 @@ async function loadProfileInfo(user){
     syncCoachHome(role);
     { const lo=$('#p-lead-open'); if(lo) lo.onclick=openLead; }
     applyCoachIsolation();
-    const { data:sub } = await sb.from('subscriptions')
-      .select('status,current_period_end,trial_end,amount_cents').eq('user_id',user.id)
-      .order('current_period_end',{ascending:false,nullsFirst:false}).limit(1).maybeSingle();
+    let sub=null;
+    if(_PRE){ sub=_PRE.sub; }
+    else {
+      const r = await sb.from('subscriptions')
+        .select('status,current_period_end,trial_end,amount_cents').eq('user_id',user.id)
+        .order('current_period_end',{ascending:false,nullsFirst:false}).limit(1).maybeSingle();
+      sub = r.data || null;
+    }
     const now=Date.now();
     let key='sub_status_none', extra='';
     const trialing = sub && (sub.status==='trialing' || (sub.trial_end && new Date(sub.trial_end).getTime()>now));
@@ -2893,8 +2925,13 @@ function initChatLive(){
 
 /* ---------------- TODAY ---------------- */
 async function loadTargets(){
-  const { data } = await sb.from('nutrition_targets').select('*')
-    .eq('user_id',USER.id).eq('is_active',true).maybeSingle();
+  let data=null;
+  if(_PRE){ data=_PRE.targets; }
+  else {
+    const r = await sb.from('nutrition_targets').select('*')
+      .eq('user_id',USER.id).eq('is_active',true).maybeSingle();
+    data = r.data;
+  }
   TARGETS = data || null;
   if(TARGETS){
     if(TARGETS.current_weight_kg) $('#p-weight').value = TARGETS.current_weight_kg;
@@ -2906,9 +2943,14 @@ async function loadTargets(){
 }
 
 async function loadToday(){
-  const { data:logs } = await sb.from('food_logs')
-    .select('kcal,protein_g,carbs_g,fat_g,fiber_g')
-    .eq('user_id',USER.id).eq('logged_date',todayStr());
+  let logs=null;
+  if(_PRE){ logs=_PRE.logs; }
+  else {
+    const r = await sb.from('food_logs')
+      .select('kcal,protein_g,carbs_g,fat_g,fiber_g')
+      .eq('user_id',USER.id).eq('logged_date',todayStr());
+    logs = r.data;
+  }
   const sum = (logs||[]).reduce((a,l)=>({
     kcal:a.kcal+(l.kcal||0), p:a.p+(l.protein_g||0), c:a.c+(l.carbs_g||0), f:a.f+(l.fat_g||0), fb:a.fb+(l.fiber_g||0)
   }),{kcal:0,p:0,c:0,f:0,fb:0});
@@ -4001,19 +4043,46 @@ function exThumb(ex){ if(ex.thumbnail_url) return ex.thumbnail_url; const id=ytI
 function exDemo(ex){ if(ex.video_url) return ex.video_url; if(ex.youtube_query) return 'https://www.youtube.com/results?search_query='+encodeURIComponent(ex.youtube_query); return null; }
 
 /* ---- Lecteur YouTube intégré : la vidéo reste dans l'app (web + wrapper iOS) ---- */
+/* L'embed YouTube refuse toute origine non http(s) : sous Capacitor il faut
+   ios.scheme='https' (origine https://localhost) + parametre origin explicite. */
+const YT_ORIGIN = (typeof location!=='undefined' && /^https?:/.test(location.origin||'')) ? location.origin : 'https://localhost';
+function ytSrc(id){
+  return 'https://www.youtube-nocookie.com/embed/'+id
+    +'?autoplay=1&playsinline=1&rel=0&modestbranding=1&fs=1&iv_load_policy=3&origin='
+    + encodeURIComponent(YT_ORIGIN);
+}
+/* Repli : navigateur in-app (SFSafariViewController) — on ne quitte jamais l'app */
+async function ytOpenExternal(url){
+  try{
+    const P = window.Capacitor && window.Capacitor.Plugins;
+    if(P && P.Browser){ await P.Browser.open({ url, presentationStyle:'popover' }); return; }
+  }catch(e){}
+  window.open(url,'_blank','noopener');
+}
 function openDemo(url,name){
   const id=ytId(url);
-  if(!id){ window.open(url,'_blank','noopener'); return; }
+  if(!id){ ytOpenExternal(url); return; }
   const ov=$('#yt-ov'), slot=$('#yt-slot'); if(!ov||!slot) return;
   const nm=$('#yt-name'); if(nm) nm.textContent=name||'';
-  slot.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+id
-    +'?autoplay=1&playsinline=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';
+  slot.innerHTML='<iframe src="'+ytSrc(id)+'" title="'+(name||'').replace(/"/g,'')+'"'
+    +' referrerpolicy="strict-origin-when-cross-origin"'
+    +' allow="autoplay; encrypted-media; picture-in-picture; fullscreen"'
+    +' allowfullscreen webkitallowfullscreen playsinline></iframe>';
+  const fb=$('#yt-fallback');
+  if(fb){
+    fb.textContent = ({fr:"La vidéo ne démarre pas ? Ouvrir le lecteur",
+                       en:"Video not playing? Open the player",
+                       nl:"Video start niet? Open de speler"})[LANG] || "La vidéo ne démarre pas ? Ouvrir le lecteur";
+    fb.style.display='block';
+    fb.onclick=()=>ytOpenExternal('https://www.youtube.com/watch?v='+id);
+  }
   ov.classList.add('show');
 }
 function closeDemo(){
   const ov=$('#yt-ov'); if(!ov||!ov.classList.contains('show')) return;
   ov.classList.remove('show');
   const slot=$('#yt-slot'); if(slot) slot.innerHTML='';
+  const fb=$('#yt-fallback'); if(fb){ fb.style.display='none'; fb.onclick=null; }
 }
 document.addEventListener('click',(e)=>{
   const a=e.target.closest('a.ex-thumb[href],a.ex-demo[href]');
@@ -4033,15 +4102,17 @@ document.addEventListener('click',(e)=>{
 let SE_WORKOUTS=null, SE_COUNTS={}, SE_CUR=null, SESSION=null, SET_CTX=null;
 
 async function loadWod(){
-  if(!SE_WORKOUTS) await fetchWorkouts();
+  /* La requete des seances terminees part en parallele du catalogue */
+  const ssP = sb.from('workout_sessions')
+    .select('workout_id,started_at')
+    .eq('user_id',USER.id).eq('status','completed')
+    .order('started_at',{ascending:false}).limit(400);
+  await fetchWorkouts();
   const list=(SE_WORKOUTS||[]).filter(x=>x.source!=='charge_engine');
-  if(!list.length){ $('#wod').innerHTML=''; return; }
+  if(!list.length){ try{ await ssP; }catch(e){} $('#wod').innerHTML=''; return; }
   let w=null, label=t('wod_reco'), locked=false;
   try{
-    const { data:ss } = await sb.from('workout_sessions')
-      .select('workout_id,started_at')
-      .eq('user_id',USER.id).eq('status','completed')
-      .order('started_at',{ascending:false}).limit(400);
+    const { data:ss } = await ssP;
     const doneIds=new Set((ss||[]).map(s=>s.workout_id));
     const lastProg=(ss||[]).map(s=>list.find(x=>x.id===s.workout_id)).find(x=>x&&x.program_slug);
     if(lastProg){
@@ -4114,21 +4185,66 @@ function loadInsight(){
 }
 
 /* ================= SEANCES ================= */
-async function fetchWorkouts(){
-  const { data:ws } = await sb.from('workouts')
-    .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url,program_slug,is_free,week_number,day_number,wod_format,time_cap_seconds,emom_interval_seconds,emom_rounds,rft_rounds,score_type')
-    .eq('is_published',true).not('program_slug','is',null).order('created_at',{ascending:true});
-  SE_WORKOUTS = ws||[]; SE_COUNTS={};
-  const ids=SE_WORKOUTS.map(w=>w.id);
-  if(ids.length){
-    let from=0; const page=1000;
-    while(true){
-      const { data:we } = await sb.from('workout_exercises').select('workout_id').in('workout_id',ids).range(from,from+page-1);
-      (we||[]).forEach(r=>{ SE_COUNTS[r.workout_id]=(SE_COUNTS[r.workout_id]||0)+1; });
-      if(!we||we.length<page) break;
-      from+=page;
-    }
+/* Catalogue : cache local 5 min + rafraichissement en tache de fond.
+   Le comptage passe par la vue v_workout_ex_counts (1 requete) au lieu de
+   paginer les ~11 500 lignes de workout_exercises (12 allers-retours). */
+const SE_TTL=5*60*1000, SE_CACHE_KEY='cdm_workouts_v2';
+let SE_FETCHED=0, SE_NETP=null;
+
+async function fetchWorkouts(force){
+  const now=Date.now();
+  if(SE_WORKOUTS && !force && (now-SE_FETCHED)<SE_TTL) return;
+  if(!SE_WORKOUTS && !force){
+    try{
+      const c=JSON.parse(localStorage.getItem(SE_CACHE_KEY)||'null');
+      if(c && Array.isArray(c.ws) && c.ws.length){
+        SE_WORKOUTS=c.ws; SE_COUNTS=c.counts||{}; SE_FETCHED=c.t||0;
+        if((now-SE_FETCHED)<SE_TTL) return;
+        refreshWorkoutsBg();   /* affichage immediat, mise a jour silencieuse */
+        return;
+      }
+    }catch(e){}
   }
+  await netFetchWorkouts();
+}
+
+async function netFetchWorkouts(){
+  if(SE_NETP) return SE_NETP;
+  SE_NETP=(async()=>{
+    const wsQ = sb.from('workouts')
+      .select('id,slug,name_fr,name_en,name_nl,type,goal,difficulty,estimated_duration_min,source,cover_image_url,program_slug,is_free,week_number,day_number,wod_format,time_cap_seconds,emom_interval_seconds,emom_rounds,rft_rounds,score_type')
+      .eq('is_published',true).not('program_slug','is',null).order('created_at',{ascending:true});
+    const cntQ = sb.from('v_workout_ex_counts').select('workout_id,n').range(0,9999);
+    const [wr,cr] = await Promise.all([wsQ,cntQ]);
+    SE_WORKOUTS = wr.data||[]; SE_COUNTS={};
+    if(cr && cr.data && cr.data.length){
+      cr.data.forEach(r=>{ SE_COUNTS[r.workout_id]=r.n; });
+    } else {
+      /* Repli si la vue est indisponible */
+      const ids=SE_WORKOUTS.map(w=>w.id);
+      if(ids.length){
+        let from=0; const page=1000;
+        while(true){
+          const { data:we } = await sb.from('workout_exercises').select('workout_id').in('workout_id',ids).range(from,from+page-1);
+          (we||[]).forEach(r=>{ SE_COUNTS[r.workout_id]=(SE_COUNTS[r.workout_id]||0)+1; });
+          if(!we||we.length<page) break;
+          from+=page;
+        }
+      }
+    }
+    SE_FETCHED=Date.now();
+    try{ localStorage.setItem(SE_CACHE_KEY,JSON.stringify({t:SE_FETCHED,ws:SE_WORKOUTS,counts:SE_COUNTS})); }catch(e){}
+  })().finally(()=>{ SE_NETP=null; });
+  return SE_NETP;
+}
+
+function refreshWorkoutsBg(){
+  netFetchWorkouts().then(()=>{
+    try{
+      const pane=document.getElementById('pane-seances');
+      if(pane && pane.classList.contains('active')) renderSeances();
+    }catch(e){}
+  }).catch(()=>{});
 }
 const PROG_ORDER=['barbell-strength-12w','physique-12w','open-prep-8w','gravity-10w','hyrox-engine-12w','engine-amrap-10w','metcon-emom-8w','fat-burner-10w','football-elite-12w','foundation-8w'];
 const PROG_MOTIF={'barbell-strength-12w':'m-str','physique-12w':'m-str','open-prep-8w':'m-pulse','gravity-10w':'m-rings','hyrox-engine-12w':'m-pulse','engine-amrap-10w':'m-pulse','metcon-emom-8w':'m-flame','fat-burner-10w':'m-flame','football-elite-12w':'m-found','foundation-8w':'m-found'};
@@ -4136,6 +4252,9 @@ let SE_PROG=null;
 async function loadWorkouts(){
   backToList();
   await fetchWorkouts();
+  renderSeances();
+}
+function renderSeances(){
   const CAT=(SE_WORKOUTS||[]).filter(w=>PROG_ORDER.indexOf(w.program_slug)>=0);
   const go=$('#go-section');
   if(SE_PROG){
@@ -4236,8 +4355,8 @@ function renderProgramDays(CAT, slug){
   $('#se-cards').innerHTML=html;
   try{ window.scrollTo(0,0); }catch(e){}
 }
-function openProgram(slug){ SE_PROG=slug; loadWorkouts(); }
-function closeProgram(){ SE_PROG=null; loadWorkouts(); }
+function openProgram(slug){ SE_PROG=slug; backToList(); renderSeances(); }
+function closeProgram(){ SE_PROG=null; backToList(); renderSeances(); }
 /* ================= OBJECTIFS / MOTEUR CHARGE ================= */
 let GOAL_LIFTS=null, GOAL_DRAFT={}, GOAL_SKILLS=null, GOAL_FAMS=null;
 
@@ -5318,7 +5437,7 @@ applyI18n(); renderLangBtns();
 boot();
 </script>
 <script>
-if ('serviceWorker' in navigator) {
+if (!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
