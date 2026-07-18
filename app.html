@@ -5209,7 +5209,47 @@ async function loadCours(){
 }
 function icsDate(d){ return new Date(d).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z'); }
 function icsEscape(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n'); }
-function addToCalendar(c){
+/* ---- Agenda natif (iOS) + rappels locaux ---- */
+function notifIdFor(id){ let h=0; const x=String(id); for(let i=0;i<x.length;i++){ h=(h*31+x.charCodeAt(i))|0; } return Math.abs(h)%2000000000; }
+async function scheduleReminder(c){
+  const P=window.Capacitor&&window.Capacitor.Plugins;
+  if(!IS_NATIVE||!P||!P.LocalNotifications) return;
+  try{
+    const at=new Date(new Date(c.starts_at).getTime()-2*3600*1000);
+    if(at.getTime()<=Date.now()) return;
+    const perm=await P.LocalNotifications.requestPermissions();
+    if(!perm||perm.display!=='granted') return;
+    const title=(pick(c,'name')||'Cours')+(c.kind==='personal_training'?' (PT)':'');
+    const body=({fr:'Ta séance commence à ',en:'Your session starts at ',nl:'Je sessie begint om '}[LANG]||'Ta séance commence à ')+coHM(c.starts_at)+(c.location?' · '+c.location:'');
+    await P.LocalNotifications.schedule({notifications:[{id:notifIdFor(c.id),title:'Coach DM — '+title,body,schedule:{at}}]});
+  }catch(e){}
+}
+async function cancelReminder(cid){
+  const P=window.Capacitor&&window.Capacitor.Plugins;
+  if(!IS_NATIVE||!P||!P.LocalNotifications) return;
+  try{ await P.LocalNotifications.cancel({notifications:[{id:notifIdFor(cid)}]}); }catch(e){}
+}
+async function addToCalendar(c){
+  const P=window.Capacitor&&window.Capacitor.Plugins;
+  if(IS_NATIVE&&P&&P.CapacitorCalendar){
+    const title=(pick(c,'name')||'Cours')+(c.kind==='personal_training'?' (PT)':'');
+    const desc=[c.coach_name?('Coach: '+c.coach_name):'','Coach DM'].filter(Boolean).join(' — ');
+    try{
+      await P.CapacitorCalendar.createEventWithPrompt({
+        title:title,
+        startDate:new Date(c.starts_at).getTime(),
+        endDate:new Date(c.ends_at).getTime(),
+        location:c.location||undefined,
+        description:desc,
+        alerts:[-120,-1440]
+      });
+      scheduleReminder(c);
+    }catch(e){}
+    return;
+  }
+  addToCalendarIcs(c);
+}
+function addToCalendarIcs(c){
   const uid = 'coachdm-'+c.id+'@coachdm.be';
   const title = (pick(c,'name')||'Cours')+(c.kind==='personal_training'?' (PT)':'');
   const desc = [c.coach_name?('Coach: '+c.coach_name):'', 'Coach DM'].filter(Boolean).join(' — ');
@@ -5296,6 +5336,7 @@ async function bookClass(id,btn){
     loadCours(); return;
   }
   toast((data && data.status==='waitlist')?t('co_wl_ok'):t('co_booked_ok'));
+  if(!(data && data.status==='waitlist')){ const cc=COURS.find(x=>x.id===id); if(cc) scheduleReminder(cc); }
   loadCours();
 }
 async function cancelClass(id,btn){
@@ -5304,6 +5345,7 @@ async function cancelClass(id,btn){
   const { data, error } = await sb.rpc('class_cancel',{ p_instance:id });
   if(error || (data && data.ok===false)){ toast(t('co_cancel_fail')); loadCours(); return; }
   toast(t('co_cancelled_ok'));
+  cancelReminder(id);
   loadCours();
 }
 
