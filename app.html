@@ -4045,12 +4045,10 @@ function exDemo(ex){ if(ex.video_url) return ex.video_url; if(ex.youtube_query) 
 /* ---- Lecteur YouTube intégré : la vidéo reste dans l'app (web + wrapper iOS) ---- */
 /* L'embed YouTube refuse toute origine non http(s) : sous Capacitor il faut
    ios.scheme='https' (origine https://localhost) + parametre origin explicite. */
-const YT_ORIGIN = (typeof location!=='undefined' && /^https?:/.test(location.origin||'')) ? location.origin : 'https://localhost';
-function ytSrc(id){
-  return 'https://www.youtube-nocookie.com/embed/'+id
-    +'?autoplay=1&playsinline=1&rel=0&modestbranding=1&fs=1&iv_load_policy=3&origin='
-    + encodeURIComponent(YT_ORIGIN);
-}
+/* Lecteur hébergé sur coachdm.be : origine https réelle acceptée par YouTube.
+   Fonctionne dans le wrapper iOS (capacitor://) comme sur le web — tout reste in-app. */
+const YT_PLAYER='https://coachdm.be/player.html';
+function ytSrc(id){ return YT_PLAYER+'?v='+encodeURIComponent(id); }
 /* Repli : navigateur in-app (SFSafariViewController) — on ne quitte jamais l'app */
 async function ytOpenExternal(url){
   try{
@@ -4074,7 +4072,7 @@ function openDemo(url,name){
                        en:"Video not playing? Open the player",
                        nl:"Video start niet? Open de speler"})[LANG] || "La vidéo ne démarre pas ? Ouvrir le lecteur";
     fb.style.display='block';
-    fb.onclick=()=>ytOpenExternal('https://www.youtube.com/watch?v='+id);
+    fb.onclick=()=>ytOpenExternal(ytSrc(id));
   }
   ov.classList.add('show');
 }
