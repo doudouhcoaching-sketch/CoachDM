@@ -249,6 +249,22 @@
   </div>
 </div>
 
+<!-- MACROS CLIENT -->
+<div class="overlay" id="ov-macro">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div id="macro-body"></div>
+  </div>
+</div>
+
+<!-- PLANS NUTRITION -->
+<div class="overlay" id="ov-mp">
+  <div class="sheet" style="max-height:92dvh;overflow-y:auto">
+    <div class="grab"></div>
+    <div id="mp-body"></div>
+  </div>
+</div>
+
 <!-- WORKOUT EDITOR -->
 <div class="overlay" id="ov-wk">
   <div class="sheet">
@@ -408,6 +424,7 @@ const r1 = n=>Math.round((n||0)*10)/10;
 function show(id){['boot','auth','gate'].forEach(s=>$('#'+s).classList.toggle('hidden',s!==id));$('#app').classList.toggle('hidden',id!=='app');}
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1800);}
 function setMsg(id,t,c){const e=$('#'+id);e.textContent=t;e.className='msg '+(c||'');}
+function setBtn(sel,busy,label){const b=$(sel);if(!b)return;b.disabled=busy;if(label!=null)b.textContent=label;}
 const dFR = d=>d?new Date(d).toLocaleDateString('fr-BE',{day:'numeric',month:'short'}):'—';
 const dhFR = d=>d?new Date(d).toLocaleDateString('fr-BE',{weekday:'short',day:'numeric',month:'short'})+' · '+new Date(d).toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'}):'—';
 
@@ -648,11 +665,15 @@ async function openClientDetail(cid){
     h+='<p class="empty">Pas encore de données pour ce client. Elles apparaîtront dès qu\'il utilisera l\'app.</p>';
   }
   h+=`<div class="cd-sec"><div class="mini">Appels vidéo</div><div id="cd-calls"><div class="spin"></div></div></div>`;
-  h+='<button class="btn" id="cd-chat" style="margin-top:18px">Messages</button>';
+  h+='<button class="btn" id="cd-macro" style="margin-top:18px">Calories & macros</button>';
+  h+='<button class="btn" id="cd-meal" style="margin-top:9px">Plans nutrition</button>';
+  h+='<button class="btn" id="cd-chat" style="margin-top:9px">Messages</button>';
   h+='<button class="btn subtle" id="cd-close" style="margin-top:9px">Fermer</button>';
   $('#cd-body').innerHTML=h;
   $('#cd-close').onclick=closeCd;
   $('#cd-chat').onclick=()=>{ closeCd(); openChat(cid, p.full_name||p.email||''); };
+  $('#cd-macro').onclick=()=>openMacro(cid, p.full_name||p.email||'', nt);
+  $('#cd-meal').onclick=()=>openMealPlans(cid, p.full_name||p.email||'');
   renderCdCalls(cid);
 }
 
@@ -726,6 +747,182 @@ async function renderCdCalls(cid){
 }
 function closeCd(){ $('#ov-cd').classList.remove('show'); }
 $('#ov-cd').onclick = ev=>{ if(ev.target.id==='ov-cd') closeCd(); };
+
+/* ================= MACROS CLIENT ================= */
+const MP_GOALS={lose_fat:'Perte de gras',maintain:'Maintien',build_muscle:'Prise de muscle',recomp:'Recomposition'};
+function numOrNull(v){ const n=parseFloat(String(v).replace(',','.')); return isNaN(n)?null:n; }
+function openMacro(cid, name, nt){
+  nt=nt||{};
+  const goalOpts=Object.keys(MP_GOALS).map(k=>`<option value="${k}"${nt.goal===k?' selected':''}>${MP_GOALS[k]}</option>`).join('');
+  $('#macro-body').innerHTML=`
+    <h3 style="margin:0 0 2px">Calories & macros</h3>
+    <p class="sub" style="text-align:left;margin:0 0 14px">${esc(name)}</p>
+    <div class="field"><label>Calories cible (kcal/jour)</label><input id="mc-kcal" type="number" inputmode="numeric" value="${nt.daily_calories_kcal??''}" placeholder="2100" /></div>
+    <div class="row2">
+      <div class="field"><label>Protéines (g)</label><input id="mc-prot" inputmode="decimal" value="${nt.protein_g??''}" /></div>
+      <div class="field"><label>Glucides (g)</label><input id="mc-carb" inputmode="decimal" value="${nt.carbs_g??''}" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Lipides (g)</label><input id="mc-fat" inputmode="decimal" value="${nt.fat_g??''}" /></div>
+      <div class="field"><label>Fibres (g)</label><input id="mc-fib" inputmode="decimal" value="${nt.fiber_g??''}" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Eau (ml)</label><input id="mc-water" type="number" inputmode="numeric" value="${nt.water_ml??''}" placeholder="2500" /></div>
+      <div class="field"><label>Objectif</label><select id="mc-goal"><option value="">— inchangé —</option>${goalOpts}</select></div>
+    </div>
+    <div id="mc-kcalc" class="sub" style="text-align:left;margin:6px 2px 0"></div>
+    <button class="btn" id="mc-save" style="margin-top:16px">Enregistrer les macros</button>
+    <button class="btn subtle" id="mc-cancel" style="margin-top:9px">Fermer</button>
+    <div class="msg" id="mc-msg"></div>`;
+  const recalc=()=>{
+    const p=numOrNull($('#mc-prot').value)||0, c=numOrNull($('#mc-carb').value)||0, f=numOrNull($('#mc-fat').value)||0;
+    const kc=Math.round(p*4+c*4+f*9);
+    $('#mc-kcalc').textContent = (p||c||f)?`Macros = ~${kc} kcal (P·4 + G·4 + L·9)`:'';
+  };
+  ['mc-prot','mc-carb','mc-fat'].forEach(id=>$('#'+id).oninput=recalc); recalc();
+  $('#ov-macro').classList.add('show');
+  $('#mc-cancel').onclick=()=>$('#ov-macro').classList.remove('show');
+  $('#mc-save').onclick=async()=>{
+    const kcal=intOrNull($('#mc-kcal').value);
+    if(kcal===null||kcal<0) return setMsg('mc-msg','Indique des calories valides.','err');
+    setBtn('#mc-save',true,'…');
+    const { error } = await sb.rpc('coach_upsert_nutrition_targets',{
+      p_client:cid, p_daily_calories_kcal:kcal,
+      p_protein_g:numOrNull($('#mc-prot').value), p_carbs_g:numOrNull($('#mc-carb').value),
+      p_fat_g:numOrNull($('#mc-fat').value), p_fiber_g:numOrNull($('#mc-fib').value),
+      p_water_ml:intOrNull($('#mc-water').value), p_goal:$('#mc-goal').value||null
+    });
+    setBtn('#mc-save',false,'Enregistrer les macros');
+    if(error) return setMsg('mc-msg','Erreur : '+error.message,'err');
+    toast('Macros mises à jour');
+    $('#ov-macro').classList.remove('show');
+  };
+}
+
+/* ================= PLANS NUTRITION (journée / semaine type) ================= */
+const MP_SLOTS={breakfast:'Petit-déj',lunch:'Déjeuner',dinner:'Dîner',snack:'Collation',preworkout:'Pré-training',postworkout:'Post-training',meal:'Repas'};
+const MP_DAYS=['Jour','Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+let MP_LIST=[], MP_CID=null, MP_NAME='', MP_CUR=null, MP_ITEMS=[];
+async function openMealPlans(cid, name){
+  MP_CID=cid; MP_NAME=name; MP_CUR=null;
+  $('#ov-mp').classList.add('show');
+  await mpRenderList();
+}
+async function mpRenderList(){
+  $('#mp-body').innerHTML='<div class="spin"></div>';
+  const { data, error } = await sb.rpc('coach_list_meal_plans',{ p_client:MP_CID });
+  if(error){ $('#mp-body').innerHTML=`<p class="empty">Erreur : ${esc(error.message)}</p>`; return; }
+  MP_LIST=data||[];
+  let h=`<h3 style="margin:0 0 2px">Plans nutrition</h3>
+    <p class="sub" style="text-align:left;margin:0 0 14px">${esc(MP_NAME)}</p>`;
+  if(!MP_LIST.length) h+='<p class="empty" style="padding:16px 0">Aucun plan pour ce client.</p>';
+  else h+=MP_LIST.map(p=>`<div class="card" style="display:flex;align-items:center;gap:10px">
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:700">${esc(p.title)}</div>
+      <div class="sub" style="text-align:left;margin:2px 0 0">${p.plan_type==='week'?'Semaine type':'Journée type'} · ${p.item_count} repas${p.is_active?'':' · inactif'}</div>
+    </div>
+    <button class="btn subtle sm" data-mpe="${p.id}" style="width:auto">Éditer</button>
+  </div>`).join('');
+  h+='<button class="btn" id="mp-new" style="margin-top:14px">＋ Nouveau plan</button>';
+  h+='<button class="btn subtle" id="mp-close" style="margin-top:9px">Fermer</button>';
+  $('#mp-body').innerHTML=h;
+  $('#mp-close').onclick=()=>$('#ov-mp').classList.remove('show');
+  $('#mp-new').onclick=()=>mpEdit(null);
+  $('#mp-body').querySelectorAll('[data-mpe]').forEach(b=>b.onclick=()=>mpEdit(b.dataset.mpe));
+}
+async function mpEdit(id){
+  let plan={ title:'', notes:'', plan_type:'day', is_active:true }; MP_ITEMS=[];
+  if(id){
+    const { data, error } = await sb.rpc('coach_get_meal_plan',{ p_id:id });
+    if(error||!data){ toast('Chargement KO'); return; }
+    plan=data.plan; MP_ITEMS=(data.items||[]).map(it=>({...it}));
+  }
+  MP_CUR=id;
+  const h=`<h3 style="margin:0 0 12px">${id?'Modifier le plan':'Nouveau plan'}</h3>
+    <div class="field"><label>Titre</label><input id="mp-title" value="${esc(plan.title)}" placeholder="Journée type prise de masse" /></div>
+    <div class="row2">
+      <div class="field"><label>Type</label><select id="mp-type">
+        <option value="day"${plan.plan_type==='day'?' selected':''}>Journée type</option>
+        <option value="week"${plan.plan_type==='week'?' selected':''}>Semaine type</option>
+      </select></div>
+      <div class="field"><label>Actif</label><select id="mp-active">
+        <option value="1"${plan.is_active?' selected':''}>Visible par le client</option>
+        <option value="0"${!plan.is_active?' selected':''}>Masqué</option>
+      </select></div>
+    </div>
+    <div class="field"><label>Note (optionnel)</label><textarea id="mp-notes" placeholder="Hydratation, timing, rappels…">${esc(plan.notes)}</textarea></div>
+    <div class="mini" style="margin:14px 0 8px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.5px">Repas</div>
+    <div id="mp-items"></div>
+    <button class="btn subtle" id="mp-add" style="margin-top:4px">＋ Ajouter un repas</button>
+    <button class="btn" id="mp-save" style="margin-top:14px">Enregistrer le plan</button>
+    ${id?'<button class="btn danger" id="mp-del" style="margin-top:9px">Supprimer le plan</button>':''}
+    <button class="btn subtle" id="mp-back" style="margin-top:9px">Retour</button>
+    <div class="msg" id="mp-msg"></div>`;
+  $('#mp-body').innerHTML=h;
+  mpPaintItems();
+  $('#mp-type').onchange=mpPaintItems;
+  $('#mp-add').onclick=()=>{ MP_ITEMS.push({day_index:1,slot:'meal',title:'',description:'',kcal:'',protein_g:'',carbs_g:'',fat_g:''}); mpPaintItems(); };
+  $('#mp-back').onclick=mpRenderList;
+  if(id) $('#mp-del').onclick=async()=>{
+    if(!confirm('Supprimer ce plan ?')) return;
+    const { error } = await sb.rpc('coach_delete_meal_plan',{ p_id:id });
+    if(error) return toast('Erreur : '+error.message);
+    toast('Plan supprimé'); mpRenderList();
+  };
+  $('#mp-save').onclick=mpSave;
+}
+function mpPaintItems(){
+  const box=$('#mp-items'); if(!box) return;
+  const isWeek=$('#mp-type') && $('#mp-type').value==='week';
+  if(!MP_ITEMS.length){ box.innerHTML='<p class="sub" style="text-align:left;margin:0 0 6px">Aucun repas. Ajoute-en ci-dessous.</p>'; return; }
+  const dayOpts=(sel)=>MP_DAYS.slice(1).map((d,i)=>`<option value="${i+1}"${+sel===i+1?' selected':''}>${d}</option>`).join('');
+  const slotOpts=(sel)=>Object.keys(MP_SLOTS).map(k=>`<option value="${k}"${sel===k?' selected':''}>${MP_SLOTS[k]}</option>`).join('');
+  box.innerHTML=MP_ITEMS.map((it,i)=>`<div class="card" style="padding:11px">
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+      ${isWeek?`<select data-f="day_index" data-i="${i}" style="width:auto;flex:none">${dayOpts(it.day_index)}</select>`:''}
+      <select data-f="slot" data-i="${i}" style="width:auto;flex:none">${slotOpts(it.slot)}</select>
+      <div style="flex:1"></div>
+      <button class="btn subtle sm" data-mprm="${i}" style="width:auto;color:var(--warn)">✕</button>
+    </div>
+    <div class="field" style="margin:0 0 6px"><input data-f="title" data-i="${i}" value="${esc(it.title)}" placeholder="Ex. Flocons d'avoine + oeufs" /></div>
+    <div class="field" style="margin:0 0 6px"><textarea data-f="description" data-i="${i}" placeholder="Détails, quantités…" style="min-height:44px">${esc(it.description)}</textarea></div>
+    <div class="row2" style="gap:6px">
+      <input data-f="kcal" data-i="${i}" inputmode="numeric" value="${it.kcal??''}" placeholder="kcal" />
+      <input data-f="protein_g" data-i="${i}" inputmode="decimal" value="${it.protein_g??''}" placeholder="P (g)" />
+    </div>
+    <div class="row2" style="gap:6px;margin-top:6px">
+      <input data-f="carbs_g" data-i="${i}" inputmode="decimal" value="${it.carbs_g??''}" placeholder="G (g)" />
+      <input data-f="fat_g" data-i="${i}" inputmode="decimal" value="${it.fat_g??''}" placeholder="L (g)" />
+    </div>
+  </div>`).join('');
+  box.querySelectorAll('[data-f]').forEach(inp=>inp.oninput=()=>{ MP_ITEMS[+inp.dataset.i][inp.dataset.f]=inp.value; });
+  box.querySelectorAll('[data-mprm]').forEach(b=>b.onclick=()=>{ MP_ITEMS.splice(+b.dataset.mprm,1); mpPaintItems(); });
+}
+async function mpSave(){
+  const title=$('#mp-title').value.trim();
+  if(!title) return setMsg('mp-msg','Titre requis.','err');
+  const type=$('#mp-type').value;
+  setBtn('#mp-save',true,'…');
+  const { data:pid, error } = await sb.rpc('coach_upsert_meal_plan',{
+    p_id:MP_CUR, p_client:MP_CID, p_title:title,
+    p_notes:$('#mp-notes').value.trim()||null, p_plan_type:type,
+    p_is_active:$('#mp-active').value==='1'
+  });
+  if(error){ setBtn('#mp-save',false,'Enregistrer le plan'); return setMsg('mp-msg','Erreur : '+error.message,'err'); }
+  const items=MP_ITEMS.map((it,i)=>({
+    day_index: type==='week' ? (+it.day_index||1) : 1,
+    slot: it.slot||'meal', title: (it.title||'').trim()||'Repas',
+    description: (it.description||'').trim()||null,
+    kcal: intOrNull(it.kcal), protein_g: numOrNull(it.protein_g),
+    carbs_g: numOrNull(it.carbs_g), fat_g: numOrNull(it.fat_g), display_order:i
+  }));
+  const { error:e2 } = await sb.rpc('coach_set_meal_plan_items',{ p_plan:pid, p_items:items });
+  setBtn('#mp-save',false,'Enregistrer le plan');
+  if(e2) return setMsg('mp-msg','Repas non enregistrés : '+e2.message,'err');
+  toast('Plan enregistré'); mpRenderList();
+}
+$('#ov-macro').onclick = ev=>{ if(ev.target.id==='ov-macro') $('#ov-macro').classList.remove('show'); };
+$('#ov-mp').onclick = ev=>{ if(ev.target.id==='ov-mp') $('#ov-mp').classList.remove('show'); };
 
 /* ---- Messagerie ---- */
 let THREADS={}, CHAT_PEER=null, CHAT_CH=null;

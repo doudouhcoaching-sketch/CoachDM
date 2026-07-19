@@ -1033,6 +1033,10 @@
 
   <!-- JOURNAL -->
   <div class="page tabpane" id="pane-journal">
+    <div class="block" id="mp-block" style="display:none">
+      <div class="tr-head"><h3 data-i18n="mp_title">Plan nutrition du coach</h3><span class="co-pill ok" style="font-size:11px">Coach</span></div>
+      <div id="mp-client"></div>
+    </div>
     <div class="block">
       <h3 data-i18n="jo_add">Ajouter un aliment</h3>
       <div class="search-row">
@@ -1678,6 +1682,16 @@
   .ob-res h2{margin:0 0 10px;font-size:24px;letter-spacing:-.02em}
   .ob-chips{display:flex;justify-content:center;gap:8px;margin:0 0 16px;flex-wrap:wrap}
   .ob-chips .badge{background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12px;color:var(--muted)}
+
+  /* --- Plan nutrition côté client --- */
+  .mp-title{font-weight:800;font-size:16px;letter-spacing:-.02em;margin:2px 0 4px}
+  .mp-notes{color:var(--muted);font-size:13px;line-height:1.5;margin:0 0 12px;padding:9px 11px;background:var(--surface-2);border-radius:12px}
+  .mp-day{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand);margin:14px 0 6px}
+  .mp-item{border:1px solid var(--line);border-radius:14px;padding:11px 13px;margin-bottom:8px;background:var(--surface-2)}
+  .mp-slot{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+  .mp-meal{font-weight:600;font-size:14.5px}
+  .mp-desc{color:var(--muted);font-size:13px;line-height:1.45;margin-top:3px}
+  .mp-macros{font-size:12px;color:var(--brand);font-weight:600;margin-top:5px}
 </style>
 <div class="overlay" id="up-ov"><div class="sheet" style="text-align:center">
   <div class="grab"></div>
@@ -2153,6 +2167,17 @@ const T = {
  meal_dinner:{fr:'Dîner',en:'Dinner',nl:'Diner'},
  meal_snack:{fr:'Collation',en:'Snack',nl:'Snack'},
  meal_pre_workout:{fr:'Pré-training',en:'Pre-workout',nl:'Pre-workout'},
+ mp_title:{fr:'Plan nutrition du coach',en:'Coach nutrition plan',nl:'Voedingsplan van de coach'},
+ mp_snack:{fr:'Collation',en:'Snack',nl:'Snack'},
+ mp_meal:{fr:'Repas',en:'Meal',nl:'Maaltijd'},
+ mp_day:{fr:'Journée type',en:'Typical day',nl:'Typische dag'},
+ dow_mon:{fr:'Lundi',en:'Monday',nl:'Maandag'},
+ dow_tue:{fr:'Mardi',en:'Tuesday',nl:'Dinsdag'},
+ dow_wed:{fr:'Mercredi',en:'Wednesday',nl:'Woensdag'},
+ dow_thu:{fr:'Jeudi',en:'Thursday',nl:'Donderdag'},
+ dow_fri:{fr:'Vendredi',en:'Friday',nl:'Vrijdag'},
+ dow_sat:{fr:'Samedi',en:'Saturday',nl:'Zaterdag'},
+ dow_sun:{fr:'Dimanche',en:'Sunday',nl:'Zondag'},
  meal_post_workout:{fr:'Post-training',en:'Post-workout',nl:'Post-workout'},
  err_credentials:{fr:'Email et mot de passe requis.',en:'Email and password required.',nl:'E-mail en wachtwoord vereist.'},
  insight_title:{fr:'Insight du jour',en:'Daily insight',nl:'Inzicht van de dag'},
@@ -3595,7 +3620,40 @@ $('#sh-add').onclick = async ()=>{
   await loadLogs(); await loadToday();
 };
 
+async function loadMealPlan(){
+  const host=$('#mp-client'), block=$('#mp-block'); if(!host||!block) return;
+  try{
+    const { data:plans } = await sb.from('meal_plans')
+      .select('id,title,notes,plan_type,updated_at').eq('client_id',USER.id).eq('is_active',true)
+      .order('updated_at',{ascending:false}).limit(1);
+    const plan=(plans||[])[0];
+    if(!plan){ block.style.display='none'; return; }
+    const { data:items } = await sb.from('meal_plan_items')
+      .select('day_index,slot,title,description,kcal,protein_g,carbs_g,fat_g,display_order')
+      .eq('plan_id',plan.id).order('day_index',{ascending:true}).order('display_order',{ascending:true});
+    const SLOT={breakfast:t('meal_breakfast'),lunch:t('meal_lunch'),dinner:t('meal_dinner'),snack:t('mp_snack'),preworkout:t('meal_pre_workout'),postworkout:t('meal_post_workout'),meal:t('mp_meal')};
+    const DAY=[t('mp_day'),t('dow_mon'),t('dow_tue'),t('dow_wed'),t('dow_thu'),t('dow_fri'),t('dow_sat'),t('dow_sun')];
+    const isWeek=plan.plan_type==='week';
+    let h=`<div class="mp-title">${esc(plan.title)}</div>`;
+    if(plan.notes) h+=`<div class="mp-notes">${esc(plan.notes)}</div>`;
+    const groups={};
+    (items||[]).forEach(it=>{ const k=isWeek?(it.day_index||1):0; (groups[k]=groups[k]||[]).push(it); });
+    Object.keys(groups).sort((a,b)=>a-b).forEach(g=>{
+      if(isWeek) h+=`<div class="mp-day">${esc(DAY[+g]||('Jour '+g))}</div>`;
+      h+=groups[g].map(it=>{
+        const macros=[it.kcal?r0(it.kcal)+' kcal':'',it.protein_g?'P'+r0(it.protein_g):'',it.carbs_g?'G'+r0(it.carbs_g):'',it.fat_g?'L'+r0(it.fat_g):''].filter(Boolean).join(' · ');
+        return `<div class="mp-item"><div class="mp-slot">${esc(SLOT[it.slot]||SLOT.meal)}</div>
+          <div class="mp-meal">${esc(it.title)}</div>
+          ${it.description?`<div class="mp-desc">${esc(it.description)}</div>`:''}
+          ${macros?`<div class="mp-macros">${macros}</div>`:''}</div>`;
+      }).join('');
+    });
+    host.innerHTML=h; block.style.display='';
+  }catch(e){ block.style.display='none'; }
+}
+
 async function loadLogs(){
+  loadMealPlan();
   loadTrends();
   const { data } = await sb.from('food_logs')
     .select('id,food_id,meal_type,quantity_g,kcal')
