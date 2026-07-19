@@ -1043,6 +1043,11 @@
       <input type="file" id="jo-photo-file" accept="image/*" capture="environment" style="display:none" />
       <div id="jo-results"></div>
     </div>
+    <div class="block" id="hk-block" style="display:none">
+      <div class="tr-head"><h3 data-i18n="hk_title">Activité</h3><span class="co-pill ok" style="font-size:11px">Apple Santé</span></div>
+      <div id="hk-today"></div>
+      <div id="hk-workouts"></div>
+    </div>
     <div class="block">
       <div class="tr-head">
         <h3 data-i18n="tr_title">Tendances</h3>
@@ -1249,6 +1254,7 @@
       <div class="empty" style="text-align:left;padding:0 0 12px" id="p-email"></div>
       <a class="btn subtle" id="p-coach-console" href="coach.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_coach_console">Console Coach</a>
       <a class="btn subtle" id="p-admin-console" href="admin.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_admin_console">Console Admin</a>
+      <button class="btn subtle" id="p-health" style="display:none;margin-bottom:9px" data-i18n="hk_connect">Connecter Apple Santé</button>
       <button class="btn subtle" id="p-out" data-i18n="btn_logout">Se déconnecter</button>
     </div>
     </div>
@@ -1864,6 +1870,15 @@ const T = {
  co_addcal:{fr:'Ajouter à mon agenda',en:'Add to my calendar',nl:'Aan agenda toevoegen'},
  co_cal_pick:{fr:'Choisis ton agenda',en:'Choose your calendar',nl:'Kies je agenda'},
  co_cal_apple:{fr:'Apple Calendrier (.ics)',en:'Apple Calendar (.ics)',nl:'Apple Agenda (.ics)'},
+ hk_title:{fr:'Activité',en:'Activity',nl:'Activiteit'},
+ hk_connect:{fr:'Connecter Apple Santé',en:'Connect Apple Health',nl:'Apple Gezondheid koppelen'},
+ hk_connected:{fr:'Apple Santé connecté ✓',en:'Apple Health connected ✓',nl:'Apple Gezondheid gekoppeld ✓'},
+ hk_steps:{fr:'pas',en:'steps',nl:'stappen'},
+ hk_sleep:{fr:'sommeil',en:'sleep',nl:'slaap'},
+ hk_rhr:{fr:'FC repos',en:'resting HR',nl:'rust-HF'},
+ hk_watch:{fr:'Séances Apple Watch',en:'Apple Watch workouts',nl:'Apple Watch work-outs'},
+ hk_sync_ok:{fr:'Apple Santé synchronisé ✓',en:'Apple Health synced ✓',nl:'Apple Gezondheid gesynct ✓'},
+ hk_denied:{fr:'Accès Santé refusé — Réglages > Santé > Accès aux données',en:'Health access denied — Settings > Health > Data Access',nl:'Toegang geweigerd — Instellingen > Gezondheid'},
  co_reserve:{fr:'Réserver',en:'Book',nl:'Reserveren'},
  co_waitlist_btn:{fr:"Rejoindre la liste d'attente",en:'Join the waitlist',nl:'Op wachtlijst'},
  co_cancel_btn:{fr:'Annuler ma réservation',en:'Cancel my booking',nl:'Reservatie annuleren'},
@@ -2340,6 +2355,7 @@ async function enter(user){
   loadCoachCard(); loadCalls(); initChatLive();
   resumePendingPlan();
   initPush();
+  initHealth();
 }
 
 /* ---- Notifications push (iOS natif) ---- */
@@ -2361,6 +2377,113 @@ async function initPush(){
     if(perm.receive==='prompt') perm=await P.PushNotifications.requestPermissions();
     if(perm.receive==='granted') await P.PushNotifications.register();
   }catch(e){}
+}
+
+/* ---- Apple Santé (iOS natif, lecture seule) ---- */
+const HK_READ=['steps','calories','restingHeartRate','sleep','weight','heartRate','workouts'];
+let _hkInit=false;
+function hkPlugin(){ const P=window.Capacitor&&window.Capacitor.Plugins; return (IS_NATIVE&&P&&P.Health)?P.Health:null; }
+function hkDayKey(d){ const x=new Date(d); return x.getFullYear()+'-'+('0'+(x.getMonth()+1)).slice(-2)+'-'+('0'+x.getDate()).slice(-2); }
+function hkMin(m){ if(m==null) return '—'; const h=Math.floor(m/60); return h+'h'+('0'+(m%60)).slice(-2); }
+function hkWkLabel(ty){
+  const map={functionalStrengthTraining:'Functional Training',traditionalStrengthTraining:'Strength Training',strengthTraining:'Strength Training',highIntensityIntervalTraining:'HIIT',crossTraining:'Cross Training',coreTraining:'Core',running:'Running',walking:'Marche',cycling:'Vélo',rowing:'Rower',swimming:'Natation',soccer:'Football',boxing:'Boxe',martialArts:'Arts martiaux',jumpRope:'Corde à sauter',stairClimbing:'Stairs',mixedCardio:'Cardio',cooldown:'Cool-down',flexibility:'Mobilité',yoga:'Yoga',pilates:'Pilates',elliptical:'Elliptique',hiking:'Rando',other:'Séance'};
+  if(map[ty]) return map[ty];
+  return String(ty||'Séance').replace(/([A-Z])/g,' $1').replace(/^./,c=>c.toUpperCase());
+}
+async function initHealth(){
+  if(_hkInit) return;
+  const H=hkPlugin(); if(!H) return;
+  _hkInit=true;
+  try{
+    const av=await H.isAvailable();
+    if(!av||!av.available) return;
+    const btn=$('#p-health');
+    const on=localStorage.getItem('cdm_hk_on')==='1';
+    if(btn){ btn.style.display='block'; btn.textContent=on?t('hk_connected'):t('hk_connect'); btn.onclick=connectHealth; }
+    if(on) syncHealth();
+  }catch(e){}
+}
+async function connectHealth(){
+  const H=hkPlugin(); if(!H) return;
+  try{
+    await H.requestAuthorization({read:HK_READ});
+    localStorage.setItem('cdm_hk_on','1');
+    const b=$('#p-health'); if(b) b.textContent=t('hk_connected');
+    toast(t('hk_sync_ok'));
+    syncHealth();
+  }catch(e){ toast(t('hk_denied')); }
+}
+async function syncHealth(){
+  const H=hkPlugin(); if(!H) return;
+  try{
+    const end=new Date(), start=new Date(Date.now()-14*864e5), iso=d=>d.toISOString();
+    const days={}; const day=k=>days[k]||(days[k]={day:k});
+    try{ const r=await H.queryAggregated({dataType:'steps',startDate:iso(start),endDate:iso(end),bucket:'day',aggregation:'sum'});
+      (r.samples||[]).forEach(s=>{ day(hkDayKey(s.startDate)).steps=Math.round(s.value||0); }); }catch(e){}
+    try{ const r=await H.queryAggregated({dataType:'calories',startDate:iso(start),endDate:iso(end),bucket:'day',aggregation:'sum'});
+      (r.samples||[]).forEach(s=>{ day(hkDayKey(s.startDate)).active_kcal=Math.round(s.value||0); }); }catch(e){}
+    try{ const r=await H.queryAggregated({dataType:'restingHeartRate',startDate:iso(start),endDate:iso(end),bucket:'day',aggregation:'average'});
+      (r.samples||[]).forEach(s=>{ if(s.value) day(hkDayKey(s.startDate)).resting_hr=Math.round(s.value); }); }catch(e){}
+    try{
+      const r=await H.readSamples({dataType:'sleep',startDate:iso(start),endDate:iso(end),limit:500,ascending:true});
+      (r.samples||[]).forEach(s=>{
+        if(s.sleepState && ['asleep','rem','deep','light'].indexOf(s.sleepState)<0) return;
+        const mins=Math.round((new Date(s.endDate)-new Date(s.startDate))/60000);
+        if(mins>0){ const d=day(hkDayKey(s.endDate)); d.sleep_min=(d.sleep_min||0)+mins; }
+      });
+    }catch(e){}
+    try{
+      const r=await H.readSamples({dataType:'weight',startDate:iso(new Date(Date.now()-90*864e5)),endDate:iso(end),limit:1,ascending:false});
+      const s=(r.samples||[])[0];
+      if(s&&s.value) day(hkDayKey(s.startDate)).weight_kg=Math.round(s.value*10)/10;
+    }catch(e){}
+    const rows=Object.values(days);
+    if(rows.length){ try{ await sb.rpc('health_upsert_daily',{p_rows:rows}); }catch(e){} }
+    let wk=[];
+    try{
+      const r=await H.queryWorkouts({startDate:iso(start),endDate:iso(end),limit:100,ascending:false});
+      wk=(r.workouts||[]).filter(w=>w.platformId);
+      if(wk.length){
+        try{ await sb.rpc('health_upsert_workouts',{p_rows:wk.map(w=>({
+          platform_id:w.platformId, workout_type:w.workoutType, starts_at:w.startDate, ends_at:w.endDate,
+          duration_sec:Math.round(w.duration||0),
+          kcal:(w.totalEnergyBurned!=null)?Math.round(w.totalEnergyBurned):null,
+          distance_m:(w.totalDistance!=null)?Math.round(w.totalDistance):null,
+          source_name:w.sourceName||null }))}); }catch(e){}
+      }
+    }catch(e){}
+    renderHealth(days, wk);
+  }catch(e){}
+}
+function renderHealth(days, wk){
+  const blk=$('#hk-block'); if(!blk) return;
+  const d=days[hkDayKey(new Date())]||{};
+  const stats=[
+    {v:(d.steps!=null?d.steps.toLocaleString('fr-BE'):'—'), l:t('hk_steps')},
+    {v:(d.active_kcal!=null?d.active_kcal:'—'), l:'kcal'},
+    {v:hkMin(d.sleep_min), l:t('hk_sleep')},
+    {v:(d.resting_hr!=null?d.resting_hr+' bpm':'—'), l:t('hk_rhr')}
+  ];
+  blk.style.display='block';
+  const tb=$('#hk-today');
+  if(tb) tb.innerHTML='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'+stats.map(s=>
+    '<div style="background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 4px;text-align:center">'+
+    '<div style="font-weight:800;font-size:15px">'+s.v+'</div>'+
+    '<div style="color:var(--muted);font-size:11px;margin-top:3px">'+esc(s.l)+'</div></div>').join('')+'</div>';
+  const wb=$('#hk-workouts');
+  if(wb){
+    if(!wk||!wk.length){ wb.innerHTML=''; return; }
+    const loc=LANG==='fr'?'fr-BE':(LANG==='nl'?'nl-BE':'en-GB');
+    wb.innerHTML='<div style="color:var(--muted);font-size:12px;margin:12px 0 2px">'+esc(t('hk_watch'))+'</div>'+
+      wk.slice(0,5).map(w=>{
+        const dmin=Math.round((w.duration||0)/60);
+        const dt=new Date(w.startDate).toLocaleDateString(loc,{weekday:'short',day:'numeric',month:'short'});
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)">'+
+          '<div><div style="font-weight:700;font-size:14px">'+esc(hkWkLabel(w.workoutType))+'</div>'+
+          '<div style="color:var(--muted);font-size:12px">'+esc(dt)+(w.sourceName?' · '+esc(w.sourceName):'')+'</div></div>'+
+          '<div style="text-align:right;color:var(--muted);font-size:12px">'+dmin+' min'+(w.totalEnergyBurned?' · '+Math.round(w.totalEnergyBurned)+' kcal':'')+'</div></div>';
+      }).join('');
+  }
 }
 
 async function loadProfileInfo(user){
