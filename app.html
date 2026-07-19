@@ -1048,6 +1048,10 @@
       <div id="hk-today"></div>
       <div id="hk-workouts"></div>
     </div>
+    <div class="block" id="sv-block" style="display:none">
+      <div class="tr-head"><h3 data-i18n="sv_title">Courses Strava</h3><span class="co-pill warn" style="font-size:11px;background:rgba(252,82,0,.16);color:#FC5200">Strava</span></div>
+      <div id="sv-list"></div>
+    </div>
     <div class="block">
       <div class="tr-head">
         <h3 data-i18n="tr_title">Tendances</h3>
@@ -1255,6 +1259,7 @@
       <a class="btn subtle" id="p-coach-console" href="coach.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_coach_console">Console Coach</a>
       <a class="btn subtle" id="p-admin-console" href="admin.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_admin_console">Console Admin</a>
       <button class="btn subtle" id="p-health" style="display:none;margin-bottom:9px" data-i18n="hk_connect">Connecter Apple Santé</button>
+      <button class="btn subtle" id="p-strava" style="display:none;margin-bottom:9px" data-i18n="sv_connect">Connecter Strava</button>
       <button class="btn subtle" id="p-out" data-i18n="btn_logout">Se déconnecter</button>
     </div>
     </div>
@@ -1879,6 +1884,12 @@ const T = {
  hk_watch:{fr:'Séances Apple Watch',en:'Apple Watch workouts',nl:'Apple Watch work-outs'},
  hk_sync_ok:{fr:'Apple Santé synchronisé ✓',en:'Apple Health synced ✓',nl:'Apple Gezondheid gesynct ✓'},
  hk_denied:{fr:'Accès Santé refusé — Réglages > Santé > Accès aux données',en:'Health access denied — Settings > Health > Data Access',nl:'Toegang geweigerd — Instellingen > Gezondheid'},
+ sv_connect:{fr:'Connecter Strava',en:'Connect Strava',nl:'Strava koppelen'},
+ sv_connected:{fr:'Strava connecté ✓',en:'Strava connected ✓',nl:'Strava gekoppeld ✓'},
+ sv_title:{fr:'Courses Strava',en:'Strava runs',nl:'Strava-runs'},
+ sv_sync_ok:{fr:'Strava synchronisé ✓',en:'Strava synced ✓',nl:'Strava gesynct ✓'},
+ sv_wait:{fr:'Termine la connexion dans la fenêtre Strava…',en:'Finish connecting in the Strava window…',nl:'Rond de koppeling af in het Strava-venster…'},
+ sv_err:{fr:'Connexion Strava impossible — réessaie',en:'Strava connection failed — try again',nl:'Strava-koppeling mislukt — probeer opnieuw'},
  co_reserve:{fr:'Réserver',en:'Book',nl:'Reserveren'},
  co_waitlist_btn:{fr:"Rejoindre la liste d'attente",en:'Join the waitlist',nl:'Op wachtlijst'},
  co_cancel_btn:{fr:'Annuler ma réservation',en:'Cancel my booking',nl:'Reservatie annuleren'},
@@ -2356,6 +2367,7 @@ async function enter(user){
   resumePendingPlan();
   initPush();
   initHealth();
+  initStrava();
 }
 
 /* ---- Notifications push (iOS natif) ---- */
@@ -2455,6 +2467,83 @@ async function syncHealth(){
     renderHealth(days, wk);
   }catch(e){}
 }
+/* ---- Strava (web + natif) ---- */
+const SV_FN='https://kkcmhviyvttwpaclrjmv.supabase.co/functions/v1/strava-oauth';
+let _svPoll=null;
+async function initStrava(){
+  const btn=$('#p-strava'); if(!btn) return;
+  btn.onclick=connectStrava;
+  try{
+    const { data } = await sb.rpc('strava_status');
+    if(data && data.connected){
+      btn.textContent=t('sv_connected');
+      syncStrava();
+    }
+  }catch(e){}
+}
+async function connectStrava(){
+  try{
+    const { data:status } = await sb.rpc('strava_status');
+    if(status && status.connected){ syncStrava(); toast(t('sv_sync_ok')); return; }
+    const { data:state, error } = await sb.rpc('strava_start');
+    if(error||!state){ toast(t('sv_err')); return; }
+    const url=SV_FN+'?start=1&state='+encodeURIComponent(state);
+    const P=window.Capacitor&&window.Capacitor.Plugins;
+    if(IS_NATIVE&&P&&P.Browser){ await P.Browser.open({url}); } else { window.open(url,'_blank'); }
+    toast(t('sv_wait'));
+    // attend la fin du flow OAuth (2 min max)
+    if(_svPoll) clearInterval(_svPoll);
+    let tries=0;
+    _svPoll=setInterval(async ()=>{
+      tries++;
+      if(tries>24){ clearInterval(_svPoll); _svPoll=null; return; }
+      try{
+        const { data:st } = await sb.rpc('strava_status');
+        if(st && st.connected){
+          clearInterval(_svPoll); _svPoll=null;
+          const b=$('#p-strava'); if(b) b.textContent=t('sv_connected');
+          try{ if(IS_NATIVE&&P&&P.Browser) await P.Browser.close(); }catch(e){}
+          toast(t('sv_connected'));
+          syncStrava();
+        }
+      }catch(e){}
+    },5000);
+  }catch(e){ toast(t('sv_err')); }
+}
+async function syncStrava(){
+  try{
+    const { data } = await sb.functions.invoke('strava-sync',{ body:{} });
+    if(data && data.ok===false && data.reason==='not_connected') return;
+  }catch(e){}
+  loadStravaList();
+}
+function svPace(mt,dist){
+  if(!mt||!dist||dist<100) return '';
+  const spk=mt/(dist/1000); const m=Math.floor(spk/60), s=Math.round(spk%60);
+  return m+':'+('0'+s).slice(-2)+' /km';
+}
+async function loadStravaList(){
+  const blk=$('#sv-block'), box=$('#sv-list'); if(!blk||!box) return;
+  try{
+    const { data } = await sb.from('strava_activities')
+      .select('name,sport_type,distance_m,moving_time_s,start_date,avg_hr')
+      .order('start_date',{ascending:false}).limit(6);
+    if(!data||!data.length){ blk.style.display='none'; return; }
+    const loc=LANG==='fr'?'fr-BE':(LANG==='nl'?'nl-BE':'en-GB');
+    blk.style.display='block';
+    box.innerHTML=data.map(a=>{
+      const km=a.distance_m?(Math.round(a.distance_m/100)/10):null;
+      const dt=a.start_date?new Date(a.start_date).toLocaleDateString(loc,{weekday:'short',day:'numeric',month:'short'}):'';
+      const pace=svPace(a.moving_time_s,a.distance_m);
+      const mins=a.moving_time_s?Math.round(a.moving_time_s/60):null;
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)">'+
+        '<div><div style="font-weight:700;font-size:14px">'+esc(a.name||a.sport_type||'Course')+'</div>'+
+        '<div style="color:var(--muted);font-size:12px">'+esc(dt)+(km!=null?' · '+km+' km':'')+'</div></div>'+
+        '<div style="text-align:right;color:var(--muted);font-size:12px">'+(pace?esc(pace):((mins!=null?mins+' min':'')))+(a.avg_hr?'<br>'+Math.round(a.avg_hr)+' bpm':'')+'</div></div>';
+    }).join('');
+  }catch(e){}
+}
+
 function renderHealth(days, wk){
   const blk=$('#hk-block'); if(!blk) return;
   const d=days[hkDayKey(new Date())]||{};

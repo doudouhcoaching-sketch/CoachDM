@@ -8,26 +8,32 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0B0B12; --surface:#14141F; --surface2:#1C1C2B; --line:#2A2A3D;
-    --text:#F4F4FB; --muted:#9A9AB5; --brand:#6D5EF6; --brand2:#8B7CFF;
-    --ok:#10B981; --warn:#EF4444; --info:#38BDF8; --tactic:#A78BFA; --gold:#D4AF37;
+    --bg:#050807; --surface:#0E1512; --surface2:#17201C; --line:rgba(255,255,255,.10);
+    --text:#FFFFFF; --muted:#7FAE97; --brand:#00FFA3; --brand2:#00D98A;
+    --ok:#10B981; --warn:#EF4444; --info:#38BDF8; --tactic:#A78BFA; --gold:#E9C767;
     --r:14px;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
-  body{background:var(--bg);color:var(--text);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+  body{background:
+      radial-gradient(120% 70% at 50% -10%, rgba(0,255,150,.16) 0%, transparent 60%),
+      var(--bg);
+    color:var(--text);font:15px/1.5 'Outfit',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
   a{color:var(--brand2)}
   .wrap{max-width:780px;margin:0 auto;padding:14px 14px 80px}
   header{display:flex;align-items:center;gap:10px;padding:8px 0 14px;border-bottom:1px solid var(--line);margin-bottom:14px}
-  header .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--brand2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;letter-spacing:.5px}
+  header .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--brand),var(--brand2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#04120a;letter-spacing:.5px}
   header h1{font-size:16px;margin:0;font-weight:700}
   header .sub{font-size:12px;color:var(--muted);margin-top:1px}
   .spacer{flex:1}
   .tabs{display:flex;gap:8px;margin-bottom:14px}
   .tab{flex:1;text-align:center;padding:11px 8px;border-radius:11px;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-weight:700;cursor:pointer;font-size:14px}
-  .tab.active{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-color:transparent}
+  .tab.active{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#04120a;border-color:transparent}
   .toolbar{display:flex;gap:8px;margin-bottom:12px;align-items:center}
   input,select,textarea{width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:11px 12px;font:inherit;outline:none}
   input:focus,select:focus,textarea:focus{border-color:var(--brand)}
@@ -35,7 +41,7 @@
   select{appearance:none;-webkit-appearance:none}
   label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px;font-weight:600}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:10px;padding:11px 14px;font:inherit;font-weight:700;cursor:pointer;background:var(--surface2);color:var(--text);border:1px solid var(--line);white-space:nowrap}
-  .btn.brand{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;border-color:transparent}
+  .btn.brand{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#04120a;border-color:transparent}
   .btn.ghost{background:transparent}
   .btn.danger{color:var(--warn);border-color:#3a2330}
   .btn.sm{padding:7px 10px;font-size:13px;border-radius:9px}
