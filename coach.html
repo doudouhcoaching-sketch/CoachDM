@@ -475,24 +475,27 @@ const STATUS_PILL = { pending:'<span class="pill warnp">Invitation</span>', paus
 async function loadClientList(){
   $('#cl-list').innerHTML='<div class="spin"></div>';
   const calls=[ sb.rpc('coach_list_clients') ];
-  if(ROLE==='coach') calls.push(sb.rpc('coach_my_capacity'));
+  const CAN_COACH = (ROLE==='coach'||ROLE==='admin');
+  if(CAN_COACH) calls.push(sb.rpc('coach_my_capacity'));
   const res = await Promise.all(calls);
   const { data, error } = res[0];
   if(error){ $('#cl-list').innerHTML='<p class="empty">Erreur de chargement.</p>'; return; }
   CLIST = data||[];
   CAP = null;
-  if(ROLE==='coach' && res[1] && res[1].data && res[1].data[0]) CAP = res[1].data[0];
+  if(CAN_COACH && res[1] && res[1].data && res[1].data[0]) CAP = res[1].data[0];
   await loadThreads();
   renderCap();
   renderClientList();
 }
+const CAP_UNLIMITED = CAP => CAP && CAP.max >= 100000;
 function renderCap(){
   if(!CAP){ $('#cl-cap').innerHTML=''; return; }
-  const full = CAP.active>=CAP.max;
+  const unlimited = CAP_UNLIMITED(CAP);
+  const full = !unlimited && CAP.active>=CAP.max;
   $('#cl-cap').innerHTML = `<div class="item" style="display:flex;align-items:center;gap:10px">
     <div style="flex:1"><div class="nm">Mes clients actifs</div>
-    <div class="meta">Quota de ton offre coach</div></div>
-    <span class="pill ${full?'no':'ok'}">${CAP.active} / ${CAP.max}</span></div>`;
+    <div class="meta">${unlimited?'Accès propriétaire · illimité':'Quota de ton offre coach'}</div></div>
+    <span class="pill ${full?'no':'ok'}">${unlimited?CAP.active+' · ∞':CAP.active+' / '+CAP.max}</span></div>`;
 }
 function renderClientList(){
   if(!CLIST.length){ $('#cl-list').innerHTML='<p class="empty">Aucun client lié. Ajoute ton premier client.</p>'; return; }
@@ -1044,7 +1047,7 @@ function initChatLive(){
 
 /* ---- Ajout client (créer / lier) ---- */
 $('#cl-new').onclick = ()=>{
-  if(CAP && CAP.active>=CAP.max){ toast(`Quota atteint (${CAP.max}). Archive un client ou passe en offre supérieure.`); return; }
+  if(CAP && !CAP_UNLIMITED(CAP) && CAP.active>=CAP.max){ toast(`Quota atteint (${CAP.max}). Archive un client ou passe en offre supérieure.`); return; }
   openClientForm();
 };
 function openClientForm(){
