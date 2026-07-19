@@ -423,7 +423,8 @@ async function enter(user){
   show('boot');
   ME = user.id;
   const { data:prof } = await sb.from('profiles').select('role').eq('id',user.id).maybeSingle();
-  if(!prof || !['coach','admin'].includes(prof.role)){ show('gate'); return; }
+  // Console réservée aux coachs (et admin) : les membres sont renvoyés vers l'app.
+  if(!prof || !['coach','admin'].includes(prof.role)){ location.replace('app.html'); return; }
   ROLE = prof.role;
   show('app');
   switchTab('clients'); loadClientList();

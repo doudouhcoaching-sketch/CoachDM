@@ -1862,6 +1862,8 @@ const T = {
  co_mine:{fr:'Mon calendrier',en:'My calendar',nl:'Mijn agenda'},
  co_invited:{fr:'Invité',en:'Invited',nl:'Uitgenodigd'},
  co_addcal:{fr:'Ajouter à mon agenda',en:'Add to my calendar',nl:'Aan agenda toevoegen'},
+ co_cal_pick:{fr:'Choisis ton agenda',en:'Choose your calendar',nl:'Kies je agenda'},
+ co_cal_apple:{fr:'Apple Calendrier (.ics)',en:'Apple Calendar (.ics)',nl:'Apple Agenda (.ics)'},
  co_reserve:{fr:'Réserver',en:'Book',nl:'Reserveren'},
  co_waitlist_btn:{fr:"Rejoindre la liste d'attente",en:'Join the waitlist',nl:'Op wachtlijst'},
  co_cancel_btn:{fr:'Annuler ma réservation',en:'Cancel my booking',nl:'Reservatie annuleren'},
@@ -2337,6 +2339,28 @@ async function enter(user){
   switchTab('home');
   loadCoachCard(); loadCalls(); initChatLive();
   resumePendingPlan();
+  initPush();
+}
+
+/* ---- Notifications push (iOS natif) ---- */
+let _pushInit=false;
+async function initPush(){
+  if(_pushInit) return;
+  const P=window.Capacitor&&window.Capacitor.Plugins;
+  if(!IS_NATIVE||!P||!P.PushNotifications) return;
+  _pushInit=true;
+  try{
+    P.PushNotifications.addListener('registration',async tk=>{
+      try{ if(tk&&tk.value){ window._pushToken=tk.value; await sb.rpc('push_register',{ p_token:tk.value, p_platform:'ios' }); } }catch(e){}
+    });
+    P.PushNotifications.addListener('pushNotificationReceived',n=>{
+      // App ouverte : petit toast au lieu de la bannière système
+      try{ const tt=(n&&n.title)?n.title:'', bb=(n&&n.body)?n.body:''; if(tt||bb) toast((tt?tt+' — ':'')+bb); }catch(e){}
+    });
+    let perm=await P.PushNotifications.checkPermissions();
+    if(perm.receive==='prompt') perm=await P.PushNotifications.requestPermissions();
+    if(perm.receive==='granted') await P.PushNotifications.register();
+  }catch(e){}
 }
 
 async function loadProfileInfo(user){
@@ -2433,7 +2457,10 @@ async function hasAccess(uid){
   return false;
 }
 
-$('#gate-out').onclick = $('#p-out').onclick = async ()=>{ await sb.auth.signOut(); USER=null; show('auth'); };
+$('#gate-out').onclick = $('#p-out').onclick = async ()=>{
+  try{ if(window._pushToken) await sb.rpc('push_unregister',{ p_token:window._pushToken }); }catch(e){}
+  await sb.auth.signOut(); USER=null; show('auth');
+};
 
 /* ---------------- ABONNEMENT STRIPE ---------------- */
 const STRIPE_PK='pk_live_51TpzX7J0YSDZQQHK1pZpLyBD1QX0c95OWwdhGO1BpTvs3vb99GAq8D9JA9voqURFI5GpkfeQmORt8fnwWaipMLGq00re93zamr';
@@ -5247,7 +5274,38 @@ async function addToCalendar(c){
     }catch(e){}
     return;
   }
-  addToCalendarIcs(c);
+  addToCalendarWeb(c);
+}
+function addToCalendarWeb(c){
+  // Web : choix Google Agenda / Outlook (liens directs) / Apple (.ics en secours)
+  const title=(pick(c,'name')||'Cours')+(c.kind==='personal_training'?' (PT)':'');
+  const desc=[c.coach_name?('Coach: '+c.coach_name):'','Coach DM'].filter(Boolean).join(' — ');
+  const gUrl='https://calendar.google.com/calendar/render?action=TEMPLATE'
+    +'&text='+encodeURIComponent(title)
+    +'&dates='+icsDate(c.starts_at)+'/'+icsDate(c.ends_at)
+    +'&details='+encodeURIComponent(desc)
+    +(c.location?'&location='+encodeURIComponent(c.location):'');
+  const oUrl='https://outlook.live.com/calendar/0/action/compose?rru=addevent'
+    +'&subject='+encodeURIComponent(title)
+    +'&startdt='+encodeURIComponent(new Date(c.starts_at).toISOString())
+    +'&enddt='+encodeURIComponent(new Date(c.ends_at).toISOString())
+    +'&body='+encodeURIComponent(desc)
+    +(c.location?'&location='+encodeURIComponent(c.location):'');
+  const old=document.getElementById('cal-sheet'); if(old) old.remove();
+  const ov=document.createElement('div');
+  ov.id='cal-sheet';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:1200;display:flex;align-items:flex-end;justify-content:center';
+  ov.innerHTML='<div style="background:var(--surface);border:1px solid var(--line);border-bottom:none;border-radius:'
+    +'var(--radius) var(--radius) 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));width:100%;max-width:520px">'
+    +'<div style="font-weight:700;color:var(--text);margin-bottom:12px">'+esc(t('co_cal_pick'))+'</div>'
+    +'<a class="btn subtle" style="display:block;text-align:center;text-decoration:none;margin-bottom:9px" target="_blank" rel="noopener" href="'+gUrl+'">Google Agenda</a>'
+    +'<a class="btn subtle" style="display:block;text-align:center;text-decoration:none;margin-bottom:9px" target="_blank" rel="noopener" href="'+oUrl+'">Outlook</a>'
+    +'<button class="btn subtle" style="display:block;width:100%" id="cal-ics-btn">'+esc(t('co_cal_apple'))+'</button>'
+    +'</div>';
+  ov.addEventListener('click',ev=>{ if(ev.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+  const ib=ov.querySelector('#cal-ics-btn'); if(ib) ib.onclick=()=>{ addToCalendarIcs(c); ov.remove(); };
+  ov.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>ov.remove()));
 }
 function addToCalendarIcs(c){
   const uid = 'coachdm-'+c.id+'@coachdm.be';

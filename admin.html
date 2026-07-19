@@ -415,12 +415,15 @@ let ROLE=null;
 async function enter(user){
   show('boot');
   const { data:prof } = await sb.from('profiles').select('role').eq('id',user.id).maybeSingle();
-  if(!prof || !['coach','admin'].includes(prof.role)){ show('gate'); return; }
-  ROLE = prof.role;
+  // Console strictement admin : coach -> sa console, tout le reste -> app.
+  if(!prof || prof.role!=='admin'){
+    location.replace(prof && prof.role==='coach' ? 'coach.html' : 'app.html');
+    return;
+  }
+  ROLE = 'admin';
   applyRoleUI();
   show('app');
-  if(ROLE==='coach'){ switchTab('workouts'); }
-  else { switchTab('members'); loadUsers(); loadNotifs(); }
+  switchTab('members'); loadUsers(); loadNotifs();
 }
 function applyRoleUI(){
   const coach = ROLE==='coach';
