@@ -1259,6 +1259,7 @@
       <a class="btn subtle" id="p-coach-console" href="coach.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_coach_console">Console Coach</a>
       <a class="btn subtle" id="p-admin-console" href="admin.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_admin_console">Console Admin</a>
       <button class="btn subtle" id="p-health" style="display:none;margin-bottom:9px" data-i18n="hk_connect">Connecter Apple Santé</button>
+      <button class="btn subtle" id="p-onboarding" style="margin-bottom:9px" data-i18n="ob_redo">Refaire le test programme</button>
       <button class="btn subtle" id="p-strava" style="display:none;margin-bottom:9px" data-i18n="sv_connect">Connecter Strava</button>
       <button class="btn subtle" id="p-out" data-i18n="btn_logout">Se déconnecter</button>
     </div>
@@ -1655,6 +1656,28 @@
   .qtile{box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
   .mcard{box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
   @media (prefers-reduced-motion:reduce){.nav button,.search-row button{transition:none}}
+
+  /* --- Onboarding wizard (programme en 4 questions) --- */
+  #ob-wizard{position:fixed;inset:0;z-index:140;background:var(--bg,#050807);overflow-y:auto;-webkit-overflow-scrolling:touch}
+  #ob-wizard.hidden{display:none}
+  .ob-inner{max-width:480px;margin:0 auto;padding:max(20px,env(safe-area-inset-top)) 20px calc(28px + env(safe-area-inset-bottom))}
+  .ob-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+  .ob-dots{display:flex;gap:6px}
+  .ob-dots span{width:22px;height:5px;border-radius:3px;background:var(--line);transition:background .25s}
+  .ob-dots span.on{background:var(--brand)}
+  .ob-skip{background:none;border:none;color:var(--muted);font-size:13px;font-family:inherit;padding:6px 2px;cursor:pointer}
+  .ob-q{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:4px 0 4px}
+  .ob-sub{color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:18px}
+  .ob-opt{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px 16px;margin-bottom:10px;color:inherit;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:border-color .15s}
+  .ob-opt:active{border-color:var(--brand)}
+  .ob-opt .ic{width:38px;height:38px;border-radius:11px;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center;flex:none}
+  .ob-os{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-top:2px}
+  .ob-back{background:none;border:none;color:var(--muted);font-size:14px;font-family:inherit;padding:8px 2px;cursor:pointer;margin-bottom:6px}
+  .ob-res{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px 20px;text-align:center;margin-top:10px}
+  .ob-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand);background:var(--brand-soft);border-radius:999px;padding:5px 12px;margin-bottom:12px}
+  .ob-res h2{margin:0 0 10px;font-size:24px;letter-spacing:-.02em}
+  .ob-chips{display:flex;justify-content:center;gap:8px;margin:0 0 16px;flex-wrap:wrap}
+  .ob-chips .badge{background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12px;color:var(--muted)}
 </style>
 <div class="overlay" id="up-ov"><div class="sheet" style="text-align:center">
   <div class="grab"></div>
@@ -1672,6 +1695,14 @@
 </div></div>
 
 <div class="toast" id="toast"></div>
+
+<div id="ob-wizard" class="hidden"><div class="ob-inner">
+  <div class="ob-top">
+    <div class="ob-dots" id="ob-dots"><span></span><span></span><span></span><span></span></div>
+    <button class="ob-skip" id="ob-skip">Passer</button>
+  </div>
+  <div id="ob-body"></div>
+</div></div>
 
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -2209,6 +2240,39 @@ const T = {
  f_cal:{fr:'Calories',en:'Calories',nl:'Calorieën'},
  err_pwd_min:{fr:'Mot de passe : 6 caractères minimum.',en:'Password: 6 characters minimum.',nl:'Wachtwoord: minimaal 6 tekens.'},
  signup_confirm:{fr:'Compte créé. Vérifie ta boîte mail pour confirmer, puis connecte-toi.',en:'Account created. Check your email to confirm, then log in.',nl:'Account aangemaakt. Bevestig via je e-mail en log dan in.'},
+ ob_skip:{fr:'Passer',en:'Skip',nl:'Overslaan'},
+ ob_back:{fr:'Retour',en:'Back',nl:'Terug'},
+ ob_q1:{fr:'Ton objectif principal ?',en:'Your main goal?',nl:'Je hoofddoel?'},
+ ob_q1_sub:{fr:'4 questions, 30 secondes — ton programme est choisi pour toi.',en:'4 questions, 30 seconds — your program picked for you.',nl:'4 vragen, 30 seconden — jouw programma wordt voor je gekozen.'},
+ ob_g_fat:{fr:'Perdre du gras',en:'Lose fat',nl:'Vet verliezen'},
+ ob_g_muscle:{fr:'Prendre du muscle',en:'Build muscle',nl:'Spieren opbouwen'},
+ ob_g_strong:{fr:'Devenir plus fort',en:'Get stronger',nl:'Sterker worden'},
+ ob_g_perf:{fr:'Performance & compétition',en:'Performance & competition',nl:'Prestatie & competitie'},
+ ob_q2:{fr:'Ton niveau ?',en:'Your level?',nl:'Je niveau?'},
+ ob_l_beg:{fr:'Débutant',en:'Beginner',nl:'Beginner'},
+ ob_l_beg_s:{fr:'Moins d\'un an d\'entraînement',en:'Under one year of training',nl:'Minder dan een jaar training'},
+ ob_l_int:{fr:'Intermédiaire',en:'Intermediate',nl:'Gevorderd'},
+ ob_l_int_s:{fr:'1 à 3 ans, technique acquise',en:'1–3 years, solid technique',nl:'1–3 jaar, degelijke techniek'},
+ ob_l_adv:{fr:'Avancé',en:'Advanced',nl:'Expert'},
+ ob_l_adv_s:{fr:'3 ans ou plus, charges lourdes maîtrisées',en:'3+ years, heavy loads mastered',nl:'3+ jaar, zware lasten beheerst'},
+ ob_q3:{fr:'Ton terrain de jeu ?',en:'Your playground?',nl:'Je speelterrein?'},
+ ob_s_gym:{fr:'Salle classique',en:'Classic gym',nl:'Klassieke gym'},
+ ob_s_gym_s:{fr:'Machines, haltères, circuits',en:'Machines, dumbbells, circuits',nl:'Machines, dumbbells, circuits'},
+ ob_s_bar:{fr:'Barbell & haltérophilie',en:'Barbell & weightlifting',nl:'Barbell & gewichtheffen'},
+ ob_s_bw:{fr:'Poids du corps & gymnastique',en:'Bodyweight & gymnastics',nl:'Lichaamsgewicht & gymnastiek'},
+ ob_s_wod:{fr:'WODs — CrossFit & Hyrox',en:'WODs — CrossFit & Hyrox',nl:'WODs — CrossFit & Hyrox'},
+ ob_s_foot:{fr:'Football',en:'Football',nl:'Voetbal'},
+ ob_q4:{fr:'Combien de jours par semaine ?',en:'How many days per week?',nl:'Hoeveel dagen per week?'},
+ ob_d_23:{fr:'2 à 3 jours',en:'2–3 days',nl:'2–3 dagen'},
+ ob_d_34:{fr:'3 à 4 jours',en:'3–4 days',nl:'3–4 dagen'},
+ ob_d_5:{fr:'5 jours ou plus',en:'5+ days',nl:'5+ dagen'},
+ ob_res_badge:{fr:'Recommandé pour toi',en:'Recommended for you',nl:'Aanbevolen voor jou'},
+ ob_res_sub:{fr:'Basé sur tes réponses, ce programme est ton meilleur point de départ.',en:'Based on your answers, this program is your best starting point.',nl:'Op basis van je antwoorden is dit programma jouw beste startpunt.'},
+ ob_cta:{fr:'Commencer ce programme',en:'Start this program',nl:'Start dit programma'},
+ ob_all:{fr:'Voir tous les programmes',en:'See all programs',nl:'Alle programma\'s bekijken'},
+ ob_dpw:{fr:'jours / semaine',en:'days / week',nl:'dagen / week'},
+ ob_redo:{fr:'Refaire le test programme',en:'Retake the program quiz',nl:'Programmatest opnieuw doen'},
+ ob_later:{fr:'Tu peux refaire le test depuis ton Profil.',en:'You can retake the quiz from your Profile.',nl:'Je kan de test opnieuw doen via je Profiel.'},
  auth_invalid:{fr:'Email ou mot de passe incorrect.',en:'Wrong email or password.',nl:'Verkeerd e-mail of wachtwoord.'},
  auth_exists:{fr:'Cet email a déjà un compte. Connecte-toi.',en:'This email already has an account. Log in.',nl:'Dit e-mailadres heeft al een account. Log in.'},
  auth_unconfirmed:{fr:'Confirme ton email avant de te connecter.',en:'Confirm your email before logging in.',nl:'Bevestig je e-mail voor je inlogt.'},
@@ -2341,7 +2405,7 @@ let _PRE=null;
 async function prefetchBoot(uid){
   try{
     const [prof,sub,tg,lg] = await Promise.all([
-      sb.from('profiles').select('full_name,role,is_founder,founder_kind,founder_since').eq('id',uid).maybeSingle(),
+      sb.from('profiles').select('full_name,role,is_founder,founder_kind,founder_since,onboarding_completed').eq('id',uid).maybeSingle(),
       sb.from('subscriptions').select('status,current_period_end,trial_end,amount_cents')
         .eq('user_id',uid).order('current_period_end',{ascending:false,nullsFirst:false}).limit(1).maybeSingle(),
       sb.from('nutrition_targets').select('*').eq('user_id',uid).eq('is_active',true).maybeSingle(),
@@ -2363,12 +2427,145 @@ async function enter(user){
   await loadToday();
   _PRE=null;
   switchTab('home');
+  maybeShowOnboarding();
   loadCoachCard(); loadCalls(); initChatLive();
   resumePendingPlan();
   initPush();
   initHealth();
   initStrava();
 }
+
+/* ---------------- ONBOARDING WIZARD (programme en 4 questions) ---------------- */
+let OB_DONE=false, OB_STEP=0, OB_ANS={}, OB_RESULT=null;
+const OB_PROGS={
+ 'foundation-8w':{name:'FOUNDATION 8W',weeks:8,dpw:4},
+ 'physique-12w':{name:'PHYSIQUE 12W',weeks:12,dpw:3},
+ 'fat-burner-10w':{name:'AFTERBURN 10W',weeks:10,dpw:5},
+ 'gravity-10w':{name:'GRAVITY 10W',weeks:10,dpw:5},
+ 'barbell-strength-12w':{name:'Weightlifting Strength 12W',weeks:12,dpw:3},
+ 'hyrox-engine-12w':{name:'Hyrox Engine 12W',weeks:12,dpw:4},
+ 'engine-amrap-10w':{name:'Engine AMRAP 10W',weeks:10,dpw:3},
+ 'metcon-emom-8w':{name:'MetCon EMOM 8W',weeks:8,dpw:3},
+ 'open-prep-8w':{name:'Open Prep 8W',weeks:8,dpw:3},
+ 'football-elite-12w':{name:'Football Elite 12W',weeks:12,dpw:3}
+};
+function obIc(n){
+  const I={
+   flame:'<path d="M12 3c1 3-3 4.5-3 8a3 3 0 0 0 6 0c0-1.5-.8-2.6-1.5-3.5C15.5 8.5 17 10 17 12.5a5 5 0 0 1-10 0C7 8 11 6.5 12 3z"/>',
+   muscle:'<path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/>',
+   bar:'<path d="M7 12h10M4 8.5v7M20 8.5v7M2 10v4M22 10v4"/>',
+   trophy:'<path d="M7 4h10v4a5 5 0 0 1-10 0z"/><path d="M7 5H4.5A3.5 3.5 0 0 0 8 9M17 5h2.5A3.5 3.5 0 0 1 16 9M12 13v4M8 20h8"/>',
+   lv1:'<path d="M5 19v-4"/><path d="M11 19v-8" opacity=".3"/><path d="M17 19V7" opacity=".3"/>',
+   lv2:'<path d="M5 19v-4M11 19v-8"/><path d="M17 19V7" opacity=".3"/>',
+   lv3:'<path d="M5 19v-4M11 19v-8M17 19V7"/>',
+   kb:'<path d="M9.5 9.5V7a2.5 2.5 0 0 1 5 0v2.5"/><circle cx="12" cy="14.5" r="5.5"/>',
+   rings:'<circle cx="12" cy="15.5" r="4"/><path d="M10 12L6.5 4M14 12l3.5-8M5 4h14"/>',
+   pulse:'<path d="M3 12h4l2.5-6 4 12L16 12h5"/>',
+   ball:'<circle cx="12" cy="12" r="8.5"/><path d="M12 8.5l3.3 2.4-1.3 3.9h-4l-1.3-3.9zM12 3.5v5M15.3 10.9l4.6-1.4M14 14.8l2.8 4M10 14.8l-2.8 4M8.7 10.9L4.1 9.5"/>',
+   cal23:'<rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4M8.5 13.5h.01M12 13.5h.01"/>',
+   cal34:'<rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4M8.5 13.5h.01M12 13.5h.01M15.5 13.5h.01"/>',
+   cal5:'<rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01"/>'
+  };
+  return '<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'+(I[n]||I.pulse)+'</svg>';
+}
+const OB_STEPS=[
+ {key:'goal', q:'ob_q1', sub:'ob_q1_sub', opts:[
+   {v:'lose_fat',k:'ob_g_fat',ic:'flame'},
+   {v:'build_muscle',k:'ob_g_muscle',ic:'muscle'},
+   {v:'get_strong',k:'ob_g_strong',ic:'bar'},
+   {v:'performance',k:'ob_g_perf',ic:'trophy'}]},
+ {key:'level', q:'ob_q2', opts:[
+   {v:'beginner',k:'ob_l_beg',s:'ob_l_beg_s',ic:'lv1'},
+   {v:'intermediate',k:'ob_l_int',s:'ob_l_int_s',ic:'lv2'},
+   {v:'advanced',k:'ob_l_adv',s:'ob_l_adv_s',ic:'lv3'}]},
+ {key:'style', q:'ob_q3', opts:[
+   {v:'gym',k:'ob_s_gym',s:'ob_s_gym_s',ic:'kb'},
+   {v:'barbell',k:'ob_s_bar',ic:'bar'},
+   {v:'bodyweight',k:'ob_s_bw',ic:'rings'},
+   {v:'wods',k:'ob_s_wod',ic:'pulse'},
+   {v:'football',k:'ob_s_foot',ic:'ball'}]},
+ {key:'days', q:'ob_q4', opts:[
+   {v:'2-3',k:'ob_d_23',ic:'cal23'},
+   {v:'3-4',k:'ob_d_34',ic:'cal34'},
+   {v:'5+',k:'ob_d_5',ic:'cal5'}]}
+];
+function obScore(a){
+  const s={}; Object.keys(OB_PROGS).forEach(k=>s[k]=0);
+  const add=m=>Object.keys(m).forEach(k=>s[k]+=m[k]);
+  if(a.goal==='lose_fat') add({'fat-burner-10w':3,'metcon-emom-8w':2,'engine-amrap-10w':2,'hyrox-engine-12w':1});
+  if(a.goal==='build_muscle') add({'physique-12w':3,'gravity-10w':2,'foundation-8w':2,'barbell-strength-12w':1});
+  if(a.goal==='get_strong') add({'barbell-strength-12w':3,'physique-12w':1,'foundation-8w':1});
+  if(a.goal==='performance') add({'open-prep-8w':3,'hyrox-engine-12w':2,'engine-amrap-10w':1,'football-elite-12w':1});
+  if(a.level==='beginner') add({'foundation-8w':4,'physique-12w':2,'barbell-strength-12w':-3,'open-prep-8w':-3,'gravity-10w':-2,'hyrox-engine-12w':-2,'metcon-emom-8w':-1,'engine-amrap-10w':-1,'football-elite-12w':-1});
+  if(a.level==='intermediate') add({'physique-12w':1,'fat-burner-10w':1,'gravity-10w':1,'hyrox-engine-12w':1,'metcon-emom-8w':1,'engine-amrap-10w':1,'football-elite-12w':1});
+  if(a.level==='advanced') add({'barbell-strength-12w':2,'open-prep-8w':1,'gravity-10w':1,'hyrox-engine-12w':1});
+  if(a.style==='gym') add({'physique-12w':3,'fat-burner-10w':2,'foundation-8w':2});
+  if(a.style==='barbell') add({'barbell-strength-12w':4,'physique-12w':1});
+  if(a.style==='bodyweight') add({'gravity-10w':4,'foundation-8w':1});
+  if(a.style==='wods') add({'open-prep-8w':2,'hyrox-engine-12w':2,'metcon-emom-8w':2,'engine-amrap-10w':2,'fat-burner-10w':1});
+  if(a.style==='football') add({'football-elite-12w':6});
+  if(a.days==='2-3') add({'metcon-emom-8w':2,'engine-amrap-10w':1,'open-prep-8w':1,'barbell-strength-12w':1,'physique-12w':1,'fat-burner-10w':-1,'gravity-10w':-1});
+  if(a.days==='3-4') add({'foundation-8w':1,'hyrox-engine-12w':1,'physique-12w':1,'football-elite-12w':1,'engine-amrap-10w':1});
+  if(a.days==='5+') add({'fat-burner-10w':2,'gravity-10w':2,'hyrox-engine-12w':1});
+  const prio=['foundation-8w','physique-12w','fat-burner-10w','barbell-strength-12w','gravity-10w','hyrox-engine-12w','metcon-emom-8w','engine-amrap-10w','open-prep-8w','football-elite-12w'];
+  let best=prio[0], bv=-Infinity;
+  prio.forEach(k=>{ if(s[k]>bv){ bv=s[k]; best=k; } });
+  return best;
+}
+function obRender(){
+  document.querySelectorAll('#ob-dots span').forEach((d,i)=>d.classList.toggle('on', OB_STEP>=OB_STEPS.length || i<=OB_STEP));
+  const sk=$('#ob-skip'); if(sk){ sk.textContent=t('ob_skip'); sk.style.display = OB_STEP>=OB_STEPS.length?'none':''; }
+  const body=$('#ob-body'); if(!body) return;
+  if(OB_STEP>=OB_STEPS.length){ obRenderResult(); return; }
+  const st=OB_STEPS[OB_STEP];
+  let h='';
+  if(OB_STEP>0) h+='<button class="ob-back" id="ob-back">‹ '+t('ob_back')+'</button>';
+  h+='<div class="ob-q">'+t(st.q)+'</div>';
+  h+='<div class="ob-sub">'+(st.sub?t(st.sub):'')+'</div>';
+  st.opts.forEach(o=>{
+    h+='<button class="ob-opt" data-ob="'+o.v+'"><span class="ic">'+obIc(o.ic)+'</span><span>'+t(o.k)+(o.s?'<span class="ob-os">'+t(o.s)+'</span>':'')+'</span></button>';
+  });
+  body.innerHTML=h;
+  body.querySelectorAll('[data-ob]').forEach(b=>b.onclick=()=>{ OB_ANS[st.key]=b.getAttribute('data-ob'); OB_STEP++; obRender(); });
+  const bk=$('#ob-back'); if(bk) bk.onclick=()=>{ OB_STEP=Math.max(0,OB_STEP-1); obRender(); };
+  const w=$('#ob-wizard'); if(w) w.scrollTo(0,0);
+}
+function obRenderResult(){
+  const slug=obScore(OB_ANS); OB_RESULT=slug;
+  const p=OB_PROGS[slug];
+  const body=$('#ob-body');
+  body.innerHTML='<button class="ob-back" id="ob-back">‹ '+t('ob_back')+'</button>'
+   +'<div class="ob-res"><span class="ob-badge">'+t('ob_res_badge')+'</span>'
+   +'<h2>'+esc(p.name)+'</h2>'
+   +'<div class="ob-chips"><span class="badge">'+p.weeks+' '+t('pf_weeks')+'</span><span class="badge">'+p.dpw+' '+t('ob_dpw')+'</span></div>'
+   +'<div class="ob-sub" style="margin-bottom:18px">'+t('ob_res_sub')+'</div>'
+   +'<button class="btn" id="ob-go" style="display:block;width:100%">'+t('ob_cta')+'</button>'
+   +'<button class="btn subtle" id="ob-all" style="width:100%;margin-top:10px">'+t('ob_all')+'</button></div>';
+  $('#ob-back').onclick=()=>{ OB_STEP=OB_STEPS.length-1; obRender(); };
+  $('#ob-go').onclick=()=>obFinish(true);
+  $('#ob-all').onclick=()=>obFinish(false);
+  obSave(slug);
+}
+async function obSave(slug){
+  try{
+    await sb.from('profiles').update({ onboarding_completed:true, onboarding_answers:OB_ANS, recommended_program:slug }).eq('id',USER.id);
+    OB_DONE=true;
+  }catch(e){}
+}
+function obFinish(open){
+  const w=$('#ob-wizard'); if(w) w.classList.add('hidden');
+  if(open&&OB_RESULT) SE_PROG=OB_RESULT;
+  switchTab('seances');
+}
+function obOpen(){ OB_STEP=0; OB_ANS={}; OB_RESULT=null; const w=$('#ob-wizard'); if(w) w.classList.remove('hidden'); obRender(); }
+async function obSkip(){
+  const w=$('#ob-wizard'); if(w) w.classList.add('hidden');
+  if(!OB_DONE){ try{ await sb.from('profiles').update({ onboarding_completed:true }).eq('id',USER.id); OB_DONE=true; }catch(e){} }
+  toast(t('ob_later'));
+}
+function maybeShowOnboarding(){ if(IS_COACH||OB_DONE) return; obOpen(); }
+{ const sk=$('#ob-skip'); if(sk) sk.onclick=obSkip; }
+{ const pb=$('#p-onboarding'); if(pb) pb.onclick=()=>obOpen(); }
 
 /* ---- Notifications push (iOS natif) ---- */
 let _pushInit=false;
@@ -2580,7 +2777,7 @@ async function loadProfileInfo(user){
   if(_PRE){ prof2=_PRE.prof; }
   else {
     try{
-      const r = await sb.from('profiles').select('full_name,role,is_founder,founder_kind,founder_since').eq('id',user.id).maybeSingle();
+      const r = await sb.from('profiles').select('full_name,role,is_founder,founder_kind,founder_since,onboarding_completed').eq('id',user.id).maybeSingle();
       prof2 = r.data || null;
     }catch(e){}
   }
@@ -2588,6 +2785,8 @@ async function loadProfileInfo(user){
   try{
     const role = prof2 && prof2.role;
     IS_COACH = (role==='coach'||role==='admin');
+    OB_DONE = !!(prof2 && prof2.onboarding_completed);
+    { const pob=$('#p-onboarding'); if(pob) pob.style.display = IS_COACH ? 'none' : 'block'; }
     if(typeof renderAnalyseSection==='function') renderAnalyseSection();
     IS_FOUNDER = !!(prof2 && prof2.is_founder);
     FOUNDER_KIND = (prof2 && prof2.founder_kind) || null;
