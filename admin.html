@@ -83,6 +83,10 @@
   .pill.role{background:var(--brand-soft);color:var(--brand)}
   .pill.verif{background:rgba(212,175,55,.18);color:var(--amber)}
   .pill.vid{background:rgba(56,189,248,.16);color:#0ea5e9}
+  .pill.founder{background:rgba(212,175,55,.2);color:#D4AF37}
+  .item .actgrp{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:9px}
+  .item .agl{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);min-width:74px}
+  .item .actgrp.danger-zone{margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}
 
   .search-row{display:flex;gap:8px;margin-bottom:12px}
   .search-row input{flex:1;padding:12px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);outline:none}
@@ -442,9 +446,10 @@ $('#au-login').onclick = async ()=>{
 };
 $('#gate-out').onclick = $('#logout').onclick = async ()=>{ await sb.auth.signOut(); show('auth'); };
 
-let ROLE=null;
+let ROLE=null, ADMIN_UID=null;
 async function enter(user){
   show('boot');
+  ADMIN_UID=user.id;
   const { data:prof } = await sb.from('profiles').select('role').eq('id',user.id).maybeSingle();
   // Console strictement admin : coach -> sa console, tout le reste -> app.
   if(!prof || prof.role!=='admin'){
@@ -554,31 +559,101 @@ async function loadUsers(){
   if(error){ $('#m-list').innerHTML='<p class="empty">Erreur de chargement.</p>'; return; }
   if(!data||!data.length){ $('#m-list').innerHTML='<p class="empty">Aucun inscrit.</p>'; return; }
   $('#m-list').innerHTML = data.map(u=>{
+    const isSelf = u.user_id===ADMIN_UID;
     const access = u.has_access ? '<span class="pill ok">Accès</span>' : '<span class="pill no">Sans accès</span>';
-    const role = u.role && u.role!=='client' ? `<span class="pill role">${esc(u.role)}</span>` : '';
+    let role='';
+    if(u.role==='admin') role='<span class="pill role">admin</span>';
+    else if(u.role==='coach'){
+      const plan = u.coach_plan==='coach_plus'?'Coach+':'Coach';
+      const lim = (u.max_clients!=null && u.max_clients>=100000)?'∞':(u.max_clients!=null?u.max_clients:'—');
+      role=`<span class="pill role">${plan} · ${u.active_clients||0}/${lim} clients</span>`;
+    }
+    const founder = u.is_founder ? `<span class="pill founder">Fondateur ${u.founder_kind==='coach'?'Coach':'Membre'}</span>` : '';
     let detail='';
     if(u.sub_status) detail = u.sub_status + (u.trial_end?` · essai → ${u.trial_end.slice(0,10)}`:'') + (u.current_period_end?` · jusqu'au ${u.current_period_end.slice(0,10)}`:'');
+    const on = v => v?' style="border-color:var(--brand);color:var(--brand)"':'';
     return `<div class="item">
-      <div class="nm">${esc(u.email||'—')} ${access} ${role}</div>
-      <div class="meta">${esc(u.full_name||'')}${detail?' · '+esc(detail):''}</div>
-      <div class="acts">
+      <div class="nm">${esc(u.email||'—')} ${access} ${role} ${founder}</div>
+      <div class="meta">${esc(u.full_name||'')}${detail?' · '+esc(detail):''}${isSelf?' · (toi)':''}</div>
+      ${isSelf?'<div class="meta" style="color:var(--muted)">Ton propre compte — non modifiable.</div>':`
+      <div class="actgrp"><span class="agl">Rôle / Plan</span>
+        <button class="btn subtle sm" data-role="client" data-u="${u.user_id}"${on(u.role==='client')}>Membre</button>
+        <button class="btn subtle sm" data-coach="coach" data-u="${u.user_id}"${on(u.role==='coach'&&u.coach_plan!=='coach_plus')}>Coach</button>
+        <button class="btn subtle sm" data-coach="coach_plus" data-u="${u.user_id}"${on(u.role==='coach'&&u.coach_plan==='coach_plus')}>Coach+</button>
+        <button class="btn subtle sm" data-coachunlim="${u.user_id}"${on(u.role==='coach'&&u.max_clients!=null&&u.max_clients>=100000)}>Clients ∞</button>
+      </div>
+      <div class="actgrp"><span class="agl">Accès</span>
         <button class="btn subtle sm" data-grant="7" data-u="${u.user_id}">Essai 7j</button>
-        <button class="btn subtle sm" data-grant="0" data-u="${u.user_id}">Illimité</button>
-        <button class="btn danger sm" data-revoke="${u.user_id}">Révoquer</button>
-      </div></div>`;
+        <button class="btn subtle sm" data-grant="0" data-u="${u.user_id}">Premium (illimité)</button>
+        <button class="btn subtle sm" data-revoke="${u.user_id}">Révoquer</button>
+      </div>
+      <div class="actgrp"><span class="agl">Fondateur</span>
+        <button class="btn subtle sm" data-founder="member" data-u="${u.user_id}"${on(u.is_founder&&u.founder_kind!=='coach')}>Membre fond.</button>
+        <button class="btn subtle sm" data-founder="coach" data-u="${u.user_id}"${on(u.is_founder&&u.founder_kind==='coach')}>Coach fond.</button>
+        <button class="btn subtle sm" data-unfounder="${u.user_id}">Retirer fond.</button>
+      </div>
+      <div class="actgrp danger-zone"><span class="agl">Danger</span>
+        <button class="btn danger sm" data-del="${u.user_id}" data-email="${esc(u.email||'')}">Supprimer définitivement</button>
+      </div>`}
+      </div>`;
   }).join('');
   document.querySelectorAll('[data-grant]').forEach(b=>b.onclick=()=>grant(b.dataset.u,+b.dataset.grant));
   document.querySelectorAll('[data-revoke]').forEach(b=>b.onclick=()=>revoke(b.dataset.revoke));
+  document.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>setRole(b.dataset.u,b.dataset.role));
+  document.querySelectorAll('[data-coach]').forEach(b=>b.onclick=()=>setCoach(b.dataset.u,b.dataset.coach));
+  document.querySelectorAll('[data-coachunlim]').forEach(b=>b.onclick=()=>setCoachUnlimited(b.dataset.coachunlim));
+  document.querySelectorAll('[data-founder]').forEach(b=>b.onclick=()=>grantFounder(b.dataset.u,b.dataset.founder));
+  document.querySelectorAll('[data-unfounder]').forEach(b=>b.onclick=()=>revokeFounder(b.dataset.unfounder));
+  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>delUser(b.dataset.del,b.dataset.email));
 }
 async function grant(uid,days){
   const { error } = await sb.rpc('admin_grant_access',{ p_user:uid, p_days:days });
   if(error){ toast('Échec'); return; }
-  toast(days>0?'Essai 7j accordé':'Accès illimité accordé'); loadUsers();
+  toast(days>0?'Essai 7j accordé':'Premium illimité accordé'); loadUsers();
 }
 async function revoke(uid){
   const { error } = await sb.rpc('admin_revoke_access',{ p_user:uid });
   if(error){ toast('Échec'); return; }
   toast('Accès révoqué'); loadUsers();
+}
+async function setRole(uid,role){
+  const { error } = await sb.rpc('admin_set_role',{ p_user:uid, p_role:role });
+  if(error){ toast('Échec : '+(error.message||'')); return; }
+  toast(role==='coach'?'Promu coach':'Repassé membre'); loadUsers();
+}
+async function setCoach(uid,plan){
+  let r = await sb.rpc('admin_set_role',{ p_user:uid, p_role:'coach' });
+  if(r.error){ toast('Échec rôle : '+(r.error.message||'')); return; }
+  r = await sb.rpc('admin_set_coach_plan',{ p_coach:uid, p_plan:plan });
+  if(r.error){ toast('Échec plan : '+(r.error.message||'')); return; }
+  toast(plan==='coach_plus'?'Promu Coach+ (50 clients)':'Promu Coach (20 clients)'); loadUsers();
+}
+async function setCoachUnlimited(uid){
+  const { error } = await sb.rpc('admin_set_coach_limit',{ p_coach:uid, p_max:2147483647 });
+  if(error){ toast('Échec : '+(error.message||'')); return; }
+  toast('Clients illimités accordés'); loadUsers();
+}
+async function grantFounder(uid,kind){
+  const { data, error } = await sb.rpc('admin_grant_founder',{ p_user:uid, p_kind:kind });
+  if(error){ toast('Échec : '+(error.message||'')); return; }
+  if(data && data.ok===false){
+    toast(data.reason==='sold_out'?'Quota fondateur atteint':data.reason==='bad_kind'?'Type invalide':'Refusé'); return;
+  }
+  toast(data&&data.already?'Déjà fondateur':(kind==='coach'?'Coach fondateur accordé':'Membre fondateur accordé')); loadUsers();
+}
+async function revokeFounder(uid){
+  const { error } = await sb.rpc('admin_revoke_founder',{ p_user:uid });
+  if(error){ toast('Échec'); return; }
+  toast('Statut fondateur retiré'); loadUsers();
+}
+async function delUser(uid,email){
+  const typed = prompt(`⚠️ SUPPRESSION DÉFINITIVE\n\nCette action efface le compte « ${email} » et TOUTES ses données (séances, nutrition, messages, abonnement). Irréversible.\n\nPour confirmer, retape exactement l'email du membre :`);
+  if(typed===null) return;
+  if(typed.trim().toLowerCase()!==(email||'').trim().toLowerCase()){ toast('Email incorrect — suppression annulée'); return; }
+  const { data, error } = await sb.rpc('admin_delete_user',{ p_user:uid });
+  if(error){ toast('Échec : '+(error.message||'')); return; }
+  if(data===false){ toast('Impossible : données liées bloquent la suppression'); return; }
+  toast('Membre supprimé définitivement'); loadUsers();
 }
 
 /* ===================================================================
