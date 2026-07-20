@@ -976,6 +976,7 @@
       </button>
     </div>
     <div id="home-founder"></div>
+    <div id="coach-req"></div>
     <div class="block today-card" id="today-card">
       <div class="ring">
         <svg viewBox="0 0 208 208" width="112" height="112">
@@ -1692,6 +1693,14 @@
   .mp-meal{font-weight:600;font-size:14.5px}
   .mp-desc{color:var(--muted);font-size:13px;line-height:1.45;margin-top:3px}
   .mp-macros{font-size:12px;color:var(--brand);font-weight:600;margin-top:5px}
+
+  /* --- Demande de coach (consentement) --- */
+  .coach-req-card{border:1px solid var(--brand);background:linear-gradient(180deg,var(--brand-soft),transparent)}
+  .crq-top{display:flex;gap:11px;align-items:flex-start;color:var(--brand)}
+  .crq-t{font-weight:800;font-size:15px;color:var(--text);letter-spacing:-.01em}
+  .crq-s{color:var(--muted);font-size:13px;line-height:1.45;margin-top:3px}
+  .crq-acts{display:flex;gap:9px;margin-top:12px}
+  .crq-acts .btn{flex:1}
 </style>
 <div class="overlay" id="up-ov"><div class="sheet" style="text-align:center">
   <div class="grab"></div>
@@ -2168,6 +2177,14 @@ const T = {
  meal_snack:{fr:'Collation',en:'Snack',nl:'Snack'},
  meal_pre_workout:{fr:'Pré-training',en:'Pre-workout',nl:'Pre-workout'},
  mp_title:{fr:'Plan nutrition du coach',en:'Coach nutrition plan',nl:'Voedingsplan van de coach'},
+ crq_wants:{fr:'veut devenir ton coach',en:'wants to be your coach',nl:'wil je coach worden'},
+ crq_sub:{fr:'Accepte pour lui donner accès à ton suivi (séances, nutrition, messages).',en:'Accept to give access to your tracking (workouts, nutrition, messages).',nl:'Accepteer om toegang te geven tot je opvolging (trainingen, voeding, berichten).'},
+ crq_accept:{fr:'Accepter',en:'Accept',nl:'Accepteren'},
+ crq_decline:{fr:'Refuser',en:'Decline',nl:'Weigeren'},
+ crq_accepted:{fr:'Coach accepté ✓',en:'Coach accepted ✓',nl:'Coach geaccepteerd ✓'},
+ crq_declined:{fr:'Demande refusée',en:'Request declined',nl:'Verzoek geweigerd'},
+ crq_err:{fr:'Action impossible',en:'Action failed',nl:'Actie mislukt'},
+ crq_full:{fr:'Ce coach a atteint sa limite de clients.',en:'This coach reached their client limit.',nl:'Deze coach heeft zijn cliëntenlimiet bereikt.'},
  mp_snack:{fr:'Collation',en:'Snack',nl:'Snack'},
  mp_meal:{fr:'Repas',en:'Meal',nl:'Maaltijd'},
  mp_day:{fr:'Journée type',en:'Typical day',nl:'Typische dag'},
@@ -4457,12 +4474,39 @@ function setBtn(sel,loading,label){ const b=$(sel); b.disabled=loading; if(label
 
 /* ================= HOME ================= */
 function firstName(email){ if(!email) return 'Coach'; const n=email.split('@')[0].replace(/[._\-]+/g,' ').trim(); return n? n.charAt(0).toUpperCase()+n.slice(1) : 'Coach'; }
+async function loadCoachRequests(){
+  const host=$('#coach-req'); if(!host) return;
+  let reqs=[];
+  try{ const { data } = await sb.rpc('client_coach_requests'); reqs=data||[]; }catch(e){ host.innerHTML=''; return; }
+  if(!reqs.length){ host.innerHTML=''; return; }
+  host.innerHTML = reqs.map(r=>{
+    const who = esc(r.coach_name||r.coach_email||'Un coach');
+    return `<div class="block coach-req-card">
+      <div class="crq-top"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+        <div><div class="crq-t">${who} ${t('crq_wants')}</div><div class="crq-s">${t('crq_sub')}</div></div></div>
+      <div class="crq-acts">
+        <button class="btn" data-crq-ok="${r.coach_id}">${t('crq_accept')}</button>
+        <button class="btn subtle" data-crq-no="${r.coach_id}">${t('crq_decline')}</button>
+      </div></div>`;
+  }).join('');
+  host.querySelectorAll('[data-crq-ok]').forEach(b=>b.onclick=()=>respondCoach(b.dataset.crqOk,true));
+  host.querySelectorAll('[data-crq-no]').forEach(b=>b.onclick=()=>respondCoach(b.dataset.crqNo,false));
+}
+async function respondCoach(coachId, accept){
+  const { data, error } = await sb.rpc('client_respond_coach',{ p_coach:coachId, p_accept:accept });
+  if(error){ toast(t('crq_err')); return; }
+  if(data && data.ok===false){ toast(data.reason==='coach_full'?t('crq_full'):t('crq_err')); return; }
+  toast(accept?t('crq_accepted'):t('crq_declined'));
+  loadCoachRequests(); if(typeof loadCoachCard==='function') loadCoachCard();
+}
+
 async function loadHome(){
   const _hh=new Date().getHours(), _gk=_hh<12?'hi_morning':(_hh<18?'hi_afternoon':'hi_evening');
   $('#home-hi').textContent = t(_gk)+' '+firstName(USER&&USER.email);
   $('#home-date').textContent = new Date().toLocaleDateString(locale(),{weekday:'long',day:'numeric',month:'long'});
   await loadToday();
   loadMyPlan();
+  loadCoachRequests();
   loadWod();
   loadInsight();
 }

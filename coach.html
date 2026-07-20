@@ -1072,7 +1072,7 @@ function openClientForm(){
        </div>`;
     }else{
       h+=`<label>Email du membre existant *</label><input id="c_email2" type="email">
-       <p class="muted">Le compte doit déjà exister. Il sera lié à toi.</p>`;
+       <p class="muted">Le compte doit déjà exister. Une <b>demande</b> lui est envoyée : le membre doit l'<b>accepter dans son app</b> avant d'être lié à toi.</p>`;
     }
     h+=`<div class="row" style="margin-top:16px;gap:8px"><div class="sp"></div>
       <button class="btn sec" id="c_cancel">Fermer</button>
@@ -1111,7 +1111,7 @@ function openClientForm(){
       if(error){toast('Échec');return;}
       if(data?.reason==='limit_reached')return toast('Quota atteint');
       if(!data?.ok){toast(data.reason==='not_found'?'Aucun membre avec cet email':'Échec');return;}
-      toast('Client lié');
+      toast(data.already?'Ce membre est déjà ton client':'Demande envoyée — en attente de l\'accord du membre');
     }
     closeCl();loadClientList();
   };
