@@ -221,6 +221,8 @@
         </div>
         <div id="notif-list"></div>
       </div>
+      <input id="m-search" type="search" inputmode="search" autocomplete="off" placeholder="Rechercher par nom ou email…" style="width:100%;margin-bottom:6px">
+      <div id="m-hint" class="sub" style="text-align:left;margin:0 2px 12px;font-size:12px;color:var(--muted)"></div>
       <div id="m-list"><div class="spin"></div></div>
     </div>
 
@@ -552,12 +554,21 @@ async function loadNotifs(){
 }
 
 /* ---- MEMBRES ---- */
-$('#m-refresh').onclick = loadUsers;
-async function loadUsers(){
+$('#m-refresh').onclick = ()=>loadUsers();
+let M_SEARCH_T=null;
+{ const si=$('#m-search'); if(si) si.oninput=()=>{ clearTimeout(M_SEARCH_T); M_SEARCH_T=setTimeout(()=>loadUsers(si.value.trim()),280); }; }
+async function loadUsers(q){
+  const _si=$('#m-search');
+  q = (q!==undefined ? q : (_si?_si.value:'')||'').trim();
   $('#m-list').innerHTML='<div class="spin"></div>';
-  const { data, error } = await sb.rpc('admin_list_users');
-  if(error){ $('#m-list').innerHTML='<p class="empty">Erreur de chargement.</p>'; return; }
-  if(!data||!data.length){ $('#m-list').innerHTML='<p class="empty">Aucun inscrit.</p>'; return; }
+  const { data, error } = await sb.rpc('admin_list_users',{ p_q:q, p_limit:200 });
+  const hint=$('#m-hint');
+  if(error){ $('#m-list').innerHTML='<p class="empty">Erreur de chargement.</p>'; if(hint)hint.textContent=''; return; }
+  if(!data||!data.length){ $('#m-list').innerHTML=`<p class="empty">${q?'Aucun membre pour « '+esc(q)+' ».':'Aucun inscrit.'}</p>`; if(hint)hint.textContent=''; return; }
+  if(hint){
+    if(q) hint.textContent = `${data.length} résultat${data.length>1?'s':''} pour « ${q} »`;
+    else hint.textContent = data.length>=200 ? '200 membres les plus récents — tape un nom ou un email pour chercher dans tous.' : `${data.length} membre${data.length>1?'s':''}`;
+  }
   $('#m-list').innerHTML = data.map(u=>{
     const isSelf = u.user_id===ADMIN_UID;
     const access = u.has_access ? '<span class="pill ok">Accès</span>' : '<span class="pill no">Sans accès</span>';
