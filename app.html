@@ -2743,7 +2743,7 @@ function syncCoachHome(role){
 { const el=$('#ck-close'); if(el) el.onclick=closeCheckout; }
 { const ov=$('#ck-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) closeCheckout(); }); }
 checkoutReturn();
-if(IS_NATIVE){ document.querySelectorAll('[data-go="boutique"]').forEach(b=>b.style.display='none'); }
+if(IS_NATIVE){ document.querySelectorAll('[data-go="boutique"]').forEach(b=>b.style.display='none'); const _hs=document.getElementById('home-shop'); if(_hs) _hs.style.display='none'; const _bt=document.querySelector('.nav button[data-tab="boutique"]'); if(_bt) _bt.style.display='none'; }
 
 /* ---------------- CHAT COACH ---------------- */
 let COACH_THREAD=null, CHAT_CH=null, CHAT_OPEN=false, HAS_COACH=false, PROFILE_NAME='';
@@ -3972,6 +3972,7 @@ document.querySelectorAll('.tr-toggle .rc-chip').forEach(b=>b.onclick=()=>{
 /* ---------------- TABS ---------------- */
 const TITLES={home:["Accueil",""],journal:["Journal","Cherche, ajoute, suis tes repas"],seances:["Séances","Tes programmes Coach DM"],cours:["Cours","Réserve tes séances collectives & PT"],boutique:["Boutique","Programmes PDF premium"],ia:["Coach IA",""],profile:["Profil",""]};
 function switchTab(tab){
+  if(tab==='boutique' && IS_NATIVE) tab='home';   /* Boutique PDF (Payhip) masquée sur iOS — conformité Apple 3.1.1 */
   document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('active'));
   $('#pane-'+tab).classList.add('active');
   document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
