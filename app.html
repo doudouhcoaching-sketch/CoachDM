@@ -781,6 +781,16 @@
   #pane-profile[data-view="sub"] #pf-sub{display:block}
   #pane-profile[data-view="appearance"] #pf-appearance{display:block}
   #pane-profile[data-view="account"] #pf-account{display:block}
+  #pane-profile[data-view="sources"] #pf-sources{display:block}
+  .btn.dangr{background:transparent;border:1px solid rgba(239,68,68,.55);color:#EF4444}
+  .btn.dangr-full{background:#EF4444;color:#fff;border:none}
+  .del-panel{margin-top:12px;border:1px solid rgba(239,68,68,.45);background:rgba(239,68,68,.07);border-radius:14px;padding:14px}
+  .del-panel p{font-size:13px;line-height:1.55;color:var(--txt);margin:0 0 12px}
+  .src-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+  .src-list a{display:block;background:var(--surface2,rgba(255,255,255,.04));border:1px solid var(--line);border-radius:12px;padding:11px 13px;text-decoration:none;color:var(--txt);font-size:13px;line-height:1.5}
+  .src-list a b{display:block;font-size:13.5px}
+  .src-list a span{color:var(--muted);font-size:12px}
+  .src-note{margin-top:12px;font-size:12px;color:var(--muted);line-height:1.55}
   #pane-profile #pf-back{display:none}
   /* ---- Coach du jour ---- */
   .coach-card{background:linear-gradient(150deg,color-mix(in srgb,var(--brand) 12%,var(--surface)),var(--surface));border:1px solid color-mix(in srgb,var(--brand) 30%,var(--line))}
@@ -976,7 +986,6 @@
       </button>
     </div>
     <div id="home-founder"></div>
-    <div id="coach-req"></div>
     <div class="block today-card" id="today-card">
       <div class="ring">
         <svg viewBox="0 0 208 208" width="112" height="112">
@@ -1034,10 +1043,6 @@
 
   <!-- JOURNAL -->
   <div class="page tabpane" id="pane-journal">
-    <div class="block" id="mp-block" style="display:none">
-      <div class="tr-head"><h3 data-i18n="mp_title">Plan nutrition du coach</h3><span class="co-pill ok" style="font-size:11px">Coach</span></div>
-      <div id="mp-client"></div>
-    </div>
     <div class="block">
       <h3 data-i18n="jo_add">Ajouter un aliment</h3>
       <div class="search-row">
@@ -1047,15 +1052,6 @@
       <button class="ai-photo" id="jo-photo" style="margin-top:10px"><span class="ap-ic"><svg class="ic"><use href="#i-camera"/></svg></span><span class="ap-tx"><span id="jo-photo-lbl" data-i18n="ph_btn">Photo IA — calcule mes calories</span></span><span class="ap-pro">PRO</span></button>
       <input type="file" id="jo-photo-file" accept="image/*" capture="environment" style="display:none" />
       <div id="jo-results"></div>
-    </div>
-    <div class="block" id="hk-block" style="display:none">
-      <div class="tr-head"><h3 data-i18n="hk_title">Activité</h3><span class="co-pill ok" style="font-size:11px">Apple Santé</span></div>
-      <div id="hk-today"></div>
-      <div id="hk-workouts"></div>
-    </div>
-    <div class="block" id="sv-block" style="display:none">
-      <div class="tr-head"><h3 data-i18n="sv_title">Courses Strava</h3><span class="co-pill warn" style="font-size:11px;background:rgba(252,82,0,.16);color:#FC5200">Strava</span></div>
-      <div id="sv-list"></div>
     </div>
     <div class="block">
       <div class="tr-head">
@@ -1086,6 +1082,7 @@
       <h3 data-i18n="jo_today">Aujourd'hui</h3>
       <div id="jo-logs"><p class="empty" data-i18n="jo_none">Aucun aliment enregistré.</p></div>
     </div>
+    <p class="empty" style="padding:2px 0 10px"><a href="#" id="jo-src-link" style="color:var(--muted);text-decoration:underline;font-size:12px" data-i18n="src_link">Voir les sources scientifiques</a></p>
   </div>
 
   <!-- SEANCES -->
@@ -1155,6 +1152,7 @@
         <button class="pf-row" data-pf="appearance" type="button"><span class="pf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></span><span class="pf-lb" data-i18n="pf_appearance">Apparence & langue</span><svg class="pf-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
         <button class="pf-row" data-pf="account" type="button"><span class="pf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M4 12h2M18 12h2M12 4v2M12 18v2M6.4 6.4l1.4 1.4M16.2 16.2l1.4 1.4M17.6 6.4l-1.4 1.4M8.2 16.2l-1.4 1.4"/></svg></span><span class="pf-lb" data-i18n="pf_account">Compte</span><svg class="pf-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
         <a class="pf-row" href="https://coachdm.be/aide.html" target="_blank" rel="noopener"><span class="pf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 0 1 4.6 1.4c0 1.6-2.2 2-2.2 3.1"/><path d="M12 17h.01"/></svg></span><span class="pf-lb" data-i18n="help_center">Centre d'aide</span><svg class="pf-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+        <button class="pf-row" data-pf="sources" type="button"><span class="pf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15.5a2.5 2.5 0 0 0-2.5 2.5H6.5A2.5 2.5 0 0 1 4 18.5z"/><path d="M20 18.5H6.5a2.5 2.5 0 0 0 0 5H20"/><path d="M9 8h7M9 11.5h7"/></svg></span><span class="pf-lb" data-i18n="pf_sources">Sources scientifiques</span><svg class="pf-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
         <a class="pf-row" href="https://coachdm.be/privacy.html" target="_blank" rel="noopener"><span class="pf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.6-3 7.6-7 9-4-1.4-7-4.4-7-9V6z"/></svg></span><span class="pf-lb" data-i18n="privacy">Politique de confidentialité</span><svg class="pf-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
       </div>
     </div>
@@ -1170,6 +1168,7 @@
     <div class="block">
       <h3 data-i18n="prof_calc_title">Calcul de tes objectifs</h3>
       <p class="empty" style="text-align:left;padding:0 0 14px" data-i18n="prof_calc_sub">Méthode Mifflin-St Jeor (1990). Tes macros se mettent à jour partout dans l'app.</p>
+      <p class="empty" style="text-align:left;padding:0 0 14px"><a href="#" id="calc-src-link" style="color:var(--brand);text-decoration:none" data-i18n="src_link">Voir les sources scientifiques</a></p>
       <div class="row2">
         <div class="field"><label data-i18n="lbl_weight">Poids (kg)</label><input id="p-weight" type="number" inputmode="decimal" placeholder="78" /></div>
         <div class="field"><label data-i18n="lbl_height">Taille (cm)</label><input id="p-height" type="number" inputmode="numeric" placeholder="180" /></div>
@@ -1257,16 +1256,37 @@
 
     </div>
 
+    <div class="pf-sub" id="pf-sources">
+    <div class="block">
+      <h3 data-i18n="pf_sources">Sources scientifiques</h3>
+      <p class="empty" style="text-align:left;padding:0 0 12px" data-i18n="src_sub">Les recommandations de l'app s'appuient sur ces références publiques.</p>
+      <ul class="src-list">
+        <li><a href="https://pubmed.ncbi.nlm.nih.gov/2305711/" target="_blank" rel="noopener"><b>Mifflin MD et al. (1990)</b><span data-i18n="src_mifflin">Dépense énergétique de repos — base du calcul des calories et macros. Am J Clin Nutr.</span></a></li>
+        <li><a href="https://pubmed.ncbi.nlm.nih.gov/20847704/" target="_blank" rel="noopener"><b>Schoenfeld BJ (2010)</b><span data-i18n="src_schoenfeld">Cinématique et cinétique du squat — standards de profondeur. J Strength Cond Res.</span></a></li>
+        <li><a href="https://pubmed.ncbi.nlm.nih.gov/20885201/" target="_blank" rel="noopener"><b>González-Badillo &amp; Sánchez-Medina (2010)</b><span data-i18n="src_vbt">Vitesse d'exécution comme mesure d'intensité — base des analyses VBT. Int J Sports Med.</span></a></li>
+        <li><a href="https://pubmed.ncbi.nlm.nih.gov/26694658/" target="_blank" rel="noopener"><b>Samozino P et al. (2016)</b><span data-i18n="src_samozino">Profil force-vitesse et performance balistique — base de l'analyse de saut. Scand J Med Sci Sports.</span></a></li>
+        <li><a href="https://hyrox.com/rulebook/" target="_blank" rel="noopener"><b>HYROX Rulebook 25/26</b><span data-i18n="src_hyrox">Standards de mouvement, charges et pénalités officiels des stations HYROX.</span></a></li>
+        <li><a href="https://www.who.int/news-room/fact-sheets/detail/physical-activity" target="_blank" rel="noopener"><b>OMS — Activité physique</b><span data-i18n="src_who">Recommandations mondiales d'activité physique pour la santé.</span></a></li>
+        <li><a href="https://www.efsa.europa.eu/en/topics/topic/dietary-reference-values" target="_blank" rel="noopener"><b>EFSA — Dietary Reference Values</b><span data-i18n="src_efsa">Valeurs nutritionnelles de référence européennes (macronutriments, hydratation).</span></a></li>
+      </ul>
+      <p class="src-note" data-i18n="src_disclaimer">Contenu informatif d'entraînement et de nutrition — ne remplace pas un avis médical. Consulte un professionnel de santé avant tout changement majeur.</p>
+    </div>
+    </div>
+
     <div class="pf-sub" id="pf-account">
     <div class="block">
       <h3 data-i18n="prof_account">Compte</h3>
       <div class="empty" style="text-align:left;padding:0 0 12px" id="p-email"></div>
       <a class="btn subtle" id="p-coach-console" href="coach.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_coach_console">Console Coach</a>
       <a class="btn subtle" id="p-admin-console" href="admin.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_admin_console">Console Admin</a>
-      <button class="btn subtle" id="p-health" style="display:none;margin-bottom:9px" data-i18n="hk_connect">Connecter Apple Santé</button>
-      <button class="btn subtle" id="p-onboarding" style="margin-bottom:9px" data-i18n="ob_redo">Refaire le test programme</button>
-      <button class="btn subtle" id="p-strava" style="display:none;margin-bottom:9px" data-i18n="sv_connect">Connecter Strava</button>
       <button class="btn subtle" id="p-out" data-i18n="btn_logout">Se déconnecter</button>
+      <button class="btn dangr" id="p-del" style="margin-top:9px" data-i18n="del_btn">Supprimer mon compte</button>
+      <div class="del-panel" id="p-del-panel" style="display:none">
+        <p data-i18n="del_warn">Cette action est définitive : ton compte, ton historique, tes analyses, tes photos et ton abonnement seront supprimés immédiatement. Aucune récupération possible.</p>
+        <button class="btn dangr-full" id="p-del-go" data-i18n="del_go">Confirmer la suppression définitive</button>
+        <button class="btn subtle" id="p-del-cancel" style="margin-top:9px" data-i18n="btn_cancel">Annuler</button>
+        <div class="msg" id="p-del-msg"></div>
+      </div>
     </div>
     </div>
   </div>
@@ -1661,46 +1681,6 @@
   .qtile{box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
   .mcard{box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
   @media (prefers-reduced-motion:reduce){.nav button,.search-row button{transition:none}}
-
-  /* --- Onboarding wizard (programme en 4 questions) --- */
-  #ob-wizard{position:fixed;inset:0;z-index:140;background:var(--bg,#050807);overflow-y:auto;-webkit-overflow-scrolling:touch}
-  #ob-wizard.hidden{display:none}
-  .ob-inner{max-width:480px;margin:0 auto;padding:max(20px,env(safe-area-inset-top)) 20px calc(28px + env(safe-area-inset-bottom))}
-  .ob-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
-  .ob-dots{display:flex;gap:6px}
-  .ob-dots span{width:22px;height:5px;border-radius:3px;background:var(--line);transition:background .25s}
-  .ob-dots span.on{background:var(--brand)}
-  .ob-skip{background:none;border:none;color:var(--muted);font-size:13px;font-family:inherit;padding:6px 2px;cursor:pointer}
-  .ob-q{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:4px 0 4px}
-  .ob-sub{color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:18px}
-  .ob-opt{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:15px 16px;margin-bottom:10px;color:inherit;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:border-color .15s}
-  .ob-opt:active{border-color:var(--brand)}
-  .ob-opt .ic{width:38px;height:38px;border-radius:11px;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center;flex:none}
-  .ob-os{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-top:2px}
-  .ob-back{background:none;border:none;color:var(--muted);font-size:14px;font-family:inherit;padding:8px 2px;cursor:pointer;margin-bottom:6px}
-  .ob-res{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:24px 20px;text-align:center;margin-top:10px}
-  .ob-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand);background:var(--brand-soft);border-radius:999px;padding:5px 12px;margin-bottom:12px}
-  .ob-res h2{margin:0 0 10px;font-size:24px;letter-spacing:-.02em}
-  .ob-chips{display:flex;justify-content:center;gap:8px;margin:0 0 16px;flex-wrap:wrap}
-  .ob-chips .badge{background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12px;color:var(--muted)}
-
-  /* --- Plan nutrition côté client --- */
-  .mp-title{font-weight:800;font-size:16px;letter-spacing:-.02em;margin:2px 0 4px}
-  .mp-notes{color:var(--muted);font-size:13px;line-height:1.5;margin:0 0 12px;padding:9px 11px;background:var(--surface-2);border-radius:12px}
-  .mp-day{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brand);margin:14px 0 6px}
-  .mp-item{border:1px solid var(--line);border-radius:14px;padding:11px 13px;margin-bottom:8px;background:var(--surface-2)}
-  .mp-slot{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
-  .mp-meal{font-weight:600;font-size:14.5px}
-  .mp-desc{color:var(--muted);font-size:13px;line-height:1.45;margin-top:3px}
-  .mp-macros{font-size:12px;color:var(--brand);font-weight:600;margin-top:5px}
-
-  /* --- Demande de coach (consentement) --- */
-  .coach-req-card{border:1px solid var(--brand);background:linear-gradient(180deg,var(--brand-soft),transparent)}
-  .crq-top{display:flex;gap:11px;align-items:flex-start;color:var(--brand)}
-  .crq-t{font-weight:800;font-size:15px;color:var(--text);letter-spacing:-.01em}
-  .crq-s{color:var(--muted);font-size:13px;line-height:1.45;margin-top:3px}
-  .crq-acts{display:flex;gap:9px;margin-top:12px}
-  .crq-acts .btn{flex:1}
 </style>
 <div class="overlay" id="up-ov"><div class="sheet" style="text-align:center">
   <div class="grab"></div>
@@ -1718,14 +1698,6 @@
 </div></div>
 
 <div class="toast" id="toast"></div>
-
-<div id="ob-wizard" class="hidden"><div class="ob-inner">
-  <div class="ob-top">
-    <div class="ob-dots" id="ob-dots"><span></span><span></span><span></span><span></span></div>
-    <button class="ob-skip" id="ob-skip">Passer</button>
-  </div>
-  <div id="ob-body"></div>
-</div></div>
 
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -1927,23 +1899,6 @@ const T = {
  co_mine:{fr:'Mon calendrier',en:'My calendar',nl:'Mijn agenda'},
  co_invited:{fr:'Invité',en:'Invited',nl:'Uitgenodigd'},
  co_addcal:{fr:'Ajouter à mon agenda',en:'Add to my calendar',nl:'Aan agenda toevoegen'},
- co_cal_pick:{fr:'Choisis ton agenda',en:'Choose your calendar',nl:'Kies je agenda'},
- co_cal_apple:{fr:'Apple Calendrier (.ics)',en:'Apple Calendar (.ics)',nl:'Apple Agenda (.ics)'},
- hk_title:{fr:'Activité',en:'Activity',nl:'Activiteit'},
- hk_connect:{fr:'Connecter Apple Santé',en:'Connect Apple Health',nl:'Apple Gezondheid koppelen'},
- hk_connected:{fr:'Apple Santé connecté ✓',en:'Apple Health connected ✓',nl:'Apple Gezondheid gekoppeld ✓'},
- hk_steps:{fr:'pas',en:'steps',nl:'stappen'},
- hk_sleep:{fr:'sommeil',en:'sleep',nl:'slaap'},
- hk_rhr:{fr:'FC repos',en:'resting HR',nl:'rust-HF'},
- hk_watch:{fr:'Séances Apple Watch',en:'Apple Watch workouts',nl:'Apple Watch work-outs'},
- hk_sync_ok:{fr:'Apple Santé synchronisé ✓',en:'Apple Health synced ✓',nl:'Apple Gezondheid gesynct ✓'},
- hk_denied:{fr:'Accès Santé refusé — Réglages > Santé > Accès aux données',en:'Health access denied — Settings > Health > Data Access',nl:'Toegang geweigerd — Instellingen > Gezondheid'},
- sv_connect:{fr:'Connecter Strava',en:'Connect Strava',nl:'Strava koppelen'},
- sv_connected:{fr:'Strava connecté ✓',en:'Strava connected ✓',nl:'Strava gekoppeld ✓'},
- sv_title:{fr:'Courses Strava',en:'Strava runs',nl:'Strava-runs'},
- sv_sync_ok:{fr:'Strava synchronisé ✓',en:'Strava synced ✓',nl:'Strava gesynct ✓'},
- sv_wait:{fr:'Termine la connexion dans la fenêtre Strava…',en:'Finish connecting in the Strava window…',nl:'Rond de koppeling af in het Strava-venster…'},
- sv_err:{fr:'Connexion Strava impossible — réessaie',en:'Strava connection failed — try again',nl:'Strava-koppeling mislukt — probeer opnieuw'},
  co_reserve:{fr:'Réserver',en:'Book',nl:'Reserveren'},
  co_waitlist_btn:{fr:"Rejoindre la liste d'attente",en:'Join the waitlist',nl:'Op wachtlijst'},
  co_cancel_btn:{fr:'Annuler ma réservation',en:'Cancel my booking',nl:'Reservatie annuleren'},
@@ -2111,6 +2066,24 @@ const T = {
  opt_off:{fr:'Désactivés',en:'Off',nl:'Uit'},
  opt_soon:{fr:'Bientôt disponible',en:'Coming soon',nl:'Binnenkort'},
  btn_logout:{fr:'Se déconnecter',en:'Log out',nl:'Uitloggen'},
+ del_btn:{fr:'Supprimer mon compte',en:'Delete my account',nl:'Mijn account verwijderen'},
+ del_warn:{fr:'Cette action est d\u00e9finitive : ton compte, ton historique, tes analyses, tes photos et ton abonnement seront supprim\u00e9s imm\u00e9diatement. Aucune r\u00e9cup\u00e9ration possible.',en:'This action is permanent: your account, history, analyses, photos and subscription will be deleted immediately. No recovery is possible.',nl:'Deze actie is definitief: je account, geschiedenis, analyses, foto\u2019s en abonnement worden onmiddellijk verwijderd. Herstel is niet mogelijk.'},
+ del_go:{fr:'Confirmer la suppression d\u00e9finitive',en:'Confirm permanent deletion',nl:'Definitieve verwijdering bevestigen'},
+ del_busy:{fr:'Suppression en cours\u2026',en:'Deleting\u2026',nl:'Verwijderen\u2026'},
+ del_done:{fr:'Compte supprim\u00e9. Merci d\u2019avoir utilis\u00e9 Coach DM.',en:'Account deleted. Thank you for using Coach DM.',nl:'Account verwijderd. Bedankt dat je Coach DM gebruikte.'},
+ del_fail:{fr:'\u00c9chec de la suppression \u2014 v\u00e9rifie ta connexion et r\u00e9essaie.',en:'Deletion failed \u2014 check your connection and try again.',nl:'Verwijderen mislukt \u2014 controleer je verbinding en probeer opnieuw.'},
+ btn_cancel:{fr:'Annuler',en:'Cancel',nl:'Annuleren'},
+ pf_sources:{fr:'Sources scientifiques',en:'Scientific sources',nl:'Wetenschappelijke bronnen'},
+ src_sub:{fr:'Les recommandations de l\u2019app s\u2019appuient sur ces r\u00e9f\u00e9rences publiques.',en:'The app\u2019s recommendations are based on these public references.',nl:'De aanbevelingen van de app zijn gebaseerd op deze publieke referenties.'},
+ src_mifflin:{fr:'D\u00e9pense \u00e9nerg\u00e9tique de repos \u2014 base du calcul des calories et macros. Am J Clin Nutr.',en:'Resting energy expenditure \u2014 basis of calorie and macro calculations. Am J Clin Nutr.',nl:'Rustmetabolisme \u2014 basis van de calorie\u00eb n- en macroberekeningen. Am J Clin Nutr.'},
+ src_schoenfeld:{fr:'Cin\u00e9matique et cin\u00e9tique du squat \u2014 standards de profondeur. J Strength Cond Res.',en:'Squat kinematics and kinetics \u2014 depth standards. J Strength Cond Res.',nl:'Kinematica en kinetiek van de squat \u2014 dieptestandaarden. J Strength Cond Res.'},
+ src_vbt:{fr:'Vitesse d\u2019ex\u00e9cution comme mesure d\u2019intensit\u00e9 \u2014 base des analyses VBT. Int J Sports Med.',en:'Movement velocity as a measure of intensity \u2014 basis of the VBT analyses. Int J Sports Med.',nl:'Uitvoeringssnelheid als intensiteitsmaat \u2014 basis van de VBT-analyses. Int J Sports Med.'},
+ src_samozino:{fr:'Profil force-vitesse et performance balistique \u2014 base de l\u2019analyse de saut. Scand J Med Sci Sports.',en:'Force-velocity profile and ballistic performance \u2014 basis of the jump analysis. Scand J Med Sci Sports.',nl:'Kracht-snelheidsprofiel en ballistische prestatie \u2014 basis van de spronganalyse. Scand J Med Sci Sports.'},
+ src_hyrox:{fr:'Standards de mouvement, charges et p\u00e9nalit\u00e9s officiels des stations HYROX.',en:'Official movement standards, loads and penalties for the HYROX stations.',nl:'Offici\u00eble bewegingsstandaarden, gewichten en straffen van de HYROX-stations.'},
+ src_who:{fr:'Recommandations mondiales d\u2019activit\u00e9 physique pour la sant\u00e9.',en:'Global physical activity recommendations for health.',nl:'Wereldwijde aanbevelingen voor lichaamsbeweging en gezondheid.'},
+ src_efsa:{fr:'Valeurs nutritionnelles de r\u00e9f\u00e9rence europ\u00e9ennes (macronutriments, hydratation).',en:'European dietary reference values (macronutrients, hydration).',nl:'Europese voedingsreferentiewaarden (macronutri\u00ebnten, hydratatie).'},
+ src_disclaimer:{fr:'Contenu informatif d\u2019entra\u00eenement et de nutrition \u2014 ne remplace pas un avis m\u00e9dical. Consulte un professionnel de sant\u00e9 avant tout changement majeur.',en:'Training and nutrition information only \u2014 not a substitute for medical advice. Consult a healthcare professional before any major change.',nl:'Informatie over training en voeding \u2014 geen vervanging voor medisch advies. Raadpleeg een zorgprofessional voor grote veranderingen.'},
+ src_link:{fr:'Voir les sources scientifiques',en:'See the scientific sources',nl:'Bekijk de wetenschappelijke bronnen'},
  privacy:{fr:'Politique de confidentialité',en:'Privacy policy',nl:'Privacybeleid'},
  help_center:{fr:'Centre d\u2019aide',en:'Help center',nl:'Helpcentrum'},
  gate_title:{fr:'Accès réservé',en:'Members only',nl:'Alleen voor leden'},
@@ -2139,6 +2112,8 @@ const T = {
  an_bar_sub:{fr:'Gratuit : reps + bar path live \u00b7 Pro : vitesse pic & d\u00e9viation',en:'Free: reps + live bar path \u00b7 Pro: peak velocity & deviation',nl:'Gratis: reps + live bar path \u00b7 Pro: pieksnelheid & afwijking'},
  an_run:{fr:'Analyse Course',en:'Running Analysis',nl:'Loopanalyse'},
  an_run_sub:{fr:'Gratuit : cadence + pas \u00b7 Pro : tronc, oscillation, overstride',en:'Free: cadence + steps \u00b7 Pro: trunk, oscillation, overstride',nl:'Gratis: cadans + stappen \u00b7 Pro: romp, oscillatie, overstride'},
+ an_hyrox:{fr:'Analyse HYROX',en:'HYROX Analysis',nl:'HYROX-analyse'},
+ an_hyrox_sub:{fr:'Gratuit : reps + no-reps + cadence \u00b7 Pro : fade, blocage, p\u00e9nalit\u00e9',en:'Free: reps + no-reps + cadence \u00b7 Pro: fade, rest, penalty',nl:'Gratis: reps + no-reps + cadans \u00b7 Pro: fade, rust, straf'},
  an_pro:{fr:'Analyses Pro (VBT, Profil F-V) \u2014 offres Coach & Coach+',en:'Pro analyses (VBT, F-V profile) \u2014 Coach & Coach+ plans',nl:'Pro-analyses (VBT, K-S profiel) \u2014 Coach & Coach+ abonnementen'},
  pf_week:{fr:'Semaine',en:'Week',nl:'Week'},
  au_email:{fr:'Email',en:'Email',nl:'E-mail'},
@@ -2176,25 +2151,6 @@ const T = {
  meal_dinner:{fr:'Dîner',en:'Dinner',nl:'Diner'},
  meal_snack:{fr:'Collation',en:'Snack',nl:'Snack'},
  meal_pre_workout:{fr:'Pré-training',en:'Pre-workout',nl:'Pre-workout'},
- mp_title:{fr:'Plan nutrition du coach',en:'Coach nutrition plan',nl:'Voedingsplan van de coach'},
- crq_wants:{fr:'veut devenir ton coach',en:'wants to be your coach',nl:'wil je coach worden'},
- crq_sub:{fr:'Accepte pour lui donner accès à ton suivi (séances, nutrition, messages).',en:'Accept to give access to your tracking (workouts, nutrition, messages).',nl:'Accepteer om toegang te geven tot je opvolging (trainingen, voeding, berichten).'},
- crq_accept:{fr:'Accepter',en:'Accept',nl:'Accepteren'},
- crq_decline:{fr:'Refuser',en:'Decline',nl:'Weigeren'},
- crq_accepted:{fr:'Coach accepté ✓',en:'Coach accepted ✓',nl:'Coach geaccepteerd ✓'},
- crq_declined:{fr:'Demande refusée',en:'Request declined',nl:'Verzoek geweigerd'},
- crq_err:{fr:'Action impossible',en:'Action failed',nl:'Actie mislukt'},
- crq_full:{fr:'Ce coach a atteint sa limite de clients.',en:'This coach reached their client limit.',nl:'Deze coach heeft zijn cliëntenlimiet bereikt.'},
- mp_snack:{fr:'Collation',en:'Snack',nl:'Snack'},
- mp_meal:{fr:'Repas',en:'Meal',nl:'Maaltijd'},
- mp_day:{fr:'Journée type',en:'Typical day',nl:'Typische dag'},
- dow_mon:{fr:'Lundi',en:'Monday',nl:'Maandag'},
- dow_tue:{fr:'Mardi',en:'Tuesday',nl:'Dinsdag'},
- dow_wed:{fr:'Mercredi',en:'Wednesday',nl:'Woensdag'},
- dow_thu:{fr:'Jeudi',en:'Thursday',nl:'Donderdag'},
- dow_fri:{fr:'Vendredi',en:'Friday',nl:'Vrijdag'},
- dow_sat:{fr:'Samedi',en:'Saturday',nl:'Zaterdag'},
- dow_sun:{fr:'Dimanche',en:'Sunday',nl:'Zondag'},
  meal_post_workout:{fr:'Post-training',en:'Post-workout',nl:'Post-workout'},
  err_credentials:{fr:'Email et mot de passe requis.',en:'Email and password required.',nl:'E-mail en wachtwoord vereist.'},
  insight_title:{fr:'Insight du jour',en:'Daily insight',nl:'Inzicht van de dag'},
@@ -2282,39 +2238,6 @@ const T = {
  f_cal:{fr:'Calories',en:'Calories',nl:'Calorieën'},
  err_pwd_min:{fr:'Mot de passe : 6 caractères minimum.',en:'Password: 6 characters minimum.',nl:'Wachtwoord: minimaal 6 tekens.'},
  signup_confirm:{fr:'Compte créé. Vérifie ta boîte mail pour confirmer, puis connecte-toi.',en:'Account created. Check your email to confirm, then log in.',nl:'Account aangemaakt. Bevestig via je e-mail en log dan in.'},
- ob_skip:{fr:'Passer',en:'Skip',nl:'Overslaan'},
- ob_back:{fr:'Retour',en:'Back',nl:'Terug'},
- ob_q1:{fr:'Ton objectif principal ?',en:'Your main goal?',nl:'Je hoofddoel?'},
- ob_q1_sub:{fr:'4 questions, 30 secondes — ton programme est choisi pour toi.',en:'4 questions, 30 seconds — your program picked for you.',nl:'4 vragen, 30 seconden — jouw programma wordt voor je gekozen.'},
- ob_g_fat:{fr:'Perdre du gras',en:'Lose fat',nl:'Vet verliezen'},
- ob_g_muscle:{fr:'Prendre du muscle',en:'Build muscle',nl:'Spieren opbouwen'},
- ob_g_strong:{fr:'Devenir plus fort',en:'Get stronger',nl:'Sterker worden'},
- ob_g_perf:{fr:'Performance & compétition',en:'Performance & competition',nl:'Prestatie & competitie'},
- ob_q2:{fr:'Ton niveau ?',en:'Your level?',nl:'Je niveau?'},
- ob_l_beg:{fr:'Débutant',en:'Beginner',nl:'Beginner'},
- ob_l_beg_s:{fr:'Moins d\'un an d\'entraînement',en:'Under one year of training',nl:'Minder dan een jaar training'},
- ob_l_int:{fr:'Intermédiaire',en:'Intermediate',nl:'Gevorderd'},
- ob_l_int_s:{fr:'1 à 3 ans, technique acquise',en:'1–3 years, solid technique',nl:'1–3 jaar, degelijke techniek'},
- ob_l_adv:{fr:'Avancé',en:'Advanced',nl:'Expert'},
- ob_l_adv_s:{fr:'3 ans ou plus, charges lourdes maîtrisées',en:'3+ years, heavy loads mastered',nl:'3+ jaar, zware lasten beheerst'},
- ob_q3:{fr:'Ton terrain de jeu ?',en:'Your playground?',nl:'Je speelterrein?'},
- ob_s_gym:{fr:'Salle classique',en:'Classic gym',nl:'Klassieke gym'},
- ob_s_gym_s:{fr:'Machines, haltères, circuits',en:'Machines, dumbbells, circuits',nl:'Machines, dumbbells, circuits'},
- ob_s_bar:{fr:'Barbell & haltérophilie',en:'Barbell & weightlifting',nl:'Barbell & gewichtheffen'},
- ob_s_bw:{fr:'Poids du corps & gymnastique',en:'Bodyweight & gymnastics',nl:'Lichaamsgewicht & gymnastiek'},
- ob_s_wod:{fr:'WODs — CrossFit & Hyrox',en:'WODs — CrossFit & Hyrox',nl:'WODs — CrossFit & Hyrox'},
- ob_s_foot:{fr:'Football',en:'Football',nl:'Voetbal'},
- ob_q4:{fr:'Combien de jours par semaine ?',en:'How many days per week?',nl:'Hoeveel dagen per week?'},
- ob_d_23:{fr:'2 à 3 jours',en:'2–3 days',nl:'2–3 dagen'},
- ob_d_34:{fr:'3 à 4 jours',en:'3–4 days',nl:'3–4 dagen'},
- ob_d_5:{fr:'5 jours ou plus',en:'5+ days',nl:'5+ dagen'},
- ob_res_badge:{fr:'Recommandé pour toi',en:'Recommended for you',nl:'Aanbevolen voor jou'},
- ob_res_sub:{fr:'Basé sur tes réponses, ce programme est ton meilleur point de départ.',en:'Based on your answers, this program is your best starting point.',nl:'Op basis van je antwoorden is dit programma jouw beste startpunt.'},
- ob_cta:{fr:'Commencer ce programme',en:'Start this program',nl:'Start dit programma'},
- ob_all:{fr:'Voir tous les programmes',en:'See all programs',nl:'Alle programma\'s bekijken'},
- ob_dpw:{fr:'jours / semaine',en:'days / week',nl:'dagen / week'},
- ob_redo:{fr:'Refaire le test programme',en:'Retake the program quiz',nl:'Programmatest opnieuw doen'},
- ob_later:{fr:'Tu peux refaire le test depuis ton Profil.',en:'You can retake the quiz from your Profile.',nl:'Je kan de test opnieuw doen via je Profiel.'},
  auth_invalid:{fr:'Email ou mot de passe incorrect.',en:'Wrong email or password.',nl:'Verkeerd e-mail of wachtwoord.'},
  auth_exists:{fr:'Cet email a déjà un compte. Connecte-toi.',en:'This email already has an account. Log in.',nl:'Dit e-mailadres heeft al een account. Log in.'},
  auth_unconfirmed:{fr:'Confirme ton email avant de te connecter.',en:'Confirm your email before logging in.',nl:'Bevestig je e-mail voor je inlogt.'},
@@ -2447,7 +2370,7 @@ let _PRE=null;
 async function prefetchBoot(uid){
   try{
     const [prof,sub,tg,lg] = await Promise.all([
-      sb.from('profiles').select('full_name,role,is_founder,founder_kind,founder_since,onboarding_completed').eq('id',uid).maybeSingle(),
+      sb.from('profiles').select('full_name,role,is_founder,founder_kind,founder_since').eq('id',uid).maybeSingle(),
       sb.from('subscriptions').select('status,current_period_end,trial_end,amount_cents')
         .eq('user_id',uid).order('current_period_end',{ascending:false,nullsFirst:false}).limit(1).maybeSingle(),
       sb.from('nutrition_targets').select('*').eq('user_id',uid).eq('is_active',true).maybeSingle(),
@@ -2469,349 +2392,8 @@ async function enter(user){
   await loadToday();
   _PRE=null;
   switchTab('home');
-  maybeShowOnboarding();
   loadCoachCard(); loadCalls(); initChatLive();
   resumePendingPlan();
-  initPush();
-  initHealth();
-  initStrava();
-}
-
-/* ---------------- ONBOARDING WIZARD (programme en 4 questions) ---------------- */
-let OB_DONE=false, OB_STEP=0, OB_ANS={}, OB_RESULT=null;
-const OB_PROGS={
- 'foundation-8w':{name:'FOUNDATION 8W',weeks:8,dpw:4},
- 'physique-12w':{name:'PHYSIQUE 12W',weeks:12,dpw:3},
- 'fat-burner-10w':{name:'AFTERBURN 10W',weeks:10,dpw:5},
- 'gravity-10w':{name:'GRAVITY 10W',weeks:10,dpw:5},
- 'barbell-strength-12w':{name:'Weightlifting Strength 12W',weeks:12,dpw:3},
- 'hyrox-engine-12w':{name:'Hyrox Engine 12W',weeks:12,dpw:4},
- 'engine-amrap-10w':{name:'Engine AMRAP 10W',weeks:10,dpw:3},
- 'metcon-emom-8w':{name:'MetCon EMOM 8W',weeks:8,dpw:3},
- 'open-prep-8w':{name:'Open Prep 8W',weeks:8,dpw:3},
- 'football-elite-12w':{name:'Football Elite 12W',weeks:12,dpw:3}
-};
-function obIc(n){
-  const I={
-   flame:'<path d="M12 3c1 3-3 4.5-3 8a3 3 0 0 0 6 0c0-1.5-.8-2.6-1.5-3.5C15.5 8.5 17 10 17 12.5a5 5 0 0 1-10 0C7 8 11 6.5 12 3z"/>',
-   muscle:'<path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/>',
-   bar:'<path d="M7 12h10M4 8.5v7M20 8.5v7M2 10v4M22 10v4"/>',
-   trophy:'<path d="M7 4h10v4a5 5 0 0 1-10 0z"/><path d="M7 5H4.5A3.5 3.5 0 0 0 8 9M17 5h2.5A3.5 3.5 0 0 1 16 9M12 13v4M8 20h8"/>',
-   lv1:'<path d="M5 19v-4"/><path d="M11 19v-8" opacity=".3"/><path d="M17 19V7" opacity=".3"/>',
-   lv2:'<path d="M5 19v-4M11 19v-8"/><path d="M17 19V7" opacity=".3"/>',
-   lv3:'<path d="M5 19v-4M11 19v-8M17 19V7"/>',
-   kb:'<path d="M9.5 9.5V7a2.5 2.5 0 0 1 5 0v2.5"/><circle cx="12" cy="14.5" r="5.5"/>',
-   rings:'<circle cx="12" cy="15.5" r="4"/><path d="M10 12L6.5 4M14 12l3.5-8M5 4h14"/>',
-   pulse:'<path d="M3 12h4l2.5-6 4 12L16 12h5"/>',
-   ball:'<circle cx="12" cy="12" r="8.5"/><path d="M12 8.5l3.3 2.4-1.3 3.9h-4l-1.3-3.9zM12 3.5v5M15.3 10.9l4.6-1.4M14 14.8l2.8 4M10 14.8l-2.8 4M8.7 10.9L4.1 9.5"/>',
-   cal23:'<rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4M8.5 13.5h.01M12 13.5h.01"/>',
-   cal34:'<rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4M8.5 13.5h.01M12 13.5h.01M15.5 13.5h.01"/>',
-   cal5:'<rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01"/>'
-  };
-  return '<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'+(I[n]||I.pulse)+'</svg>';
-}
-const OB_STEPS=[
- {key:'goal', q:'ob_q1', sub:'ob_q1_sub', opts:[
-   {v:'lose_fat',k:'ob_g_fat',ic:'flame'},
-   {v:'build_muscle',k:'ob_g_muscle',ic:'muscle'},
-   {v:'get_strong',k:'ob_g_strong',ic:'bar'},
-   {v:'performance',k:'ob_g_perf',ic:'trophy'}]},
- {key:'level', q:'ob_q2', opts:[
-   {v:'beginner',k:'ob_l_beg',s:'ob_l_beg_s',ic:'lv1'},
-   {v:'intermediate',k:'ob_l_int',s:'ob_l_int_s',ic:'lv2'},
-   {v:'advanced',k:'ob_l_adv',s:'ob_l_adv_s',ic:'lv3'}]},
- {key:'style', q:'ob_q3', opts:[
-   {v:'gym',k:'ob_s_gym',s:'ob_s_gym_s',ic:'kb'},
-   {v:'barbell',k:'ob_s_bar',ic:'bar'},
-   {v:'bodyweight',k:'ob_s_bw',ic:'rings'},
-   {v:'wods',k:'ob_s_wod',ic:'pulse'},
-   {v:'football',k:'ob_s_foot',ic:'ball'}]},
- {key:'days', q:'ob_q4', opts:[
-   {v:'2-3',k:'ob_d_23',ic:'cal23'},
-   {v:'3-4',k:'ob_d_34',ic:'cal34'},
-   {v:'5+',k:'ob_d_5',ic:'cal5'}]}
-];
-function obScore(a){
-  const s={}; Object.keys(OB_PROGS).forEach(k=>s[k]=0);
-  const add=m=>Object.keys(m).forEach(k=>s[k]+=m[k]);
-  if(a.goal==='lose_fat') add({'fat-burner-10w':3,'metcon-emom-8w':2,'engine-amrap-10w':2,'hyrox-engine-12w':1});
-  if(a.goal==='build_muscle') add({'physique-12w':3,'gravity-10w':2,'foundation-8w':2,'barbell-strength-12w':1});
-  if(a.goal==='get_strong') add({'barbell-strength-12w':3,'physique-12w':1,'foundation-8w':1});
-  if(a.goal==='performance') add({'open-prep-8w':3,'hyrox-engine-12w':2,'engine-amrap-10w':1,'football-elite-12w':1});
-  if(a.level==='beginner') add({'foundation-8w':4,'physique-12w':2,'barbell-strength-12w':-3,'open-prep-8w':-3,'gravity-10w':-2,'hyrox-engine-12w':-2,'metcon-emom-8w':-1,'engine-amrap-10w':-1,'football-elite-12w':-1});
-  if(a.level==='intermediate') add({'physique-12w':1,'fat-burner-10w':1,'gravity-10w':1,'hyrox-engine-12w':1,'metcon-emom-8w':1,'engine-amrap-10w':1,'football-elite-12w':1});
-  if(a.level==='advanced') add({'barbell-strength-12w':2,'open-prep-8w':1,'gravity-10w':1,'hyrox-engine-12w':1});
-  if(a.style==='gym') add({'physique-12w':3,'fat-burner-10w':2,'foundation-8w':2});
-  if(a.style==='barbell') add({'barbell-strength-12w':4,'physique-12w':1});
-  if(a.style==='bodyweight') add({'gravity-10w':4,'foundation-8w':1});
-  if(a.style==='wods') add({'open-prep-8w':2,'hyrox-engine-12w':2,'metcon-emom-8w':2,'engine-amrap-10w':2,'fat-burner-10w':1});
-  if(a.style==='football') add({'football-elite-12w':6});
-  if(a.days==='2-3') add({'metcon-emom-8w':2,'engine-amrap-10w':1,'open-prep-8w':1,'barbell-strength-12w':1,'physique-12w':1,'fat-burner-10w':-1,'gravity-10w':-1});
-  if(a.days==='3-4') add({'foundation-8w':1,'hyrox-engine-12w':1,'physique-12w':1,'football-elite-12w':1,'engine-amrap-10w':1});
-  if(a.days==='5+') add({'fat-burner-10w':2,'gravity-10w':2,'hyrox-engine-12w':1});
-  const prio=['foundation-8w','physique-12w','fat-burner-10w','barbell-strength-12w','gravity-10w','hyrox-engine-12w','metcon-emom-8w','engine-amrap-10w','open-prep-8w','football-elite-12w'];
-  let best=prio[0], bv=-Infinity;
-  prio.forEach(k=>{ if(s[k]>bv){ bv=s[k]; best=k; } });
-  return best;
-}
-function obRender(){
-  document.querySelectorAll('#ob-dots span').forEach((d,i)=>d.classList.toggle('on', OB_STEP>=OB_STEPS.length || i<=OB_STEP));
-  const sk=$('#ob-skip'); if(sk){ sk.textContent=t('ob_skip'); sk.style.display = OB_STEP>=OB_STEPS.length?'none':''; }
-  const body=$('#ob-body'); if(!body) return;
-  if(OB_STEP>=OB_STEPS.length){ obRenderResult(); return; }
-  const st=OB_STEPS[OB_STEP];
-  let h='';
-  if(OB_STEP>0) h+='<button class="ob-back" id="ob-back">‹ '+t('ob_back')+'</button>';
-  h+='<div class="ob-q">'+t(st.q)+'</div>';
-  h+='<div class="ob-sub">'+(st.sub?t(st.sub):'')+'</div>';
-  st.opts.forEach(o=>{
-    h+='<button class="ob-opt" data-ob="'+o.v+'"><span class="ic">'+obIc(o.ic)+'</span><span>'+t(o.k)+(o.s?'<span class="ob-os">'+t(o.s)+'</span>':'')+'</span></button>';
-  });
-  body.innerHTML=h;
-  body.querySelectorAll('[data-ob]').forEach(b=>b.onclick=()=>{ OB_ANS[st.key]=b.getAttribute('data-ob'); OB_STEP++; obRender(); });
-  const bk=$('#ob-back'); if(bk) bk.onclick=()=>{ OB_STEP=Math.max(0,OB_STEP-1); obRender(); };
-  const w=$('#ob-wizard'); if(w) w.scrollTo(0,0);
-}
-function obRenderResult(){
-  const slug=obScore(OB_ANS); OB_RESULT=slug;
-  const p=OB_PROGS[slug];
-  const body=$('#ob-body');
-  body.innerHTML='<button class="ob-back" id="ob-back">‹ '+t('ob_back')+'</button>'
-   +'<div class="ob-res"><span class="ob-badge">'+t('ob_res_badge')+'</span>'
-   +'<h2>'+esc(p.name)+'</h2>'
-   +'<div class="ob-chips"><span class="badge">'+p.weeks+' '+t('pf_weeks')+'</span><span class="badge">'+p.dpw+' '+t('ob_dpw')+'</span></div>'
-   +'<div class="ob-sub" style="margin-bottom:18px">'+t('ob_res_sub')+'</div>'
-   +'<button class="btn" id="ob-go" style="display:block;width:100%">'+t('ob_cta')+'</button>'
-   +'<button class="btn subtle" id="ob-all" style="width:100%;margin-top:10px">'+t('ob_all')+'</button></div>';
-  $('#ob-back').onclick=()=>{ OB_STEP=OB_STEPS.length-1; obRender(); };
-  $('#ob-go').onclick=()=>obFinish(true);
-  $('#ob-all').onclick=()=>obFinish(false);
-  obSave(slug);
-}
-async function obSave(slug){
-  try{
-    await sb.from('profiles').update({ onboarding_completed:true, onboarding_answers:OB_ANS, recommended_program:slug }).eq('id',USER.id);
-    OB_DONE=true;
-  }catch(e){}
-}
-function obFinish(open){
-  const w=$('#ob-wizard'); if(w) w.classList.add('hidden');
-  if(open&&OB_RESULT) SE_PROG=OB_RESULT;
-  switchTab('seances');
-}
-function obOpen(){ OB_STEP=0; OB_ANS={}; OB_RESULT=null; const w=$('#ob-wizard'); if(w) w.classList.remove('hidden'); obRender(); }
-async function obSkip(){
-  const w=$('#ob-wizard'); if(w) w.classList.add('hidden');
-  if(!OB_DONE){ try{ await sb.from('profiles').update({ onboarding_completed:true }).eq('id',USER.id); OB_DONE=true; }catch(e){} }
-  toast(t('ob_later'));
-}
-function maybeShowOnboarding(){ if(IS_COACH||OB_DONE) return; obOpen(); }
-{ const sk=$('#ob-skip'); if(sk) sk.onclick=obSkip; }
-{ const pb=$('#p-onboarding'); if(pb) pb.onclick=()=>obOpen(); }
-
-/* ---- Notifications push (iOS natif) ---- */
-let _pushInit=false;
-async function initPush(){
-  if(_pushInit) return;
-  const P=window.Capacitor&&window.Capacitor.Plugins;
-  if(!IS_NATIVE||!P||!P.PushNotifications) return;
-  _pushInit=true;
-  try{
-    P.PushNotifications.addListener('registration',async tk=>{
-      try{ if(tk&&tk.value){ window._pushToken=tk.value; await sb.rpc('push_register',{ p_token:tk.value, p_platform:'ios' }); } }catch(e){}
-    });
-    P.PushNotifications.addListener('pushNotificationReceived',n=>{
-      // App ouverte : petit toast au lieu de la bannière système
-      try{ const tt=(n&&n.title)?n.title:'', bb=(n&&n.body)?n.body:''; if(tt||bb) toast((tt?tt+' — ':'')+bb); }catch(e){}
-    });
-    let perm=await P.PushNotifications.checkPermissions();
-    if(perm.receive==='prompt') perm=await P.PushNotifications.requestPermissions();
-    if(perm.receive==='granted') await P.PushNotifications.register();
-  }catch(e){}
-}
-
-/* ---- Apple Santé (iOS natif, lecture seule) ---- */
-const HK_READ=['steps','calories','restingHeartRate','sleep','weight','heartRate','workouts'];
-let _hkInit=false;
-function hkPlugin(){ const P=window.Capacitor&&window.Capacitor.Plugins; return (IS_NATIVE&&P&&P.Health)?P.Health:null; }
-function hkDayKey(d){ const x=new Date(d); return x.getFullYear()+'-'+('0'+(x.getMonth()+1)).slice(-2)+'-'+('0'+x.getDate()).slice(-2); }
-function hkMin(m){ if(m==null) return '—'; const h=Math.floor(m/60); return h+'h'+('0'+(m%60)).slice(-2); }
-function hkWkLabel(ty){
-  const map={functionalStrengthTraining:'Functional Training',traditionalStrengthTraining:'Strength Training',strengthTraining:'Strength Training',highIntensityIntervalTraining:'HIIT',crossTraining:'Cross Training',coreTraining:'Core',running:'Running',walking:'Marche',cycling:'Vélo',rowing:'Rower',swimming:'Natation',soccer:'Football',boxing:'Boxe',martialArts:'Arts martiaux',jumpRope:'Corde à sauter',stairClimbing:'Stairs',mixedCardio:'Cardio',cooldown:'Cool-down',flexibility:'Mobilité',yoga:'Yoga',pilates:'Pilates',elliptical:'Elliptique',hiking:'Rando',other:'Séance'};
-  if(map[ty]) return map[ty];
-  return String(ty||'Séance').replace(/([A-Z])/g,' $1').replace(/^./,c=>c.toUpperCase());
-}
-async function initHealth(){
-  if(_hkInit) return;
-  const H=hkPlugin(); if(!H) return;
-  _hkInit=true;
-  try{
-    const av=await H.isAvailable();
-    if(!av||!av.available) return;
-    const btn=$('#p-health');
-    const on=localStorage.getItem('cdm_hk_on')==='1';
-    if(btn){ btn.style.display='block'; btn.textContent=on?t('hk_connected'):t('hk_connect'); btn.onclick=connectHealth; }
-    if(on) syncHealth();
-  }catch(e){}
-}
-async function connectHealth(){
-  const H=hkPlugin(); if(!H) return;
-  try{
-    await H.requestAuthorization({read:HK_READ});
-    localStorage.setItem('cdm_hk_on','1');
-    const b=$('#p-health'); if(b) b.textContent=t('hk_connected');
-    toast(t('hk_sync_ok'));
-    syncHealth();
-  }catch(e){ toast(t('hk_denied')); }
-}
-async function syncHealth(){
-  const H=hkPlugin(); if(!H) return;
-  try{
-    const end=new Date(), start=new Date(Date.now()-14*864e5), iso=d=>d.toISOString();
-    const days={}; const day=k=>days[k]||(days[k]={day:k});
-    try{ const r=await H.queryAggregated({dataType:'steps',startDate:iso(start),endDate:iso(end),bucket:'day',aggregation:'sum'});
-      (r.samples||[]).forEach(s=>{ day(hkDayKey(s.startDate)).steps=Math.round(s.value||0); }); }catch(e){}
-    try{ const r=await H.queryAggregated({dataType:'calories',startDate:iso(start),endDate:iso(end),bucket:'day',aggregation:'sum'});
-      (r.samples||[]).forEach(s=>{ day(hkDayKey(s.startDate)).active_kcal=Math.round(s.value||0); }); }catch(e){}
-    try{ const r=await H.queryAggregated({dataType:'restingHeartRate',startDate:iso(start),endDate:iso(end),bucket:'day',aggregation:'average'});
-      (r.samples||[]).forEach(s=>{ if(s.value) day(hkDayKey(s.startDate)).resting_hr=Math.round(s.value); }); }catch(e){}
-    try{
-      const r=await H.readSamples({dataType:'sleep',startDate:iso(start),endDate:iso(end),limit:500,ascending:true});
-      (r.samples||[]).forEach(s=>{
-        if(s.sleepState && ['asleep','rem','deep','light'].indexOf(s.sleepState)<0) return;
-        const mins=Math.round((new Date(s.endDate)-new Date(s.startDate))/60000);
-        if(mins>0){ const d=day(hkDayKey(s.endDate)); d.sleep_min=(d.sleep_min||0)+mins; }
-      });
-    }catch(e){}
-    try{
-      const r=await H.readSamples({dataType:'weight',startDate:iso(new Date(Date.now()-90*864e5)),endDate:iso(end),limit:1,ascending:false});
-      const s=(r.samples||[])[0];
-      if(s&&s.value) day(hkDayKey(s.startDate)).weight_kg=Math.round(s.value*10)/10;
-    }catch(e){}
-    const rows=Object.values(days);
-    if(rows.length){ try{ await sb.rpc('health_upsert_daily',{p_rows:rows}); }catch(e){} }
-    let wk=[];
-    try{
-      const r=await H.queryWorkouts({startDate:iso(start),endDate:iso(end),limit:100,ascending:false});
-      wk=(r.workouts||[]).filter(w=>w.platformId);
-      if(wk.length){
-        try{ await sb.rpc('health_upsert_workouts',{p_rows:wk.map(w=>({
-          platform_id:w.platformId, workout_type:w.workoutType, starts_at:w.startDate, ends_at:w.endDate,
-          duration_sec:Math.round(w.duration||0),
-          kcal:(w.totalEnergyBurned!=null)?Math.round(w.totalEnergyBurned):null,
-          distance_m:(w.totalDistance!=null)?Math.round(w.totalDistance):null,
-          source_name:w.sourceName||null }))}); }catch(e){}
-      }
-    }catch(e){}
-    renderHealth(days, wk);
-  }catch(e){}
-}
-/* ---- Strava (web + natif) ---- */
-const SV_FN='https://kkcmhviyvttwpaclrjmv.supabase.co/functions/v1/strava-oauth';
-let _svPoll=null;
-async function initStrava(){
-  const btn=$('#p-strava'); if(!btn) return;
-  btn.onclick=connectStrava;
-  try{
-    const { data } = await sb.rpc('strava_status');
-    if(data && data.connected){
-      btn.textContent=t('sv_connected');
-      syncStrava();
-    }
-  }catch(e){}
-}
-async function connectStrava(){
-  try{
-    const { data:status } = await sb.rpc('strava_status');
-    if(status && status.connected){ syncStrava(); toast(t('sv_sync_ok')); return; }
-    const { data:state, error } = await sb.rpc('strava_start');
-    if(error||!state){ toast(t('sv_err')); return; }
-    const url=SV_FN+'?start=1&state='+encodeURIComponent(state);
-    const P=window.Capacitor&&window.Capacitor.Plugins;
-    if(IS_NATIVE&&P&&P.Browser){ await P.Browser.open({url}); } else { window.open(url,'_blank'); }
-    toast(t('sv_wait'));
-    // attend la fin du flow OAuth (2 min max)
-    if(_svPoll) clearInterval(_svPoll);
-    let tries=0;
-    _svPoll=setInterval(async ()=>{
-      tries++;
-      if(tries>24){ clearInterval(_svPoll); _svPoll=null; return; }
-      try{
-        const { data:st } = await sb.rpc('strava_status');
-        if(st && st.connected){
-          clearInterval(_svPoll); _svPoll=null;
-          const b=$('#p-strava'); if(b) b.textContent=t('sv_connected');
-          try{ if(IS_NATIVE&&P&&P.Browser) await P.Browser.close(); }catch(e){}
-          toast(t('sv_connected'));
-          syncStrava();
-        }
-      }catch(e){}
-    },5000);
-  }catch(e){ toast(t('sv_err')); }
-}
-async function syncStrava(){
-  try{
-    const { data } = await sb.functions.invoke('strava-sync',{ body:{} });
-    if(data && data.ok===false && data.reason==='not_connected') return;
-  }catch(e){}
-  loadStravaList();
-}
-function svPace(mt,dist){
-  if(!mt||!dist||dist<100) return '';
-  const spk=mt/(dist/1000); const m=Math.floor(spk/60), s=Math.round(spk%60);
-  return m+':'+('0'+s).slice(-2)+' /km';
-}
-async function loadStravaList(){
-  const blk=$('#sv-block'), box=$('#sv-list'); if(!blk||!box) return;
-  try{
-    const { data } = await sb.from('strava_activities')
-      .select('name,sport_type,distance_m,moving_time_s,start_date,avg_hr')
-      .order('start_date',{ascending:false}).limit(6);
-    if(!data||!data.length){ blk.style.display='none'; return; }
-    const loc=LANG==='fr'?'fr-BE':(LANG==='nl'?'nl-BE':'en-GB');
-    blk.style.display='block';
-    box.innerHTML=data.map(a=>{
-      const km=a.distance_m?(Math.round(a.distance_m/100)/10):null;
-      const dt=a.start_date?new Date(a.start_date).toLocaleDateString(loc,{weekday:'short',day:'numeric',month:'short'}):'';
-      const pace=svPace(a.moving_time_s,a.distance_m);
-      const mins=a.moving_time_s?Math.round(a.moving_time_s/60):null;
-      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)">'+
-        '<div><div style="font-weight:700;font-size:14px">'+esc(a.name||a.sport_type||'Course')+'</div>'+
-        '<div style="color:var(--muted);font-size:12px">'+esc(dt)+(km!=null?' · '+km+' km':'')+'</div></div>'+
-        '<div style="text-align:right;color:var(--muted);font-size:12px">'+(pace?esc(pace):((mins!=null?mins+' min':'')))+(a.avg_hr?'<br>'+Math.round(a.avg_hr)+' bpm':'')+'</div></div>';
-    }).join('');
-  }catch(e){}
-}
-
-function renderHealth(days, wk){
-  const blk=$('#hk-block'); if(!blk) return;
-  const d=days[hkDayKey(new Date())]||{};
-  const stats=[
-    {v:(d.steps!=null?d.steps.toLocaleString('fr-BE'):'—'), l:t('hk_steps')},
-    {v:(d.active_kcal!=null?d.active_kcal:'—'), l:'kcal'},
-    {v:hkMin(d.sleep_min), l:t('hk_sleep')},
-    {v:(d.resting_hr!=null?d.resting_hr+' bpm':'—'), l:t('hk_rhr')}
-  ];
-  blk.style.display='block';
-  const tb=$('#hk-today');
-  if(tb) tb.innerHTML='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'+stats.map(s=>
-    '<div style="background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 4px;text-align:center">'+
-    '<div style="font-weight:800;font-size:15px">'+s.v+'</div>'+
-    '<div style="color:var(--muted);font-size:11px;margin-top:3px">'+esc(s.l)+'</div></div>').join('')+'</div>';
-  const wb=$('#hk-workouts');
-  if(wb){
-    if(!wk||!wk.length){ wb.innerHTML=''; return; }
-    const loc=LANG==='fr'?'fr-BE':(LANG==='nl'?'nl-BE':'en-GB');
-    wb.innerHTML='<div style="color:var(--muted);font-size:12px;margin:12px 0 2px">'+esc(t('hk_watch'))+'</div>'+
-      wk.slice(0,5).map(w=>{
-        const dmin=Math.round((w.duration||0)/60);
-        const dt=new Date(w.startDate).toLocaleDateString(loc,{weekday:'short',day:'numeric',month:'short'});
-        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)">'+
-          '<div><div style="font-weight:700;font-size:14px">'+esc(hkWkLabel(w.workoutType))+'</div>'+
-          '<div style="color:var(--muted);font-size:12px">'+esc(dt)+(w.sourceName?' · '+esc(w.sourceName):'')+'</div></div>'+
-          '<div style="text-align:right;color:var(--muted);font-size:12px">'+dmin+' min'+(w.totalEnergyBurned?' · '+Math.round(w.totalEnergyBurned)+' kcal':'')+'</div></div>';
-      }).join('');
-  }
 }
 
 async function loadProfileInfo(user){
@@ -2819,7 +2401,7 @@ async function loadProfileInfo(user){
   if(_PRE){ prof2=_PRE.prof; }
   else {
     try{
-      const r = await sb.from('profiles').select('full_name,role,is_founder,founder_kind,founder_since,onboarding_completed').eq('id',user.id).maybeSingle();
+      const r = await sb.from('profiles').select('full_name,role,is_founder,founder_kind,founder_since').eq('id',user.id).maybeSingle();
       prof2 = r.data || null;
     }catch(e){}
   }
@@ -2827,8 +2409,6 @@ async function loadProfileInfo(user){
   try{
     const role = prof2 && prof2.role;
     IS_COACH = (role==='coach'||role==='admin');
-    OB_DONE = !!(prof2 && prof2.onboarding_completed);
-    { const pob=$('#p-onboarding'); if(pob) pob.style.display = IS_COACH ? 'none' : 'block'; }
     if(typeof renderAnalyseSection==='function') renderAnalyseSection();
     IS_FOUNDER = !!(prof2 && prof2.is_founder);
     FOUNDER_KIND = (prof2 && prof2.founder_kind) || null;
@@ -2910,10 +2490,29 @@ async function hasAccess(uid){
   return false;
 }
 
-$('#gate-out').onclick = $('#p-out').onclick = async ()=>{
-  try{ if(window._pushToken) await sb.rpc('push_unregister',{ p_token:window._pushToken }); }catch(e){}
-  await sb.auth.signOut(); USER=null; show('auth');
-};
+$('#gate-out').onclick = $('#p-out').onclick = async ()=>{ await sb.auth.signOut(); USER=null; show('auth'); };
+/* ---- Suppression de compte (Apple 5.1.1(v)) ---- */
+(function(){
+  const btn=$('#p-del'), panel=$('#p-del-panel'), go=$('#p-del-go'), cancel=$('#p-del-cancel'), msg=$('#p-del-msg');
+  if(!btn) return;
+  btn.onclick=()=>{ panel.style.display=''; btn.style.display='none'; msg.textContent=''; };
+  cancel.onclick=()=>{ panel.style.display='none'; btn.style.display=''; };
+  go.onclick=async ()=>{
+    go.disabled=true; cancel.disabled=true; msg.textContent=t('del_busy');
+    try{
+      const { data, error } = await sb.functions.invoke('delete-account',{ body:{ confirm:'DELETE' } });
+      if(error||!data||!data.ok) throw new Error((data&&data.error)||'delete');
+      msg.textContent=t('del_done');
+      try{ localStorage.clear(); }catch(_){}
+      try{ await sb.auth.signOut(); }catch(_){}
+      USER=null;
+      setTimeout(()=>{ show('auth'); location.reload(); },1200);
+    }catch(_){
+      msg.textContent=t('del_fail');
+      go.disabled=false; cancel.disabled=false;
+    }
+  };
+})();
 
 /* ---------------- ABONNEMENT STRIPE ---------------- */
 const STRIPE_PK='pk_live_51TpzX7J0YSDZQQHK1pZpLyBD1QX0c95OWwdhGO1BpTvs3vb99GAq8D9JA9voqURFI5GpkfeQmORt8fnwWaipMLGq00re93zamr';
@@ -3637,40 +3236,7 @@ $('#sh-add').onclick = async ()=>{
   await loadLogs(); await loadToday();
 };
 
-async function loadMealPlan(){
-  const host=$('#mp-client'), block=$('#mp-block'); if(!host||!block) return;
-  try{
-    const { data:plans } = await sb.from('meal_plans')
-      .select('id,title,notes,plan_type,updated_at').eq('client_id',USER.id).eq('is_active',true)
-      .order('updated_at',{ascending:false}).limit(1);
-    const plan=(plans||[])[0];
-    if(!plan){ block.style.display='none'; return; }
-    const { data:items } = await sb.from('meal_plan_items')
-      .select('day_index,slot,title,description,kcal,protein_g,carbs_g,fat_g,display_order')
-      .eq('plan_id',plan.id).order('day_index',{ascending:true}).order('display_order',{ascending:true});
-    const SLOT={breakfast:t('meal_breakfast'),lunch:t('meal_lunch'),dinner:t('meal_dinner'),snack:t('mp_snack'),preworkout:t('meal_pre_workout'),postworkout:t('meal_post_workout'),meal:t('mp_meal')};
-    const DAY=[t('mp_day'),t('dow_mon'),t('dow_tue'),t('dow_wed'),t('dow_thu'),t('dow_fri'),t('dow_sat'),t('dow_sun')];
-    const isWeek=plan.plan_type==='week';
-    let h=`<div class="mp-title">${esc(plan.title)}</div>`;
-    if(plan.notes) h+=`<div class="mp-notes">${esc(plan.notes)}</div>`;
-    const groups={};
-    (items||[]).forEach(it=>{ const k=isWeek?(it.day_index||1):0; (groups[k]=groups[k]||[]).push(it); });
-    Object.keys(groups).sort((a,b)=>a-b).forEach(g=>{
-      if(isWeek) h+=`<div class="mp-day">${esc(DAY[+g]||('Jour '+g))}</div>`;
-      h+=groups[g].map(it=>{
-        const macros=[it.kcal?r0(it.kcal)+' kcal':'',it.protein_g?'P'+r0(it.protein_g):'',it.carbs_g?'G'+r0(it.carbs_g):'',it.fat_g?'L'+r0(it.fat_g):''].filter(Boolean).join(' · ');
-        return `<div class="mp-item"><div class="mp-slot">${esc(SLOT[it.slot]||SLOT.meal)}</div>
-          <div class="mp-meal">${esc(it.title)}</div>
-          ${it.description?`<div class="mp-desc">${esc(it.description)}</div>`:''}
-          ${macros?`<div class="mp-macros">${macros}</div>`:''}</div>`;
-      }).join('');
-    });
-    host.innerHTML=h; block.style.display='';
-  }catch(e){ block.style.display='none'; }
-}
-
 async function loadLogs(){
-  loadMealPlan();
   loadTrends();
   const { data } = await sb.from('food_logs')
     .select('id,food_id,meal_type,quantity_g,kcal')
@@ -4428,12 +3994,13 @@ document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchTab(b.da
 function pfShow(view){
   const pane=document.getElementById('pane-profile'); if(!pane) return;
   pane.setAttribute('data-view',view);
-  const T={infos:'pf_infos',records:'pf_records',sub:'prof_sub',appearance:'pf_appearance',account:'pf_account'};
+  const T={infos:'pf_infos',records:'pf_records',sub:'prof_sub',appearance:'pf_appearance',account:'pf_account',sources:'pf_sources'};
   const bt=document.getElementById('pf-back-title'); if(bt) bt.textContent = T[view]?t(T[view]):'';
   const ps=document.getElementById('p-sub'), h=document.getElementById('pf-sub-hint'); if(ps&&h) h.textContent=ps.textContent;
   window.scrollTo(0,0);
 }
 document.querySelectorAll('#pane-profile [data-pf]').forEach(b=>b.onclick=()=>pfShow(b.dataset.pf));
+['calc-src-link','jo-src-link'].forEach(id=>{ const a=document.getElementById(id); if(a) a.onclick=(e)=>{ e.preventDefault(); switchTab('profile'); pfShow('sources'); }; });
 { const bk=document.getElementById('pf-back'); if(bk) bk.onclick=()=>pfShow('hub'); }
 
 
@@ -4474,39 +4041,12 @@ function setBtn(sel,loading,label){ const b=$(sel); b.disabled=loading; if(label
 
 /* ================= HOME ================= */
 function firstName(email){ if(!email) return 'Coach'; const n=email.split('@')[0].replace(/[._\-]+/g,' ').trim(); return n? n.charAt(0).toUpperCase()+n.slice(1) : 'Coach'; }
-async function loadCoachRequests(){
-  const host=$('#coach-req'); if(!host) return;
-  let reqs=[];
-  try{ const { data } = await sb.rpc('client_coach_requests'); reqs=data||[]; }catch(e){ host.innerHTML=''; return; }
-  if(!reqs.length){ host.innerHTML=''; return; }
-  host.innerHTML = reqs.map(r=>{
-    const who = esc(r.coach_name||r.coach_email||'Un coach');
-    return `<div class="block coach-req-card">
-      <div class="crq-top"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
-        <div><div class="crq-t">${who} ${t('crq_wants')}</div><div class="crq-s">${t('crq_sub')}</div></div></div>
-      <div class="crq-acts">
-        <button class="btn" data-crq-ok="${r.coach_id}">${t('crq_accept')}</button>
-        <button class="btn subtle" data-crq-no="${r.coach_id}">${t('crq_decline')}</button>
-      </div></div>`;
-  }).join('');
-  host.querySelectorAll('[data-crq-ok]').forEach(b=>b.onclick=()=>respondCoach(b.dataset.crqOk,true));
-  host.querySelectorAll('[data-crq-no]').forEach(b=>b.onclick=()=>respondCoach(b.dataset.crqNo,false));
-}
-async function respondCoach(coachId, accept){
-  const { data, error } = await sb.rpc('client_respond_coach',{ p_coach:coachId, p_accept:accept });
-  if(error){ toast(t('crq_err')); return; }
-  if(data && data.ok===false){ toast(data.reason==='coach_full'?t('crq_full'):t('crq_err')); return; }
-  toast(accept?t('crq_accepted'):t('crq_declined'));
-  loadCoachRequests(); if(typeof loadCoachCard==='function') loadCoachCard();
-}
-
 async function loadHome(){
   const _hh=new Date().getHours(), _gk=_hh<12?'hi_morning':(_hh<18?'hi_afternoon':'hi_evening');
   $('#home-hi').textContent = t(_gk)+' '+firstName(USER&&USER.email);
   $('#home-date').textContent = new Date().toLocaleDateString(locale(),{weekday:'long',day:'numeric',month:'long'});
   await loadToday();
   loadMyPlan();
-  loadCoachRequests();
   loadWod();
   loadInsight();
 }
@@ -4835,6 +4375,11 @@ function renderAnalyseSection(){
   <div class="an-card" data-an="course.html">
     <span class="an-ic">${runIc}</span>
     <div class="an-body"><div class="an-t">${t('an_run')}</div><div class="an-d">${t('an_run_sub')}</div></div>
+    <span class="an-end">›</span>
+  </div>
+  <div class="an-card" data-an="hyrox.html">
+    <span class="an-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2.5-6 4 12 2.5-6H21"/></svg></span>
+    <div class="an-body"><div class="an-t">${t('an_hyrox')}</div><div class="an-d">${t('an_hyrox_sub')}</div></div>
     <span class="an-end">›</span>
   </div>
   ${IS_COACH?'':`<div class="an-lock-note">${lockIc} ${t('an_pro')}</div>`}`;
@@ -5749,78 +5294,7 @@ async function loadCours(){
 }
 function icsDate(d){ return new Date(d).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z'); }
 function icsEscape(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n'); }
-/* ---- Agenda natif (iOS) + rappels locaux ---- */
-function notifIdFor(id){ let h=0; const x=String(id); for(let i=0;i<x.length;i++){ h=(h*31+x.charCodeAt(i))|0; } return Math.abs(h)%2000000000; }
-async function scheduleReminder(c){
-  const P=window.Capacitor&&window.Capacitor.Plugins;
-  if(!IS_NATIVE||!P||!P.LocalNotifications) return;
-  try{
-    const at=new Date(new Date(c.starts_at).getTime()-2*3600*1000);
-    if(at.getTime()<=Date.now()) return;
-    const perm=await P.LocalNotifications.requestPermissions();
-    if(!perm||perm.display!=='granted') return;
-    const title=(pick(c,'name')||'Cours')+(c.kind==='personal_training'?' (PT)':'');
-    const body=({fr:'Ta séance commence à ',en:'Your session starts at ',nl:'Je sessie begint om '}[LANG]||'Ta séance commence à ')+coHM(c.starts_at)+(c.location?' · '+c.location:'');
-    await P.LocalNotifications.schedule({notifications:[{id:notifIdFor(c.id),title:'Coach DM — '+title,body,schedule:{at}}]});
-  }catch(e){}
-}
-async function cancelReminder(cid){
-  const P=window.Capacitor&&window.Capacitor.Plugins;
-  if(!IS_NATIVE||!P||!P.LocalNotifications) return;
-  try{ await P.LocalNotifications.cancel({notifications:[{id:notifIdFor(cid)}]}); }catch(e){}
-}
-async function addToCalendar(c){
-  const P=window.Capacitor&&window.Capacitor.Plugins;
-  if(IS_NATIVE&&P&&P.CapacitorCalendar){
-    const title=(pick(c,'name')||'Cours')+(c.kind==='personal_training'?' (PT)':'');
-    const desc=[c.coach_name?('Coach: '+c.coach_name):'','Coach DM'].filter(Boolean).join(' — ');
-    try{
-      await P.CapacitorCalendar.createEventWithPrompt({
-        title:title,
-        startDate:new Date(c.starts_at).getTime(),
-        endDate:new Date(c.ends_at).getTime(),
-        location:c.location||undefined,
-        description:desc,
-        alerts:[-120,-1440]
-      });
-      scheduleReminder(c);
-    }catch(e){}
-    return;
-  }
-  addToCalendarWeb(c);
-}
-function addToCalendarWeb(c){
-  // Web : choix Google Agenda / Outlook (liens directs) / Apple (.ics en secours)
-  const title=(pick(c,'name')||'Cours')+(c.kind==='personal_training'?' (PT)':'');
-  const desc=[c.coach_name?('Coach: '+c.coach_name):'','Coach DM'].filter(Boolean).join(' — ');
-  const gUrl='https://calendar.google.com/calendar/render?action=TEMPLATE'
-    +'&text='+encodeURIComponent(title)
-    +'&dates='+icsDate(c.starts_at)+'/'+icsDate(c.ends_at)
-    +'&details='+encodeURIComponent(desc)
-    +(c.location?'&location='+encodeURIComponent(c.location):'');
-  const oUrl='https://outlook.live.com/calendar/0/action/compose?rru=addevent'
-    +'&subject='+encodeURIComponent(title)
-    +'&startdt='+encodeURIComponent(new Date(c.starts_at).toISOString())
-    +'&enddt='+encodeURIComponent(new Date(c.ends_at).toISOString())
-    +'&body='+encodeURIComponent(desc)
-    +(c.location?'&location='+encodeURIComponent(c.location):'');
-  const old=document.getElementById('cal-sheet'); if(old) old.remove();
-  const ov=document.createElement('div');
-  ov.id='cal-sheet';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:1200;display:flex;align-items:flex-end;justify-content:center';
-  ov.innerHTML='<div style="background:var(--surface);border:1px solid var(--line);border-bottom:none;border-radius:'
-    +'var(--radius) var(--radius) 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom));width:100%;max-width:520px">'
-    +'<div style="font-weight:700;color:var(--text);margin-bottom:12px">'+esc(t('co_cal_pick'))+'</div>'
-    +'<a class="btn subtle" style="display:block;text-align:center;text-decoration:none;margin-bottom:9px" target="_blank" rel="noopener" href="'+gUrl+'">Google Agenda</a>'
-    +'<a class="btn subtle" style="display:block;text-align:center;text-decoration:none;margin-bottom:9px" target="_blank" rel="noopener" href="'+oUrl+'">Outlook</a>'
-    +'<button class="btn subtle" style="display:block;width:100%" id="cal-ics-btn">'+esc(t('co_cal_apple'))+'</button>'
-    +'</div>';
-  ov.addEventListener('click',ev=>{ if(ev.target===ov) ov.remove(); });
-  document.body.appendChild(ov);
-  const ib=ov.querySelector('#cal-ics-btn'); if(ib) ib.onclick=()=>{ addToCalendarIcs(c); ov.remove(); };
-  ov.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>ov.remove()));
-}
-function addToCalendarIcs(c){
+function addToCalendar(c){
   const uid = 'coachdm-'+c.id+'@coachdm.be';
   const title = (pick(c,'name')||'Cours')+(c.kind==='personal_training'?' (PT)':'');
   const desc = [c.coach_name?('Coach: '+c.coach_name):'', 'Coach DM'].filter(Boolean).join(' — ');
@@ -5907,7 +5381,6 @@ async function bookClass(id,btn){
     loadCours(); return;
   }
   toast((data && data.status==='waitlist')?t('co_wl_ok'):t('co_booked_ok'));
-  if(!(data && data.status==='waitlist')){ const cc=COURS.find(x=>x.id===id); if(cc) scheduleReminder(cc); }
   loadCours();
 }
 async function cancelClass(id,btn){
@@ -5916,7 +5389,6 @@ async function cancelClass(id,btn){
   const { data, error } = await sb.rpc('class_cancel',{ p_instance:id });
   if(error || (data && data.ok===false)){ toast(t('co_cancel_fail')); loadCours(); return; }
   toast(t('co_cancelled_ok'));
-  cancelReminder(id);
   loadCours();
 }
 
