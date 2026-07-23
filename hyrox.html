@@ -1,0 +1,1617 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#0A0A0A" />
+<meta name="robots" content="noindex" />
+<title>Analyse HYROX — Wall Ball, Burpees, Lunges — Coach DM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0A0A; --surface:#141414; --surface2:#1C1C1C; --line:rgba(255,255,255,.08);
+    --gold:#D4AF37; --neon:#00FFA3; --txt:#F5F5F4; --muted:#9CA3AF; --ok:#10B981; --danger:#EF4444;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--txt)}
+  body{
+    font-family:'Outfit',-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    letter-spacing:-0.02em;-webkit-font-smoothing:antialiased;
+    min-height:100dvh;padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 28px);
+    max-width:560px;margin:0 auto;
+  }
+  button{font-family:inherit;cursor:pointer;border:none;color:inherit;background:transparent;-webkit-appearance:none;appearance:none}
+
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px}
+  .backapp{flex:0 0 auto;display:grid;place-items:center;width:36px;height:36px;border-radius:12px;border:1px solid rgba(255,255,255,.14);color:#D4AF37;text-decoration:none;font-size:20px;font-weight:800;line-height:1;margin-right:2px}
+  .backapp:active{transform:scale(.94)}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:18px;letter-spacing:-0.02em}
+  .brandlogo{width:26px;height:26px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px rgba(212,175,55,.55)}
+  .brand em{font-style:normal;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 45%,#A47F1E 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:12.5px;font-weight:500;margin-top:2px}
+  .lang{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .lang button{font-size:11.5px;font-weight:700;color:var(--muted);padding:5px 9px;border-radius:999px}
+  .lang button.on{color:#0A0A0A;background:var(--neon)}
+
+  .mvseg{display:flex;gap:7px;margin:0 0 10px}
+  .mvseg button{flex:1;padding:10px 4px;border-radius:13px;font-size:13px;font-weight:800;letter-spacing:.01em;background:rgba(255,255,255,.05);color:var(--muted);border:1px solid rgba(255,255,255,.09)}
+  .mvseg button.on{background:linear-gradient(135deg,rgba(212,175,55,.22),rgba(212,175,55,.10));color:var(--gold);border-color:rgba(212,175,55,.55)}
+  .divrow{display:flex;gap:7px;margin:0 0 12px;align-items:center}
+  .divrow select{flex:1;background:var(--surface2);border:1px solid var(--line);border-radius:13px;color:var(--txt);font-family:inherit;font-size:13.5px;font-weight:700;padding:11px 10px;-webkit-appearance:none;appearance:none}
+  .divrow select:focus{outline:none;border-color:rgba(212,175,55,.6)}
+  .divspec{margin:-4px 0 12px;font-size:12px;color:var(--gold);font-weight:700;text-align:center;letter-spacing:.01em}
+
+  .stage{
+    position:relative;border-radius:22px;overflow:hidden;background:#000;
+    border:1px solid var(--line);aspect-ratio:3/4;transition:box-shadow .15s ease;
+  }
+  .stage.deep{box-shadow:0 0 0 2px var(--neon),0 0 34px rgba(0,255,163,.35)}
+  .stage.bad{box-shadow:0 0 0 2px var(--danger),0 0 34px rgba(239,68,68,.3)}
+  .stage video,.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+  .stage.mirror video,.stage.mirror canvas{transform:scaleX(-1)}
+  .hud{position:absolute;left:0;right:0;top:0;display:flex;justify-content:center;padding:12px;pointer-events:none}
+  .pill{
+    font-size:13px;font-weight:700;padding:8px 14px;border-radius:999px;
+    background:rgba(10,10,10,.72);border:1px solid var(--line);backdrop-filter:blur(8px);
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .pill.ok .dot{background:var(--neon);box-shadow:0 0 10px var(--neon)}
+  .pill.warn .dot{background:var(--gold)}
+  .pill.err .dot{background:var(--danger)}
+  .angle-chip{
+    position:absolute;right:10px;bottom:10px;pointer-events:none;
+    font-size:13px;font-weight:800;color:var(--txt);font-variant-numeric:tabular-nums;
+    background:rgba(10,10,10,.72);border:1px solid var(--line);border-radius:12px;padding:8px 11px;
+  }
+  .angle-chip small{color:var(--muted);font-weight:600;font-size:10px;display:block;letter-spacing:.05em;text-transform:uppercase}
+  .speed-chip{
+    position:absolute;right:10px;bottom:74px;pointer-events:none;
+    font-size:13px;font-weight:800;color:var(--neon);font-variant-numeric:tabular-nums;
+    background:rgba(10,10,10,.72);border:1px solid rgba(0,255,163,.35);border-radius:12px;padding:8px 11px;
+  }
+  .speed-chip small{color:var(--muted);font-weight:600;font-size:10px;display:block;letter-spacing:.05em;text-transform:uppercase}
+  .big-count{
+    position:absolute;left:10px;top:64px;pointer-events:none;
+    font-size:56px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;color:#F5F5F4;
+    text-shadow:0 2px 18px rgba(0,0,0,.8);
+  }
+  .big-count small{display:block;font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-top:2px}
+  .dbg{
+    position:absolute;left:10px;bottom:10px;pointer-events:none;
+    font-size:10px;font-weight:600;color:rgba(0,255,163,.9);
+    font-variant-numeric:tabular-nums;letter-spacing:0;
+    background:rgba(10,10,10,.65);border-radius:8px;padding:5px 8px;line-height:1.45;white-space:pre;
+  }
+  .splash{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;text-align:center;padding:24px;background:radial-gradient(120% 90% at 50% 0%,#161616 0%,#0A0A0A 70%);
+  }
+  .splash p{color:var(--muted);font-size:13.5px;line-height:1.55;max-width:300px}
+  .squatter{width:54px;height:54px;stroke:var(--neon);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+  .controls{display:flex;gap:10px;margin-top:12px}
+  .btn{
+    flex:1;font-size:15px;font-weight:700;padding:14px 12px;border-radius:16px;
+    background:var(--neon);color:#062A1D;letter-spacing:-0.02em;transition:transform .08s ease,opacity .15s;
+  }
+  .btn:active{transform:scale(.97)}
+  .btn.ghost{background:var(--surface);color:var(--txt);border:1px solid var(--line)}
+  .btn[disabled]{opacity:.45;pointer-events:none}
+  .btn.rec-on{background:#EF4444;color:#fff;border:none;animation:recpulse 1.2s ease-in-out infinite}
+  @keyframes recpulse{0%,100%{opacity:1}50%{opacity:.72}}
+
+  .result{
+    margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;
+    padding:18px 18px 16px;text-align:center;
+  }
+  .result .lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .big{
+    font-size:64px;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums;
+    background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 45%,#A47F1E 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .big .tgt{font-size:26px;color:var(--muted);-webkit-text-fill-color:var(--muted)}
+  .meta{display:flex;justify-content:center;gap:18px;margin-top:8px;color:var(--muted);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;flex-wrap:wrap}
+  .meta b{color:var(--txt)}
+  .meta .g{color:var(--ok)}
+  .meta .r{color:var(--danger)}
+  .prog{position:relative;height:9px;border-radius:999px;background:var(--surface2);overflow:hidden;margin-top:14px}
+  .prog i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#00FFA3,#D4AF37);transition:width .25s ease}
+  .eta{margin-top:9px;font-size:13px;font-weight:700;color:var(--neon);font-variant-numeric:tabular-nums}
+  .eta span{color:var(--muted);font-weight:600}
+
+  .card{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px 18px}
+  .card h3{font-size:14.5px;font-weight:700;margin-bottom:10px}
+  .card.pro{border-color:rgba(212,175,55,.45)}
+  .gatep{color:var(--muted);font-size:13px;line-height:1.55;margin:0 0 14px}
+  .protag{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.06em;color:#0A0A0A;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);border-radius:6px;padding:2px 7px;vertical-align:2px;margin-left:6px}
+
+  .vrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .vfield{display:flex;flex-direction:column;gap:5px}
+  .vfield label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .vfield input{background:var(--surface2);border:1px solid var(--line);border-radius:12px;color:var(--txt);font-family:inherit;font-size:16px;font-weight:700;padding:12px;width:100%;font-variant-numeric:tabular-nums}
+  .vfield input:focus{outline:none;border-color:rgba(212,175,55,.6)}
+  .vres{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .vres .m{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:11px 4px;text-align:center}
+  .vres .m .v{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--txt)}
+  .vres .m .v small{font-size:10px;font-weight:700;color:var(--muted)}
+  .vres .m .k{font-size:9.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:3px}
+  .vbar{position:relative;height:12px;border-radius:999px;background:var(--surface2);overflow:hidden;margin-top:14px}
+  .vbar i{display:block;height:100%;width:0;border-radius:999px;background:var(--neon);transition:width .3s ease}
+  .vbar.warn i{background:var(--gold)}
+  .vbar.stop i{background:var(--danger)}
+  .vmark{position:absolute;top:-2px;left:50%;width:2px;height:16px;background:rgba(255,255,255,.55)}
+  .vscale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);font-weight:700;margin-top:5px;font-variant-numeric:tabular-nums}
+  .vstop{margin-top:12px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.5);color:#EF4444;font-size:13px;font-weight:700;border-radius:12px;padding:11px 13px;line-height:1.5}
+  .vnote{margin-top:10px;font-size:11.5px;color:var(--muted);line-height:1.5}
+
+  .rlist{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .rlist li{
+    background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;
+    font-variant-numeric:tabular-nums;font-size:13.5px;font-weight:600;
+    display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;
+  }
+  .rlist .n{color:var(--muted);font-size:12.5px;min-width:56px}
+  .badge{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid var(--line)}
+  .b-ok{color:var(--ok);border-color:rgba(16,185,129,.4)}
+  .b-no{color:var(--danger);border-color:rgba(239,68,68,.4)}
+  .b-warn{color:var(--gold);border-color:rgba(212,175,55,.4)}
+  .b-mut{color:var(--muted)}
+  .b-spd{color:var(--neon);border-color:rgba(0,255,163,.4)}
+  .empty{color:var(--muted);font-size:13px}
+  .pro-note{margin-top:12px;font-size:12px;font-weight:700;color:var(--gold);display:flex;align-items:center;gap:7px}
+
+  details{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:14px 18px}
+  summary{font-size:14.5px;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:'+';color:var(--muted);font-size:18px;font-weight:600}
+  details[open] summary::after{content:'−'}
+  .help{margin-top:10px;color:var(--muted);font-size:13.5px;line-height:1.6}
+  .help li{margin:0 0 6px 16px}
+  .pdiag{width:100%;max-width:300px;display:block;margin:8px auto 2px}
+  .note{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5}
+
+  .tbl{width:100%;border-collapse:collapse;margin-top:11px;font-size:12.5px;font-variant-numeric:tabular-nums}
+  .tbl th{text-align:left;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:6px 5px;border-bottom:1px solid var(--line)}
+  .tbl td{padding:8px 5px;border-bottom:1px solid rgba(255,255,255,.045);color:var(--txt);font-weight:600}
+  .tbl td.m{color:var(--muted);font-weight:600}
+  .tbl td.gold{color:var(--gold);font-weight:800}
+  .tbl tr.hi td{background:rgba(212,175,55,.07)}
+  .subh{margin-top:16px;font-size:12px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.06em}
+  .rule{margin-top:10px;color:var(--muted);font-size:13px;line-height:1.6}
+  .rule b{color:var(--txt)}
+  .rule .pen{color:var(--danger);font-weight:800}
+  .tip{margin-top:9px;padding:10px 12px;border-radius:12px;font-size:12.5px;line-height:1.55;border:1px solid}
+  .tip.ins{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.07);color:#A7F3D0}
+  .tip.wrn{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.07);color:#FCA5A5}
+  .tip.inf{border-color:rgba(59,130,246,.35);background:rgba(59,130,246,.07);color:#BFDBFE}
+  .tip.tac{border-color:rgba(167,139,250,.35);background:rgba(167,139,250,.07);color:#DDD6FE}
+
+  footer{margin-top:22px;text-align:center;color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.02em}
+  footer b{color:var(--gold)}
+
+  .plans{display:grid;gap:10px;text-align:left}
+  .pcoach{font-size:12.5px;color:var(--muted);text-align:center;padding:10px 4px 2px;line-height:1.5}
+  .pcoach a{color:var(--gold);font-weight:800;text-decoration:none;border-bottom:1px solid rgba(212,175,55,.4)}
+  .plan{border:1px solid rgba(212,175,55,.45);border-radius:16px;padding:14px;background:rgba(212,175,55,.06)}
+  .plan .pb{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#0A0A0A;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);border-radius:999px;padding:4px 10px;margin-bottom:8px}
+  .plan .pp{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+  .plan .pp small{font-size:13px;color:var(--muted);font-weight:600}
+  .plan .old{font-size:14px;color:var(--muted);text-decoration:line-through;margin-left:8px;font-weight:600}
+  .plan .pn{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.4}
+  .plan .pcta{margin-top:11px;width:100%;font-size:14px;font-weight:700;padding:12px;border-radius:13px;background:linear-gradient(135deg,#F6E27A 0%,#D4AF37 55%,#A47F1E 100%);color:#0A0A0A}
+  .plan .pcta:active{transform:scale(.98)}
+  .pwov{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:14px}
+  .pwov.show{display:flex}
+  .pwbox{position:relative;width:100%;max-width:480px;max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:14px}
+  .pwclose{position:absolute;top:10px;right:10px;z-index:2;background:#eee;color:#333;width:32px;height:32px;border-radius:50%;font-size:15px;line-height:1}
+  @media (prefers-reduced-motion:reduce){.stage{transition:none}.btn{transition:none}.vbar i,.prog i{transition:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="backapp" href="app.html" aria-label="Coach DM App">‹</a>
+  <div>
+    <div class="brand"><img class="brandlogo" src="/logo-dm.png" alt="" onerror="this.remove()"><span>COACH <em>DM</em></span></div>
+    <div class="sub" id="subline"></div>
+  </div>
+  <div class="lang" id="lang">
+    <button data-lang="fr">FR</button><button data-lang="en">EN</button><button data-lang="nl">NL</button>
+  </div>
+</header>
+
+<div class="mvseg" id="mvseg">
+  <button data-mv="wb" class="on">Wall Ball</button>
+  <button data-mv="bbj">Burpee BJ</button>
+  <button data-mv="lunge">Lunges</button>
+</div>
+
+<div class="divrow">
+  <select id="sel-div">
+    <option value="wo">Femme Open</option>
+    <option value="mo" selected>Homme Open</option>
+    <option value="wp">Femme Pro</option>
+    <option value="mp">Homme Pro</option>
+  </select>
+  <select id="sel-target"></select>
+</div>
+<div class="divspec" id="divspec"></div>
+
+<div class="stage" id="stage">
+  <video id="cam" playsinline muted autoplay></video>
+  <canvas id="overlay"></canvas>
+  <div class="hud"><span class="pill" id="pill"><span class="dot"></span><span id="pill-txt"></span></span></div>
+  <div class="big-count" id="bigcount" hidden>0<small id="bigcount-l"></small></div>
+  <div class="speed-chip" id="spd" hidden><small id="spd-lbl">rpm</small><span id="spd-val">—</span></div>
+  <div class="angle-chip" id="chip" hidden><small id="chip-lbl"></small><span id="chip-val">—</span></div>
+  <div class="dbg" id="cdm-dbg" hidden></div>
+  <div class="splash" id="splash">
+    <svg class="squatter" viewBox="0 0 24 24"><circle cx="13.5" cy="4.5" r="2"/><path d="M13 7l-2.5 4.5L7 13M10.5 11.5l2 3-1.5 5M12.5 14.5l3.5 1.5 2 4M13 7l4 1.5 2.5 3"/></svg>
+    <p id="splash-p"></p>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn" id="b-start"></button>
+  <button class="btn ghost" id="b-rec" disabled style="flex:0 0 92px">⏺ REC</button>
+  <button class="btn ghost" id="b-flip" disabled>⇄</button>
+  <button class="btn ghost" id="b-reset" disabled></button>
+</div>
+
+<div class="result">
+  <div class="lbl" id="res-lbl"></div>
+  <div class="big"><span id="res-reps">0</span><span class="tgt" id="res-tgt"></span></div>
+  <div class="meta">
+    <span><span id="m-no"></span> <b class="r" id="res-no">0</b></span>
+    <span><span id="m-cad"></span> <b class="g" id="res-cad">—</b></span>
+    <span><span id="m-time"></span> <b id="res-time">0:00</b></span>
+  </div>
+  <div class="prog"><i id="prog-fill"></i></div>
+  <div class="eta" id="eta"></div>
+</div>
+
+<div class="controls" id="save-row" style="display:none">
+  <button class="btn" id="b-save"></button>
+  <button class="btn ghost" id="b-share" style="flex:0 0 56px;font-size:19px">📤</button>
+</div>
+
+<!-- ══ Analyse Pro — verrou Premium ══ -->
+<div class="card pro" id="vbt-gate" style="display:none;text-align:center">
+  <h3 id="vbt-gate-h" style="margin-bottom:8px"></h3>
+  <p class="gatep" id="vbt-gate-p"></p>
+  <div class="plans" id="gate-plans"></div>
+</div>
+
+<!-- ══ Analyse Pro — panneau Premium ══ -->
+<div class="card pro" id="vbt-card" style="display:none">
+  <h3><span id="vbt-h"></span><span class="protag">PRO</span></h3>
+  <p class="gatep" id="vbt-hint" style="margin-bottom:12px"></p>
+  <div class="vres">
+    <div class="m"><div class="v"><span id="v-fade">—</span><small> %</small></div><div class="k" id="k-fade"></div></div>
+    <div class="m"><div class="v"><span id="v-block">—</span><small> s</small></div><div class="k" id="k-block"></div></div>
+    <div class="m"><div class="v"><span id="v-work">—</span><small> %</small></div><div class="k" id="k-work"></div></div>
+    <div class="m"><div class="v"><span id="v-pen">—</span><small> s</small></div><div class="k" id="k-pen"></div></div>
+  </div>
+  <div class="vbar" id="v-bar"><i id="v-fill"></i><span class="vmark"></span></div>
+  <div class="vscale"><span>0%</span><span id="vs-mid"></span><span>50%</span></div>
+  <div class="vstop" id="v-stop" style="display:none"></div>
+  <div class="vnote" id="vbt-note"></div>
+</div>
+
+<div class="card">
+  <h3 id="list-h"></h3>
+  <ul class="rlist" id="rlist"></ul>
+  <div class="empty" id="rempty"></div>
+  <div class="pro-note" id="pro-note" style="display:none">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    <span id="pro-note-txt"></span>
+  </div>
+</div>
+
+<!-- ══ Le format HYROX ══ -->
+<details>
+  <summary id="fmt-h"></summary>
+  <div class="rule" id="fmt-intro"></div>
+  <table class="tbl">
+    <thead><tr><th>#</th><th id="th-station"></th><th id="th-dist"></th><th id="th-elite"></th><th id="th-avg"></th></tr></thead>
+    <tbody id="tb-stations"></tbody>
+  </table>
+  <div class="note" id="fmt-note"></div>
+</details>
+
+<!-- ══ Charges par division ══ -->
+<details>
+  <summary id="wt-h"></summary>
+  <table class="tbl">
+    <thead><tr><th id="th-st2"></th><th>F Open</th><th>H Open</th><th>F Pro</th><th>H Pro</th></tr></thead>
+    <tbody id="tb-weights"></tbody>
+  </table>
+  <div class="note" id="wt-note"></div>
+</details>
+
+<!-- ══ Standards de mouvement & pénalités ══ -->
+<details>
+  <summary id="std-h"></summary>
+  <div id="std-body"></div>
+</details>
+
+<!-- ══ Stratégie & pacing ══ -->
+<details>
+  <summary id="pace-h"></summary>
+  <div class="rule" id="pace-intro"></div>
+  <div class="vrow" style="margin-top:12px">
+    <div class="vfield"><label id="l-goal"></label><input id="in-goal" type="text" inputmode="numeric" placeholder="1:20:00"></div>
+    <div class="vfield"><label id="l-goaldiv"></label><input id="in-goalshow" type="text" readonly value="—" style="opacity:.7"></div>
+  </div>
+  <table class="tbl">
+    <thead><tr><th id="th-seg"></th><th id="th-tgt"></th><th id="th-cum"></th></tr></thead>
+    <tbody id="tb-splits"></tbody>
+  </table>
+  <div class="note" id="pace-note"></div>
+  <div id="pace-tips"></div>
+</details>
+
+<details>
+  <summary id="place-h"></summary>
+  <svg class="pdiag" viewBox="0 0 320 190" aria-hidden="true">
+    <ellipse cx="150" cy="62" rx="30" ry="11" fill="none" stroke="#9CA3AF" stroke-width="2"/>
+    <circle cx="150" cy="62" r="7.5" fill="#F5F5F4"/>
+    <line x1="188" y1="62" x2="252" y2="62" stroke="rgba(0,255,163,.45)" stroke-width="2" stroke-dasharray="5 5"/>
+    <rect x="258" y="49" width="17" height="27" rx="4.5" fill="none" stroke="#00FFA3" stroke-width="2.5"/>
+    <text x="266" y="97" fill="#00FFA3" font-size="12" font-weight="800" text-anchor="middle">90° ✓</text>
+    <line x1="150" y1="80" x2="150" y2="128" stroke="rgba(212,175,55,.4)" stroke-width="2" stroke-dasharray="5 5"/>
+    <rect x="141" y="134" width="17" height="27" rx="4.5" fill="none" stroke="#D4AF37" stroke-width="2.5"/>
+    <text x="150" y="182" fill="#D4AF37" font-size="12" font-weight="800" text-anchor="middle">0° ~</text>
+    <line x1="176" y1="80" x2="222" y2="122" stroke="rgba(239,68,68,.45)" stroke-width="2" stroke-dasharray="5 5"/>
+    <rect x="226" y="126" width="17" height="27" rx="4.5" fill="none" stroke="#EF4444" stroke-width="2.5"/>
+    <text x="235" y="174" fill="#EF4444" font-size="12" font-weight="800" text-anchor="middle">45° ✗</text>
+  </svg>
+  <ol class="help" id="place-ol"></ol>
+</details>
+
+<details>
+  <summary id="help-h"></summary>
+  <ol class="help" id="help-ol"></ol>
+  <div class="note" id="help-note"></div>
+</details>
+
+<!-- ══ Sources (Apple 1.4.1) ══ -->
+<details>
+  <summary id="src-h"></summary>
+  <ul class="help" style="list-style:none">
+    <li style="margin-left:0"><a href="https://hyrox.com/rulebook/" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none;font-weight:700">HYROX Singles Rulebook 25/26 ↗</a><br><span class="note" id="src-1"></span></li>
+    <li style="margin-left:0;margin-top:8px"><a href="https://pubmed.ncbi.nlm.nih.gov/20847704/" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none;font-weight:700">Schoenfeld BJ (2010) — J Strength Cond Res ↗</a><br><span class="note" id="src-2"></span></li>
+    <li style="margin-left:0;margin-top:8px"><a href="https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none;font-weight:700">Google MediaPipe Pose Landmarker ↗</a><br><span class="note" id="src-3"></span></li>
+  </ul>
+  <div class="note" id="src-disc"></div>
+</details>
+
+<!-- ══ Paiement Stripe sur place ══ -->
+<div class="pwov" id="pw-ov">
+  <div class="pwbox">
+    <button class="pwclose" id="pw-close" aria-label="Fermer">✕</button>
+    <div id="ck-mount" style="min-height:40px"></div>
+  </div>
+</div>
+
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">hyrox v1.1</span></footer>
+<script type="module">
+/* Shim: MediaPipe's WASM glue references bare globals (dbg/out/err). If any DOM element
+   shadows them via named access, force real functions so the glue never crashes. */
+try{window.dbg=function(){};window.out=window.out&&typeof window.out==='function'?window.out:function(){};window.err=window.err&&typeof window.err==='function'?window.err:function(){};}catch(_){}
+
+import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+
+/* ───────── i18n ───────── */
+const I18N = {
+  subline:{fr:'Analyse HYROX — reps gratuites · Pacing en Pro',en:'HYROX Analysis — free reps · Pacing in Pro',nl:'HYROX-analyse — gratis reps · Pacing in Pro'},
+  splash:{fr:'Téléphone stable à 2–4 m, DE PROFIL, corps entier visible. Choisis ton mouvement et ta division, puis lance ta série : chaque rep est comptée et jugée au standard HYROX.',en:'Stable phone at 2–4 m, SIDE-ON, full body visible. Pick your movement and division, then start your set: every rep is counted and judged to the HYROX standard.',nl:'Stabiele telefoon op 2–4 m, ZIJWAARTS, hele lichaam zichtbaar. Kies je beweging en divisie, start dan je set: elke rep wordt geteld en beoordeeld volgens de HYROX-standaard.'},
+  start:{fr:'Lancer la caméra',en:'Start camera',nl:'Camera starten'},
+  stop:{fr:'Arrêter',en:'Stop',nl:'Stoppen'},
+  reset:{fr:'Remettre à zéro',en:'Reset',nl:'Resetten'},
+  st_loading:{fr:'Chargement du modèle IA…',en:'Loading AI model…',nl:'AI-model laden…'},
+  st_ready:{fr:'Prêt — attaque quand tu veux',en:'Ready — go whenever you want',nl:'Klaar — start wanneer je wilt'},
+  st_calib:{fr:'Calibration — reste debout 2 secondes',en:'Calibrating — stand still for 2 seconds',nl:'Kalibratie — blijf 2 seconden stilstaan'},
+  st_down:{fr:'DESCENTE…',en:'GOING DOWN…',nl:'DALEN…'},
+  st_deep:{fr:'PROFONDEUR ✓',en:'DEPTH ✓',nl:'DIEPTE ✓'},
+  st_up:{fr:'REMONTÉE…',en:'COMING UP…',nl:'OMHOOG…'},
+  st_work:{fr:'EN SÉRIE',en:'WORKING',nl:'BEZIG'},
+  st_rest:{fr:'REPOS — la balle attend',en:'RESTING — the ball is waiting',nl:'RUST — de bal wacht'},
+  st_noperson:{fr:'Corps entier non visible — recule',en:'Full body not visible — step back',nl:'Lichaam niet volledig zichtbaar — stap achteruit'},
+  st_view:{fr:'Mets-toi de profil pour juger la profondeur',en:'Go side-on so depth can be judged',nl:'Ga zijwaarts zodat de diepte beoordeeld kan worden'},
+  st_err_cam:{fr:'Caméra refusée — autorise l\'accès dans Réglages',en:'Camera denied — allow access in Settings',nl:'Camera geweigerd — sta toegang toe in Instellingen'},
+  st_err_model:{fr:'Modèle IA indisponible — vérifie ta connexion',en:'AI model unavailable — check your connection',nl:'AI-model niet beschikbaar — controleer je verbinding'},
+  chip_lbl:{fr:'Reps/min',en:'Reps/min',nl:'Reps/min'},
+  bigc_wb:{fr:'wall balls',en:'wall balls',nl:'wall balls'},
+  bigc_bbj:{fr:'burpees',en:'burpees',nl:'burpees'},
+  bigc_lunge:{fr:'lunges',en:'lunges',nl:'lunges'},
+  res_lbl:{fr:'Reps valides',en:'Valid reps',nl:'Geldige reps'},
+  m_no:{fr:'No-reps',en:'No-reps',nl:'No-reps'},
+  m_cad:{fr:'Cadence',en:'Cadence',nl:'Cadans'},
+  m_time:{fr:'Chrono',en:'Clock',nl:'Chrono'},
+  eta_txt:{fr:'Fin de station estimée <b>{t}</b> <span>· au rythme actuel</span>',en:'Estimated station finish <b>{t}</b> <span>· at current pace</span>',nl:'Geschat einde station <b>{t}</b> <span>· op huidig tempo</span>'},
+  eta_done:{fr:'Station terminée en <b>{t}</b>',en:'Station finished in <b>{t}</b>',nl:'Station afgerond in <b>{t}</b>'},
+  list_h:{fr:'Splits par 10 reps',en:'Splits per 10 reps',nl:'Splits per 10 reps'},
+  list_empty:{fr:'Fais au moins 10 reps pour voir tes splits.',en:'Do at least 10 reps to see your splits.',nl:'Doe minstens 10 reps om je splits te zien.'},
+  split_lbl:{fr:'reps',en:'reps',nl:'reps'},
+  save:{fr:'💾 Enregistrer la station',en:'💾 Save station',nl:'💾 Station opslaan'},
+  saving:{fr:'Enregistrement…',en:'Saving…',nl:'Opslaan…'},
+  saved:{fr:'✓ Station enregistrée',en:'✓ Station saved',nl:'✓ Station opgeslagen'},
+  save_fail:{fr:'Échec — vérifie ta connexion',en:'Failed — check your connection',nl:'Mislukt — controleer je verbinding'},
+  save_login:{fr:'Connecte-toi dans l\'app pour enregistrer tes stations.',en:'Log in to the app to save your stations.',nl:'Log in in de app om je stations op te slaan.'},
+  sh_t:{fr:'STATION HYROX',en:'HYROX STATION',nl:'HYROX-STATION'},
+  sh_reps:{fr:'REPS VALIDES',en:'VALID REPS',nl:'GELDIGE REPS'},
+  sh_time:{fr:'TEMPS',en:'TIME',nl:'TIJD'},
+  sh_cad:{fr:'CADENCE',en:'CADENCE',nl:'CADANS'},
+  sh_no:{fr:'NO-REPS',en:'NO-REPS',nl:'NO-REPS'},
+  sh_fade:{fr:'FADE',en:'FADE',nl:'FADE'},
+  sh_fail:{fr:'Partage impossible sur ce navigateur — image téléchargée.',en:'Sharing unavailable on this browser — image downloaded.',nl:'Delen niet beschikbaar in deze browser — afbeelding gedownload.'},
+  b_ok:{fr:'Valide ✓',en:'Valid ✓',nl:'Geldig ✓'},
+  b_shallow:{fr:'✗ Pas assez bas',en:'✗ Not deep enough',nl:'✗ Niet diep genoeg'},
+  b_nothrow:{fr:'✗ Pas d\'extension',en:'✗ No extension',nl:'✗ Geen extensie'},
+  b_nochest:{fr:'✗ Poitrine pas au sol',en:'✗ Chest not down',nl:'✗ Borst niet op de grond'},
+  b_noknee:{fr:'✗ Genou pas au sol',en:'✗ Knee not down',nl:'✗ Knie niet op de grond'},
+  b_samesid:{fr:'⚠ Non alternée',en:'⚠ Not alternating',nl:'⚠ Niet afwisselend'},
+
+  vbt_gate_h:{fr:'Analyse Pro (Pacing) — fonctionnalité Premium',en:'Pro Analysis (Pacing) — Premium feature',nl:'Pro-analyse (Pacing) — Premium functie'},
+  vbt_gate_p:{fr:'Le compteur de reps, les no-reps, la cadence en direct et la projection de fin de station sont gratuits pour tous. L\'Analyse Pro — chute de cadence (fade), temps de blocage cumulé, ratio de travail effectif et pénalité estimée — est incluse dans l’abonnement. Abonne-toi directement ici, sans quitter la page.',en:'Rep counting, no-reps, live cadence and the station finish projection are free for everyone. Pro Analysis — cadence drop (fade), cumulative rest time, effective work ratio and estimated penalty — is for the subscription. Subscribe right here, without leaving the page.',nl:'Reps tellen, no-reps, live cadans en de projectie van het stationseinde zijn gratis voor iedereen. Pro-analyse — cadansverlies (fade), cumulatieve rusttijd, effectieve werkratio en geschatte straf — is voor de abonnement. Abonneer je hier, zonder de pagina te verlaten.'},
+  pw_year:{fr:'/an',en:'/year',nl:'/jaar'},
+  pw_membre_f:{fr:'Membre Fondateur',en:'Founding Member',nl:'Oprichtend lid'},
+  pw_membre:{fr:'Membre',en:'Member',nl:'Lid'},
+  pw_note_m:{fr:'Toutes les analyses Pro, le Coach IA, la photo-calories et les 10 programmes. Sans engagement.',en:'All Pro analyses, the AI Coach, photo-calories and the 10 programs. Cancel anytime.',nl:'Alle Pro-analyses, de AI-coach, foto-calorie\u00ebn en de 10 programma\u2019s. Maandelijks opzegbaar.'},
+  pw_note_y:{fr:'La m\u00eame chose, factur\u00e9e \u00e0 l\u2019ann\u00e9e : deux mois offerts.',en:'Same thing, billed yearly: two months free.',nl:'Hetzelfde, jaarlijks gefactureerd: twee maanden gratis.'},
+  pw_coach_link:{fr:'Tu es coach et tu g\u00e8res des clients ?',en:'Are you a coach managing clients?',nl:'Ben je coach met klanten?'},
+  pw_coach_link_a:{fr:'Voir les offres Coach',en:'See Coach plans',nl:'Bekijk Coach-abonnementen'},
+  pw_choose:{fr:'Choisir cette offre',en:'Choose this plan',nl:'Kies dit abonnement'},
+  pw_month:{fr:'/mois',en:'/month',nl:'/maand'},
+  pw_native:{fr:'Les abonnements ne sont pas disponibles dans cette version de l\u2019app.',en:'Subscriptions are not available in this version of the app.',nl:'Abonnementen zijn niet beschikbaar in deze versie van de app.'},
+  pw_left:{fr:'Plus que {n} places fondateur',en:'Only {n} founder spots left',nl:'Nog {n} oprichtersplaatsen'},
+  pw_consent_h:{fr:'Avant de payer',en:'Before you pay',nl:'Voor je betaalt'},
+  pw_consent:{fr:'Je demande l\'accès immédiat au service et je reconnais qu\'en démarrant maintenant, je renonce à mon droit de rétractation de 14 jours dès l\'ouverture de mon accès premium (art. VI.53 du Code de droit économique).',en:'I request immediate access to the service and acknowledge that by starting now, I waive my 14-day right of withdrawal as soon as my premium access is opened (art. VI.53 of the Belgian Code of Economic Law).',nl:'Ik vraag onmiddellijke toegang tot de dienst en erken dat ik, door nu te starten, afstand doe van mijn herroepingsrecht van 14 dagen zodra mijn premium-toegang wordt geopend (art. VI.53 van het Wetboek van economisch recht).'},
+  pw_continue:{fr:'Continuer vers le paiement',en:'Continue to payment',nl:'Doorgaan naar betaling'},
+  pw_fail:{fr:'Paiement indisponible. Réessaie dans un instant.',en:'Payment unavailable. Try again shortly.',nl:'Betaling niet beschikbaar. Probeer straks opnieuw.'},
+  vbt_gate_p_native:{fr:'Le compteur de reps, les no-reps, la cadence en direct et la projection de fin de station sont gratuits pour tous. L\'Analyse Pro — chute de cadence (fade), temps de blocage cumulé, ratio de travail effectif et pénalité estimée — est incluse dans l\u2019abonnement. Les abonnements ne sont pas disponibles dans cette version de l\u2019app.',en:'Rep counting, no-reps, live cadence and the station finish projection are free for everyone. Pro Analysis — cadence drop (fade), cumulative rest time, effective work ratio and estimated penalty — is included with the subscription. Subscriptions are not available in this version of the app.',nl:'Reps tellen, no-reps, live cadans en de projectie van het stationseinde zijn gratis voor iedereen. Pro-analyse — cadansverlies (fade), cumulatieve rusttijd, effectieve werkratio en geschatte straf — is inbegrepen in het abonnement. Abonnementen zijn niet beschikbaar in deze versie van de app.'},
+  rec_hint:{fr:'⏺ REC',en:'⏺ REC',nl:'⏺ REC'},
+  rec_stop:{fr:'■ {t}',en:'■ {t}',nl:'■ {t}'},
+  rec_ready:{fr:'Vidéo prête — partage-la ou enregistre-la dans ta galerie.',en:'Video ready — share it or save it to your gallery.',nl:'Video klaar — deel hem of bewaar hem in je galerij.'},
+  rec_fail:{fr:'Enregistrement vidéo non supporté sur ce navigateur.',en:'Video recording not supported on this browser.',nl:'Video-opname wordt niet ondersteund in deze browser.'},
+  rec_dl:{fr:'Partage indisponible — vidéo téléchargée.',en:'Sharing unavailable — video downloaded.',nl:'Delen niet beschikbaar — video gedownload.'},
+  src_h:{fr:'Sources scientifiques & références',en:'Scientific sources & references',nl:'Wetenschappelijke bronnen & referenties'},
+  src_1:{fr:'Standards de mouvement, charges par division et pénalités appliqués par cette page.',en:'Movement standards, division loads and penalties applied by this page.',nl:'Bewegingsstandaarden, gewichten per divisie en straffen die deze pagina toepast.'},
+  src_2:{fr:'Cinématique et cinétique du squat — base du standard de profondeur (hanche sous le genou).',en:'Squat kinematics and kinetics — basis of the depth standard (hip below knee).',nl:'Kinematica en kinetiek van de squat — basis van de dieptestandaard (heup onder knie).'},
+  src_3:{fr:'Modèle de détection de pose utilisé pour le comptage, exécuté 100% sur ton appareil.',en:'Pose detection model used for counting, running 100% on your device.',nl:'Pose-detectiemodel voor het tellen, draait 100% op je toestel.'},
+  src_disc:{fr:'Contenu informatif d\u2019entraînement — ne remplace pas un avis médical ni le jugement d\u2019un juge officiel en compétition.',en:'Training information only — not a substitute for medical advice or an official judge\u2019s call in competition.',nl:'Informatieve trainingsinhoud — geen vervanging voor medisch advies of het oordeel van een officiële jury in wedstrijd.'},
+
+  vbt_h:{fr:'Analyse Pro — Pacing de station',en:'Pro Analysis — Station pacing',nl:'Pro-analyse — Stationpacing'},
+  vbt_hint:{fr:'En direct : le fade (chute de cadence par rapport à tes 10 premières reps), le temps de blocage cumulé (chaque pause de plus de 3 s), le ratio de travail effectif et la pénalité estimée (15 s par rep manquante au règlement HYROX 25/26). Le fade au-delà de 25% signale que ton plan de coupe est en train de partir.',en:'Live: fade (cadence drop versus your first 10 reps), cumulative rest time (every pause over 3 s), effective work ratio and estimated penalty (15 s per missing rep under the 25/26 HYROX rulebook). Fade beyond 25% means your break plan is falling apart.',nl:'Live: fade (cadansdaling t.o.v. je eerste 10 reps), cumulatieve rusttijd (elke pauze langer dan 3 s), effectieve werkratio en geschatte straf (15 s per ontbrekende rep volgens het HYROX-reglement 25/26). Fade boven 25% betekent dat je breukplan uit elkaar valt.'},
+  vbt_fade:{fr:'Fade',en:'Fade',nl:'Fade'},
+  vbt_block:{fr:'Blocage',en:'Rest',nl:'Rust'},
+  vbt_work:{fr:'Travail',en:'Work',nl:'Werk'},
+  vbt_pen:{fr:'Pénalité',en:'Penalty',nl:'Straf'},
+  vbt_stop:{fr:'⛔ Fade supérieur à 25% — ta cadence s\'écroule. Coupe MAINTENANT sur un nombre fixe (10 à 15 reps) avec un repos court et régulier : tu finiras plus vite qu\'en t\'accrochant jusqu\'à l\'arrêt total.',en:'⛔ Fade above 25% — your cadence is collapsing. Break NOW on a fixed number (10 to 15 reps) with short, regular rests: you will finish faster than by hanging on until a full stop.',nl:'⛔ Fade boven 25% — je cadans stort in. Breek NU op een vast aantal (10 tot 15 reps) met korte, regelmatige rust: zo finish je sneller dan door door te gaan tot volledige stilstand.'},
+  vbt_note:{fr:'Le fade compare la cadence de tes 5 dernières reps à celle de tes reps 3 à 12. La pénalité estimée applique 15 s par rep manquante sur l\'objectif choisi (règlement HYROX Singles 25/26). Indicatif : seul un juge officiel valide une rep en course.',en:'Fade compares the cadence of your last 5 reps to that of reps 3 to 12. Estimated penalty applies 15 s per missing rep against the chosen target (HYROX Singles Rulebook 25/26). Indicative only: only an official judge validates a rep in a race.',nl:'Fade vergelijkt de cadans van je laatste 5 reps met die van reps 3 tot 12. De geschatte straf past 15 s per ontbrekende rep toe op het gekozen doel (HYROX Singles Rulebook 25/26). Indicatief: alleen een officiële jury keurt een rep in wedstrijd goed.'},
+  pro_note:{fr:'Analyse Pro \u2014 incluse dans l\u2019abonnement',en:'Pro Analysis \u2014 included with your subscription',nl:'Pro-analyse \u2014 inbegrepen in je abonnement'},
+
+  /* ── Format ── */
+  fmt_h:{fr:'Le format HYROX — les 8 stations',en:'The HYROX format — all 8 stations',nl:'Het HYROX-formaat — de 8 stations'},
+  fmt_intro:{fr:'8 km de course et 8 stations, dans un ordre <b>identique partout dans le monde</b> : 1 km de course, une station, 1 km, la station suivante. Seules les charges changent selon la division. Un 1:15:00 à Hambourg vaut exactement un 1:15:00 à Bruxelles — c\'est ce qui fait de HYROX le seul vrai benchmark comparable du fitness.',en:'8 km of running and 8 stations, in an order that is <b>identical worldwide</b>: 1 km run, a station, 1 km, the next station. Only the loads change by division. A 1:15:00 in Hamburg is exactly a 1:15:00 in Brussels — that is what makes HYROX the only truly comparable fitness benchmark.',nl:'8 km lopen en 8 stations, in een volgorde die <b>wereldwijd identiek</b> is: 1 km lopen, een station, 1 km, het volgende station. Alleen de gewichten verschillen per divisie. Een 1:15:00 in Hamburg is exact een 1:15:00 in Brussel — daarom is HYROX de enige echt vergelijkbare fitnessbenchmark.'},
+  th_station:{fr:'Station',en:'Station',nl:'Station'},
+  th_dist:{fr:'Distance',en:'Distance',nl:'Afstand'},
+  th_elite:{fr:'Élite H/F',en:'Elite M/W',nl:'Elite M/V'},
+  th_avg:{fr:'Moyenne',en:'Average',nl:'Gemiddeld'},
+  fmt_note:{fr:'Le Roxzone est la zone de transition entre la piste de course et le plateau. Avec les transitions, la distance réelle couverte est de 9,5 à 10 km. Les 8 km ne comptent que les segments de course chronométrés. Temps « moyenne » = fourchette large des finishers en division Open.',en:'The Roxzone is the transition area between the running track and the station floor. With transitions, actual distance covered is 9.5 to 10 km. The 8 km figure counts only the timed run segments. "Average" times = broad Open-division finisher range.',nl:'De Roxzone is de overgangszone tussen de loopbaan en de stationsvloer. Met de transities leg je in werkelijkheid 9,5 tot 10 km af. De 8 km telt alleen de geklokte loopsegmenten. "Gemiddeld" = brede range van Open-finishers.'},
+
+  /* ── Charges ── */
+  wt_h:{fr:'Charges officielles par division',en:'Official loads by division',nl:'Officiële gewichten per divisie'},
+  th_st2:{fr:'Station',en:'Station',nl:'Station'},
+  wt_note:{fr:'Le poids du sled est le <b>poids total du système</b> (traîneau + disques), pas les disques ajoutés. Le Farmers Carry est <b>par main</b>. Doubles et Relay utilisent les charges Open ; en Doubles Mixte ce sont les charges hommes. Les charges sont identiques dans le monde entier — vérifie toujours le rulebook en cours sur hyrox.com avant ta course.',en:'Sled weight is the <b>total system weight</b> (sled + plates), not the plates added. Farmers Carry is <b>per hand</b>. Doubles and Relay use Open loads; Mixed Doubles uses men\'s loads. Loads are identical worldwide — always check the current rulebook on hyrox.com before your race.',nl:'Het sledgewicht is het <b>totale systeemgewicht</b> (slee + schijven), niet de toegevoegde schijven. Farmers Carry is <b>per hand</b>. Doubles en Relay gebruiken Open-gewichten; Mixed Doubles gebruikt de mannengewichten. Gewichten zijn wereldwijd identiek — check altijd het actuele rulebook op hyrox.com voor je race.'},
+
+  /* ── Standards ── */
+  std_h:{fr:'Standards de mouvement & pénalités 25/26',en:'Movement standards & penalties 25/26',nl:'Bewegingsstandaarden & straffen 25/26'},
+  std_wb:{fr:'Wall Ball',en:'Wall Ball',nl:'Wall Ball'},
+  std_wb_1:{fr:'Départ debout, balle tenue à deux mains.',en:'Start standing, ball held in both hands.',nl:'Start staand, bal met beide handen vast.'},
+  std_wb_2:{fr:'<b>La hanche doit descendre sous le genou</b> à chaque rep. Une box de contrôle peut être utilisée par le juge pour vérifier la profondeur.',en:'<b>The hip must drop below the knee</b> on every rep. A depth box may be used by the judge to verify.',nl:'<b>De heup moet onder de knie zakken</b> bij elke rep. Een controlebox kan door de jury worden gebruikt.'},
+  std_wb_3:{fr:'La balle doit <b>toucher le centre de la cible</b> : 3,00 m pour les hommes, 2,70 m pour les femmes — la hauteur dépend du genre, pas de la division.',en:'The ball must <b>strike the centre of the target</b>: 3.00 m for men, 2.70 m for women — height depends on gender, not division.',nl:'De bal moet <b>het midden van het doel raken</b>: 3,00 m voor mannen, 2,70 m voor vrouwen — de hoogte hangt af van geslacht, niet van divisie.'},
+  std_wb_4:{fr:'Extension complète de hanche au lancer. Tu peux rattraper la balle ou la laisser tomber avant la rep suivante.',en:'Full hip extension on the throw. You may catch the ball or let it drop before the next rep.',nl:'Volledige heupextensie bij de worp. Je mag de bal vangen of laten vallen voor de volgende rep.'},
+  std_wb_5:{fr:'<span class="pen">15 s de pénalité par rep manquante.</span> Si tu quittes la station avant le compte, tu n\'es pas rappelé — la pénalité s\'applique directement.',en:'<span class="pen">15 s penalty per missing rep.</span> If you leave the station short, you are not called back — the penalty applies directly.',nl:'<span class="pen">15 s straf per ontbrekende rep.</span> Verlaat je het station te vroeg, dan word je niet teruggeroepen — de straf geldt meteen.'},
+  std_bbj:{fr:'Burpee Broad Jump',en:'Burpee Broad Jump',nl:'Burpee Broad Jump'},
+  std_bbj_1:{fr:'<b>La poitrine doit toucher le sol</b> à chaque burpee, mains posées derrière la ligne de départ au premier.',en:'<b>The chest must touch the floor</b> on every burpee, hands behind the start line on the first one.',nl:'<b>De borst moet de grond raken</b> bij elke burpee, handen achter de startlijn bij de eerste.'},
+  std_bbj_2:{fr:'Décollage et réception <b>pieds parallèles</b>, les deux pieds quittent et touchent le sol en même temps. Pas de pas traînés.',en:'Take-off and landing with <b>feet parallel</b>, both feet leaving and landing together. No shuffled steps.',nl:'Afzet en landing met <b>voeten parallel</b>, beide voeten tegelijk los en neer. Geen sleepstappen.'},
+  std_bbj_3:{fr:'Les pieds ne peuvent pas dépasser le bout des doigts en sortant du burpee. Aux burpees suivants, les mains se posent à <b>30 cm maximum devant les orteils</b>.',en:'Feet may not pass the fingertips when coming out of the burpee. On subsequent burpees, hands go down <b>no more than 30 cm ahead of the toes</b>.',nl:'De voeten mogen de vingertoppen niet passeren bij het opkomen. Bij volgende burpees komen de handen <b>maximaal 30 cm voor de tenen</b>.'},
+  std_bbj_4:{fr:'<b>Nouveauté 25/26 : le genou au sol est autorisé</b> pour se relever du burpee. La longueur du saut est libre — sauter court mais souvent est une stratégie valable.',en:'<b>New for 25/26: using a knee is allowed</b> to stand up from the burpee. Jump length is free — short but frequent jumps is a valid strategy.',nl:'<b>Nieuw in 25/26: een knie gebruiken is toegestaan</b> om op te staan uit de burpee. De sprongafstand is vrij — kort maar vaak springen is een geldige strategie.'},
+  std_bbj_5:{fr:'<span class="pen">15 s par infraction</span> après un premier avertissement.',en:'<span class="pen">15 s per infringement</span> after a first warning.',nl:'<span class="pen">15 s per overtreding</span> na een eerste waarschuwing.'},
+  std_lg:{fr:'Sandbag Lunges',en:'Sandbag Lunges',nl:'Sandbag Lunges'},
+  std_lg_1:{fr:'<b>Le genou arrière doit toucher le sol</b> à chaque fente, sans exception.',en:'<b>The rear knee must touch the ground</b> on every lunge, no exceptions.',nl:'<b>De achterste knie moet de grond raken</b> bij elke lunge, zonder uitzondering.'},
+  std_lg_2:{fr:'Fentes <b>obligatoirement alternées</b> — genou gauche, genou droit, genou gauche.',en:'Lunges <b>must alternate</b> — left knee, right knee, left knee.',nl:'Lunges <b>moeten afwisselen</b> — linkerknie, rechterknie, linkerknie.'},
+  std_lg_3:{fr:'Extension complète debout entre chaque rep. <b>Aucun pas intermédiaire</b> ni traînée entre les fentes.',en:'Full standing extension between reps. <b>No intermediate steps</b> or shuffles between lunges.',nl:'Volledige staande extensie tussen de reps. <b>Geen tussenstappen</b> of sleeppassen.'},
+  std_lg_4:{fr:'Le sac reste <b>sur les deux épaules</b> pendant toute la station — il ne doit jamais toucher le sol, même lors d\'un relais.',en:'The bag stays <b>on both shoulders</b> for the whole station — it must never touch the ground, even during a relay handover.',nl:'De zak blijft <b>op beide schouders</b> tijdens het hele station — hij mag nooit de grond raken, ook niet bij een wissel.'},
+  std_lg_5:{fr:'<span class="pen">15 s par infraction</span> après avertissement. <span class="pen">Mauvaise charge = station entière à refaire.</span>',en:'<span class="pen">15 s per infringement</span> after a warning. <span class="pen">Wrong weight = redo the entire station.</span>',nl:'<span class="pen">15 s per overtreding</span> na waarschuwing. <span class="pen">Verkeerd gewicht = hele station opnieuw.</span>'},
+  std_gen:{fr:'Règles générales',en:'General rules',nl:'Algemene regels'},
+  std_gen_1:{fr:'<b>Sled Push / Pull :</b> distance complète obligatoire, aucun raccourci. Au Sled Pull, marcher sur la ligne blanche est une infraction. <span class="pen">15 s après avertissement.</span>',en:'<b>Sled Push / Pull:</b> full distance mandatory, no shortcuts. On the Sled Pull, stepping on the white line is an infringement. <span class="pen">15 s after a warning.</span>',nl:'<b>Sled Push / Pull:</b> volledige afstand verplicht, geen shortcuts. Bij de Sled Pull is op de witte lijn stappen een overtreding. <span class="pen">15 s na waarschuwing.</span>'},
+  std_gen_2:{fr:'<b>Farmers Carry :</b> <span class="pen">3 minutes de pénalité par tour manquant.</span> C\'est la pénalité la plus lourde de la course — compte tes tours.',en:'<b>Farmers Carry:</b> <span class="pen">3-minute penalty per missing lap.</span> It is the heaviest penalty in the race — count your laps.',nl:'<b>Farmers Carry:</b> <span class="pen">3 minuten straf per ontbrekende ronde.</span> De zwaarste straf van de race — tel je rondes.'},
+  std_gen_3:{fr:'<b>Cracher ou se moucher sur l\'aire de course : <span class="pen">2 minutes de pénalité</span> par infraction.</b>',en:'<b>Spitting or clearing your nose on the race floor: <span class="pen">2-minute penalty</span> per offence.</b>',nl:'<b>Spugen of je neus snuiten op de racevloer: <span class="pen">2 minuten straf</span> per overtreding.</b>'},
+  std_gen_4:{fr:'La saison 25/26 est passée des pénalités en distance aux <b>pénalités en temps</b>. Plusieurs cas mènent à la disqualification directe. Le rulebook complet est sur hyrox.com — lis-le avant ta première course.',en:'The 25/26 season moved from distance penalties to <b>time penalties</b>. Several cases lead to direct disqualification. The full rulebook is on hyrox.com — read it before your first race.',nl:'Het seizoen 25/26 stapte over van afstandsstraffen naar <b>tijdstraffen</b>. Meerdere gevallen leiden tot directe diskwalificatie. Het volledige rulebook staat op hyrox.com — lees het voor je eerste race.'},
+
+  /* ── Pacing ── */
+  pace_h:{fr:'Stratégie & calculateur de splits',en:'Strategy & splits calculator',nl:'Strategie & splitscalculator'},
+  pace_intro:{fr:'Entre ton objectif de temps final : la répartition ci-dessous est calculée à partir des temps de référence publiés par station. Elle te donne une cible par segment plutôt qu\'un chiffre global qui ne t\'aide pas pendant la course.',en:'Enter your goal finish time: the breakdown below is computed from published per-station reference times. It gives you a target per segment instead of one global number that does not help you mid-race.',nl:'Vul je doeltijd in: de verdeling hieronder wordt berekend op basis van gepubliceerde referentietijden per station. Je krijgt een doel per segment in plaats van één globaal getal dat je tijdens de race niet helpt.'},
+  l_goal:{fr:'Objectif (h:mm:ss)',en:'Goal (h:mm:ss)',nl:'Doel (u:mm:ss)'},
+  l_goaldiv:{fr:'Total course',en:'Total race',nl:'Totaal race'},
+  th_seg:{fr:'Segment',en:'Segment',nl:'Segment'},
+  th_tgt:{fr:'Cible',en:'Target',nl:'Doel'},
+  th_cum:{fr:'Cumulé',en:'Cumulative',nl:'Cumulatief'},
+  seg_run:{fr:'Course 1 km',en:'Run 1 km',nl:'Loop 1 km'},
+  seg_rox:{fr:'Roxzone (total)',en:'Roxzone (total)',nl:'Roxzone (totaal)'},
+  pace_note:{fr:'Répartition indicative : 52% course, 40% stations, 8% Roxzone, chaque station pondérée selon les temps de référence publiés. Ton profil réel s\'en écarte — un coureur passera moins de temps en course et plus aux sleds, un athlète de force l\'inverse. Utilise-la comme point de départ, pas comme vérité.',en:'Indicative split: 52% running, 40% stations, 8% Roxzone, each station weighted by published reference times. Your real profile will differ — a runner spends less time running and more on the sleds, a strength athlete the opposite. Use it as a starting point, not a truth.',nl:'Indicatieve verdeling: 52% lopen, 40% stations, 8% Roxzone, elk station gewogen volgens gepubliceerde referentietijden. Je echte profiel wijkt af — een loper verliest minder tijd met lopen en meer bij de sleds, een krachtatleet omgekeerd. Gebruik het als startpunt, niet als waarheid.'},
+  tip_1:{fr:'✓ Ne commence à attaquer qu\'aux wall balls. Rends deux minutes sur les sept premières stations pour en reprendre deux et demie à la fin : la plupart du temps perdu en HYROX ne vient pas d\'une faiblesse aux wall balls mais d\'un départ trop rapide.',en:'✓ Only start attacking at the wall balls. Give back two minutes across the first seven stations to take back two and a half at the end: most time lost in HYROX comes from starting too fast, not from being weak at wall balls.',nl:'✓ Val pas aan vanaf de wall balls. Geef twee minuten weg over de eerste zeven stations om er op het einde tweeënhalve terug te pakken: de meeste verloren tijd in HYROX komt van te snel starten, niet van zwakke wall balls.'},
+  tip_2:{fr:'✓ Fixe ton plan de coupe AVANT la course, pas en cours de station. Un nombre que tu tiens à coup sûr (20, 15 ou 10 reps) avec un repos identique à chaque fois bat toujours l\'improvisation.',en:'✓ Decide your break plan BEFORE the race, not mid-station. A number you can always hit (20, 15 or 10 reps) with an identical rest each time always beats improvising.',nl:'✓ Bepaal je breukplan VOOR de race, niet tijdens het station. Een aantal dat je zeker haalt (20, 15 of 10 reps) met telkens dezelfde rust wint altijd van improviseren.'},
+  tip_3:{fr:'⚑ Règle des athlètes rapides : ne jamais reprendre la balle pour moins de 10 reps, ne jamais dépasser 10 respirations de repos. Ça élimine les micro-pauses qui coûtent une minute sans que tu t\'en rendes compte.',en:'⚑ Fast athletes\' rule: never pick the ball up for fewer than 10 reps, never rest more than 10 breaths. It kills the micro-pauses that cost a minute without you noticing.',nl:'⚑ Regel van snelle atleten: pak de bal nooit op voor minder dan 10 reps, rust nooit langer dan 10 ademhalingen. Zo verdwijnen de micro-pauzes die je ongemerkt een minuut kosten.'},
+  tip_4:{fr:'✗ La fatigue raccourcit la profondeur avant que tu le sentes. Exagère la descente quand ça brûle : deux secondes de profondeur en plus coûtent moins cher que 15 secondes de pénalité.',en:'✗ Fatigue shortens your depth before you feel it. Exaggerate the descent when it burns: two extra seconds of depth cost less than a 15-second penalty.',nl:'✗ Vermoeidheid verkort je diepte voor je het voelt. Overdrijf de afdaling als het brandt: twee extra seconden diepte kosten minder dan 15 seconden straf.'},
+  tip_5:{fr:'ⓘ La puissance du wall ball vient de l\'extension de hanche, pas des bras — les bras ne font que guider la balle. Respire en haut : inspire quand la balle quitte les mains, expire en réceptionnant dans le squat.',en:'ⓘ Wall ball power comes from hip extension, not the arms — the arms only guide the ball. Breathe at the top: inhale as the ball leaves your hands, exhale catching it into the squat.',nl:'ⓘ Wall-ballkracht komt uit heupextensie, niet uit de armen — de armen sturen alleen. Adem boven: in als de bal je handen verlaat, uit bij het vangen in de squat.'},
+  tip_6:{fr:'⚑ Entraîne les stations dans l\'ordre de course, sous fatigue. Un athlète qui fait 500 m de course puis 30 wall balls en intervalle bat un athlète plus fort qui n\'a travaillé qu\'en isolation.',en:'⚑ Train the stations in race order, under fatigue. An athlete doing 500 m run then 30 wall balls as intervals beats a stronger athlete who only trained in isolation.',nl:'⚑ Train de stations in racevolgorde, onder vermoeidheid. Een atleet die 500 m loopt en dan 30 wall balls doet als interval verslaat een sterkere atleet die alleen geïsoleerd trainde.'},
+
+  /* ── Placement / aide ── */
+  place_h:{fr:'📐 Placement caméra — précision maximale',en:'📐 Camera placement — maximum accuracy',nl:'📐 Cameraplaatsing — maximale nauwkeurigheid'},
+  place_1:{fr:'De profil (90°) : la seule vue qui permet de juger la profondeur de hanche et l\'extension au lancer. C\'est la vue à utiliser par défaut.',en:'Side-on (90°): the only view that lets hip depth and throw extension be judged. Use it by default.',nl:'Zijaanzicht (90°): de enige hoek waarmee heupdiepte en worpextensie beoordeeld kunnen worden. Gebruik dit standaard.'},
+  place_2:{fr:'Wall ball : place-toi de profil par rapport au téléphone, face au mur. Le mur ne doit pas cacher ton corps.',en:'Wall ball: stand side-on to the phone, facing the wall. The wall must not hide your body.',nl:'Wall ball: sta zijwaarts t.o.v. de telefoon, met je gezicht naar de muur. De muur mag je lichaam niet verbergen.'},
+  place_3:{fr:'Burpees et lunges : cadre plus large, l\'athlète se déplace. Recule le téléphone à 4–5 m et garde tout le trajet dans le cadre.',en:'Burpees and lunges: wider frame, the athlete travels. Move the phone back to 4–5 m and keep the whole path in frame.',nl:'Burpees en lunges: breder kader, de atleet verplaatst zich. Zet de telefoon op 4–5 m en houd het hele traject in beeld.'},
+  place_4:{fr:'Téléphone posé ou sur trépied à hauteur de hanche, 2–4 m, corps entier + pieds dans le cadre.',en:'Phone resting or on a tripod at hip height, 2–4 m, full body + feet in frame.',nl:'Telefoon neergezet of op statief op heuphoogte, 2–4 m, hele lichaam + voeten in beeld.'},
+  place_5:{fr:'Une seule personne dans le cadre. En cours collectif, isole ton athlète — quelqu\'un qui traverse peut faire décrocher le suivi.',en:'One person in frame only. In a group class, isolate your athlete — someone walking through can break the tracking.',nl:'Slechts één persoon in beeld. In een groepsles: isoleer je atleet — iemand die doorloopt kan de tracking verstoren.'},
+  place_6:{fr:'Lumière de face — jamais de fenêtre derrière toi — et tenue contrastée avec le fond. En salle sombre, le flou de bougé dégrade la détection sur les mouvements rapides.',en:'Light facing you — never a window behind you — and clothing that contrasts with the background. In a dark gym, motion blur degrades detection on fast movements.',nl:'Licht van voren — nooit een raam achter je — en kleding die contrasteert met de achtergrond. In een donkere zaal verslechtert bewegingsonscherpte de detectie bij snelle bewegingen.'},
+  help_h:{fr:'Comment ça marche',en:'How it works',nl:'Hoe het werkt'},
+  help_1:{fr:'Choisis le mouvement et ta division, puis lance la caméra. Reste debout 2 secondes : la page calibre ton amplitude sur ta morphologie avant d\'armer le comptage.',en:'Pick the movement and your division, then start the camera. Stand still for 2 seconds: the page calibrates your range of motion to your body before arming the counter.',nl:'Kies de beweging en je divisie, start dan de camera. Blijf 2 seconden stilstaan: de pagina kalibreert je bewegingsbereik op jouw lichaam voor het tellen start.'},
+  help_2:{fr:'Gratuit : reps valides, no-reps, cadence en direct et projection de fin de station. Pro : fade, blocage, ratio de travail, pénalité estimée et splits par 10 reps.',en:'Free: valid reps, no-reps, live cadence and station finish projection. Pro: fade, rest time, work ratio, estimated penalty and splits per 10 reps.',nl:'Gratis: geldige reps, no-reps, live cadans en projectie van het stationseinde. Pro: fade, rusttijd, werkratio, geschatte straf en splits per 10 reps.'},
+  help_3:{fr:'Chaque rep est jugée sur deux signaux indépendants (profondeur ET extension) : un repositionnement de la balle ou un faux mouvement n\'est jamais compté.',en:'Every rep is judged on two independent signals (depth AND extension): re-gripping the ball or a false move is never counted.',nl:'Elke rep wordt beoordeeld op twee onafhankelijke signalen (diepte ÉN extensie): opnieuw grijpen of een schijnbeweging telt nooit mee.'},
+  help_4:{fr:'Bip aigu = rep valide. Bip grave + cadre rouge = no-rep, avec la raison affichée dans la liste. Le compteur géant reste lisible à 3 mètres.',en:'High beep = valid rep. Low beep + red frame = no-rep, with the reason shown in the list. The giant counter stays readable from 3 metres.',nl:'Hoge piep = geldige rep. Lage piep + rood kader = no-rep, met de reden in de lijst. De grote teller blijft leesbaar op 3 meter.'},
+  help_5:{fr:'La balle elle-même n\'est pas suivie : le lancer est validé par l\'extension complète des bras au-dessus de la tête, comme le fait la concurrence. La hauteur de cible reste ta responsabilité.',en:'The ball itself is not tracked: the throw is validated by full overhead arm extension, as competitors do. Target height remains your responsibility.',nl:'De bal zelf wordt niet gevolgd: de worp wordt gevalideerd door volledige armextensie boven het hoofd, zoals bij concurrenten. De doelhoogte blijft jouw verantwoordelijkheid.'},
+  help_note:{fr:'Détection par MediaPipe Pose, amplitude calibrée sur ta morphologie (pas de seuils fixes) et filtre médian sans latence pour tenir les cadences de compétition. Standard de profondeur : crête de la hanche sous le sommet du genou (rulebook HYROX Singles 25/26 ; identique au standard CrossFit, Schoenfeld 2010). Pénalités et charges : rulebook HYROX Singles 25/26. 100% sur ton téléphone — aucune vidéo n\'est envoyée — l\'enregistrement REC est optionnel et reste uniquement sur ton appareil. Outil d\'aide au coaching et à l\'entraînement : seul un juge officiel valide une rep en compétition.',en:'Detection by MediaPipe Pose, range calibrated to your body (no fixed thresholds) and a zero-latency median filter to hold competition cadences. Depth standard: hip crease below the top of the knee (HYROX Singles Rulebook 25/26; identical to the CrossFit standard, Schoenfeld 2010). Penalties and loads: HYROX Singles Rulebook 25/26. Runs 100% on your phone — no video is ever uploaded — the optional REC recording stays only on your device. A coaching and training aid: only an official judge validates a rep in competition.',nl:'Detectie via MediaPipe Pose, bereik gekalibreerd op jouw lichaam (geen vaste drempels) en een mediaanfilter zonder latentie om wedstrijdcadans aan te kunnen. Dieptestandaard: heupplooi onder de bovenkant van de knie (HYROX Singles Rulebook 25/26; identiek aan de CrossFit-standaard, Schoenfeld 2010). Straffen en gewichten: HYROX Singles Rulebook 25/26. Draait 100% op je telefoon — er wordt nooit video verstuurd — de optionele REC-opname blijft alleen op je toestel. Een hulpmiddel voor coaching en training: alleen een officiële jury keurt een rep in wedstrijd goed.'}
+};
+
+/* ── diagnostic: surface every error on screen ── */
+function showErr(msg){
+  try{
+    let b=document.getElementById('errbar');
+    if(!b){
+      b=document.createElement('div');
+      b.id='errbar';
+      b.style.cssText='margin-top:10px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.5);color:#EF4444;font-size:12px;font-weight:600;border-radius:12px;padding:10px 12px;word-break:break-word;';
+      document.querySelector('.controls').after(b);
+    }
+    b.textContent='⚠ '+msg;
+  }catch(_){}
+}
+const VER='hyrox v1.1';
+window.addEventListener('error',e=>showErr((e.message||'Erreur JS')+(e.lineno?' (ligne '+e.lineno+')':'')+' ['+VER+']'));
+window.addEventListener('unhandledrejection',e=>showErr('Promise: '+(e.reason&&e.reason.message||e.reason||'?')+' ['+VER+']'));
+
+const LANGS=['fr','en','nl'];
+let LANG=localStorage.getItem('cdm_lang')||'fr'; if(!LANGS.includes(LANG)) LANG='fr';
+const t=k=>{const e=I18N[k];return e?(e[LANG]||e.fr):k;};
+
+/* ───────── DOM ───────── */
+const $=s=>document.querySelector(s);
+const video=$('#cam'), canvas=$('#overlay'), stage=$('#stage'), splash=$('#splash');
+const pill=$('#pill'), pillTxt=$('#pill-txt'), chip=$('#chip'), spdChip=$('#spd');
+const bStart=$('#b-start'), bFlip=$('#b-flip'), bReset=$('#b-reset');
+const bigCount=$('#bigcount');
+const ctx=canvas.getContext('2d');
+let du=null;
+let SB=null,UIDG=null;
+
+/* ───────── Accès (freemium) ─────────
+   Gratuit pour tous : reps valides, no-reps, cadence, projection de fin de station.
+   Pro (fn_can_analyze) : fade, blocage, ratio de travail, pénalité, splits. */
+const ENT={known:false,ok:false};
+let PRO=false;
+
+/* ───────── Référentiel HYROX (rulebook Singles 25/26) ───────── */
+const STATIONS=[
+  {n:1,name:'SkiErg',           d:'1000 m',    em:'3:00',ew:'4:00',avg:'4:00–6:00', w:16.5},
+  {n:2,name:'Sled Push',        d:'50 m',      em:'0:20',ew:'0:30',avg:'2:00–3:30', w:9.0},
+  {n:3,name:'Sled Pull',        d:'50 m',      em:'0:25',ew:'0:35',avg:'1:30–2:30', w:6.6},
+  {n:4,name:'Burpee Broad Jump',d:'80 m',      em:'2:30',ew:'3:00',avg:'4:00–6:00', w:16.5},
+  {n:5,name:'RowErg',           d:'1000 m',    em:'3:00',ew:'3:30',avg:'3:40–4:30', w:13.5},
+  {n:6,name:'Farmers Carry',    d:'200 m',     em:'1:00',ew:'1:20',avg:'2:00–3:00', w:8.2},
+  {n:7,name:'Sandbag Lunges',   d:'100 m',     em:'1:30',ew:'2:00',avg:'3:00–5:00', w:13.2},
+  {n:8,name:'Wall Balls',       d:'100 reps',  em:'3:00',ew:'3:30',avg:'4:00–6:00', w:16.5}
+];
+const WEIGHTS=[
+  {name:'Sled Push',     wo:'102 kg',  mo:'152 kg',  wp:'152 kg',  mp:'202 kg'},
+  {name:'Sled Pull',     wo:'78 kg',   mo:'103 kg',  wp:'103 kg',  mp:'153 kg'},
+  {name:'Farmers Carry', wo:'2×16 kg', mo:'2×24 kg', wp:'2×24 kg', mp:'2×32 kg'},
+  {name:'Sandbag Lunges',wo:'10 kg',   mo:'20 kg',   wp:'20 kg',   mp:'30 kg'},
+  {name:'Wall Ball',     wo:'4 kg',    mo:'6 kg',    wp:'6 kg',    mp:'9 kg'},
+  {name:'Wall Ball → cible', wo:'2,70 m', mo:'3,00 m', wp:'2,70 m', mp:'3,00 m'}
+];
+const DIVS={
+  wo:{ball:'4 kg',tgt:'2,70 m',lbl:'Femme Open'},
+  mo:{ball:'6 kg',tgt:'3,00 m',lbl:'Homme Open'},
+  wp:{ball:'6 kg',tgt:'2,70 m',lbl:'Femme Pro'},
+  mp:{ball:'9 kg',tgt:'3,00 m',lbl:'Homme Pro'}
+};
+let DIV=localStorage.getItem('cdm_hx_div')||'mo'; if(!DIVS[DIV])DIV='mo';
+
+/* ───────── Mouvements ───────── */
+const MOVES={
+  wb:   {downFrac:0.50, upFrac:0.22, minMs:400,  provFrac:0.45, topHoldMs:260, defTargets:[100,75,50,30,20]},
+  bbj:  {downFrac:0.62, upFrac:0.20, minMs:800,  provFrac:0.85, topHoldMs:120, defTargets:[40,35,30,25,20]},
+  lunge:{downFrac:0.38, upFrac:0.16, minMs:600,  provFrac:0.38, topHoldMs:120, defTargets:[60,50,40,30,20]}
+};
+let MV=localStorage.getItem('cdm_hx_mv')||'wb'; if(!MOVES[MV])MV='wb';
+let TARGET=100;
+
+function applyMoveUI(){
+  document.querySelectorAll('#mvseg button').forEach(b=>b.classList.toggle('on',b.dataset.mv===MV));
+  const sel=$('#sel-target'); const prev=TARGET;
+  sel.innerHTML='';
+  MOVES[MV].defTargets.forEach(n=>{
+    const o=document.createElement('option'); o.value=String(n); o.textContent=n+' '+t('split_lbl'); sel.appendChild(o);
+  });
+  TARGET=MOVES[MV].defTargets.includes(prev)?prev:MOVES[MV].defTargets[0];
+  sel.value=String(TARGET);
+  $('#bigcount-l').textContent=t('bigc_'+MV);
+  renderDivSpec();
+  updateSummary();
+}
+function renderDivSpec(){
+  const d=DIVS[DIV];
+  $('#divspec').textContent = MV==='wb'
+    ? d.lbl+' · '+d.ball+' → '+d.tgt+' · '+TARGET+' '+t('split_lbl')
+    : d.lbl+' · '+TARGET+' '+t('split_lbl');
+}
+document.querySelectorAll('#mvseg button').forEach(b=>{
+  b.onclick=()=>{ if(MV===b.dataset.mv)return; MV=b.dataset.mv; localStorage.setItem('cdm_hx_mv',MV); applyMoveUI(); resetSet(); };
+});
+$('#sel-div').onchange=e=>{ DIV=e.target.value; localStorage.setItem('cdm_hx_div',DIV); renderDivSpec(); };
+$('#sel-target').onchange=e=>{ TARGET=parseInt(e.target.value,10)||100; renderDivSpec(); updateSummary(); };
+
+/* ───────── Rendu des tableaux de référence ───────── */
+function fmtMs(ms){
+  if(ms==null||!isFinite(ms))return '—';
+  const s=Math.max(0,Math.round(ms/1000));
+  const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), q=s%60;
+  return h>0 ? h+':'+String(m).padStart(2,'0')+':'+String(q).padStart(2,'0')
+             : m+':'+String(q).padStart(2,'0');
+}
+function renderTables(){
+  const tb=$('#tb-stations'); tb.innerHTML='';
+  STATIONS.forEach(s=>{
+    const hi=(MV==='wb'&&s.n===8)||(MV==='bbj'&&s.n===4)||(MV==='lunge'&&s.n===7);
+    const tr=document.createElement('tr'); if(hi)tr.className='hi';
+    tr.innerHTML='<td class="m">'+s.n+'</td><td'+(hi?' class="gold"':'')+'>'+s.name+'</td><td class="m">'+s.d+'</td><td class="m">'+s.em+' / '+s.ew+'</td><td class="m">'+s.avg+'</td>';
+    tb.appendChild(tr);
+  });
+  const tw=$('#tb-weights'); tw.innerHTML='';
+  WEIGHTS.forEach(w=>{
+    const tr=document.createElement('tr');
+    const cell=k=>'<td'+(k===DIV?' class="gold"':' class="m"')+'>'+w[k]+'</td>';
+    tr.innerHTML='<td>'+w.name+'</td>'+cell('wo')+cell('mo')+cell('wp')+cell('mp');
+    tw.appendChild(tr);
+  });
+  const sb=$('#std-body'); sb.innerHTML='';
+  [['std_wb',['std_wb_1','std_wb_2','std_wb_3','std_wb_4','std_wb_5']],
+   ['std_bbj',['std_bbj_1','std_bbj_2','std_bbj_3','std_bbj_4','std_bbj_5']],
+   ['std_lg',['std_lg_1','std_lg_2','std_lg_3','std_lg_4','std_lg_5']],
+   ['std_gen',['std_gen_1','std_gen_2','std_gen_3','std_gen_4']]].forEach(g=>{
+    const h=document.createElement('div'); h.className='subh'; h.textContent=t(g[0]); sb.appendChild(h);
+    const ul=document.createElement('ul'); ul.className='help';
+    g[1].forEach(k=>{const li=document.createElement('li'); li.innerHTML=t(k); ul.appendChild(li);});
+    sb.appendChild(ul);
+  });
+  const pt=$('#pace-tips'); pt.innerHTML='';
+  [['tip_1','ins'],['tip_2','ins'],['tip_3','tac'],['tip_4','wrn'],['tip_5','inf'],['tip_6','tac']].forEach(x=>{
+    const d=document.createElement('div'); d.className='tip '+x[1]; d.textContent=t(x[0]); pt.appendChild(d);
+  });
+}
+function parseGoal(v){
+  const p=String(v||'').trim().split(':').map(x=>parseInt(x,10));
+  if(p.some(x=>isNaN(x))||!p.length)return null;
+  let s=0;
+  if(p.length===3)s=p[0]*3600+p[1]*60+p[2];
+  else if(p.length===2)s=p[0]*60+p[1];
+  else s=p[0]*60;
+  return (s>=1800&&s<=14400)?s*1000:null;
+}
+function renderSplitsPlan(){
+  const tb=$('#tb-splits'); tb.innerHTML='';
+  const total=parseGoal($('#in-goal').value);
+  $('#in-goalshow').value=total?fmtMs(total):'—';
+  if(!total){$('#tb-splits').innerHTML='';return;}
+  const runTot=total*0.52, stTot=total*0.40, rox=total*0.08;
+  const perKm=runTot/8;
+  let cum=0;
+  const add=(label,ms,bold)=>{
+    cum+=ms;
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td'+(bold?' class="gold"':'')+'>'+label+'</td><td class="m">'+fmtMs(ms)+'</td><td class="m">'+fmtMs(cum)+'</td>';
+    tb.appendChild(tr);
+  };
+  STATIONS.forEach(s=>{
+    add(t('seg_run'),perKm,false);
+    const hi=(MV==='wb'&&s.n===8)||(MV==='bbj'&&s.n===4)||(MV==='lunge'&&s.n===7);
+    add(s.name,stTot*(s.w/100),hi);
+  });
+  add(t('seg_rox'),rox,false);
+}
+$('#in-goal').oninput=()=>{try{localStorage.setItem('cdm_hx_goal',$('#in-goal').value);}catch(_){}renderSplitsPlan();};
+try{const g=localStorage.getItem('cdm_hx_goal'); if(g)$('#in-goal').value=g;}catch(_){}
+
+function applyLang(){
+  document.documentElement.lang=LANG;
+  $('#subline').textContent=t('subline');
+  $('#splash-p').textContent=t('splash');
+  bStart.textContent=running?t('stop'):t('start');
+  bReset.textContent=t('reset');
+  $('#chip-lbl').textContent=t('chip_lbl');
+  $('#bigcount-l').textContent=t('bigc_'+MV);
+  $('#res-lbl').textContent=t('res_lbl');
+  $('#m-no').textContent=t('m_no');
+  $('#m-cad').textContent=t('m_cad');
+  $('#m-time').textContent=t('m_time');
+  $('#list-h').textContent=t('list_h');
+  $('#vbt-gate-h').textContent=t('vbt_gate_h');
+  $('#vbt-gate-p').textContent=(typeof IS_NATIVE!=='undefined'&&IS_NATIVE)?t('vbt_gate_p_native'):t('vbt_gate_p');
+  if(typeof pwRender==='function')pwRender();
+  $('#vbt-h').textContent=t('vbt_h');
+  $('#vbt-hint').textContent=t('vbt_hint');
+  $('#k-fade').textContent=t('vbt_fade');
+  $('#k-block').textContent=t('vbt_block');
+  $('#k-work').textContent=t('vbt_work');
+  $('#k-pen').textContent=t('vbt_pen');
+  $('#vs-mid').textContent='25%';
+  $('#v-stop').textContent=t('vbt_stop');
+  $('#vbt-note').textContent=t('vbt_note');
+  $('#pro-note-txt').textContent=t('pro_note');
+  $('#fmt-h').textContent=t('fmt_h');
+  $('#fmt-intro').innerHTML=t('fmt_intro');
+  $('#th-station').textContent=t('th_station');
+  $('#th-dist').textContent=t('th_dist');
+  $('#th-elite').textContent=t('th_elite');
+  $('#th-avg').textContent=t('th_avg');
+  $('#fmt-note').textContent=t('fmt_note');
+  $('#wt-h').textContent=t('wt_h');
+  $('#th-st2').textContent=t('th_st2');
+  $('#wt-note').innerHTML=t('wt_note');
+  $('#std-h').textContent=t('std_h');
+  $('#pace-h').textContent=t('pace_h');
+  $('#pace-intro').textContent=t('pace_intro');
+  $('#l-goal').textContent=t('l_goal');
+  $('#l-goaldiv').textContent=t('l_goaldiv');
+  $('#th-seg').textContent=t('th_seg');
+  $('#th-tgt').textContent=t('th_tgt');
+  $('#th-cum').textContent=t('th_cum');
+  $('#pace-note').textContent=t('pace_note');
+  $('#help-h').textContent=t('help_h');
+  $('#help-ol').innerHTML='';
+  ['help_1','help_2','help_3','help_4','help_5'].forEach(k=>{
+    const li=document.createElement('li'); li.textContent=t(k); $('#help-ol').appendChild(li);
+  });
+  $('#help-note').textContent=t('help_note');
+  $('#place-h').textContent=t('place_h');
+  $('#src-h').textContent=t('src_h');
+  $('#src-1').textContent=t('src_1');
+  $('#src-2').textContent=t('src_2');
+  $('#src-3').textContent=t('src_3');
+  $('#src-disc').textContent=t('src_disc');
+  if(!RECST.on)$('#b-rec').textContent=t('rec_hint');
+  $('#place-ol').innerHTML='';
+  ['place_1','place_2','place_3','place_4','place_5','place_6'].forEach(k=>{
+    const li=document.createElement('li'); li.textContent=t(k); $('#place-ol').appendChild(li);
+  });
+  document.querySelectorAll('#lang button').forEach(b=>b.classList.toggle('on',b.dataset.lang===LANG));
+  renderTables(); renderSplitsPlan(); applyMoveUI();
+  renderReps(); setStatus(lastStatus,true);
+}
+document.querySelectorAll('#lang button').forEach(b=>{
+  b.onclick=()=>{LANG=b.dataset.lang;localStorage.setItem('cdm_lang',LANG);applyLang();};
+});
+
+/* ───────── Status ───────── */
+let lastStatus='';
+function setStatus(key,force){
+  if(!key||(key===lastStatus&&!force))return;
+  lastStatus=key;
+  pillTxt.textContent=t(key);
+  pill.classList.remove('ok','warn','err');
+  if(key==='st_ready'||key==='st_work'||key==='st_deep')pill.classList.add('ok');
+  else if(key==='st_loading'||key==='st_view'||key==='st_calib'||key==='st_rest')pill.classList.add('warn');
+  else if(key.startsWith('st_err')||key==='st_noperson')pill.classList.add('err');
+}
+
+/* ───────── Audio ───────── */
+let AC=null;
+function beep(freq,ms){
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.frequency.value=freq;o.type='sine';
+    g.gain.setValueAtTime(0.12,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+ms/1000);
+    o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+ms/1000);
+  }catch(_){}
+}
+
+/* ═════════ Moteur de comptage HYROX ═════════
+   Signal de décision : hauteur de hanche (y normalisé), PAS l'angle du genou.
+   Amplitude large, pas d'atténuation aux cadences rapides.
+   Filtre : médiane glissante sur 3 images — supprime le jitter SANS latence
+   ni écrasement d'amplitude (contrairement à un EMA, qui fait perdre les reps
+   rapides parce que le signal lissé n'atteint jamais les seuils).
+   Calibration : debout = référence, amplitude apprise (provisoire par
+   anthropométrie, puis mesurée sur les reps réelles). Aucun seuil absolu.
+   Validation : deux signaux indépendants par mouvement (profondeur + extension)
+   pour rendre impossible le faux positif sur un repositionnement de balle. */
+const WARMUP_FRAMES=18;
+const REST_MS=3000;          // au-delà = temps de blocage
+const FADE_ALERT=25;         // % de chute de cadence
+
+const CAL={stand:null,legLen:null,range:null,ready:false};
+const S={mode:'idle',rep:null,lastGoodTs:0,good:0,topT0:0};
+const HYX={fade:null,blockMs:0,workPct:null,penalty:null,warn:false};
+let reps=[],noReps=0,stationT0=null,lastRepTs=null,lastEndTs=null,lastKnee=null;
+let hyBuf=[];
+
+function median3(v){
+  hyBuf.push(v); if(hyBuf.length>3)hyBuf.shift();
+  if(hyBuf.length<3)return v;
+  const a=[...hyBuf].sort((x,y)=>x-y); return a[1];
+}
+function resetSet(){
+  reps=[];noReps=0;stationT0=null;lastRepTs=null;lastEndTs=null;lastKnee=null;hyBuf=[];
+  CAL.stand=null;CAL.legLen=null;CAL.range=null;CAL.ready=false;
+  S.mode='ready';S.rep=null;S.good=0;S.topT0=0;
+  HYX.fade=null;HYX.blockMs=0;HYX.workPct=null;HYX.penalty=null;HYX.warn=false;
+  stage.classList.remove('deep','bad');
+  renderReps();updateSummary();renderPro();
+}
+
+function vis(p){return p?(p.visibility??1):0;}
+function angle3(a,b,c){
+  const v1={x:a.x-b.x,y:a.y-b.y,z:a.z-b.z},v2={x:c.x-b.x,y:c.y-b.y,z:c.z-b.z};
+  const dot=v1.x*v2.x+v1.y*v2.y+v1.z*v2.z;
+  const n=Math.hypot(v1.x,v1.y,v1.z)*Math.hypot(v2.x,v2.y,v2.z)||1e-9;
+  return Math.acos(Math.min(1,Math.max(-1,dot/n)))*180/Math.PI;
+}
+function bodyVisible(lm){
+  const chain=(sh,hip,kn,an)=>Math.min(vis(lm[sh]),vis(lm[hip]),vis(lm[kn]),vis(lm[an]));
+  return Math.max(chain(11,23,25,27),chain(12,24,26,28))>0.55;
+}
+function pickSide(lm){
+  const L=(vis(lm[23])+vis(lm[25])+vis(lm[27]))/3;
+  const R=(vis(lm[24])+vis(lm[26])+vis(lm[28]))/3;
+  return L>=R?{hip:23,knee:25,ankle:27,sh:11,wr:15}:{hip:24,knee:26,ankle:28,sh:12,wr:16};
+}
+function kneeAngle(w,side){return angle3(w[side.hip],w[side.knee],w[side.ankle]);}
+function viewOf(lm,side){
+  const shw=Math.abs(lm[11].x-lm[12].x);
+  const torso=Math.hypot(lm[side.sh].x-lm[side.hip].x,lm[side.sh].y-lm[side.hip].y)||1e-9;
+  const r=shw/torso;
+  return r>0.55?'front':(r<0.38?'side':'mixed');
+}
+function hipY(lm){return (lm[23].y+lm[24].y)/2;}
+
+/* calibration debout : référence + longueur de jambe (amplitude provisoire) */
+function calib(lm,side){
+  const hy=hipY(lm), ay=lm[side.ankle].y;
+  if(CAL.stand==null){CAL.stand=hy;CAL.legLen=Math.max(0.12,ay-hy);}
+  else{CAL.stand=CAL.stand*0.85+hy*0.15;CAL.legLen=CAL.legLen*0.85+Math.max(0.12,ay-hy)*0.15;}
+  if(CAL.range==null)CAL.range=CAL.legLen*MOVES[MV].provFrac;
+  CAL.ready=CAL.range>0.05;
+}
+
+function startRep(ts,lm,side){
+  S.rep={
+    t0:ts, side:side,
+    depthOk:false, throwOk:false, chestOk:false, kneeOk:false,
+    kneeSide:null, hipMax:hipY(lm), view:viewOf(lm,side)
+  };
+}
+function sampleRep(lm,side,ts){
+  const r=S.rep; if(!r)return;
+  const hy=hipY(lm);
+  if(hy>r.hipMax)r.hipMax=hy;
+  r.view=viewOf(lm,side);
+
+  /* profondeur standard HYROX : crête de hanche sous le sommet du genou */
+  if(lm[side.hip].y>lm[side.knee].y+0.008)r.depthOk=true;
+
+  /* extension au lancer : poignets au-dessus du nez (bras tendus overhead) */
+  const wl=lm[15], wr=lm[16], nose=lm[0];
+  if(nose){
+    const wy=Math.min(vis(wl)>0.4?wl.y:9, vis(wr)>0.4?wr.y:9);
+    if(wy<nose.y-0.02)r.throwOk=true;
+  }
+  /* poitrine au sol (burpee) : épaules au niveau des chevilles */
+  const shY=(lm[11].y+lm[12].y)/2, anY=Math.max(lm[27].y,lm[28].y);
+  if(shY>anY-0.09)r.chestOk=true;
+  /* genou au sol (lunge) : genou le plus bas au niveau de sa cheville */
+  const kL=lm[25].y-lm[27].y, kR=lm[26].y-lm[28].y;
+  if(kL>-0.045){r.kneeOk=true;r.kneeSide='L';}
+  if(kR>-0.045&&kR>kL){r.kneeOk=true;r.kneeSide='R';}
+}
+function finishRep(ts){
+  const r=S.rep; S.rep=null;
+  if(!r)return;
+  if(ts-r.t0<MOVES[MV].minMs)return;                 // trop court = bruit
+  /* amplitude mesurée : remplace l'estimation anthropométrique */
+  const amp=r.hipMax-CAL.stand;
+  if(amp>0.05)CAL.range=CAL.range==null?amp:(CAL.range*0.7+amp*0.3);
+
+  let valid=true, why=null, alt=false;
+  if(MV==='wb'){
+    if(!r.depthOk){valid=false;why='b_shallow';}
+    else if(!r.throwOk){valid=false;why='b_nothrow';}
+  }else if(MV==='bbj'){
+    if(!r.chestOk){valid=false;why='b_nochest';}
+  }else{
+    if(!r.kneeOk){valid=false;why='b_noknee';}
+    else{
+      const prev=[...reps].reverse().find(x=>x.kneeSide);
+      if(prev&&prev.kneeSide===r.kneeSide)alt=true;
+    }
+  }
+  const gap=lastEndTs!=null?(r.t0-lastEndTs):0;
+  if(gap>REST_MS)HYX.blockMs+=gap-0;
+  if(stationT0==null)stationT0=r.t0;
+
+  const rec={n:reps.length+1,valid:valid,why:why,alt:alt,kneeSide:r.kneeSide,
+             ms:ts-r.t0, gap:gap>0?gap:0, ts:ts,
+             interval:lastRepTs!=null?(ts-lastRepTs):null};
+  reps.push(rec);
+  if(!valid)noReps++;
+  lastRepTs=ts; lastEndTs=ts;
+
+  beep(valid?1320:400,valid?110:200);
+  if(navigator.vibrate)navigator.vibrate(valid?55:[45,55,45]);
+  stage.classList.toggle('bad',!valid);
+  setTimeout(()=>stage.classList.remove('bad'),320);
+
+  computePacing();
+  renderReps();updateSummary();renderPro();
+}
+
+/* cadence, fade, blocage, pénalité */
+function med(a){ if(!a.length)return null; const s=[...a].sort((x,y)=>x-y); const m=s.length>>1;
+  return s.length%2?s[m]:(s[m-1]+s[m])/2; }
+function validReps(){return reps.filter(r=>r.valid);}
+function recentInterval(){
+  const iv=reps.slice(-6).map(r=>r.interval).filter(x=>x!=null&&x<REST_MS);
+  return med(iv);
+}
+function baseInterval(){
+  const iv=reps.slice(2,12).map(r=>r.interval).filter(x=>x!=null&&x<REST_MS);
+  return iv.length>=4?med(iv):null;
+}
+function computePacing(){
+  const ri=recentInterval(), bi=baseInterval();
+  HYX.fade=(ri!=null&&bi!=null&&bi>0)?Math.max(0,(ri-bi)/bi*100):null;
+  const el=elapsed();
+  HYX.workPct=(el>0)?Math.max(0,Math.min(100,(el-HYX.blockMs)/el*100)):null;
+  const missing=Math.max(0,TARGET-validReps().length);
+  HYX.penalty=noReps*15;
+  HYX.missing=missing;
+}
+function elapsed(){
+  if(stationT0==null)return 0;
+  const last=lastRepTs||stationT0;
+  return Math.max(0,last-stationT0);
+}
+function etaMs(){
+  const done=validReps().length;
+  if(done>=TARGET)return null;
+  const ri=recentInterval(); if(ri==null)return null;
+  return elapsed()+(TARGET-done)*ri;
+}
+
+function handle(lm,w,ts){
+  if(!lm||!bodyVisible(lm)){
+    S.good=0;
+    if(ts-S.lastGoodTs>800){
+      setStatus('st_noperson');chip.hidden=true;
+      if(S.mode==='down'||S.mode==='top'){S.mode='ready';S.rep=null;stage.classList.remove('deep');}
+    }
+    return;
+  }
+  S.lastGoodTs=ts;
+  const side=pickSide(lm);
+  if(S.good<WARMUP_FRAMES){S.good++;calib(lm,side);setStatus('st_calib');updateDbg(ts,side,lm);return;}
+  bigCount.hidden=false;
+
+  const hyRaw=hipY(lm);
+  const hy=median3(hyRaw);
+  if(w){const k=kneeAngle(w,side); lastKnee=k; if(k>158&&S.mode==='ready')calib(lm,side);}
+
+  const rng=CAL.range||0.18;
+  const downTh=CAL.stand+MOVES[MV].downFrac*rng;
+  const upTh  =CAL.stand+MOVES[MV].upFrac*rng;
+
+  chip.hidden=false;
+  const cad=cadenceNow();
+  $('#chip-val').textContent=cad!=null?cad:'—';
+
+  if(S.mode==='ready'){
+    if(hy>downTh){S.mode='down';startRep(ts,lm,side);setStatus('st_down');}
+    else{
+      const idle=lastRepTs!=null&&(ts-lastRepTs>REST_MS);
+      setStatus(idle?'st_rest':(viewOf(lm,side)==='front'?'st_view':(reps.length?'st_work':'st_ready')));
+      stage.classList.remove('deep');
+    }
+  }else if(S.mode==='down'){
+    sampleRep(lm,side,ts);
+    const good=(MV==='wb')?S.rep.depthOk:(MV==='bbj'?S.rep.chestOk:S.rep.kneeOk);
+    stage.classList.toggle('deep',good);
+    setStatus(good?'st_deep':'st_down');
+    if(hy<upTh){S.mode='top';S.topT0=ts;setStatus('st_up');}
+  }else if(S.mode==='top'){
+    /* fenêtre courte au sommet : le lancer culmine APRÈS le retour debout —
+       ne pas clôturer la rep avant d'avoir échantillonné l'extension. */
+    sampleRep(lm,side,ts);
+    stage.classList.remove('deep');
+    if(ts-S.topT0>=MOVES[MV].topHoldMs||hy>downTh){
+      finishRep(ts);
+      S.mode=(hy>downTh)?'ready':'ready';
+      if(hy>downTh){S.mode='down';startRep(ts,lm,side);}
+    }
+  }
+  updateSummary();
+  updateDbg(ts,side,lm);
+}
+function cadenceNow(){
+  const ri=recentInterval();
+  return ri!=null&&ri>0?Math.round(60000/ri):null;
+}
+
+/* ───────── Results UI ───────── */
+function updateSummary(){
+  const done=validReps().length;
+  $('#res-reps').textContent=done;
+  $('#res-tgt').textContent=' / '+TARGET;
+  bigCount.firstChild.nodeValue=String(done);
+  $('#res-no').textContent=noReps;
+  const cad=cadenceNow();
+  $('#res-cad').textContent=cad!=null?cad+'/min':'—';
+  $('#res-time').textContent=fmtMs(elapsed());
+  $('#prog-fill').style.width=Math.min(100,done/Math.max(1,TARGET)*100)+'%';
+  const eta=etaMs();
+  const el=$('#eta');
+  if(done>=TARGET&&stationT0!=null)el.innerHTML=t('eta_done').replace('{t}',fmtMs(elapsed()));
+  else if(eta!=null)el.innerHTML=t('eta_txt').replace('{t}',fmtMs(eta));
+  else el.innerHTML='';
+  if(cad!=null){spdChip.hidden=false;$('#spd-val').textContent=cad;}
+  const sr=$('#save-row'),sb2=$('#b-save');
+  if(sr)sr.style.display=reps.length>=5?'flex':'none';
+  if(sb2&&reps.length>=5&&sb2.textContent!==t('saving')){sb2.disabled=false;sb2.textContent=t('save');}
+}
+function renderPro(){
+  if(!PRO)return;
+  $('#v-fade').textContent=HYX.fade==null?'—':HYX.fade.toFixed(0);
+  $('#v-block').textContent=HYX.blockMs?Math.round(HYX.blockMs/1000):'—';
+  $('#v-work').textContent=HYX.workPct==null?'—':HYX.workPct.toFixed(0);
+  $('#v-pen').textContent=HYX.penalty==null?'—':HYX.penalty;
+  const bar=$('#v-bar'), f=HYX.fade==null?0:Math.min(50,HYX.fade);
+  $('#v-fill').style.width=(f/50*100)+'%';
+  bar.classList.toggle('warn',HYX.fade!=null&&HYX.fade>=12&&HYX.fade<FADE_ALERT);
+  bar.classList.toggle('stop',HYX.fade!=null&&HYX.fade>=FADE_ALERT);
+  const show=HYX.fade!=null&&HYX.fade>=FADE_ALERT&&reps.length>=12;
+  if(show&&!HYX.warn){HYX.warn=true;beep(300,240);if(navigator.vibrate)navigator.vibrate([90,60,90]);}
+  if(HYX.fade!=null&&HYX.fade<FADE_ALERT-8)HYX.warn=false;
+  $('#v-stop').style.display=HYX.warn?'':'none';
+}
+function proUI(){
+  $('#vbt-gate').style.display=(ENT.known&&!PRO)?'':'none';
+  if(ENT.known&&!PRO)pwLoad();
+  $('#vbt-card').style.display=PRO?'':'none';
+  $('#pro-note').style.display=(ENT.known&&!PRO)?'':'none';
+  renderPro();renderReps();
+}
+function renderReps(){
+  const ul=$('#rlist');ul.innerHTML='';
+  const blocks=[];
+  for(let i=0;i<reps.length;i+=10)blocks.push(reps.slice(i,i+10));
+  $('#rempty').textContent=blocks.length?'':t('list_empty');
+  [...blocks].reverse().forEach((b,ri)=>{
+    const idx=blocks.length-ri;
+    const from=(idx-1)*10+1, to=(idx-1)*10+b.length;
+    const span=b[b.length-1].ts-(b[0].ts-(b[0].ms||0));
+    const bad=b.filter(r=>!r.valid).length;
+    const rest=b.reduce((a,r)=>a+(r.gap>REST_MS?r.gap:0),0);
+    const li=document.createElement('li');
+    const badges=[];
+    badges.push('<span class="badge b-spd">'+fmtMs(span)+'</span>');
+    if(bad)badges.push('<span class="badge b-no">'+bad+' no-rep</span>');
+    else badges.push('<span class="badge b-ok">'+t('b_ok')+'</span>');
+    if(PRO&&rest>0)badges.push('<span class="badge b-warn">'+t('vbt_block')+' '+Math.round(rest/1000)+'s</span>');
+    const alt=b.filter(r=>r.alt).length;
+    if(MV==='lunge'&&alt)badges.push('<span class="badge b-warn">'+t('b_samesid')+'</span>');
+    const whys=[...new Set(b.filter(r=>r.why).map(r=>t(r.why)))];
+    if(whys.length)badges.push('<span class="badge b-mut">'+whys.join(' · ')+'</span>');
+    li.innerHTML='<span class="n">'+from+'–'+to+'</span>'+badges.join('');
+    ul.appendChild(li);
+  });
+}
+
+/* ───────── Drawing ───────── */
+function draw(res){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const lm=res&&res.landmarks&&res.landmarks[0];
+  if(lm&&du){
+    du.drawConnectors(lm,PoseLandmarker.POSE_CONNECTIONS,{color:'rgba(0,255,163,.4)',lineWidth:2.5});
+    du.drawLandmarks(lm,{color:'rgba(0,255,163,.85)',fillColor:'rgba(0,255,163,.85)',radius:2});
+    if(CAL.ready&&CAL.stand!=null){
+      const rng=CAL.range||0.18;
+      const yD=(CAL.stand+MOVES[MV].downFrac*rng)*canvas.height;
+      ctx.save();
+      ctx.strokeStyle='rgba(212,175,55,.55)';ctx.lineWidth=2;ctx.setLineDash([10,8]);
+      ctx.beginPath();ctx.moveTo(0,yD);ctx.lineTo(canvas.width,yD);ctx.stroke();
+      ctx.restore();
+    }
+    /* repère de profondeur : hanche vs genou (standard HYROX) */
+    const side=pickSide(lm);
+    const hp=lm[side.hip],kn=lm[side.knee];
+    if(vis(hp)>0.4&&vis(kn)>0.4){
+      const ok=hp.y>kn.y+0.008;
+      ctx.save();
+      ctx.strokeStyle=ok?'rgba(0,255,163,.85)':'rgba(212,175,55,.6)';ctx.lineWidth=3;
+      ctx.beginPath();ctx.moveTo(kn.x*canvas.width-26,kn.y*canvas.height);ctx.lineTo(kn.x*canvas.width+26,kn.y*canvas.height);ctx.stroke();
+      ctx.fillStyle=ok?'#00FFA3':'#D4AF37';
+      ctx.beginPath();ctx.arc(hp.x*canvas.width,hp.y*canvas.height,7,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
+  }
+}
+
+/* live debug HUD */
+const dbgEl=document.getElementById('cdm-dbg');
+let dbgFrames=0,dbgFpsT=0,dbgFps=0;
+function updateDbg(ts,side,lm){
+  dbgFrames++;
+  if(ts-dbgFpsT>=1000){dbgFps=dbgFrames;dbgFrames=0;dbgFpsT=ts;}
+  dbgEl.hidden=false;
+  const rng=CAL.range;
+  dbgEl.textContent=
+    'mode: '+S.mode+'  fps: '+dbgFps+'\n'+
+    'reps: '+reps.length+' ('+noReps+' NR)  vue: '+viewOf(lm,side)+'\n'+
+    'ampl: '+(rng==null?'—':rng.toFixed(3))+'  genou: '+(lastKnee==null?'—':Math.round(lastKnee)+'°');
+}
+
+/* ───────── Camera + loop ───────── */
+let landmarker=null,stream=null,running=false,facing='environment',lastTs=-1,wakeLock=null;
+
+async function loadModel(){
+  if(landmarker)return;
+  setStatus('st_loading');
+  const base='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm';
+  const model='https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
+  const vision=await FilesetResolver.forVisionTasks(base);
+  const opts=d=>({baseOptions:{modelAssetPath:model,delegate:d},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:0.6,minPosePresenceConfidence:0.6,minTrackingConfidence:0.6});
+  try{landmarker=await PoseLandmarker.createFromOptions(vision,opts('GPU'));}
+  catch(_){landmarker=await PoseLandmarker.createFromOptions(vision,opts('CPU'));}
+  du=new DrawingUtils(ctx);
+}
+
+async function startCam(){
+  /* 60 fps demandé : marge de frames pour les cadences de compétition */
+  stream=await navigator.mediaDevices.getUserMedia({
+    video:{facingMode:facing,width:{ideal:1280},height:{ideal:720},frameRate:{ideal:60,min:24}},audio:false
+  });
+  video.srcObject=stream;
+  await video.play();
+  canvas.width=video.videoWidth||720;
+  canvas.height=video.videoHeight||960;
+  stage.style.aspectRatio=(canvas.width/canvas.height).toString();
+  stage.classList.toggle('mirror',facing==='user');
+  try{wakeLock=await navigator.wakeLock?.request('screen');}catch(_){}
+}
+
+function scheduleFrame(){
+  if(!running)return;
+  if(video.requestVideoFrameCallback){
+    video.requestVideoFrameCallback((now,meta)=>onFrame(meta&&meta.mediaTime?meta.mediaTime*1000:performance.now()));
+  }else{
+    requestAnimationFrame(()=>onFrame(performance.now()));
+  }
+}
+function onFrame(ts){
+  if(!running)return;
+  if(ts<=lastTs)ts=lastTs+1;
+  lastTs=ts;
+  let res=null;
+  try{res=landmarker.detectForVideo(video,ts);}catch(_){}
+  if(res)handle(res.landmarks&&res.landmarks[0],res.worldLandmarks&&res.worldLandmarks[0],ts);
+  draw(res);
+  scheduleFrame();
+}
+
+async function start(){
+  bStart.disabled=true;
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume&&AC.resume();}catch(_){}
+  try{await startCam();}
+  catch(e){setStatus('st_err_cam');showErr('Caméra: '+(e&&e.name||'')+' '+(e&&e.message||e)+' ['+VER+']');bStart.disabled=false;return;}
+  splash.style.display='none';
+  try{await loadModel();}
+  catch(e){
+    setStatus('st_err_model');showErr('Modèle: '+(e&&e.message||e)+' ['+VER+']');
+    if(stream){stream.getTracks().forEach(tr=>tr.stop());stream=null;}
+    splash.style.display='flex';bStart.disabled=false;return;
+  }
+  running=true;lastTs=-1;
+  bStart.textContent=t('stop');bStart.disabled=false;
+  bFlip.disabled=false;bReset.disabled=false;bRec.disabled=false;bRec.textContent=t('rec_hint');
+  S.mode='ready';S.lastGoodTs=0;S.good=0;S.rep=null;
+  CAL.stand=null;CAL.legLen=null;CAL.range=null;CAL.ready=false;hyBuf=[];
+  setStatus('st_calib',true);
+  scheduleFrame();
+}
+function stop(){
+  running=false;
+  if(stream){stream.getTracks().forEach(tr=>tr.stop());stream=null;}
+  try{wakeLock&&wakeLock.release();}catch(_){}
+  wakeLock=null;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  splash.style.display='flex';
+  stage.classList.remove('deep','bad');
+  chip.hidden=true;spdChip.hidden=true;dbgEl.hidden=true;bigCount.hidden=true;
+  S.mode='idle';
+  bStart.textContent=t('start');
+  bFlip.disabled=true;bReset.disabled=true;
+  recStop();bRec.disabled=true;
+  pillTxt.textContent='';pill.classList.remove('ok','warn','err');lastStatus='';
+}
+bStart.onclick=()=>{running?stop():start();};
+bReset.onclick=()=>{if(running)resetSet();};
+bFlip.onclick=async()=>{
+  if(!running)return;
+  facing=facing==='environment'?'user':'environment';
+  if(stream)stream.getTracks().forEach(tr=>tr.stop());
+  CAL.stand=null;CAL.legLen=null;CAL.range=null;CAL.ready=false;S.good=0;hyBuf=[];
+  try{await startCam();}
+  catch(e){setStatus('st_err_cam');}
+};
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&running)stop();
+});
+
+/* ═════════ Paywall — Stripe embarqué sur place ═════════ */
+const STRIPE_PK='pk_live_51TpzX7J0YSDZQQHK1pZpLyBD1QX0c95OWwdhGO1BpTvs3vb99GAq8D9JA9voqURFI5GpkfeQmORt8fnwWaipMLGq00re93zamr';
+let STRIPE=null,CKI=null;
+const PW={prices:null,slots:null,pending:null,loading:false,canF:false};
+function pwLocale(){return LANG==='fr'?'fr-BE':(LANG==='nl'?'nl-BE':'en-GB');}
+function pwMoney(c){return (c/100).toLocaleString(pwLocale(),{style:'currency',currency:'EUR'});}
+async function stripeJs(){
+  if(window.Stripe)return window.Stripe;
+  await new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://js.stripe.com/v3/';sc.onload=res;sc.onerror=rej;document.head.appendChild(sc);});
+  return window.Stripe;
+}
+const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+function pwSlotsLeft(kind){const r=(PW.slots||[]).find(x=>x.kind===kind);return r?+r.left_count:null;}
+async function pwLoad(){
+  if(!SB||PW.loading)return;
+  if(PW.prices){pwRender();return;}
+  PW.loading=true;
+  try{const {data}=await SB.from('billing_prices').select('*').eq('audience','client').eq('active',true);PW.prices=data||[];}catch(_){PW.prices=[];}
+  try{const {data}=await SB.rpc('founder_slots');PW.slots=data||[];}catch(_){PW.slots=[];}
+  try{const {data}=await SB.rpc('founder_can_buy',{p_kind:'membre'});PW.canF=(data===true);}catch(_){PW.canF=false;}
+  PW.loading=false;
+  pwRender();
+}
+function pwRender(){
+  const box=document.getElementById('gate-plans');
+  if(!box||!PW.prices)return;
+  if(IS_NATIVE){box.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center;padding:10px 4px">'+t('pw_native')+'</p>';return;}
+  const left=pwSlotsLeft('membre');
+  const fOpen=(left===null)||left>0||PW.canF===true;
+  const pickIv=(iv)=>{
+    const ps=PW.prices.filter(p=>p.billing_interval===iv&&p.tier==='membre');
+    const f=!fOpen?null:ps.find(p=>p.founder);
+    const r=ps.find(p=>!p.founder);
+    return {off:f||r, reg:r};
+  };
+  const mk=(o,iv)=>{
+    if(!o.off)return '';
+    const isF=!!o.off.founder;
+    let h='<div class="plan"><span class="pb">'+(isF?t('pw_membre_f'):t('pw_membre'))+'</span>';
+    h+='<div class="pp">'+pwMoney(o.off.amount_cents)+'<small>'+t(iv==='year'?'pw_year':'pw_month')+'</small>';
+    if(isF&&o.reg)h+='<span class="old">'+pwMoney(o.reg.amount_cents)+'</span>';
+    h+='</div><div class="pn">'+t(iv==='year'?'pw_note_y':'pw_note_m')+'</div>';
+    if(isF&&left!==null&&left>0&&left<=15)h+='<div class="pn" style="color:var(--neon)">'+t('pw_left').replace('{n}',left)+'</div>';
+    h+='<button class="pcta" data-lk="'+o.off.lookup_key+'">'+t('pw_choose')+'</button></div>';
+    return h;
+  };
+  box.innerHTML=mk(pickIv('month'),'month')+mk(pickIv('year'),'year')
+    +'<div class="pcoach">'+t('pw_coach_link')+' <a href="https://coachdm.be/tarifs.html" target="_blank" rel="noopener">'+t('pw_coach_link_a')+'</a></div>';
+  box.querySelectorAll('[data-lk]').forEach(b=>{b.onclick=()=>pwOpen(b.dataset.lk);});
+}
+function pwReset(){
+  const m=document.getElementById('ck-mount');
+  if(m){m.style.display='none';m.innerHTML='';}
+}
+function pwOpen(lk){
+  if(IS_NATIVE)return;
+  if(!UIDG){alert(t('save_login'));return;}
+  PW.pending=lk;
+  if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
+  pwReset();
+  document.getElementById('pw-ov').classList.add('show');
+  pwMount();
+}
+function pwClose(){
+  document.getElementById('pw-ov').classList.remove('show');
+  if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
+  pwReset();PW.pending=null;
+}
+async function pwMount(){
+  if(!PW.pending||!SB)return;
+  const lk=PW.pending;
+  const m=document.getElementById('ck-mount');m.style.display='';m.innerHTML='';
+  try{
+    const Sj=await stripeJs();
+    if(!STRIPE)STRIPE=Sj(STRIPE_PK);
+    if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
+    CKI=await STRIPE.initEmbeddedCheckout({fetchClientSecret:async()=>{
+      const {data,error}=await SB.functions.invoke('stripe-checkout',{body:{action:'checkout',lookup_key:lk,locale:LANG}});
+      if(error||!data||!data.client_secret)throw new Error((data&&data.error)||'checkout');
+      return data.client_secret;
+    }});
+    CKI.mount('#ck-mount');
+  }catch(_){pwClose();alert(t('pw_fail'));}
+}
+(function(){
+  const ov=document.getElementById('pw-ov');
+  const x=document.getElementById('pw-close');
+  if(x)x.onclick=pwClose;
+  if(ov)ov.addEventListener('click',e=>{if(e.target===ov)pwClose();});
+})();
+
+/* ═════════ Carte partageable (story 1080×1920) ═════════ */
+let LOGO=null,LOGO_TRIED=false;
+function loadLogo(){
+  return new Promise(res=>{
+    if(LOGO)return res(LOGO);
+    if(LOGO_TRIED)return res(null);
+    const im=new Image();
+    const done=ok=>{LOGO_TRIED=true;if(ok)LOGO=im;res(ok?im:null);};
+    im.onload=()=>done(true);
+    im.onerror=()=>done(false);
+    im.src='/logo-dm.png';
+    setTimeout(()=>{if(!LOGO&&!LOGO_TRIED)done(false);},2000);
+  });
+}
+function shGoldGrad(c,x0,y0,x1,y1){
+  const g=c.createLinearGradient(x0,y0,x1,y1);
+  g.addColorStop(0,'#F6E27A');g.addColorStop(.45,'#D4AF37');g.addColorStop(1,'#A47F1E');
+  return g;
+}
+function shBase(c,W,H,title,logo){
+  c.fillStyle='#0A0A0A';c.fillRect(0,0,W,H);
+  const rg=c.createRadialGradient(W/2,0,0,W/2,0,H*.8);
+  rg.addColorStop(0,'rgba(212,175,55,.10)');rg.addColorStop(1,'rgba(212,175,55,0)');
+  c.fillStyle=rg;c.fillRect(0,0,W,H);
+  c.textAlign='center';
+  if(logo){
+    const r=88,cx=W/2,cy=150;
+    c.save();
+    c.beginPath();c.arc(cx,cy,r,0,Math.PI*2);c.closePath();c.clip();
+    c.fillStyle='#0A0A0A';c.fillRect(cx-r,cy-r,r*2,r*2);
+    c.drawImage(logo,cx-r,cy-r,r*2,r*2);
+    c.restore();
+    c.lineWidth=6;c.strokeStyle=shGoldGrad(c,cx-r,cy-r,cx+r,cy+r);
+    c.beginPath();c.arc(cx,cy,r+4,0,Math.PI*2);c.stroke();
+  }else{
+    c.font='800 78px Outfit';c.fillStyle='#F5F5F4';
+    c.fillText('COACH ',W/2-92,170);
+    c.fillStyle=shGoldGrad(c,W/2,110,W/2+240,190);
+    c.fillText('DM',W/2+158,170);
+  }
+  c.font='700 40px Outfit';c.fillStyle='#9CA3AF';
+  c.fillText(title,W/2,logo?312:255);
+  c.strokeStyle='rgba(212,175,55,.5)';c.lineWidth=3;
+  const dy=logo?352:295;
+  c.beginPath();c.moveTo(W/2-130,dy);c.lineTo(W/2+130,dy);c.stroke();
+  c.font='700 42px Outfit';c.fillStyle=shGoldGrad(c,W/2-220,H-150,W/2+220,H-110);
+  c.fillText('Power · Transform · Excel',W/2,H-150);
+  c.font='600 36px Outfit';c.fillStyle='#9CA3AF';
+  c.fillText('coachdm.be  ·  @coachdm.be',W/2,H-85);
+}
+function mvLabel(){
+  return MV==='wb'?'WALL BALL':(MV==='bbj'?'BURPEE BROAD JUMP':'SANDBAG LUNGES');
+}
+function shCard(logo){
+  const W=1080,H=1920,cv=document.createElement('canvas');
+  cv.width=W;cv.height=H;const c=cv.getContext('2d');
+  shBase(c,W,H,t('sh_t'),logo);
+  c.textAlign='center';
+  c.font='800 46px Outfit';c.fillStyle='#00FFA3';
+  c.fillText(mvLabel()+'  ·  '+DIVS[DIV].lbl.toUpperCase(),W/2,440);
+  c.font='700 44px Outfit';c.fillStyle='#9CA3AF';c.fillText(t('sh_reps'),W/2,600);
+  const done=validReps().length;
+  c.font='800 260px Outfit';c.fillStyle=shGoldGrad(c,W/2-320,660,W/2+320,900);
+  c.fillText(done+' / '+TARGET,W/2,900);
+  c.font='800 68px Outfit';c.fillStyle='#F5F5F4';
+  c.fillText(fmtMs(elapsed()),W/2,1030);
+  c.font='700 38px Outfit';c.fillStyle='#9CA3AF';c.fillText(t('sh_time'),W/2,1080);
+  const cad=cadenceNow();
+  const mets=[[cad!=null?String(cad):'—',t('sh_cad')],[String(noReps),t('sh_no')]];
+  if(PRO)mets.push([HYX.fade!=null?('−'+HYX.fade.toFixed(0)+'%'):'—',t('sh_fade')]);
+  const n=mets.length;
+  mets.forEach((mm,i)=>{
+    const x=W/(n*2)+(i*W/n);
+    c.font='800 96px Outfit';c.fillStyle='#F5F5F4';c.fillText(mm[0],x,1400);
+    c.font='700 32px Outfit';c.fillStyle='#9CA3AF';c.fillText(mm[1],x,1462);
+  });
+  return cv;
+}
+async function shShare(cv,name){
+  const blob=await new Promise(res=>cv.toBlob(res,'image/png'));
+  const file=new File([blob],name,{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:'Coach DM'});return;}catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  alert(t('sh_fail'));
+}
+document.getElementById('b-share').onclick=()=>{if(reps.length>=5)shShare(shCard(LOGO),'coachdm-hyrox.png');};
+
+/* ═════════ REC — vidéo watermarkée, 100% locale ═════════
+   Canvas composite (caméra + squelette + compteur + watermark Coach DM),
+   MediaRecorder mp4/webm, partage natif → galerie. Rien n'est envoyé. */
+const RECST={on:false,mr:null,chunks:[],cv:null,ctx:null,raf:0,t0:0,timer:0,mime:'',ext:'mp4'};
+const bRec=$('#b-rec');
+function recMime(){
+  const c=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm'];
+  for(const m of c){ if(window.MediaRecorder&&MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(m)) return m; }
+  return '';
+}
+function recDrawFrame(){
+  if(!RECST.on)return;
+  const c=RECST.ctx,W=RECST.cv.width,H=RECST.cv.height;
+  c.save();
+  if(facing==='user'){c.translate(W,0);c.scale(-1,1);}
+  try{c.drawImage(video,0,0,W,H);}catch(_){}
+  try{c.drawImage(canvas,0,0,W,H);}catch(_){}
+  c.restore();
+  /* compteur incrusté (haut gauche) */
+  const done=validReps().length;
+  const fs=Math.round(H*0.055);
+  c.font='800 '+fs+'px Outfit, sans-serif';
+  c.textAlign='left';c.textBaseline='top';
+  c.fillStyle='rgba(10,10,10,.55)';
+  c.fillRect(Math.round(W*0.025),Math.round(H*0.025),Math.round(W*0.36),Math.round(fs*1.9));
+  c.fillStyle='#F5F5F4';
+  c.fillText(String(done),Math.round(W*0.045),Math.round(H*0.03));
+  c.font='700 '+Math.round(fs*0.42)+'px Outfit, sans-serif';
+  c.fillStyle='#9CA3AF';
+  c.fillText(t('bigc_'+MV).toUpperCase(),Math.round(W*0.045),Math.round(H*0.03)+fs+4);
+  /* bandeau watermark (bas) */
+  const bh=Math.round(H*0.072);
+  c.fillStyle='rgba(10,10,10,.68)';
+  c.fillRect(0,H-bh,W,bh);
+  const pad=Math.round(bh*0.14), lr=bh-pad*2;
+  let tx=Math.round(W*0.03);
+  if(LOGO){
+    const cx2=tx+lr/2, cy2=H-bh/2;
+    c.save();c.beginPath();c.arc(cx2,cy2,lr/2,0,Math.PI*2);c.closePath();c.clip();
+    c.drawImage(LOGO,tx,H-bh+pad,lr,lr);c.restore();
+    c.lineWidth=2;c.strokeStyle='rgba(212,175,55,.85)';
+    c.beginPath();c.arc(cx2,cy2,lr/2+1,0,Math.PI*2);c.stroke();
+    tx+=lr+Math.round(bh*0.28);
+  }
+  const wfs=Math.round(bh*0.4);
+  c.textBaseline='middle';c.textAlign='left';
+  c.font='800 '+wfs+'px Outfit, sans-serif';
+  const gg=c.createLinearGradient(tx,0,tx+wfs*9,0);
+  gg.addColorStop(0,'#F6E27A');gg.addColorStop(.5,'#D4AF37');gg.addColorStop(1,'#A47F1E');
+  c.fillStyle=gg;
+  c.fillText('COACH DM',tx,H-bh/2);
+  c.font='600 '+Math.round(wfs*0.78)+'px Outfit, sans-serif';
+  c.fillStyle='#9CA3AF';
+  c.textAlign='right';
+  c.fillText('coachdm.be',W-Math.round(W*0.03),H-bh/2);
+  RECST.raf=requestAnimationFrame(recDrawFrame);
+}
+function recStart(){
+  if(RECST.on||!running)return;
+  const mime=recMime();
+  if(!mime){alert(t('rec_fail'));return;}
+  RECST.mime=mime;RECST.ext=mime.indexOf('mp4')>=0?'mp4':'webm';
+  RECST.cv=document.createElement('canvas');
+  RECST.cv.width=canvas.width||720;RECST.cv.height=canvas.height||960;
+  RECST.ctx=RECST.cv.getContext('2d');
+  let strm=null;
+  try{strm=RECST.cv.captureStream(30);}catch(_){alert(t('rec_fail'));return;}
+  RECST.chunks=[];
+  try{RECST.mr=new MediaRecorder(strm,{mimeType:mime,videoBitsPerSecond:5_000_000});}
+  catch(_){try{RECST.mr=new MediaRecorder(strm);}catch(__){alert(t('rec_fail'));return;}}
+  RECST.mr.ondataavailable=e=>{if(e.data&&e.data.size)RECST.chunks.push(e.data);};
+  RECST.mr.onstop=recFinish;
+  RECST.on=true;RECST.t0=performance.now();
+  RECST.mr.start(1000);
+  recDrawFrame();
+  bRec.classList.add('rec-on');
+  RECST.timer=setInterval(()=>{
+    const sec=Math.round((performance.now()-RECST.t0)/1000);
+    bRec.textContent=t('rec_stop').replace('{t}',Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'));
+  },500);
+}
+function recStop(){
+  if(!RECST.on)return;
+  RECST.on=false;
+  cancelAnimationFrame(RECST.raf);
+  clearInterval(RECST.timer);
+  bRec.classList.remove('rec-on');
+  bRec.textContent=t('rec_hint');
+  try{RECST.mr.stop();}catch(_){}
+}
+async function recFinish(){
+  const blob=new Blob(RECST.chunks,{type:RECST.mime||'video/mp4'});
+  RECST.chunks=[];
+  if(!blob.size)return;
+  const file=new File([blob],'coachdm-hyrox.'+RECST.ext,{type:blob.type});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:'Coach DM'});return;}catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=file.name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),6000);
+  alert(t('rec_dl'));
+}
+bRec.onclick=()=>{RECST.on?recStop():recStart();};
+
+/* ───────── Sauvegarde Supabase (session partagée avec l'app) ───────── */
+import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient})=>{
+  const sbClient=createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
+  SB=sbClient;
+  let UID=null;
+  sbClient.auth.getSession().then(async({data})=>{
+    UID=data?.session?.user?.id||null;
+    UIDG=UID;
+    if(UID){
+      try{
+        const {data:ok}=await sbClient.rpc('fn_can_analyze',{p_user:UID});
+        ENT.known=true;ENT.ok=!!ok;
+      }catch(_){ENT.known=true;ENT.ok=false;}
+    }else{ENT.known=true;ENT.ok=false;}
+    PRO=ENT.ok;
+    proUI();
+  });
+  const btn=$('#b-save');
+  btn.textContent=t('save');
+  btn.onclick=async()=>{
+    if(reps.length<5||btn.disabled)return;
+    if(!UID){alert(t('save_login'));return;}
+    btn.disabled=true;btn.textContent=t('saving');
+    const row={
+      user_id:UID,
+      movement:MV,
+      division:DIV,
+      target_reps:TARGET,
+      valid_reps:validReps().length,
+      no_reps:noReps,
+      duration_ms:Math.round(elapsed()),
+      cadence_rpm:cadenceNow(),
+      reps:reps.map(r=>({n:r.n,ok:r.valid,why:r.why,ms:Math.round(r.ms),gap:Math.round(r.gap)}))
+    };
+    if(PRO){
+      row.fade_pct=HYX.fade!=null?+HYX.fade.toFixed(1):null;
+      row.block_ms=Math.round(HYX.blockMs);
+      row.work_pct=HYX.workPct!=null?+HYX.workPct.toFixed(1):null;
+      row.penalty_s=HYX.penalty;
+    }
+    const {error}=await sbClient.from('hyrox_sets').insert(row);
+    if(error){btn.disabled=false;btn.textContent=t('save');alert(t('save_fail'));return;}
+    btn.textContent=t('saved');
+  };
+}).catch(()=>{ENT.known=true;ENT.ok=false;PRO=false;proUI();});
+
+applyLang();
+proUI();
+loadLogo();
+try{document.fonts.load('800 260px Outfit');document.fonts.load('700 44px Outfit');document.fonts.load('800 46px Outfit');}catch(_){}
+</script>
+</body>
+</html>
