@@ -824,16 +824,19 @@ function setStatus(key,force){
 
 /* ───────── Audio ───────── */
 let AC=null;
-function beep(freq,ms){
+function beep(freq,ms,type,gain){
   try{
     AC=AC||new (window.AudioContext||window.webkitAudioContext)();
     const o=AC.createOscillator(),g=AC.createGain();
-    o.frequency.value=freq;o.type='sine';
-    g.gain.setValueAtTime(0.12,AC.currentTime);
+    o.frequency.value=freq;o.type=type||'sine';
+    g.gain.setValueAtTime(gain||0.12,AC.currentTime);
     g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+ms/1000);
     o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+ms/1000);
   }catch(_){}
 }
+/* son rep valide (ding montant) vs no-rep (buzz grave) — clairement différents */
+function sndGood(){beep(880,90,'sine',0.16);setTimeout(()=>beep(1340,150,'sine',0.17),80);}
+function sndBad(){beep(300,200,'square',0.13);setTimeout(()=>beep(185,240,'square',0.13),95);}
 
 /* ═════════ Moteur de comptage HYROX ═════════
    Signal de décision : hauteur de hanche (y normalisé), PAS l'angle du genou.
@@ -965,7 +968,7 @@ function finishRep(ts){
   if(!valid)noReps++;
   lastRepTs=ts; lastEndTs=ts;
 
-  beep(valid?1320:400,valid?110:200);
+  valid?sndGood():sndBad();
   if(navigator.vibrate)navigator.vibrate(valid?55:[45,55,45]);
   stage.classList.toggle('bad',!valid);
   setTimeout(()=>stage.classList.remove('bad'),320);
@@ -1467,6 +1470,7 @@ function recMime(){
   for(const m of c){ if(window.MediaRecorder&&MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(m)) return m; }
   return '';
 }
+function recFmtT(){const s=Math.max(0,Math.round((performance.now()-RECST.t0)/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
 function recDrawFrame(){
   if(!RECST.on)return;
   const c=RECST.ctx,W=RECST.cv.width,H=RECST.cv.height;
@@ -1475,43 +1479,65 @@ function recDrawFrame(){
   try{c.drawImage(video,0,0,W,H);}catch(_){}
   try{c.drawImage(canvas,0,0,W,H);}catch(_){}
   c.restore();
-  /* compteur incrusté (haut gauche) */
+  /* ── filigrane diagonal répété sur TOUTE l'image (anti-recadrage) ── */
+  c.save();
+  c.globalAlpha=0.055;
+  c.translate(W/2,H/2);c.rotate(-28*Math.PI/180);c.translate(-W/2,-H/2);
+  const wm='COACH DM · coachdm.be';
+  const wsz=Math.round(H*0.024);
+  c.font='800 '+wsz+'px Outfit, sans-serif';
+  c.fillStyle='#FFFFFF';c.textAlign='left';c.textBaseline='middle';
+  const stepX=c.measureText(wm).width+Math.round(W*0.15), stepY=Math.round(H*0.182);
+  let row=0;
+  for(let y=-H*0.35;y<H*1.35;y+=stepY,row++){
+    const off=(row%2)?stepX/2:0;
+    for(let x=-W*0.35-off;x<W*1.35;x+=stepX){c.fillText(wm,x,y);}
+  }
+  c.restore();
+  /* ── reps (haut gauche) ── */
   const done=validReps().length;
-  const fs=Math.round(H*0.055);
-  c.font='800 '+fs+'px Outfit, sans-serif';
+  const fs=Math.round(H*0.058);
   c.textAlign='left';c.textBaseline='top';
   c.fillStyle='rgba(10,10,10,.55)';
-  c.fillRect(Math.round(W*0.025),Math.round(H*0.025),Math.round(W*0.36),Math.round(fs*1.9));
+  c.fillRect(Math.round(W*0.025),Math.round(H*0.025),Math.round(W*0.42),Math.round(fs*2.0));
+  c.font='800 '+fs+'px Outfit, sans-serif';c.fillStyle='#F5F5F4';
+  c.fillText(String(done),Math.round(W*0.045),Math.round(H*0.032));
+  c.font='700 '+Math.round(fs*0.40)+'px Outfit, sans-serif';c.fillStyle='#9CA3AF';
+  c.fillText(t('bigc_'+MV).toUpperCase(),Math.round(W*0.045),Math.round(H*0.032)+fs+2);
+  /* ── timer (haut droite) ── */
+  const tstr='⏱ '+recFmtT();
+  const tfs=Math.round(H*0.042);
+  c.font='800 '+tfs+'px Outfit, sans-serif';c.textAlign='right';c.textBaseline='top';
+  const tw=c.measureText(tstr).width, tpad=Math.round(tfs*0.5);
+  c.fillStyle='rgba(10,10,10,.55)';
+  c.fillRect(W-Math.round(W*0.03)-tw-tpad,Math.round(H*0.028),tw+tpad*2,Math.round(tfs*1.7));
   c.fillStyle='#F5F5F4';
-  c.fillText(String(done),Math.round(W*0.045),Math.round(H*0.03));
-  c.font='700 '+Math.round(fs*0.42)+'px Outfit, sans-serif';
-  c.fillStyle='#9CA3AF';
-  c.fillText(t('bigc_'+MV).toUpperCase(),Math.round(W*0.045),Math.round(H*0.03)+fs+4);
-  /* bandeau watermark (bas) */
-  const bh=Math.round(H*0.072);
-  c.fillStyle='rgba(10,10,10,.68)';
-  c.fillRect(0,H-bh,W,bh);
-  const pad=Math.round(bh*0.14), lr=bh-pad*2;
-  let tx=Math.round(W*0.03);
+  c.fillText(tstr,W-Math.round(W*0.03)-tpad,Math.round(H*0.028)+Math.round(tfs*0.35));
+  /* ── branding groupé sur UNE ligne (bas, centré) : logo + COACH DM + coachdm.be ── */
+  const bh=Math.round(H*0.078);
+  const p1='COACH DM', p2='   ·   coachdm.be';
+  const lfs=Math.round(bh*0.42);
+  c.textAlign='left';c.textBaseline='middle';
+  c.font='800 '+lfs+'px Outfit, sans-serif';const w1=c.measureText(p1).width;
+  c.font='700 '+lfs+'px Outfit, sans-serif';const w2=c.measureText(p2).width;
+  const lr=Math.round(bh*0.60), gp=Math.round(bh*0.22);
+  const totalW=lr+gp+w1+w2, bx=Math.round((W-totalW)/2), cyc=H-bh/2;
+  c.fillStyle='rgba(10,10,10,.62)';
+  c.fillRect(bx-Math.round(bh*0.34),H-bh+Math.round(bh*0.12),totalW+Math.round(bh*0.68),Math.round(bh*0.76));
+  let cx=bx;
   if(LOGO){
-    const cx2=tx+lr/2, cy2=H-bh/2;
-    c.save();c.beginPath();c.arc(cx2,cy2,lr/2,0,Math.PI*2);c.closePath();c.clip();
-    c.drawImage(LOGO,tx,H-bh+pad,lr,lr);c.restore();
-    c.lineWidth=2;c.strokeStyle='rgba(212,175,55,.85)';
-    c.beginPath();c.arc(cx2,cy2,lr/2+1,0,Math.PI*2);c.stroke();
-    tx+=lr+Math.round(bh*0.28);
+    c.save();c.beginPath();c.arc(cx+lr/2,cyc,lr/2,0,Math.PI*2);c.closePath();c.clip();
+    c.drawImage(LOGO,cx,cyc-lr/2,lr,lr);c.restore();
+    c.lineWidth=2;c.strokeStyle='rgba(212,175,55,.9)';
+    c.beginPath();c.arc(cx+lr/2,cyc,lr/2+1,0,Math.PI*2);c.stroke();
   }
-  const wfs=Math.round(bh*0.4);
-  c.textBaseline='middle';c.textAlign='left';
-  c.font='800 '+wfs+'px Outfit, sans-serif';
-  const gg=c.createLinearGradient(tx,0,tx+wfs*9,0);
+  cx+=lr+gp;
+  c.font='800 '+lfs+'px Outfit, sans-serif';
+  const gg=c.createLinearGradient(cx,0,cx+w1,0);
   gg.addColorStop(0,'#F6E27A');gg.addColorStop(.5,'#D4AF37');gg.addColorStop(1,'#A47F1E');
-  c.fillStyle=gg;
-  c.fillText('COACH DM',tx,H-bh/2);
-  c.font='600 '+Math.round(wfs*0.78)+'px Outfit, sans-serif';
-  c.fillStyle='#9CA3AF';
-  c.textAlign='right';
-  c.fillText('coachdm.be',W-Math.round(W*0.03),H-bh/2);
+  c.fillStyle=gg;c.fillText(p1,cx,cyc);
+  c.font='700 '+lfs+'px Outfit, sans-serif';c.fillStyle='#C9CDD3';
+  c.fillText(p2,cx+w1,cyc);
   RECST.raf=requestAnimationFrame(recDrawFrame);
 }
 function recStart(){

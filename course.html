@@ -85,6 +85,8 @@
   .btn:active{transform:scale(.97)}
   .btn.ghost{background:var(--surface);color:var(--txt);border:1px solid var(--line)}
   .btn[disabled]{opacity:.45;pointer-events:none}
+  .btn.rec-on{background:#EF4444;color:#fff;border:none;animation:recpulse 1.2s ease-in-out infinite}
+  @keyframes recpulse{0%,100%{opacity:1}50%{opacity:.72}}
 
   .result{
     margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;
@@ -206,6 +208,7 @@
   <button class="btn" id="b-start"></button>
   <button class="btn ghost" id="b-flip" disabled>⇄</button>
   <button class="btn ghost" id="b-reset" disabled></button>
+  <button class="btn ghost" id="b-rec" disabled style="flex:0 0 92px">⏺ REC</button>
 </div>
 
 <div class="result">
@@ -332,6 +335,10 @@ const I18N = {
   sh_osc:{fr:'OSCILL. (cm)',en:'OSCILL. (cm)',nl:'OSCILL. (cm)'},
   sh_gct:{fr:'CONTACT (ms)',en:'CONTACT (ms)',nl:'CONTACT (ms)'},
   sh_fail:{fr:'Partage impossible sur ce navigateur — image téléchargée.',en:'Sharing unavailable on this browser — image downloaded.',nl:'Delen niet beschikbaar in deze browser — afbeelding gedownload.'},
+  rec_hint:{fr:'⏺ REC',en:'⏺ REC',nl:'⏺ REC'},
+  rec_stop:{fr:'■ {t}',en:'■ {t}',nl:'■ {t}'},
+  rec_fail:{fr:'Enregistrement vidéo non supporté sur ce navigateur.',en:'Video recording not supported on this browser.',nl:'Video-opname wordt niet ondersteund in deze browser.'},
+  rec_dl:{fr:'Partage indisponible — vidéo téléchargée.',en:'Sharing unavailable — video downloaded.',nl:'Delen niet beschikbaar — video gedownload.'},
   b_ovs:{fr:'⚠ Overstride',en:'⚠ Overstride',nl:'⚠ Overstride'},
   vbt_gate_h:{fr:'Analyse Pro (Technique) — fonctionnalité Premium',en:'Pro Analysis (Technique) — Premium feature',nl:'Pro-analyse (Techniek) — Premium functie'},
   vbt_gate_p:{fr:'La cadence en direct et le compteur de pas sont gratuits pour tous. L\'Analyse Pro — inclinaison du tronc, oscillation verticale en cm, temps de contact au sol et détection de l\'overstride (pied qui atterrit trop loin devant) — est incluse dans l’abonnement. Abonne-toi directement ici, sans quitter la page.',en:'Live cadence and step counting are free for everyone. Pro Analysis — trunk lean, vertical oscillation in cm, ground contact time and overstride detection (foot landing too far ahead) — is for the subscription. Subscribe right here, without leaving the page.',nl:'Live cadans en stappen tellen zijn gratis voor iedereen. Pro-analyse — romphelling, verticale oscillatie in cm, grondcontacttijd en overstride-detectie (voet die te ver vooruit landt) — is voor de abonnement. Abonneer je hier, zonder de pagina te verlaten.'},
@@ -477,16 +484,18 @@ function setStatus(key,force){
 
 /* ───────── Audio ───────── */
 let AC=null;
-function beep(freq,ms){
+function beep(freq,ms,type,gain){
   try{
     AC=AC||new (window.AudioContext||window.webkitAudioContext)();
     const o=AC.createOscillator(),g=AC.createGain();
-    o.frequency.value=freq;o.type='sine';
-    g.gain.setValueAtTime(0.12,AC.currentTime);
+    o.frequency.value=freq;o.type=type||'sine';
+    g.gain.setValueAtTime(gain||0.12,AC.currentTime);
     g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+ms/1000);
     o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+ms/1000);
   }catch(_){}
 }
+function sndGood(){beep(880,90,'sine',0.16);setTimeout(()=>beep(1340,150,'sine',0.17),80);}
+function sndBad(){beep(300,200,'square',0.13);setTimeout(()=>beep(185,240,'square',0.13),95);}
 
 /* ───────── Analyse Pro course : calibration & état ─────────
    Échelle métrique : hauteur du grand trochanter ≈ 0.53 × stature (anthropométrie).
@@ -836,7 +845,7 @@ async function start(){
   }
   running=true;lastTs=-1;
   bStart.textContent=t('stop');bStart.disabled=false;
-  bFlip.disabled=false;bReset.disabled=false;
+  bFlip.disabled=false;bReset.disabled=false;bRec.disabled=false;bRec.textContent=t('rec_hint');
   S.mode='ready';S.lastGoodTs=0;S.good=0;lastFrameTs=null;
   FEET.l.g=null;FEET.l.air=false;FEET.r.g=null;FEET.r.air=false;
   VBT.hip0=null;VBT.an0=null;VBT.scale=null;
@@ -845,6 +854,7 @@ async function start(){
 }
 function stop(){
   running=false;
+  recStop();bRec.disabled=true;
   if(stream){stream.getTracks().forEach(tr=>tr.stop());stream=null;}
   try{wakeLock&&wakeLock.release();}catch(_){}
   wakeLock=null;
@@ -1066,6 +1076,128 @@ async function shGo(){
 document.getElementById('b-share').onclick=()=>{if(steps>10)shGo();};
 
 /* ───────── Sauvegarde Supabase (session partagée avec l'app) ───────── */
+
+/* ═════════ REC — vidéo watermarkée, 100% locale ═════════ */
+const RECST={on:false,mr:null,chunks:[],cv:null,ctx:null,raf:0,t0:0,timer:0,mime:'',ext:'mp4'};
+const bRec=$('#b-rec');
+function recMime(){
+  const c=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm'];
+  for(const m of c){ if(window.MediaRecorder&&MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(m)) return m; }
+  return '';
+}
+function recFmtT(){const s=Math.max(0,Math.round((performance.now()-RECST.t0)/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function recDrawFrame(){
+  if(!RECST.on)return;
+  const c=RECST.ctx,W=RECST.cv.width,H=RECST.cv.height;
+  c.save();
+  if(facing==='user'){c.translate(W,0);c.scale(-1,1);}
+  try{c.drawImage(video,0,0,W,H);}catch(_){}
+  try{c.drawImage(canvas,0,0,W,H);}catch(_){}
+  c.restore();
+  c.save();
+  c.globalAlpha=0.055;
+  c.translate(W/2,H/2);c.rotate(-28*Math.PI/180);c.translate(-W/2,-H/2);
+  const wm='COACH DM · coachdm.be';
+  c.font='800 '+Math.round(H*0.024)+'px Outfit, sans-serif';
+  c.fillStyle='#FFFFFF';c.textAlign='left';c.textBaseline='middle';
+  const stepX=c.measureText(wm).width+Math.round(W*0.15), stepY=Math.round(H*0.182);
+  let row=0;
+  for(let y=-H*0.35;y<H*1.35;y+=stepY,row++){
+    const off=(row%2)?stepX/2:0;
+    for(let x=-W*0.35-off;x<W*1.35;x+=stepX){c.fillText(wm,x,y);}
+  }
+  c.restore();
+  const done=((typeof cadence!=='undefined'&&cadence!=null)?Math.round(cadence):0);
+  const fs=Math.round(H*0.058);
+  c.textAlign='left';c.textBaseline='top';
+  c.fillStyle='rgba(10,10,10,.55)';
+  c.fillRect(Math.round(W*0.025),Math.round(H*0.025),Math.round(W*0.42),Math.round(fs*2.0));
+  c.font='800 '+fs+'px Outfit, sans-serif';c.fillStyle='#F5F5F4';
+  c.fillText(String(done),Math.round(W*0.045),Math.round(H*0.032));
+  c.font='700 '+Math.round(fs*0.40)+'px Outfit, sans-serif';c.fillStyle='#9CA3AF';
+  c.fillText(t('sh_cad').toUpperCase(),Math.round(W*0.045),Math.round(H*0.032)+fs+2);
+  const tstr='⏱ '+recFmtT();
+  const tfs=Math.round(H*0.042);
+  c.font='800 '+tfs+'px Outfit, sans-serif';c.textAlign='right';c.textBaseline='top';
+  const tw=c.measureText(tstr).width, tpad=Math.round(tfs*0.5);
+  c.fillStyle='rgba(10,10,10,.55)';
+  c.fillRect(W-Math.round(W*0.03)-tw-tpad,Math.round(H*0.028),tw+tpad*2,Math.round(tfs*1.7));
+  c.fillStyle='#F5F5F4';
+  c.fillText(tstr,W-Math.round(W*0.03)-tpad,Math.round(H*0.028)+Math.round(tfs*0.35));
+  const bh=Math.round(H*0.078);
+  const p1='COACH DM', p2='   ·   coachdm.be';
+  const lfs=Math.round(bh*0.42);
+  c.textAlign='left';c.textBaseline='middle';
+  c.font='800 '+lfs+'px Outfit, sans-serif';const w1=c.measureText(p1).width;
+  c.font='700 '+lfs+'px Outfit, sans-serif';const w2=c.measureText(p2).width;
+  const lr=Math.round(bh*0.60), gp=Math.round(bh*0.22);
+  const totalW=lr+gp+w1+w2, bx=Math.round((W-totalW)/2), cyc=H-bh/2;
+  c.fillStyle='rgba(10,10,10,.62)';
+  c.fillRect(bx-Math.round(bh*0.34),H-bh+Math.round(bh*0.12),totalW+Math.round(bh*0.68),Math.round(bh*0.76));
+  let cx=bx;
+  if(LOGO){
+    c.save();c.beginPath();c.arc(cx+lr/2,cyc,lr/2,0,Math.PI*2);c.closePath();c.clip();
+    c.drawImage(LOGO,cx,cyc-lr/2,lr,lr);c.restore();
+    c.lineWidth=2;c.strokeStyle='rgba(212,175,55,.9)';
+    c.beginPath();c.arc(cx+lr/2,cyc,lr/2+1,0,Math.PI*2);c.stroke();
+  }
+  cx+=lr+gp;
+  c.font='800 '+lfs+'px Outfit, sans-serif';
+  const gg=c.createLinearGradient(cx,0,cx+w1,0);
+  gg.addColorStop(0,'#F6E27A');gg.addColorStop(.5,'#D4AF37');gg.addColorStop(1,'#A47F1E');
+  c.fillStyle=gg;c.fillText(p1,cx,cyc);
+  c.font='700 '+lfs+'px Outfit, sans-serif';c.fillStyle='#C9CDD3';
+  c.fillText(p2,cx+w1,cyc);
+  RECST.raf=requestAnimationFrame(recDrawFrame);
+}
+function recStart(){
+  if(RECST.on||!running)return;
+  const mime=recMime();
+  if(!mime){alert(t('rec_fail'));return;}
+  RECST.mime=mime;RECST.ext=mime.indexOf('mp4')>=0?'mp4':'webm';
+  RECST.cv=document.createElement('canvas');
+  RECST.cv.width=canvas.width||720;RECST.cv.height=canvas.height||960;
+  RECST.ctx=RECST.cv.getContext('2d');
+  let strm=null;
+  try{strm=RECST.cv.captureStream(30);}catch(_){alert(t('rec_fail'));return;}
+  RECST.chunks=[];
+  try{RECST.mr=new MediaRecorder(strm,{mimeType:mime,videoBitsPerSecond:5_000_000});}
+  catch(_){try{RECST.mr=new MediaRecorder(strm);}catch(__){alert(t('rec_fail'));return;}}
+  RECST.mr.ondataavailable=e=>{if(e.data&&e.data.size)RECST.chunks.push(e.data);};
+  RECST.mr.onstop=recFinish;
+  RECST.on=true;RECST.t0=performance.now();
+  RECST.mr.start(1000);
+  recDrawFrame();
+  bRec.classList.add('rec-on');
+  RECST.timer=setInterval(()=>{
+    const sec=Math.round((performance.now()-RECST.t0)/1000);
+    bRec.textContent=t('rec_stop').replace('{t}',Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'));
+  },500);
+}
+function recStop(){
+  if(!RECST.on)return;
+  RECST.on=false;
+  cancelAnimationFrame(RECST.raf);
+  clearInterval(RECST.timer);
+  bRec.classList.remove('rec-on');
+  bRec.textContent=t('rec_hint');
+  try{RECST.mr.stop();}catch(_){}
+}
+async function recFinish(){
+  const blob=new Blob(RECST.chunks,{type:RECST.mime||'video/mp4'});
+  RECST.chunks=[];
+  if(!blob.size)return;
+  const file=new File([blob],'coachdm-course.'+RECST.ext,{type:blob.type});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:'Coach DM'});return;}catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=file.name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),6000);
+  alert(t('rec_dl'));
+}
+bRec.onclick=()=>{RECST.on?recStop():recStart();};
+
 import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient})=>{
   const sbClient=createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
   SB=sbClient;
