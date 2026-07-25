@@ -115,6 +115,9 @@
   .help li{margin:0 0 6px 16px}
   .pdiag{width:100%;max-width:300px;display:block;margin:8px auto 2px}
   .note{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5}
+  .sjwarn{background:rgba(212,175,55,.10);border:1px solid rgba(212,175,55,.35);border-radius:12px;
+    padding:12px 14px;font-size:13px;line-height:1.55;color:var(--txt)}
+  .sjwarn b{color:var(--gold)}
 
   footer{margin-top:22px;text-align:center;color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.02em}
   footer b{color:var(--gold)}
@@ -263,6 +266,7 @@
 
 <div class="fvcard" id="fv-capture" style="display:none">
   <h3 id="fv-cap-h"></h3>
+  <div class="sjwarn" id="fv-sj-warn" style="margin-bottom:12px"></div>
   <div class="loadchips" id="loadchips"></div>
   <div class="fvbig">
     <div class="bl" id="fv-cap-lbl"></div>
@@ -362,7 +366,7 @@ const I18N = {
   help_h:{fr:'Comment ça marche',en:'How it works',nl:'Hoe het werkt'},
   help_1:{fr:'Téléphone posé ou sur trépied, stable, à 2–4 m. Corps entier dans le cadre.',en:'Phone resting or on a tripod, stable, 2–4 m away. Full body in frame.',nl:'Telefoon neergezet of op statief, stabiel, op 2–4 m. Hele lichaam in beeld.'},
   help_2:{fr:'Reste immobile ~1 s : l\'IA calibre ta position au sol.',en:'Stand still ~1 s: the AI calibrates your ground position.',nl:'Sta ~1 s stil: de AI kalibreert je grondpositie.'},
-  help_3:{fr:'Saute (contre-mouvement libre) et atterris jambes tendues, même position qu\'au décollage.',en:'Jump (free countermovement) and land with legs extended, same position as takeoff.',nl:'Spring (vrije countermovement) en land met gestrekte benen, zelfde positie als bij de afzet.'},
+  help_3:{fr:'Test simple : saute (contre-mouvement libre) et atterris jambes tendues, même position qu\'au décollage. <b>Profil Force-Vitesse : squat jump uniquement, sans contre-mouvement</b> (méthode Samozino).',en:'Simple test: jump (free countermovement) and land with legs extended, same position as takeoff. <b>Force-Velocity profile: squat jump only, no countermovement</b> (Samozino method).',nl:'Eenvoudige test: spring (vrije countermovement) en land met gestrekte benen, zelfde positie als bij de afzet. <b>Kracht-Snelheidsprofiel: enkel squat jump, geen tegenbeweging</b> (Samozino-methode).'},
   help_4:{fr:'La hauteur s\'affiche après l\'atterrissage. Enchaîne autant de sauts que tu veux.',en:'Your height shows after landing. Chain as many jumps as you like.',nl:'Je hoogte verschijnt na de landing. Doe zoveel sprongen als je wilt.'},
   place_h:{fr:'📐 Placement caméra — précision maximale',en:'📐 Camera placement — maximum accuracy',nl:'📐 Cameraplaatsing — maximale nauwkeurigheid'},
   place_1:{fr:'De face (0°), orteils bien visibles : la mesure part des pointes de pieds.',en:'Front-on (0°), toes clearly visible: the measurement starts from the toe tips.',nl:'Frontaal (0°), tenen goed zichtbaar: de meting vertrekt vanaf de teenpunten.'},
@@ -407,6 +411,7 @@ const I18N = {
   fv_hpo_err:{fr:'hPO hors limites — vérifie tes deux mesures',en:'hPO out of range — check your two measurements',nl:'hPO buiten bereik — controleer je twee metingen'},
   fv_go:{fr:'Commencer le protocole',en:'Start protocol',nl:'Protocol starten'},
   fv_cap_h:{fr:'Protocole — saute à chaque charge',en:'Protocol — jump at each load',nl:'Protocol — spring bij elke belasting'},
+  fv_sj:{fr:'<b>Squat jump obligatoire — aucun contre-mouvement.</b> Descends à ta position hPO, <b>tiens 2 s immobile</b>, puis saute sans rebond. La méthode Samozino calcule la force à partir de ta distance de poussée mesurée : un contre-mouvement change cette distance et ajoute du retour élastique, ce qui fausse F0, V0 et la pente. Le test de hauteur simple, lui, accepte le contre-mouvement.',en:'<b>Squat jump only — no countermovement.</b> Descend to your hPO position, <b>hold still for 2 s</b>, then jump without rebounding. The Samozino method derives force from your measured push-off distance: a countermovement changes that distance and adds elastic return, which invalidates F0, V0 and the slope. The simple height test does allow a countermovement.',nl:'<b>Enkel squat jump — geen tegenbeweging.</b> Zak naar je hPO-positie, <b>houd 2 s stil</b>, spring dan zonder terugvering. De Samozino-methode leidt de kracht af uit je gemeten afzetafstand: een tegenbeweging verandert die afstand en voegt elastische energie toe, wat F0, V0 en de helling ongeldig maakt. De eenvoudige hoogtetest laat een tegenbeweging wel toe.'},
   fv_cur_load:{fr:'Charge actuelle',en:'Current load',nl:'Huidige belasting'},
   fv_best_none:{fr:'Aucun saut à cette charge',en:'No jump at this load yet',nl:'Nog geen sprong bij deze belasting'},
   fv_best_at:{fr:'Meilleur',en:'Best',nl:'Beste'},
@@ -461,7 +466,7 @@ function applyLang(){
   $('#help-h').textContent=t('help_h');
   $('#help-ol').innerHTML='';
   ['help_1','help_2','help_3','help_4'].forEach(k=>{
-    const li=document.createElement('li'); li.textContent=t(k); $('#help-ol').appendChild(li);
+    const li=document.createElement('li'); li.innerHTML=t(k); $('#help-ol').appendChild(li);   /* help_3 contient <b> */
   });
   $('#help-note').textContent=t('help_note');
   $('#place-h').textContent=t('place_h');
@@ -485,6 +490,7 @@ function applyLang(){
   $('#l-loads').textContent=t('fv_loads');
   $('#b-fv-start').textContent=t('fv_go');
   $('#fv-cap-h').textContent=t('fv_cap_h');
+  { const w=$('#fv-sj-warn'); if(w) w.innerHTML=t('fv_sj'); }
   $('#fv-cap-lbl').textContent=t('fv_cur_load');
   $('#b-fv-next').textContent=t('fv_next');
   $('#b-fv-finish').textContent=t('fv_finish');

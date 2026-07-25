@@ -294,7 +294,7 @@
     <div class="m"><div class="v"><span id="v-fade">—</span><small> %</small></div><div class="k" id="k-fade"></div></div>
     <div class="m"><div class="v"><span id="v-block">—</span><small> s</small></div><div class="k" id="k-block"></div></div>
     <div class="m"><div class="v"><span id="v-work">—</span><small> %</small></div><div class="k" id="k-work"></div></div>
-    <div class="m"><div class="v"><span id="v-pen">—</span><small> s</small></div><div class="k" id="k-pen"></div></div>
+    <div class="m"><div class="v"><span id="v-cons">—</span><small> %</small></div><div class="k" id="k-cons"></div></div>
   </div>
   <div class="vbar" id="v-bar"><i id="v-fill"></i><span class="vmark"></span></div>
   <div class="vscale"><span>0%</span><span id="vs-mid"></span><span>50%</span></div>
@@ -344,7 +344,7 @@
   <summary id="pace-h"></summary>
   <div class="rule" id="pace-intro"></div>
   <div class="vrow" style="margin-top:12px">
-    <div class="vfield"><label id="l-goal"></label><input id="in-goal" type="text" inputmode="numeric" placeholder="1:20:00"></div>
+    <div class="vfield"><label id="l-goal"></label><input id="in-goal" type="text" inputmode="numeric" placeholder="80"></div>
     <div class="vfield"><label id="l-goaldiv"></label><input id="in-goalshow" type="text" readonly value="—" style="opacity:.7"></div>
   </div>
   <table class="tbl">
@@ -458,7 +458,7 @@ const I18N = {
   b_samesid:{fr:'⚠ Non alternée',en:'⚠ Not alternating',nl:'⚠ Niet afwisselend'},
 
   vbt_gate_h:{fr:'Analyse Pro (Pacing) — fonctionnalité Premium',en:'Pro Analysis (Pacing) — Premium feature',nl:'Pro-analyse (Pacing) — Premium functie'},
-  vbt_gate_p:{fr:'Le compteur de reps, les no-reps, la cadence en direct et la projection de fin de station sont gratuits pour tous. L\'Analyse Pro — chute de cadence (fade), temps de blocage cumulé, ratio de travail effectif et pénalité estimée — est incluse dans l’abonnement. Abonne-toi directement ici, sans quitter la page.',en:'Rep counting, no-reps, live cadence and the station finish projection are free for everyone. Pro Analysis — cadence drop (fade), cumulative rest time, effective work ratio and estimated penalty — is for the subscription. Subscribe right here, without leaving the page.',nl:'Reps tellen, no-reps, live cadans en de projectie van het stationseinde zijn gratis voor iedereen. Pro-analyse — cadansverlies (fade), cumulatieve rusttijd, effectieve werkratio en geschatte straf — is voor de abonnement. Abonneer je hier, zonder de pagina te verlaten.'},
+  vbt_gate_p:{fr:'Le compteur de reps, les no-reps, la cadence en direct et la projection de fin de station sont gratuits pour tous. L\'Analyse Pro — chute de cadence (fade), temps de blocage cumulé, ratio de travail effectif et régularité de cadence — est incluse dans l’abonnement. Abonne-toi directement ici, sans quitter la page.',en:'Rep counting, no-reps, live cadence and the station finish projection are free for everyone. Pro Analysis — cadence drop (fade), cumulative rest time, effective work ratio and cadence consistency — is for the subscription. Subscribe right here, without leaving the page.',nl:'Reps tellen, no-reps, live cadans en de projectie van het stationseinde zijn gratis voor iedereen. Pro-analyse — cadansverlies (fade), cumulatieve rusttijd, effectieve werkratio en cadansregelmaat — is voor de abonnement. Abonneer je hier, zonder de pagina te verlaten.'},
   pw_year:{fr:'/an',en:'/year',nl:'/jaar'},
   pw_membre_f:{fr:'Membre Fondateur',en:'Founding Member',nl:'Oprichtend lid'},
   pw_membre:{fr:'Membre',en:'Member',nl:'Lid'},
@@ -474,7 +474,7 @@ const I18N = {
   pw_consent:{fr:'Je demande l\'accès immédiat au service et je reconnais qu\'en démarrant maintenant, je renonce à mon droit de rétractation de 14 jours dès l\'ouverture de mon accès premium (art. VI.53 du Code de droit économique).',en:'I request immediate access to the service and acknowledge that by starting now, I waive my 14-day right of withdrawal as soon as my premium access is opened (art. VI.53 of the Belgian Code of Economic Law).',nl:'Ik vraag onmiddellijke toegang tot de dienst en erken dat ik, door nu te starten, afstand doe van mijn herroepingsrecht van 14 dagen zodra mijn premium-toegang wordt geopend (art. VI.53 van het Wetboek van economisch recht).'},
   pw_continue:{fr:'Continuer vers le paiement',en:'Continue to payment',nl:'Doorgaan naar betaling'},
   pw_fail:{fr:'Paiement indisponible. Réessaie dans un instant.',en:'Payment unavailable. Try again shortly.',nl:'Betaling niet beschikbaar. Probeer straks opnieuw.'},
-  vbt_gate_p_native:{fr:'Le compteur de reps, les no-reps, la cadence en direct et la projection de fin de station sont gratuits pour tous. L\'Analyse Pro — chute de cadence (fade), temps de blocage cumulé, ratio de travail effectif et pénalité estimée — est incluse dans l\u2019abonnement. Les abonnements ne sont pas disponibles dans cette version de l\u2019app.',en:'Rep counting, no-reps, live cadence and the station finish projection are free for everyone. Pro Analysis — cadence drop (fade), cumulative rest time, effective work ratio and estimated penalty — is included with the subscription. Subscriptions are not available in this version of the app.',nl:'Reps tellen, no-reps, live cadans en de projectie van het stationseinde zijn gratis voor iedereen. Pro-analyse — cadansverlies (fade), cumulatieve rusttijd, effectieve werkratio en geschatte straf — is inbegrepen in het abonnement. Abonnementen zijn niet beschikbaar in deze versie van de app.'},
+  vbt_gate_p_native:{fr:'Le compteur de reps, les no-reps, la cadence en direct et la projection de fin de station sont gratuits pour tous. L\'Analyse Pro — chute de cadence (fade), temps de blocage cumulé, ratio de travail effectif et régularité de cadence — est incluse dans l\u2019abonnement. Les abonnements ne sont pas disponibles dans cette version de l\u2019app.',en:'Rep counting, no-reps, live cadence and the station finish projection are free for everyone. Pro Analysis — cadence drop (fade), cumulative rest time, effective work ratio and cadence consistency — is included with the subscription. Subscriptions are not available in this version of the app.',nl:'Reps tellen, no-reps, live cadans en de projectie van het stationseinde zijn gratis voor iedereen. Pro-analyse — cadansverlies (fade), cumulatieve rusttijd, effectieve werkratio en cadansregelmaat — is inbegrepen in het abonnement. Abonnementen zijn niet beschikbaar in deze versie van de app.'},
   rec_hint:{fr:'⏺ REC',en:'⏺ REC',nl:'⏺ REC'},
   rec_stop:{fr:'■ {t}',en:'■ {t}',nl:'■ {t}'},
   rec_ready:{fr:'Vidéo prête — partage-la ou enregistre-la dans ta galerie.',en:'Video ready — share it or save it to your gallery.',nl:'Video klaar — deel hem of bewaar hem in je galerij.'},
@@ -487,13 +487,13 @@ const I18N = {
   src_disc:{fr:'Contenu informatif d\u2019entraînement — ne remplace pas un avis médical ni le jugement d\u2019un juge officiel en compétition.',en:'Training information only — not a substitute for medical advice or an official judge\u2019s call in competition.',nl:'Informatieve trainingsinhoud — geen vervanging voor medisch advies of het oordeel van een officiële jury in wedstrijd.'},
 
   vbt_h:{fr:'Analyse Pro — Pacing de station',en:'Pro Analysis — Station pacing',nl:'Pro-analyse — Stationpacing'},
-  vbt_hint:{fr:'En direct : le fade (chute de cadence par rapport à tes 10 premières reps), le temps de blocage cumulé (chaque pause de plus de 3 s), le ratio de travail effectif et la pénalité estimée (15 s par rep manquante au règlement HYROX 25/26). Le fade au-delà de 25% signale que ton plan de coupe est en train de partir.',en:'Live: fade (cadence drop versus your first 10 reps), cumulative rest time (every pause over 3 s), effective work ratio and estimated penalty (15 s per missing rep under the 25/26 HYROX rulebook). Fade beyond 25% means your break plan is falling apart.',nl:'Live: fade (cadansdaling t.o.v. je eerste 10 reps), cumulatieve rusttijd (elke pauze langer dan 3 s), effectieve werkratio en geschatte straf (15 s per ontbrekende rep volgens het HYROX-reglement 25/26). Fade boven 25% betekent dat je breukplan uit elkaar valt.'},
+  vbt_hint:{fr:'En direct : le fade (chute de cadence par rapport à tes 10 premières reps), le temps de blocage cumulé (chaque pause de plus de 3 s), le ratio de travail effectif et la régularité de ta cadence. Le fade au-delà de 25% signale que ton plan de coupe est en train de partir.',en:'Live: fade (cadence drop versus your first 10 reps), cumulative rest time (every pause over 3 s), effective work ratio and cadence consistency. Fade beyond 25% means your break plan is falling apart.',nl:'Live: fade (cadansdaling t.o.v. je eerste 10 reps), cumulatieve rusttijd (elke pauze langer dan 3 s), effectieve werkratio en cadansregelmaat. Fade boven 25% betekent dat je breukplan uit elkaar valt.'},
   vbt_fade:{fr:'Fade',en:'Fade',nl:'Fade'},
   vbt_block:{fr:'Blocage',en:'Rest',nl:'Rust'},
   vbt_work:{fr:'Travail',en:'Work',nl:'Werk'},
-  vbt_pen:{fr:'Pénalité',en:'Penalty',nl:'Straf'},
+  vbt_cons:{fr:'Régularité',en:'Consistency',nl:'Regelmaat'},
   vbt_stop:{fr:'⛔ Fade supérieur à 25% — ta cadence s\'écroule. Coupe MAINTENANT sur un nombre fixe (10 à 15 reps) avec un repos court et régulier : tu finiras plus vite qu\'en t\'accrochant jusqu\'à l\'arrêt total.',en:'⛔ Fade above 25% — your cadence is collapsing. Break NOW on a fixed number (10 to 15 reps) with short, regular rests: you will finish faster than by hanging on until a full stop.',nl:'⛔ Fade boven 25% — je cadans stort in. Breek NU op een vast aantal (10 tot 15 reps) met korte, regelmatige rust: zo finish je sneller dan door door te gaan tot volledige stilstand.'},
-  vbt_note:{fr:'Le fade compare la cadence de tes 5 dernières reps à celle de tes reps 3 à 12. La pénalité estimée applique 15 s par rep manquante sur l\'objectif choisi (règlement HYROX Singles 25/26). Indicatif : seul un juge officiel valide une rep en course.',en:'Fade compares the cadence of your last 5 reps to that of reps 3 to 12. Estimated penalty applies 15 s per missing rep against the chosen target (HYROX Singles Rulebook 25/26). Indicative only: only an official judge validates a rep in a race.',nl:'Fade vergelijkt de cadans van je laatste 5 reps met die van reps 3 tot 12. De geschatte straf past 15 s per ontbrekende rep toe op het gekozen doel (HYROX Singles Rulebook 25/26). Indicatief: alleen een officiële jury keurt een rep in wedstrijd goed.'},
+  vbt_note:{fr:'Le fade compare la cadence de tes 5 dernières reps à celle de tes reps 3 à 12. La régularité est la stabilité de tes intervalles : 100 % = métronome. Un no-rep n\'ajoute aucune pénalité ici — il ne compte simplement pas, comme en course. Indicatif : seul un juge officiel valide une rep.',en:'Fade compares the cadence of your last 5 reps to that of reps 3 to 12. Consistency is the stability of your intervals: 100% = metronome. A no-rep adds no penalty here — it simply does not count, as in a race. Indicative only: only an official judge validates a rep.',nl:'Fade vergelijkt de cadans van je laatste 5 reps met die van reps 3 tot 12. Regelmaat is de stabiliteit van je intervallen: 100% = metronoom. Een no-rep voegt hier geen straf toe — hij telt gewoon niet, net als in wedstrijd. Indicatief: alleen een officiële jury keurt een rep goed.'},
   pro_note:{fr:'Analyse Pro \u2014 incluse dans l\u2019abonnement',en:'Pro Analysis \u2014 included with your subscription',nl:'Pro-analyse \u2014 inbegrepen in je abonnement'},
 
   /* ── Format ── */
@@ -517,7 +517,7 @@ const I18N = {
   std_wb_2:{fr:'<b>La hanche doit descendre sous le genou</b> à chaque rep. Une box de contrôle peut être utilisée par le juge pour vérifier la profondeur.',en:'<b>The hip must drop below the knee</b> on every rep. A depth box may be used by the judge to verify.',nl:'<b>De heup moet onder de knie zakken</b> bij elke rep. Een controlebox kan door de jury worden gebruikt.'},
   std_wb_3:{fr:'La balle doit <b>toucher le centre de la cible</b> : 3,00 m pour les hommes, 2,70 m pour les femmes — la hauteur dépend du genre, pas de la division.',en:'The ball must <b>strike the centre of the target</b>: 3.00 m for men, 2.70 m for women — height depends on gender, not division.',nl:'De bal moet <b>het midden van het doel raken</b>: 3,00 m voor mannen, 2,70 m voor vrouwen — de hoogte hangt af van geslacht, niet van divisie.'},
   std_wb_4:{fr:'Extension complète de hanche au lancer. Tu peux rattraper la balle ou la laisser tomber avant la rep suivante.',en:'Full hip extension on the throw. You may catch the ball or let it drop before the next rep.',nl:'Volledige heupextensie bij de worp. Je mag de bal vangen of laten vallen voor de volgende rep.'},
-  std_wb_5:{fr:'<span class="pen">15 s de pénalité par rep manquante.</span> Si tu quittes la station avant le compte, tu n\'es pas rappelé — la pénalité s\'applique directement.',en:'<span class="pen">15 s penalty per missing rep.</span> If you leave the station short, you are not called back — the penalty applies directly.',nl:'<span class="pen">15 s straf per ontbrekende rep.</span> Verlaat je het station te vroeg, dan word je niet teruggeroepen — de straf geldt meteen.'},
+  std_wb_5:{fr:'Un <b>no-rep n\'est pas une pénalité</b> : la rep ne compte pas, tu la refais. En revanche, <span class="pen">quitter la station avant le compte</span> est une infraction sanctionnée — tu n\'es pas rappelé. La saison 25/26 applique des pénalités en temps ; le barème exact figure au rulebook officiel.',en:'A <b>no-rep is not a penalty</b>: the rep does not count, you redo it. However, <span class="pen">leaving the station short</span> is a sanctioned infringement — you are not called back. The 25/26 season applies time penalties; the exact scale is in the official rulebook.',nl:'Een <b>no-rep is geen straf</b>: de rep telt niet, je doet hem opnieuw. Maar <span class="pen">het station te vroeg verlaten</span> is wel een overtreding — je wordt niet teruggeroepen. Seizoen 25/26 hanteert tijdstraffen; de exacte schaal staat in het officiële rulebook.'},
   std_bbj:{fr:'Burpee Broad Jump',en:'Burpee Broad Jump',nl:'Burpee Broad Jump'},
   std_bbj_1:{fr:'<b>La poitrine doit toucher le sol</b> à chaque burpee, mains posées derrière la ligne de départ au premier.',en:'<b>The chest must touch the floor</b> on every burpee, hands behind the start line on the first one.',nl:'<b>De borst moet de grond raken</b> bij elke burpee, handen achter de startlijn bij de eerste.'},
   std_bbj_2:{fr:'Décollage et réception <b>pieds parallèles</b>, les deux pieds quittent et touchent le sol en même temps. Pas de pas traînés.',en:'Take-off and landing with <b>feet parallel</b>, both feet leaving and landing together. No shuffled steps.',nl:'Afzet en landing met <b>voeten parallel</b>, beide voeten tegelijk los en neer. Geen sleepstappen.'},
@@ -538,8 +538,8 @@ const I18N = {
 
   /* ── Pacing ── */
   pace_h:{fr:'Stratégie & calculateur de splits',en:'Strategy & splits calculator',nl:'Strategie & splitscalculator'},
-  pace_intro:{fr:'Entre ton objectif de temps final : la répartition ci-dessous est calculée à partir des temps de référence publiés par station. Elle te donne une cible par segment plutôt qu\'un chiffre global qui ne t\'aide pas pendant la course.',en:'Enter your goal finish time: the breakdown below is computed from published per-station reference times. It gives you a target per segment instead of one global number that does not help you mid-race.',nl:'Vul je doeltijd in: de verdeling hieronder wordt berekend op basis van gepubliceerde referentietijden per station. Je krijgt een doel per segment in plaats van één globaal getal dat je tijdens de race niet helpt.'},
-  l_goal:{fr:'Objectif (h:mm:ss)',en:'Goal (h:mm:ss)',nl:'Doel (u:mm:ss)'},
+  pace_intro:{fr:'Entre ton objectif de temps final <b>en minutes</b> — 80 pour 1 h 20, 95 pour 1 h 35. La répartition ci-dessous est calculée à partir des temps de référence publiés par station. Elle te donne une cible par segment plutôt qu\'un chiffre global qui ne t\'aide pas pendant la course.',en:'Enter your goal finish time <b>in minutes</b> — 80 for 1 h 20, 95 for 1 h 35. The breakdown below is computed from published per-station reference times. It gives you a target per segment instead of one global number that does not help you mid-race.',nl:'Vul je doeltijd <b>in minuten</b> in — 80 voor 1 u 20, 95 voor 1 u 35. De verdeling hieronder wordt berekend op basis van gepubliceerde referentietijden per station. Je krijgt een doel per segment in plaats van één globaal getal dat je tijdens de race niet helpt.'},
+  l_goal:{fr:'Objectif — total en minutes',en:'Goal — total in minutes',nl:'Doel — totaal in minuten'},
   l_goaldiv:{fr:'Total course',en:'Total race',nl:'Totaal race'},
   th_seg:{fr:'Segment',en:'Segment',nl:'Segment'},
   th_tgt:{fr:'Cible',en:'Target',nl:'Doel'},
@@ -550,7 +550,7 @@ const I18N = {
   tip_1:{fr:'✓ Ne commence à attaquer qu\'aux wall balls. Rends deux minutes sur les sept premières stations pour en reprendre deux et demie à la fin : la plupart du temps perdu en HYROX ne vient pas d\'une faiblesse aux wall balls mais d\'un départ trop rapide.',en:'✓ Only start attacking at the wall balls. Give back two minutes across the first seven stations to take back two and a half at the end: most time lost in HYROX comes from starting too fast, not from being weak at wall balls.',nl:'✓ Val pas aan vanaf de wall balls. Geef twee minuten weg over de eerste zeven stations om er op het einde tweeënhalve terug te pakken: de meeste verloren tijd in HYROX komt van te snel starten, niet van zwakke wall balls.'},
   tip_2:{fr:'✓ Fixe ton plan de coupe AVANT la course, pas en cours de station. Un nombre que tu tiens à coup sûr (20, 15 ou 10 reps) avec un repos identique à chaque fois bat toujours l\'improvisation.',en:'✓ Decide your break plan BEFORE the race, not mid-station. A number you can always hit (20, 15 or 10 reps) with an identical rest each time always beats improvising.',nl:'✓ Bepaal je breukplan VOOR de race, niet tijdens het station. Een aantal dat je zeker haalt (20, 15 of 10 reps) met telkens dezelfde rust wint altijd van improviseren.'},
   tip_3:{fr:'⚑ Règle des athlètes rapides : ne jamais reprendre la balle pour moins de 10 reps, ne jamais dépasser 10 respirations de repos. Ça élimine les micro-pauses qui coûtent une minute sans que tu t\'en rendes compte.',en:'⚑ Fast athletes\' rule: never pick the ball up for fewer than 10 reps, never rest more than 10 breaths. It kills the micro-pauses that cost a minute without you noticing.',nl:'⚑ Regel van snelle atleten: pak de bal nooit op voor minder dan 10 reps, rust nooit langer dan 10 ademhalingen. Zo verdwijnen de micro-pauzes die je ongemerkt een minuut kosten.'},
-  tip_4:{fr:'✗ La fatigue raccourcit la profondeur avant que tu le sentes. Exagère la descente quand ça brûle : deux secondes de profondeur en plus coûtent moins cher que 15 secondes de pénalité.',en:'✗ Fatigue shortens your depth before you feel it. Exaggerate the descent when it burns: two extra seconds of depth cost less than a 15-second penalty.',nl:'✗ Vermoeidheid verkort je diepte voor je het voelt. Overdrijf de afdaling als het brandt: twee extra seconden diepte kosten minder dan 15 seconden straf.'},
+  tip_4:{fr:'✗ La fatigue raccourcit la profondeur avant que tu le sentes. Exagère la descente quand ça brûle : deux secondes de profondeur en plus coûtent toujours moins cher qu\'une rep annulée.',en:'✗ Fatigue shortens your depth before you feel it. Exaggerate the descent when it burns: two extra seconds of depth always cost less than a cancelled rep.',nl:'✗ Vermoeidheid verkort je diepte voor je het voelt. Overdrijf de afdaling als het brandt: twee extra seconden diepte kosten altijd minder dan een geannuleerde rep.'},
   tip_5:{fr:'ⓘ La puissance du wall ball vient de l\'extension de hanche, pas des bras — les bras ne font que guider la balle. Respire en haut : inspire quand la balle quitte les mains, expire en réceptionnant dans le squat.',en:'ⓘ Wall ball power comes from hip extension, not the arms — the arms only guide the ball. Breathe at the top: inhale as the ball leaves your hands, exhale catching it into the squat.',nl:'ⓘ Wall-ballkracht komt uit heupextensie, niet uit de armen — de armen sturen alleen. Adem boven: in als de bal je handen verlaat, uit bij het vangen in de squat.'},
   tip_6:{fr:'⚑ Entraîne les stations dans l\'ordre de course, sous fatigue. Un athlète qui fait 500 m de course puis 30 wall balls en intervalle bat un athlète plus fort qui n\'a travaillé qu\'en isolation.',en:'⚑ Train the stations in race order, under fatigue. An athlete doing 500 m run then 30 wall balls as intervals beats a stronger athlete who only trained in isolation.',nl:'⚑ Train de stations in racevolgorde, onder vermoeidheid. Een atleet die 500 m loopt en dan 30 wall balls doet als interval verslaat een sterkere atleet die alleen geïsoleerd trainde.'},
 
@@ -564,7 +564,7 @@ const I18N = {
   place_6:{fr:'Lumière de face — jamais de fenêtre derrière toi — et tenue contrastée avec le fond. En salle sombre, le flou de bougé dégrade la détection sur les mouvements rapides.',en:'Light facing you — never a window behind you — and clothing that contrasts with the background. In a dark gym, motion blur degrades detection on fast movements.',nl:'Licht van voren — nooit een raam achter je — en kleding die contrasteert met de achtergrond. In een donkere zaal verslechtert bewegingsonscherpte de detectie bij snelle bewegingen.'},
   help_h:{fr:'Comment ça marche',en:'How it works',nl:'Hoe het werkt'},
   help_1:{fr:'Choisis le mouvement et ta division, puis lance la caméra. Reste debout 2 secondes : la page calibre ton amplitude sur ta morphologie avant d\'armer le comptage.',en:'Pick the movement and your division, then start the camera. Stand still for 2 seconds: the page calibrates your range of motion to your body before arming the counter.',nl:'Kies de beweging en je divisie, start dan de camera. Blijf 2 seconden stilstaan: de pagina kalibreert je bewegingsbereik op jouw lichaam voor het tellen start.'},
-  help_2:{fr:'Gratuit : reps valides, no-reps, cadence en direct et projection de fin de station. Pro : fade, blocage, ratio de travail, pénalité estimée et splits par 10 reps.',en:'Free: valid reps, no-reps, live cadence and station finish projection. Pro: fade, rest time, work ratio, estimated penalty and splits per 10 reps.',nl:'Gratis: geldige reps, no-reps, live cadans en projectie van het stationseinde. Pro: fade, rusttijd, werkratio, geschatte straf en splits per 10 reps.'},
+  help_2:{fr:'Gratuit : reps valides, no-reps, cadence en direct et projection de fin de station. Pro : fade, blocage, ratio de travail, régularité et splits par 10 reps.',en:'Free: valid reps, no-reps, live cadence and station finish projection. Pro: fade, rest time, work ratio, consistency and splits per 10 reps.',nl:'Gratis: geldige reps, no-reps, live cadans en projectie van het stationseinde. Pro: fade, rusttijd, werkratio, regelmaat en splits per 10 reps.'},
   help_3:{fr:'Chaque rep est jugée sur deux signaux indépendants (profondeur ET extension) : un repositionnement de la balle ou un faux mouvement n\'est jamais compté.',en:'Every rep is judged on two independent signals (depth AND extension): re-gripping the ball or a false move is never counted.',nl:'Elke rep wordt beoordeeld op twee onafhankelijke signalen (diepte ÉN extensie): opnieuw grijpen of een schijnbeweging telt nooit mee.'},
   help_4:{fr:'Bip aigu = rep valide. Bip grave + cadre rouge = no-rep, avec la raison affichée dans la liste. Le compteur géant reste lisible à 3 mètres.',en:'High beep = valid rep. Low beep + red frame = no-rep, with the reason shown in the list. The giant counter stays readable from 3 metres.',nl:'Hoge piep = geldige rep. Lage piep + rood kader = no-rep, met de reden in de lijst. De grote teller blijft leesbaar op 3 meter.'},
   help_5:{fr:'La balle elle-même n\'est pas suivie : le lancer est validé par l\'extension complète des bras au-dessus de la tête, comme le fait la concurrence. La hauteur de cible reste ta responsabilité.',en:'The ball itself is not tracked: the throw is validated by full overhead arm extension, as competitors do. Target height remains your responsibility.',nl:'De bal zelf wordt niet gevolgd: de worp wordt gevalideerd door volledige armextensie boven het hoofd, zoals bij concurrenten. De doelhoogte blijft jouw verantwoordelijkheid.'},
@@ -707,14 +707,27 @@ function renderTables(){
     const d=document.createElement('div'); d.className='tip '+x[1]; d.textContent=t(x[0]); pt.appendChild(d);
   });
 }
+/* Saisie = TOTAL EN MINUTES (ex. 80 pour 1 h 20).
+   Le champ est en inputmode="numeric" : le clavier iPhone n'a pas de « : »,
+   un format h:mm:ss y etait donc tout simplement impossible a taper.
+   On tolere quand meme mm,s / mm.s et un h:mm:ss colle depuis le web.
+   Bornes : 30 a 240 minutes. Retour en millisecondes. */
 function parseGoal(v){
-  const p=String(v||'').trim().split(':').map(x=>parseInt(x,10));
-  if(p.some(x=>isNaN(x))||!p.length)return null;
-  let s=0;
-  if(p.length===3)s=p[0]*3600+p[1]*60+p[2];
-  else if(p.length===2)s=p[0]*60+p[1];
-  else s=p[0]*60;
-  return (s>=1800&&s<=14400)?s*1000:null;
+  const raw=String(v||'').trim();
+  if(!raw) return null;
+  let s=null;
+  if(raw.includes(':')){                                   /* tolerance h:mm:ss / mm:ss (copier-coller web) */
+    const p=raw.split(':').map(x=>parseInt(x,10));
+    if(p.some(x=>isNaN(x))) return null;
+    if(p.length===3) s=p[0]*3600+p[1]*60+p[2];
+    else if(p.length===2) s=p[0]*60+p[1];
+    else s=p[0]*60;
+  }else{                                                   /* cas nominal : minutes totales */
+    const m=parseFloat(raw.replace(',','.'));
+    if(!isFinite(m)) return null;
+    s=m*60;
+  }
+  return (s>=1800&&s<=14400)?Math.round(s)*1000:null;
 }
 function renderSplitsPlan(){
   const tb=$('#tb-splits'); tb.innerHTML='';
@@ -761,7 +774,7 @@ function applyLang(){
   $('#k-fade').textContent=t('vbt_fade');
   $('#k-block').textContent=t('vbt_block');
   $('#k-work').textContent=t('vbt_work');
-  $('#k-pen').textContent=t('vbt_pen');
+  $('#k-cons').textContent=t('vbt_cons');
   $('#vs-mid').textContent='25%';
   $('#v-stop').textContent=t('vbt_stop');
   $('#vbt-note').textContent=t('vbt_note');
@@ -778,7 +791,7 @@ function applyLang(){
   $('#wt-note').innerHTML=t('wt_note');
   $('#std-h').textContent=t('std_h');
   $('#pace-h').textContent=t('pace_h');
-  $('#pace-intro').textContent=t('pace_intro');
+  $('#pace-intro').innerHTML=t('pace_intro');   /* contient <b> (unite de saisie) */
   $('#l-goal').textContent=t('l_goal');
   $('#l-goaldiv').textContent=t('l_goaldiv');
   $('#th-seg').textContent=t('th_seg');
@@ -854,7 +867,7 @@ const FADE_ALERT=25;         // % de chute de cadence
 
 const CAL={stand:null,legLen:null,range:null,ready:false};
 const S={mode:'idle',rep:null,lastGoodTs:0,good:0,topT0:0};
-const HYX={fade:null,blockMs:0,workPct:null,penalty:null,warn:false};
+const HYX={fade:null,blockMs:0,workPct:null,cons:null,warn:false};
 let reps=[],noReps=0,stationT0=null,lastRepTs=null,lastEndTs=null,lastKnee=null;
 let hyBuf=[];
 
@@ -867,7 +880,7 @@ function resetSet(){
   reps=[];noReps=0;stationT0=null;lastRepTs=null;lastEndTs=null;lastKnee=null;hyBuf=[];
   CAL.stand=null;CAL.legLen=null;CAL.range=null;CAL.ready=false;
   S.mode='ready';S.rep=null;S.good=0;S.topT0=0;
-  HYX.fade=null;HYX.blockMs=0;HYX.workPct=null;HYX.penalty=null;HYX.warn=false;
+  HYX.fade=null;HYX.blockMs=0;HYX.workPct=null;HYX.cons=null;HYX.warn=false;
   stage.classList.remove('deep','bad');
   renderReps();updateSummary();renderPro();
 }
@@ -995,8 +1008,22 @@ function computePacing(){
   const el=elapsed();
   HYX.workPct=(el>0)?Math.max(0,Math.min(100,(el-HYX.blockMs)/el*100)):null;
   const missing=Math.max(0,TARGET-validReps().length);
-  HYX.penalty=noReps*15;
   HYX.missing=missing;
+
+  /* Regularite : 100 - coefficient de variation des intervalles entre reps.
+     100 % = metronome, 60 % = tres hache. Metrique purement descriptive, issue
+     de tes propres donnees — contrairement a une « penalite estimee », elle ne
+     depend d'aucune interpretation du reglement.
+     (L'ancienne penalite valait noReps*15 : double comptage, puisqu'une rep
+     no-rep est deja refaite. Retiree — voir le commentaire dans std_wb_5.) */
+  const iv=reps.map(r=>r.interval).filter(x=>x!=null&&x<REST_MS);
+  if(iv.length>=6){
+    const m=iv.reduce((a,b)=>a+b,0)/iv.length;
+    const sd=Math.sqrt(iv.reduce((a,b)=>a+(b-m)*(b-m),0)/iv.length);
+    HYX.cons = m>0 ? Math.max(0,Math.min(100,100-(sd/m*100))) : null;
+  }else{
+    HYX.cons=null;
+  }
 }
 function elapsed(){
   if(stationT0==null)return 0;
@@ -1094,7 +1121,7 @@ function renderPro(){
   $('#v-fade').textContent=HYX.fade==null?'—':HYX.fade.toFixed(0);
   $('#v-block').textContent=HYX.blockMs?Math.round(HYX.blockMs/1000):'—';
   $('#v-work').textContent=HYX.workPct==null?'—':HYX.workPct.toFixed(0);
-  $('#v-pen').textContent=HYX.penalty==null?'—':HYX.penalty;
+  $('#v-cons').textContent=HYX.cons==null?'—':HYX.cons.toFixed(0);
   const bar=$('#v-bar'), f=HYX.fade==null?0:Math.min(50,HYX.fade);
   $('#v-fill').style.width=(f/50*100)+'%';
   bar.classList.toggle('warn',HYX.fade!=null&&HYX.fade>=12&&HYX.fade<FADE_ALERT);
@@ -1626,7 +1653,7 @@ import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({creat
       row.fade_pct=HYX.fade!=null?+HYX.fade.toFixed(1):null;
       row.block_ms=Math.round(HYX.blockMs);
       row.work_pct=HYX.workPct!=null?+HYX.workPct.toFixed(1):null;
-      row.penalty_s=HYX.penalty;
+      row.consistency_pct=HYX.cons;
     }
     const {error}=await sbClient.from('hyrox_sets').insert(row);
     if(error){btn.disabled=false;btn.textContent=t('save');alert(t('save_fail'));return;}

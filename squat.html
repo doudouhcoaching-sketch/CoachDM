@@ -160,6 +160,8 @@
   .help{margin-top:10px;color:var(--muted);font-size:13.5px;line-height:1.6}
   .help li{margin:0 0 6px 16px}
   .pdiag{width:100%;max-width:300px;display:block;margin:8px auto 2px}
+  .e1warn{grid-column:1/-1;margin-top:8px;font-size:12.5px;line-height:1.5;color:var(--muted);
+    background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
   .note{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5}
 
   footer{margin-top:22px;text-align:center;color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.02em}
@@ -260,6 +262,7 @@
     <div class="m"><div class="v"><span id="v-best">—</span><small> m/s</small></div><div class="k" id="k-best"></div></div>
     <div class="m"><div class="v"><span id="v-vl">—</span></div><div class="k" id="k-vl"></div></div>
     <div class="m"><div class="v"><span id="v-e1">—</span></div><div class="k">1RM est.</div></div>
+    <div class="e1warn" id="e1-warn" style="display:none"></div>
   </div>
   <div class="vbar" id="v-bar"><i id="v-fill"></i><span class="vmark"></span></div>
   <div class="vscale"><span>0%</span><span>−20%</span><span>−40%</span></div>
@@ -388,11 +391,12 @@ const I18N = {
   pw_fail:{fr:'Paiement indisponible. Réessaie dans un instant.',en:'Payment unavailable. Try again shortly.',nl:'Betaling niet beschikbaar. Probeer straks opnieuw.'},
 
   day_h:{fr:'1RM du jour',en:'Daily 1RM',nl:'1RM van vandaag'},
+  e1_fast:{fr:'Charge trop légère pour estimer un 1RM. L\u2019équation de référence est calibrée sur la vitesse propulsive moyenne ; au-delà de 0,65 m/s la phase de décélération fausse le calcul. Ajoute du poids : la vitesse et la perte de vitesse restent valables telles quelles.',en:'Load too light to estimate a 1RM. The reference equation is calibrated on mean propulsive velocity; above 0.65 m/s the deceleration phase distorts the result. Add weight — velocity and velocity loss remain valid as they are.',nl:'Belasting te licht om een 1RM te schatten. De referentievergelijking is gekalibreerd op gemiddelde propulsieve snelheid; boven 0,65 m/s vertekent de vertragingsfase het resultaat. Voeg gewicht toe — snelheid en snelheidsverlies blijven gewoon geldig.'},
   day_up:{fr:'{d} % au-dessus de ta référence — bonne journée, les charges de ta séance montent.',en:'{d}% above your reference — good day, today\u2019s loads go up.',nl:'{d}% boven je referentie — goede dag, je belastingen gaan omhoog.'},
   day_dn:{fr:'{d} % sous ta référence — journée moyenne, les charges de ta séance s\u2019allègent automatiquement.',en:'{d}% below your reference — off day, today\u2019s loads are automatically reduced.',nl:'{d}% onder je referentie — mindere dag, je belastingen worden automatisch verlaagd.'},
   day_flat:{fr:'Pile sur ta référence — charges nominales aujourd\u2019hui.',en:'Right on your reference — nominal loads today.',nl:'Precies op je referentie — nominale belastingen vandaag.'},
   day_sub_i:{fr:'Calculé sur <b>ton profil charge-vitesse personnel</b> (au moins 3 charges différentes mesurées). Ouvre ta séance : toutes les charges en %1RM sont recalculées sur ce chiffre, pas sur ton vieux record.',en:'Computed from <b>your personal load-velocity profile</b> (at least 3 different loads measured). Open your session: every %1RM load is recalculated on this figure, not on your old record.',nl:'Berekend op <b>je persoonlijke belasting-snelheidsprofiel</b> (minstens 3 verschillende belastingen gemeten). Open je sessie: elke %1RM-belasting wordt op dit cijfer herberekend, niet op je oude record.'},
-  day_sub_g:{fr:'Calculé sur le profil charge-vitesse générique (Sánchez-Medina 2010). Mesure 3 séries à des charges différentes et l\u2019app bascule sur <b>ton profil personnel</b>, bien plus précis.',en:'Computed from the generic load-velocity profile (Sánchez-Medina 2010). Measure 3 sets at different loads and the app switches to <b>your personal profile</b>, far more accurate.',nl:'Berekend op het generieke belasting-snelheidsprofiel (Sánchez-Medina 2010). Meet 3 sets met verschillende belastingen en de app schakelt over naar <b>je persoonlijke profiel</b>, veel nauwkeuriger.'},
+  day_sub_g:{fr:'Calculé sur le profil charge-vitesse générique (Sánchez-Medina et al. 2017). Mesure 3 séries à des charges différentes et l\u2019app bascule sur <b>ton profil personnel</b>, bien plus précis.',en:'Computed from the generic load-velocity profile (Sánchez-Medina et al. 2017). Measure 3 sets at different loads and the app switches to <b>your personal profile</b>, far more accurate.',nl:'Berekend op het generieke belasting-snelheidsprofiel (Sánchez-Medina 2010). Meet 3 sets met verschillende belastingen en de app schakelt over naar <b>je persoonlijke profiel</b>, veel nauwkeuriger.'},
   day_stale:{fr:'⚠ Ton profil vitesse estime ton 1RM à <b>{p} kg</b>, mais ton record enregistré dit <b>{r} kg</b>. Mets ton record à jour dans l\u2019app (Profil → Mes records) : sinon tu t\u2019entraînes trop léger.',en:'⚠ Your velocity profile estimates your 1RM at <b>{p} kg</b>, but your saved record says <b>{r} kg</b>. Update it in the app (Profile → My records): otherwise you are training too light.',nl:'⚠ Je snelheidsprofiel schat je 1RM op <b>{p} kg</b>, maar je opgeslagen record zegt <b>{r} kg</b>. Werk het bij in de app (Profiel → Mijn records): anders train je te licht.'},
   day_clamp:{fr:'Valeur bornée à ±15 % : la force fluctue, elle ne double pas d\u2019un jour à l\u2019autre (Jovanović & Flanagan 2014).',en:'Value capped at ±15%: strength fluctuates, it does not double overnight (Jovanović & Flanagan 2014).',nl:'Waarde begrensd op ±15%: kracht schommelt, maar verdubbelt niet van de ene dag op de andere (Jovanović & Flanagan 2014).'},
   day_note:{fr:'Le 1RM du jour vaut pour aujourd\u2019hui seulement. Il repart de zéro demain — c\u2019est le principe : on prescrit sur ta forme réelle, pas sur un chiffre figé.',en:'The daily 1RM applies to today only. It resets tomorrow — that is the point: we prescribe on your actual readiness, not on a frozen number.',nl:'De 1RM van vandaag geldt alleen voor vandaag. Morgen begint hij opnieuw — dat is het principe: we schrijven voor op je werkelijke vorm, niet op een vast getal.'},
@@ -418,7 +422,7 @@ const I18N = {
   place_3:{fr:'Évite le 45° : les angles sont déformés, ni la profondeur ni le valgus ne sont fiables — la page te prévient en direct.',en:'Avoid 45°: angles get distorted, neither depth nor valgus is reliable — the page warns you live.',nl:'Vermijd 45°: de hoeken vervormen, diepte noch valgus is betrouwbaar — de pagina waarschuwt je live.'},
   place_4:{fr:'Téléphone posé ou sur trépied à hauteur de hanche, 2–4 m, corps entier + pieds dans le cadre.',en:'Phone resting or on a tripod at hip height, 2–4 m, full body + feet in frame.',nl:'Telefoon neergezet of op statief op heuphoogte, 2–4 m, hele lichaam + voeten in beeld.'},
   place_5:{fr:'Lumière de face — jamais de fenêtre derrière toi — et tenue contrastée avec le fond.',en:'Light facing you — never a window behind you — and clothing that contrasts with the background.',nl:'Licht van voren — nooit een raam achter je — en kleding die contrasteert met de achtergrond.'},
-  help_note:{fr:'Angles calculés en 3D (MediaPipe Pose). Parallèle cassée = crête de la hanche sous le sommet du genou, standard CrossFit (Schoenfeld, 2010). VBT : perte de vitesse comme index de fatigue (Sánchez-Medina & González-Badillo, 2011 ; Pareja-Blanco, 2017). 100% sur ton téléphone — aucune vidéo n\'est envoyée ni enregistrée. Outil d\'aide au coaching, ne remplace pas l\'œil du coach.',en:'Angles computed in 3D (MediaPipe Pose). Below parallel = hip crease below top of knee, CrossFit standard (Schoenfeld, 2010). VBT: velocity loss as fatigue index (Sánchez-Medina & González-Badillo, 2011; Pareja-Blanco, 2017). Runs 100% on your phone — no video is uploaded or stored. A coaching aid, not a replacement for the coach\'s eye.',nl:'Hoeken berekend in 3D (MediaPipe Pose). Onder parallel = heupplooi onder de bovenkant van de knie, CrossFit-standaard (Schoenfeld, 2010). VBT: snelheidsverlies als vermoeidheidsindex (Sánchez-Medina & González-Badillo, 2011; Pareja-Blanco, 2017). Draait 100% op je telefoon — er wordt geen video verstuurd of opgeslagen. Een coachingshulpmiddel, geen vervanging voor het oog van de coach.'}
+  help_note:{fr:'Angles calculés en 3D (MediaPipe Pose). Parallèle cassée = crête de la hanche sous le sommet du genou, standard CrossFit (Schoenfeld, 2010). VBT : perte de vitesse comme index de fatigue (Sánchez-Medina & González-Badillo, 2011 ; Pareja-Blanco, 2017). Estimation du 1RM : équation full back squat de Sánchez-Medina et al. (2017), calibrée sur la vitesse propulsive moyenne ; la mesure caméra donne une vitesse concentrique moyenne, donc l\'estimation n\'est proposée qu\'en dessous de 0,65 m/s, là où les deux convergent. 100% sur ton téléphone — aucune vidéo n\'est envoyée ni enregistrée. Outil d\'aide au coaching, ne remplace pas l\'œil du coach.',en:'Angles computed in 3D (MediaPipe Pose). Below parallel = hip crease below top of knee, CrossFit standard (Schoenfeld, 2010). VBT: velocity loss as fatigue index (Sánchez-Medina & González-Badillo, 2011; Pareja-Blanco, 2017). 1RM estimation: full back squat equation from Sánchez-Medina et al. (2017), calibrated on mean propulsive velocity; the camera measures mean concentric velocity, so the estimate is only offered below 0.65 m/s, where the two converge. Runs 100% on your phone — no video is uploaded or stored. A coaching aid, not a replacement for the coach\'s eye.',nl:'Hoeken berekend in 3D (MediaPipe Pose). Onder parallel = heupplooi onder de bovenkant van de knie, CrossFit-standaard (Schoenfeld, 2010). VBT: snelheidsverlies als vermoeidheidsindex (Sánchez-Medina & González-Badillo, 2011; Pareja-Blanco, 2017). Draait 100% op je telefoon — er wordt geen video verstuurd of opgeslagen. Een coachingshulpmiddel, geen vervanging voor het oog van de coach.'}
 };
 /* ── diagnostic: surface every error on screen ── */
 function showErr(msg){
@@ -537,13 +541,30 @@ try{
   const st=JSON.parse(localStorage.getItem('cdm_vbt')||'{}');
   if(st.h)inVH.value=st.h; if(st.l)inVL.value=st.l;
 }catch(_){}
+/* Au-dela de cette vitesse, la phase de deceleration devient longue et la MCV
+   s'ecarte trop de la MPV pour que l'equation reste valable. */
+const MCV_MAX_E1=0.65;
+
 function vbtE1(){
-  if(VBT.best!=null&&VBT.loadKg>0){
-    const v=VBT.best;
-    let pct=-5.96*v*v-50.71*v+117; /* profil charge-vitesse squat générique (Sánchez-Medina 2017) */
-    pct=Math.min(105,Math.max(40,pct));
-    VBT.e1=VBT.loadKg*100/pct;
-  }else VBT.e1=null;
+  VBT.e1=null; VBT.e1Blocked=false;
+  if(VBT.best==null||VBT.loadKg<=0) return;
+
+  /* ⚠️ L'equation %1RM = -5,961·V² - 50,71·V + 117 (Sanchez-Medina et al. 2017,
+     full back squat) est calibree sur la VITESSE PROPULSIVE MOYENNE (MPV), qui
+     exclut la phase de deceleration. Ici on mesure une VITESSE CONCENTRIQUE
+     MOYENNE (MCV = deplacement/duree), qui l'inclut donc MCV < MPV.
+     Injecter une MCV dans cette equation surestime le %1RM, donc SOUS-ESTIME
+     le 1RM — de l'ordre de 10 % vers 0,80 m/s, et l'ecart croit quand la charge
+     s'allege.
+     A charge lourde en revanche, la deceleration est quasi nulle : MPV ≈ MCV et
+     l'equation redevient exploitable. On borne donc l'estimation aux vitesses
+     lentes plutot que d'afficher un chiffre faux. */
+  const v=VBT.best;
+  if(v>MCV_MAX_E1){ VBT.e1Blocked=true; return; }
+
+  let pct=-5.96*v*v-50.71*v+117;
+  pct=Math.min(105,Math.max(40,pct));
+  VBT.e1=VBT.loadKg*100/pct;
 }
 function vbtInputs(){
   VBT.heightCm=parseFloat(inVH.value)||null;
@@ -574,14 +595,15 @@ function vbtOnRep(mcv){
   }
   renderVBT();
 }
-function vbtResetSet(){VBT.best=null;VBT.last=null;VBT.vl=null;VBT.e1=null;VBT.stop=false;renderVBT();}
+function vbtResetSet(){VBT.best=null;VBT.last=null;VBT.vl=null;VBT.e1=null;VBT.e1Blocked=false;VBT.stop=false;renderVBT();}
 function renderVBT(){
   if(!PRO)return;
   const f=x=>x==null?'—':x.toFixed(2);
   $('#v-last').textContent=f(VBT.last);
   $('#v-best').textContent=f(VBT.best);
   $('#v-vl').textContent=VBT.vl==null?'—':('−'+VBT.vl.toFixed(0)+'%');
-  $('#v-e1').textContent=VBT.e1?(Math.round(VBT.e1/2.5)*2.5+' kg'):'—';
+  $('#v-e1').textContent=VBT.e1?(Math.round(VBT.e1/2.5)*2.5+' kg'):(VBT.e1Blocked?'—':'—');
+  { const w=$('#e1-warn'); if(w){ w.style.display=VBT.e1Blocked?'':'none'; w.textContent=t('e1_fast'); } }
   const bar=$('#v-bar');
   const vl=VBT.vl==null?0:Math.min(40,VBT.vl);
   $('#v-fill').style.width=(vl/40*100)+'%';

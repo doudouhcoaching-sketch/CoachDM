@@ -857,6 +857,33 @@
   .rc-chip{flex:0 0 auto;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);border-radius:999px;padding:7px 13px;font-size:12.5px;font-weight:600;white-space:nowrap;cursor:pointer;transition:.15s}
   .rc-chip.on{background:var(--brand-soft);border-color:color-mix(in srgb,var(--brand) 45%,var(--line));color:var(--brand)}
   .tr-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+
+  /* --- Carte Activité (Apple Santé) --- */
+  .act-badge{flex:0 0 auto;background:var(--brand-soft);color:var(--brand);border:1px solid rgba(0,255,160,.22);
+    border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
+  .act-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:14px}
+  .act-tile{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;
+    padding:14px 6px 12px;text-align:center;min-width:0}
+  .act-tile b{display:block;font-size:20px;font-weight:800;letter-spacing:-.03em;color:var(--text);
+    font-variant-numeric:tabular-nums;line-height:1.1;overflow:hidden;text-overflow:ellipsis}
+  .act-tile span{display:block;margin-top:5px;font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:-.01em}
+  .act-tile.off b{color:var(--muted)}
+
+  /* --- Calculateur de disques --- */
+  .plates{margin-top:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:12px 13px}
+  .pl-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px}
+  .pl-head span{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.02em;text-transform:uppercase}
+  .pl-bar{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;
+    padding:5px 12px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .pl-side{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .pl-chip{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:30px;padding:0 9px;
+    border-radius:8px;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;
+    background:var(--brand-soft);color:var(--brand);border:1px solid rgba(0,255,160,.25)}
+  .pl-chip.x2{background:rgba(233,199,103,.14);color:#E9C767;border-color:rgba(233,199,103,.30)}
+  .pl-none{font-size:13px;color:var(--muted);font-weight:600}
+  .pl-warn{margin-top:8px;font-size:12.5px;line-height:1.45;color:#E9C767}
+  .pl-warn:empty{display:none}
+  @media (max-width:360px){ .act-tile b{font-size:17px} .act-tile span{font-size:10.5px} }
   .tr-head h3{margin:0}
   .tr-toggle{display:flex;gap:6px}
   .tr-chart{width:100%;height:auto;display:block}
@@ -958,7 +985,7 @@
     <div class="gate-icon"><svg class="ic"><use href="#i-lock"/></svg></div>
     <h1 style="font-size:21px;margin:0 0 10px" data-i18n="gate_title">Accès réservé</h1>
     <p style="color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 6px" data-i18n-html="gate_p1">
-      L'app Coach DM est réservée aux membres.<br>Essai 7 jours, puis 14,99 €/mois.</p>
+      L'app Coach DM est réservée aux membres.<br>Abonne-toi pour tout débloquer.</p>
     <p style="color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 18px" data-i18n="gate_p2">
       Ton compte est créé mais n'a pas encore d'accès. Contacte le coach pour l'activer.</p>
     <button class="btn" id="gate-sub" style="display:block;width:100%" data-i18n="sub_cta">S'abonner</button>
@@ -1053,6 +1080,23 @@
       <input type="file" id="jo-photo-file" accept="image/*" capture="environment" style="display:none" />
       <div id="jo-results"></div>
     </div>
+
+    <!-- Activité — Apple Santé (natif iOS uniquement) -->
+    <div class="block" id="act-card" style="display:none">
+      <div class="tr-head">
+        <h3 data-i18n="act_title">Activité</h3>
+        <span class="act-badge" id="act-badge" data-i18n="act_src">Apple Santé</span>
+      </div>
+      <div class="act-grid">
+        <div class="act-tile"><b id="act-steps">—</b><span data-i18n="act_steps">pas</span></div>
+        <div class="act-tile"><b id="act-kcal">—</b><span data-i18n="act_kcal">kcal</span></div>
+        <div class="act-tile"><b id="act-sleep">—</b><span data-i18n="act_sleep">sommeil</span></div>
+        <div class="act-tile"><b id="act-hr">—</b><span data-i18n="act_hr">FC repos</span></div>
+      </div>
+      <button class="btn subtle" id="act-connect" style="width:100%;margin-top:14px;display:none" data-i18n="hk_cta">Connecter Apple Santé</button>
+      <div class="msg" id="act-msg"></div>
+    </div>
+
     <div class="block">
       <div class="tr-head">
         <h3 data-i18n="tr_title">Tendances</h3>
@@ -1200,6 +1244,18 @@
       <button class="btn" id="p-calc" data-i18n="btn_calc">Calculer & enregistrer</button>
       <div class="msg" id="p-msg"></div>
       <div class="msg" id="p-warn" style="text-align:left"></div>
+    </div>
+
+    <!-- Apple Sante / HealthKit — visible uniquement dans le wrapper iOS natif -->
+    <div class="block" id="p-health" style="display:none">
+      <h3 data-i18n="hk_title">Apple Santé</h3>
+      <p class="empty" style="text-align:left;padding:0 0 12px" data-i18n="hk_sub">Connecte Apple Santé pour récupérer tes pas et ton poids automatiquement. Coach DM lit uniquement — rien n'est écrit ni partagé.</p>
+      <button class="btn subtle" id="p-health-go" style="width:100%" data-i18n="hk_cta">Connecter Apple Santé</button>
+      <div class="msg" id="p-health-msg"></div>
+      <div id="p-health-data" style="display:none;margin-top:12px">
+        <div class="fk" id="p-health-weight"></div>
+        <button class="btn subtle" id="p-health-usew" style="width:100%;margin-top:10px;display:none" data-i18n="hk_usew">Mettre à jour mon poids</button>
+      </div>
     </div>
 
     </div>
@@ -1748,6 +1804,43 @@ const T = {
  nav_profile:{fr:'Profil',en:'Profile',nl:'Profiel'},
  nav_boutique:{fr:'Boutique',en:'Shop',nl:'Shop'},
  native_nosub:{fr:'Les abonnements ne sont pas disponibles dans cette version de l\u2019app.',en:'Subscriptions are not available in this version of the app.',nl:'Abonnementen zijn niet beschikbaar in deze versie van de app.'},
+ native_nomanage:{fr:'La gestion de l\u2019abonnement n\u2019est pas disponible dans cette version de l\u2019app.',en:'Subscription management is not available in this version of the app.',nl:'Abonnementsbeheer is niet beschikbaar in deze versie van de app.'},
+ iap_restore:{fr:'Restaurer mes achats',en:'Restore purchases',nl:'Aankopen herstellen'},
+ iap_restored:{fr:'Achats restaur\u00e9s.',en:'Purchases restored.',nl:'Aankopen hersteld.'},
+ iap_none:{fr:'Aucun achat \u00e0 restaurer sur ce compte Apple.',en:'No purchase to restore on this Apple account.',nl:'Geen aankoop om te herstellen op dit Apple-account.'},
+ iap_manage:{fr:'G\u00e9rer mon abonnement',en:'Manage my subscription',nl:'Mijn abonnement beheren'},
+ iap_manage_note:{fr:'Ton abonnement est g\u00e9r\u00e9 par Apple. R\u00e9glages \u2192 ton nom \u2192 Abonnements.',en:'Your subscription is managed by Apple. Settings \u2192 your name \u2192 Subscriptions.',nl:'Je abonnement wordt beheerd door Apple. Instellingen \u2192 je naam \u2192 Abonnementen.'},
+ iap_loading:{fr:'Chargement des offres\u2026',en:'Loading plans\u2026',nl:'Abonnementen laden\u2026'},
+ iap_unavail:{fr:'Les achats ne sont pas disponibles pour le moment. R\u00e9essaie dans un instant.',en:'Purchases are unavailable right now. Try again in a moment.',nl:'Aankopen zijn nu niet beschikbaar. Probeer het zo opnieuw.'},
+ iap_cancelled:{fr:'Achat annul\u00e9.',en:'Purchase cancelled.',nl:'Aankoop geannuleerd.'},
+ iap_fail:{fr:'L\u2019achat n\u2019a pas abouti.',en:'The purchase did not go through.',nl:'De aankoop is niet gelukt.'},
+ iap_ok:{fr:'Merci ! Ton acc\u00e8s s\u2019active\u2026',en:'Thank you! Your access is activating\u2026',nl:'Bedankt! Je toegang wordt geactiveerd\u2026'},
+ iap_slow:{fr:'Paiement re\u00e7u. L\u2019activation peut prendre une minute \u2014 tire vers le bas pour rafra\u00eechir.',en:'Payment received. Activation can take a minute \u2014 pull down to refresh.',nl:'Betaling ontvangen. Activering kan een minuut duren \u2014 trek omlaag om te vernieuwen.'},
+ pl_title:{fr:'Par c\u00f4t\u00e9',en:'Per side',nl:'Per kant'},
+ pl_bar:{fr:'Barre {n} kg',en:'{n} kg bar',nl:'Stang {n} kg'},
+ pl_empty:{fr:'Barre \u00e0 vide',en:'Empty bar',nl:'Lege stang'},
+ pl_under:{fr:'Charge inf\u00e9rieure au poids de la barre ({n} kg).',en:'Load is below the bar weight ({n} kg).',nl:'Belasting lager dan het stanggewicht ({n} kg).'},
+ pl_approx:{fr:'Impossible \u00e0 l\u2019unit\u00e9 pr\u00e8s avec des disques standards. Le plus proche : <b>{n} kg</b>.',en:'Not achievable exactly with standard plates. Closest: <b>{n} kg</b>.',nl:'Niet exact haalbaar met standaardschijven. Dichtstbij: <b>{n} kg</b>.'},
+ act_title:{fr:'Activit\u00e9',en:'Activity',nl:'Activiteit'},
+ act_src:{fr:'Apple Sant\u00e9',en:'Apple Health',nl:'Apple Gezondheid'},
+ act_steps:{fr:'pas',en:'steps',nl:'stappen'},
+ act_kcal:{fr:'kcal',en:'kcal',nl:'kcal'},
+ act_sleep:{fr:'sommeil',en:'sleep',nl:'slaap'},
+ act_hr:{fr:'FC repos',en:'resting HR',nl:'rust-HR'},
+ hk_title:{fr:'Apple Sant\u00e9',en:'Apple Health',nl:'Apple Gezondheid'},
+ hk_sub:{fr:'Connecte Apple Sant\u00e9 pour r\u00e9cup\u00e9rer tes pas et ton poids automatiquement. Coach DM lit uniquement \u2014 rien n\u2019est \u00e9crit ni partag\u00e9.',en:'Connect Apple Health to pull your steps and weight automatically. Coach DM only reads \u2014 nothing is written or shared.',nl:'Verbind Apple Gezondheid om je stappen en gewicht automatisch op te halen. Coach DM leest alleen \u2014 er wordt niets weggeschreven of gedeeld.'},
+ hk_cta:{fr:'Connecter Apple Sant\u00e9',en:'Connect Apple Health',nl:'Apple Gezondheid verbinden'},
+ hk_refresh:{fr:'Actualiser depuis Apple Sant\u00e9',en:'Refresh from Apple Health',nl:'Vernieuwen vanuit Apple Gezondheid'},
+ hk_ok:{fr:'Apple Sant\u00e9 connect\u00e9.',en:'Apple Health connected.',nl:'Apple Gezondheid verbonden.'},
+ hk_denied:{fr:'Aucune donn\u00e9e lisible. V\u00e9rifie les autorisations : R\u00e9glages \u2192 Sant\u00e9 \u2192 Acc\u00e8s et appareils \u2192 Coach DM, et active au moins Pas et Poids.',en:'No readable data. Check permissions: Settings \u2192 Health \u2192 Data Access & Devices \u2192 Coach DM, and enable at least Steps and Weight.',nl:'Geen leesbare gegevens. Controleer de machtigingen: Instellingen \u2192 Gezondheid \u2192 Gegevenstoegang en apparaten \u2192 Coach DM, en zet minstens Stappen en Gewicht aan.'},
+ hk_unavail:{fr:'Apple Sant\u00e9 n\u2019est pas disponible sur cet appareil.',en:'Apple Health is not available on this device.',nl:'Apple Gezondheid is niet beschikbaar op dit toestel.'},
+ hk_fail:{fr:'Lecture impossible pour le moment.',en:'Could not read data right now.',nl:'Kon de gegevens nu niet lezen.'},
+ hk_steps:{fr:'Pas aujourd\u2019hui : {n}',en:'Steps today: {n}',nl:'Stappen vandaag: {n}'},
+ hk_weight:{fr:'Dernier poids : {n} kg',en:'Latest weight: {n} kg',nl:'Laatste gewicht: {n} kg'},
+ hk_w_new:{fr:'Apple Santé a une pesée plus récente : {n} kg le {d}. Ton profil indique {p} kg.',en:'Apple Health has a more recent weigh-in: {n} kg on {d}. Your profile says {p} kg.',nl:'Apple Gezondheid heeft een recentere weging: {n} kg op {d}. Je profiel vermeldt {p} kg.'},
+ hk_nodata:{fr:'Aucune donn\u00e9e r\u00e9cente.',en:'No recent data.',nl:'Geen recente gegevens.'},
+ hk_usew:{fr:'Mettre à jour mon poids',en:'Update my weight',nl:'Mijn gewicht bijwerken'},
+ hk_used:{fr:'Poids repris. Pense \u00e0 recalculer.',en:'Weight applied. Remember to recalculate.',nl:'Gewicht overgenomen. Vergeet niet te herberekenen.'},
  lead_h:{fr:'Coaching avec Coach DM',en:'Coaching with Coach DM',nl:'Coaching met Coach DM'},
  lead_row:{fr:'En ligne d\u00e8s 150 \u20ac/mois \u00b7 Reasfit d\u00e8s 50 \u20ac',en:'Online from \u20ac150/month \u00b7 Reasfit from \u20ac50',nl:'Online vanaf \u20ac150/maand \u00b7 Reasfit vanaf \u20ac50'},
  lead_mail:{fr:'\u00c9crire un e-mail',en:'Send an email',nl:'Stuur een e-mail'},
@@ -2093,7 +2186,7 @@ const T = {
  up_title:{fr:'Passe en Premium',en:'Go Premium',nl:'Word Premium'},
  up_workout:{fr:'Cette séance fait partie du programme complet, réservé aux membres.',en:'This workout is part of the full members-only program.',nl:'Deze training hoort bij het volledige ledenprogramma.'},
  up_ia:{fr:'Le Coach IA est réservé aux membres Premium.',en:'The AI Coach is for Premium members.',nl:'De AI-coach is voor Premium-leden.'},
- up_price:{fr:'Essai 7 jours, puis 14,99 €/mois',en:'7-day trial, then €14.99/month',nl:'7 dagen proberen, daarna €14,99/maand'},
+ up_price:{fr:'14,99 €/mois — 9,99 € pour les 50 fondateurs',en:'€14.99/month — €9.99 for the 50 founders',nl:'€14,99/maand — €9,99 voor de 50 oprichters'},
  up_feat1:{fr:'Tous les programmes, semaine après semaine',en:'Every program, week after week',nl:"Alle programma's, week na week"},
  up_feat2:{fr:'Coach IA illimité',en:'Unlimited AI Coach',nl:'Onbeperkte AI-coach'},
  up_feat3:{fr:'Objectifs perso & moteur de charge',en:'Custom goals & load engine',nl:'Persoonlijke doelen & belastingsmotor'},
@@ -2297,6 +2390,7 @@ function setTheme(m){
 if(themeMQ){ const _mqTheme=()=>{ if(THEME==='auto') applyTheme(); }; themeMQ.addEventListener ? themeMQ.addEventListener('change',_mqTheme) : themeMQ.addListener(_mqTheme); }
 
 let USER=null, TARGETS=null, SELECTED=null, CONV=null, BUSY=false, IA_LOADED=false, PREMIUM=false, IS_COACH=false;
+let SUB_STORE=null;   /* 'stripe' | 'apple' | 'google' — qui facture cet abonnement */
 // iOS natif (Capacitor) : aucune vente in-app — Apple 3.1.1 (modèle login-only acté)
 const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
 
@@ -2371,7 +2465,7 @@ async function prefetchBoot(uid){
   try{
     const [prof,sub,tg,lg] = await Promise.all([
       sb.from('profiles').select('full_name,role,is_founder,founder_kind,founder_since').eq('id',uid).maybeSingle(),
-      sb.from('subscriptions').select('status,current_period_end,trial_end,amount_cents')
+      sb.from('subscriptions').select('status,current_period_end,trial_end,amount_cents,store')
         .eq('user_id',uid).order('current_period_end',{ascending:false,nullsFirst:false}).limit(1).maybeSingle(),
       sb.from('nutrition_targets').select('*').eq('user_id',uid).eq('is_active',true).maybeSingle(),
       sb.from('food_logs').select('kcal,protein_g,carbs_g,fat_g,fiber_g').eq('user_id',uid).eq('logged_date',todayStr())
@@ -2383,6 +2477,7 @@ async function prefetchBoot(uid){
 async function enter(user){
   USER=user;
   show('boot');
+  iapInit(user.id);          /* non bloquant : StoreKit s'initialise pendant le boot */
   const [access] = await Promise.all([ hasAccess(user.id), prefetchBoot(user.id) ]);
   PREMIUM = access;
   show('app');
@@ -2432,7 +2527,7 @@ async function loadProfileInfo(user){
       const cc=$('#p-coach-console'); if(cc) cc.style.display='block';
       if(role==='admin'){ const ac=$('#p-admin-console'); if(ac) ac.style.display='block'; }
     }
-    { const co=$('#p-coach-offer'); if(co) co.style.display=(role==='coach'||role==='admin')?'none':'block'; }
+    { const co=$('#p-coach-offer'); if(co) co.style.display=(IS_NATIVE||role==='coach'||role==='admin')?'none':'block'; }
     syncCoachHome(role);
     { const lo=$('#p-lead-open'); if(lo) lo.onclick=openLead; }
     applyCoachIsolation();
@@ -2440,7 +2535,7 @@ async function loadProfileInfo(user){
     if(_PRE){ sub=_PRE.sub; }
     else {
       const r = await sb.from('subscriptions')
-        .select('status,current_period_end,trial_end,amount_cents').eq('user_id',user.id)
+        .select('status,current_period_end,trial_end,amount_cents,store').eq('user_id',user.id)
         .order('current_period_end',{ascending:false,nullsFirst:false}).limit(1).maybeSingle();
       sub = r.data || null;
     }
@@ -2458,11 +2553,13 @@ async function loadProfileInfo(user){
       if(sub && sub.current_period_end) extra = ' · ' + new Date(sub.current_period_end).toLocaleDateString(locale(),{day:'numeric',month:'long'});
     }
     if($('#p-sub')){ $('#p-sub').dataset.key=key; $('#p-sub').dataset.extra=extra; $('#p-sub').textContent = t(key)+extra; }
-    const canPay = !(role==='coach'||role==='admin');
+    /* Apple 3.1.1 : en natif, ni achat ni gestion de facturation. */
+    const canPay = !(role==='coach'||role==='admin') && !IS_NATIVE;
     const bOpen=$('#p-sub-open'), bMan=$('#p-sub-manage');
     if(bOpen) bOpen.style.display = (canPay && !active && !trialing) ? 'block' : 'none';
     if(bMan)  bMan.style.display  = (canPay && sub && (active||trialing)) ? 'block' : 'none';
     FOUNDER_AMOUNT = (sub && sub.amount_cents!=null) ? sub.amount_cents : null;
+    SUB_STORE = (sub && sub.store) || null;
   }catch(e){}
 }
 
@@ -2551,7 +2648,7 @@ function founderCounter(kind){
   return (left!==null && left>0 && left<=15) ? `<div class="plan-save">${t('founder_left').replace('{n}',left)}</div>` : '';
 }
 async function openSubSheet(){
-  if(IS_NATIVE){ toast(t('native_nosub')); return; }
+  if(IS_NATIVE){ toast(t('native_nosub')); return; }        /* Apple 3.1.1 — build 15 : app verrouillee, aucune vente in-app */
   $('#sub-ov').classList.add('show');
   if(!SUB_PRICES){
     try{
@@ -2560,6 +2657,7 @@ async function openSubSheet(){
     }catch(e){ SUB_PRICES=[]; }
   }
   await loadFounderSlots(); await loadFounderCan();
+  if(IAP_ON()) await iapLoad(SUB_PRICES);      /* fiches StoreKit avant l'affichage des prix */
   renderSubPlans();
 }
 function renderSubPlans(){
@@ -2572,14 +2670,15 @@ function renderSubPlans(){
   const per = SUB_INT==='year'?t('sub_per_year'):t('sub_per_month');
   let h='<div class="plan-card">';
   if(f) h+=`<div class="plan-badge">${t('sub_founder_badge')}</div>`;
-  h+=`<div class="plan-price">${money(offer.amount_cents)}<span class="plan-per">${per}</span>`;
-  if(f&&r) h+=`<span class="plan-old">${money(r.amount_cents)}</span>`;
+  h+=`<div class="plan-price">${planPrice(offer)}<span class="plan-per">${per}</span>`;
+  if(f&&r) h+=`<span class="plan-old">${planPrice(r)}</span>`;
   h+='</div>';
   if(SUB_INT==='year') h+=`<div class="plan-save">${t('sub_year_save')}</div>`;
   if(f) h+=founderCounter('membre');
   h+=`<button class="btn" data-lk="${offer.lookup_key}">${t('sub_choose')}</button></div>`;
+  h+=iapRestoreRow();
   box.innerHTML=h;
-  box.querySelectorAll('[data-lk]').forEach(b=>b.onclick=()=>startCheckout(b.dataset.lk));
+  bindPlanBox(box);
 }
 let PENDING_CK=null;
 function resetConsent(){
@@ -2622,6 +2721,14 @@ let IS_FOUNDER=false, FOUNDER_KIND=null, FOUNDER_AMOUNT=null;
 /* Le portail Stripe gere la resiliation : impossible d'y injecter un message.
    L'avertissement doit donc etre montre AVANT de l'ouvrir. */
 async function openPortal(){
+  /* On route selon QUI facture, pas selon l'appareil.
+     - abonnement StoreKit  -> ecran Apple (toujours autorise, c'est Apple)
+     - abonnement Stripe vu depuis iOS -> message neutre, SANS lien : ouvrir le
+       portail Stripe permettrait de changer d'offre, donc d'acheter hors IAP.
+       C'est precisement ce qui a fait rejeter le build 14.
+     - web -> portail Stripe normal */
+  if(SUB_STORE==='apple' || SUB_STORE==='google'){ return iapManage(); }
+  if(IS_NATIVE){ toast(t('native_nomanage')); return; }     /* portail Stripe = changement d'offre = achat hors IAP */
   if(IS_FOUNDER){ const shown=await warnFounder(); if(!shown) return; }
   await reallyOpenPortal();
 }
@@ -2647,6 +2754,7 @@ async function warnFounder(){
 { const g=$('#fw-go'); if(g) g.onclick=async()=>{ $('#fw-ov').classList.remove('show'); await reallyOpenPortal(); }; }
 { const o=$('#fw-ov'); if(o) o.onclick=e=>{ if(e.target.id==='fw-ov') o.classList.remove('show'); }; }
 async function reallyOpenPortal(){
+  if(IS_NATIVE) return;                                    /* garde-fou Apple 3.1.1 */
   const b=$('#p-sub-manage'); if(b) b.disabled=true;
   const { data, error } = await sb.functions.invoke('stripe-checkout',{ body:{ action:'portal', locale:LANG } });
   if(b) b.disabled=false;
@@ -2679,6 +2787,7 @@ document.querySelectorAll('#sub-toggle button').forEach(b=>b.onclick=()=>{
 /* ---- Devenir coach ---- */
 let COACH_PRICES=null, COACH_INT='month';
 async function openCoachSheet(){
+  if(IS_NATIVE){ toast(t('native_nosub')); return; }        /* tarifs Coach + checkout Stripe */
   $('#coach-ov').classList.add('show');
   if(!COACH_PRICES){
     try{
@@ -2687,6 +2796,7 @@ async function openCoachSheet(){
     }catch(e){ COACH_PRICES=[]; }
   }
   await loadFounderSlots(); await loadFounderCan();
+  if(IAP_ON()) await iapLoad(COACH_PRICES);
   const hasYear = (COACH_PRICES||[]).some(p=>p.billing_interval==='year');
   const tg=$('#coach-toggle'); if(tg) tg.style.display = hasYear ? 'flex' : 'none';
   renderCoachPlans();
@@ -2706,8 +2816,8 @@ function renderCoachPlans(){
   if(base){
     h+='<div class="plan-card">';
     if(f) h+=`<div class="plan-badge">${t('founder_coach_badge')}</div>`;
-    h+=`<div class="plan-price">${money(base.amount_cents)}<span class="plan-per">${per}</span>`;
-    if(f&&r) h+=`<span class="plan-old">${money(r.amount_cents)}</span>`;
+    h+=`<div class="plan-price">${planPrice(base)}<span class="plan-per">${per}</span>`;
+    if(f&&r) h+=`<span class="plan-old">${planPrice(r)}</span>`;
     h+='</div>';
     h+=`<div class="plan-save">${f ? t('coach_note_30') : t('coach_note_20')}</div>`;
     if(f) h+=founderCounter('coach');
@@ -2716,22 +2826,23 @@ function renderCoachPlans(){
   if(plus){
     h+='<div class="plan-card">';
     h+=`<div class="plan-badge">${fplus ? t('coach_plus_founder_badge') : 'Coach+'}</div>`;
-    h+=`<div class="plan-price">${money(plus.amount_cents)}<span class="plan-per">${per}</span>`;
-    if(fplus&&rplus) h+=`<span class="plan-old">${money(rplus.amount_cents)}</span>`;
+    h+=`<div class="plan-price">${planPrice(plus)}<span class="plan-per">${per}</span>`;
+    if(fplus&&rplus) h+=`<span class="plan-old">${planPrice(rplus)}</span>`;
     h+='</div>';
     h+=`<div class="plan-save">${fplus ? t('coach_note_60') : t('coach_note_50')}</div>`;
     if(fplus) h+=founderCounter('coach');
     h+=`<button class="btn" data-lk="${plus.lookup_key}">${t('sub_choose')}</button></div>`;
   }
+  if(h) h+=iapRestoreRow();
   box.innerHTML = h || '<p class="empty">—</p>';
-  box.querySelectorAll('[data-lk]').forEach(b=>b.onclick=()=>startCheckout(b.dataset.lk,'#coach-msg'));
+  bindPlanBox(box);
 }
 document.querySelectorAll('#coach-toggle button').forEach(b=>b.onclick=()=>{
   COACH_INT=b.dataset.int;
   document.querySelectorAll('#coach-toggle button').forEach(x=>x.classList.toggle('on',x===b));
   renderCoachPlans();
 });
-{ const el=$('#p-coach-open'); if(el) el.onclick=openCoachSheet; }
+{ const el=$('#p-coach-open'); if(el){ if(IS_NATIVE) el.style.display='none'; else el.onclick=openCoachSheet; } }
 /* Entree Coach sur l'accueil. Apple 3.1.1 : invisible dans le wrapper natif. */
 { const el=$('#home-coach'); if(el) el.onclick=openCoachSheet; }
 function syncCoachHome(role){
@@ -2744,6 +2855,450 @@ function syncCoachHome(role){
 { const ov=$('#ck-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) closeCheckout(); }); }
 checkoutReturn();
 if(IS_NATIVE){ document.querySelectorAll('[data-go="boutique"]').forEach(b=>b.style.display='none'); const _hs=document.getElementById('home-shop'); if(_hs) _hs.style.display='none'; const _bt=document.querySelector('.nav button[data-tab="boutique"]'); if(_bt) _bt.style.display='none'; }
+
+/* ─── Apple 3.1.1 — balayage final (ceinture + bretelles) ─────────────────────
+   BUILD 15 : l'app iOS est entierement verrouillee. Aucune surface d'achat,
+   aucune gestion de facturation, aucun prix. Modele login-only assume.
+   Rejet du build 14 : #p-coach-open (tarifs Coach 39,99/59,99 + checkout Stripe)
+   et #p-sub-manage (portail Stripe = changement d'offre) restaient atteignables.
+   Le MutationObserver garantit que rien ne les rouvre, quel que soit l'ordre
+   d'execution des rendus asynchrones. */
+if(IS_NATIVE){
+  /* ⚠️ Fuite critique corrigee ici. Le Profil pointait vers
+     https://coachdm.be/aide.html : un domaine EXTERNE. Capacitor n'injecte pas
+     son bridge hors du serveur local, donc window.Capacitor y est absent,
+     IS_NATIVE y vaut false, et le retrait des rubriques paiement ne s'appliquait
+     PAS. Le reviewer y lisait les prix et « Profil -> Abonnement, choisis ton
+     offre et paie ». On bascule ces liens sur les copies embarquees. */
+  document.querySelectorAll('a[href^="https://coachdm.be/"]').forEach(a=>{
+    const rel=a.getAttribute('href').replace('https://coachdm.be/','');
+    if(!/^(aide|privacy)\.html$/.test(rel)) return;
+    a.setAttribute('href', rel);
+    a.removeAttribute('target');          /* meme webview : le fichier local n'est pas joignable en _blank */
+    a.removeAttribute('rel');
+  });
+
+  const KILL=['#p-sub-open','#p-sub-manage','#p-coach-open','#p-coach-offer','#gate-sub','#home-coach','#home-shop','#up-cta','#up-price'];
+  let busy=false;
+  const sweep=()=>{
+    if(busy) return;                      /* re-entrance : sweep() ecrit du style, l'observer se re-declencherait */
+    busy=true;
+    KILL.forEach(s=>document.querySelectorAll(s).forEach(el=>{
+      if(el.style.display!=='none'){ el.style.setProperty('display','none','important'); }
+      if('disabled' in el) el.disabled=true;
+    }));
+    busy=false;
+  };
+  sweep();
+  document.addEventListener('DOMContentLoaded',sweep);
+  new MutationObserver(sweep).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['style']});
+}
+
+/* ---------------- CALCULATEUR DE DISQUES ----------------------------------
+   Disques olympiques standards (kg). On ne descend pas sous 0,5 : en dessous,
+   personne n'a le materiel et l'affichage devient du bruit. */
+const PLATES_KG=[25,20,15,10,5,2.5,2,1.25,0.5];
+const BAR_KEY='cdm_bar_kg';
+const BAR_CHOICES=[20,15,10,7];              /* homme · femme · technique · barre courte */
+
+function barKg(){
+  let v=null; try{ v=parseFloat(localStorage.getItem(BAR_KEY)); }catch(_){}
+  return (v && BAR_CHOICES.includes(v)) ? v : 20;
+}
+function setBarKg(v){ try{ localStorage.setItem(BAR_KEY,String(v)); }catch(_){} }
+
+/* Repartition gloutonne par cote. Les disques olympiques sont "canoniques"
+   (chaque valeur >= somme des plus petites necessaires), donc le glouton est
+   optimal ici — pas besoin de programmation dynamique. */
+function plateSplit(totalKg, bar){
+  const perSide=(totalKg-bar)/2;
+  if(perSide<0) return {err:'under'};
+  if(perSide===0) return {plates:[],exact:true,total:bar};
+  const out=[]; let rest=Math.round(perSide*100)/100;
+  for(const p of PLATES_KG){
+    while(rest>=p-1e-9){ out.push(p); rest=Math.round((rest-p)*100)/100; }
+  }
+  const loaded=out.reduce((a,b)=>a+b,0)*2+bar;
+  return {plates:out, exact:Math.abs(loaded-totalKg)<1e-9, total:Math.round(loaded*100)/100};
+}
+
+function renderPlates(){
+  const box=$('#pl-box'); if(!box) return;
+  const inp=$('#f-kg');
+  const total=inp?parseFloat(inp.value):NaN;
+  if(!isFinite(total)||total<=0){ box.style.display='none'; return; }
+  box.style.display='';
+
+  const bar=barKg();
+  const b=$('#pl-bar'); if(b) b.textContent=t('pl_bar').replace('{n}',bar);
+  const ti=$('#pl-title'); if(ti) ti.textContent=t('pl_title');
+
+  const side=$('#pl-side'), warn=$('#pl-warn');
+  const r=plateSplit(total,bar);
+
+  if(r.err==='under'){
+    side.innerHTML='';
+    warn.innerHTML=t('pl_under').replace('{n}',bar);
+    return;
+  }
+  if(!r.plates.length){
+    side.innerHTML='<span class="pl-none">'+t('pl_empty')+'</span>';
+    warn.innerHTML='';
+    return;
+  }
+  /* On regroupe : 2 x 20 se lit mieux que 20 · 20 */
+  const grouped=[];
+  r.plates.forEach(p=>{
+    const last=grouped[grouped.length-1];
+    if(last&&last.p===p) last.n++; else grouped.push({p,n:1});
+  });
+  side.innerHTML=grouped.map(g=>{
+    const lbl=(g.n>1?g.n+'× ':'')+String(g.p).replace('.',',');
+    return '<span class="pl-chip'+(g.n>1?' x2':'')+'">'+lbl+'</span>';
+  }).join('');
+  warn.innerHTML = r.exact ? '' : t('pl_approx').replace('{n}',String(r.total).replace('.',','));
+}
+
+function bindPlates(){
+  const inp=$('#f-kg'); if(inp) inp.addEventListener('input',renderPlates);
+  const b=$('#pl-bar');
+  if(b) b.onclick=()=>{                       /* cycle 20 -> 15 -> 10 -> 7 -> 20 */
+    const i=BAR_CHOICES.indexOf(barKg());
+    setBarKg(BAR_CHOICES[(i+1)%BAR_CHOICES.length]);
+    renderPlates();
+  };
+  renderPlates();
+}
+
+/* ---------------- ACHATS IN-APP — StoreKit via RevenueCat ---------------------
+   RevenueCat sert uniquement a executer l'achat et a relayer les evenements vers
+   l'edge function iap-webhook. La source de verite reste Supabase (table
+   subscriptions), donc aucune configuration d'« Offerings » n'est necessaire cote
+   RevenueCat : on achete les produits par identifiant, directement.
+   Les prix affiches viennent de StoreKit (priceString) — exigence Apple :
+   c'est le prix reel du store, localise dans la devise de l'utilisateur.
+
+   ⚠️ DORMANT DANS LE BUILD 15. Le plugin @revenuecat/purchases-capacitor n'est
+   PAS installe, donc window.Capacitor.Plugins.Purchases est absent, IAP_ON()
+   renvoie false et tout ce bloc reste inerte. Le code est conserve tel quel
+   pour le build 16 : il suffira de reinstaller le plugin, de renseigner
+   RC_APPLE_KEY et de retirer les gardes IS_NATIVE des feuilles d'abonnement. */
+const RC_APPLE_KEY='appl_REMPLACER_PAR_TA_CLE_PUBLIQUE_REVENUECAT';
+let IAP_READY=false, IAP_CONFIGURED=false;
+const IAP_PRODUCTS=Object.create(null);          /* apple_product_id -> produit StoreKit */
+
+function rcPlugin(){ const P=window.Capacitor&&window.Capacitor.Plugins; return (P&&P.Purchases)||null; }
+const IAP_ON = ()=> IS_NATIVE && !!rcPlugin();
+
+async function iapInit(userId){
+  const P=rcPlugin(); if(!P||!userId) return;
+  try{
+    if(!IAP_CONFIGURED){ await P.configure({ apiKey:RC_APPLE_KEY, appUserID:userId }); IAP_CONFIGURED=true; }
+    else { await P.logIn({ appUserID:userId }); }
+    IAP_READY=true;
+  }catch(e){ IAP_READY=false; console.warn('IAP init',e); }
+}
+
+/* Charge les fiches produit StoreKit manquantes. Sans elles, pas d'achat possible. */
+async function iapLoad(rows){
+  const P=rcPlugin(); if(!P) return;
+  const ids=(rows||[]).map(r=>r.apple_product_id).filter(id=>id && !IAP_PRODUCTS[id]);
+  if(!ids.length) return;
+  try{
+    const r=await P.getProducts({ productIdentifiers:ids, type:'SUBSCRIPTION' });
+    ((r&&r.products)||[]).forEach(p=>{ if(p&&p.identifier) IAP_PRODUCTS[p.identifier]=p; });
+  }catch(e){ console.warn('IAP getProducts',e); }
+}
+
+/* Prix affiche : StoreKit d'abord (devise locale reelle), base ensuite. */
+function planPrice(row){
+  if(IAP_ON() && row.apple_product_id){
+    const p=IAP_PRODUCTS[row.apple_product_id];
+    if(p && p.priceString) return p.priceString;
+  }
+  return money(row.amount_cents);
+}
+
+/* L'acces est ouvert par le webhook, pas par le client : on attend le serveur. */
+async function iapAwaitAccess(){
+  for(let i=0;i<12;i++){
+    try{ const { data } = await sb.rpc('access_level'); if(data==='full'){ location.reload(); return true; } }catch(_){}
+    await new Promise(r=>setTimeout(r,1500));
+  }
+  toast(t('iap_slow'));
+  return false;
+}
+
+function iapCancelled(e){
+  if(!e) return false;
+  if(e.userCancelled===true) return true;
+  if(String(e.code)==='1') return true;                 /* PURCHASE_CANCELLED */
+  return /cancel/i.test(e.message||'');
+}
+
+async function iapBuy(lookupKey){
+  const P=rcPlugin();
+  const row=[].concat(SUB_PRICES||[], COACH_PRICES||[]).find(p=>p.lookup_key===lookupKey);
+  const prod=row && row.apple_product_id && IAP_PRODUCTS[row.apple_product_id];
+  if(!P || !prod){ toast(t('iap_unavail')); return; }
+  try{
+    await P.purchaseStoreProduct({ product:prod });
+    $('#sub-ov').classList.remove('show');
+    { const c=$('#coach-ov'); if(c) c.classList.remove('show'); }
+    toast(t('iap_ok'));
+    await iapAwaitAccess();
+  }catch(e){
+    toast(iapCancelled(e) ? t('iap_cancelled') : t('iap_fail'));
+  }
+}
+
+/* Obligatoire : Apple rejette tout abonnement sans restauration d'achats. */
+async function iapRestore(btn){
+  const P=rcPlugin(); if(!P) return;
+  if(btn) btn.disabled=true;
+  try{
+    const r=await P.restorePurchases();
+    const act=r && r.customerInfo && r.customerInfo.entitlements && r.customerInfo.entitlements.active;
+    const has=!!(act && Object.keys(act).length);
+    toast(has ? t('iap_restored') : t('iap_none'));
+    if(has) await iapAwaitAccess();
+  }catch(e){ toast(t('iap_fail')); }
+  finally{ if(btn) btn.disabled=false; }
+}
+
+/* Resiliation d'un abonnement StoreKit : ecran Apple, pas le notre. */
+async function iapManage(){
+  const url='https://apps.apple.com/account/subscriptions';
+  try{
+    const P=window.Capacitor&&window.Capacitor.Plugins;
+    if(P&&P.Browser){ await P.Browser.open({ url }); return; }
+  }catch(_){}
+  window.open(url,'_blank','noopener');
+}
+
+function iapRestoreRow(){
+  return IAP_ON()
+    ? `<button class="btn subtle" id="iap-restore" style="width:100%;margin-top:10px">${t('iap_restore')}</button>`
+    : '';
+}
+function bindPlanBox(box){
+  box.querySelectorAll('[data-lk]').forEach(b=>{
+    b.onclick = IAP_ON() ? ()=>iapBuy(b.dataset.lk) : ()=>startCheckout(b.dataset.lk);
+  });
+  const r=box.querySelector('#iap-restore'); if(r) r.onclick=()=>iapRestore(r);
+}
+
+/* ---------------- APPLE SANTE (HealthKit via @capgo/capacitor-health) ----------------
+   Le plugin natif, l'entitlement com.apple.developer.healthkit et les strings
+   NSHealthShareUsageDescription / NSHealthUpdateUsageDescription sont deja en place
+   cote iOS : il ne manquait que l'appel JS. Lecture seule (pas, poids).
+   La carte n'existe que dans le wrapper natif — sur le web le plugin n'est pas expose. */
+const HK_KEY='cdm_health_on';
+function hkPlugin(){ const P=window.Capacitor&&window.Capacitor.Plugins; return (P&&P.Health)||null; }
+let HK_LAST_W=null;
+
+function hkFmtSteps(n){ try{ return Math.round(n).toLocaleString(locale()); }catch(_){ return String(Math.round(n)); } }
+
+/* Pas du jour. queryAggregated d'abord (HealthKit dedoublonne iPhone + Watch),
+   repli sur la somme des echantillons bruts si l'agregat revient vide. */
+async function hkSteps(H, from, to){
+  try{
+    const r=await H.queryAggregated({dataType:'steps',startDate:from.toISOString(),endDate:to.toISOString(),bucket:'day',aggregation:'sum'});
+    const s=(r&&r.samples)||[];
+    if(s.length){
+      const v=s.reduce((a,b)=>a+(+((b.values&&b.values.sum)!=null?b.values.sum:b.value)||0),0);
+      if(v>0) return v;
+    }
+  }catch(e){ console.warn('HK queryAggregated steps',e); }
+  try{
+    const r=await H.readSamples({dataType:'steps',startDate:from.toISOString(),endDate:to.toISOString(),limit:2000});
+    const s=(r&&r.samples)||[];
+    if(s.length) return s.reduce((a,b)=>a+(+b.value||0),0);
+  }catch(e){ console.warn('HK readSamples steps',e); }
+  return null;
+}
+
+/* Derniere valeur simple d'un type (poids, FC repos…). */
+async function hkLatest(H, type, days){
+  try{
+    const now=new Date(), since=new Date(now.getTime()-days*864e5);
+    const r=await H.readSamples({dataType:type,startDate:since.toISOString(),endDate:now.toISOString(),limit:1,ascending:false});
+    const s=(r&&r.samples)||[];
+    if(s.length && isFinite(+s[0].value)) return +s[0].value;
+  }catch(e){ console.warn('HK '+type,e); }
+  return null;
+}
+
+/* Idem mais avec la date de la mesure. Sans date, un poids ne veut rien dire :
+   « dernier poids » a 11 mois n'est pas un poids actuel, c'est du bruit. */
+async function hkLatestDated(H, type, days){
+  try{
+    const now=new Date(), since=new Date(now.getTime()-days*864e5);
+    const r=await H.readSamples({dataType:type,startDate:since.toISOString(),endDate:now.toISOString(),limit:1,ascending:false});
+    const s=(r&&r.samples)||[];
+    if(s.length && isFinite(+s[0].value)) return { v:+s[0].value, d:new Date(s[0].endDate||s[0].startDate) };
+  }catch(e){ console.warn('HK '+type,e); }
+  return null;
+}
+
+/* Somme d'un type sur une periode (calories actives). */
+async function hkSum(H, type, from, to){
+  try{
+    const r=await H.queryAggregated({dataType:type,startDate:from.toISOString(),endDate:to.toISOString(),bucket:'day',aggregation:'sum'});
+    const s=(r&&r.samples)||[];
+    if(s.length){
+      const v=s.reduce((a,b)=>a+(+((b.values&&b.values.sum)!=null?b.values.sum:b.value)||0),0);
+      if(v>0) return v;
+    }
+  }catch(e){ console.warn('HK agg '+type,e); }
+  try{
+    const r=await H.readSamples({dataType:type,startDate:from.toISOString(),endDate:to.toISOString(),limit:2000});
+    const s=(r&&r.samples)||[];
+    if(s.length) return s.reduce((a,b)=>a+(+b.value||0),0);
+  }catch(e){ console.warn('HK raw '+type,e); }
+  return null;
+}
+
+/* Sommeil de la nuit ecoulee : fenetre 18h hier -> maintenant, on somme les
+   phases reellement endormies (on exclut inBed et awake, sinon on gonfle). */
+async function hkSleep(H){
+  try{
+    const now=new Date();
+    const from=new Date(now.getFullYear(),now.getMonth(),now.getDate()-1,18,0,0);
+    const r=await H.readSamples({dataType:'sleep',startDate:from.toISOString(),endDate:now.toISOString(),limit:500});
+    const s=(r&&r.samples)||[];
+    if(!s.length) return null;
+    let min=0;
+    s.forEach(x=>{
+      if(Array.isArray(x.stages)&&x.stages.length){
+        x.stages.forEach(g=>{ if(g.stage!=='awake'&&g.stage!=='inBed') min+=(+g.durationMinutes||0); });
+      }else if(x.sleepState&&x.sleepState!=='awake'&&x.sleepState!=='inBed'){
+        min+=(new Date(x.endDate)-new Date(x.startDate))/60000;
+      }
+    });
+    return min>0?min:null;
+  }catch(e){ console.warn('HK sleep',e); return null; }
+}
+
+function hkFmtSleep(min){
+  const h=Math.floor(min/60), m=Math.round(min%60);
+  return h>0 ? h+'h'+String(m).padStart(2,'0') : m+'min';
+}
+
+/* Carte Activite du Journal — 4 tuiles, comme la maquette. */
+function hkPaintCard(d){
+  const card=$('#act-card'); if(!card) return;
+  const set=(id,val,fmt)=>{
+    const el=$(id); if(!el) return;
+    const on = val!=null && isFinite(val);
+    el.textContent = on ? fmt(val) : '—';
+    const tile=el.parentElement; if(tile) tile.classList.toggle('off', !on);
+  };
+  set('#act-steps', d.steps, v=>hkFmtSteps(v));
+  set('#act-kcal',  d.kcal,  v=>String(Math.round(v)));
+  set('#act-sleep', d.sleep, v=>hkFmtSleep(v));
+  set('#act-hr',    d.hr,    v=>String(Math.round(v)));
+}
+
+async function hkRead(){
+  const H=hkPlugin(); if(!H) return false;
+  const box=$('#p-health-data'), wEl=$('#p-health-weight'), useB=$('#p-health-usew');
+  const now=new Date();
+  const midnight=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+
+  /* En parallele : 4 lectures HealthKit independantes, pas la peine de les serialiser. */
+  const [steps, kcal, sleep, hr, wSample] = await Promise.all([
+    hkSteps(H, midnight, now),
+    hkSum(H, 'calories', midnight, now),
+    hkSleep(H),
+    hkLatest(H, 'restingHeartRate', 7),
+    hkLatestDated(H, 'weight', 60)      /* 60 j : au-dela, ce n'est plus un poids actuel */
+  ]);
+  const weight = wSample ? Math.round(wSample.v*10)/10 : null;
+
+  hkPaintCard({steps, kcal, sleep, hr});
+  { const b=$('#act-connect'); if(b) b.style.display = (steps==null&&kcal==null&&sleep==null&&hr==null) ? 'block' : 'none'; }
+  { const m=$('#act-msg'); if(m) m.textContent=''; }
+
+  /* ── Poids : UNE seule source de verite ────────────────────────────────────
+     Le poids du profil (nutrition_targets.current_weight_kg) alimente les macros
+     et le calcul Mifflin-St Jeor. Afficher a cote un second poids Apple Sante,
+     sans date et sans lien avec le premier, ne fait que creer une contradiction
+     a l'ecran. On n'affiche donc RIEN, sauf si Sante detient une mesure
+     recente ET differente : dans ce cas seulement, on propose de mettre a jour,
+     en indiquant la date pour que le chiffre soit interpretable. */
+  const wProfile = (typeof TARGETS==='object' && TARGETS && TARGETS.current_weight_kg!=null)
+    ? +TARGETS.current_weight_kg : null;
+  const stale = weight!=null && (wProfile==null || Math.abs(weight-wProfile) >= 0.3);
+
+  HK_LAST_W = stale ? weight : null;
+  if(box) box.style.display = stale ? '' : 'none';
+  if(useB) useB.style.display = stale ? 'block' : 'none';
+  if(wEl){
+    if(stale){
+      const d=wSample.d.toLocaleDateString(locale(),{day:'numeric',month:'short'});
+      wEl.textContent = t('hk_w_new')
+        .replace('{n}',String(weight).replace('.',','))
+        .replace('{d}',d)
+        .replace('{p}', wProfile!=null ? String(wProfile).replace('.',',') : '—');
+    }else{
+      wEl.textContent='';
+    }
+  }
+
+  const any = [steps,kcal,sleep,hr,weight].some(v=>v!=null);
+  if(!any){ setMsg('p-health-msg',t('hk_nodata'),''); return false; }
+  return true;
+}
+
+async function hkConnect(){
+  const H=hkPlugin();
+  if(!H){ setMsg('p-health-msg',t('hk_unavail'),'err'); return; }
+  const b=$('#p-health-go'), b2=$('#act-connect');
+  if(b) b.disabled=true; if(b2) b2.disabled=true;
+  try{
+    const av=await H.isAvailable();
+    if(!av||!av.available){ setMsg('p-health-msg',t('hk_unavail'),'err'); return; }
+    /* ⚠️ HealthKit ne revele JAMAIS si une autorisation de LECTURE a ete accordee :
+       Apple le masque volontairement, sinon une app deduirait une pathologie
+       d'un simple refus. readAuthorized revient donc vide meme quand l'utilisateur
+       a tout accepte. Il ne faut PAS s'en servir comme condition — il faut tenter
+       la lecture et juger sur le resultat. C'etait le bug. */
+    await H.requestAuthorization({ read:['steps','weight','heartRate','restingHeartRate','sleep','distance','calories'] });
+    try{ localStorage.setItem(HK_KEY,'1'); }catch(_){}
+    if(b) b.textContent=t('hk_refresh');
+    const got=await hkRead();
+    setMsg('p-health-msg', got ? t('hk_ok') : t('hk_denied'), got ? 'ok' : '');
+    { const m=$('#act-msg'); if(m){ m.textContent = got ? '' : t('hk_denied'); m.className='msg'; } }
+  }catch(e){
+    setMsg('p-health-msg',t('hk_fail'),'err');
+  }finally{
+    if(b) b.disabled=false; if(b2) b2.disabled=false;
+  }
+}
+
+function hkInit(){
+  if(!IS_NATIVE || !hkPlugin()) return;          /* web ou plugin absent : tout reste cache */
+  const card=$('#p-health'); if(card) card.style.display='';
+  const act=$('#act-card');  if(act) act.style.display='';   /* carte Activite du Journal */
+
+  let already=false; try{ already=localStorage.getItem(HK_KEY)==='1'; }catch(_){}
+
+  const b=$('#p-health-go');
+  if(b){ if(already) b.textContent=t('hk_refresh'); b.onclick=hkConnect; }
+
+  const b2=$('#act-connect');
+  if(b2){ b2.onclick=hkConnect; b2.style.display = already ? 'none' : 'block'; }
+
+  const u=$('#p-health-usew');
+  if(u) u.onclick=()=>{
+    if(HK_LAST_W==null) return;
+    const w=$('#p-weight'); if(w){ w.value=HK_LAST_W; w.dispatchEvent(new Event('input',{bubbles:true})); }
+    setMsg('p-health-msg',t('hk_used'),'ok');
+  };
+
+  if(already) hkRead();                          /* deja autorise : on rafraichit en silence */
+}
 
 /* ---------------- CHAT COACH ---------------- */
 let COACH_THREAD=null, CHAT_CH=null, CHAT_OPEN=false, HAS_COACH=false, PROFILE_NAME='';
@@ -3868,10 +4423,11 @@ async function upsellPrice(){
       const { data } = await sb.from('billing_prices').select('*').eq('audience','client').eq('active',true);
       SUB_PRICES = data||[];
     }
+    if(IAP_ON()) await iapLoad(SUB_PRICES);
     const f=(SUB_PRICES||[]).find(p=>p.founder && p.billing_interval==='month');
     const r=(SUB_PRICES||[]).find(p=>!p.founder && p.billing_interval==='month');
     const offer=f||r; if(!offer) return;
-    let txt = money(offer.amount_cents)+t('sub_per_month');
+    let txt = planPrice(offer)+t('sub_per_month');
     if(f) txt = t('sub_founder_badge')+' · '+txt;
     el.textContent = txt;
   }catch(e){}
@@ -5179,7 +5735,8 @@ function openSetSheet(wrap,pill){
   $('#set-name').textContent=pill.closest('.exrow').querySelector('.ex-name').textContent;
   $('#set-sub').textContent=t('set_title')+' '+SET_CTX.setN;
   let f='';
-  if(load==='weight') f=`<div class="row2"><div class="field"><label>${t('f_reps')}</label><input id="f-reps" type="number" inputmode="numeric" placeholder="8"/></div><div class="field"><label>${t('f_load')}</label><input id="f-kg" type="number" inputmode="decimal" placeholder="60"/></div></div>`;
+  if(load==='weight') f=`<div class="row2"><div class="field"><label>${t('f_reps')}</label><input id="f-reps" type="number" inputmode="numeric" placeholder="8"/></div><div class="field"><label>${t('f_load')}</label><input id="f-kg" type="number" inputmode="decimal" placeholder="60"/></div></div>`
+    + `<div class="plates" id="pl-box" style="display:none"><div class="pl-head"><span id="pl-title"></span><button type="button" class="pl-bar" id="pl-bar"></button></div><div class="pl-side" id="pl-side"></div><div class="pl-warn" id="pl-warn"></div></div>`;
   else if(load==='time') f=`<div class="field"><label>${t('f_dur')}</label><input id="f-dur" type="number" inputmode="numeric" placeholder="45"/></div>`;
   else if(load==='distance') f=`<div class="field"><label>${t('f_dist')}</label><input id="f-dist" type="number" inputmode="numeric" placeholder="20"/></div>`;
   else if(load==='calories') f=`<div class="field"><label>${t('f_cal')}</label><input id="f-cal" type="number" inputmode="numeric" placeholder="15"/></div>`;
@@ -5191,6 +5748,7 @@ function openSetSheet(wrap,pill){
   put('f-reps', last.reps!=null?last.reps:(seg[0]||''));
   put('f-kg',   last.kg!=null?last.kg:(seg[1]||wrap.dataset.kg||''));
   put('f-dur',  last.dur); put('f-dist', last.dist); put('f-cal', last.cal);
+  if(load==='weight') bindPlates();
   $('#set-ov').classList.add('show');
 }
 $('#set-cancel').onclick=()=>{ $('#set-ov').classList.remove('show'); SET_CTX=null; };
@@ -5518,6 +6076,7 @@ enter = async function(u){
 };
 
 applyI18n(); renderLangBtns();
+hkInit();          /* apres applyI18n : le libelle du bouton Sante depend de l'etat de connexion */
 boot();
 </script>
 <script>
