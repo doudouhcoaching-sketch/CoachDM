@@ -410,6 +410,33 @@ document.querySelectorAll('.langbar button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('section.lang').forEach(s=>s.classList.toggle('on',s.id===b.dataset.l));
   window.scrollTo(0,0);
 });
+
+/* ─── Apple 3.1.1 ────────────────────────────────────────────────────────────
+   Cette page est embarquee dans le bundle iOS. Les rubriques « Abonnement &
+   paiement » et « Gerer ou annuler » citent des prix, Stripe, Bancontact, SEPA
+   et expliquent comment payer DANS l'app : c'est une surface de vente hors IAP.
+   On les retire integralement du wrapper natif, dans les 3 langues. */
+(function(){
+  var IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+  if(!IS_NATIVE) return;
+
+  /* Page ouverte dans la meme webview depuis l'app : il faut un retour. */
+  var back=document.createElement('button');
+  back.textContent='‹  Retour';
+  back.setAttribute('style','position:sticky;top:0;z-index:99;display:block;width:100%;'+
+    'border:0;border-bottom:1px solid #2A2A2A;background:#0A0A0A;color:#00FFA3;'+
+    'font:700 15px -apple-system,system-ui,sans-serif;padding:14px 16px;text-align:left;cursor:pointer');
+  back.onclick=function(){ history.back(); };
+  document.body.insertBefore(back, document.body.firstChild);
+
+  var PAY=/paiement|payment|betaling|annuler|cancelling|opzeggen/i;
+  document.querySelectorAll('section.lang .cat').forEach(function(cat){
+    if(!PAY.test(cat.textContent||'')) return;
+    var n=cat.nextElementSibling;
+    while(n && !n.classList.contains('cat')){ var nx=n.nextElementSibling; n.remove(); n=nx; }
+    cat.remove();
+  });
+})();
 </script>
 </body>
 </html>
