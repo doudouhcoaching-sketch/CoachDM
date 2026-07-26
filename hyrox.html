@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <meta name="theme-color" content="#0A0A0A" />
 <meta name="robots" content="noindex" />
-<title>Analyse HYROX — Wall Ball, Burpees, Lunges — Coach DM</title>
+<title>HYROX Wall Ball — comptage, allure et standards — Coach DM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -224,10 +224,8 @@
   </div>
 </header>
 
-<div class="mvseg" id="mvseg">
+<div class="mvseg" id="mvseg" style="display:none">
   <button data-mv="wb" class="on">Wall Ball</button>
-  <button data-mv="bbj">Burpee BJ</button>
-  <button data-mv="lunge">Lunges</button>
 </div>
 
 <div class="divrow">
@@ -636,12 +634,20 @@ const DIVS={
 let DIV=localStorage.getItem('cdm_hx_div')||'mo'; if(!DIVS[DIV])DIV='mo';
 
 /* ───────── Mouvements ───────── */
+/* downT / upT : seuils de descente et de remontee, en LONGUEURS DE TORSO.
+   Repere : debout = 0 · demi-squat ~0,40 · fond de squat ~0,80 · sol ~1,60.
+   L'ecart downT/upT fournit l'hysteresis qui evite le double comptage. */
+/* Wall ball uniquement — decision assumee.
+   Le burpee broad jump et la fente marchee AVANCENT : au bout de trois reps
+   l'athlete est sorti du cadre d'un telephone pose. Ce n'est pas un defaut
+   d'algorithme, c'est de la geometrie, et aucune app ne resout ca.
+   Plutot qu'un comptage approximatif sur cinq mouvements, un comptage
+   irreprochable sur celui qui reste sur place — et c'est la station a 100 reps,
+   celle ou les courses se gagnent et se perdent. */
 const MOVES={
-  wb:   {downFrac:0.50, upFrac:0.22, minMs:400,  provFrac:0.45, topHoldMs:260, defTargets:[100,75,50,30,20]},
-  bbj:  {downFrac:0.62, upFrac:0.20, minMs:800,  provFrac:0.85, topHoldMs:120, defTargets:[40,35,30,25,20]},
-  lunge:{downFrac:0.38, upFrac:0.16, minMs:600,  provFrac:0.38, topHoldMs:120, defTargets:[60,50,40,30,20]}
+  wb: {downT:0.38, upT:0.16, minMs:400, topHoldMs:260, defTargets:[100,75,50,30,20]}
 };
-let MV=localStorage.getItem('cdm_hx_mv')||'wb'; if(!MOVES[MV])MV='wb';
+let MV='wb';                       /* seul mouvement suivi par la camera */
 let TARGET=100;
 
 function applyMoveUI(){
@@ -861,11 +867,12 @@ function sndBad(){beep(300,200,'square',0.13);setTimeout(()=>beep(185,240,'squar
    anthropométrie, puis mesurée sur les reps réelles). Aucun seuil absolu.
    Validation : deux signaux indépendants par mouvement (profondeur + extension)
    pour rendre impossible le faux positif sur un repositionnement de balle. */
+const BELOW_PARALLEL_ANGLE=90;   /* identique a squat.html — une seule verite */
 const WARMUP_FRAMES=18;
 const REST_MS=3000;          // au-delà = temps de blocage
 const FADE_ALERT=25;         // % de chute de cadence
 
-const CAL={stand:null,legLen:null,range:null,ready:false};
+const CAL={stand:null,legLen:null,torso:null,range:null,ready:false};
 const S={mode:'idle',rep:null,lastGoodTs:0,good:0,topT0:0};
 const HYX={fade:null,blockMs:0,workPct:null,cons:null,warn:false};
 let reps=[],noReps=0,stationT0=null,lastRepTs=null,lastEndTs=null,lastKnee=null;
@@ -910,36 +917,81 @@ function viewOf(lm,side){
 }
 function hipY(lm){return (lm[23].y+lm[24].y)/2;}
 
+/* ⚠️ Correction de fond : jusqu'ici la descente etait mesuree en Y d'image
+   normalise. Or ce Y depend de ta DISTANCE au telephone — si tu avances,
+   ta taille apparente change et tous les seuils se decalent sans prevenir.
+   C'est ce qui faisait mal compter des que l'athlete se deplacait.
+   On mesure desormais la descente en LONGUEURS DE TORSO (epaule -> hanche),
+   une reference portee par le corps lui-meme : invariante a la distance
+   comme a la morphologie. Un squat complet vaut ~0,8 torso. */
+function torsoLen(lm){
+  const shX=(lm[11].x+lm[12].x)/2, shY=(lm[11].y+lm[12].y)/2;
+  const hpX=(lm[23].x+lm[24].x)/2, hpY=(lm[23].y+lm[24].y)/2;
+  return Math.max(0.06, Math.hypot(shX-hpX, shY-hpY));
+}
+/* Descente en unites de torso : 0 = debout, ~0,8 = fond de squat. */
+function dropT(lm){
+  if(CAL.stand==null) return 0;
+  return (hipY(lm)-CAL.stand)/torsoLen(lm);
+}
+
 /* calibration debout : référence + longueur de jambe (amplitude provisoire) */
 function calib(lm,side){
   const hy=hipY(lm), ay=lm[side.ankle].y;
   if(CAL.stand==null){CAL.stand=hy;CAL.legLen=Math.max(0.12,ay-hy);}
   else{CAL.stand=CAL.stand*0.85+hy*0.15;CAL.legLen=CAL.legLen*0.85+Math.max(0.12,ay-hy)*0.15;}
-  if(CAL.range==null)CAL.range=CAL.legLen*MOVES[MV].provFrac;
-  CAL.ready=CAL.range>0.05;
+  CAL.torso=torsoLen(lm);
+  CAL.ready=CAL.stand!=null&&CAL.torso>0.06;
 }
 
 function startRep(ts,lm,side){
   S.rep={
     t0:ts, side:side,
-    depthOk:false, throwOk:false, chestOk:false, kneeOk:false,
-    kneeSide:null, hipMax:hipY(lm), view:viewOf(lm,side)
+    depthOk:false, throwOk:false, chestOk:false, kneeOk:false, minKnee:999,
+    kneeSide:null, hipMax:hipY(lm), dropMax:0, view:viewOf(lm,side)
   };
 }
-function sampleRep(lm,side,ts){
+function sampleRep(lm,w,side,ts){
   const r=S.rep; if(!r)return;
   const hy=hipY(lm);
   if(hy>r.hipMax)r.hipMax=hy;
+  const d=dropT(lm); if(d>r.dropMax)r.dropMax=d;
   r.view=viewOf(lm,side);
 
-  /* profondeur standard HYROX : crête de hanche sous le sommet du genou */
-  if(lm[side.hip].y>lm[side.knee].y+0.008)r.depthOk=true;
+  /* ⚠️ Profondeur : MEME regle que squat.html, sinon les deux pages se
+     contredisent sur le meme mouvement — c'etait le cas.
+     Le test 2D « hanche sous le genou » depend de la hauteur et de l'angle du
+     telephone : legerement haut ou pas tout a fait de profil, et une rep au
+     fond est jugee trop haute. On ajoute donc le critere 3D (angle de genou
+     <= 90°), issu des worldLandmarks, insensible a la perspective.
+     Les deux criteres sont en OU : il suffit d'un seul pour valider. */
+  if(lm[side.hip].y>lm[side.knee].y+0.01)r.depthOk=true;
+  if(w){
+    const k=kneeAngle(w,side);
+    if(k!=null&&isFinite(k)){
+      if(k<r.minKnee)r.minKnee=k;
+      if(k<=BELOW_PARALLEL_ANGLE)r.depthOk=true;
+    }
+  }
 
-  /* extension au lancer : poignets au-dessus du nez (bras tendus overhead) */
+  /* Extension au lancer. Critere principal : poignets au-dessus du nez.
+     ⚠️ Le medicine ball masque tres souvent les mains — quand MediaPipe perd
+     les poignets, ce test seul ne se declenche JAMAIS et la rep est refusee
+     alors que le lancer etait bon. On ajoute donc un repli sur les coudes :
+     coudes au-dessus des epaules = bras engages vers le haut. */
   const wl=lm[15], wr=lm[16], nose=lm[0];
   if(nose){
-    const wy=Math.min(vis(wl)>0.4?wl.y:9, vis(wr)>0.4?wr.y:9);
-    if(wy<nose.y-0.02)r.throwOk=true;
+    const wVis=(vis(wl)>0.4)||(vis(wr)>0.4);
+    if(wVis){
+      const wy=Math.min(vis(wl)>0.4?wl.y:9, vis(wr)>0.4?wr.y:9);
+      if(wy<nose.y-0.02)r.throwOk=true;
+    }
+    if(!r.throwOk){
+      const el=lm[13], er=lm[14];
+      const shY2=(lm[11].y+lm[12].y)/2;
+      const ey=Math.min(vis(el)>0.4?el.y:9, vis(er)>0.4?er.y:9);
+      if(ey<9&&ey<shY2-0.02)r.throwOk=true;
+    }
   }
   /* poitrine au sol (burpee) : épaules au niveau des chevilles */
   const shY=(lm[11].y+lm[12].y)/2, anY=Math.max(lm[27].y,lm[28].y);
@@ -954,7 +1006,7 @@ function finishRep(ts){
   if(!r)return;
   if(ts-r.t0<MOVES[MV].minMs)return;                 // trop court = bruit
   /* amplitude mesurée : remplace l'estimation anthropométrique */
-  const amp=r.hipMax-CAL.stand;
+  const amp=r.dropMax||0;
   if(amp>0.05)CAL.range=CAL.range==null?amp:(CAL.range*0.7+amp*0.3);
 
   let valid=true, why=null, alt=false;
@@ -1055,36 +1107,35 @@ function handle(lm,w,ts){
   const hy=median3(hyRaw);
   if(w){const k=kneeAngle(w,side); lastKnee=k; if(k>158&&S.mode==='ready')calib(lm,side);}
 
-  const rng=CAL.range||0.18;
-  const downTh=CAL.stand+MOVES[MV].downFrac*rng;
-  const upTh  =CAL.stand+MOVES[MV].upFrac*rng;
+  const drop=dropT(lm);                       /* descente en longueurs de torso */
+  const downTh=MOVES[MV].downT, upTh=MOVES[MV].upT;
 
   chip.hidden=false;
   const cad=cadenceNow();
   $('#chip-val').textContent=cad!=null?cad:'—';
 
   if(S.mode==='ready'){
-    if(hy>downTh){S.mode='down';startRep(ts,lm,side);setStatus('st_down');}
+    if(drop>downTh){S.mode='down';startRep(ts,lm,side);setStatus('st_down');}
     else{
       const idle=lastRepTs!=null&&(ts-lastRepTs>REST_MS);
       setStatus(idle?'st_rest':(viewOf(lm,side)==='front'?'st_view':(reps.length?'st_work':'st_ready')));
       stage.classList.remove('deep');
     }
   }else if(S.mode==='down'){
-    sampleRep(lm,side,ts);
+    sampleRep(lm,w,side,ts);
     const good=(MV==='wb')?S.rep.depthOk:(MV==='bbj'?S.rep.chestOk:S.rep.kneeOk);
     stage.classList.toggle('deep',good);
     setStatus(good?'st_deep':'st_down');
-    if(hy<upTh){S.mode='top';S.topT0=ts;setStatus('st_up');}
+    if(drop<upTh){S.mode='top';S.topT0=ts;setStatus('st_up');}
   }else if(S.mode==='top'){
     /* fenêtre courte au sommet : le lancer culmine APRÈS le retour debout —
        ne pas clôturer la rep avant d'avoir échantillonné l'extension. */
-    sampleRep(lm,side,ts);
+    sampleRep(lm,w,side,ts);
     stage.classList.remove('deep');
-    if(ts-S.topT0>=MOVES[MV].topHoldMs||hy>downTh){
+    if(ts-S.topT0>=MOVES[MV].topHoldMs||drop>downTh){
       finishRep(ts);
-      S.mode=(hy>downTh)?'ready':'ready';
-      if(hy>downTh){S.mode='down';startRep(ts,lm,side);}
+      S.mode='ready';
+      if(drop>downTh){S.mode='down';startRep(ts,lm,side);}
     }
   }
   updateSummary();
@@ -1173,7 +1224,7 @@ function draw(res){
     du.drawLandmarks(lm,{color:'rgba(0,255,163,.85)',fillColor:'rgba(0,255,163,.85)',radius:2});
     if(CAL.ready&&CAL.stand!=null){
       const rng=CAL.range||0.18;
-      const yD=(CAL.stand+MOVES[MV].downFrac*rng)*canvas.height;
+      const yD=(CAL.stand+MOVES[MV].downT*(CAL.torso||0.2))*canvas.height;
       ctx.save();
       ctx.strokeStyle='rgba(212,175,55,.55)';ctx.lineWidth=2;ctx.setLineDash([10,8]);
       ctx.beginPath();ctx.moveTo(0,yD);ctx.lineTo(canvas.width,yD);ctx.stroke();
@@ -1205,7 +1256,8 @@ function updateDbg(ts,side,lm){
   dbgEl.textContent=
     'mode: '+S.mode+'  fps: '+dbgFps+'\n'+
     'reps: '+reps.length+' ('+noReps+' NR)  vue: '+viewOf(lm,side)+'\n'+
-    'ampl: '+(rng==null?'—':rng.toFixed(3))+'  genou: '+(lastKnee==null?'—':Math.round(lastKnee)+'°');
+    'drop: '+dropT(lm).toFixed(2)+'T  genou min: '+(S.rep&&S.rep.minKnee<999?Math.round(S.rep.minKnee)+'°':'—')+'\n'+
+    'ampl max: '+(rng==null?'—':rng.toFixed(2)+'T')+'  genou: '+(lastKnee==null?'—':Math.round(lastKnee)+'°');
 }
 
 /* ───────── Camera + loop ───────── */

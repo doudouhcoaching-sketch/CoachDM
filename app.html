@@ -869,6 +869,32 @@
   .act-tile span{display:block;margin-top:5px;font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:-.01em}
   .act-tile.off b{color:var(--muted)}
 
+  /* --- Scan code-barres --- */
+  .scanline{display:flex;align-items:center;gap:10px;width:100%;margin-top:10px;cursor:pointer;
+    background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:13px 15px;
+    color:var(--text);font-size:14.5px;font-weight:700;letter-spacing:-.01em;text-align:left}
+  .scanline svg{width:21px;height:21px;flex:none;color:var(--brand)}
+  .scan-ov{position:fixed;inset:0;z-index:120;background:#000;display:none;flex-direction:column}
+  .scan-ov.show{display:flex}
+  .scan-ov video{flex:1;width:100%;object-fit:cover;background:#000}
+  .scan-frame{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:min(80vw,340px);height:170px;border-radius:16px;box-shadow:0 0 0 100vmax rgba(0,0,0,.55);
+    border:2px solid var(--brand);pointer-events:none}
+  .scan-bar{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top) + 14px) 16px 14px;
+    display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .scan-bar button{background:rgba(255,255,255,.16);border:0;color:#fff;font-size:14px;font-weight:700;
+    padding:9px 16px;border-radius:999px;cursor:pointer;backdrop-filter:blur(6px)}
+  .scan-hint{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 26px);
+    text-align:center;color:#fff;font-size:14px;font-weight:600;line-height:1.5;text-shadow:0 1px 6px rgba(0,0,0,.7)}
+
+  /* --- Groupes de resultats alimentaires --- */
+  .fgrp{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    margin:16px 2px 8px;font-size:11.5px;font-weight:800;letter-spacing:.04em;
+    text-transform:uppercase;color:var(--muted)}
+  .fgrp-t{display:flex;align-items:center;gap:7px}
+  .fgrp-t::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--brand);flex:none}
+  .fgrp-n{font-variant-numeric:tabular-nums;opacity:.65}
+
   /* --- Calculateur de disques --- */
   .plates{margin-top:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:12px 13px}
   .pl-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px}
@@ -883,6 +909,7 @@
   .pl-none{font-size:13px;color:var(--muted);font-weight:600}
   .pl-warn{margin-top:8px;font-size:12.5px;line-height:1.45;color:#E9C767}
   .pl-warn:empty{display:none}
+
   @media (max-width:360px){ .act-tile b{font-size:17px} .act-tile span{font-size:10.5px} }
   .tr-head h3{margin:0}
   .tr-toggle{display:flex;gap:6px}
@@ -1076,6 +1103,10 @@
         <input id="jo-q" type="text" placeholder="Riz, poulet, banane…" data-i18n-ph="jo_ph" enterkeyhint="search" />
         <button id="jo-search" data-i18n="jo_search">Chercher</button>
       </div>
+      <button class="scanline" id="jo-scan" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8v8M10.5 8v8M14 8v8M17 8v8"/></svg>
+        <span data-i18n="sc_btn">Scanner un code-barres</span>
+      </button>
       <button class="ai-photo" id="jo-photo" style="margin-top:10px"><span class="ap-ic"><svg class="ic"><use href="#i-camera"/></svg></span><span class="ap-tx"><span id="jo-photo-lbl" data-i18n="ph_btn">Photo IA — calcule mes calories</span></span><span class="ap-pro">PRO</span></button>
       <input type="file" id="jo-photo-file" accept="image/*" capture="environment" style="display:none" />
       <div id="jo-results"></div>
@@ -1821,6 +1852,17 @@ const T = {
  pl_empty:{fr:'Barre \u00e0 vide',en:'Empty bar',nl:'Lege stang'},
  pl_under:{fr:'Charge inf\u00e9rieure au poids de la barre ({n} kg).',en:'Load is below the bar weight ({n} kg).',nl:'Belasting lager dan het stanggewicht ({n} kg).'},
  pl_approx:{fr:'Impossible \u00e0 l\u2019unit\u00e9 pr\u00e8s avec des disques standards. Le plus proche : <b>{n} kg</b>.',en:'Not achievable exactly with standard plates. Closest: <b>{n} kg</b>.',nl:'Niet exact haalbaar met standaardschijven. Dichtstbij: <b>{n} kg</b>.'},
+ sc_btn:{fr:'Scanner un code-barres',en:'Scan a barcode',nl:'Streepjescode scannen'},
+ sc_hint:{fr:'Cadre le code-barres du produit',en:'Line up the product barcode',nl:'Richt op de streepjescode'},
+ sc_close:{fr:'Fermer',en:'Close',nl:'Sluiten'},
+ sc_manual:{fr:'Saisir le code',en:'Enter code',nl:'Code invoeren'},
+ sc_prompt:{fr:'Code-barres (8 \u00e0 13 chiffres)',en:'Barcode (8 to 13 digits)',nl:'Streepjescode (8 tot 13 cijfers)'},
+ sc_none:{fr:'Code {c} introuvable dans OpenFoodFacts.',en:'Code {c} not found in OpenFoodFacts.',nl:'Code {c} niet gevonden in OpenFoodFacts.'},
+ sc_cam:{fr:'Cam\u00e9ra indisponible. V\u00e9rifie l\u2019autorisation dans R\u00e9glages.',en:'Camera unavailable. Check the permission in Settings.',nl:'Camera niet beschikbaar. Controleer de toestemming in Instellingen.'},
+ sc_lib:{fr:'Scanner indisponible hors connexion.',en:'Scanner unavailable offline.',nl:'Scanner niet beschikbaar offline.'},
+ fg_home:{fr:'Plats & aliments Coach DM',en:'Coach DM dishes & foods',nl:'Coach DM-gerechten & voeding'},
+ fg_brand:{fr:'Produits de marque',en:'Branded products',nl:'Merkproducten'},
+ fg_maybe:{fr:'Peut-\u00eatre aussi',en:'You may also mean',nl:'Misschien ook'},
  act_title:{fr:'Activit\u00e9',en:'Activity',nl:'Activiteit'},
  act_src:{fr:'Apple Sant\u00e9',en:'Apple Health',nl:'Apple Gezondheid'},
  act_steps:{fr:'pas',en:'steps',nl:'stappen'},
@@ -2894,6 +2936,121 @@ if(IS_NATIVE){
   new MutationObserver(sweep).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['style']});
 }
 
+/* ---------------- SCAN CODE-BARRES ----------------------------------------
+   BarcodeDetector n'existe pas dans WKWebView (donc pas dans le wrapper iOS) :
+   on l'utilise quand il est la (Chrome/Android), sinon on charge ZXing.
+   La recherche passe par l'edge function off-search, la meme que la recherche
+   texte : elle porte le User-Agent exige par OpenFoodFacts et repond au
+   preflight CORS. Un fetch direct depuis l'app echouerait sur les deux points. */
+let SCAN={stream:null,stop:false,reader:null};
+
+async function zxing(){
+  if(window.ZXing) return window.ZXing;
+  await new Promise((res,rej)=>{
+    const sc=document.createElement('script');
+    sc.src='https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';
+    sc.onload=res; sc.onerror=rej; document.head.appendChild(sc);
+  });
+  return window.ZXing;
+}
+
+async function scanClose(){
+  SCAN.stop=true;
+  try{ if(SCAN.reader&&SCAN.reader.reset) SCAN.reader.reset(); }catch(_){}
+  SCAN.reader=null;
+  const v=$('#scan-video');
+  const st=SCAN.stream||(v&&v.srcObject);
+  if(st){ try{ st.getTracks().forEach(t=>t.stop()); }catch(_){} }
+  SCAN.stream=null; if(v) v.srcObject=null;
+  const ov=$('#scan-ov'); if(ov) ov.classList.remove('show');
+}
+
+async function scanOpen(){
+  const ov=$('#scan-ov'), v=$('#scan-video'); if(!ov||!v) return;
+  SCAN.stop=false;
+  $('#scan-hint').textContent=t('sc_hint');
+  $('#scan-close').textContent=t('sc_close');
+  $('#scan-manual').textContent=t('sc_manual');
+  ov.classList.add('show');
+
+  /* Un EAN-13 tient sur ~95 modules : sous 1280 px de large, les barres fines
+     tombent sous le pixel et rien n'est decodable. On demande donc du 1080p. */
+  const constraints={ video:{ facingMode:{ideal:'environment'},
+    width:{ideal:1920}, height:{ideal:1080}, advanced:[{focusMode:'continuous'}] } };
+
+  if('BarcodeDetector' in window){
+    try{
+      SCAN.stream=await navigator.mediaDevices.getUserMedia(constraints);
+      v.srcObject=SCAN.stream; v.setAttribute('playsinline',''); v.muted=true; await v.play();
+      const det=new window.BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e']});
+      const loop=async()=>{
+        if(SCAN.stop) return;
+        try{
+          const codes=await det.detect(v);
+          if(codes&&codes.length&&codes[0].rawValue) return scanHit(codes[0].rawValue);
+        }catch(_){}
+        requestAnimationFrame(loop);
+      };
+      loop(); return;
+    }catch(_){
+      if(SCAN.stream){ try{SCAN.stream.getTracks().forEach(x=>x.stop());}catch(__){} SCAN.stream=null; }
+    }
+  }
+
+  let Z; try{ Z=await zxing(); }catch(_){ await scanClose(); toast(t('sc_lib')); return; }
+  try{
+    const hints=new Map();
+    hints.set(Z.DecodeHintType.POSSIBLE_FORMATS,[Z.BarcodeFormat.EAN_13,Z.BarcodeFormat.EAN_8,Z.BarcodeFormat.UPC_A,Z.BarcodeFormat.UPC_E]);
+    hints.set(Z.DecodeHintType.TRY_HARDER,true);          /* indispensable sur les codes 1D */
+    SCAN.reader=new Z.BrowserMultiFormatReader(hints,{delayBetweenScanAttempts:120});
+    /* On NE fait PAS getUserMedia nous-memes : decodeFromConstraints ouvre et
+       pilote le flux. Ouvrir la camera en amont puis lui passer la meme video
+       creait un conflit — c'etait la cause du « ne lit rien du tout ». */
+    await SCAN.reader.decodeFromConstraints(constraints, v, (result)=>{
+      if(SCAN.stop||!result) return;
+      const txt=result.getText&&result.getText();
+      if(txt) scanHit(txt);
+    });
+  }catch(e){ console.warn('scan',e); await scanClose(); toast(t('sc_cam')); }
+}
+
+/* Filet de securite : un code froisse ou mal eclaire ne se lit jamais, quelle
+   que soit la techno. Yuka propose la meme sortie. */
+async function scanManual(){
+  const v=prompt(t('sc_prompt'));
+  if(v==null) return;
+  const code=String(v).replace(/\D/g,'');
+  if(code.length<8||code.length>14){ toast(t('sc_none').replace('{c}',esc(String(v)))); return; }
+  SCAN.stop=true; await scanClose();
+  await scanLookup(code);
+}
+
+async function scanHit(code){
+  if(SCAN.stop) return;
+  SCAN.stop=true;
+  try{ if(navigator.vibrate) navigator.vibrate(40); }catch(_){}
+  await scanClose();
+  await scanLookup(String(code).trim());
+}
+
+async function scanLookup(code){
+  switchTab('journal');
+  $('#jo-results').innerHTML='<div class="spin"></div>';
+  let f=null;
+  try{
+    const { data } = await sb.rpc('search_foods',{ p_query:null, p_barcode:code, p_limit:1 });
+    if(data&&data.length) f={ ...data[0], off:false };
+  }catch(_){}
+  if(!f){
+    try{
+      const { data, error } = await sb.functions.invoke('off-search',{ body:{ barcode:code } });
+      if(!error && data && data.foods && data.foods.length) f=data.foods[0];
+    }catch(_){}
+  }
+  if(!f){ $('#jo-results').innerHTML='<p class="empty">'+t('sc_none').replace('{c}',esc(code))+'</p>'; return; }
+  renderFoods([f], f.off?0:1, 0);
+}
+
 /* ---------------- CALCULATEUR DE DISQUES ----------------------------------
    Disques olympiques standards (kg). On ne descend pas sous 0,5 : en dessous,
    personne n'a le materiel et l'affichage devient du bruit. */
@@ -3672,33 +3829,20 @@ async function searchLocal(q){
   return (data||[]).map(f=>({ ...f, off:false }));
 }
 
+/* ⚠️ Cette recherche passait par https://world.openfoodfacts.org/cgi/search.pl.
+   Cet endpoint est DEPRECIE et renvoie des 503 : la recherche de marques etait
+   donc morte, silencieusement, et l'app retombait sur les seuls aliments locaux.
+   OpenFoodFacts a migre vers Search-a-licious, et exige desormais un User-Agent
+   applicatif — un en-tete que JavaScript n'a PAS le droit de definir.
+   On passe donc par l'edge function `off-search`, qui porte le User-Agent,
+   normalise les donnees et nous permettra de suivre les prochains changements
+   d'OFF sans repasser par une review Apple. */
 async function searchOFF(q){
-  const url='https://world.openfoodfacts.org/cgi/search.pl?search_terms='+encodeURIComponent(q)
-    +'&search_simple=1&action=process&json=1&page_size=30'
-    +'&fields=code,product_name,product_name_fr,product_name_nl,product_name_en,generic_name_fr,brands,nutriments,serving_quantity,image_small_url';
-  let j;
-  try{ const r=await fetch(url); j=await r.json(); }catch(e){ return []; }
-  const out=[];
-  for(const p of (j.products||[])){
-    const n=p.nutriments||{};
-    let kcal=n['energy-kcal_100g'];
-    if(kcal==null && n['energy_100g']!=null) kcal=(+n['energy_100g'])/4.184;
-    if(kcal==null) continue;
-    const name=p.product_name_fr||p.product_name||p.generic_name_fr||p.product_name_en||p.product_name_nl;
-    if(!name) continue;
-    out.push({
-      off:true, id:null, barcode:p.code||null, off_id:p.code?('off:'+p.code):null,
-      name_fr:name, name_en:p.product_name_en||null, name_nl:p.product_name_nl||null,
-      brand:(p.brands||'').split(',')[0].trim()||null,
-      kcal_per_100g:Math.round((+kcal)||0),
-      protein_per_100g:+n.proteins_100g||0, carbs_per_100g:+n.carbohydrates_100g||0,
-      fat_per_100g:+n.fat_100g||0, fiber_per_100g:+n.fiber_100g||0,
-      sugars:+n.sugars_100g||null, sat:+n['saturated-fat_100g']||null, salt:+n.salt_100g||null,
-      default_serving_g:(p.serving_quantity&&+p.serving_quantity)||100,
-      image:p.image_small_url||null
-    });
-  }
-  return out.slice(0,25);
+  try{
+    const { data, error } = await sb.functions.invoke('off-search',{ body:{ q, limit:25 } });
+    if(error) return [];
+    return (data&&data.foods)||[];
+  }catch(e){ return []; }
 }
 
 async function doSearch(){
@@ -3708,16 +3852,61 @@ async function doSearch(){
   const [localR,offR]=await Promise.allSettled([ searchLocal(q), searchOFF(q) ]);
   const local=localR.status==='fulfilled'?localR.value:[];
   const off=offR.status==='fulfilled'?offR.value:[];
+
   const seen=new Set(local.map(f=>(f.name_fr||'').toLowerCase()));
-  const merged=local.concat(off.filter(f=>!seen.has((f.name_fr||'').toLowerCase())));
-  if(!merged.length){ $('#jo-results').innerHTML='<p class="empty">'+t('no_food_a')+esc(q)+t('no_food_b')+'</p>'; return; }
-  window.__FOODS=merged;
-  $('#jo-results').innerHTML = merged.map((f,i)=>`
+  const brands=off.filter(f=>!seen.has((f.name_fr||'').toLowerCase())).slice(0,15);
+
+  if(!local.length && !brands.length){
+    $('#jo-results').innerHTML='<p class="empty">'+t('no_food_a')+esc(q)+t('no_food_b')+'</p>';
+    return;
+  }
+
+  /* Regle de classement.
+     La recherche locale est volontairement floue (trigrammes) pour pardonner
+     les fautes de frappe — mais du coup « nutella » remonte « Palm nut soup »
+     par le fragment « nut ». Afficher ca sous « Plats & aliments Coach DM »
+     ferait amateur.
+     On distingue donc les correspondances FRANCHES (le nom contient vraiment
+     la requete) des correspondances floues :
+       - au moins une franche  -> l'utilisateur cherche un plat, maison d'abord
+       - aucune franche        -> il tape une marque, les marques d'abord et
+                                  le flou en second, a titre de suggestion. */
+  const nrm=x=>(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const nq=nrm(q);
+  const hit=f=>nrm(f.name_fr).includes(nq)||nrm(f.name_en).includes(nq)||nrm(f.name_nl).includes(nq);
+  const strong=local.filter(hit), fuzzy=local.filter(f=>!hit(f));
+
+  if(strong.length || !brands.length){
+    renderFoods(strong.concat(fuzzy, brands), strong.length+fuzzy.length);
+  }else{
+    renderFoods(brands.concat(fuzzy), 0, fuzzy.length);
+  }
+}
+
+/* Rendu partage entre la recherche texte et le scan de code-barres. */
+function renderFoods(list, nLocal, nFuzzy){
+  window.__FOODS=list;
+  const n = (typeof nLocal==='number') ? nLocal : list.length;
+  const nf = nFuzzy||0;
+  const card=(f,i)=>`
     <div class="food" data-i="${i}">
       <div><div class="fn">${esc(pick(f,'name')||t('sh_food'))}${f.brand?' · <span style="color:var(--muted);font-weight:500">'+esc(f.brand)+'</span>':''}</div>
         <div class="fk">${r0(f.kcal_per_100g)} kcal · P${r0(f.protein_per_100g)} G${r0(f.carbs_per_100g)} L${r0(f.fat_per_100g)} /100g</div></div>
       <div class="add">＋</div>
-    </div>`).join('');
+    </div>`;
+  let h='';
+  if(n>0) h+='<div class="fgrp"><span class="fgrp-t">'+t('fg_home')+'</span><span class="fgrp-n">'+n+'</span></div>';
+  h+=list.slice(0,n).map(card).join('');
+  if(list.length>n){
+    const endBrands=list.length-nf;
+    h+='<div class="fgrp"><span class="fgrp-t">'+t('fg_brand')+'</span><span class="fgrp-n">'+(endBrands-n)+'</span></div>';
+    h+=list.slice(n,endBrands).map((f,j)=>card(f,n+j)).join('');
+    if(nf>0){
+      h+='<div class="fgrp"><span class="fgrp-t">'+t('fg_maybe')+'</span><span class="fgrp-n">'+nf+'</span></div>';
+      h+=list.slice(endBrands).map((f,j)=>card(f,endBrands+j)).join('');
+    }
+  }
+  $('#jo-results').innerHTML=h;
   document.querySelectorAll('#jo-results .food').forEach(el=>{
     el.onclick = ()=>openSheet(window.__FOODS[+el.dataset.i]);
   });
@@ -4547,6 +4736,9 @@ function switchTab(tab){
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
 { const sh=$('#home-shop'); if(sh) sh.onclick=()=>switchTab('boutique'); }
+{ const b=$('#jo-scan');    if(b) b.onclick=scanOpen; }
+{ const c=$('#scan-close'); if(c) c.onclick=scanClose; }
+{ const m=$('#scan-manual');if(m) m.onclick=scanManual; }
 /* ---- routeur sous-pages Profil ---- */
 function pfShow(view){
   const pane=document.getElementById('pane-profile'); if(!pane) return;
@@ -6086,5 +6278,11 @@ if (!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.
   });
 }
 </script>
+<div class="scan-ov" id="scan-ov">
+  <video id="scan-video" playsinline muted></video>
+  <div class="scan-frame"></div>
+  <div class="scan-bar"><button type="button" id="scan-manual">123</button><button type="button" id="scan-close">Fermer</button></div>
+  <div class="scan-hint" id="scan-hint"></div>
+</div>
 </body>
 </html>
