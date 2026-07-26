@@ -884,6 +884,8 @@
     display:flex;justify-content:space-between;align-items:center;gap:12px}
   .scan-bar button{background:rgba(255,255,255,.16);border:0;color:#fff;font-size:14px;font-weight:700;
     padding:9px 16px;border-radius:999px;cursor:pointer;backdrop-filter:blur(6px)}
+  .scan-dbg{position:absolute;left:16px;bottom:calc(env(safe-area-inset-bottom) + 6px);
+    color:rgba(255,255,255,.55);font-size:11px;font-weight:600;font-variant-numeric:tabular-nums}
   .scan-hint{position:absolute;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 26px);
     text-align:center;color:#fff;font-size:14px;font-weight:600;line-height:1.5;text-shadow:0 1px 6px rgba(0,0,0,.7)}
 
@@ -1860,6 +1862,22 @@ const T = {
  sc_none:{fr:'Code {c} introuvable dans OpenFoodFacts.',en:'Code {c} not found in OpenFoodFacts.',nl:'Code {c} niet gevonden in OpenFoodFacts.'},
  sc_cam:{fr:'Cam\u00e9ra indisponible. V\u00e9rifie l\u2019autorisation dans R\u00e9glages.',en:'Camera unavailable. Check the permission in Settings.',nl:'Camera niet beschikbaar. Controleer de toestemming in Instellingen.'},
  sc_lib:{fr:'Scanner indisponible hors connexion.',en:'Scanner unavailable offline.',nl:'Scanner niet beschikbaar offline.'},
+ nf_cta:{fr:'Cr\u00e9er cet aliment',en:'Create this food',nl:'Dit voedingsmiddel aanmaken'},
+ nf_title:{fr:'Nouvel aliment',en:'New food',nl:'Nieuw voedingsmiddel'},
+ nf_sub:{fr:'Recopie les valeurs du paquet, pour 100 g. Cet aliment reste priv\u00e9 : toi seul le vois.',en:'Copy the values from the packet, per 100 g. This food stays private: only you can see it.',nl:'Neem de waarden van de verpakking over, per 100 g. Dit voedingsmiddel blijft priv\u00e9: alleen jij ziet het.'},
+ nf_name:{fr:'Nom',en:'Name',nl:'Naam'},
+ nf_brand:{fr:'Marque (facultatif)',en:'Brand (optional)',nl:'Merk (optioneel)'},
+ nf_kcal:{fr:'Calories /100 g',en:'Calories /100 g',nl:'Calorie\u00ebn /100 g'},
+ nf_prot:{fr:'Prot\u00e9ines (g)',en:'Protein (g)',nl:'Eiwitten (g)'},
+ nf_carb:{fr:'Glucides (g)',en:'Carbs (g)',nl:'Koolhydraten (g)'},
+ nf_fat:{fr:'Lipides (g)',en:'Fat (g)',nl:'Vetten (g)'},
+ nf_fib:{fr:'Fibres (g)',en:'Fiber (g)',nl:'Vezels (g)'},
+ nf_serv:{fr:'Portion habituelle (g)',en:'Usual serving (g)',nl:'Gebruikelijke portie (g)'},
+ nf_save:{fr:'Enregistrer',en:'Save',nl:'Opslaan'},
+ nf_need:{fr:'Il faut au moins un nom et des calories.',en:'A name and calories are required.',nl:'Naam en calorie\u00ebn zijn verplicht.'},
+ nf_bad:{fr:'Valeurs incoh\u00e9rentes : prot\u00e9ines, glucides et lipides d\u00e9passent 100 g.',en:'Inconsistent values: protein, carbs and fat exceed 100 g.',nl:'Inconsistente waarden: eiwitten, koolhydraten en vetten samen boven 100 g.'},
+ nf_ok:{fr:'Aliment cr\u00e9\u00e9. Il appara\u00eetra dans tes recherches.',en:'Food created. It will show up in your searches.',nl:'Voedingsmiddel aangemaakt. Het verschijnt in je zoekopdrachten.'},
+ nf_fail:{fr:'Enregistrement impossible.',en:'Could not save.',nl:'Opslaan mislukt.'},
  fg_home:{fr:'Plats & aliments Coach DM',en:'Coach DM dishes & foods',nl:'Coach DM-gerechten & voeding'},
  fg_brand:{fr:'Produits de marque',en:'Branded products',nl:'Merkproducten'},
  fg_maybe:{fr:'Peut-\u00eatre aussi',en:'You may also mean',nl:'Misschien ook'},
@@ -2936,13 +2954,91 @@ if(IS_NATIVE){
   new MutationObserver(sweep).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['style']});
 }
 
+/* ---------------- CREATION D'ALIMENT --------------------------------------
+   OpenFoodFacts est collaboratif, pas exhaustif : les marques de distributeur
+   belges y manquent souvent. Sans issue, un scan « introuvable » est un
+   cul-de-sac. Ici chaque produit manquant enrichit la base a la place.
+   L'aliment reste PRIVE (is_custom + is_verified=false) : la RLS ne le montre
+   qu'a son auteur. Tu peux le promouvoir en base commune depuis l'admin en
+   passant is_verified a true. */
+let NF_BARCODE=null;
+
+function nfOpen(barcode, presetName){
+  NF_BARCODE = barcode || null;
+  $('#nf-title').textContent=t('nf_title');
+  $('#nf-sub').textContent=t('nf_sub');
+  $('#l-nf-name').textContent=t('nf_name');
+  $('#l-nf-brand').textContent=t('nf_brand');
+  $('#l-nf-kcal').textContent=t('nf_kcal');
+  $('#l-nf-prot').textContent=t('nf_prot');
+  $('#l-nf-carb').textContent=t('nf_carb');
+  $('#l-nf-fat').textContent=t('nf_fat');
+  $('#l-nf-fib').textContent=t('nf_fib');
+  $('#l-nf-serv').textContent=t('nf_serv');
+  $('#nf-save').textContent=t('nf_save');
+  $('#nf-cancel').textContent=t('btn_cancel');
+  ['nf-name','nf-brand','nf-kcal','nf-prot','nf-carb','nf-fat','nf-fib','nf-serv']
+    .forEach(id=>{ const el=$('#'+id); if(el) el.value=''; });
+  if(presetName) $('#nf-name').value=presetName;
+  setMsg('nf-msg','','');
+  $('#nf-ov').classList.add('show');
+}
+function nfClose(){ $('#nf-ov').classList.remove('show'); NF_BARCODE=null; }
+
+async function nfSave(){
+  const g=id=>{ const el=$('#'+id); const v=parseFloat((el&&el.value||'').replace(',','.')); return isFinite(v)?v:null; };
+  const name=($('#nf-name').value||'').trim();
+  const kcal=g('nf-kcal');
+  if(!name || kcal==null || kcal<0){ setMsg('nf-msg',t('nf_need'),'err'); return; }
+
+  const p=g('nf-prot')||0, c=g('nf-carb')||0, f=g('nf-fat')||0;
+  /* Garde-fou : 1 g de macro ne peut pas peser plus d'1 g. Au-dela de 100 g
+     pour 100 g de produit, la saisie est forcement fausse. */
+  if(p+c+f>100.5){ setMsg('nf-msg',t('nf_bad'),'err'); return; }
+
+  setBtn('#nf-save',true,'…');
+  const row={
+    name_fr:name, name_en:name, name_nl:name,
+    brand:($('#nf-brand').value||'').trim()||null,
+    barcode:NF_BARCODE||null,
+    kcal_per_100g:Math.round(kcal),
+    protein_per_100g:p, carbs_per_100g:c, fat_per_100g:f,
+    fiber_per_100g:g('nf-fib')||0,
+    default_serving_g:g('nf-serv')||100,
+    is_custom:true, is_verified:false, created_by:USER?USER.id:null
+  };
+  try{
+    const { data, error } = await sb.from('foods').insert(row).select().maybeSingle();
+    if(error) throw error;
+    setBtn('#nf-save',false,t('nf_save'));
+    nfClose();
+    toast(t('nf_ok'));
+    if(data) renderFoods([{ ...data, off:false }], 1, 0);
+  }catch(e){
+    setBtn('#nf-save',false,t('nf_save'));
+    setMsg('nf-msg',t('nf_fail'),'err');
+    console.warn('nf',e);
+  }
+}
+{ const b=$('#nf-save');   if(b) b.onclick=nfSave; }
+{ const b=$('#nf-cancel'); if(b) b.onclick=nfClose; }
+{ const ov=$('#nf-ov');    if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) nfClose(); }); }
+
+/* Bouton propose quand une recherche ou un scan ne donne rien. */
+function nfSuggest(barcode, presetName){
+  return '<button class="btn subtle" id="nf-go" style="width:100%;margin-top:12px">'+t('nf_cta')+'</button>';
+}
+function nfBind(barcode, presetName){
+  const b=$('#nf-go'); if(b) b.onclick=()=>nfOpen(barcode,presetName);
+}
+
 /* ---------------- SCAN CODE-BARRES ----------------------------------------
    BarcodeDetector n'existe pas dans WKWebView (donc pas dans le wrapper iOS) :
    on l'utilise quand il est la (Chrome/Android), sinon on charge ZXing.
    La recherche passe par l'edge function off-search, la meme que la recherche
    texte : elle porte le User-Agent exige par OpenFoodFacts et repond au
    preflight CORS. Un fetch direct depuis l'app echouerait sur les deux points. */
-let SCAN={stream:null,stop:false,reader:null};
+let SCAN={stream:null,stop:false,reader:null,frames:0,err:''};
 
 async function zxing(){
   if(window.ZXing) return window.ZXing;
@@ -2967,51 +3063,116 @@ async function scanClose(){
 
 async function scanOpen(){
   const ov=$('#scan-ov'), v=$('#scan-video'); if(!ov||!v) return;
-  SCAN.stop=false;
+  SCAN.stop=false; SCAN.frames=0; SCAN.err='';
   $('#scan-hint').textContent=t('sc_hint');
   $('#scan-close').textContent=t('sc_close');
   $('#scan-manual').textContent=t('sc_manual');
+  scanMsg('');
   ov.classList.add('show');
 
-  /* Un EAN-13 tient sur ~95 modules : sous 1280 px de large, les barres fines
-     tombent sous le pixel et rien n'est decodable. On demande donc du 1080p. */
-  const constraints={ video:{ facingMode:{ideal:'environment'},
-    width:{ideal:1920}, height:{ideal:1080}, advanced:[{focusMode:'continuous'}] } };
+  /* ⚠️ On ouvre la camera NOUS-MEMES, exactement comme hyrox.html — methode
+     dont on sait qu'elle fonctionne dans cette WebView. Laisser ZXing gerer le
+     flux (decodeFromConstraints) echouait en silence sous WKWebView.
+     Un EAN-13 tient sur ~95 modules : sous 1280 px de large les barres fines
+     tombent sous le pixel, d'ou le 1920 demande. */
+  try{
+    SCAN.stream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false
+    });
+    v.srcObject=SCAN.stream; v.setAttribute('playsinline',''); v.muted=true;
+    await v.play();
+  }catch(e){ scanMsg(t('sc_cam')); console.warn('scan cam',e); return; }
 
+  /* Chemin natif quand il existe (Chrome/Android). Absent de WKWebView. */
   if('BarcodeDetector' in window){
     try{
-      SCAN.stream=await navigator.mediaDevices.getUserMedia(constraints);
-      v.srcObject=SCAN.stream; v.setAttribute('playsinline',''); v.muted=true; await v.play();
       const det=new window.BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e']});
       const loop=async()=>{
         if(SCAN.stop) return;
+        SCAN.frames++;
         try{
-          const codes=await det.detect(v);
-          if(codes&&codes.length&&codes[0].rawValue) return scanHit(codes[0].rawValue);
+          const c=await det.detect(v);
+          if(c&&c.length&&c[0].rawValue) return scanHit(c[0].rawValue);
         }catch(_){}
         requestAnimationFrame(loop);
       };
       loop(); return;
-    }catch(_){
-      if(SCAN.stream){ try{SCAN.stream.getTracks().forEach(x=>x.stop());}catch(__){} SCAN.stream=null; }
-    }
+    }catch(_){}
   }
 
-  let Z; try{ Z=await zxing(); }catch(_){ await scanClose(); toast(t('sc_lib')); return; }
-  try{
-    const hints=new Map();
-    hints.set(Z.DecodeHintType.POSSIBLE_FORMATS,[Z.BarcodeFormat.EAN_13,Z.BarcodeFormat.EAN_8,Z.BarcodeFormat.UPC_A,Z.BarcodeFormat.UPC_E]);
-    hints.set(Z.DecodeHintType.TRY_HARDER,true);          /* indispensable sur les codes 1D */
-    SCAN.reader=new Z.BrowserMultiFormatReader(hints,{delayBetweenScanAttempts:120});
-    /* On NE fait PAS getUserMedia nous-memes : decodeFromConstraints ouvre et
-       pilote le flux. Ouvrir la camera en amont puis lui passer la meme video
-       creait un conflit — c'etait la cause du « ne lit rien du tout ». */
-    await SCAN.reader.decodeFromConstraints(constraints, v, (result)=>{
-      if(SCAN.stop||!result) return;
-      const txt=result.getText&&result.getText();
-      if(txt) scanHit(txt);
-    });
-  }catch(e){ console.warn('scan',e); await scanClose(); toast(t('sc_cam')); }
+  let Z; try{ Z=await zxing(); }catch(e){ scanMsg(t('sc_lib')); console.warn('zxing load',e); return; }
+
+  /* ⚠️ decodeFromCanvas() N'EXISTE PAS dans @zxing/library 0.21 : c'est ce qui
+     levait un TypeError a chaque image (870 fois de suite, en silence).
+     On descend donc au decodeur bas niveau, dont les classes sont stables :
+     MultiFormatReader + BinaryBitmap + HybridBinarizer + RGBLuminanceSource.
+     On verifie leur presence AVANT de boucler, pour ne plus jamais tourner
+     dans le vide. */
+  const missing=['MultiFormatReader','BinaryBitmap','HybridBinarizer','RGBLuminanceSource']
+    .filter(k=>typeof Z[k]!=='function');
+  if(missing.length){ SCAN.err='API: '+missing.join(','); scanMsg(t('sc_lib')); scanDbg(v.videoWidth,v.videoHeight); return; }
+
+  const hints=new Map();
+  hints.set(Z.DecodeHintType.POSSIBLE_FORMATS,[Z.BarcodeFormat.EAN_13,Z.BarcodeFormat.EAN_8,Z.BarcodeFormat.UPC_A,Z.BarcodeFormat.UPC_E]);
+  hints.set(Z.DecodeHintType.TRY_HARDER,true);        /* indispensable sur les codes 1D */
+  const mfr=new Z.MultiFormatReader();
+  mfr.setHints(hints);
+
+  /* On decoupe la bande du viseur : un code cadre occupe une fraction de
+     l'image, et decoder toute la frame dilue le signal. On limite aussi la
+     largeur : au-dela de ~900 px on paie du CPU sans gagner en lecture. */
+  const cv=document.createElement('canvas'), cx=cv.getContext('2d',{willReadFrequently:true});
+  let skip=0;
+
+  const tick=()=>{
+    if(SCAN.stop) return;
+    const w=v.videoWidth, h=v.videoHeight;
+    if(!w||!h){ SCAN.err='video 0x0'; return requestAnimationFrame(tick); }
+
+    if((skip++ & 1)===0){                       /* une image sur deux suffit */
+      const srcW=Math.round(w*0.88), srcH=Math.round(h*0.26);
+      const sx=Math.round((w-srcW)/2), sy=Math.round((h-srcH)/2);
+      const scale=Math.min(1, 900/srcW);
+      const cw=Math.max(2,Math.round(srcW*scale)), ch=Math.max(2,Math.round(srcH*scale));
+      if(cv.width!==cw||cv.height!==ch){ cv.width=cw; cv.height=ch; }
+      cx.drawImage(v, sx, sy, srcW, srcH, 0, 0, cw, ch);
+      SCAN.frames++;
+      try{
+        const d=cx.getImageData(0,0,cw,ch).data;
+        const gray=new Uint8ClampedArray(cw*ch);
+        for(let i=0,j=0;j<gray.length;i+=4,j++){
+          gray[j]=(d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114)|0;
+        }
+        const src=new Z.RGBLuminanceSource(gray,cw,ch);
+        const bmp=new Z.BinaryBitmap(new Z.HybridBinarizer(src));
+        const res=mfr.decode(bmp,hints);
+        const txt=res&&res.getText&&res.getText();
+        if(txt){ return scanHit(txt); }
+      }catch(e){
+        /* NotFoundException a chaque image sans code : normal, on ignore. */
+        const nm=(e&&(e.name||e.constructor&&e.constructor.name))||'';
+        if(nm && !/NotFound|Checksum|Format/.test(nm)) SCAN.err=nm;
+      }finally{
+        try{ mfr.reset(); }catch(_){}
+      }
+      if(SCAN.frames%10===0) scanDbg(w,h);
+    }
+    requestAnimationFrame(tick);
+  };
+  scanDbg(v.videoWidth,v.videoHeight);
+  tick();
+}
+
+/* Les messages passaient par toast() — z-index 80, donc CACHES derriere cet
+   overlay en z-index 120. Toute erreur etait invisible. On affiche ici. */
+function scanMsg(txt){
+  const el=$('#scan-hint'); if(!el) return;
+  el.textContent = txt || t('sc_hint');
+  el.style.color = txt ? '#FFB4B4' : '#fff';
+}
+function scanDbg(w,h){
+  const el=$('#scan-dbg'); if(!el) return;
+  el.textContent = (w||0)+'×'+(h||0)+' · '+SCAN.frames+' img'+(SCAN.err?' · '+SCAN.err:'');
 }
 
 /* Filet de securite : un code froisse ou mal eclaire ne se lit jamais, quelle
@@ -3047,7 +3208,11 @@ async function scanLookup(code){
       if(!error && data && data.foods && data.foods.length) f=data.foods[0];
     }catch(_){}
   }
-  if(!f){ $('#jo-results').innerHTML='<p class="empty">'+t('sc_none').replace('{c}',esc(code))+'</p>'; return; }
+  if(!f){
+    $('#jo-results').innerHTML='<p class="empty">'+t('sc_none').replace('{c}',esc(code))+'</p>'+nfSuggest();
+    nfBind(code,'');
+    return;
+  }
   renderFoods([f], f.off?0:1, 0);
 }
 
@@ -3857,7 +4022,8 @@ async function doSearch(){
   const brands=off.filter(f=>!seen.has((f.name_fr||'').toLowerCase())).slice(0,15);
 
   if(!local.length && !brands.length){
-    $('#jo-results').innerHTML='<p class="empty">'+t('no_food_a')+esc(q)+t('no_food_b')+'</p>';
+    $('#jo-results').innerHTML='<p class="empty">'+t('no_food_a')+esc(q)+t('no_food_b')+'</p>'+nfSuggest();
+    nfBind(null,q);
     return;
   }
 
@@ -6283,6 +6449,28 @@ if (!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.
   <div class="scan-frame"></div>
   <div class="scan-bar"><button type="button" id="scan-manual">123</button><button type="button" id="scan-close">Fermer</button></div>
   <div class="scan-hint" id="scan-hint"></div>
+  <div class="scan-dbg" id="scan-dbg"></div>
+</div>
+<div class="overlay" id="nf-ov">
+  <div class="sheet">
+    <h3 id="nf-title" style="margin:0 0 4px">Nouvel aliment</h3>
+    <p class="empty" style="text-align:left;padding:0 0 14px" id="nf-sub"></p>
+    <div class="field"><label id="l-nf-name"></label><input id="nf-name" type="text" /></div>
+    <div class="field"><label id="l-nf-brand"></label><input id="nf-brand" type="text" /></div>
+    <div class="field"><label id="l-nf-kcal"></label><input id="nf-kcal" type="number" inputmode="decimal" placeholder="250" /></div>
+    <div class="row2">
+      <div class="field"><label id="l-nf-prot"></label><input id="nf-prot" type="number" inputmode="decimal" placeholder="10" /></div>
+      <div class="field"><label id="l-nf-carb"></label><input id="nf-carb" type="number" inputmode="decimal" placeholder="30" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label id="l-nf-fat"></label><input id="nf-fat" type="number" inputmode="decimal" placeholder="8" /></div>
+      <div class="field"><label id="l-nf-fib"></label><input id="nf-fib" type="number" inputmode="decimal" placeholder="2" /></div>
+    </div>
+    <div class="field"><label id="l-nf-serv"></label><input id="nf-serv" type="number" inputmode="numeric" placeholder="100" /></div>
+    <div class="msg" id="nf-msg"></div>
+    <button class="btn" id="nf-save">Enregistrer</button>
+    <button class="btn subtle" id="nf-cancel" style="margin-top:9px">Annuler</button>
+  </div>
 </div>
 </body>
 </html>
