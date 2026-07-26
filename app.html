@@ -354,6 +354,11 @@
   .lang-seg{display:flex;gap:8px}
   .lang-seg button{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);font-weight:700;font-size:13px}
   .lang-seg button.on{background:var(--brand);color:#04120a;border-color:var(--brand);box-shadow:0 0 14px rgba(0,255,160,.3)}
+  /* Selecteur de l'ecran de connexion : volontairement discret, il ne doit pas
+     concurrencer visuellement le formulaire. */
+  .auth-lang{display:flex;gap:6px;justify-content:center;margin-top:18px}
+  .auth-lang button{padding:7px 15px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.07em}
+  .auth-lang button.on{color:var(--brand);border-color:color-mix(in srgb,var(--brand) 46%,transparent);background:color-mix(in srgb,var(--brand) 10%,transparent)}
   .opt-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px;font-weight:600}
   .opt-row:last-child{border-bottom:0}
   .nav{position:fixed;bottom:0;left:0;right:0;z-index:40;
@@ -1023,6 +1028,15 @@
     <button class="btn ghost" id="au-resend" data-i18n="otp_resend">Renvoyer le code</button>
     <button class="btn ghost" id="au-otp-back" data-i18n="otp_back">Retour</button>
     <div class="msg" id="au-otp-msg"></div>
+  </div>
+  <!-- La langue se devine depuis l'appareil, mais la deviner ne suffit pas :
+       un Belge neerlandophone avec un telephone en anglais doit pouvoir
+       corriger AVANT de creer son compte. Le selecteur du Profil est
+       inaccessible tant qu'on n'est pas connecte. -->
+  <div class="auth-lang" id="auth-lang">
+    <button type="button" data-lang="fr">FR</button>
+    <button type="button" data-lang="en">EN</button>
+    <button type="button" data-lang="nl">NL</button>
   </div>
 </div>
 
@@ -1816,7 +1830,17 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = (s)=>document.querySelector(s);
 
 /* ================= i18n ================= */
-let LANG = localStorage.getItem('cdm_lang') || 'fr';
+/* Langue : le choix explicite du membre prime toujours. A defaut, on suit la
+   langue de l'appareil. Tout ce qui n'est ni francais ni neerlandais bascule
+   en ANGLAIS et non en francais : un utilisateur allemand, espagnol ou italien
+   comprend l'anglais, alors qu'un ecran en francais le fait fuir des la
+   premiere seconde. C'est aussi la seule facon d'ouvrir l'app hors Belgique. */
+let LANG = localStorage.getItem('cdm_lang') || (function(){
+  const n = String(navigator.language || navigator.userLanguage || 'en').toLowerCase();
+  if(n.startsWith('fr')) return 'fr';
+  if(n.startsWith('nl')) return 'nl';
+  return 'en';
+})();
 if(!['fr','en','nl'].includes(LANG)) LANG='fr';
 const T = {
  nav_home:{fr:'Accueil',en:'Home',nl:'Home'},
@@ -2259,6 +2283,7 @@ const T = {
  help_center:{fr:'Centre d\u2019aide',en:'Help center',nl:'Helpcentrum'},
  gate_title:{fr:'Accès réservé',en:'Members only',nl:'Alleen voor leden'},
  gate_p1:{fr:'L\u2019app Coach DM est réservée aux membres.<br>Abonne-toi pour tout débloquer.',en:'The Coach DM app is for members.<br>Subscribe to unlock everything.',nl:'De Coach DM-app is voor leden.<br>Abonneer je om alles te ontgrendelen.'},
+ gate_p1_native:{fr:'L\u2019app Coach DM est réservée aux membres.',en:'The Coach DM app is for members only.',nl:'De Coach DM-app is alleen voor leden.'},
  gate_p2:{fr:"Ton compte est créé mais n'a pas encore d'accès. Contacte le coach pour l'activer.",en:'Your account is created but has no access yet. Contact the coach to activate it.',nl:'Je account is aangemaakt maar heeft nog geen toegang. Contacteer de coach om het te activeren.'},
  gate_ask:{fr:"Demander l'accès",en:'Request access',nl:'Toegang aanvragen'},
  up_title:{fr:'Passe en Premium',en:'Go Premium',nl:'Word Premium'},
@@ -2449,7 +2474,7 @@ function applyI18n(){
   document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ const k=el.getAttribute('data-i18n-ph'); if(T[k]) el.setAttribute('placeholder',t(k)); });
   const ps=document.getElementById('p-sub'); if(ps && ps.dataset.key){ ps.textContent = t(ps.dataset.key) + (ps.dataset.extra||''); }
 }
-function renderLangBtns(){ document.querySelectorAll('#lang-seg button').forEach(b=>b.classList.toggle('on', b.dataset.lang===LANG)); }
+function renderLangBtns(){ document.querySelectorAll('#lang-seg button, #auth-lang button').forEach(b=>b.classList.toggle('on', b.dataset.lang===LANG)); }
 function setLang(l){
   if(!['fr','en','nl'].includes(l)) return;
   LANG=l; localStorage.setItem('cdm_lang',l);
@@ -3030,6 +3055,16 @@ if(IS_NATIVE){
     a.removeAttribute('target');          /* meme webview : le fichier local n'est pas joignable en _blank */
     a.removeAttribute('rel');
   });
+
+  /* ⚠️ L'ecran d'acces refuse affichait « Abonne-toi pour tout debloquer »
+     alors que le bouton S'abonner est masque en natif : une instruction
+     d'achat sans aucun moyen d'acheter. C'est mot pour mot le reproche
+     d'Apple sur le build 14. On bascule la CLE i18n et non le texte : sinon
+     applyI18n() repasserait derriere et restaurerait l'original. La ligne
+     suivante (gate_p2, « Contacte le coach pour l'activer ») reste et donne
+     la marche a suivre. */
+  { const gp=document.querySelector('[data-i18n-html="gate_p1"]');
+    if(gp) gp.setAttribute('data-i18n-html','gate_p1_native'); }
 
   const KILL=['#p-sub-open','#p-sub-manage','#p-coach-open','#p-coach-offer','#gate-sub','#home-coach','#home-shop','#up-cta','#up-price'];
   let busy=false;
@@ -6410,7 +6445,7 @@ document.addEventListener('click',e=>{
 });
 
 /* ---- language selector + profile name ---- */
-document.querySelectorAll('#lang-seg button').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
+document.querySelectorAll('#lang-seg button, #auth-lang button').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
 document.querySelectorAll('#theme-seg button').forEach(b=>b.onclick=()=>setTheme(b.dataset.themeSet));
 applyTheme();
 $('#p-name-save').onclick = async ()=>{
