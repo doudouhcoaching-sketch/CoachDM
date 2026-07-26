@@ -5083,10 +5083,21 @@ function setBtn(sel,loading,label){ const b=$(sel); b.disabled=loading; if(label
 })();
 
 /* ================= HOME ================= */
-function firstName(email){ if(!email) return 'Coach'; const n=email.split('@')[0].replace(/[._\-]+/g,' ').trim(); return n? n.charAt(0).toUpperCase()+n.slice(1) : 'Coach'; }
+/* Le prenom d'accueil vient du profil, jamais de l'adresse email.
+   L'ancienne version fabriquait un prenom en decoupant l'email : un membre
+   inscrit avec contact@sasociete.be etait accueilli par « Bonjour Contact ».
+   Si aucun nom n'est renseigne, on salue sans nom du tout — « Bonsoir » seul
+   est correct, « Bonsoir » suivi d'un identifiant technique ne l'est pas. */
+function greetName(){
+  const n = String(typeof PROFILE_NAME==='string' ? PROFILE_NAME : '').trim();
+  if(!n) return '';
+  const p = n.split(/\s+/)[0];
+  return p.charAt(0).toUpperCase()+p.slice(1);
+}
 async function loadHome(){
   const _hh=new Date().getHours(), _gk=_hh<12?'hi_morning':(_hh<18?'hi_afternoon':'hi_evening');
-  $('#home-hi').textContent = t(_gk)+' '+firstName(USER&&USER.email);
+  const _n=greetName();
+  $('#home-hi').textContent = t(_gk) + (_n ? ' '+_n : '');
   $('#home-date').textContent = new Date().toLocaleDateString(locale(),{weekday:'long',day:'numeric',month:'long'});
   await loadToday();
   loadMyPlan();
@@ -6457,6 +6468,10 @@ $('#p-name-save').onclick = async ()=>{
   const ok={fr:'Enregistré ✓',en:'Saved ✓',nl:'Opgeslagen ✓'}[LANG];
   const ko={fr:'Échec',en:'Failed',nl:'Mislukt'}[LANG];
   setMsg('p-name-msg', error?ko:ok, error?'err':'ok');
+  /* La base est a jour, la memoire ne l'etait pas : sans cette ligne, l'accueil
+     continuait d'afficher l'ancien prenom — ou aucun — jusqu'au prochain
+     lancement de l'app, alors que le membre vient tout juste de le saisir. */
+  if(!error){ PROFILE_NAME = name; }
 };
 
 /* ---------------- HISTORIQUE DE NAVIGATION (bouton retour) ----------------
