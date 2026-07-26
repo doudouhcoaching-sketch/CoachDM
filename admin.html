@@ -566,8 +566,10 @@ async function loadUsers(q){
   if(error){ $('#m-list').innerHTML='<p class="empty">Erreur de chargement.</p>'; if(hint)hint.textContent=''; return; }
   if(!data||!data.length){ $('#m-list').innerHTML=`<p class="empty">${q?'Aucun membre pour « '+esc(q)+' ».':'Aucun inscrit.'}</p>`; if(hint)hint.textContent=''; return; }
   if(hint){
-    if(q) hint.textContent = `${data.length} résultat${data.length>1?'s':''} pour « ${q} »`;
-    else hint.textContent = data.length>=200 ? '200 membres les plus récents — tape un nom ou un email pour chercher dans tous.' : `${data.length} membre${data.length>1?'s':''}`;
+    const nv = data.filter(u=>!u.email_verified).length;
+    const alerte = nv ? ` · ${nv} email${nv>1?'s':''} non vérifié${nv>1?'s':''}` : '';
+    if(q) hint.textContent = `${data.length} résultat${data.length>1?'s':''} pour « ${q} »${alerte}`;
+    else hint.textContent = (data.length>=200 ? '200 membres les plus récents — tape un nom ou un email pour chercher dans tous.' : `${data.length} membre${data.length>1?'s':''}`) + alerte;
   }
   $('#m-list').innerHTML = data.map(u=>{
     const isSelf = u.user_id===ADMIN_UID;
@@ -580,12 +582,19 @@ async function loadUsers(q){
       role=`<span class="pill role">${plan} · ${u.active_clients||0}/${lim} clients</span>`;
     }
     const founder = u.is_founder ? `<span class="pill founder">Fondateur ${u.founder_kind==='coach'?'Coach':'Membre'}</span>` : '';
+    /* Signal de confiance : l'adresse a-t-elle ete prouvee par son proprietaire ?
+       Un compte non verifie peut avoir ete cree avec une adresse inexistante. */
+    const verif = u.email_verified ? '' : '<span class="pill verif">Email non vérifié</span>';
     let detail='';
     if(u.sub_status) detail = u.sub_status + (u.trial_end?` · essai → ${u.trial_end.slice(0,10)}`:'') + (u.current_period_end?` · jusqu'au ${u.current_period_end.slice(0,10)}`:'');
+    const jour = s => s ? new Date(s).toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit',year:'2-digit'}) : '—';
+    const src = ({ios:'iOS',android:'Android',web:'Web'})[u.signup_source] || 'origine inconnue';
+    const trace = `Inscrit le ${jour(u.created_at)} · ${src} · dernière connexion ${jour(u.last_sign_in_at)}`;
     const on = v => v?' style="border-color:var(--brand);color:var(--brand)"':'';
     return `<div class="item">
-      <div class="nm">${esc(u.email||'—')} ${access} ${role} ${founder}</div>
+      <div class="nm">${esc(u.email||'—')} ${access} ${verif} ${role} ${founder}</div>
       <div class="meta">${esc(u.full_name||'')}${detail?' · '+esc(detail):''}${isSelf?' · (toi)':''}</div>
+      <div class="meta" style="color:var(--muted)">${esc(trace)}</div>
       ${isSelf?'<div class="meta" style="color:var(--muted)">Ton propre compte — non modifiable.</div>':`
       <div class="actgrp"><span class="agl">Rôle / Plan</span>
         <button class="btn subtle sm" data-role="client" data-u="${u.user_id}"${on(u.role==='client')}>Membre</button>

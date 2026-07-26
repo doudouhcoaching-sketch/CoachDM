@@ -999,12 +999,30 @@
     <h1>COACH DM</h1>
     <p>Power · Transform · Excel</p>
   </div>
-  <div class="card">
+  <div class="card" id="au-card">
     <div class="field"><label data-i18n="au_email">Email</label><input id="au-email" type="email" autocomplete="email" inputmode="email" placeholder="ton@email.be" /></div>
     <div class="field"><label data-i18n="au_pass">Mot de passe</label><input id="au-pass" type="password" autocomplete="current-password" placeholder="••••••••" /></div>
     <button class="btn" id="au-login" data-i18n="au_login">Se connecter</button>
     <button class="btn ghost" id="au-signup" data-i18n="au_signup">Créer un compte</button>
     <div class="msg" id="au-msg"></div>
+  </div>
+  <!-- Verification de propriete de l'adresse email : code a usage unique.
+       Un code plutot qu'un lien, car un lien de confirmation doit revenir vers
+       l'app ; dans la WebView Capacitor cela exige un deep link, alors qu'un
+       code fonctionne a l'identique sur le web et en natif. -->
+  <div class="card hidden" id="au-otp">
+    <div style="text-align:center;margin-bottom:14px">
+      <div style="font-size:15px;font-weight:800;color:#fff" data-i18n="otp_title">Confirme ton email</div>
+      <div class="msg" id="au-otp-to" style="font-size:12px;margin-top:4px"></div>
+    </div>
+    <div class="field">
+      <label data-i18n="otp_label">Code reçu par email</label>
+      <input id="au-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="••••••" style="text-align:center;letter-spacing:.34em;font-size:21px;font-weight:800" />
+    </div>
+    <button class="btn" id="au-verify" data-i18n="otp_verify">Valider mon compte</button>
+    <button class="btn ghost" id="au-resend" data-i18n="otp_resend">Renvoyer le code</button>
+    <button class="btn ghost" id="au-otp-back" data-i18n="otp_back">Retour</button>
+    <div class="msg" id="au-otp-msg"></div>
   </div>
 </div>
 
@@ -2394,6 +2412,18 @@ const T = {
  auth_invalid:{fr:'Email ou mot de passe incorrect.',en:'Wrong email or password.',nl:'Verkeerd e-mail of wachtwoord.'},
  auth_exists:{fr:'Cet email a déjà un compte. Connecte-toi.',en:'This email already has an account. Log in.',nl:'Dit e-mailadres heeft al een account. Log in.'},
  auth_unconfirmed:{fr:'Confirme ton email avant de te connecter.',en:'Confirm your email before logging in.',nl:'Bevestig je e-mail voor je inlogt.'},
+ otp_title:{fr:'Confirme ton email',en:'Confirm your email',nl:'Bevestig je e-mail'},
+ otp_label:{fr:'Code reçu par email',en:'Code received by email',nl:'Code ontvangen per e-mail'},
+ otp_verify:{fr:'Valider mon compte',en:'Activate my account',nl:'Mijn account activeren'},
+ otp_resend:{fr:'Renvoyer le code',en:'Send a new code',nl:'Nieuwe code sturen'},
+ otp_back:{fr:'Retour',en:'Back',nl:'Terug'},
+ otp_sent:{fr:'Code envoyé. Regarde ta boîte mail, et tes spams.',en:'Code sent. Check your inbox, and your spam folder.',nl:'Code verstuurd. Kijk in je inbox en je spam.'},
+ otp_need:{fr:'Ce compte n\'est pas encore confirmé. Saisis le code reçu par email.',en:'This account is not confirmed yet. Enter the code you received by email.',nl:'Dit account is nog niet bevestigd. Voer de code in die je per e-mail kreeg.'},
+ otp_short:{fr:'Code incomplet.',en:'Code incomplete.',nl:'Code onvolledig.'},
+ otp_bad:{fr:'Code incorrect. Vérifie ou demande un nouveau code.',en:'Wrong code. Check it or request a new one.',nl:'Verkeerde code. Controleer of vraag een nieuwe aan.'},
+ otp_expired:{fr:'Ce code a expiré. Demande un nouveau code.',en:'This code has expired. Request a new one.',nl:'Deze code is verlopen. Vraag een nieuwe aan.'},
+ otp_rate:{fr:'Trop de tentatives. Patiente une minute.',en:'Too many attempts. Wait a minute.',nl:'Te veel pogingen. Wacht even een minuut.'},
+ otp_wait:{fr:'Patiente {s} s avant de redemander un code.',en:'Wait {s} s before requesting another code.',nl:'Wacht {s} s voor je een nieuwe code vraagt.'},
  no_food_a:{fr:'Aucun aliment trouvé pour « ',en:'No food found for "',nl:'Geen voedsel gevonden voor "'},
  no_food_b:{fr:' ».',en:'".',nl:'".'},
  jo_none_today:{fr:"Aucun aliment enregistré aujourd'hui.",en:'No food logged today.',nl:'Vandaag nog niets geregistreerd.'},
@@ -2498,7 +2528,15 @@ $('#au-login').onclick = async ()=>{
   setBtn('#au-login',true,'…');
   const { data, error } = await sb.auth.signInWithPassword({ email, password:pass });
   setBtn('#au-login',false,t('au_login'));
-  if(error) return setMsg('au-msg', humanAuth(error.message),'err');
+  if(error){
+    /* Compte cree mais jamais confirme : on l'emmene directement sur l'ecran
+       de code au lieu de le laisser bloque sur un message d'erreur. */
+    if(/email not confirmed|not confirmed/i.test(error.message)){
+      otpShow(email);
+      return setMsg('au-otp-msg', t('otp_need'),'err');
+    }
+    return setMsg('au-msg', humanAuth(error.message),'err');
+  }
   await enter(data.user);
 };
 $('#au-signup').onclick = async ()=>{
@@ -2509,9 +2547,64 @@ $('#au-signup').onclick = async ()=>{
   const { data, error } = await sb.auth.signUp({ email, password:pass });
   setBtn('#au-signup',false,t('au_signup'));
   if(error) return setMsg('au-msg', humanAuth(error.message),'err');
+  /* Session immediate = la confirmation est desactivee cote Supabase.
+     Session absente = un code vient de partir : on affiche l'ecran de saisie. */
   if(data.session?.user){ await enter(data.user); }
-  else setMsg('au-msg',t('signup_confirm'),'ok');
+  else { otpShow(email); setMsg('au-otp-msg', t('otp_sent'),'ok'); }
 };
+
+/* ---------------- Verification de l'adresse email (code a usage unique) ---------------- */
+const OTP={ email:'', until:0 };
+function otpShow(email){
+  OTP.email=email;
+  $('#au-card').classList.add('hidden');
+  $('#au-otp').classList.remove('hidden');
+  $('#au-otp-to').textContent=email;
+  $('#au-code').value='';
+  setMsg('au-otp-msg','','');
+  setTimeout(()=>{ try{ $('#au-code').focus(); }catch(_){} },80);
+}
+function otpHide(){
+  $('#au-otp').classList.add('hidden');
+  $('#au-card').classList.remove('hidden');
+}
+function humanOtp(m){
+  if(/expired/i.test(m))                    return t('otp_expired');
+  if(/invalid|incorrect/i.test(m))          return t('otp_bad');
+  if(/rate|too many|security purposes/i.test(m)) return t('otp_rate');
+  return m;
+}
+$('#au-code').oninput = e=>{ e.target.value = e.target.value.replace(/\D/g,''); };
+$('#au-code').onkeydown = e=>{ if(e.key==='Enter') $('#au-verify').click(); };
+$('#au-verify').onclick = async ()=>{
+  const token=($('#au-code').value||'').replace(/\D/g,'');
+  if(token.length<6) return setMsg('au-otp-msg', t('otp_short'),'err');
+  setBtn('#au-verify',true,'…');
+  /* 'email' est le nom actuel du type ; 'signup' reste accepte et sert de
+     repli si le SDK charge est plus ancien. */
+  let { data, error } = await sb.auth.verifyOtp({ email:OTP.email, token, type:'email' });
+  if(error){
+    const r = await sb.auth.verifyOtp({ email:OTP.email, token, type:'signup' });
+    data=r.data; error=r.error;
+  }
+  setBtn('#au-verify',false,t('otp_verify'));
+  if(error) return setMsg('au-otp-msg', humanOtp(error.message),'err');
+  if(!data?.user) return setMsg('au-otp-msg', t('otp_bad'),'err');
+  otpHide();
+  await enter(data.user);
+};
+$('#au-resend').onclick = async ()=>{
+  const left = Math.ceil((OTP.until-Date.now())/1000);
+  if(left>0) return setMsg('au-otp-msg', t('otp_wait').replace('{s}', left),'err');
+  setBtn('#au-resend',true,'…');
+  const { error } = await sb.auth.resend({ type:'signup', email:OTP.email });
+  setBtn('#au-resend',false,t('otp_resend'));
+  if(error) return setMsg('au-otp-msg', humanOtp(error.message),'err');
+  OTP.until = Date.now()+60000;   /* anti-spam cote client, en plus du quota Supabase */
+  setMsg('au-otp-msg', t('otp_sent'),'ok');
+};
+$('#au-otp-back').onclick = ()=>{ otpHide(); };
+
 function humanAuth(m){
   if(/invalid login/i.test(m)) return t('auth_invalid');
   if(/already registered/i.test(m)) return t('auth_exists');
