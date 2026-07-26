@@ -843,9 +843,26 @@ function setStatus(key,force){
 
 /* ───────── Audio ───────── */
 let AC=null;
+/* Deverrouillage audio iOS. resume() seul ne suffit pas : Safari n'ouvre
+   reellement la sortie qu'apres qu'un son ait ete JOUE pendant le geste
+   utilisateur. Un buffer muet d'une frame fait l'affaire. */
+function audioUnlock(){
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.resume)AC.resume();
+    const b=AC.createBuffer(1,1,22050), src=AC.createBufferSource();
+    src.buffer=b; src.connect(AC.destination); src.start(0);
+  }catch(_){}
+}
+function audioState(){ try{ return AC?AC.state:'absent'; }catch(_){ return 'erreur'; } }
 function beep(freq,ms,type,gain){
   try{
     AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    /* iOS resuspend le contexte des que la session audio change, et
+       getUserMedia le fait au demarrage de la camera. On le reveille donc
+       avant CHAQUE son et pas seulement au premier tap : l'appel est
+       idempotent et sans cout quand le contexte tourne deja. */
+    if(AC.state!=='running'&&AC.resume)AC.resume();
     const o=AC.createOscillator(),g=AC.createGain();
     o.frequency.value=freq;o.type=type||'sine';
     g.gain.setValueAtTime(gain||0.12,AC.currentTime);
@@ -1310,8 +1327,12 @@ function onFrame(ts){
 
 async function start(){
   bStart.disabled=true;
-  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume&&AC.resume();}catch(_){}
-  try{await startCam();}
+  audioUnlock();
+  try{await startCam();
+       /* La camera vient de reconfigurer la session audio d'iOS et a
+          resuspendu le contexte. On le rouvre ici, sinon tous les bips
+          suivants restent silencieux alors que le code les emet bien. */
+       audioUnlock();}
   catch(e){setStatus('st_err_cam');showErr('Caméra: '+(e&&e.name||'')+' '+(e&&e.message||e)+' ['+VER+']');bStart.disabled=false;return;}
   splash.style.display='none';
   try{await loadModel();}
