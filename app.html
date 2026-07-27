@@ -1009,7 +1009,33 @@
     <div class="field"><label data-i18n="au_pass">Mot de passe</label><input id="au-pass" type="password" autocomplete="current-password" placeholder="••••••••" /></div>
     <button class="btn" id="au-login" data-i18n="au_login">Se connecter</button>
     <button class="btn ghost" id="au-signup" data-i18n="au_signup">Créer un compte</button>
+    <!-- Sans ce lien, un membre qui oublie son mot de passe est enferme dehors
+         definitivement : l'app n'avait aucune recuperation, ni ici ni dans le
+         profil. C'est une perte de client seche, et Apple teste ce parcours. -->
+    <button type="button" id="au-forgot" data-i18n="pw_forgot" style="display:block;width:100%;margin-top:12px;background:none;border:0;color:var(--muted);font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer">Mot de passe oublié ?</button>
     <div class="msg" id="au-msg"></div>
+  </div>
+
+  <!-- RECUPERATION DE MOT DE PASSE : meme principe que la confirmation
+       d'inscription — un code, pas un lien. Un lien de reinitialisation
+       ouvrirait le navigateur systeme et ne reviendrait jamais dans la WebView. -->
+  <div class="card hidden" id="au-rec">
+    <div style="text-align:center;margin-bottom:14px">
+      <div style="font-size:15px;font-weight:800;color:#fff" data-i18n="pw_title">Nouveau mot de passe</div>
+      <div class="msg" id="au-rec-to" style="font-size:12px;margin-top:4px"></div>
+    </div>
+    <div class="field">
+      <label data-i18n="otp_label">Code reçu par email</label>
+      <input id="au-rec-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="••••••" style="text-align:center;letter-spacing:.34em;font-size:21px;font-weight:800" />
+    </div>
+    <div class="field">
+      <label data-i18n="pw_new">Nouveau mot de passe</label>
+      <input id="au-rec-pass" type="password" autocomplete="new-password" placeholder="••••••••" />
+    </div>
+    <button class="btn" id="au-rec-go" data-i18n="pw_save">Enregistrer et me connecter</button>
+    <button class="btn ghost" id="au-rec-resend" data-i18n="otp_resend">Renvoyer le code</button>
+    <button class="btn ghost" id="au-rec-back" data-i18n="otp_back">Retour</button>
+    <div class="msg" id="au-rec-msg"></div>
   </div>
   <!-- Verification de propriete de l'adresse email : code a usage unique.
        Un code plutot qu'un lien, car un lien de confirmation doit revenir vers
@@ -1404,6 +1430,16 @@
       <div class="empty" style="text-align:left;padding:0 0 12px" id="p-email"></div>
       <a class="btn subtle" id="p-coach-console" href="coach.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_coach_console">Console Coach</a>
       <a class="btn subtle" id="p-admin-console" href="admin.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_admin_console">Console Admin</a>
+      <!-- Changer son mot de passe une fois connecte : l'app ne le permettait
+           nulle part. Indispensable si un membre pense que son mot de passe a
+           fuite, et attendu par Apple au meme titre que la suppression. -->
+      <button class="btn subtle" id="p-pw-open" style="margin-bottom:9px" data-i18n="pw_change">Changer mon mot de passe</button>
+      <div id="p-pw-panel" style="display:none;margin-bottom:9px">
+        <div class="field"><label data-i18n="pw_new">Nouveau mot de passe</label><input id="p-pw-new" type="password" autocomplete="new-password" placeholder="••••••••" /></div>
+        <button class="btn" id="p-pw-go" data-i18n="btn_save">Enregistrer</button>
+        <button class="btn ghost" id="p-pw-cancel" data-i18n="btn_cancel">Annuler</button>
+        <div class="msg" id="p-pw-msg"></div>
+      </div>
       <button class="btn subtle" id="p-out" data-i18n="btn_logout">Se déconnecter</button>
       <button class="btn dangr" id="p-del" style="margin-top:9px" data-i18n="del_btn">Supprimer mon compte</button>
       <div class="del-panel" id="p-del-panel" style="display:none">
@@ -2447,8 +2483,18 @@ const T = {
  err_pwd_min:{fr:'Mot de passe : 6 caractères minimum.',en:'Password: 6 characters minimum.',nl:'Wachtwoord: minimaal 6 tekens.'},
  signup_confirm:{fr:'Compte créé. Vérifie ta boîte mail pour confirmer, puis connecte-toi.',en:'Account created. Check your email to confirm, then log in.',nl:'Account aangemaakt. Bevestig via je e-mail en log dan in.'},
  auth_invalid:{fr:'Email ou mot de passe incorrect.',en:'Wrong email or password.',nl:'Verkeerd e-mail of wachtwoord.'},
- auth_exists:{fr:'Cet email a déjà un compte. Connecte-toi.',en:'This email already has an account. Log in.',nl:'Dit e-mailadres heeft al een account. Log in.'},
+ auth_exists:{fr:'Cette adresse a déjà un compte. Connecte-toi — ou touche « Mot de passe oublié ».',en:'This address already has an account. Log in — or tap “Forgot password”.',nl:'Dit adres heeft al een account. Log in — of tik op “Wachtwoord vergeten”.'},
  auth_unconfirmed:{fr:'Confirme ton email avant de te connecter.',en:'Confirm your email before logging in.',nl:'Bevestig je e-mail voor je inlogt.'},
+ pw_forgot:{fr:'Mot de passe oublié ?',en:'Forgot your password?',nl:'Wachtwoord vergeten?'},
+ pw_title:{fr:'Nouveau mot de passe',en:'New password',nl:'Nieuw wachtwoord'},
+ pw_new:{fr:'Nouveau mot de passe',en:'New password',nl:'Nieuw wachtwoord'},
+ pw_save:{fr:'Enregistrer et me connecter',en:'Save and log me in',nl:'Opslaan en inloggen'},
+ pw_need_email:{fr:'Saisis d’abord ton adresse email.',en:'Enter your email address first.',nl:'Vul eerst je e-mailadres in.'},
+ /* Formulation volontairement neutre : elle ne confirme jamais qu'un compte
+    existe, sinon n'importe qui pourrait tester des adresses une par une. */
+ pw_sent:{fr:'Si un compte existe pour cette adresse, un code vient de partir. Regarde ta boîte mail, et tes spams.',en:'If an account exists for this address, a code has just been sent. Check your inbox, and your spam folder.',nl:'Als er een account bestaat voor dit adres, is er zonet een code verstuurd. Kijk in je inbox en je spam.'},
+ pw_changed:{fr:'Mot de passe modifié.',en:'Password changed.',nl:'Wachtwoord gewijzigd.'},
+ pw_change:{fr:'Changer mon mot de passe',en:'Change my password',nl:'Mijn wachtwoord wijzigen'},
  otp_title:{fr:'Confirme ton email',en:'Confirm your email',nl:'Bevestig je e-mail'},
  otp_label:{fr:'Code reçu par email',en:'Code received by email',nl:'Code ontvangen per e-mail'},
  otp_verify:{fr:'Valider mon compte',en:'Activate my account',nl:'Mijn account activeren'},
@@ -2526,7 +2572,16 @@ const r0=(n)=>Math.round(n||0);
 const r1=(n)=>Math.round((n||0)*10)/10;
 
 function show(id){['boot','auth','gate','app'].forEach(s=>$('#'+s).classList.toggle('hidden', s!==id));
-  $('#app').style.display = id==='app' ? 'block' : 'none';}
+  $('#app').style.display = id==='app' ? 'block' : 'none';
+  /* On revient toujours sur la carte de connexion : sans ca, une deconnexion
+     survenue pendant la saisie d'un code laisserait l'ecran de code ou celui de
+     nouveau mot de passe affiche, sans moyen d'en sortir. */
+  if(id==='auth'){
+    const o=$('#au-otp'), r=$('#au-rec'), c=$('#au-card');
+    if(o) o.classList.add('hidden');
+    if(r) r.classList.add('hidden');
+    if(c) c.classList.remove('hidden');
+  }}
 function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1900);}
 
 /* ---------------- AUTH ---------------- */
@@ -2584,10 +2639,81 @@ $('#au-signup').onclick = async ()=>{
   const { data, error } = await sb.auth.signUp({ email, password:pass });
   setBtn('#au-signup',false,t('au_signup'));
   if(error) return setMsg('au-msg', humanAuth(error.message),'err');
+
+  /* ⚠️ Adresse deja inscrite : Supabase ne renvoie AUCUNE erreur.
+     Pour empecher qu'un inconnu devine qui possede un compte, l'API repond un
+     utilisateur factice — sans session, et surtout avec `identities` VIDE — et
+     n'envoie aucun email. Le code partait alors dans la branche « pas de
+     session » et affichait « Code envoye. Regarde ta boite mail » pour un code
+     qui n'existerait jamais. La personne attend, fouille ses spams, et s'en va.
+     `identities.length === 0` est le seul signal fiable de ce cas. */
+  const alreadyRegistered = Array.isArray(data?.user?.identities) && data.user.identities.length===0;
+  if(alreadyRegistered){
+    $('#au-pass').value='';
+    try{ $('#au-pass').focus(); }catch(_){}
+    return setMsg('au-msg', t('auth_exists'),'err');
+  }
+
   /* Session immediate = la confirmation est desactivee cote Supabase.
-     Session absente = un code vient de partir : on affiche l'ecran de saisie. */
+     Session absente = un code vient reellement de partir. */
   if(data.session?.user){ await enter(data.user); }
   else { otpShow(email); setMsg('au-otp-msg', t('otp_sent'),'ok'); }
+};
+
+/* ---------------- Mot de passe oublie ----------------------------------------
+   Supabase envoie un code a usage unique (type 'recovery'). On le verifie, ce
+   qui ouvre une session temporaire, puis on ecrit le nouveau mot de passe avec
+   updateUser(). L'utilisateur se retrouve connecte : aucun aller-retour de plus.
+   Comme pour l'inscription, l'API ne dit jamais si l'adresse existe — on affiche
+   donc toujours le meme message, et on n'apprend rien a un curieux. */
+const REC={ email:'', until:0 };
+function recShow(email){
+  REC.email=email;
+  $('#au-card').classList.add('hidden');
+  $('#au-otp').classList.add('hidden');
+  $('#au-rec').classList.remove('hidden');
+  $('#au-rec-to').textContent=email;
+  $('#au-rec-code').value=''; $('#au-rec-pass').value='';
+  setMsg('au-rec-msg','','');
+  setTimeout(()=>{ try{ $('#au-rec-code').focus(); }catch(_){} },80);
+}
+function recHide(){
+  $('#au-rec').classList.add('hidden');
+  $('#au-card').classList.remove('hidden');
+}
+async function recSend(btnSel,msgSel,label){
+  const email=REC.email||$('#au-email').value.trim();
+  if(!email) return setMsg('au-msg',t('pw_need_email'),'err');
+  const now=Date.now();
+  if(REC.until>now) return setMsg(msgSel,t('otp_wait').replace('{s}',Math.ceil((REC.until-now)/1000)),'err');
+  setBtn(btnSel,true,'…');
+  const { error } = await sb.auth.resetPasswordForEmail(email);
+  setBtn(btnSel,false,t(label));
+  if(error && /rate|too many|security purposes/i.test(error.message||'')){
+    REC.until=now+60000;
+    return setMsg(msgSel,t('otp_rate'),'err');
+  }
+  REC.until=now+30000;
+  recShow(email);
+  setMsg('au-rec-msg',t('pw_sent'),'ok');
+}
+$('#au-forgot').onclick = ()=>recSend('#au-forgot','au-msg','pw_forgot');
+$('#au-rec-resend').onclick = ()=>recSend('#au-rec-resend','au-rec-msg','otp_resend');
+$('#au-rec-back').onclick = ()=>{ recHide(); setMsg('au-msg','',''); };
+$('#au-rec-code').oninput = e=>{ e.target.value=e.target.value.replace(/\D/g,''); };
+$('#au-rec-go').onclick = async ()=>{
+  const token=($('#au-rec-code').value||'').replace(/\D/g,'');
+  const pass=$('#au-rec-pass').value;
+  if(token.length<6) return setMsg('au-rec-msg',t('otp_short'),'err');
+  if(!pass||pass.length<6) return setMsg('au-rec-msg',t('err_pwd_min'),'err');
+  setBtn('#au-rec-go',true,'…');
+  const { data, error } = await sb.auth.verifyOtp({ email:REC.email, token, type:'recovery' });
+  if(error){ setBtn('#au-rec-go',false,t('pw_save')); return setMsg('au-rec-msg',humanOtp(error.message),'err'); }
+  const up = await sb.auth.updateUser({ password:pass });
+  setBtn('#au-rec-go',false,t('pw_save'));
+  if(up.error) return setMsg('au-rec-msg',up.error.message,'err');
+  recHide();
+  await enter((up.data&&up.data.user)||(data&&data.user));
 };
 
 /* ---------------- Verification de l'adresse email (code a usage unique) ---------------- */
@@ -2787,6 +2913,24 @@ async function hasAccess(uid){
 }
 
 $('#gate-out').onclick = $('#p-out').onclick = async ()=>{ await sb.auth.signOut(); USER=null; show('auth'); };
+/* ---- Changement de mot de passe depuis le Profil ---- */
+(function(){
+  const open=$('#p-pw-open'), panel=$('#p-pw-panel'), go=$('#p-pw-go'), cancel=$('#p-pw-cancel');
+  if(!open) return;
+  open.onclick=()=>{ panel.style.display=''; open.style.display='none'; $('#p-pw-new').value=''; setMsg('p-pw-msg','',''); };
+  cancel.onclick=()=>{ panel.style.display='none'; open.style.display=''; };
+  go.onclick=async ()=>{
+    const pass=$('#p-pw-new').value;
+    if(!pass||pass.length<6) return setMsg('p-pw-msg',t('err_pwd_min'),'err');
+    setBtn('#p-pw-go',true,'…');
+    const { error } = await sb.auth.updateUser({ password:pass });
+    setBtn('#p-pw-go',false,t('btn_save'));
+    if(error) return setMsg('p-pw-msg',error.message,'err');
+    $('#p-pw-new').value='';
+    panel.style.display='none'; open.style.display='';
+    toast(t('pw_changed'));
+  };
+})();
 /* ---- Suppression de compte (Apple 5.1.1(v)) ---- */
 (function(){
   const btn=$('#p-del'), panel=$('#p-del-panel'), go=$('#p-del-go'), cancel=$('#p-del-cancel'), msg=$('#p-del-msg');
