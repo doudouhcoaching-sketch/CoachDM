@@ -487,6 +487,28 @@ let AC=null;
 /* Deverrouillage audio iOS. resume() seul ne suffit pas : Safari n'ouvre
    reellement la sortie qu'apres qu'un son ait ete JOUE pendant le geste
    utilisateur. Un buffer muet d'une frame fait l'affaire. */
+/* ---- Retour tactile ----------------------------------------------------
+   iOS n'implemente pas navigator.vibrate : ni Safari ni la WKWebView. Tous les
+   appels ci-dessous ne faisaient donc strictement rien sur iPhone, alors que
+   c'est precisement pendant une analyse que le membre ne regarde pas l'ecran.
+   Le plugin Haptics de Capacitor, lui, pilote le Taptic Engine. On garde
+   navigator.vibrate en repli pour Android et le web. */
+function buzz(kind){
+  try{
+    var P=window.Capacitor&&window.Capacitor.Plugins, H=P&&P.Haptics;
+    if(H){
+      if(kind==='ok'){ H.impact({style:'MEDIUM'}); }
+      else if(kind==='no'){ H.notification({type:'WARNING'}); }
+      else { H.notification({type:'ERROR'}); }
+      return;
+    }
+  }catch(_){}
+  try{
+    if(navigator.vibrate){
+      navigator.vibrate(kind==='ok'?55:(kind==='no'?[45,55,45]:[90,60,90]));
+    }
+  }catch(_){}
+}
 function audioUnlock(){
   try{
     AC=AC||new (window.AudioContext||window.webkitAudioContext)();
@@ -548,7 +570,7 @@ function renderRun(){
   $('#v-gct').textContent=RUN.gct==null?'—':Math.round(RUN.gct);
   $('#v-ovs').textContent=RUN.ovsPct==null?'—':RUN.ovsPct.toFixed(0);
   const show=RUN.ovsPct!=null&&steps>=20&&RUN.ovsPct>30;
-  if(show&&!RUN.warn){RUN.warn=true;beep(300,180);if(navigator.vibrate)navigator.vibrate([80,60,80]);}
+  if(show&&!RUN.warn){RUN.warn=true;beep(300,180);buzz('alert');}
   if(RUN.ovsPct!=null&&RUN.ovsPct<=25)RUN.warn=false;
   $('#v-stop').style.display=RUN.warn?'':'none';
 }

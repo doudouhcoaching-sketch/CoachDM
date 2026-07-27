@@ -1048,7 +1048,7 @@
     <p style="color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 6px" data-i18n-html="gate_p1">
       L'app Coach DM est réservée aux membres.<br>Abonne-toi pour tout débloquer.</p>
     <p style="color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 18px" data-i18n="gate_p2">
-      Ton compte est créé mais n'a pas encore d'accès. Contacte le coach pour l'activer.</p>
+      Ton compte est créé. Choisis ton abonnement pour débloquer l'accès complet.</p>
     <button class="btn" id="gate-sub" style="display:block;width:100%" data-i18n="sub_cta">S'abonner</button>
     <button class="btn subtle" id="gate-out" style="margin-top:10px" data-i18n="btn_logout">Se déconnecter</button>
   </div>
@@ -1263,6 +1263,7 @@
         <a class="pf-row" href="https://coachdm.be/aide.html" target="_blank" rel="noopener"><span class="pf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 0 1 4.6 1.4c0 1.6-2.2 2-2.2 3.1"/><path d="M12 17h.01"/></svg></span><span class="pf-lb" data-i18n="help_center">Centre d'aide</span><svg class="pf-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
         <button class="pf-row" data-pf="sources" type="button"><span class="pf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15.5a2.5 2.5 0 0 0-2.5 2.5H6.5A2.5 2.5 0 0 1 4 18.5z"/><path d="M20 18.5H6.5a2.5 2.5 0 0 0 0 5H20"/><path d="M9 8h7M9 11.5h7"/></svg></span><span class="pf-lb" data-i18n="pf_sources">Sources scientifiques</span><svg class="pf-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
         <a class="pf-row" href="https://coachdm.be/privacy.html" target="_blank" rel="noopener"><span class="pf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.6-3 7.6-7 9-4-1.4-7-4.4-7-9V6z"/></svg></span><span class="pf-lb" data-i18n="privacy">Politique de confidentialité</span><svg class="pf-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
+        <a class="pf-row" href="https://coachdm.be/conditions.html" target="_blank" rel="noopener"><span class="pf-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M10 12h6M10 16h6"/></svg></span><span class="pf-lb" data-i18n="sub_terms">Conditions d'utilisation</span><svg class="pf-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>
       </div>
     </div>
 
@@ -1372,7 +1373,10 @@
         <button data-theme-set="light" data-i18n="th_light">Clair</button>
       </div>
       <div class="opt-row" style="margin-top:14px"><span data-i18n="opt_units">Unités</span><span class="fk" data-i18n="opt_metric">Métrique (kg, cm)</span></div>
-      <div class="opt-row"><span data-i18n="opt_notif">Rappels & notifications</span><span class="fk" data-i18n="opt_soon">Bientôt disponible</span></div>
+      <!-- Ligne "Rappels & notifications — Bientot disponible" retiree : le plugin
+           push n'est pas encore branche cote app, et Apple sanctionne les
+           fonctions annoncees mais absentes (2.1). A remettre le jour ou
+           PushNotifications.register() sera en place. -->
     </div>
 
     </div>
@@ -1878,8 +1882,11 @@ const T = {
  nav_ia:{fr:'Coach IA',en:'AI Coach',nl:'AI-coach'},
  nav_profile:{fr:'Profil',en:'Profile',nl:'Profiel'},
  nav_boutique:{fr:'Boutique',en:'Shop',nl:'Shop'},
- native_nosub:{fr:'Les abonnements ne sont pas disponibles dans cette version de l\u2019app.',en:'Subscriptions are not available in this version of the app.',nl:'Abonnementen zijn niet beschikbaar in deze versie van de app.'},
- native_nomanage:{fr:'La gestion de l\u2019abonnement n\u2019est pas disponible dans cette version de l\u2019app.',en:'Subscription management is not available in this version of the app.',nl:'Abonnementsbeheer is niet beschikbaar in deze versie van de app.'},
+ /* Filets de securite : plus aucun chemin de l'app ne doit y mener depuis que
+    l'achat integre est actif. Formules neutres \u2014 surtout pas une phrase qui
+    renverrait acheter ailleurs, ce qui violerait la regle 3.1.1. */
+ native_nosub:{fr:'Cette offre n\u2019est pas disponible pour le moment.',en:'This plan is not available right now.',nl:'Dit aanbod is momenteel niet beschikbaar.'},
+ native_nomanage:{fr:'La gestion de cet abonnement n\u2019est pas accessible ici.',en:'This subscription cannot be managed here.',nl:'Dit abonnement kan hier niet worden beheerd.'},
  iap_restore:{fr:'Restaurer mes achats',en:'Restore purchases',nl:'Aankopen herstellen'},
  iap_restored:{fr:'Achats restaur\u00e9s.',en:'Purchases restored.',nl:'Aankopen hersteld.'},
  iap_none:{fr:'Aucun achat \u00e0 restaurer sur ce compte Apple.',en:'No purchase to restore on this Apple account.',nl:'Geen aankoop om te herstellen op dit Apple-account.'},
@@ -2194,6 +2201,12 @@ const T = {
  sub_per_year:{fr:'/an',en:'/year',nl:'/jaar'},
  sub_year_save:{fr:'2 mois offerts par rapport au mensuel',en:'2 months free vs monthly',nl:'2 maanden gratis t.o.v. maandelijks'},
  sub_choose:{fr:'Choisir cette offre',en:'Choose this plan',nl:'Kies dit abonnement'},
+ /* Apple 3.1.2(a) exige, au point d'achat : la duree, le prix par periode, les
+    conditions de reconduction, et un lien fonctionnel vers les CGU et la
+    confidentialite. Leur absence est un motif de refus a elle seule. */
+ sub_legal_m:{fr:'Abonnement mensuel à renouvellement automatique. Le montant est débité à la confirmation de l’achat, puis chaque mois, sauf résiliation au moins 24 h avant la fin de la période en cours. Résiliable à tout moment dans les réglages de ton compte.',en:'Monthly auto-renewing subscription. You are charged on purchase confirmation, then every month, unless cancelled at least 24 h before the end of the current period. Cancel any time in your account settings.',nl:'Maandelijks abonnement met automatische verlenging. Het bedrag wordt afgeschreven bij de aankoopbevestiging en daarna elke maand, tenzij je minstens 24 u voor het einde van de lopende periode opzegt. Je kunt op elk moment opzeggen in je accountinstellingen.'},
+ sub_legal_y:{fr:'Abonnement annuel à renouvellement automatique. Le montant est débité à la confirmation de l’achat, puis chaque année, sauf résiliation au moins 24 h avant la fin de la période en cours. Résiliable à tout moment dans les réglages de ton compte.',en:'Yearly auto-renewing subscription. You are charged on purchase confirmation, then every year, unless cancelled at least 24 h before the end of the current period. Cancel any time in your account settings.',nl:'Jaarabonnement met automatische verlenging. Het bedrag wordt afgeschreven bij de aankoopbevestiging en daarna elk jaar, tenzij je minstens 24 u voor het einde van de lopende periode opzegt. Je kunt op elk moment opzeggen in je accountinstellingen.'},
+ sub_terms:{fr:'Conditions d’utilisation',en:'Terms of Use',nl:'Gebruiksvoorwaarden'},
  ck_consent_title:{fr:'Avant de payer',en:'Before you pay',nl:'Voor je betaalt'},
  ck_consent_text:{fr:'Je demande l’accès immédiat au service et je reconnais qu’en démarrant maintenant, je renonce à mon droit de rétractation de 14 jours dès l’ouverture de mon accès premium (art. VI.53 du Code de droit économique).',en:'I request immediate access to the service and acknowledge that by starting now, I waive my 14-day right of withdrawal as soon as my premium access is opened (art. VI.53 of the Belgian Code of Economic Law).',nl:'Ik vraag onmiddellijke toegang tot de dienst en erken dat ik, door nu te starten, afstand doe van mijn herroepingsrecht van 14 dagen zodra mijn premium-toegang wordt geopend (art. VI.53 van het Wetboek van economisch recht).'},
  ck_continue:{fr:'Continuer vers le paiement',en:'Continue to payment',nl:'Doorgaan naar betaling'},
@@ -2246,7 +2259,6 @@ const T = {
  chat_video_plus:{fr:"Les vidéos nécessitent l'offre Coach+ de ton coach.",en:'Videos require your coach\u2019s Coach+ plan.',nl:'Video\u2019s vereisen het Coach+ abonnement van je coach.'},
  chat_media_na:{fr:'Média indisponible',en:'Media unavailable',nl:'Media niet beschikbaar'},
  btn_admin_console:{fr:'Console Admin',en:'Admin Console',nl:'Admin Console'},
- sub_pay_note:{fr:'Le paiement en ligne arrive bientôt. En attendant, contacte le coach pour activer ou renouveler ton accès.',en:'Online payment is coming soon. Meanwhile, contact the coach to activate or renew your access.',nl:'Online betalen komt binnenkort. Neem intussen contact op met de coach om je toegang te activeren of te verlengen.'},
  contact_coach:{fr:'Contacter le coach',en:'Contact the coach',nl:'Contacteer de coach'},
  prof_options:{fr:'Options',en:'Options',nl:'Opties'},
  lbl_theme:{fr:'Thème',en:'Theme',nl:'Thema'},
@@ -2284,12 +2296,12 @@ const T = {
  gate_title:{fr:'Accès réservé',en:'Members only',nl:'Alleen voor leden'},
  gate_p1:{fr:'L\u2019app Coach DM est réservée aux membres.<br>Abonne-toi pour tout débloquer.',en:'The Coach DM app is for members.<br>Subscribe to unlock everything.',nl:'De Coach DM-app is voor leden.<br>Abonneer je om alles te ontgrendelen.'},
  gate_p1_native:{fr:'L\u2019app Coach DM est réservée aux membres.',en:'The Coach DM app is for members only.',nl:'De Coach DM-app is alleen voor leden.'},
- gate_p2:{fr:"Ton compte est créé mais n'a pas encore d'accès. Contacte le coach pour l'activer.",en:'Your account is created but has no access yet. Contact the coach to activate it.',nl:'Je account is aangemaakt maar heeft nog geen toegang. Contacteer de coach om het te activeren.'},
+ gate_p2:{fr:"Ton compte est créé. Choisis ton abonnement pour débloquer l'accès complet.",en:'Your account is created. Choose your subscription to unlock full access.',nl:'Je account is aangemaakt. Kies je abonnement om volledige toegang te krijgen.'},
  gate_ask:{fr:"Demander l'accès",en:'Request access',nl:'Toegang aanvragen'},
  up_title:{fr:'Passe en Premium',en:'Go Premium',nl:'Word Premium'},
  up_workout:{fr:'Cette séance fait partie du programme complet, réservé aux membres.',en:'This workout is part of the full members-only program.',nl:'Deze training hoort bij het volledige ledenprogramma.'},
  up_ia:{fr:'Le Coach IA est réservé aux membres Premium.',en:'The AI Coach is for Premium members.',nl:'De AI-coach is voor Premium-leden.'},
- up_price:{fr:'14,99 €/mois — 9,99 € pour les 50 fondateurs',en:'€14.99/month — €9.99 for the 50 founders',nl:'€14,99/maand — €9,99 voor de 50 oprichters'},
+ up_price:{fr:'14,99 €/mois',en:'€14.99/month',nl:'€14,99/maand'},
  up_feat1:{fr:'Tous les programmes, semaine après semaine',en:'Every program, week after week',nl:"Alle programma's, week na week"},
  up_feat2:{fr:'Coach IA illimité',en:'Unlimited AI Coach',nl:'Onbeperkte AI-coach'},
  up_feat3:{fr:'Objectifs perso & moteur de charge',en:'Custom goals & load engine',nl:'Persoonlijke doelen & belastingsmotor'},
@@ -2731,13 +2743,22 @@ async function loadProfileInfo(user){
       if(sub && sub.current_period_end) extra = ' · ' + new Date(sub.current_period_end).toLocaleDateString(locale(),{day:'numeric',month:'long'});
     }
     if($('#p-sub')){ $('#p-sub').dataset.key=key; $('#p-sub').dataset.extra=extra; $('#p-sub').textContent = t(key)+extra; }
-    /* Apple 3.1.1 : en natif, ni achat ni gestion de facturation. */
-    const canPay = !(role==='coach'||role==='admin') && !IS_NATIVE;
+    /* L'achat est desormais possible partout : StoreKit en natif, Stripe sur le web.
+       Seuls coach et admin n'ont rien a acheter, leur acces vient de leur role. */
+    const canPay = !(role==='coach'||role==='admin');
     const bOpen=$('#p-sub-open'), bMan=$('#p-sub-manage');
     if(bOpen) bOpen.style.display = (canPay && !active && !trialing) ? 'block' : 'none';
-    if(bMan)  bMan.style.display  = (canPay && sub && (active||trialing)) ? 'block' : 'none';
     FOUNDER_AMOUNT = (sub && sub.amount_cents!=null) ? sub.amount_cents : null;
     SUB_STORE = (sub && sub.store) || null;
+    /* Gestion : en natif on n'ouvre le bouton que pour un abonnement StoreKit,
+       qui renvoie vers l'ecran Apple. Un abonnement Stripe vu depuis l'app n'a
+       aucune surface de gestion autorisee : le bouton reste masque plutot que
+       d'afficher un cul-de-sac a un membre qui paie. */
+    if(bMan){
+      const manageable = canPay && sub && (active||trialing) &&
+                         (!IS_NATIVE || SUB_STORE==='apple' || SUB_STORE==='google');
+      bMan.style.display = manageable ? 'block' : 'none';
+    }
   }catch(e){}
 }
 
@@ -2826,7 +2847,10 @@ function founderCounter(kind){
   return (left!==null && left>0 && left<=15) ? `<div class="plan-save">${t('founder_left').replace('{n}',left)}</div>` : '';
 }
 async function openSubSheet(){
-  if(IS_NATIVE){ toast(t('native_nosub')); return; }        /* Apple 3.1.1 — build 15 : app verrouillee, aucune vente in-app */
+  /* Le verrou du build 15 est leve : l'abonnement est desormais achetable
+     par StoreKit. bindPlanBox route le bouton vers iapBuy() en natif et
+     vers Stripe sur le web, la garde de startCheckout reste en place pour
+     qu'aucun paiement Stripe ne puisse demarrer dans l'app. */
   $('#sub-ov').classList.add('show');
   if(!SUB_PRICES){
     try{
@@ -2841,7 +2865,11 @@ async function openSubSheet(){
 function renderSubPlans(){
   const box=$('#sub-plans'); if(!box) return;
   const ps=SUB_PRICES||[];
-  const f=!founderOpen('membre')?null:ps.find(p=>p.founder && p.billing_interval===SUB_INT);
+  /* Le tarif Fondateur n'existe QUE sur le web : aucun produit StoreKit ne lui
+     correspond. L'afficher en natif montrerait une offre impossible a acheter
+     dans l'app — precisement le motif du refus 3.1.3(b). On ne propose donc
+     que le tarif public sur iOS ; le Fondateur reste l'argument des emails. */
+  const f=(IS_NATIVE||!founderOpen('membre'))?null:ps.find(p=>p.founder && p.billing_interval===SUB_INT);
   const r=ps.find(p=>!p.founder && p.billing_interval===SUB_INT);
   const offer=f||r;
   if(!offer){ box.innerHTML='<p class="empty">—</p>'; return; }
@@ -2855,6 +2883,7 @@ function renderSubPlans(){
   if(f) h+=founderCounter('membre');
   h+=`<button class="btn" data-lk="${offer.lookup_key}">${t('sub_choose')}</button></div>`;
   h+=iapRestoreRow();
+  h+=subLegalRow(SUB_INT);
   box.innerHTML=h;
   bindPlanBox(box);
 }
@@ -2953,8 +2982,13 @@ async function checkoutReturn(){
   }
   toast(t('sub_wait'));
 }
-{ const el=$('#gate-sub'); if(el){ if(IS_NATIVE) el.style.display='none'; else el.onclick=openSubSheet; } }
-{ const el=$('#p-sub-open'); if(el){ if(IS_NATIVE) el.style.display='none'; else el.onclick=openSubSheet; } }
+/* Ces deux boutons etaient masques en natif du temps ou l'app n'avait aucun
+   produit StoreKit. Depuis que l'abonnement est achetable par IAP, les masquer
+   revient a cacher le seul moyen d'acheter : le reviewer ne trouve pas l'achat
+   integre et refuse. Ils sont donc visibles partout, et bindPlanBox route vers
+   iapBuy() en natif, vers Stripe sur le web. */
+{ const el=$('#gate-sub'); if(el) el.onclick=openSubSheet; }
+{ const el=$('#p-sub-open'); if(el) el.onclick=openSubSheet; }
 /* consentement collecté dans Stripe (art. VI.53) — plus d'étape locale */
 { const el=$('#p-sub-manage'); if(el) el.onclick=openPortal; }
 document.querySelectorAll('#sub-toggle button').forEach(b=>b.onclick=()=>{
@@ -3011,7 +3045,7 @@ function renderCoachPlans(){
     if(fplus) h+=founderCounter('coach');
     h+=`<button class="btn" data-lk="${plus.lookup_key}">${t('sub_choose')}</button></div>`;
   }
-  if(h) h+=iapRestoreRow();
+  if(h){ h+=iapRestoreRow(); h+=subLegalRow(COACH_INT); }
   box.innerHTML = h || '<p class="empty">—</p>';
   bindPlanBox(box);
 }
@@ -3050,23 +3084,23 @@ if(IS_NATIVE){
      offre et paie ». On bascule ces liens sur les copies embarquees. */
   document.querySelectorAll('a[href^="https://coachdm.be/"]').forEach(a=>{
     const rel=a.getAttribute('href').replace('https://coachdm.be/','');
-    if(!/^(aide|privacy)\.html$/.test(rel)) return;
+    if(!/^(aide|privacy|conditions)\.html$/.test(rel)) return;
     a.setAttribute('href', rel);
     a.removeAttribute('target');          /* meme webview : le fichier local n'est pas joignable en _blank */
     a.removeAttribute('rel');
   });
 
-  /* ⚠️ L'ecran d'acces refuse affichait « Abonne-toi pour tout debloquer »
-     alors que le bouton S'abonner est masque en natif : une instruction
-     d'achat sans aucun moyen d'acheter. C'est mot pour mot le reproche
-     d'Apple sur le build 14. On bascule la CLE i18n et non le texte : sinon
-     applyI18n() repasserait derriere et restaurerait l'original. La ligne
-     suivante (gate_p2, « Contacte le coach pour l'activer ») reste et donne
-     la marche a suivre. */
-  { const gp=document.querySelector('[data-i18n-html="gate_p1"]');
-    if(gp) gp.setAttribute('data-i18n-html','gate_p1_native'); }
+  /* ⚠️ Historique : l'ecran d'acces refuse disait « Abonne-toi pour tout
+     debloquer » puis « Contacte le coach pour l'activer », alors que le bouton
+     S'abonner etait masque en natif. Une instruction d'achat sans moyen
+     d'acheter, doublee d'un renvoi hors App Store : les deux motifs de refus
+     reunis sur un seul ecran. Le bouton est desormais visible et achete par
+     StoreKit, et gate_p2 renvoie vers ce bouton et nulle part ailleurs. */
 
-  const KILL=['#p-sub-open','#p-sub-manage','#p-coach-open','#p-coach-offer','#gate-sub','#home-coach','#home-shop','#up-cta','#up-price'];
+  /* Ne restent masques que les elements SANS produit d'achat integre :
+     la boutique PDF passe par Payhip, l'offre coach n'a pas de produit
+     StoreKit cree. Tout le reste est rouvert, puisque desormais achetable. */
+  const KILL=['#p-coach-open','#p-coach-offer','#home-coach','#home-shop'];
   let busy=false;
   const sweep=()=>{
     if(busy) return;                      /* re-entrance : sweep() ecrit du style, l'observer se re-declencherait */
@@ -3429,11 +3463,14 @@ function bindPlates(){
    c'est le prix reel du store, localise dans la devise de l'utilisateur.
 
    ⚠️ DORMANT DANS LE BUILD 15. Le plugin @revenuecat/purchases-capacitor n'est
-   PAS installe, donc window.Capacitor.Plugins.Purchases est absent, IAP_ON()
-   renvoie false et tout ce bloc reste inerte. Le code est conserve tel quel
-   pour le build 16 : il suffira de reinstaller le plugin, de renseigner
-   RC_APPLE_KEY et de retirer les gardes IS_NATIVE des feuilles d'abonnement. */
-const RC_APPLE_KEY='appl_REMPLACER_PAR_TA_CLE_PUBLIQUE_REVENUECAT';
+   PAS installe. Ce n'est plus le cas : @revenuecat/purchases-capacitor est
+   installe, la cle publique RC_APPLE_KEY est renseignee, les deux produits
+   (be.coachdm.app.membre_m / _y) sont crees cote App Store Connect et rattaches
+   a l'entitlement "premium" chez RevenueCat. L'achat integre est donc actif :
+   bindPlanBox route vers iapBuy() en natif, vers Stripe sur le web. L'acces
+   n'est jamais ouvert par le client — c'est le webhook RevenueCat qui appelle
+   iap_sync() cote base, et iapAwaitAccess() attend cette confirmation. */
+const RC_APPLE_KEY='appl_NbuyJSnCxWyMYfrHYjTsDaXyKCK';
 let IAP_READY=false, IAP_CONFIGURED=false;
 const IAP_PRODUCTS=Object.create(null);          /* apple_product_id -> produit StoreKit */
 
@@ -3531,11 +3568,42 @@ function iapRestoreRow(){
     ? `<button class="btn subtle" id="iap-restore" style="width:100%;margin-top:10px">${t('iap_restore')}</button>`
     : '';
 }
+
+/* ---- Mentions legales au point d'achat (Apple 3.1.2(a)) ----
+   En natif on ouvre les pages dans le navigateur in-app : la webview de l'app
+   n'est pas remplacee, le membre revient d'un simple "Terminer". Si le plugin
+   Browser manque, on retombe sur la copie embarquee dans le bundle. */
+function openLegal(rel){
+  const url='https://coachdm.be/'+rel;
+  if(IS_NATIVE){
+    try{
+      const P=window.Capacitor&&window.Capacitor.Plugins;
+      if(P&&P.Browser){ P.Browser.open({ url }); return; }
+    }catch(_){}
+    location.href=rel;                       /* copie locale du bundle */
+    return;
+  }
+  window.open(url,'_blank','noopener');
+}
+function subLegalRow(interval){
+  const k = interval==='year' ? 'sub_legal_y' : 'sub_legal_m';
+  return `<div class="sub-legal" style="margin-top:14px;font-size:11.5px;line-height:1.55;color:var(--muted);text-align:center">
+    ${t(k)}
+    <div style="margin-top:8px">
+      <a href="#" data-legal="conditions.html" style="color:var(--muted);text-decoration:underline">${t('sub_terms')}</a>
+      <span style="opacity:.5"> · </span>
+      <a href="#" data-legal="privacy.html" style="color:var(--muted);text-decoration:underline">${t('privacy')}</a>
+    </div>
+  </div>`;
+}
 function bindPlanBox(box){
   box.querySelectorAll('[data-lk]').forEach(b=>{
     b.onclick = IAP_ON() ? ()=>iapBuy(b.dataset.lk) : ()=>startCheckout(b.dataset.lk);
   });
   const r=box.querySelector('#iap-restore'); if(r) r.onclick=()=>iapRestore(r);
+  box.querySelectorAll('[data-legal]').forEach(a=>{
+    a.onclick=(e)=>{ e.preventDefault(); openLegal(a.dataset.legal); };
+  });
 }
 
 /* ---------------- APPLE SANTE (HealthKit via @capgo/capacitor-health) ----------------
@@ -4907,7 +4975,9 @@ async function upsellPrice(){
       SUB_PRICES = data||[];
     }
     if(IAP_ON()) await iapLoad(SUB_PRICES);
-    const f=(SUB_PRICES||[]).find(p=>p.founder && p.billing_interval==='month');
+    /* Meme regle que renderSubPlans : le tarif Fondateur n'a pas de produit
+       StoreKit, l'annoncer dans l'app serait une offre impossible a acheter. */
+    const f=IS_NATIVE?null:(SUB_PRICES||[]).find(p=>p.founder && p.billing_interval==='month');
     const r=(SUB_PRICES||[]).find(p=>!p.founder && p.billing_interval==='month');
     const offer=f||r; if(!offer) return;
     let txt = planPrice(offer)+t('sub_per_month');
@@ -4917,10 +4987,12 @@ async function upsellPrice(){
 }
 function showUpsell(kind){
   const sub=$('#up-sub'); if(sub) sub.textContent=t(kind==='ia'?'up_ia':'up_workout');
-  const cta=$('#up-cta'); if(cta) cta.style.display=IS_NATIVE?'none':'';
-  const pr=$('#up-price'); if(pr) pr.style.display=IS_NATIVE?'none':'';
+  /* Le bouton et le prix etaient masques en natif : le membre gratuit tombait
+     sur un mur « Passe en Premium » sans aucun bouton pour le faire. */
+  const cta=$('#up-cta'); if(cta) cta.style.display='';
+  const pr=$('#up-price'); if(pr) pr.style.display='';
   const ov=$('#up-ov'); if(ov) ov.classList.add('show');
-  if(!IS_NATIVE) upsellPrice();
+  upsellPrice();
 }
 function renderIALock(){
   const sc=$('#ia-scroll');
@@ -5939,7 +6011,16 @@ function renderDetail(w,items,tips){
 
 /* ---- Workout player : état + timer de repos + HUD ---- */
 let REST=null, WO_TOTAL=0, WO_DONE=0, WO_VOL=0, LAST_SET={};
-function buzz(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
+/* iOS n'implemente pas navigator.vibrate : sur iPhone cette fonction n'a jamais
+   rien fait. Le Taptic Engine se pilote via le plugin Haptics de Capacitor.
+   navigator.vibrate reste le repli Android / web. */
+function buzz(ms){
+  try{
+    var P=window.Capacitor&&window.Capacitor.Plugins, H=P&&P.Haptics;
+    if(H){ if(ms>=200) H.notification({type:'SUCCESS'}); else H.impact({style:ms>=80?'MEDIUM':'LIGHT'}); return; }
+  }catch(_){}
+  try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){}
+}
 function tones(seq){ try{
   const A=window.AudioContext||window.webkitAudioContext; if(!A) return;
   const c=new A(); let t0=c.currentTime;

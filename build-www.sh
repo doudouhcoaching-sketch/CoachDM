@@ -16,7 +16,9 @@ mkdir -p www
 
 cp app.html www/index.html
 
-PAGES="app.html coach.html saut.html squat.html barre.html course.html hyrox.html aide.html privacy.html admin.html"
+# conditions.html : exige par Apple 3.1.2(a) — un lien vers les CGU doit etre
+# joignable au point d'achat. Embarque pour rester lisible meme hors connexion.
+PAGES="app.html coach.html saut.html squat.html barre.html course.html hyrox.html aide.html privacy.html conditions.html admin.html"
 for f in $PAGES; do
   if [ -f "$f" ]; then cp "$f" www/; fi
 done
