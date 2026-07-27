@@ -645,7 +645,14 @@ let DIV=localStorage.getItem('cdm_hx_div')||'mo'; if(!DIVS[DIV])DIV='mo';
    irreprochable sur celui qui reste sur place — et c'est la station a 100 reps,
    celle ou les courses se gagnent et se perdent. */
 const MOVES={
-  wb: {downT:0.38, upT:0.16, minMs:400, topHoldMs:260, defTargets:[100,75,50,30,20]}
+  /* topHoldMs : delai minimum au sommet avant de pouvoir clore la rep.
+     topMaxMs  : delai APRES lequel on clot meme sans lancer detecte.
+     Les deux existent parce que le lancer n'arrive pas toujours dans la meme
+     fenetre : a cadence rapide il part pendant la remontee, a cadence fatiguee
+     l'athlete se redresse, souffle, puis lance. Avec un seul delai de 260 ms la
+     rep se fermait avant le lancer et partait en no-rep alors qu'elle etait
+     bonne. Voir le detail dans handle(). */
+  wb: {downT:0.38, upT:0.16, minMs:400, topHoldMs:260, topMaxMs:1500, defTargets:[100,75,50,30,20]}
 };
 let MV='wb';                       /* seul mouvement suivi par la camera */
 let TARGET=100;
@@ -968,11 +975,17 @@ function torsoLen(lm){
   const hpX=(lm[23].x+lm[24].x)/2, hpY=(lm[23].y+lm[24].y)/2;
   return Math.max(0.06, Math.hypot(shX-hpX, shY-hpY));
 }
-/* Descente en unites de torso : 0 = debout, ~0,8 = fond de squat. */
-function dropT(lm){
+/* Descente en unites de torso : 0 = debout, ~0,8 = fond de squat.
+   ⚠️ dropFrom() prend la hauteur de hanche DEJA filtree. Jusqu'ici dropT()
+   rappelait hipY(lm) brut : le filtre median calcule dans handle() etait donc
+   jete a la poubelle, et chaque franchissement de seuil se decidait sur un
+   signal bruite. Une seule image parasite suffisait a ouvrir ou fermer une rep
+   au mauvais moment. C'est la cause de fond des comptages en trop. */
+function dropFrom(hy,lm){
   if(CAL.stand==null) return 0;
-  return (hipY(lm)-CAL.stand)/torsoLen(lm);
+  return (hy-CAL.stand)/torsoLen(lm);
 }
+function dropT(lm){ return dropFrom(hipY(lm),lm); }
 
 /* calibration debout : référence + longueur de jambe (amplitude provisoire) */
 function calib(lm,side){
@@ -987,14 +1000,15 @@ function startRep(ts,lm,side){
   S.rep={
     t0:ts, side:side,
     depthOk:false, throwOk:false, chestOk:false, kneeOk:false, minKnee:999,
+    d2d:0, d3d:0,                                  /* images consecutives sous la parallele */
     kneeSide:null, hipMax:hipY(lm), dropMax:0, view:viewOf(lm,side)
   };
 }
-function sampleRep(lm,w,side,ts){
+function sampleRep(lm,w,side,ts,drop){
   const r=S.rep; if(!r)return;
   const hy=hipY(lm);
   if(hy>r.hipMax)r.hipMax=hy;
-  const d=dropT(lm); if(d>r.dropMax)r.dropMax=d;
+  const d=(drop!=null)?drop:dropT(lm); if(d>r.dropMax)r.dropMax=d;
   r.view=viewOf(lm,side);
 
   /* ⚠️ Profondeur : MEME regle que squat.html, sinon les deux pages se
@@ -1003,13 +1017,20 @@ function sampleRep(lm,w,side,ts){
      telephone : legerement haut ou pas tout a fait de profil, et une rep au
      fond est jugee trop haute. On ajoute donc le critere 3D (angle de genou
      <= 90°), issu des worldLandmarks, insensible a la perspective.
-     Les deux criteres sont en OU : il suffit d'un seul pour valider. */
-  if(lm[side.hip].y>lm[side.knee].y+0.01)r.depthOk=true;
+     Les deux criteres sont en OU : il suffit d'un seul pour valider.
+
+     ⚠️ Chaque critere exige DEUX images consecutives sous le seuil. Une seule
+     image suffisait avant : or MediaPipe fait sauter un genou ou une hanche de
+     plusieurs centimetres sur une image isolee, et ce sursaut validait la
+     profondeur d'une rep qui n'etait jamais descendue. Deux images = 60 ms a
+     30 fps, alors qu'on passe plus de 150 ms au fond d'un wall ball : ca ne
+     coute aucune rep valide et ca supprime le faux positif. */
+  if(lm[side.hip].y>lm[side.knee].y+0.01){ if(++r.d2d>=2)r.depthOk=true; } else r.d2d=0;
   if(w){
     const k=kneeAngle(w,side);
     if(k!=null&&isFinite(k)){
       if(k<r.minKnee)r.minKnee=k;
-      if(k<=BELOW_PARALLEL_ANGLE)r.depthOk=true;
+      if(k<=BELOW_PARALLEL_ANGLE){ if(++r.d3d>=2)r.depthOk=true; } else r.d3d=0;
     }
   }
 
@@ -1146,7 +1167,7 @@ function handle(lm,w,ts){
   const hy=median3(hyRaw);
   if(w){const k=kneeAngle(w,side); lastKnee=k; if(k>158&&S.mode==='ready')calib(lm,side);}
 
-  const drop=dropT(lm);                       /* descente en longueurs de torso */
+  const drop=dropFrom(hy,lm);                 /* descente en torsos, sur la hanche FILTREE */
   const downTh=MOVES[MV].downT, upTh=MOVES[MV].upT;
 
   chip.hidden=false;
@@ -1161,17 +1182,30 @@ function handle(lm,w,ts){
       stage.classList.remove('deep');
     }
   }else if(S.mode==='down'){
-    sampleRep(lm,w,side,ts);
+    sampleRep(lm,w,side,ts,drop);
     const good=(MV==='wb')?S.rep.depthOk:(MV==='bbj'?S.rep.chestOk:S.rep.kneeOk);
     stage.classList.toggle('deep',good);
     setStatus(good?'st_deep':'st_down');
     if(drop<upTh){S.mode='top';S.topT0=ts;setStatus('st_up');}
   }else if(S.mode==='top'){
-    /* fenêtre courte au sommet : le lancer culmine APRÈS le retour debout —
-       ne pas clôturer la rep avant d'avoir échantillonné l'extension. */
-    sampleRep(lm,w,side,ts);
+    /* ⚠️ Fenetre du lancer. Le lancer culmine APRES le retour debout, mais pas
+       toujours au meme moment : a cadence rapide la balle part pendant la
+       remontee, a cadence fatiguee l'athlete se redresse, souffle, puis lance.
+       L'ancienne regle fermait la rep 260 ms apres le sommet, quoi qu'il
+       arrive — donc en fin de station, quand la cadence tombe, le lancer
+       arrivait apres la fermeture et une rep parfaitement valide etait comptee
+       no-rep. Exactement au moment ou l'athlete a le plus besoin qu'on lui
+       fasse confiance.
+       Nouvelle regle, trois sorties :
+         - lancer detecte      -> on clot tout de suite, le bip tombe juste ;
+         - descente suivante   -> l'athlete a enchaine, on clot ;
+         - topMaxMs (1,5 s)    -> vraiment pas de lancer, no-rep assume.
+       Une rep n'est donc jamais refusee pour cause de chronometre. */
+    sampleRep(lm,w,side,ts,drop);
     stage.classList.remove('deep');
-    if(ts-S.topT0>=MOVES[MV].topHoldMs||drop>downTh){
+    const thrown=(MV==='wb')?!!(S.rep&&S.rep.throwOk):(ts-S.topT0>=MOVES[MV].topHoldMs);
+    const timeout=ts-S.topT0>=(MOVES[MV].topMaxMs||1500);
+    if(thrown||timeout||drop>downTh){
       finishRep(ts);
       S.mode='ready';
       if(drop>downTh){S.mode='down';startRep(ts,lm,side);}
@@ -1261,22 +1295,28 @@ function draw(res){
   if(lm&&du){
     du.drawConnectors(lm,PoseLandmarker.POSE_CONNECTIONS,{color:'rgba(0,255,163,.4)',lineWidth:2.5});
     du.drawLandmarks(lm,{color:'rgba(0,255,163,.85)',fillColor:'rgba(0,255,163,.85)',radius:2});
-    if(CAL.ready&&CAL.stand!=null){
-      const rng=CAL.range||0.18;
-      const yD=(CAL.stand+MOVES[MV].downT*(CAL.torso||0.2))*canvas.height;
-      ctx.save();
-      ctx.strokeStyle='rgba(212,175,55,.55)';ctx.lineWidth=2;ctx.setLineDash([10,8]);
-      ctx.beginPath();ctx.moveTo(0,yD);ctx.lineTo(canvas.width,yD);ctx.stroke();
-      ctx.restore();
-    }
-    /* repère de profondeur : hanche vs genou (standard HYROX) */
+    /* ── Repere de profondeur : la ligne se pose SUR LE GENOU ────────────────
+       Avant, la pointillee traversait l'ecran a une hauteur calculee depuis la
+       calibration (position debout + une fraction du tronc). Elle tombait donc
+       vers la hanche, et non au genou : le pli de hanche la franchissait avant
+       d'avoir casse la parallele. Or le standard HYROX du wall ball est une
+       relation entre DEUX reperes du corps — le pli de hanche doit descendre
+       SOUS le haut du genou — pas une altitude fixe dans l'image.
+       La ligne suit donc le genou image par image, exactement comme dans
+       squat.html : une seule verite pour les deux analyses. Le comptage, lui,
+       n'a jamais utilise cette ligne (il lit hp.y vs kn.y et l'angle du genou),
+       ce changement ne touche donc que ce qui est montre. */
     const side=pickSide(lm);
     const hp=lm[side.hip],kn=lm[side.knee];
     if(vis(hp)>0.4&&vis(kn)>0.4){
-      const ok=hp.y>kn.y+0.008;
+      const ok=hp.y>kn.y+0.008;              /* y croit vers le bas : hanche sous le genou */
+      const yk=kn.y*canvas.height;
       ctx.save();
-      ctx.strokeStyle=ok?'rgba(0,255,163,.85)':'rgba(212,175,55,.6)';ctx.lineWidth=3;
-      ctx.beginPath();ctx.moveTo(kn.x*canvas.width-26,kn.y*canvas.height);ctx.lineTo(kn.x*canvas.width+26,kn.y*canvas.height);ctx.stroke();
+      ctx.strokeStyle=ok?'rgba(0,255,163,.85)':'rgba(212,175,55,.85)';
+      ctx.lineWidth=2;ctx.setLineDash([10,8]);
+      ctx.beginPath();ctx.moveTo(0,yk);ctx.lineTo(canvas.width,yk);ctx.stroke();
+      ctx.setLineDash([]);ctx.lineWidth=3;
+      ctx.beginPath();ctx.moveTo(kn.x*canvas.width-26,yk);ctx.lineTo(kn.x*canvas.width+26,yk);ctx.stroke();
       ctx.fillStyle=ok?'#00FFA3':'#D4AF37';
       ctx.beginPath();ctx.arc(hp.x*canvas.width,hp.y*canvas.height,7,0,Math.PI*2);ctx.fill();
       ctx.restore();
@@ -1296,7 +1336,10 @@ function updateDbg(ts,side,lm){
     'mode: '+S.mode+'  fps: '+dbgFps+'\n'+
     'reps: '+reps.length+' ('+noReps+' NR)  vue: '+viewOf(lm,side)+'\n'+
     'drop: '+dropT(lm).toFixed(2)+'T  genou min: '+(S.rep&&S.rep.minKnee<999?Math.round(S.rep.minKnee)+'°':'—')+'\n'+
-    'ampl max: '+(rng==null?'—':rng.toFixed(2)+'T')+'  genou: '+(lastKnee==null?'—':Math.round(lastKnee)+'°');
+    'ampl max: '+(rng==null?'—':rng.toFixed(2)+'T')+'  genou: '+(lastKnee==null?'—':Math.round(lastKnee)+'°')+'\n'+
+    /* Les deux verdicts en direct : quand une rep part en no-rep, on voit
+       immediatement lequel des deux criteres a manque, sans rejouer la video. */
+    'fond: '+(S.rep?(S.rep.depthOk?'OK':'—'):'—')+'  lancer: '+(S.rep?(S.rep.throwOk?'OK':'—'):'—');
 }
 
 /* ───────── Camera + loop ───────── */
