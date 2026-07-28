@@ -1999,6 +1999,13 @@ const T = {
  hk_used:{fr:'Poids repris. Pense \u00e0 recalculer.',en:'Weight applied. Remember to recalculate.',nl:'Gewicht overgenomen. Vergeet niet te herberekenen.'},
  lead_h:{fr:'Coaching avec Coach DM',en:'Coaching with Coach DM',nl:'Coaching met Coach DM'},
  lead_row:{fr:'En ligne d\u00e8s 150 \u20ac/mois \u00b7 Reasfit d\u00e8s 50 \u20ac',en:'Online from \u20ac150/month \u00b7 Reasfit from \u20ac50',nl:'Online vanaf \u20ac150/maand \u00b7 Reasfit vanaf \u20ac50'},
+ /* Variantes natives SANS le tarif du coaching en ligne. Le prix du presentiel
+    pourrait rester \u2014 un service rendu en salle est autorise hors achat integre \u2014
+    mais melanger un tarif visible et un tarif masque sur la meme ligne serait
+    incoherent a lire. On decrit donc l'offre, et les tarifs sont donnes par
+    reponse personnelle, ce qui est de toute facon la promesse de la fiche. */
+ lead_row_n:{fr:'Coaching en ligne ou \u00e0 Reasfit Vilvoorde',en:'Online coaching or at Reasfit Vilvoorde',nl:'Online coaching of bij Reasfit Vilvoorde'},
+ ld_f_on_n:{fr:'En ligne',en:'Online',nl:'Online'},
  lead_mail:{fr:'\u00c9crire un e-mail',en:'Send an email',nl:'Stuur een e-mail'},
  lead_ig:{fr:'Instagram',en:'Instagram',nl:'Instagram'},
  lead_cta:{fr:'Demander un coaching',en:'Request coaching',nl:'Coaching aanvragen'},
@@ -3989,7 +3996,7 @@ function ccInitials(n){ return (n||'?').split(/\s+/).map(w=>w[0]).slice(0,2).joi
 function renderLeadCard(box){
   box.innerHTML=`<button class="ia-home gold" id="lead-open" type="button">
     <span class="ia-home-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.4 7.2L3 21l1.8-6.6A8 8 0 1 1 21 12z"/></svg></span>
-    <span class="ia-home-tx"><b>${t('lead_h')}</b><span>${t('lead_row')}</span></span>
+    <span class="ia-home-tx"><b>${t('lead_h')}</b><span>${t(IS_NATIVE?'lead_row_n':'lead_row')}</span></span>
     <svg class="ia-home-ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
   </button>`;
   const b=$('#lead-open'); if(b) b.onclick=openLead;
@@ -4000,7 +4007,10 @@ function renderLeadCard(box){
    Un client de coach passe par son coach. Le serveur (lead_submit) refuse de toute facon. */
 const LD_GOALS=[['fitness','ld_g_fitness'],['fatloss','ld_g_fatloss'],['mass','ld_g_mass'],['perf','ld_g_perf'],
   ['gym','ld_g_gym'],['wl','ld_g_wl'],['hybrid','ld_g_hybrid'],['football','ld_g_foot']];
-const LD_FORMATS=[['online','ld_f_on'],['30','ld_f_30'],['50','ld_f_50']];
+/* La puce « En ligne » portait le tarif mensuel. Meme regle que partout
+   ailleurs : pas de prix pour un service numerique dans l'app iOS.
+   Les deux puces Reasfit gardent le leur, c'est du presentiel. */
+const LD_FORMATS=[['online',IS_NATIVE?'ld_f_on_n':'ld_f_on'],['30','ld_f_30'],['50','ld_f_50']];
 const LD_LEVELS=[['beginner','ld_l_beg'],['intermediate','ld_l_int'],['advanced','ld_l_adv']];
 const LD_AVAIL=[['morning','ld_a_morning'],['noon','ld_a_noon'],['evening','ld_a_evening'],['weekend','ld_a_week']];
 const LEAD={goal:null,fmt:null,level:null,avail:null};
