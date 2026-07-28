@@ -207,6 +207,7 @@
       <button data-tab="foods">Aliments</button>
       <button data-tab="cours">Cours</button>
       <button data-tab="prospects">Prospects</button>
+      <button data-tab="founders">Fondateurs</button>
     </div>
   </div>
 
@@ -282,6 +283,29 @@
         <div class="msg" id="pr-msg"></div>
       </div>
       <div id="pr-list"><div class="spin"></div></div>
+    </div>
+
+    <!-- Le tarif fondateur n'est plus "les 50 premiers arrives" mais "les 50 que
+         j'invite". Une adresse ajoutee ici debloque 9,99 EUR/mois pour ce compte,
+         et pour lui seul : founder_can_buy_for() l'exige en base, et la meme
+         fonction garde le checkout Stripe. Personne d'autre ne voit ce prix. -->
+    <div class="pane" id="pane-founders">
+      <div class="card" style="margin-bottom:14px">
+        <h3 style="margin:0 0 4px;font-size:16px">Inviter un fondateur</h3>
+        <p class="sub" style="text-align:left;margin:0 0 12px">L'adresse doit être <b>exactement</b> celle du compte Coach DM. La personne verra le tarif fondateur à sa prochaine visite ; les autres voient le tarif public.</p>
+        <div class="field"><label>Email</label><input id="fo-email" type="email" placeholder="prenom@exemple.be" /></div>
+        <div class="row2">
+          <div class="field"><label>Offre</label>
+            <select id="fo-kind"><option value="membre">Membre — 9,99 €/mois</option><option value="coach">Coach — tarif fondateur</option></select>
+          </div>
+          <div class="field"><label>Note (facultatif)</label><input id="fo-note" type="text" placeholder="ami de la salle, ambassadeur…" /></div>
+        </div>
+        <button class="btn" id="fo-add">Inviter</button>
+        <div class="msg" id="fo-msg"></div>
+      </div>
+      <div class="toolbar"><div class="sub" style="text-align:left;margin:0" id="fo-count">—</div>
+        <button class="btn subtle sm" id="fo-refresh">↻ Actualiser</button></div>
+      <div id="fo-list"><div class="spin"></div></div>
     </div>
   </div>
 </div>
@@ -482,6 +506,56 @@ function switchTab(t){
   if(t==='workouts' && !window.__wkLoaded){ window.__wkLoaded=true; loadExercises(); loadWorkouts(); }
   if(t==='cours' && window.__coursOpen){ window.__coursOpen(); }
   if(t==='prospects'){ loadProspects(); }
+  if(t==='founders'){ loadFounders(); }
+}
+
+/* ---- FONDATEURS (invitation nominative) ---- */
+async function loadFounders(){
+  const box=$('#fo-list'); if(!box) return;
+  try{
+    const { data:slots } = await sb.rpc('founder_slots');
+    const m=(slots||[]).find(x=>x.kind==='membre'), c=(slots||[]).find(x=>x.kind==='coach');
+    const cnt=$('#fo-count');
+    if(cnt) cnt.textContent = 'Membre : '+(m?m.left_count+' place(s) libre(s) sur '+m.cap:'—')
+                            + ' · Coach : '+(c?c.left_count+' sur '+c.cap:'—');
+  }catch(e){}
+  const { data, error } = await sb.rpc('admin_founder_invites');
+  if(error){ box.innerHTML='<p class="empty">Erreur (accès admin requis).</p>'; return; }
+  if(!data||!data.length){ box.innerHTML='<p class="empty">Aucun fondateur invité pour l\'instant.</p>'; return; }
+  box.innerHTML = data.map(f=>{
+    const st = f.claimed ? '<span class="pill ok">A pris sa place</span>'
+      : (f.a_un_compte ? '<span class="pill role">Compte créé, pas encore abonné</span>'
+                       : '<span class="pill no">Pas encore inscrit</span>');
+    const d = f.invited_at ? new Date(f.invited_at).toLocaleDateString('fr-BE',{day:'numeric',month:'short'}) : '';
+    return '<div class="item">'+
+      '<div class="nm">'+esc(f.email)+' '+st+'</div>'+
+      '<div class="meta">'+esc(f.kind)+(f.note?' · '+esc(f.note):'')+' · invité '+esc(d)+'</div>'+
+      '<div class="acts"><button class="btn subtle sm" data-fodel="'+esc(f.email)+'">Retirer</button></div>'+
+    '</div>';
+  }).join('');
+}
+document.addEventListener('click', async (e)=>{
+  const b=e.target.closest('[data-fodel]'); if(!b) return;
+  if(!confirm('Retirer '+b.dataset.fodel+' de la liste fondateur ?')) return;
+  b.disabled=true;
+  const { error } = await sb.rpc('admin_founder_invite_remove',{ p_email:b.dataset.fodel });
+  if(error){ b.disabled=false; alert(error.message); return; }
+  loadFounders();
+});
+{ const b=$('#fo-refresh'); if(b) b.onclick=loadFounders; }
+{ const b=$('#fo-add'); if(b) b.onclick=async ()=>{
+    const email=($('#fo-email').value||'').trim();
+    const kind=$('#fo-kind').value, note=($('#fo-note').value||'').trim();
+    const msg=$('#fo-msg');
+    if(!email){ msg.textContent='Saisis une adresse email.'; msg.className='msg err'; return; }
+    b.disabled=true; msg.textContent='…'; msg.className='msg';
+    const { error } = await sb.rpc('admin_founder_invite_add',{ p_email:email, p_kind:kind, p_note:note||null });
+    b.disabled=false;
+    if(error){ msg.textContent=error.message; msg.className='msg err'; return; }
+    msg.textContent='Invitation enregistrée.'; msg.className='msg ok';
+    $('#fo-email').value=''; $('#fo-note').value='';
+    loadFounders();
+  };
 }
 
 /* ---- PROSPECTS (séquence email) ---- */

@@ -3009,10 +3009,14 @@ async function loadFounderCan(){
     catch(_){ FOUNDER_CAN[k] = false; }
   }
 }
+/* ⚠️ Le tarif fondateur n'est plus « les 50 premiers arrives » mais « les 50 que
+   le coach a invites ». Avant, il suffisait qu'une place reste libre pour que
+   l'offre s'affiche a n'importe quel visiteur. Desormais la seule autorite est
+   founder_can_buy(), qui exige en base une invitation nominative ET une place
+   libre — la meme fonction que celle qui garde le checkout cote serveur.
+   Consequence : un non-invite ne voit jamais 9,99 €, il voit le tarif public. */
 function founderOpen(kind){
-  const left = slotsLeft(kind);
-  if(left===null) return true;          /* inconnu -> on affiche, le serveur tranche */
-  return left>0 || FOUNDER_CAN[kind]===true;
+  return FOUNDER_CAN[kind]===true;
 }
 function founderCounter(kind){
   const left=slotsLeft(kind);
@@ -5160,9 +5164,12 @@ async function upsellPrice(){
       SUB_PRICES = data||[];
     }
     if(IAP_ON()) await iapLoad(SUB_PRICES);
-    /* Meme regle que renderSubPlans : le tarif Fondateur n'a pas de produit
-       StoreKit, l'annoncer dans l'app serait une offre impossible a acheter. */
-    const f=IS_NATIVE?null:(SUB_PRICES||[]).find(p=>p.founder && p.billing_interval==='month');
+    /* Deux raisons de ne pas montrer le tarif Fondateur ici :
+       — en natif il n'a pas de produit StoreKit, ce serait une offre inachetable ;
+       — sur le web il est reserve aux invites, et ce mur s'affiche a tout le monde.
+       Sans loadFounderCan() prealable, FOUNDER_CAN est vide et founderOpen()
+       renvoie false : le tarif public s'affiche, ce qui est le comportement voulu. */
+    const f=(IS_NATIVE||!founderOpen('membre'))?null:(SUB_PRICES||[]).find(p=>p.founder && p.billing_interval==='month');
     const r=(SUB_PRICES||[]).find(p=>!p.founder && p.billing_interval==='month');
     const offer=f||r; if(!offer) return;
     let txt = planPrice(offer)+t('sub_per_month');

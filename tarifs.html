@@ -97,11 +97,11 @@ footer a{color:var(--gold);text-decoration:none}
   </div>
 
   <!-- ===================== FONDATEUR ===================== -->
-  <div class="sec-title">
+  <div class="sec-title" id="founder-title" style="display:none">
     <b data-i18n="founder_offer">Offre Fondateur — à vie</b>
   </div>
 
-  <div class="founder">
+  <div class="founder" id="founder-block" style="display:none">
     <div class="head">
       <span class="k" data-i18n="limited">Places limitées</span>
       <h2 data-i18n="lock_title">Bloque ton tarif à vie</h2>
@@ -268,7 +268,11 @@ function card(opts){
   if(!off) return '';
   const left=capKind?slotsLeft(capKind):null;
   /* Fondateur verrouille (>= 12 mois) : sa place lui reste acquise, tarif rouvert. */
-  const fOpen=!capKind||left===null||left>0||CANF[capKind]===true;
+  /* ⚠️ Avant : ouvert des qu'une place restait, donc visible par n'importe quel
+     visiteur. Le tarif fondateur est desormais nominatif — seule founder_can_buy(),
+     qui exige une invitation en base, fait autorite. Un visiteur non invite ne voit
+     que la section Tarifs publics. */
+  const fOpen=!capKind||CANF[capKind]===true;
   const sold=founder&&!fOpen;
   let h='<div class="card'+(hl?' hl':'')+'">';
   h+='<div class="tier">'+badge+'</div>';
@@ -289,6 +293,14 @@ function card(opts){
 
 function render(){
   const yearNote = IV==='year' ? t('note_year') : t('note_month');
+
+  /* La section Fondateur n'existe visuellement que pour un invite. Pour tous les
+     autres — y compris un reviewer Apple non connecte — la page n'affiche que le
+     tarif public, identique a celui de l'achat integre. */
+  const invited = CANF.membre===true || CANF.coach===true;
+  const ft=document.getElementById('founder-title'), fb=document.getElementById('founder-block');
+  if(ft) ft.style.display = invited ? '' : 'none';
+  if(fb) fb.style.display = invited ? '' : 'none';
 
   $('#founder-cards').innerHTML =
     card({tier:'membre',founder:true,badge:t('tier_membre_f'),
