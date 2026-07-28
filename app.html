@@ -114,7 +114,11 @@
     background:linear-gradient(135deg,rgba(233,199,103,.16),rgba(154,110,27,.08));border:1px solid rgba(233,199,103,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
   .ai-photo .ap-ic .ic{width:20px;height:20px}
   .ai-photo .ap-tx{flex:1;min-width:0;line-height:1.25;white-space:normal}
-  .ai-photo .ap-pro{flex:0 0 auto;padding:4px 9px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.08em;color:#1a1405;
+  /* Le badge disait « PRO ». Or « Pro » designe ailleurs les analyses reservees
+     aux offres Coach — non achetables sur iOS — alors que la photo-calories,
+     elle, s'ouvre avec l'abonnement membre. Deux sens pour un meme mot, dont un
+     inaccessible : on aligne tout sur « Premium », le seul palier achetable. */
+  .ai-photo .ap-pro{flex:0 0 auto;padding:4px 9px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.08em;color:#1a1405;text-transform:uppercase;
     background:linear-gradient(135deg,#E9C767,#c49a3f 55%,#9A6E1B);box-shadow:0 2px 8px rgba(233,199,103,.35)}
   .ai-photo::after{content:'';position:absolute;top:0;left:-60%;width:45%;height:100%;pointer-events:none;
     background:linear-gradient(105deg,transparent,rgba(233,199,103,.10) 45%,rgba(255,255,255,.14) 50%,rgba(233,199,103,.10) 55%,transparent);
@@ -1167,7 +1171,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8v8M10.5 8v8M14 8v8M17 8v8"/></svg>
         <span data-i18n="sc_btn">Scanner un code-barres</span>
       </button>
-      <button class="ai-photo" id="jo-photo" style="margin-top:10px"><span class="ap-ic"><svg class="ic"><use href="#i-camera"/></svg></span><span class="ap-tx"><span id="jo-photo-lbl" data-i18n="ph_btn">Photo IA — calcule mes calories</span></span><span class="ap-pro">PRO</span></button>
+      <button class="ai-photo" id="jo-photo" style="margin-top:10px"><span class="ap-ic"><svg class="ic"><use href="#i-camera"/></svg></span><span class="ap-tx"><span id="jo-photo-lbl" data-i18n="ph_btn">Photo IA — calcule mes calories</span></span><span class="ap-pro" data-i18n="wod_premium">Premium</span></button>
       <input type="file" id="jo-photo-file" accept="image/*" capture="environment" style="display:none" />
       <div id="jo-results"></div>
     </div>
@@ -1625,10 +1629,17 @@
     <div class="grab"></div>
     <div id="lead-form">
       <h3 data-i18n="ld_title">Coaching avec Coach DM</h3>
-      <div class="fk" style="margin-bottom:14px" data-i18n="ld_sub">Tous les tarifs sont affichés ci-dessous. Pas besoin d'écrire pour les connaître.</div>
+      <div class="fk" style="margin-bottom:14px" data-i18n="ld_sub">Dis-moi où tu en es, je te réponds personnellement.</div>
 
       <div class="ld-offer hi">
-        <div class="o-top"><span class="o-n" data-i18n="ld_on_t">Coaching en ligne</span><span class="o-p" data-i18n="ld_on_p">dès 150 €/mois</span></div>
+        <!-- ⚠️ Le prix du coaching EN LIGNE est retire dans l'app iOS (voir openLead).
+             Ce service est en partie delivre dans l'app — messagerie, plans assignes,
+             console coach — donc afficher un tarif mensuel revient a annoncer du
+             contenu numerique vendu hors App Store. Le formulaire de demande reste :
+             recueillir une demande n'est pas vendre. Le tarif du PRESENTIEL, lui,
+             reste affiche : un service rendu dans une vraie salle est explicitement
+             autorise hors achat integre. -->
+        <div class="o-top"><span class="o-n" data-i18n="ld_on_t">Coaching en ligne</span><span class="o-p" id="ld-on-p" data-i18n="ld_on_p">dès 150 €/mois</span></div>
         <div class="o-d" data-i18n="ld_on_d">Programmation sur mesure, nutrition incluse, feedback sous 24 h, ajustements chaque semaine. Où que tu sois.</div>
       </div>
       <div class="ld-offer">
@@ -2359,6 +2370,16 @@ const T = {
  an_hyrox:{fr:'Analyse HYROX',en:'HYROX Analysis',nl:'HYROX-analyse'},
  an_hyrox_sub:{fr:'Gratuit : reps + no-reps + cadence \u00b7 Pro : fade, blocage, p\u00e9nalit\u00e9',en:'Free: reps + no-reps + cadence \u00b7 Pro: fade, rest, penalty',nl:'Gratis: reps + no-reps + cadans \u00b7 Pro: fade, rust, straf'},
  an_pro:{fr:'Analyses Pro (VBT, Profil F-V) \u2014 offres Coach & Coach+',en:'Pro analyses (VBT, F-V profile) \u2014 Coach & Coach+ plans',nl:'Pro-analyses (VBT, K-S profiel) \u2014 Coach & Coach+ abonnementen'},
+ /* Sous-titres natifs : ils decrivent ce que fait l'analyse, sans jamais citer
+    de palier \u00ab Pro \u00bb. Les versions web opposent Gratuit et Pro, ce qui est
+    honnete la-bas puisque l'offre Coach y est achetable. Sur iOS elle ne l'est
+    pas : afficher \u00ab Pro : profil Force-Vitesse \u00bb revenait a vanter une
+    fonction payante introuvable dans l'App Store. */
+ an_squat_sub_n:{fr:'Reps, profondeur et parall\u00e8le en direct',en:'Reps, depth and parallel, live',nl:'Reps, diepte en parallel, live'},
+ an_jump_sub_n:{fr:'Hauteur de saut en centim\u00e8tres',en:'Jump height in centimetres',nl:'Spronghoogte in centimeter'},
+ an_bar_sub_n:{fr:'Reps et trajectoire de barre en direct',en:'Reps and live bar path',nl:'Reps en live barpad'},
+ an_run_sub_n:{fr:'Cadence et nombre de pas',en:'Cadence and step count',nl:'Cadans en aantal stappen'},
+ an_hyrox_sub_n:{fr:'Reps, no-reps et cadence',en:'Reps, no-reps and cadence',nl:'Reps, no-reps en cadans'},
  pf_week:{fr:'Semaine',en:'Week',nl:'Week'},
  au_email:{fr:'Email',en:'Email',nl:'E-mail'},
  au_pass:{fr:'Mot de passe',en:'Password',nl:'Wachtwoord'},
@@ -3993,6 +4014,12 @@ function ldChips(host,list,key){
 }
 function openLead(){
   if(HAS_COACH){ toast(t('ld_err_coach')); return; }
+  /* Tarif du coaching EN LIGNE masque dans l'app iOS : ce service passe en
+     partie par l'app elle-meme, donc afficher un prix mensuel revient a
+     annoncer du numerique vendu hors App Store. Le formulaire reste entier —
+     recueillir une demande n'est pas vendre — et le tarif du presentiel reste
+     visible, un service rendu en salle etant autorise hors achat integre. */
+  if(IS_NATIVE){ const p=$('#ld-on-p'); if(p) p.style.display='none'; }
   LEAD.goal=LEAD.fmt=LEAD.level=LEAD.avail=null;
   const f=$('#lead-form'), d=$('#lead-done');
   if(f) f.style.display=''; if(d) d.style.display='none';
@@ -4033,11 +4060,15 @@ async function sendLead(){
 { const b=$('#ld-cancel'); if(b) b.onclick=closeLead; }
 { const b=$('#ld-close');  if(b) b.onclick=closeLead; }
 { const ov=$('#lead-ov');  if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) closeLead(); }); }
-/* Un client suivi par un coach ne doit voir AUCUN canal vers Coach DM :
-   ni fiche de demande, ni Instagram, ni offre coach. Il ne parle qu'a son coach. */
+/* Un membre deja suivi par un coach ne doit pas etre sollicite pour un coaching
+   qu'il a deja : ni fiche de demande, ni offre coach. Il parle a son coach.
+   ⚠️ Instagram est SORTI de cette regle. La condition ne regarde que « ce membre
+   a-t-il un coach ? », jamais « qui est ce coach ? » — si bien que les clients
+   coaches par Coach DM lui-meme perdaient le lien vers son propre Instagram.
+   Et de toute facon Instagram est une vitrine, pas un canal de support : aucun
+   coach n'est lese parce que son client suit le compte de la marque. */
 function applyCoachIsolation(){
   const hide = HAS_COACH && !IS_COACH;
-  const ig=$('#p-contact-coach'); if(ig) ig.style.display = hide ? 'none' : '';
   const lead=$('#p-lead-open');   if(lead) lead.style.display = hide ? 'none' : '';
   const off=$('#p-coach-offer');  if(off && hide) off.style.display='none';
   const hc=$('#home-coach');      if(hc && hide) hc.style.display='none';
@@ -5629,34 +5660,44 @@ function renderAnalyseSection(){
   <div class="an-sub">${t('an_sub')}</div>
   <div class="an-card" data-an="squat.html">
     <span class="an-ic">${squatIc}</span>
-    <div class="an-body"><div class="an-t">${t('an_squat')}</div><div class="an-d">${t('an_squat_sub')}</div></div>
+    <div class="an-body"><div class="an-t">${t('an_squat')}</div><div class="an-d">${anSub('an_squat_sub')}</div></div>
     <span class="an-end">›</span>
   </div>
   <div class="an-card" data-an="saut.html">
     <span class="an-ic">${jumpIc}</span>
-    <div class="an-body"><div class="an-t">${t('an_jump')}</div><div class="an-d">${t('an_jump_sub')}</div></div>
+    <div class="an-body"><div class="an-t">${t('an_jump')}</div><div class="an-d">${anSub('an_jump_sub')}</div></div>
     <span class="an-end">›</span>
   </div>
   <div class="an-card" data-an="barre.html">
     <span class="an-ic">${barIc}</span>
-    <div class="an-body"><div class="an-t">${t('an_bar')}</div><div class="an-d">${t('an_bar_sub')}</div></div>
+    <div class="an-body"><div class="an-t">${t('an_bar')}</div><div class="an-d">${anSub('an_bar_sub')}</div></div>
     <span class="an-end">›</span>
   </div>
   <div class="an-card" data-an="course.html">
     <span class="an-ic">${runIc}</span>
-    <div class="an-body"><div class="an-t">${t('an_run')}</div><div class="an-d">${t('an_run_sub')}</div></div>
+    <div class="an-body"><div class="an-t">${t('an_run')}</div><div class="an-d">${anSub('an_run_sub')}</div></div>
     <span class="an-end">›</span>
   </div>
   <div class="an-card" data-an="hyrox.html">
     <span class="an-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2.5-6 4 12 2.5-6H21"/></svg></span>
-    <div class="an-body"><div class="an-t">${t('an_hyrox')}</div><div class="an-d">${t('an_hyrox_sub')}</div></div>
+    <div class="an-body"><div class="an-t">${t('an_hyrox')}</div><div class="an-d">${anSub('an_hyrox_sub')}</div></div>
     <span class="an-end">›</span>
   </div>
-  ${IS_COACH?'':`<div class="an-lock-note">${lockIc} ${t('an_pro')}</div>`}`;
+  ${/* ⚠️ Cette ligne annonce les analyses Pro comme reservees aux offres
+        Coach et Coach+. Or ces deux offres n'ont AUCUN produit StoreKit et ne
+        sont pas achetables dans l'app : la feuille Coach est verrouillee en
+        natif et le bouton « Devenir coach » y est retire. On affichait donc a
+        un membre iOS une fonction payante qu'il ne peut obtenir qu'en dehors
+        de l'App Store — mot pour mot le motif du refus 3.1.3(b).
+        La note reste sur le web, ou l'offre Coach est reellement achetable. */
+    (IS_COACH||IS_NATIVE)?'':`<div class="an-lock-note">${lockIc} ${t('an_pro')}</div>`}`;
   host.querySelectorAll('.an-card').forEach(c=>{
     c.onclick=()=>{ location.href=c.dataset.an; };
   });
 }
+/* Sur iOS il n'existe aucun palier Pro achetable : on decrit l'analyse au lieu
+   de la vendre. Sur le web, l'opposition Gratuit / Pro reste affichee. */
+function anSub(k){ return t(IS_NATIVE ? k+'_n' : k); }
 function renderProgramFolders(CAT){
   let html='';
   PROG_ORDER.forEach(slug=>{
