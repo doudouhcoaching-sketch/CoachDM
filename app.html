@@ -1333,6 +1333,18 @@
           <option value="recomp" data-i18n="goal_recomp">Recomposition</option>
           <option value="performance" data-i18n="goal_performance">Performance</option>
         </select></div>
+      <div class="field hidden" id="p-sport-wrap">
+        <label data-i18n="lbl_sport">Ta discipline</label>
+        <select id="p-sport">
+          <option value="endurance" data-i18n="sp_endurance">Endurance — triathlon, course, vélo</option>
+          <option value="team" data-i18n="sp_team">Sport collectif — foot, basket, hand</option>
+          <option value="strength" data-i18n="sp_strength">Force — powerlifting, haltérophilie</option>
+          <option value="hybrid" selected data-i18n="sp_hybrid">Hybride — CrossFit, Hyrox</option>
+          <option value="combat" data-i18n="sp_combat">Sport de combat</option>
+          <option value="physique" data-i18n="sp_physique">Physique — bodybuilding</option>
+        </select>
+        <p class="empty" style="text-align:left;padding:6px 0 0;font-size:12.5px" id="p-sport-hint"></p>
+      </div>
       <div class="row2">
         <div class="field"><label data-i18n="wg_target">Poids cible (kg)</label><input id="p-target-w" type="number" inputmode="decimal" placeholder="72" /></div>
         <div class="field"><label data-i18n="wg_date">Date cible</label><input id="p-target-date" type="date" /></div>
@@ -2233,6 +2245,13 @@ const T = {
  goal_build_muscle:{fr:'Prise de muscle',en:'Build muscle',nl:'Spieropbouw'},
  goal_recomp:{fr:'Recomposition',en:'Recomposition',nl:'Recompositie'},
  goal_performance:{fr:'Performance',en:'Performance',nl:'Prestatie'},
+ lbl_sport:{fr:'Ta discipline',en:'Your sport',nl:'Jouw sport'},
+ sp_endurance:{fr:'Endurance — triathlon, course, vélo',en:'Endurance — triathlon, running, cycling',nl:'Duursport — triatlon, lopen, fietsen'},
+ sp_team:{fr:'Sport collectif — foot, basket, hand',en:'Team sport — football, basketball',nl:'Teamsport — voetbal, basket'},
+ sp_strength:{fr:'Force — powerlifting, haltérophilie',en:'Strength — powerlifting, weightlifting',nl:'Kracht — powerlifting, gewichtheffen'},
+ sp_hybrid:{fr:'Hybride — CrossFit, Hyrox',en:'Hybrid — CrossFit, Hyrox',nl:'Hybride — CrossFit, Hyrox'},
+ sp_combat:{fr:'Sport de combat',en:'Combat sport',nl:'Vechtsport'},
+ sp_physique:{fr:'Physique — bodybuilding',en:'Physique — bodybuilding',nl:'Fysiek — bodybuilding'},
  perf_hint:{fr:'Endurance ou force : glucides élevés pour soutenir le volume d\'entraînement.',
    en:'Endurance or strength: high carbs to fuel training volume.',
    nl:'Uithouding of kracht: veel koolhydraten om je trainingsvolume te voeden.'},
@@ -4352,6 +4371,8 @@ async function loadTargets(){
   if(TARGETS){
     if(TARGETS.current_weight_kg) $('#p-weight').value = TARGETS.current_weight_kg;
     if(TARGETS.goal) $('#p-goal').value = TARGETS.goal;
+    if(TARGETS.sport) $('#p-sport').value = TARGETS.sport;
+    syncSportUI();
     if(TARGETS.activity_level) $('#p-act').value = TARGETS.activity_level;
     if(TARGETS.target_weight_kg) $('#p-target-w').value = TARGETS.target_weight_kg;
     if(TARGETS.target_date) $('#p-target-date').value = TARGETS.target_date;
@@ -4906,6 +4927,27 @@ $('#ph-add').onclick = async ()=>{
 };
 
 /* ---------------- PROFIL (Mifflin-St Jeor) ---------------- */
+/* La discipline ne concerne que l'objectif performance : on n'encombre pas
+   le formulaire de quelqu'un qui veut simplement perdre du gras. */
+const SPORT_HINT = {
+  endurance:{fr:'8 g/kg de glucides : le glycogène est ton facteur limitant.',en:'8 g/kg carbs: glycogen is your limiter.',nl:'8 g/kg koolhydraten: glycogeen is je limiet.'},
+  team:{fr:'6 g/kg de glucides pour les sprints répétés et la récupération entre matchs.',en:'6 g/kg carbs for repeated sprints and between-match recovery.',nl:'6 g/kg koolhydraten voor herhaalde sprints.'},
+  strength:{fr:'2,4 g/kg de protéines : la récupération tissulaire prime sur le volume.',en:'2.4 g/kg protein: tissue recovery over volume.',nl:'2,4 g/kg eiwit: herstel boven volume.'},
+  hybrid:{fr:'Double contrainte : assez de glucides pour le métabolique, assez de protéines pour la force.',en:'Dual demand: carbs for metabolic work, protein for strength.',nl:'Dubbele eis: koolhydraten én eiwit.'},
+  combat:{fr:'2,6 g/kg de protéines pour préserver la masse pendant la descente de poids.',en:'2.6 g/kg protein to preserve mass during the cut.',nl:'2,6 g/kg eiwit om massa te behouden.'},
+  physique:{fr:'2,8 g/kg de protéines : déficit prolongé, protection maximale du muscle.',en:'2.8 g/kg protein: long deficit, maximum muscle protection.',nl:'2,8 g/kg eiwit: lang tekort, maximale bescherming.'}
+};
+function syncSportUI(){
+  const perf = $('#p-goal').value==='performance';
+  $('#p-sport-wrap').classList.toggle('hidden', !perf);
+  if(perf){
+    const h=SPORT_HINT[$('#p-sport').value];
+    $('#p-sport-hint').textContent = h ? (h[LANG]||h.fr) : '';
+  }
+}
+$('#p-goal').addEventListener('change', syncSportUI);
+$('#p-sport').addEventListener('change', syncSportUI);
+
 $('#p-calc').onclick = async ()=>{
   const w=parseFloat($('#p-weight').value), h=parseFloat($('#p-height').value), a=parseInt($('#p-age').value);
   const sex=$('#p-sex').value, act=$('#p-act').value, goal=$('#p-goal').value;
@@ -4948,19 +4990,39 @@ $('#p-calc').onclick = async ()=>{
     }
   }
 
-  /* Objectif performance : 7 à 10 séances ou matchs par semaine.
-     Protéines à 2,5 g/kg — borne haute defendable pour une frequence elevee,
-     au-dela du plateau de 1,6 g/kg pour l'hypertrophie (Morton 2018) mais
-     justifiee par la charge cumulee et le risque de deficit (ISSN, Jager 2017).
-     Volontairement un COEFFICIENT et non un plancher fixe : 200 g imposes a un
-     athlete de 55 kg feraient 3,6 g/kg, pris sur les glucides.
-     Lipides abaisses de 25 a 20 % du total — plancher admis pour la fonction
-     hormonale — les calories liberees partant en glucides, le substrat qui
-     limite reellement l'endurance et le volume de force (Burke 2011). */
+  /* ── Répartition des macros ──────────────────────────────────────────────
+     Pour les 4 objectifs de composition corporelle : on part des calories et
+     les glucides sont le reste. Logique quand le poids est la cible.
+
+     Pour 'performance', on inverse la méthode : on part des GRAMMES PAR KILO
+     de glucides et de protéines, et les calories en découlent. C'est ainsi
+     qu'un préparateur physique raisonne — le glycogène et la réparation
+     tissulaire sont les contraintes, pas un chiffre de calories.
+     Coefficients par filière énergétique (ACSM 2016, ISSN Jäger 2017,
+     Burke 2011 pour les glucides, Morton 2018 pour les protéines). */
   const perf = goal==='performance';
-  const protein = (perf?2.5:2)*w;
-  const fat = (kcal*(perf?0.20:0.25))/9;
-  const carbs = (kcal - (protein*4 + fat*9))/4;
+  const SPORT = {
+    endurance:{c:8.0, p:1.8, f:0.20},   /* le glycogène est LE facteur limitant */
+    team:     {c:6.0, p:2.0, f:0.22},   /* efforts intermittents, sprints répétés */
+    strength: {c:5.0, p:2.4, f:0.25},   /* volume modéré, récupération tissulaire */
+    hybrid:   {c:6.5, p:2.2, f:0.22},   /* double contrainte métabolique et musculaire */
+    combat:   {c:5.0, p:2.6, f:0.22},   /* protéines hautes : masse préservée en séchage */
+    physique: {c:4.5, p:2.8, f:0.22}    /* déficit prolongé, protection maximale */
+  };
+  let protein, fat, carbs;
+  if(perf){
+    const s = SPORT[$('#p-sport').value] || SPORT.hybrid;
+    protein = s.p*w;
+    carbs   = s.c*w;
+    /* Les lipides complètent : part fixe du total, donc résolue algébriquement
+       sur les calories issues des glucides et protéines. */
+    fat     = ((protein*4 + carbs*4) * s.f / (1 - s.f)) / 9;
+    kcal    = protein*4 + carbs*4 + fat*9;
+  }else{
+    protein = 2*w;
+    fat     = (kcal*0.25)/9;
+    carbs   = (kcal - (protein*4 + fat*9))/4;
+  }
   const fiber = 14*(kcal/1000);
   const water = (perf?45:35)*w;
 
@@ -4971,6 +5033,7 @@ $('#p-calc').onclick = async ()=>{
     bmr_kcal:r0(bmr), tdee_kcal:r0(tdee), daily_calories_kcal:r0(kcal),
     protein_g:r0(protein), carbs_g:r0(carbs), fat_g:r0(fat), fiber_g:r0(fiber), water_ml:r0(water),
     goal, activity_level:act, current_weight_kg:w,
+    sport: perf ? $('#p-sport').value : null,
     target_weight_kg:tw, target_date:targetDate, weekly_rate_kg:weeklyRate
   });
   setBtn('#p-calc',false,t('btn_calc'));
