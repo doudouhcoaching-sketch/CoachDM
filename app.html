@@ -1331,6 +1331,7 @@
           <option value="maintain" selected data-i18n="goal_maintain">Maintien</option>
           <option value="build_muscle" data-i18n="goal_build_muscle">Prise de muscle</option>
           <option value="recomp" data-i18n="goal_recomp">Recomposition</option>
+          <option value="performance" data-i18n="goal_performance">Performance</option>
         </select></div>
       <div class="row2">
         <div class="field"><label data-i18n="wg_target">Poids cible (kg)</label><input id="p-target-w" type="number" inputmode="decimal" placeholder="72" /></div>
@@ -2231,6 +2232,10 @@ const T = {
  goal_maintain:{fr:'Maintien',en:'Maintain',nl:'Onderhoud'},
  goal_build_muscle:{fr:'Prise de muscle',en:'Build muscle',nl:'Spieropbouw'},
  goal_recomp:{fr:'Recomposition',en:'Recomposition',nl:'Recompositie'},
+ goal_performance:{fr:'Performance',en:'Performance',nl:'Prestatie'},
+ perf_hint:{fr:'Endurance ou force : glucides élevés pour soutenir le volume d\'entraînement.',
+   en:'Endurance or strength: high carbs to fuel training volume.',
+   nl:'Uithouding of kracht: veel koolhydraten om je trainingsvolume te voeden.'},
  btn_calc:{fr:'Calculer & enregistrer',en:'Calculate & save',nl:'Berekenen & opslaan'},
  saved_ok:{fr:'Objectifs enregistrés ✓',en:'Targets saved ✓',nl:'Doelen opgeslagen ✓'},
  prof_info:{fr:'Informations',en:'Information',nl:'Informatie'},
@@ -4908,7 +4913,9 @@ $('#p-calc').onclick = async ()=>{
   const bmr = 10*w + 6.25*h - 5*a + (sex==='male'?5:-161);
   const actMul = {sedentary:1.2,light:1.375,moderate:1.55,active:1.725,very_active:1.9}[act];
   const tdee = bmr*actMul;
-  const goalMul = {lose_fat:0.8,maintain:1,build_muscle:1.1,recomp:0.95}[goal];
+  /* 'performance' n'est pas un objectif de poids mais de carburant : on couvre
+     la dépense avec une marge, et on redistribuera vers les glucides plus bas. */
+  const goalMul = {lose_fat:0.8,maintain:1,build_muscle:1.1,recomp:0.95,performance:1.15}[goal];
   let kcal = tdee*goalMul;
 
   /* -- Objectif de poids daté (optionnel) -- */
@@ -4941,11 +4948,17 @@ $('#p-calc').onclick = async ()=>{
     }
   }
 
-  const protein = 2*w;
-  const fat = (kcal*0.25)/9;
+  /* Lipides à 25 % du total sauf en performance : on descend à 20 %, le plancher
+     admis pour la fonction hormonale, et les calories libérées partent en
+     glucides — le substrat qui limite réellement l'endurance et le volume de
+     force (Burke 2011, Jeukendrup 2014). Protéines relevées à 2,2 g/kg, borne
+     haute utile en période de charge (Morton 2018). */
+  const perf = goal==='performance';
+  const protein = (perf?2.2:2)*w;
+  const fat = (kcal*(perf?0.20:0.25))/9;
   const carbs = (kcal - (protein*4 + fat*9))/4;
   const fiber = 14*(kcal/1000);
-  const water = 35*w;
+  const water = (perf?45:35)*w;
 
   setBtn('#p-calc',true,'…');
   await sb.from('nutrition_targets').update({is_active:false}).eq('user_id',USER.id).eq('is_active',true);
@@ -5591,7 +5604,7 @@ async function loadWod(){
   }catch(e){}
   if(!w){
     const goal=TARGETS&&TARGETS.goal;
-    const pref={lose_fat:['hiit','hyrox','conditioning'],build_muscle:['strength','hypertrophy'],maintain:['hyrox','football','strength'],recomp:['strength','hyrox']}[goal]||[];
+    const pref={lose_fat:['hiit','hyrox','conditioning'],build_muscle:['strength','hypertrophy'],maintain:['hyrox','football','strength'],recomp:['strength','hyrox'],performance:['strength','hyrox','conditioning']}[goal]||[];
     const free=list.filter(x=>x.is_free);
     w=free.find(x=>pref.includes(x.type))||free[0]||list.find(x=>pref.includes(x.type))||list[0];
   }
