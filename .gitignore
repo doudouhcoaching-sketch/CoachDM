@@ -3,3 +3,18 @@ ios/
 www/
 package-lock.json
 .DS_Store
+
+# Sauvegardes de la base — contiennent des donnees personnelles (emails,
+# abonnements, messages). Le depot est public : elles ne doivent JAMAIS y monter.
+backups/
+*.dump
+*.sql.gz
+
+# Signature Android — ne JAMAIS publier. Quiconque possede la cle peut signer
+# une fausse mise a jour de Coach DM. Le keystore lui-meme vit hors du depot
+# (dossier personnel) ; ces regles sont une securite supplementaire.
+*.jks
+*.keystore
+keystore.properties
+android/keystore.properties
+google-services.json

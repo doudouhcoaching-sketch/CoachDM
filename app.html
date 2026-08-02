@@ -1859,6 +1859,7 @@
   <div style="line-height:1;margin:6px 0 10px"><svg class="ic ic-xl" style="color:#D4AF37"><use href="#i-lock"/></svg></div>
   <h3 data-i18n="up_title">Passe en Premium</h3>
   <p class="fk" id="up-sub" style="margin-bottom:14px">—</p>
+  <div data-i18n="sub_name" style="font-size:11.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px">Coach DM Premium</div>
   <div class="up-price" id="up-price" data-i18n="up_price">—</div>
   <ul class="up-feats">
     <li><span class="ck">✓</span><span data-i18n="up_feat1">Tous les programmes, semaine après semaine</span></li>
@@ -1867,6 +1868,14 @@
   </ul>
   <button class="btn" id="up-cta" style="display:block;width:100%" data-i18n="sub_cta">S'abonner</button>
   <button class="btn subtle" id="up-later" style="margin-top:10px" data-i18n="up_later">Plus tard</button>
+  <div class="sub-legal" style="margin-top:14px;font-size:11.5px;line-height:1.55;color:var(--muted);text-align:center">
+    <span data-i18n="sub_legal_m">Abonnement mensuel à renouvellement automatique. Le montant est débité à la confirmation de l’achat, puis chaque mois, sauf résiliation au moins 24 h avant la fin de la période en cours. Résiliable à tout moment dans les réglages de ton compte.</span>
+    <div style="margin-top:8px">
+      <a href="#" data-legal="conditions.html" style="color:var(--muted);text-decoration:underline" data-i18n="sub_terms">Conditions d’utilisation</a>
+      <span style="opacity:.5"> · </span>
+      <a href="#" data-legal="privacy.html" style="color:var(--muted);text-decoration:underline" data-i18n="privacy">Politique de confidentialité</a>
+    </div>
+  </div>
 </div></div>
 
 <div class="toast" id="toast"></div>
@@ -2244,6 +2253,7 @@ const T = {
  pf_account:{fr:'Compte',en:'Account',nl:'Account'},
  sub_cta:{fr:"S'abonner",en:'Subscribe',nl:'Abonneren'},
  sub_manage:{fr:'Gérer mon abonnement',en:'Manage my subscription',nl:'Mijn abonnement beheren'},
+ sub_name:{fr:'Coach DM Premium',en:'Coach DM Premium',nl:'Coach DM Premium'},
  sub_title:{fr:'Deviens membre',en:'Become a member',nl:'Word lid'},
  sub_sub:{fr:'Accès complet : programmes, séances, Coach IA, nutrition et suivi.',en:'Full access: programs, workouts, AI Coach, nutrition and tracking.',nl:'Volledige toegang: programma\u2019s, trainingen, AI-coach, voeding en opvolging.'},
  sub_month:{fr:'Mensuel',en:'Monthly',nl:'Maandelijks'},
@@ -2594,6 +2604,8 @@ let USER=null, TARGETS=null, SELECTED=null, CONV=null, BUSY=false, IA_LOADED=fal
 let SUB_STORE=null;   /* 'stripe' | 'apple' | 'google' — qui facture cet abonnement */
 // iOS natif (Capacitor) : aucune vente in-app — Apple 3.1.1 (modèle login-only acté)
 const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+/* 'ios' | 'android' | 'web' — determine la cle RevenueCat et les liens de gestion d'abonnement natifs. */
+const NATIVE_PLATFORM=(window.Capacitor&&window.Capacitor.getPlatform)?window.Capacitor.getPlatform():'web';
 
 const todayStr = ()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
 const r0=(n)=>Math.round(n||0);
@@ -3052,6 +3064,7 @@ function renderSubPlans(){
   const per = SUB_INT==='year'?t('sub_per_year'):t('sub_per_month');
   let h='<div class="plan-card">';
   if(f) h+=`<div class="plan-badge">${t('sub_founder_badge')}</div>`;
+  h+=`<div style="font-size:11.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px">${t('sub_name')}</div>`;
   h+=`<div class="plan-price">${planPrice(offer)}<span class="plan-per">${per}</span>`;
   if(f&&r) h+=`<span class="plan-old">${planPrice(r)}</span>`;
   h+='</div>';
@@ -3647,16 +3660,29 @@ function bindPlates(){
    n'est jamais ouvert par le client — c'est le webhook RevenueCat qui appelle
    iap_sync() cote base, et iapAwaitAccess() attend cette confirmation. */
 const RC_APPLE_KEY='appl_NbuyJSnCxWyMYfrHYjTsDaXyKCK';
+/* Cle publique RevenueCat cote Android (Google Play Billing) — a renseigner une fois
+   le produit cree dans Play Console et la cle recuperee dans RevenueCat > Project settings > API keys.
+   Tant qu'elle vaut '', IAP_ON() reste false sur Android (aucun crash, l'achat retombe hors-ligne). */
+const RC_GOOGLE_KEY='';
+const RC_KEY = NATIVE_PLATFORM==='android' ? RC_GOOGLE_KEY : RC_APPLE_KEY;
 let IAP_READY=false, IAP_CONFIGURED=false;
-const IAP_PRODUCTS=Object.create(null);          /* apple_product_id -> produit StoreKit */
+const IAP_PRODUCTS=Object.create(null);          /* id produit du store courant -> fiche StoreKit/Play */
 
 function rcPlugin(){ const P=window.Capacitor&&window.Capacitor.Plugins; return (P&&P.Purchases)||null; }
-const IAP_ON = ()=> IS_NATIVE && !!rcPlugin();
+const IAP_ON = ()=> IS_NATIVE && !!rcPlugin() && !!RC_KEY;
+
+/* Chaque store a son propre referentiel de produits : demander un identifiant
+   App Store a Google Play ne renvoie rien. billing_prices porte les deux
+   colonnes, on choisit celle du store courant. */
+function storeProductId(row){
+  if(!row) return null;
+  return (NATIVE_PLATFORM==='android' ? row.google_product_id : row.apple_product_id) || null;
+}
 
 async function iapInit(userId){
-  const P=rcPlugin(); if(!P||!userId) return;
+  const P=rcPlugin(); if(!P||!userId||!RC_KEY) return;
   try{
-    if(!IAP_CONFIGURED){ await P.configure({ apiKey:RC_APPLE_KEY, appUserID:userId }); IAP_CONFIGURED=true; }
+    if(!IAP_CONFIGURED){ await P.configure({ apiKey:RC_KEY, appUserID:userId }); IAP_CONFIGURED=true; }
     else { await P.logIn({ appUserID:userId }); }
     IAP_READY=true;
   }catch(e){ IAP_READY=false; console.warn('IAP init',e); }
@@ -3665,18 +3691,27 @@ async function iapInit(userId){
 /* Charge les fiches produit StoreKit manquantes. Sans elles, pas d'achat possible. */
 async function iapLoad(rows){
   const P=rcPlugin(); if(!P) return;
-  const ids=(rows||[]).map(r=>r.apple_product_id).filter(id=>id && !IAP_PRODUCTS[id]);
+  const ids=(rows||[]).map(storeProductId).filter(id=>id && !IAP_PRODUCTS[id]);
   if(!ids.length) return;
   try{
     const r=await P.getProducts({ productIdentifiers:ids, type:'SUBSCRIPTION' });
-    ((r&&r.products)||[]).forEach(p=>{ if(p&&p.identifier) IAP_PRODUCTS[p.identifier]=p; });
+    ((r&&r.products)||[]).forEach(p=>{
+      if(!p||!p.identifier) return;
+      IAP_PRODUCTS[p.identifier]=p;
+      /* Google Play identifie une fiche produit "abonnement:base_plan" alors que
+         la base ne stocke que l'id d'abonnement. On indexe aussi la partie avant
+         les deux-points pour que la recherche par google_product_id aboutisse. */
+      const subId=p.identifier.split(':')[0];
+      if(subId && !IAP_PRODUCTS[subId]) IAP_PRODUCTS[subId]=p;
+    });
   }catch(e){ console.warn('IAP getProducts',e); }
 }
 
 /* Prix affiche : StoreKit d'abord (devise locale reelle), base ensuite. */
 function planPrice(row){
-  if(IAP_ON() && row.apple_product_id){
-    const p=IAP_PRODUCTS[row.apple_product_id];
+  const pid=storeProductId(row);
+  if(IAP_ON() && pid){
+    const p=IAP_PRODUCTS[pid];
     if(p && p.priceString) return p.priceString;
   }
   return money(row.amount_cents);
@@ -3702,7 +3737,8 @@ function iapCancelled(e){
 async function iapBuy(lookupKey){
   const P=rcPlugin();
   const row=[].concat(SUB_PRICES||[], COACH_PRICES||[]).find(p=>p.lookup_key===lookupKey);
-  const prod=row && row.apple_product_id && IAP_PRODUCTS[row.apple_product_id];
+  const pid=storeProductId(row);
+  const prod=pid && IAP_PRODUCTS[pid];
   if(!P || !prod){ toast(t('iap_unavail')); return; }
   try{
     await P.purchaseStoreProduct({ product:prod });
@@ -3729,9 +3765,11 @@ async function iapRestore(btn){
   finally{ if(btn) btn.disabled=false; }
 }
 
-/* Resiliation d'un abonnement StoreKit : ecran Apple, pas le notre. */
+/* Resiliation d'un abonnement StoreKit/Play : ecran du store natif, pas le notre. */
 async function iapManage(){
-  const url='https://apps.apple.com/account/subscriptions';
+  const url = NATIVE_PLATFORM==='android'
+    ? 'https://play.google.com/store/account/subscriptions?package=be.coachdm.app'
+    : 'https://apps.apple.com/account/subscriptions';
   try{
     const P=window.Capacitor&&window.Capacitor.Plugins;
     if(P&&P.Browser){ await P.Browser.open({ url }); return; }
@@ -3914,6 +3952,13 @@ async function hkRead(){
   { const b=$('#act-connect'); if(b) b.style.display = (steps==null&&kcal==null&&sleep==null&&hr==null) ? 'block' : 'none'; }
   { const m=$('#act-msg'); if(m) m.textContent=''; }
 
+  /* Ces mesures etaient lues puis jetees : elles s'affichaient sur le telephone
+     et n'atteignaient jamais le serveur. Le coach ne voyait donc rien de la
+     sante de ses clients. On les persiste ici, sans bloquer l'affichage.
+     health_upsert_daily() fait un coalesce champ par champ : envoyer null
+     n'efface jamais une valeur deja enregistree. */
+  hkPersist({ steps, kcal, sleep, hr, weight });
+
   /* ── Poids : UNE seule source de verite ────────────────────────────────────
      Le poids du profil (nutrition_targets.current_weight_kg) alimente les macros
      et le calcul Mifflin-St Jeor. Afficher a cote un second poids Apple Sante,
@@ -3943,6 +3988,31 @@ async function hkRead(){
   const any = [steps,kcal,sleep,hr,weight].some(v=>v!=null);
   if(!any){ setMsg('p-health-msg',t('hk_nodata'),''); return false; }
   return true;
+}
+
+/* Envoi silencieux des mesures du jour vers health_daily. Volontairement
+   "fire and forget" : si le reseau tombe, l'utilisateur ne doit rien voir et
+   la carte Activite reste affichee. La prochaine ouverture renverra la journee. */
+let HK_SENT_KEY='';
+async function hkPersist(d){
+  try{
+    if(!USER || !USER.id) return;
+    const day = new Date().toLocaleDateString('sv-SE');   /* AAAA-MM-JJ local */
+    const row = { day };
+    if(d.steps  != null) row.steps       = Math.round(d.steps);
+    if(d.kcal   != null) row.active_kcal = Math.round(d.kcal);
+    if(d.hr     != null) row.resting_hr  = Math.round(d.hr);
+    if(d.sleep  != null) row.sleep_min   = Math.round(d.sleep);
+    if(d.weight != null) row.weight_kg   = d.weight;
+    if(Object.keys(row).length < 2) return;               /* rien que la date : inutile */
+
+    /* Evite de renvoyer la meme charge utile a chaque passage sur l'onglet. */
+    const sig = JSON.stringify(row);
+    if(sig === HK_SENT_KEY) return;
+    HK_SENT_KEY = sig;
+
+    await sb.rpc('health_upsert_daily', { p_rows: [row] });
+  }catch(e){ console.warn('health sync', e); }
 }
 
 async function hkConnect(){
@@ -5197,6 +5267,7 @@ function renderIALock(){
 if($('#up-cta')) $('#up-cta').onclick=()=>{ $('#up-ov').classList.remove('show'); openSubSheet(); };
 if($('#up-later')) $('#up-later').onclick=()=>$('#up-ov').classList.remove('show');
 if($('#up-ov')) $('#up-ov').onclick=(e)=>{ if(e.target.id==='up-ov') $('#up-ov').classList.remove('show'); };
+document.querySelectorAll('#up-ov [data-legal]').forEach(a=>{ a.onclick=(e)=>{ e.preventDefault(); openLegal(a.dataset.legal); }; });
 
 /* ---------------- TENDANCES ---------------- */
 let TR_DAYS=7, TR_DATA=null, TR_BUSY=false;
