@@ -5827,6 +5827,10 @@ function refreshWorkoutsBg(){
 const PROG_ORDER=['barbell-strength-12w','physique-12w','open-prep-8w','gravity-10w','hyrox-engine-12w','engine-amrap-10w','metcon-emom-8w','fat-burner-10w','football-elite-12w','foundation-8w'];
 const PROG_MOTIF={'barbell-strength-12w':'m-str','physique-12w':'m-str','open-prep-8w':'m-pulse','gravity-10w':'m-rings','hyrox-engine-12w':'m-pulse','engine-amrap-10w':'m-pulse','metcon-emom-8w':'m-flame','fat-burner-10w':'m-flame','football-elite-12w':'m-found','foundation-8w':'m-found'};
 let SE_PROG=null;
+/* Le cycle et la séance partagent le conteneur #se-detail : ouvrir un jour
+   écrase la liste des jours. On mémorise d'où l'on vient pour la reconstruire
+   au retour, au lieu d'éjecter l'utilisateur vers la liste générale. */
+let SE_FROM=null;
 async function loadWorkouts(){
   backToList();
   await Promise.all([fetchWorkouts(), loadDone()]);
@@ -5967,8 +5971,10 @@ function renderProgramDays(CAT, slug){
     try{ window.scrollTo(0,0); }catch(e){}
   }
 }
-function openProgram(slug){ SE_PROG=slug; backToList(); renderSeances(); }
-function closeProgram(){ SE_PROG=null; backToList(); renderSeances(); }
+/* On quitte le contexte "cycle" dès qu'on navigue dans les programmes, sinon
+   le retour d'une séance de programme renverrait vers l'ancien cycle. */
+function openProgram(slug){ SE_FROM=null; SE_PROG=slug; backToList(); renderSeances(); }
+function closeProgram(){ SE_FROM=null; SE_PROG=null; backToList(); renderSeances(); }
 /* ================= OBJECTIFS / MOTEUR CHARGE ================= */
 let GOAL_LIFTS=null, GOAL_DRAFT={}, GOAL_SKILLS=null, GOAL_FAMS=null;
 
@@ -6212,11 +6218,23 @@ function goalResult(res){
   loadWorkouts();
 }
 
+function goBackSmart(){
+  if(SE_FROM && SE_FROM.type==='cycle'){
+    const f=SE_FROM;
+    openCycleBySlug(f.slug, f.gkind);
+    return;
+  }
+  backToList();
+}
 async function openCycle(goalId){
   const card=document.querySelector('[data-goal-open="'+goalId+'"]');
   const slug=card?card.dataset.slug:null; if(!slug) return;
   const gkind=card?card.dataset.kind:'charge';
-  switchTab('seances');
+  return openCycleBySlug(slug, gkind);
+}
+async function openCycleBySlug(slug, gkind){
+  SE_FROM={type:'cycle', slug, gkind};
+  switchTab('seances', true);
   $('#se-list').classList.add('hidden');
   $('#se-detail').classList.remove('hidden');
   $('#se-detail').innerHTML=skel(3,88);
@@ -6226,10 +6244,11 @@ async function openCycle(goalId){
     .eq('program_slug',slug).eq('is_published',true)
     .order('week_number',{ascending:true}).order('day_number',{ascending:true});
   const list=ws||[];
+  await loadDone();
   const back='<button class="se-back" id="se-back">'+t('see_all_workouts')+'</button>';
   if(!list.length){
     $('#se-detail').innerHTML=back+'<p class="empty">'+t('go_cycle_pending')+'</p>';
-    document.getElementById('se-back').onclick=()=>{ loadWorkouts(); backToList(); };
+    document.getElementById('se-back').onclick=()=>{ SE_FROM=null; loadWorkouts(); backToList(); };
     return;
   }
   const DAYL = gkind==='skill'
@@ -6237,17 +6256,29 @@ async function openCycle(goalId){
     : {1:t('go_day_heavy'),2:t('go_day_squat'),3:t('go_day_vol')};
   const weeks={};
   list.forEach(w=>{ (weeks[w.week_number]=weeks[w.week_number]||[]).push(w); });
+  const nextC = list.find(w=>!SE_DONE.has(w.id));
+  const doneC = list.filter(w=>SE_DONE.has(w.id)).length;
   let html=back+'<div class="se-d-title">'+t('go_cycle')+'</div>';
+  if(list.length){
+    const pct=Math.round(doneC/list.length*100);
+    html+='<div class="pf-prog"><div class="pf-prog-bar"><i style="width:'+pct+'%"></i></div>'
+      +'<span>'+doneC+'/'+list.length+' · '+pct+'%</span></div>';
+  }
   Object.keys(weeks).sort((a,b)=>a-b).forEach(wk=>{
     html+='<div class="cyc-wk"><div class="cyc-wk-h">'+t('go_week')+' '+wk+'</div>';
     weeks[wk].forEach(w=>{
-      html+='<button class="cyc-day" data-open="'+w.id+'"><span>'+(DAYL[w.day_number]||('J'+w.day_number))+'</span>'
+      const dn=SE_DONE.has(w.id), nx=nextC && w.id===nextC.id;
+      html+='<button class="cyc-day'+(dn?' se-done':'')+(nx?' se-next':'')+'" data-open="'+w.id+'"'
+        +(nx?' id="se-next-anchor"':'')+'><span>'+(DAYL[w.day_number]||('J'+w.day_number))
+        +(dn?' <span class="se-tick">✓</span>':'')+(nx?' <span class="badge nx">'+t('pf_next')+'</span>':'')+'</span>'
         +'<small>'+esc(pick(w,'name'))+'</small></button>';
     });
     html+='</div>';
   });
   $('#se-detail').innerHTML=html;
-  document.getElementById('se-back').onclick=()=>{ loadWorkouts(); backToList(); };
+  document.getElementById('se-back').onclick=()=>{ SE_FROM=null; loadWorkouts(); backToList(); };
+  const anc=$('#se-next-anchor');
+  if(anc && doneC>0){ try{ anc.scrollIntoView({block:'center'}); }catch(e){} }
 }
 
 if($('#goal-ov')) $('#goal-ov').onclick=e=>{ if(e.target.id==='goal-ov') closeGoal(); };
@@ -6410,7 +6441,7 @@ function renderDetail(w,items,tips){
     <button class="btn" id="se-start">${t('start_session')}</button>
   </div>`;
   $('#se-detail').innerHTML=html;
-  $('#se-back').onclick=backToList;
+  $('#se-back').onclick=goBackSmart;
   $('#se-start').onclick=startOrFinish;
   $('#rest-skip').onclick=()=>stopRest();
   $('#rest-plus').onclick=()=>{ if(REST){ REST.left+=30; REST.total+=30; } };
@@ -6683,7 +6714,10 @@ async function afterFinish(slug){
       if(st && st.done){ showCycleDone(slug, st.cycle); return; }
     }catch(e){}
   }
-  backToList();
+  /* La séance vient d'être terminée : on rafraîchit les coches avant de
+     réafficher, sinon celle qu'on vient de faire apparaîtrait encore "à faire". */
+  await loadDone(true);
+  goBackSmart();
 }
 async function closeSummary(){
   const ov=$('#sum-ov'); if(!ov.classList.contains('show')) return;
