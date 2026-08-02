@@ -654,6 +654,16 @@
   .pf-cover.m-pulse{background-image:url("data:image/svg+xml,%3Csvg xmlns%3D'http://www.w3.org/2000/svg' viewBox%3D'0 0 120 120' fill%3D'none' stroke%3D'rgba(255,255,255,.28)' stroke-width%3D'3.5' stroke-linecap%3D'round' stroke-linejoin%3D'round'%3E%3Cpath d%3D'M8 62h24l10-28 16 54 12-40 9 14h33'/%3E%3C/svg%3E"),linear-gradient(135deg,color-mix(in srgb,var(--c) 60%,#000),color-mix(in srgb,var(--c) 22%,#000))}
   .pf-cover.m-flame{background-image:url("data:image/svg+xml,%3Csvg xmlns%3D'http://www.w3.org/2000/svg' viewBox%3D'0 0 120 120' fill%3D'none' stroke%3D'rgba(255,255,255,.28)' stroke-width%3D'3.5' stroke-linecap%3D'round' stroke-linejoin%3D'round'%3E%3Cpath d%3D'M60 16c9 17 27 25 27 48a27 27 0 1 1-54 0c0-13 7-20 12-30 5 7 9 10 15-18Z'/%3E%3Cpath d%3D'M60 58c6 8 10 12 10 19a10 10 0 1 1-20 0c0-7 5-11 10-19Z'/%3E%3C/svg%3E"),linear-gradient(135deg,color-mix(in srgb,var(--c) 60%,#000),color-mix(in srgb,var(--c) 22%,#000))}
   .pf-cover.m-found{background-image:url("data:image/svg+xml,%3Csvg xmlns%3D'http://www.w3.org/2000/svg' viewBox%3D'0 0 120 120' fill%3D'none' stroke%3D'rgba(255,255,255,.28)' stroke-width%3D'3.5' stroke-linecap%3D'round' stroke-linejoin%3D'round'%3E%3Cpath d%3D'M26 92h68M34 72h52M42 52h36M50 32h20'/%3E%3C/svg%3E"),linear-gradient(135deg,color-mix(in srgb,var(--c) 60%,#000),color-mix(in srgb,var(--c) 22%,#000))}
+  /* Séance terminée : elle s'efface visuellement sans disparaître. */
+  .se-card.se-done{opacity:.52}
+  .se-card.se-done .se-title{text-decoration:line-through;text-decoration-color:var(--muted)}
+  .se-tick{color:var(--ok);font-weight:800;margin-left:4px}
+  /* Prochaine séance : la seule mise en avant de la liste. */
+  .se-card.se-next{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand) inset}
+  .badge.nx{background:var(--brand);color:#04120a;border:none;font-weight:800}
+  .pf-prog{display:flex;align-items:center;gap:10px;margin:0 0 14px;font-size:12.5px;color:var(--muted);font-weight:600}
+  .pf-prog-bar{flex:1;height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+  .pf-prog-bar i{display:block;height:100%;background:var(--ok)}
   .pf-arrow{transition:transform .15s ease}
   .pf-card:active .pf-arrow{transform:translateX(3px)}
   @keyframes glowP{0%,100%{box-shadow:0 0 18px rgba(0,255,160,.3)}50%{box-shadow:0 0 27px rgba(0,255,160,.52)}}
@@ -2245,6 +2255,7 @@ const T = {
  goal_build_muscle:{fr:'Prise de muscle',en:'Build muscle',nl:'Spieropbouw'},
  goal_recomp:{fr:'Recomposition',en:'Recomposition',nl:'Recompositie'},
  goal_performance:{fr:'Performance',en:'Performance',nl:'Prestatie'},
+ pf_next:{fr:'À faire',en:'Up next',nl:'Volgende'},
  lbl_sport:{fr:'Ta discipline',en:'Your sport',nl:'Jouw sport'},
  sp_endurance:{fr:'Endurance — triathlon, course, vélo',en:'Endurance — triathlon, running, cycling',nl:'Duursport — triatlon, lopen, fietsen'},
  sp_team:{fr:'Sport collectif — foot, basket, hand',en:'Team sport — football, basketball',nl:'Teamsport — voetbal, basket'},
@@ -5425,7 +5436,11 @@ document.querySelectorAll('.tr-toggle .rc-chip').forEach(b=>b.onclick=()=>{
 
 /* ---------------- TABS ---------------- */
 const TITLES={home:["Accueil",""],journal:["Journal","Cherche, ajoute, suis tes repas"],seances:["Séances","Tes programmes Coach DM"],cours:["Cours","Réserve tes séances collectives & PT"],boutique:["Boutique","Programmes PDF premium"],ia:["Coach IA",""],profile:["Profil",""]};
-function switchTab(tab){
+/* quiet=true : on change d'onglet SANS relancer le chargement de la liste des
+   séances. Indispensable quand on ouvre une séance depuis un programme ou un
+   cycle : sinon loadWorkouts() reconstruit la liste au niveau racine et le
+   bouton retour ne ramène plus jamais là d'où l'on vient. */
+function switchTab(tab, quiet){
   if(tab==='boutique' && IS_NATIVE) tab='home';   /* Boutique PDF (Payhip) masquée sur iOS — conformité Apple 3.1.1 */
   document.querySelectorAll('.tabpane').forEach(p=>p.classList.remove('active'));
   $('#pane-'+tab).classList.add('active');
@@ -5436,7 +5451,7 @@ function switchTab(tab){
   $('.topbar').style.display = (tab==='ia'||tab==='home') ? 'none' : 'block';
   if(tab==='home') loadHome();
   if(tab==='journal'){ loadLogs(); loadRecipes(); }
-  if(tab==='seances') loadWorkouts();
+  if(tab==='seances' && !quiet) loadWorkouts();
   if(tab==='cours') loadCours();
   if(tab==='boutique') loadBoutique();
   if(tab==='profile'){ renderPRList(); if(typeof pfShow==='function') pfShow('hub'); }
@@ -5648,6 +5663,22 @@ document.addEventListener('click',(e)=>{
 
 let SE_WORKOUTS=null, SE_COUNTS={}, SE_CUR=null, SESSION=null, SET_CTX=null;
 
+/* Séances déjà terminées. Partagé entre l'accueil, les programmes et les
+   cycles : sans ça chaque écran refait la même requête et aucun ne peut
+   afficher "tu en es là". */
+let SE_DONE=new Set(), SE_DONE_AT=0;
+async function loadDone(force){
+  if(!USER) return SE_DONE;
+  if(!force && SE_DONE_AT && Date.now()-SE_DONE_AT < 60000) return SE_DONE;
+  try{
+    const { data } = await sb.from('workout_sessions')
+      .select('workout_id').eq('user_id',USER.id).eq('status','completed').limit(500);
+    SE_DONE = new Set((data||[]).map(s=>s.workout_id));
+    SE_DONE_AT = Date.now();
+  }catch(e){}
+  return SE_DONE;
+}
+
 async function loadWod(){
   /* La requete des seances terminees part en parallele du catalogue */
   const ssP = sb.from('workout_sessions')
@@ -5798,7 +5829,7 @@ const PROG_MOTIF={'barbell-strength-12w':'m-str','physique-12w':'m-str','open-pr
 let SE_PROG=null;
 async function loadWorkouts(){
   backToList();
-  await fetchWorkouts();
+  await Promise.all([fetchWorkouts(), loadDone()]);
   renderSeances();
 }
 function renderSeances(){
@@ -5895,19 +5926,32 @@ function renderProgramDays(CAT, slug){
     .sort((a,b)=>(a.week_number||0)-(b.week_number||0)||(a.day_number||0)-(b.day_number||0));
   const src=(items[0]&&items[0].source)||slug;
   let html=`<button class="se-back" data-prog-back="1">‹ ${t('pf_back')}</button><div class="pf-h">${esc(src)}</div>`;
+  /* La première séance non terminée : c'est là que l'utilisateur en est.
+     On l'ancre pour y amener l'écran, au lieu de le laisser chercher. */
+  const nextW = items.find(w=>!SE_DONE.has(w.id));
+  const doneN = items.filter(w=>SE_DONE.has(w.id)).length;
+  if(items.length){
+    const pct = Math.round(doneN/items.length*100);
+    html += `<div class="pf-prog"><div class="pf-prog-bar"><i style="width:${pct}%"></i></div>
+      <span>${doneN}/${items.length} ${t('pf_sessions')} · ${pct}%</span></div>`;
+  }
   let curWeek=null;
   items.forEach(w=>{
     const wk=w.week_number||0;
     if(wk!==curWeek){ curWeek=wk; html+=`<div class="pf-week">${t('pf_week')} ${wk}</div>`; }
     const col=typeColor(w.type), n=SE_COUNTS[w.id]||0;
     const locked=!PREMIUM && !w.is_free;
+    const done = SE_DONE.has(w.id);
+    const isNext = nextW && w.id===nextW.id;
     const cover = w.cover_image_url
       ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${typeL(w.type)}</span></div>`
       : `<div class="se-cover ${TYPE_MOTIF[w.type]||''}" style="--c:${col}"><span class="se-type">${typeL(w.type)}</span></div>`;
-    html+=`<div class="se-card${locked?' locked':''}" data-open="${w.id}">${cover}${locked?'<span class="se-lock"><svg class="ic"><use href="#i-lock"/></svg></span>':''}
+    html+=`<div class="se-card${locked?' locked':''}${done?' se-done':''}${isNext?' se-next':''}"
+      data-open="${w.id}"${isNext?' id="se-next-anchor"':''}>${cover}${locked?'<span class="se-lock"><svg class="ic"><use href="#i-lock"/></svg></span>':''}
       <div class="se-body">
-        <div class="se-title">${esc(pick(w,'name'))}</div>
+        <div class="se-title">${esc(pick(w,'name'))}${done?' <span class="se-tick">✓</span>':''}</div>
         <div class="se-badges">
+          ${isNext?`<span class="badge nx">${t('pf_next')}</span>`:''}
           <span class="badge c" style="--c:${col}">${diffL(w.difficulty)}</span>
           <span class="badge">${w.estimated_duration_min||'—'} min</span>
           ${locked?'':`<span class="badge">${n} ${t('exercises')}</span>`}
@@ -5915,7 +5959,13 @@ function renderProgramDays(CAT, slug){
       </div></div>`;
   });
   $('#se-cards').innerHTML=html;
-  try{ window.scrollTo(0,0); }catch(e){}
+  /* On amène la prochaine séance sous les yeux plutôt que de faire défiler. */
+  const anchor=$('#se-next-anchor');
+  if(anchor && doneN>0){
+    try{ anchor.scrollIntoView({block:'center'}); }catch(e){ window.scrollTo(0,0); }
+  }else{
+    try{ window.scrollTo(0,0); }catch(e){}
+  }
 }
 function openProgram(slug){ SE_PROG=slug; backToList(); renderSeances(); }
 function closeProgram(){ SE_PROG=null; backToList(); renderSeances(); }
@@ -6246,7 +6296,11 @@ async function openWorkout(id){
     await refreshPlanIds();
     if(!MY_PLAN_IDS.has(id)){ showUpsell('workout'); return; }
   }
-  switchTab('seances');
+  /* Si la liste est déjà rendue, on ne la reconstruit pas : le retour doit
+     ramener exactement là où l'utilisateur était (jour d'un programme, cycle
+     déplié…), et non tout en haut de la liste des programmes. */
+  const listReady = !!$('#se-cards') && $('#se-cards').innerHTML.trim() !== '';
+  switchTab('seances', listReady);
   SE_CUR={w}; SESSION=null;
   $('#se-list').classList.add('hidden');
   $('#se-detail').classList.remove('hidden');
