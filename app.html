@@ -4948,13 +4948,17 @@ $('#p-calc').onclick = async ()=>{
     }
   }
 
-  /* Lipides à 25 % du total sauf en performance : on descend à 20 %, le plancher
-     admis pour la fonction hormonale, et les calories libérées partent en
-     glucides — le substrat qui limite réellement l'endurance et le volume de
-     force (Burke 2011, Jeukendrup 2014). Protéines relevées à 2,2 g/kg, borne
-     haute utile en période de charge (Morton 2018). */
+  /* Objectif performance : 7 à 10 séances ou matchs par semaine.
+     Protéines à 2,5 g/kg — borne haute defendable pour une frequence elevee,
+     au-dela du plateau de 1,6 g/kg pour l'hypertrophie (Morton 2018) mais
+     justifiee par la charge cumulee et le risque de deficit (ISSN, Jager 2017).
+     Volontairement un COEFFICIENT et non un plancher fixe : 200 g imposes a un
+     athlete de 55 kg feraient 3,6 g/kg, pris sur les glucides.
+     Lipides abaisses de 25 a 20 % du total — plancher admis pour la fonction
+     hormonale — les calories liberees partant en glucides, le substrat qui
+     limite reellement l'endurance et le volume de force (Burke 2011). */
   const perf = goal==='performance';
-  const protein = (perf?2.2:2)*w;
+  const protein = (perf?2.5:2)*w;
   const fat = (kcal*(perf?0.20:0.25))/9;
   const carbs = (kcal - (protein*4 + fat*9))/4;
   const fiber = 14*(kcal/1000);
