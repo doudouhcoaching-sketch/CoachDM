@@ -309,6 +309,14 @@
   </div>
 </div>
 
+<!-- OFFRE COACH (masquée en natif : conformité Apple) -->
+<div class="overlay" id="ov-up">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div id="up-body"></div>
+  </div>
+</div>
+
 <!-- PROGRAMMES D'ENTRAÎNEMENT (par client) -->
 <div class="overlay" id="ov-tp">
   <div class="sheet">
@@ -520,6 +528,14 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 const sb = createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
 const $ = s=>document.querySelector(s);
+
+/* ⚠️ CONFORMITÉ APPLE — coach.html est embarqué dans le bundle iOS et
+   atteignable depuis l'app via le bouton « Console Coach ». Les offres Coach et
+   Coach+ ne sont PAS vendues en achat intégré : afficher un prix ou un lien
+   d'achat ici ferait tomber l'app sous la règle 3.1.1 (steering).
+   En natif, on se limite donc à un constat neutre, sans montant ni lien.
+   Sur le web et Android, on affiche l'offre complète. */
+const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 const esc = s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const r0 = n=>Math.round(n||0);
 const r1 = n=>Math.round((n||0)*10)/10;
@@ -608,21 +624,20 @@ function renderDash(){
   </div>`;
 }
 const CAP_UNLIMITED = CAP => CAP && CAP.max >= 100000;
-const FREE_SLOTS = 3;
 function renderCap(){
   if(!CAP){ $('#cl-cap').innerHTML=''; return; }
   const unlimited = CAP_UNLIMITED(CAP);
   const full = !unlimited && CAP.active>=CAP.max;
 
-  /* Palier gratuit : on annonce les places offertes, jamais un prix ni un lien
+  /* Palier gratuit : on annonce la place offerte, jamais un prix ni un lien
      d'achat — c'est ce qui rend ce bandeau affichable tel quel dans l'app iOS. */
-  if(!unlimited && CAP.max===FREE_SLOTS){
-    const left = Math.max(0, CAP.max - CAP.active);
+  if(!unlimited && CAP.max<=1){
+    const used = CAP.active>=CAP.max;
     $('#cl-cap').innerHTML = `<div class="freebar">
-      <span style="font-size:17px">🎁</span>
-      <div class="fb-t">${left>0
-        ? `Il te reste <b>${left} place${left>1?'s':''} offerte${left>1?'s':''}</b> sur ${CAP.max}`
-        : `Tes <b>${CAP.max} places offertes</b> sont utilisées`}</div>
+      <span style="font-size:17px">${used?'🔒':'🎁'}</span>
+      <div class="fb-t">${used
+        ? 'Ta <b>place offerte</b> est utilisée'
+        : 'Tu as <b>1 place offerte</b> pour découvrir la console'}</div>
     </div>`;
     return;
   }
@@ -1196,9 +1211,53 @@ function initChatLive(){
 
 /* ---- Ajout client (créer / lier) ---- */
 $('#cl-new').onclick = ()=>{
-  if(CAP && !CAP_UNLIMITED(CAP) && CAP.active>=CAP.max){ toast(`Quota atteint (${CAP.max}). Archive un client ou passe en offre supérieure.`); return; }
+  if(CAP && !CAP_UNLIMITED(CAP) && CAP.active>=CAP.max){ openUpgrade(); return; }
   openClientForm();
 };
+
+/* Le moment où le coach a vu la console tourner sur un vrai client et veut le
+   deuxième : c'est là, et seulement là, qu'on parle de l'offre. */
+function openUpgrade(){
+  const free = CAP && CAP.max<=1;
+  let h = `<h3 style="margin:0 0 4px">${free?'Ta place offerte est utilisée':'Quota atteint'}</h3>
+    <p class="sub" style="text-align:left;margin:0 0 16px">
+      ${free ? 'Tu as géré un client de bout en bout : programmes, macros, messages, analyses.'
+             : `Tu suis ${CAP.active} clients sur ${CAP.max}.`}</p>`;
+
+  if(IS_NATIVE){
+    /* Aucun montant, aucun lien, aucun appel à l'action vers un paiement
+       extérieur : constat factuel uniquement (Apple 3.1.1). */
+    /* Strictement descriptif : aucune mention d'un ailleurs où payer, aucun
+       verbe d'action. On constate la limite, on rassure sur les données. */
+    h += `<div class="item"><div class="meta" style="line-height:1.6">
+        Ton offre actuelle couvre 1 client. Tes clients, programmes, macros et
+        messages sont conservés.
+      </div></div>
+      <button class="btn subtle" id="up-close" style="margin-top:14px">Fermer</button>`;
+  }else{
+    h += `<div class="card" style="border-color:var(--gold)">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <div style="flex:1"><div class="nm">Coach</div>
+            <div class="meta">Jusqu'à 20 clients · bibliothèque Coach DM incluse</div></div>
+          <div style="font-weight:800;color:var(--gold);white-space:nowrap">39,99 €<span style="font-size:12px;font-weight:600">/mois</span></div>
+        </div>
+      </div>
+      <div class="card" style="border-color:var(--brand)">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <div style="flex:1"><div class="nm">Coach+</div>
+            <div class="meta">Jusqu'à 50 clients · visios planifiées · vidéo dans la messagerie</div></div>
+          <div style="font-weight:800;color:var(--brand);white-space:nowrap">59,99 €<span style="font-size:12px;font-weight:600">/mois</span></div>
+        </div>
+      </div>
+      <p class="sub" style="text-align:left;margin:10px 0 0">Sans engagement, résiliable en un clic. Un seul client suffit généralement à couvrir l'abonnement.</p>
+      <a class="btn" href="https://coachdm.be/tarifs.html" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:14px">Voir les offres</a>
+      <button class="btn subtle" id="up-close" style="margin-top:9px">Plus tard</button>`;
+  }
+  $('#up-body').innerHTML=h;
+  $('#up-close').onclick=()=>$('#ov-up').classList.remove('show');
+  $('#ov-up').classList.add('show');
+}
+$('#ov-up').onclick = ev=>{ if(ev.target.id==='ov-up') $('#ov-up').classList.remove('show'); };
 function openClientForm(){
   let mode='create';
   const draw=()=>{
