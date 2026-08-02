@@ -309,6 +309,26 @@
   </div>
 </div>
 
+<!-- PROGRAMMES D'ENTRAÎNEMENT (par client) -->
+<div class="overlay" id="ov-tp">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div id="tp-body"><div class="spin"></div></div>
+  </div>
+</div>
+
+<!-- CHOIX D'UNE SÉANCE (recherche) -->
+<div class="overlay" id="ov-wkp">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3>Choisir une séance</h3>
+    <p class="sub" style="text-align:left;margin:-8px 0 12px">Tes séances et celles de la bibliothèque Coach DM.</p>
+    <div class="field"><input id="wkp-q" type="search" autocomplete="off" placeholder="Rechercher : squat, hyrox, haut du corps…" /></div>
+    <div class="exres" id="wkp-res"></div>
+    <button class="btn subtle" id="wkp-close" style="margin-top:12px">Annuler</button>
+  </div>
+</div>
+
 <!-- CHOIX D'EXERCICE (recherche) -->
 <div class="overlay" id="ov-exp">
   <div class="sheet">
@@ -795,7 +815,8 @@ async function openClientDetail(cid){
     h+='<p class="empty">Pas encore de données pour ce client. Elles apparaîtront dès qu\'il utilisera l\'app.</p>';
   }
   h+=`<div class="cd-sec"><div class="mini">Appels vidéo</div><div id="cd-calls"><div class="spin"></div></div></div>`;
-  h+='<button class="btn" id="cd-macro" style="margin-top:18px">Calories & macros</button>';
+  h+='<button class="btn" id="cd-plan" style="margin-top:18px">Programmes d\'entraînement</button>';
+  h+='<button class="btn" id="cd-macro" style="margin-top:9px">Calories & macros</button>';
   h+='<button class="btn" id="cd-meal" style="margin-top:9px">Plans nutrition</button>';
   h+='<button class="btn" id="cd-chat" style="margin-top:9px">Messages</button>';
   h+='<button class="btn subtle" id="cd-close" style="margin-top:9px">Fermer</button>';
@@ -804,6 +825,7 @@ async function openClientDetail(cid){
   $('#cd-chat').onclick=()=>{ closeCd(); openChat(cid, p.full_name||p.email||''); };
   $('#cd-macro').onclick=()=>openMacro(cid, p.full_name||p.email||'', nt);
   $('#cd-meal').onclick=()=>openMealPlans(cid, p.full_name||p.email||'');
+  $('#cd-plan').onclick=()=>openTrainPlans(cid, p.full_name||p.email||'');
   renderCdCalls(cid);
 }
 
@@ -1503,6 +1525,227 @@ $('#comp-add').onclick = ()=>{
     renderComp();
   });
 };
+/* ═══════════════════════════════════════════════════════════════════════
+   PROGRAMMES D'ENTRAÎNEMENT — même geste que les plans nutrition, mais on
+   assigne des séances datées. Le client les voit sur son onglet Aujourd'hui
+   et les cases se cochent seules quand il termine la séance.
+═══════════════════════════════════════════════════════════════════════ */
+let TP_LIST=[], TP_CID=null, TP_NAME='', TP_CUR=null, TP_ITEMS=[];
+const TP_ST={draft:'Brouillon',assigned:'Assigné',active:'En cours',completed:'Terminé',archived:'Archivé'};
+
+/* ASSIGN = les séances que CE coach a le droit d'assigner. C'est le serveur
+   qui tranche (bibliothèque réservée à l'offre Coach), pas l'interface. */
+let PLAN_INFO=null, ASSIGN=[];
+async function openTrainPlans(cid,name){
+  TP_CID=cid; TP_NAME=name; TP_CUR=null;
+  const [inf, asg] = await Promise.all([
+    PLAN_INFO ? Promise.resolve({data:PLAN_INFO}) : sb.rpc('coach_my_plan_info'),
+    sb.rpc('coach_list_assignable_workouts')
+  ]);
+  PLAN_INFO = inf.data || {paid:false};
+  ASSIGN = asg.data || [];
+  $('#ov-tp').classList.add('show');
+  await tpRenderList();
+}
+async function tpRenderList(){
+  $('#tp-body').innerHTML='<div class="spin"></div>';
+  const { data, error } = await sb.rpc('coach_list_plans',{ p_client:TP_CID });
+  if(error){ $('#tp-body').innerHTML=`<p class="empty">Erreur : ${esc(error.message)}</p>`; return; }
+  TP_LIST=data||[];
+  let h=`<h3 style="margin:0 0 2px">Programmes d'entraînement</h3>
+    <p class="sub" style="text-align:left;margin:0 0 14px">${esc(TP_NAME)}</p>`;
+  if(!TP_LIST.length) h+='<p class="empty" style="padding:16px 0">Aucun programme. Crée le premier.</p>';
+  else h+=TP_LIST.map(p=>{
+    const pct = p.item_count ? Math.round(p.done_count/p.item_count*100) : 0;
+    return `<div class="card">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700">${esc(p.title_fr)}</div>
+          <div class="sub" style="text-align:left;margin:2px 0 0">${TP_ST[p.status]||p.status} · ${p.done_count}/${p.item_count} séances${p.start_date?' · dès le '+dFR(p.start_date):''}</div>
+        </div>
+        <button class="btn subtle sm" data-tpe="${p.id}" style="width:auto">Ouvrir</button>
+      </div>
+      ${p.item_count?`<div style="height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden;margin-top:9px">
+        <div style="width:${pct}%;height:100%;background:var(--ok)"></div></div>`:''}
+    </div>`;
+  }).join('');
+  h+='<button class="btn" id="tp-new" style="margin-top:14px">＋ Nouveau programme</button>';
+  h+='<button class="btn subtle" id="tp-close" style="margin-top:9px">Fermer</button>';
+  $('#tp-body').innerHTML=h;
+  $('#tp-close').onclick=()=>$('#ov-tp').classList.remove('show');
+  $('#tp-new').onclick=()=>tpEdit(null);
+  $('#tp-body').querySelectorAll('[data-tpe]').forEach(b=>b.onclick=()=>tpEdit(b.dataset.tpe));
+}
+
+async function tpEdit(id){
+  let plan={ title_fr:'', summary_fr:'', status:'assigned', start_date:'' };
+  TP_ITEMS=[]; TP_CUR=id||null;
+  if(id){
+    $('#tp-body').innerHTML='<div class="spin"></div>';
+    const { data, error } = await sb.rpc('coach_get_plan',{ p_id:id });
+    if(error||!data){ $('#tp-body').innerHTML=`<p class="empty">Erreur de chargement.</p>`; return; }
+    plan=data.plan;
+    TP_ITEMS=(data.items||[]).map(it=>({
+      workout_id:it.workout_id, scheduled_date:it.scheduled_date||'',
+      notes:it.notes||'', completed_at:it.completed_at||null
+    }));
+  }
+  const h=`<h3 style="margin:0 0 12px">${id?'Modifier le programme':'Nouveau programme'}</h3>
+    <div class="field"><label>Titre <span class="req">obligatoire</span></label>
+      <input id="tp-title" value="${esc(plan.title_fr||'')}" placeholder="Bloc force — 4 semaines" /></div>
+    <div class="row2">
+      <div class="field"><label>Début</label><input id="tp-start" type="date" value="${plan.start_date||''}" /></div>
+      <div class="field"><label>État</label><select id="tp-status">
+        ${Object.keys(TP_ST).map(k=>`<option value="${k}"${k===(plan.status||'assigned')?' selected':''}>${TP_ST[k]}</option>`).join('')}
+      </select></div>
+    </div>
+    <div class="field"><label>Consigne générale (facultatif)</label>
+      <textarea id="tp-sum" placeholder="Objectif du bloc, points de vigilance…">${esc(plan.summary_fr||'')}</textarea></div>
+    <div class="mini" style="margin:14px 0 6px">Séances du programme</div>
+    <div id="tp-items"></div>
+    <button class="btn subtle" id="tp-add" style="margin-top:4px">＋ Ajouter une séance</button>
+    ${TP_ITEMS.length?'<button class="btn subtle" id="tp-week" style="margin-top:9px">⧉ Dupliquer en décalant de 7 jours</button>':''}
+    <button class="btn" id="tp-save" style="margin-top:14px">Enregistrer</button>
+    ${id?'<button class="btn danger" id="tp-del" style="margin-top:9px">Supprimer</button>':''}
+    <button class="btn subtle" id="tp-back" style="margin-top:9px">Retour</button>
+    <div class="msg" id="tp-msg"></div>`;
+  $('#tp-body').innerHTML=h;
+  tpRenderItems();
+  $('#tp-back').onclick=tpRenderList;
+  $('#tp-add').onclick=()=>{
+    tpSyncFromDom();
+    openWkPicker(wid=>{ TP_ITEMS.push({workout_id:wid, scheduled_date:'', notes:'', completed_at:null}); tpRenderItems(); });
+  };
+  const wk=$('#tp-week'); if(wk) wk.onclick=tpDuplicateWeek;
+  $('#tp-save').onclick=tpSave;
+  const dl=$('#tp-del'); if(dl) dl.onclick=async ()=>{
+    if(!confirm('Supprimer ce programme ? Le client ne le verra plus.')) return;
+    const { error } = await sb.rpc('coach_delete_plan',{ p_id:TP_CUR });
+    if(error){ setMsg('tp-msg','Échec : '+error.message,'err'); return; }
+    toast('Programme supprimé'); tpRenderList();
+  };
+}
+function wkName(id){
+  const w = ASSIGN.find(x=>x.id===id) || WKS.find(x=>x.id===id);
+  return w ? (w.name_fr||'—') : 'Séance introuvable';
+}
+function tpRenderItems(){
+  const box=$('#tp-items'); if(!box) return;
+  if(!TP_ITEMS.length){ box.innerHTML='<p class="empty" style="padding:10px 0">Aucune séance. Ajoute-en une.</p>'; return; }
+  box.innerHTML=TP_ITEMS.map((it,i)=>`
+    <div class="comp-item" data-ti="${i}">
+      <div class="ci-top">
+        <span class="ord">${i+1}</span>
+        <span class="sp exchosen">${esc(wkName(it.workout_id))}${it.completed_at?' ✓':''}</span>
+        <button class="iconbtn" data-tswap="${i}" title="Changer de séance">⇄</button>
+        <button class="iconbtn" data-tup="${i}">↑</button>
+        <button class="iconbtn" data-tdown="${i}">↓</button>
+        <button class="iconbtn" data-trm="${i}" style="color:var(--warn)">✕</button>
+      </div>
+      <div class="row2">
+        <div><div class="mini">Date</div><input type="date" data-tf="scheduled_date" value="${it.scheduled_date||''}" /></div>
+        <div><div class="mini">Note au client</div><input type="text" data-tf="notes" value="${esc(it.notes||'')}" placeholder="Charge, ressenti…" /></div>
+      </div>
+    </div>`).join('');
+  box.querySelectorAll('.comp-item').forEach(el=>{
+    const i=+el.dataset.ti;
+    el.querySelectorAll('[data-tf]').forEach(inp=>{ inp.onchange=()=>{ TP_ITEMS[i][inp.dataset.tf]=inp.value; }; });
+  });
+  box.querySelectorAll('[data-tswap]').forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.tswap; tpSyncFromDom();
+    openWkPicker(wid=>{ TP_ITEMS[i].workout_id=wid; tpRenderItems(); });
+  });
+  box.querySelectorAll('[data-tup]').forEach(b=>b.onclick=()=>tpMove(+b.dataset.tup,-1));
+  box.querySelectorAll('[data-tdown]').forEach(b=>b.onclick=()=>tpMove(+b.dataset.tdown,1));
+  box.querySelectorAll('[data-trm]').forEach(b=>b.onclick=()=>{ tpSyncFromDom(); TP_ITEMS.splice(+b.dataset.trm,1); tpRenderItems(); });
+}
+function tpSyncFromDom(){
+  document.querySelectorAll('#tp-items .comp-item').forEach(el=>{
+    const i=+el.dataset.ti;
+    el.querySelectorAll('[data-tf]').forEach(inp=>{ TP_ITEMS[i][inp.dataset.tf]=inp.value; });
+  });
+}
+function tpMove(i,dir){
+  tpSyncFromDom();
+  const j=i+dir; if(j<0||j>=TP_ITEMS.length) return;
+  [TP_ITEMS[i],TP_ITEMS[j]]=[TP_ITEMS[j],TP_ITEMS[i]];
+  tpRenderItems();
+}
+/* Construire une semaine puis la répéter est le geste le plus courant d'un
+   coach. On recopie les séances datées en ajoutant 7 jours. */
+function tpDuplicateWeek(){
+  tpSyncFromDom();
+  const dated=TP_ITEMS.filter(x=>x.scheduled_date);
+  if(!dated.length){ setMsg('tp-msg','Donne d\'abord une date aux séances à répéter.','err'); return; }
+  dated.forEach(x=>{
+    const d=new Date(x.scheduled_date+'T12:00:00'); d.setDate(d.getDate()+7);
+    TP_ITEMS.push({ workout_id:x.workout_id, scheduled_date:d.toLocaleDateString('sv-SE'), notes:x.notes, completed_at:null });
+  });
+  setMsg('tp-msg','','');
+  tpRenderItems();
+}
+async function tpSave(){
+  tpSyncFromDom();
+  const title=$('#tp-title').value.trim();
+  if(!title){ setMsg('tp-msg','Donne un titre au programme.','err'); return; }
+  setBtn('#tp-save',true,'Enregistrement…');
+  const up = await sb.rpc('coach_upsert_plan',{
+    p_id:TP_CUR, p_client:TP_CID, p_title_fr:title, p_title_en:null, p_title_nl:null,
+    p_summary_fr:$('#tp-sum').value.trim()||null,
+    p_start_date:$('#tp-start').value||null, p_status:$('#tp-status').value
+  });
+  if(up.error){ setBtn('#tp-save',false,'Enregistrer'); setMsg('tp-msg','Échec : '+up.error.message,'err'); return; }
+  TP_CUR = up.data;
+  const items = TP_ITEMS.filter(x=>x.workout_id).map((x,i)=>({
+    workout_id:x.workout_id, scheduled_date:x.scheduled_date||null, pos:i, notes:x.notes||null
+  }));
+  const it = await sb.rpc('coach_set_plan_items',{ p_plan:TP_CUR, p_items:items });
+  setBtn('#tp-save',false,'Enregistrer');
+  if(it.error){
+    const m=it.error.message||'';
+    setMsg('tp-msg',
+      m.includes('library_requires_paid_plan') ? 'La bibliothèque Coach DM est incluse dans l\'offre Coach. Tes propres séances restent assignables.'
+      : m.includes('not_your_workout') ? 'Une séance choisie n\'est ni publiée ni à toi.'
+      : 'Échec : '+m, 'err');
+    return;
+  }
+  toast('Programme enregistré'); tpRenderList();
+}
+
+/* Choix d'une séance, par recherche — même principe que pour les exercices. */
+let WKPICK_CB=null;
+function openWkPicker(cb){
+  WKPICK_CB=cb; $('#wkp-q').value=''; renderWkResults('');
+  $('#ov-wkp').classList.add('show');
+  setTimeout(()=>$('#wkp-q').focus(),120);
+}
+function renderWkResults(q){
+  const s=(q||'').trim().toLowerCase();
+  const paid = !PLAN_INFO || PLAN_INFO.paid !== false;
+  const list = (s ? ASSIGN.filter(w=>(w.name_fr||'').toLowerCase().includes(s)) : ASSIGN).slice(0,40);
+  const box=$('#wkp-res');
+  /* Constat neutre, sans prix ni bouton d'achat : affichable tel quel sur iOS. */
+  const note = paid ? '' :
+    `<div style="padding:11px 12px;font-size:12.5px;color:var(--muted);border-bottom:1px solid var(--line)">
+       Tu assignes tes propres séances. La bibliothèque Coach DM est incluse dans l'offre Coach.
+     </div>`;
+  if(!list.length){
+    box.innerHTML = note + `<div style="padding:14px;color:var(--muted);font-size:13px">${
+      s ? 'Aucune séance pour « '+esc(q)+' ».' : 'Aucune séance disponible. Crée-la dans l\'onglet Séances.'}</div>`;
+    return;
+  }
+  box.innerHTML = note + list.map(w=>`<button type="button" data-wk="${w.id}">${esc(w.name_fr)}
+    <span class="exmeta">${esc(L_TYPE[w.type]||w.type||'')}${w.estimated_duration_min?' · '+w.estimated_duration_min+' min':''}${w.exercise_count?' · '+w.exercise_count+' exercices':''}${w.is_mine?' · à moi':''}</span></button>`).join('');
+  box.querySelectorAll('[data-wk]').forEach(b=>b.onclick=()=>{
+    if(WKPICK_CB) WKPICK_CB(b.dataset.wk);
+    $('#ov-wkp').classList.remove('show');
+  });
+}
+$('#wkp-q').oninput = e=>renderWkResults(e.target.value);
+$('#wkp-close').onclick = ()=>$('#ov-wkp').classList.remove('show');
+$('#ov-wkp').onclick = ev=>{ if(ev.target.id==='ov-wkp') $('#ov-wkp').classList.remove('show'); };
+$('#ov-tp').onclick = ev=>{ if(ev.target.id==='ov-tp') $('#ov-tp').classList.remove('show'); };
+
 /* ── Recherche d'exercice + création à la volée ─────────────────────────── */
 $('#exp-q').oninput = e=>renderExResults(e.target.value);
 $('#exp-close').onclick = ()=>$('#ov-exp').classList.remove('show');
