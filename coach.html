@@ -121,8 +121,31 @@
   .cd-name{font-weight:800;font-size:17px}
   .cd-mail{color:var(--muted);font-size:12.5px;margin-top:2px;word-break:break-all}
   .cd-pills{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px}
-  .cd-sec{margin-top:18px}
-  .cd-sec .mini{margin-bottom:8px}
+  /* ── Fiche client : couche visuelle ──────────────────────────────────────
+     La structure des sections ne change pas ; on leur donne un corps, une
+     couleur d'accent et une entrée animée. Chaque section porte --a, la teinte
+     de son domaine, pour qu'un coach repère la nutrition ou la charge sans
+     lire les titres. */
+  .cd-sec{margin-top:16px;background:var(--surface);border:1px solid var(--line);
+    border-left:3px solid var(--a,var(--brand));border-radius:0 14px 14px 0;padding:13px 14px;
+    animation:cdIn .28s ease both}
+  @keyframes cdIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+  .cd-sec:nth-of-type(2){animation-delay:.04s} .cd-sec:nth-of-type(3){animation-delay:.08s}
+  .cd-sec:nth-of-type(4){animation-delay:.12s} .cd-sec:nth-of-type(5){animation-delay:.16s}
+  .cd-sec:nth-of-type(n+6){animation-delay:.2s}
+  .cd-sec .mini{margin-bottom:9px;color:var(--a,var(--brand));letter-spacing:.5px}
+  @media (prefers-reduced-motion:reduce){ .cd-sec{animation:none} }
+
+  /* Lignes en tableau : colonnes alignées, alternance discrète, chiffres
+     tabulaires pour que les valeurs se comparent verticalement. */
+  .cd-row:nth-child(even){background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
+  .cd-row{padding-left:7px;padding-right:7px;border-radius:6px}
+  .cd-up{color:var(--ok);font-weight:700}
+  .cd-dn{color:var(--warn);font-weight:700}
+  .cd-flat{color:var(--muted);font-weight:700}
+  /* Barre de remplissage sur une ligne : lecture instantanée d'un écart à la cible. */
+  .cd-bar{height:4px;border-radius:2px;background:var(--surface-2);overflow:hidden;margin-top:5px}
+  .cd-bar i{display:block;height:100%;background:var(--a,var(--brand));transition:width .5s ease}
   .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
   .stat{background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:11px 12px}
   .stat .sv{font-weight:800;font-size:17px;font-variant-numeric:tabular-nums}
@@ -723,6 +746,17 @@ function sparkLine(vals){
   const last=pts[pts.length-1];
   return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path class="wline" d="${path}"/><circle class="wdot" cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="3.5"/></svg>`;
 }
+/* Écart signé, coloré, lisible d'un coup d'œil. Le seuil neutre évite de
+   peindre en rouge un écart de 12 kcal qui n'a aucun sens physiologique. */
+function deltaTxt(v, unit, seuil){
+  if(v==null || isNaN(v)) return '';
+  const s = seuil!=null ? seuil : 1;
+  if(Math.abs(v) <= s) return `<span class="cd-flat">=</span>`;
+  const cls = v>0 ? 'cd-up' : 'cd-dn';
+  const sign = v>0 ? '+' : '−';
+  return `<span class="${cls}">${sign}${Math.abs(Math.round(v))}${unit||''}</span>`;
+}
+
 async function openClientDetail(cid){
   $('#cd-body').innerHTML='<div class="spin"></div>';
   $('#ov-cd').classList.add('show');
@@ -759,22 +793,37 @@ async function openClientDetail(cid){
 
   /* Poids */
   if(wts.length>1){
-    h+=`<div class="cd-sec"><div class="mini">Évolution du poids (${wts.length} mesures)</div>${sparkLine(wts.map(x=>+x.weight_kg))}
+    h+=`<div class="cd-sec" style="--a:#5DCAA5"><div class="mini">Évolution du poids (${wts.length} mesures)</div>${sparkLine(wts.map(x=>+x.weight_kg))}
       <div class="cd-row"><span class="l">${dFR(firstW.logged_date)} → ${dFR(lastW.logged_date)}</span><span class="r"><b>${r1(firstW.weight_kg)} → ${r1(lastW.weight_kg)} kg</b></span></div></div>`;
   }
 
-  /* Nutrition 7j */
+  /* Nutrition 7j — chaque jour est situé par rapport à la cible, avec sa barre.
+     Un coach doit voir « il décroche le week-end » sans faire de calcul. */
   if(n7.length){
-    h+=`<div class="cd-sec"><div class="mini">Nutrition — 7 derniers jours</div>
-      ${sparkBars(n7.map(x=>+x.total_kcal||0), nt?+nt.daily_calories_kcal:0)}
-      ${n7.map(x=>`<div class="cd-row"><span class="l">${dFR(x.logged_date)}</span><span class="r"><b>${r0(x.total_kcal)} kcal</b> · P${r0(x.total_protein_g)} G${r0(x.total_carbs_g)} L${r0(x.total_fat_g)}</span></div>`).join('')}
+    const cible = nt ? +nt.daily_calories_kcal : 0;
+    const moy = Math.round(n7.reduce((s,x)=>s+(+x.total_kcal||0),0)/n7.length);
+    h+=`<div class="cd-sec" style="--a:var(--carb,#E9C767)"><div class="mini">Nutrition — 7 derniers jours</div>
+      ${sparkBars(n7.map(x=>+x.total_kcal||0), cible)}
+      ${cible?`<div class="cd-row"><span class="l">Moyenne</span><span class="r"><b>${moy} kcal</b> · cible ${r0(cible)} ${deltaTxt(moy-cible,' kcal')}</span></div>`:''}
+      ${n7.map(x=>{
+        const k=+x.total_kcal||0;
+        const pct = cible ? Math.min(100, Math.round(k/cible*100)) : 0;
+        const ecart = cible ? k-cible : null;
+        return `<div class="cd-row" style="display:block">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline">
+            <span class="l">${dFR(x.logged_date)}</span>
+            <span class="r"><b>${r0(k)} kcal</b> · P${r0(x.total_protein_g)} G${r0(x.total_carbs_g)} L${r0(x.total_fat_g)}${ecart!=null?' '+deltaTxt(ecart,''):''}</span>
+          </div>
+          ${cible?`<div class="cd-bar"><i style="width:${pct}%"></i></div>`:''}
+        </div>`;
+      }).join('')}
     </div>`;
   }
 
   /* Readiness */
   if(lci){
     const R=(v,l)=>`<div class="rating"><div class="rv">${v!=null?v+'/5':'—'}</div><div class="rl">${l}</div></div>`;
-    h+=`<div class="cd-sec"><div class="mini">Dernier check-in${lci.period_end?' · '+dFR(lci.period_end):''}</div>
+    h+=`<div class="cd-sec" style="--a:#EF9F27"><div class="mini">Dernier check-in${lci.period_end?' · '+dFR(lci.period_end):''}</div>
       <div class="ratings">${R(lci.energy_rating,'Énergie')}${R(lci.sleep_rating,'Sommeil')}${R(lci.stress_rating,'Stress')}${R(lci.soreness_rating,'Courbatures')}</div>
       ${lci.adherence_pct!=null?`<div class="cd-row"><span class="l">Adhérence au plan</span><span class="r"><b>${lci.adherence_pct}%</b></span></div>`:''}
       ${lci.client_note?`<div class="cd-row"><span class="l" style="white-space:normal;font-weight:400;color:var(--muted)">« ${esc(lci.client_note)} »</span></div>`:''}
@@ -784,7 +833,7 @@ async function openClientDetail(cid){
   /* Séances complétées */
   const ss=d.sessions||[];
   if(ss.length){
-    h+=`<div class="cd-sec"><div class="mini">Séances complétées</div>
+    h+=`<div class="cd-sec" style="--a:var(--brand)"><div class="mini">Séances complétées</div>
       ${ss.map(s=>`<div class="cd-row"><span class="l">${esc(s.name_fr||'Séance')}</span><span class="r">${dFR(s.completed_at)}${s.duration_min?' · '+s.duration_min+' min':''}${s.total_volume_kg?' · '+r0(s.total_volume_kg)+' kg':''}${s.session_rpe?' · RPE '+s.session_rpe:''}</span></div>`).join('')}
     </div>`;
   }
@@ -792,7 +841,7 @@ async function openClientDetail(cid){
   /* Charge hebdo */
   const wl=d.weekly_load||[];
   if(wl.length>1){
-    h+=`<div class="cd-sec"><div class="mini">Charge hebdomadaire (${wl.length} semaines)</div>
+    h+=`<div class="cd-sec" style="--a:#7F77DD"><div class="mini">Charge hebdomadaire (${wl.length} semaines)</div>
       ${sparkBars(wl.map(x=>+x.weekly_load_au||0))}
       <div class="cd-row"><span class="l">Semaine du ${dFR(wl[wl.length-1].week_start)}</span><span class="r"><b>${r0(wl[wl.length-1].weekly_load_au)} AU</b> · ${wl[wl.length-1].sessions_done} séance(s)</span></div>
     </div>`;
@@ -801,7 +850,7 @@ async function openClientDetail(cid){
   /* PRs */
   const prs=d.prs||[];
   if(prs.length){
-    h+=`<div class="cd-sec"><div class="mini">Records personnels</div>
+    h+=`<div class="cd-sec" style="--a:var(--gold)"><div class="mini">Records personnels</div>
       ${prs.map(x=>{
         const up = x.prev_value!=null && +x.value>+x.prev_value;
         return `<div class="cd-row"><span class="l">${esc(x.exercise_name||x.pr_key)}</span><span class="r"><b>${r1(x.value)} ${esc(x.unit||'')}</b>${up?' ↑':''} · ${dFR(x.achieved_at)}</span></div>`;
