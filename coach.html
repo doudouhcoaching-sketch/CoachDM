@@ -198,6 +198,7 @@
   <div class="page">
     <!-- CLIENTS -->
     <div class="pane active" id="pane-clients">
+      <div id="cl-dash"></div>
       <div id="cl-cap"></div>
       <button class="btn" style="margin-bottom:14px" id="cl-new">＋ Ajouter un client</button>
       <div id="cl-list"><div class="spin"></div></div>
@@ -357,6 +358,24 @@
   .bub img,.bub video{max-width:100%;max-height:320px;border-radius:12px;display:block}
   .bub .cap{padding:5px 8px 0}
   .pill.msg{background:var(--brand);color:#04120a;border:none}
+
+  /* Tableau de bord : ce qui demande une action, en un coup d'oeil */
+  .dash{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+  .dash .d{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:10px 8px;text-align:center}
+  .dash .d .dv{font-size:21px;font-weight:800;line-height:1.15;font-family:var(--font-d)}
+  .dash .d .dl{font-size:10.5px;color:var(--muted);font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
+  .dash .d.act{border-color:var(--brand)}
+  .dash .d.act .dv{color:var(--brand)}
+  /* Bandeau des places offertes : annonce l'offre gratuite sans parler d'argent,
+     donc affichable aussi dans l'app iOS. */
+  .freebar{display:flex;align-items:center;gap:10px;background:var(--brand-soft);
+    border:1px solid rgba(0,255,163,.25);border-radius:13px;padding:11px 13px;margin-bottom:12px}
+  .freebar .fb-t{flex:1;font-size:13px;color:var(--brand);font-weight:600}
+  /* Pastille de conformite : vert a jour, orange decroche, rouge decroche depuis
+     longtemps, gris invitation en attente. */
+  .cdot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none;margin-right:7px;vertical-align:1px}
+  .cdot.g{background:var(--ok)} .cdot.o{background:#D4AF37}
+  .cdot.r{background:var(--warn)} .cdot.n{background:var(--muted);opacity:.55}
   .sysline{align-self:center;max-width:90%;text-align:center;font-size:12px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:5px 13px;margin:3px 0;font-variant-numeric:tabular-nums}
   .call-row{display:flex;align-items:center;gap:10px;padding:11px 12px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;margin-top:8px}
   .call-row .cw{flex:1;min-width:0;font-weight:700;font-size:13.5px;font-variant-numeric:tabular-nums}
@@ -472,45 +491,90 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>switchTab(b.d
 let CLIST=[], CAP=null;
 const STATUS_PILL = { pending:'<span class="pill warnp">Invitation</span>', paused:'<span class="pill warnp">En pause</span>' };
 
+let DASH=null;
 async function loadClientList(){
   $('#cl-list').innerHTML='<div class="spin"></div>';
   const calls=[ sb.rpc('coach_list_clients') ];
   const CAN_COACH = (ROLE==='coach'||ROLE==='admin');
-  if(CAN_COACH) calls.push(sb.rpc('coach_my_capacity'));
+  if(CAN_COACH){ calls.push(sb.rpc('coach_my_capacity')); calls.push(sb.rpc('get_coach_dashboard')); }
   const res = await Promise.all(calls);
   const { data, error } = res[0];
   if(error){ $('#cl-list').innerHTML='<p class="empty">Erreur de chargement.</p>'; return; }
   CLIST = data||[];
-  CAP = null;
+  CAP = null; DASH = null;
   if(CAN_COACH && res[1] && res[1].data && res[1].data[0]) CAP = res[1].data[0];
+  if(CAN_COACH && res[2] && res[2].data) DASH = res[2].data;
   await loadThreads();
+  renderDash();
   renderCap();
   renderClientList();
 }
+
+/* Les quatre chiffres qui repondent a "qu'est-ce qui m'attend ce matin ?".
+   Un compteur a zero reste affiche mais en gris : l'absence d'alerte est
+   une information, et une grille qui change de taille est desagreable. */
+function renderDash(){
+  const box=$('#cl-dash'); if(!box) return;
+  if(!DASH){ box.innerHTML=''; return; }
+  const cell=(v,l)=>`<div class="d${+v>0?' act':''}"><div class="dv">${+v||0}</div><div class="dl">${l}</div></div>`;
+  box.innerHTML = `<div class="dash">
+    ${cell(DASH.active_clients,'Clients')}
+    ${cell(DASH.checkins_to_review,'Check-ins')}
+    ${cell(DASH.unread_messages,'Messages')}
+    ${cell(DASH.active_plans,'Programmes')}
+  </div>`;
+}
 const CAP_UNLIMITED = CAP => CAP && CAP.max >= 100000;
+const FREE_SLOTS = 3;
 function renderCap(){
   if(!CAP){ $('#cl-cap').innerHTML=''; return; }
   const unlimited = CAP_UNLIMITED(CAP);
   const full = !unlimited && CAP.active>=CAP.max;
+
+  /* Palier gratuit : on annonce les places offertes, jamais un prix ni un lien
+     d'achat — c'est ce qui rend ce bandeau affichable tel quel dans l'app iOS. */
+  if(!unlimited && CAP.max===FREE_SLOTS){
+    const left = Math.max(0, CAP.max - CAP.active);
+    $('#cl-cap').innerHTML = `<div class="freebar">
+      <span style="font-size:17px">🎁</span>
+      <div class="fb-t">${left>0
+        ? `Il te reste <b>${left} place${left>1?'s':''} offerte${left>1?'s':''}</b> sur ${CAP.max}`
+        : `Tes <b>${CAP.max} places offertes</b> sont utilisées`}</div>
+    </div>`;
+    return;
+  }
+
   $('#cl-cap').innerHTML = `<div class="item" style="display:flex;align-items:center;gap:10px">
     <div style="flex:1"><div class="nm">Mes clients actifs</div>
     <div class="meta">${unlimited?'Accès propriétaire · illimité':'Quota de ton offre coach'}</div></div>
     <span class="pill ${full?'no':'ok'}">${unlimited?CAP.active+' · ∞':CAP.active+' / '+CAP.max}</span></div>`;
+}
+
+/* Etat d'un client en une couleur. Le seuil est volontairement genereux :
+   7 jours sans seance n'est pas un abandon, 14 jours si. */
+function complianceDot(c){
+  if(c.link_status==='pending') return {cls:'n', label:'Invitation en attente'};
+  if(!c.last_session_at)        return {cls:'r', label:'Aucune séance'};
+  const days = Math.floor((Date.now()-new Date(c.last_session_at).getTime())/86400000);
+  if(days<=7)  return {cls:'g', label:`À jour · ${days<=1?'hier':days+' j'}`};
+  if(days<=14) return {cls:'o', label:`Décroche · ${days} j sans séance`};
+  return {cls:'r', label:`${days} j sans séance`};
 }
 function renderClientList(){
   if(!CLIST.length){ $('#cl-list').innerHTML='<p class="empty">Aucun client lié. Ajoute ton premier client.</p>'; return; }
   $('#cl-list').innerHTML = CLIST.map(c=>{
     const access = c.has_access ? '<span class="pill ok">En ordre</span>' : '<span class="pill no">Sans accès</span>';
     const st = STATUS_PILL[c.link_status]||'';
+    const dot = complianceDot(c);
     const bits=[];
-    bits.push(c.last_session_at ? `Dernière séance ${dFR(c.last_session_at)}` : 'Aucune séance');
+    bits.push(dot.label);
     bits.push(`${c.sessions_30d||0} séance(s) / 30j`);
     if(c.last_weight_kg!=null) bits.push(`${r1(c.last_weight_kg)} kg (${dFR(c.last_weight_date)})`);
     if(c.next_class_at) bits.push(`Cours ${dhFR(c.next_class_at)}`);
     const th=THREADS[c.client_id];
     const unread = th && +th.unread>0 ? `<span class="pill msg">${th.unread} non lu${+th.unread>1?'s':''}</span>` : '';
     return `<div class="item" data-cid="${c.client_id}" data-name="${esc(c.full_name||c.email||'')}" style="cursor:pointer">
-      <div class="nm">${esc(c.full_name||c.email||'—')} ${access} ${st} ${unread}</div>
+      <div class="nm"><span class="cdot ${dot.cls}" title="${esc(dot.label)}"></span>${esc(c.full_name||c.email||'—')} ${access} ${st} ${unread}</div>
       <div class="meta">${bits.map(esc).join(' · ')}</div>
       <div class="acts">
         <button class="btn subtle sm" data-open="${c.client_id}">Fiche</button>
