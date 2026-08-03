@@ -339,11 +339,16 @@
     <div class="pane" id="pane-founders">
       <div class="card" style="margin-bottom:14px">
         <h3 style="margin:0 0 4px;font-size:16px">Inviter un fondateur</h3>
-        <p class="sub" style="text-align:left;margin:0 0 12px">L'adresse doit être <b>exactement</b> celle du compte Coach DM. La personne verra le tarif fondateur à sa prochaine visite ; les autres voient le tarif public.</p>
+        <p class="sub" style="text-align:left;margin:0 0 12px">L'adresse doit être <b>exactement</b> celle du compte Coach DM. Un email part automatiquement pour annoncer le tarif — c'est le seul canal qui fonctionne sur iOS et Android, où aucun prix n'est affiché.</p>
         <div class="field"><label>Email</label><input id="fo-email" type="email" placeholder="prenom@exemple.be" /></div>
         <div class="row2">
           <div class="field"><label>Offre</label>
-            <select id="fo-kind"><option value="membre">Membre — 9,99 €/mois</option><option value="coach">Coach — tarif fondateur</option></select>
+            <!-- « coach » ouvre les DEUX tarifs fondateur coach : une seule
+                 invitation suffit, la personne choisit ensuite Coach ou Coach+. -->
+            <select id="fo-kind">
+              <option value="membre">Membre — 9,99 €/mois au lieu de 14,99 €</option>
+              <option value="coach">Coach — 29,99 € et Coach+ 44,99 €/mois</option>
+            </select>
           </div>
           <div class="field"><label>Note (facultatif)</label><input id="fo-note" type="text" placeholder="ami de la salle, ambassadeur…" /></div>
         </div>
@@ -701,18 +706,38 @@ async function loadFounders(){
   const { data, error } = await sb.rpc('admin_founder_invites');
   if(error){ box.innerHTML='<p class="empty">Erreur (accès admin requis).</p>'; return; }
   if(!data||!data.length){ box.innerHTML='<p class="empty">Aucun fondateur invité pour l\'instant.</p>'; return; }
+  const fd=d=>d?new Date(d).toLocaleDateString('fr-BE',{day:'numeric',month:'short'}):'';
   box.innerHTML = data.map(f=>{
     const st = f.claimed ? '<span class="pill ok">A pris sa place</span>'
       : (f.a_un_compte ? '<span class="pill role">Compte créé, pas encore abonné</span>'
                        : '<span class="pill no">Pas encore inscrit</span>');
-    const d = f.invited_at ? new Date(f.invited_at).toLocaleDateString('fr-BE',{day:'numeric',month:'short'}) : '';
+    /* Une invitation dont l'email n'est jamais parti est invisible pour
+       l'invité : on le signale plutôt que de le laisser croire qu'il est
+       prévenu. */
+    const mail = f.mail_sent_at
+      ? '<span class="pill ok">Prévenu ' + esc(fd(f.mail_sent_at)) + '</span>'
+      : '<span class="pill verif">Email non envoyé</span>';
+    const offre = f.kind==='coach' ? 'Coach & Coach+' : 'Membre';
     return '<div class="item">'+
-      '<div class="nm">'+esc(f.email)+' '+st+'</div>'+
-      '<div class="meta">'+esc(f.kind)+(f.note?' · '+esc(f.note):'')+' · invité '+esc(d)+'</div>'+
-      '<div class="acts"><button class="btn subtle sm" data-fodel="'+esc(f.email)+'">Retirer</button></div>'+
+      '<div class="nm">'+esc(f.email)+' '+st+' '+mail+'</div>'+
+      '<div class="meta">'+esc(offre)+(f.note?' · '+esc(f.note):'')+' · invité '+esc(fd(f.invited_at))+'</div>'+
+      '<div class="acts">'+
+        '<button class="btn subtle sm" data-fomail="'+esc(f.email)+'">'+(f.mail_sent_at?'Renvoyer l\'email':'Envoyer l\'email')+'</button>'+
+        '<button class="btn subtle sm" data-fodel="'+esc(f.email)+'">Retirer</button>'+
+      '</div>'+
     '</div>';
   }).join('');
 }
+/* Renvoi manuel : utile si la personne dit ne rien avoir reçu, ou après un
+   changement de tarif. */
+document.addEventListener('click', async (e)=>{
+  const b=e.target.closest('[data-fomail]'); if(!b) return;
+  b.disabled=true; const lbl=b.textContent; b.textContent='Envoi…';
+  const { data, error } = await sb.rpc('admin_founder_invite_resend',{ p_email:b.dataset.fomail });
+  if(error || !data || data.ok===false){ b.disabled=false; b.textContent=lbl; toast('Échec de l\'envoi'); return; }
+  toast('Email envoyé');
+  setTimeout(loadFounders, 1200);   /* laisse le temps à l'envoi de s'inscrire */
+});
 document.addEventListener('click', async (e)=>{
   const b=e.target.closest('[data-fodel]'); if(!b) return;
   if(!confirm('Retirer '+b.dataset.fodel+' de la liste fondateur ?')) return;
@@ -731,7 +756,7 @@ document.addEventListener('click', async (e)=>{
     const { error } = await sb.rpc('admin_founder_invite_add',{ p_email:email, p_kind:kind, p_note:note||null });
     b.disabled=false;
     if(error){ msg.textContent=error.message; msg.className='msg err'; return; }
-    msg.textContent='Invitation enregistrée.'; msg.className='msg ok';
+    msg.textContent='Invitation enregistrée — email d\'annonce envoyé.'; msg.className='msg ok';
     $('#fo-email').value=''; $('#fo-note').value='';
     loadFounders();
   };
