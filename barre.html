@@ -968,8 +968,12 @@ function pwRender(){
   if(!box||!PW.prices)return;
   if(IS_NATIVE){box.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center;padding:10px 4px">'+t('pw_native')+'</p>';return;}
   const left=pwSlotsLeft('membre');
-  /* Fondateur verrouille (>= 12 mois) : son tarif lui reste ouvert meme a guichet ferme. */
-  const fOpen=(left===null)||left>0||PW.canF===true;
+  /* ⚠️ Tarif fondateur NOMINATIF : réservé aux personnes invitées par email.
+     L'ancienne condition l'ouvrait dès qu'une place restait libre, donc à
+     tout le monde. Le checkout, lui, refusait (founder_can_buy_for) : un prix
+     annoncé que le paiement ne tenait pas. Seule l'invitation fait foi.
+     Un fondateur verrouillé garde son tarif : founder_can_buy_for le prévoit. */
+  const fOpen=PW.canF===true;
   const pickIv=(iv)=>{
     const ps=PW.prices.filter(p=>p.billing_interval===iv&&p.tier==='membre');
     const f=!fOpen?null:ps.find(p=>p.founder);

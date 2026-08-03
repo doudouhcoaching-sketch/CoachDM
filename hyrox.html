@@ -1471,7 +1471,14 @@ function pwRender(){
   if(!box||!PW.prices)return;
   if(IS_NATIVE){box.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center;padding:10px 4px">'+t('pw_native')+'</p>';return;}
   const left=pwSlotsLeft('membre');
-  const fOpen=(left===null)||left>0||PW.canF===true;
+  /* ⚠️ Le tarif fondateur est NOMINATIF : il n'appartient qu'aux personnes
+     que Coach DM a invitées par email. L'ancienne condition l'ouvrait dès
+     qu'une place restait libre — donc à tout le monde, puisque les places
+     n'étaient pas prises. Un visiteur voyait 9,99 €, cliquait, et le
+     checkout le refusait (founder_can_buy_for garde la caisse) : un prix
+     annoncé que le paiement ne pouvait pas tenir.
+     Seule l'invitation fait foi, comme sur tarifs.html et dans l'app. */
+  const fOpen=PW.canF===true;
   const pickIv=(iv)=>{
     const ps=PW.prices.filter(p=>p.billing_interval===iv&&p.tier==='membre');
     const f=!fOpen?null:ps.find(p=>p.founder);
