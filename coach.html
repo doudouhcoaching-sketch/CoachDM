@@ -76,6 +76,10 @@
   .pane{display:none} .pane.active{display:block}
 
   .item{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);box-shadow:var(--shadow-soft);padding:14px;margin-bottom:11px}
+  /* Accent additif (n'affecte pas .item de base, utilisé ailleurs pour les
+     clients) : une couleur par type/catégorie sur les listes séances/exercices,
+     pour repérer un ensemble d'un coup d'œil au lieu de lire chaque étiquette. */
+  .item.acc{border-left:3px solid var(--a,var(--line));border-radius:0 var(--radius-sm) var(--radius-sm) 0}
   .item .nm{font-weight:700;font-size:15px}
   .item .meta{font-size:12.5px;color:var(--muted);margin-top:3px}
   .item .acts{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
@@ -232,17 +236,27 @@
       <div class="subswitch">
         <button class="on" data-sub="wk">Séances</button>
         <button data-sub="ex">Exercices</button>
+        <button data-sub="my">Mes apports</button>
       </div>
 
       <div class="subpane active" id="sub-wk">
-        <div class="toolbar"><div class="sub" style="text-align:left;margin:0">Tes séances (visibles par tes clients).</div>
+        <div class="toolbar"><div class="sub" style="text-align:left;margin:0">Une séance = une liste d'exercices. Tu l'assignes ensuite à un client depuis sa fiche.</div>
           <button class="btn sm" id="wk-new">＋ Séance</button></div>
+        <div class="field" style="margin-bottom:11px"><input id="wk-q" type="search" autocomplete="off" placeholder="Rechercher : nom, type…" /></div>
         <div id="wk-list"><div class="spin"></div></div>
       </div>
 
       <div class="subpane" id="sub-ex">
-        <div class="toolbar"><div class="sub" style="text-align:left;margin:0">Bibliothèque (lecture seule — ajout via l'admin).</div></div>
+        <div class="toolbar"><div class="sub" style="text-align:left;margin:0">Bibliothèque commune. Ta contribution rejoint la liste après validation.</div>
+          <button class="btn sm" id="ex-new">＋ Exercice</button></div>
+        <div class="field" style="margin-bottom:11px"><input id="ex-q" type="search" autocomplete="off" placeholder="Rechercher : nom, muscle, catégorie…" /></div>
         <div id="ex-list"><div class="spin"></div></div>
+      </div>
+
+      <div class="subpane" id="sub-my">
+        <div class="toolbar"><div class="sub" style="text-align:left;margin:0">Ce que tu as ajouté à la bibliothèque commune.</div>
+          <button class="btn sm" id="my-food">＋ Aliment</button></div>
+        <div id="my-body"><div class="spin"></div></div>
       </div>
     </div>
 
@@ -395,6 +409,33 @@
   </div>
 </div>
 
+<!-- NOUVEL ALIMENT (contribution coach) -->
+<div class="overlay" id="ov-fdn">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3>Nouvel aliment</h3>
+    <p class="sub" style="text-align:left;margin:-8px 0 14px">Valeurs <b>pour 100 g</b>. Il rejoint la bibliothèque commune, Coach DM le validera.</p>
+    <div class="field"><label>Nom <span class="req">obligatoire</span></label><input id="fdn-fr" type="text" placeholder="Skyr nature" /></div>
+    <div class="field"><label>Marque (facultatif)</label><input id="fdn-brand" type="text" placeholder="Arla" /></div>
+    <div class="row2">
+      <div class="field"><label>Calories /100 g <span class="req">obligatoire</span></label><input id="fdn-kcal" type="number" inputmode="numeric" placeholder="63" /></div>
+      <div class="field"><label>Protéines (g)</label><input id="fdn-prot" inputmode="decimal" placeholder="11" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Glucides (g)</label><input id="fdn-carb" inputmode="decimal" placeholder="4" /></div>
+      <div class="field"><label>Lipides (g)</label><input id="fdn-fat" inputmode="decimal" placeholder="0.2" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Fibres (g)</label><input id="fdn-fib" inputmode="decimal" /></div>
+      <div class="field"><label>Portion type (g)</label><input id="fdn-serv" type="number" inputmode="numeric" placeholder="150" /></div>
+    </div>
+    <div id="fdn-check" class="sub" style="text-align:left;margin:2px 2px 0"></div>
+    <button class="btn" id="fdn-save" style="margin-top:14px">Créer l'aliment</button>
+    <button class="btn subtle" id="fdn-cancel" style="margin-top:9px">Annuler</button>
+    <div class="msg" id="fdn-msg"></div>
+  </div>
+</div>
+
 <!-- COMPOSITION -->
 <div class="overlay" id="ov-comp">
   <div class="sheet">
@@ -469,6 +510,19 @@
   .cdot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none;margin-right:7px;vertical-align:1px}
   .cdot.g{background:var(--ok)} .cdot.o{background:#D4AF37}
   .cdot.r{background:var(--warn)} .cdot.n{background:var(--muted);opacity:.55}
+
+  /* Guide de démarrage. Un coach qui ouvre la console pour la première fois
+     voyait un écran vide : il faut lui montrer le parcours, pas le lui faire
+     deviner. Disparaît dès qu'il a un client. */
+  .guide{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+  .guide h4{margin:0 0 3px;font-size:17px;font-family:var(--font-d)}
+  .guide .gsub{color:var(--muted);font-size:13px;margin:0 0 15px;line-height:1.5}
+  .gstep{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--line)}
+  .gstep .gn{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;
+    background:var(--brand-soft);color:var(--brand);font-weight:800;font-size:13px;font-family:var(--font-d)}
+  .gstep .gt{min-width:0;font-size:14px;line-height:1.5}
+  .gstep .gt b{display:block;font-weight:700;margin-bottom:1px}
+  .gstep .gt span{color:var(--muted);font-size:13px}
 
   /* Une langue a la fois. Six champs empiles rendaient le formulaire illisible
      alors qu'on ne remplit presque jamais les trois langues d'un coup. */
@@ -592,10 +646,17 @@ async function enter(user){
   // Console réservée aux coachs (et admin) : les membres sont renvoyés vers l'app.
   if(!prof || !['coach','admin'].includes(prof.role)){ location.replace('app.html'); return; }
   ROLE = prof.role;
+  /* Statut payant connu dès l'entrée : le gating (bibliothèque, messagerie)
+     concerne toute la console, pas seulement l'écran des programmes. */
+  try{ const { data:pi } = await sb.rpc('coach_my_plan_info'); PLAN_INFO = pi || {paid:false}; }
+  catch(e){ PLAN_INFO = {paid:false}; }
   show('app');
   switchTab('clients'); loadClientList();
   initChatLive();
 }
+/* Vrai tant qu'on ne sait pas : on n'inflige jamais un écran d'offre à un
+   coach payant à cause d'un appel réseau qui a échoué. */
+const isPaid = ()=> !PLAN_INFO || PLAN_INFO.paid !== false;
 
 /* ---- TABS ---- */
 function switchTab(t){
@@ -682,7 +743,25 @@ function complianceDot(c){
   return {cls:'r', label:`${days} j sans séance`};
 }
 function renderClientList(){
-  if(!CLIST.length){ $('#cl-list').innerHTML='<p class="empty">Aucun client lié. Ajoute ton premier client.</p>'; return; }
+  /* Premier lancement : on montre le chemin complet plutôt qu'un écran vide.
+     Le vocabulaire (séance / programme) est expliqué ici, une fois, au moment
+     où il sert — pas dans une page d'aide que personne n'ouvre. */
+  if(!CLIST.length){
+    $('#cl-list').innerHTML = `<div class="guide">
+      <h4>Par où commencer</h4>
+      <p class="gsub">Trois étapes, dans cet ordre. Compte cinq minutes pour la première.</p>
+      <div class="gstep"><div class="gn">1</div><div class="gt">
+        <b>Ajoute ton client</b>
+        <span>Bouton « Ajouter un client » au-dessus. Il reçoit une invitation par email et te retrouve dans l'app.</span></div></div>
+      <div class="gstep"><div class="gn">2</div><div class="gt">
+        <b>Compose une séance</b>
+        <span>Onglet Séances. Une séance, c'est une liste d'exercices avec séries, répétitions et repos.</span></div></div>
+      <div class="gstep"><div class="gn">3</div><div class="gt">
+        <b>Assemble son programme</b>
+        <span>Dans sa fiche. Un programme, c'est tes séances posées sur des dates. Le client les coche, tu vois sa progression.</span></div></div>
+    </div>`;
+    return;
+  }
   $('#cl-list').innerHTML = CLIST.map(c=>{
     const access = c.has_access ? '<span class="pill ok">En ordre</span>' : '<span class="pill no">Sans accès</span>';
     const st = STATUS_PILL[c.link_status]||'';
@@ -699,7 +778,7 @@ function renderClientList(){
       <div class="meta">${bits.map(esc).join(' · ')}</div>
       <div class="acts">
         <button class="btn subtle sm" data-open="${c.client_id}">Fiche</button>
-        <button class="btn subtle sm" data-chat="${c.client_id}">Messages</button>
+        <button class="btn subtle sm" data-chat="${c.client_id}">Messages${isPaid()?'':' 🔒'}</button>
         ${ROLE==='coach'?`<button class="btn danger sm" data-arch="${c.client_id}">Archiver</button>`:''}
       </div>
     </div>`;
@@ -710,7 +789,7 @@ function renderClientList(){
   document.querySelectorAll('#cl-list [data-chat]').forEach(b=>b.onclick=ev=>{
     ev.stopPropagation();
     const it=b.closest('.item');
-    openChat(b.dataset.chat, it.dataset.name);
+    openChatGated(b.dataset.chat, it.dataset.name);
   });
   document.querySelectorAll('#cl-list [data-arch]').forEach(b=>b.onclick=ev=>{
     ev.stopPropagation();
@@ -878,19 +957,57 @@ async function openClientDetail(cid){
   if(!wts.length && !n7.length && !ss.length && !prs.length && !bk.length && !lci){
     h+='<p class="empty">Pas encore de données pour ce client. Elles apparaîtront dès qu\'il utilisera l\'app.</p>';
   }
+  /* L'entraînement est le cœur du métier : il passe en haut de la fiche, avec
+     l'état réel du programme en cours, et non plus derrière un bouton en bas. */
+  h+=`<div class="cd-sec" style="--a:var(--brand)"><div class="mini">Programme d'entraînement</div>
+    <div id="cd-plan-box"><div class="spin" style="margin:14px auto"></div></div></div>`;
   h+=`<div class="cd-sec"><div class="mini">Appels vidéo</div><div id="cd-calls"><div class="spin"></div></div></div>`;
-  h+='<button class="btn" id="cd-plan" style="margin-top:18px">Programmes d\'entraînement</button>';
-  h+='<button class="btn" id="cd-macro" style="margin-top:9px">Calories & macros</button>';
+  h+='<button class="btn" id="cd-macro" style="margin-top:18px">Calories & macros</button>';
   h+='<button class="btn" id="cd-meal" style="margin-top:9px">Plans nutrition</button>';
-  h+='<button class="btn" id="cd-chat" style="margin-top:9px">Messages</button>';
+  h+=`<button class="btn${isPaid()?'':' subtle'}" id="cd-chat" style="margin-top:9px">Messages${isPaid()?'':' 🔒'}</button>`;
   h+='<button class="btn subtle" id="cd-close" style="margin-top:9px">Fermer</button>';
   $('#cd-body').innerHTML=h;
   $('#cd-close').onclick=closeCd;
-  $('#cd-chat').onclick=()=>{ closeCd(); openChat(cid, p.full_name||p.email||''); };
+  $('#cd-chat').onclick=()=>{ closeCd(); openChatGated(cid, p.full_name||p.email||''); };
   $('#cd-macro').onclick=()=>openMacro(cid, p.full_name||p.email||'', nt);
   $('#cd-meal').onclick=()=>openMealPlans(cid, p.full_name||p.email||'');
-  $('#cd-plan').onclick=()=>openTrainPlans(cid, p.full_name||p.email||'');
+  renderCdPlan(cid, p.full_name||p.email||'');
   renderCdCalls(cid);
+}
+
+/* Programme en cours du client, directement dans sa fiche : le coach voit s'il
+   en a un, où il en est, et crée/ouvre sans changer d'écran. */
+async function renderCdPlan(cid, name){
+  const box=$('#cd-plan-box'); if(!box) return;
+  let rows=[];
+  try{
+    const { data, error } = await sb.rpc('coach_list_plans',{ p_client:cid });
+    if(error) throw error;
+    rows = data||[];
+  }catch(e){
+    box.innerHTML='<p class="empty" style="padding:8px 0">Programmes indisponibles.</p>';
+    return;
+  }
+  const live = rows.filter(r=>r.status==='assigned'||r.status==='active');
+  const cur = live[0] || rows[0] || null;
+  let h='';
+  if(!cur){
+    h=`<p class="empty" style="padding:6px 0 12px">Aucun programme assigné.</p>
+       <button class="btn" id="cdp-new">＋ Créer un programme pour ${esc(name)}</button>`;
+  }else{
+    const pct = cur.item_count ? Math.round(cur.done_count/cur.item_count*100) : 0;
+    h=`<div class="cd-row"><span class="l">${esc(cur.title_fr)}</span>
+        <span class="r"><b>${cur.done_count}/${cur.item_count}</b> séances${cur.start_date?' · dès le '+dFR(cur.start_date):''}</span></div>
+       <div class="cd-bar"><i style="width:${pct}%"></i></div>
+       <div class="cd-row"><span class="l">${TP_ST[cur.status]||cur.status}</span>
+        <span class="r">${pct}% terminé${rows.length>1?' · '+rows.length+' programmes':''}</span></div>
+       <button class="btn" id="cdp-open" style="margin-top:10px">Ouvrir les programmes</button>`;
+  }
+  box.innerHTML=h;
+  /* On laisse la fiche ouverte dessous : fermer l'écran des programmes doit
+     ramener au client, pas à la liste. */
+  const nb=$('#cdp-new'); if(nb) nb.onclick=()=>openTrainPlans(cid,name);
+  const ob=$('#cdp-open'); if(ob) ob.onclick=()=>openTrainPlans(cid,name);
 }
 
 /* ---- Appels vidéo (Lot 6) : créneaux ciblés, gating Coach+ ---- */
@@ -1173,6 +1290,49 @@ async function signMedia(list){
     list.forEach(m=>{ if(m.attachment_url) m._url=map[m.attachment_url]; });
   }catch(e){}
 }
+/* Porte d'entrée unique de la messagerie. Le serveur refuse déjà l'envoi
+   (fn_msg_allowed), mais laisser un coach gratuit ouvrir un fil, écrire et se
+   faire jeter à l'envoi est une mauvaise expérience : on l'arrête avant.
+   Web : on présente l'offre. Natif : constat neutre, sans prix ni lien —
+   la vente se fait par email (Apple 3.1.1). */
+function openChatGated(cid,name){
+  if(isPaid()){ openChat(cid,name); return; }
+  openMsgUpsell();
+}
+function openMsgUpsell(){
+  let h = `<h3 style="margin:0 0 4px">Messagerie</h3>
+    <p class="sub" style="text-align:left;margin:0 0 16px">Échange avec tes clients directement dans la console : texte, photos, et vidéo avec Coach+.</p>`;
+  if(IS_NATIVE){
+    /* Strictement descriptif : aucun montant, aucun lien, aucun verbe d'action
+       vers un paiement extérieur. */
+    h += `<div class="item"><div class="meta" style="line-height:1.6">
+        La messagerie est incluse dans l'offre Coach. Ton offre actuelle couvre
+        1 client, avec tes propres programmes, les macros et le suivi.
+      </div></div>
+      <button class="btn subtle" id="up-close" style="margin-top:14px">Fermer</button>`;
+  }else{
+    h += `<div class="card" style="border-color:var(--gold)">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <div style="flex:1"><div class="nm">Coach</div>
+            <div class="meta">Messagerie · jusqu'à 20 clients · bibliothèque Coach DM incluse</div></div>
+          <div style="font-weight:800;color:var(--gold);white-space:nowrap">39,99 €<span style="font-size:12px;font-weight:600">/mois</span></div>
+        </div>
+      </div>
+      <div class="card" style="border-color:var(--brand)">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <div style="flex:1"><div class="nm">Coach+</div>
+            <div class="meta">Tout Coach · vidéo dans la messagerie · visios planifiées · 50 clients</div></div>
+          <div style="font-weight:800;color:var(--brand);white-space:nowrap">59,99 €<span style="font-size:12px;font-weight:600">/mois</span></div>
+        </div>
+      </div>
+      <p class="sub" style="text-align:left;margin:10px 0 0">Sans engagement, résiliable en un clic.</p>
+      <a class="btn" href="https://coachdm.be/tarifs.html" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:14px">Activer la messagerie</a>
+      <button class="btn subtle" id="up-close" style="margin-top:9px">Plus tard</button>`;
+  }
+  $('#up-body').innerHTML=h;
+  $('#up-close').onclick=()=>$('#ov-up').classList.remove('show');
+  $('#ov-up').classList.add('show');
+}
 async function openChat(cid,name){
   CHAT_PEER=cid;
   $('#ch-name').textContent=name||'Messages';
@@ -1196,7 +1356,9 @@ async function sendMsg(){
   $('#ch-in').value='';
   const { data, error } = await sb.rpc('msg_send',{ p_peer:CHAT_PEER, p_body:txt });
   if(error||!data?.ok){
-    toast(data?.reason==='no_link' ? 'Client non assigné — assigne-le via la Console Admin' : "Échec de l'envoi");
+    toast(data?.reason==='no_link' ? 'Client non assigné — assigne-le via la Console Admin'
+      : data?.reason==='messaging_requires_paid_plan' ? 'La messagerie est incluse dans l\'offre Coach.'
+      : "Échec de l'envoi");
     $('#ch-in').value=txt; return;
   }
   const body=$('#ch-body'); const e=body.querySelector('.empty'); if(e) e.remove();
@@ -1232,6 +1394,7 @@ $('#ch-file').onchange=async ev=>{
   if(error||!data?.ok){
     toast(data?.reason==='video_requires_plus' ? "Les vidéos nécessitent l'offre Coach+."
       : data?.reason==='no_link' ? 'Client non assigné — assigne-le via la Console Admin'
+      : data?.reason==='messaging_requires_paid_plan' ? 'La messagerie est incluse dans l\'offre Coach.'
       : "Échec de l'envoi");
     return;
   }
@@ -1402,44 +1565,173 @@ document.querySelectorAll('.subswitch [data-sub]').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#pane-workouts .subpane').forEach(p=>p.classList.remove('active'));
   $('#sub-'+b.dataset.sub).classList.add('active');
   document.querySelectorAll('.subswitch [data-sub]').forEach(x=>x.classList.toggle('on',x===b));
+  if(b.dataset.sub==='my') loadMyContrib();
 });
 
-/* ---- EXERCICES : bibliothèque (lecture seule) ---- */
-let EXS=[];
+/* ── Mes apports ─────────────────────────────────────────────────────────
+   Le coach enrichit la bibliothèque commune (exercices, aliments). Il voit
+   ici ce qu'il a proposé et où ça en est. La suppression reste réservée à
+   l'admin : un apport validé sert à tout le monde, il ne doit pas pouvoir
+   disparaître sur un clic. */
+async function loadMyContrib(){
+  const box=$('#my-body'); if(!box) return;
+  box.innerHTML='<div class="spin"></div>';
+  let d=null;
+  try{
+    const { data, error } = await sb.rpc('coach_my_contributions');
+    if(error) throw error;
+    d=data||{};
+  }catch(e){ box.innerHTML='<p class="empty">Chargement impossible.</p>'; return; }
+  const exs=d.exercises||[], fds=d.foods||[];
+  if(!exs.length && !fds.length){
+    box.innerHTML=`<div class="item"><div class="meta" style="line-height:1.6">
+      Tu n'as encore rien ajouté. Un exercice qui te manque ou un aliment que
+      tes clients mangent souvent ? Ajoute-le : il te sert tout de suite, et
+      rejoint la bibliothèque commune une fois validé.</div></div>`;
+    return;
+  }
+  let h='';
+  if(exs.length){
+    h+=`<div class="mini" style="margin:2px 0 7px">Exercices · ${exs.length}</div>`;
+    h+=exs.map(e=>`<div class="item acc" style="--a:${accentFor('ex')}">
+      <div class="nm">${esc(e.name_fr)} ${e.is_published?'<span class="pill ok">Validé</span>':'<span class="pill warnp">En attente</span>'}${e.video_url?' <span class="pill vid">Vidéo</span>':''}</div>
+      <div class="meta">Proposé le ${dFR(e.created_at)}</div></div>`).join('');
+  }
+  if(fds.length){
+    h+=`<div class="mini" style="margin:14px 0 7px">Aliments · ${fds.length}</div>`;
+    h+=fds.map(f=>`<div class="item acc" style="--a:${accentFor('food')}">
+      <div class="nm">${esc(f.name_fr)} ${f.is_verified?'<span class="pill ok">Validé</span>':'<span class="pill warnp">En attente</span>'}</div>
+      <div class="meta">${f.brand?esc(f.brand)+' · ':''}Proposé le ${dFR(f.created_at)}</div></div>`).join('');
+  }
+  h+=`<p class="sub" style="text-align:left;margin:14px 2px 0">Un apport en attente est déjà utilisable par toi. Seul Coach DM peut le retirer.</p>`;
+  box.innerHTML=h;
+}
+
+/* Création d'un aliment. Le contrôle de cohérence évite l'erreur de saisie
+   la plus fréquente : des macros qui ne correspondent pas aux calories
+   annoncées (P·4 + G·4 + L·9). On avertit sans bloquer — un aliment réel
+   peut légèrement s'écarter (alcool, polyols, arrondis d'étiquette). */
+$('#my-food').onclick = ()=>{
+  ['fdn-fr','fdn-brand','fdn-kcal','fdn-prot','fdn-carb','fdn-fat','fdn-fib','fdn-serv'].forEach(id=>{ const el=$('#'+id); if(el) el.value=''; });
+  $('#fdn-check').textContent=''; setMsg('fdn-msg','','');
+  $('#ov-fdn').classList.add('show');
+};
+$('#fdn-cancel').onclick = ()=>$('#ov-fdn').classList.remove('show');
+$('#ov-fdn').onclick = ev=>{ if(ev.target.id==='ov-fdn') $('#ov-fdn').classList.remove('show'); };
+function fdnCheck(){
+  const k=numOrNull($('#fdn-kcal').value), p=numOrNull($('#fdn-prot').value)||0,
+        c=numOrNull($('#fdn-carb').value)||0, f=numOrNull($('#fdn-fat').value)||0;
+  const el=$('#fdn-check');
+  if(k==null || (!p&&!c&&!f)){ el.textContent=''; el.style.color=''; return; }
+  const calc=Math.round(p*4+c*4+f*9), ecart=Math.abs(calc-k);
+  if(ecart<=Math.max(12, k*0.12)){ el.textContent=`Macros cohérentes (~${calc} kcal).`; el.style.color='var(--ok)'; }
+  else { el.textContent=`Attention : tes macros donnent ~${calc} kcal, tu as saisi ${k}. Vérifie l'étiquette.`; el.style.color='var(--amber)'; }
+}
+['fdn-kcal','fdn-prot','fdn-carb','fdn-fat'].forEach(id=>{ const el=$('#'+id); if(el) el.oninput=fdnCheck; });
+$('#fdn-save').onclick = async ()=>{
+  const nm=$('#fdn-fr').value.trim();
+  if(nm.length<2){ setMsg('fdn-msg','Donne un nom à l\'aliment.','err'); return; }
+  const kcal=numOrNull($('#fdn-kcal').value);
+  if(kcal===null||kcal<0||kcal>950){ setMsg('fdn-msg','Calories pour 100 g : entre 0 et 950.','err'); return; }
+  setBtn('#fdn-save',true,'Création…');
+  const { data, error } = await sb.rpc('coach_add_food',{
+    p_name_fr:nm, p_kcal:kcal,
+    p_protein:numOrNull($('#fdn-prot').value), p_carbs:numOrNull($('#fdn-carb').value),
+    p_fat:numOrNull($('#fdn-fat').value), p_fiber:numOrNull($('#fdn-fib').value),
+    p_brand:$('#fdn-brand').value.trim()||null, p_serving_g:numOrNull($('#fdn-serv').value)
+  });
+  setBtn('#fdn-save',false,'Créer l\'aliment');
+  if(error||!data||data.ok===false){
+    const r=(data&&data.reason)||'';
+    setMsg('fdn-msg', r==='barcode_exists' ? 'Cet aliment existe déjà.'
+      : r==='bad_kcal' ? 'Calories invalides pour 100 g (0 à 950).'
+      : r==='name_too_short' ? 'Nom trop court.'
+      : r==='inappropriate' ? 'Ce nom a été refusé. Utilise le nom réel de l\'aliment.'
+      : r==='bad_macro' ? 'Un macro ne peut pas dépasser 100 g pour 100 g de produit.'
+      : r==='macro_sum' ? 'Protéines + glucides + lipides dépassent 100 g pour 100 g. Vérifie l\'étiquette.'
+      : r==='kcal_mismatch' ? `Tes macros donnent ~${(data&&data.computed)||'?'} kcal, tu as saisi ${kcal}. Corrige l'un ou l'autre.`
+      : 'Échec : '+((error&&error.message)||r), 'err');
+    return;
+  }
+  $('#ov-fdn').classList.remove('show');
+  toast('Aliment créé — en attente de validation');
+  loadMyContrib();
+};
+
+/* Palette d'accents dérivée du nom (type/catégorie) : pas de table à
+   entretenir manuellement, une couleur stable par valeur. */
+const ACCENTS=['#00FFA3','#E9C767','#7F77DD','#0ea5e9','#FF8A66','#5DCAA5','#D46FB0','#F2B84B'];
+function accentFor(key){ let h=0; const s=String(key||''); for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return ACCENTS[h%ACCENTS.length]; }
+
+/* ---- EXERCICES : bibliothèque commune (le coach peut y contribuer) ---- */
+let EXS=[], EX_Q='';
 async function loadExercises(){
   $('#ex-list').innerHTML='<div class="spin"></div>';
   const { data, error } = await sb.rpc('admin_list_exercises');
   if(error){ $('#ex-list').innerHTML='<p class="empty">Erreur de chargement.</p>'; return; }
   EXS = data||[];
+  renderExList();
+}
+function renderExList(){
   if(!EXS.length){ $('#ex-list').innerHTML='<p class="empty">Aucun exercice.</p>'; return; }
-  $('#ex-list').innerHTML = EXS.map(e=>{
+  const q=EX_Q.trim().toLowerCase();
+  const list = q ? EXS.filter(e=>{
+    const cat=L_CAT[e.category]||e.category||'', mus=L_MUS[e.primary_muscle]||e.primary_muscle||'';
+    return (e.name_fr||'').toLowerCase().includes(q) || cat.toLowerCase().includes(q) || mus.toLowerCase().includes(q);
+  }) : EXS;
+  if(!list.length){ $('#ex-list').innerHTML=`<p class="empty">Aucun exercice pour « ${esc(EX_Q)} ».</p>`; return; }
+  $('#ex-list').innerHTML = list.map(e=>{
     const vid = e.video_url?'<span class="pill vid">Vidéo</span>':'';
     const cat = L_CAT[e.category]||e.category, mus = L_MUS[e.primary_muscle]||e.primary_muscle, eq = L_EQUIP[e.equipment]||e.equipment;
-    return `<div class="item" style="opacity:.85">
+    return `<div class="item acc" style="--a:${accentFor(e.category)}">
       <div class="nm">${esc(e.name_fr)} ${vid}</div>
       <div class="meta">${esc(cat)} · ${esc(mus)} · ${esc(eq)}</div>
     </div>`;
   }).join('');
 }
+$('#ex-q').oninput = e=>{ EX_Q=e.target.value; renderExList(); };
+/* Entrée directe depuis l'onglet Bibliothèque : même sheet de création que
+   celle ouverte depuis le composeur de séance, sans callback à invoquer. */
+$('#ex-new').onclick = ()=>{
+  /* EXPICK_CB peut porter le callback d'une composition de séance ouverte
+     plus tôt dans la session : on l'annule pour ne pas réinjecter cet
+     exercice dans une séance qui n'est plus à l'écran. */
+  EXPICK_CB=null;
+  fillSelect('exn-cat',L_CAT); fillSelect('exn-mus',L_MUS);
+  fillSelect('exn-equip',L_EQUIP); fillSelect('exn-diff',L_DIFF);
+  $('#exn-fr').value=''; $('#exn-video').value=''; $('#exn-cue').value='';
+  setMsg('exn-msg','','');
+  $('#ov-exn').classList.add('show');
+};
 
 /* ---- SÉANCES : liste (scopées created_by côté serveur) ---- */
-let WKS=[];
+let WKS=[], WK_Q='';
 async function loadWorkouts(){
   $('#wk-list').innerHTML='<div class="spin"></div>';
   const { data, error } = await sb.rpc('admin_list_workouts');
   if(error){ $('#wk-list').innerHTML='<p class="empty">Erreur de chargement.</p>'; return; }
   WKS = data||[];
+  renderWkList();
+}
+function renderWkList(){
   if(!WKS.length){ $('#wk-list').innerHTML='<p class="empty">Aucune séance. Crée ta première séance.</p>'; return; }
-  $('#wk-list').innerHTML = WKS.map(w=>{
+  const q=WK_Q.trim().toLowerCase();
+  const list = q ? WKS.filter(w=>{
+    const t=L_TYPE[w.type]||w.type||'';
+    return (w.name_fr||'').toLowerCase().includes(q) || t.toLowerCase().includes(q);
+  }) : WKS;
+  if(!list.length){ $('#wk-list').innerHTML=`<p class="empty">Aucune séance pour « ${esc(WK_Q)} ».</p>`; return; }
+  $('#wk-list').innerHTML = list.map(w=>{
     const pub = w.is_published?'<span class="pill ok">Publiée</span>':'<span class="pill no">Brouillon</span>';
     const t=L_TYPE[w.type]||w.type, d=L_DIFF[w.difficulty]||w.difficulty;
-    return `<div class="item" data-wk="${w.id}" style="cursor:pointer">
+    return `<div class="item acc" data-wk="${w.id}" style="--a:${accentFor(w.type)};cursor:pointer">
       <div class="nm">${esc(w.name_fr)} ${pub}</div>
       <div class="meta">${esc(t)} · ${esc(d)} · ${w.exercise_count||0} exercice(s)${w.estimated_duration_min?` · ${w.estimated_duration_min} min`:''}</div>
     </div>`;
   }).join('');
   document.querySelectorAll('#wk-list .item').forEach(el=>el.onclick=()=>openWkEditor(el.dataset.wk));
 }
+$('#wk-q').oninput = e=>{ WK_Q=e.target.value; renderWkList(); };
 $('#wk-new').onclick = ()=>openWkEditor(null);
 
 let WKEDIT=null;
@@ -1662,7 +1954,10 @@ async function tpRenderList(){
   TP_LIST=data||[];
   let h=`<h3 style="margin:0 0 2px">Programmes d'entraînement</h3>
     <p class="sub" style="text-align:left;margin:0 0 14px">${esc(TP_NAME)}</p>`;
-  if(!TP_LIST.length) h+='<p class="empty" style="padding:16px 0">Aucun programme. Crée le premier.</p>';
+  if(!TP_LIST.length) h+=`<div class="item"><div class="meta" style="line-height:1.6">
+      Un programme, c'est une suite de séances posées sur des dates. Ton client
+      les voit dans son app, les coche quand il les a faites, et tu suis sa
+      progression ici.</div></div>`;
   else h+=TP_LIST.map(p=>{
     const pct = p.item_count ? Math.round(p.done_count/p.item_count*100) : 0;
     return `<div class="card">
@@ -1675,6 +1970,7 @@ async function tpRenderList(){
       </div>
       ${p.item_count?`<div style="height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden;margin-top:9px">
         <div style="width:${pct}%;height:100%;background:var(--ok)"></div></div>`:''}
+      <button class="btn subtle sm" data-tpdup="${p.id}" style="width:auto;margin-top:9px">⧉ Réutiliser pour un autre client</button>
     </div>`;
   }).join('');
   h+='<button class="btn" id="tp-new" style="margin-top:14px">＋ Nouveau programme</button>';
@@ -1683,6 +1979,42 @@ async function tpRenderList(){
   $('#tp-close').onclick=()=>$('#ov-tp').classList.remove('show');
   $('#tp-new').onclick=()=>tpEdit(null);
   $('#tp-body').querySelectorAll('[data-tpe]').forEach(b=>b.onclick=()=>tpEdit(b.dataset.tpe));
+  $('#tp-body').querySelectorAll('[data-tpdup]').forEach(b=>b.onclick=()=>tpDupPrompt(b.dataset.tpdup));
+}
+
+/* Réutilisation d'un programme : coach_duplicate_plan (déjà en place côté
+   serveur, jamais branché côté interface) copie le programme ET ses séances
+   vers un autre client (ou le même, pour un nouveau bloc), dates décalées
+   automatiquement. Évite de reconstruire le même programme à la main pour
+   chaque client — le point le plus lourd du constructeur. */
+function tpDupPrompt(planId){
+  const plan = TP_LIST.find(p=>p.id===planId);
+  if(!plan) return;
+  const opts = CLIST.map(c=>`<option value="${c.client_id}"${c.client_id===TP_CID?' selected':''}>${esc(c.full_name||c.email||'—')}${c.client_id===TP_CID?' (ce client)':''}</option>`).join('');
+  const h=`<h3 style="margin:0 0 6px">Réutiliser « ${esc(plan.title_fr)} »</h3>
+    <p class="sub" style="text-align:left;margin:0 0 14px">Crée une copie en brouillon de ce programme et de toutes ses séances, pour le client choisi, dates décalées automatiquement.</p>
+    <div class="field"><label>Client</label><select id="tpd-client">${opts}</select></div>
+    <div class="field"><label>Nouvelle date de début</label><input id="tpd-start" type="date" value="${plan.start_date||''}" /></div>
+    <button class="btn" id="tpd-go">Créer la copie</button>
+    <button class="btn subtle" id="tpd-back" style="margin-top:9px">Retour</button>
+    <div class="msg" id="tpd-msg"></div>`;
+  $('#tp-body').innerHTML=h;
+  $('#tpd-back').onclick=tpRenderList;
+  $('#tpd-go').onclick=async ()=>{
+    const cid=$('#tpd-client').value;
+    if(!cid){ setMsg('tpd-msg','Choisis un client.','err'); return; }
+    setBtn('#tpd-go',true,'Création…');
+    const { data, error } = await sb.rpc('coach_duplicate_plan',{ p_id:planId, p_client:cid, p_start_date:$('#tpd-start').value||null });
+    setBtn('#tpd-go',false,'Créer la copie');
+    if(error){ setMsg('tpd-msg','Échec : '+error.message,'err'); return; }
+    const cName = (CLIST.find(c=>c.client_id===cid)||{}).full_name || 'ce client';
+    /* On reste sur la liste du client courant : la nouvelle copie appartient au
+       client choisi dans le picker (potentiellement un autre) et TP_CID/ASSIGN
+       ne correspondent qu'au client actuellement ouvert. L'ouvrir ici afficherait
+       un contexte incohérent — le coach la retrouve dans la fiche du bon client. */
+    toast(cid===TP_CID ? 'Copie créée en brouillon.' : 'Copie créée en brouillon pour '+cName+'.');
+    tpRenderList();
+  };
 }
 
 async function tpEdit(id){
@@ -1712,6 +2044,7 @@ async function tpEdit(id){
     <div class="mini" style="margin:14px 0 6px">Séances du programme</div>
     <div id="tp-items"></div>
     <button class="btn subtle" id="tp-add" style="margin-top:4px">＋ Ajouter une séance</button>
+    ${TP_ITEMS.length?'<button class="btn subtle" id="tp-auto" style="margin-top:9px">📅 Dater auto (1×/semaine depuis le début)</button>':''}
     ${TP_ITEMS.length?'<button class="btn subtle" id="tp-week" style="margin-top:9px">⧉ Dupliquer en décalant de 7 jours</button>':''}
     <button class="btn" id="tp-save" style="margin-top:14px">Enregistrer</button>
     ${id?'<button class="btn danger" id="tp-del" style="margin-top:9px">Supprimer</button>':''}
@@ -1723,6 +2056,19 @@ async function tpEdit(id){
   $('#tp-add').onclick=()=>{
     tpSyncFromDom();
     openWkPicker(wid=>{ TP_ITEMS.push({workout_id:wid, scheduled_date:'', notes:'', completed_at:null}); tpRenderItems(); });
+  };
+  /* Dater à la main chaque séance est le geste le plus répétitif du
+     constructeur. Un rythme hebdomadaire depuis le début couvre le cas
+     courant ; le coach garde la main pour corriger au cas par cas ensuite. */
+  const auto=$('#tp-auto'); if(auto) auto.onclick=()=>{
+    tpSyncFromDom();
+    const start=$('#tp-start').value;
+    if(!start){ setMsg('tp-msg','Choisis d\'abord une date de début.','err'); return; }
+    if(TP_ITEMS.some(x=>x.scheduled_date) && !confirm('Remplacer les dates déjà saisies par un rythme d\'une séance par semaine ?')) return;
+    const d0=new Date(start+'T12:00:00');
+    TP_ITEMS.forEach((it,i)=>{ const d=new Date(d0); d.setDate(d.getDate()+i*7); it.scheduled_date=d.toLocaleDateString('sv-SE'); });
+    setMsg('tp-msg','','');
+    tpRenderItems();
   };
   const wk=$('#tp-week'); if(wk) wk.onclick=tpDuplicateWeek;
   $('#tp-save').onclick=tpSave;
@@ -1878,7 +2224,12 @@ $('#exn-save').onclick = async ()=>{
   });
   setBtn('#exn-save',false,'Créer et l\'utiliser');
   if(error||!data||data.ok===false){
-    setMsg('exn-msg','Échec : '+((data&&data.reason)||(error&&error.message)||''),'err'); return;
+    const r=(data&&data.reason)||'';
+    setMsg('exn-msg', r==='inappropriate' ? 'Ce nom a été refusé. Utilise le nom réel de l\'exercice.'
+      : r==='bad_video_url' ? 'Le lien vidéo doit commencer par http:// ou https://.'
+      : r==='name_too_short' ? 'Nom trop court.'
+      : 'Échec : '+(r||(error&&error.message)||''), 'err');
+    return;
   }
   await loadExercises();                       /* la bibliothèque contient le nouvel exercice */
   $('#ov-exn').classList.remove('show');

@@ -121,6 +121,27 @@
   .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:13px;font-size:13px;font-weight:600;box-shadow:var(--shadow);z-index:90;opacity:0;transition:opacity .2s;pointer-events:none}
   .toast.show{opacity:1}
 
+  /* ===== Apports coach (modération) ===== */
+  #pane-apports .asub{display:flex;gap:8px;margin-bottom:14px}
+  #pane-apports .asub button{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-weight:700;font-size:14px}
+  #pane-apports .asub button.on{background:var(--brand);color:#04120a;border-color:var(--brand)}
+  /* Pastille de comptage sur l'onglet : ce qui attend une décision se voit
+     sans ouvrir la page. */
+  #ap-badge{display:none;margin-left:6px;background:var(--warn);color:#fff;border-radius:999px;
+    padding:1px 7px;font-size:11px;font-weight:800;vertical-align:1px}
+  #ap-badge.on{display:inline-block}
+  .tabs button.on #ap-badge{background:#04120a;color:var(--brand)}
+  /* Un apport en attente est bordé d'ambre : l'oeil va droit à ce qui reste
+     à trancher, même dans la vue « Tout ». */
+  .ap-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:11px}
+  .ap-card.pending{border-color:rgba(212,175,55,.55);background:linear-gradient(180deg,rgba(212,175,55,.05),transparent)}
+  .ap-card .nm{font-weight:700;font-size:15px}
+  .ap-card .who{font-size:12px;color:var(--muted);margin-top:3px}
+  .ap-vals{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+  .ap-vals span{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;
+    padding:3px 8px;font-size:12px;font-variant-numeric:tabular-nums}
+  .ap-acts{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap}
+
   /* ===== Cours (console coach) ===== */
   #pane-cours .csub{display:flex;gap:8px;margin-bottom:14px}
   #pane-cours .csub button{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-weight:700;font-size:14px}
@@ -215,6 +236,7 @@
     </div>
     <div class="tabs">
       <button class="on" data-tab="members">Membres</button>
+      <button data-tab="apports">Apports<span id="ap-badge"></span></button>
       <button data-tab="workouts">Séances</button>
       <button data-tab="foods">Aliments</button>
       <button data-tab="cours">Cours</button>
@@ -268,6 +290,17 @@
         <button class="btn sm" id="f-new">＋ Nouvel aliment</button>
       </div>
       <div id="f-list"><p class="empty">Cherche un aliment ou ajoute-en un.</p></div>
+    </div>
+
+    <!-- APPORTS COACH — tout ce que les coachs et les membres ajoutent à la
+         bibliothèque commune arrive ici. Rien n'est visible par les autres
+         tant que ce n'est pas validé ; la suppression n'existe qu'ici. -->
+    <div class="pane" id="pane-apports">
+      <div class="asub">
+        <button class="on" data-av="pending">En attente</button>
+        <button data-av="all">Tout</button>
+      </div>
+      <div id="ap-body"><div class="spin"></div></div>
     </div>
 
     <div class="pane" id="pane-cours">
@@ -514,6 +547,9 @@ async function enter(user){
   applyRoleUI();
   show('app');
   switchTab('members'); loadUsers(); loadNotifs();
+  /* Compte des apports en attente dès l'ouverture : la pastille sur l'onglet
+     doit être visible sans avoir à cliquer dessus. */
+  loadApports();
 }
 function applyRoleUI(){
   const coach = ROLE==='coach';
@@ -535,7 +571,120 @@ function switchTab(t){
   if(t==='cours' && window.__coursOpen){ window.__coursOpen(); }
   if(t==='prospects'){ loadProspects(); }
   if(t==='founders'){ loadFounders(); }
+  if(t==='apports'){ loadApports(); }
 }
+
+/* ===================================================================
+   APPORTS COACH — modération
+   Les coachs enrichissent la bibliothèque commune, ils ne la vident pas :
+   la suppression n'existe que sur cette page. Un apport reste invisible
+   pour les autres tant qu'il n'est pas validé ici.
+=================================================================== */
+let AP_DATA=null, AP_VIEW='pending';
+async function loadApports(){
+  const box=$('#ap-body'); if(!box) return;
+  box.innerHTML='<div class="spin"></div>';
+  try{
+    const { data, error } = await sb.rpc('admin_list_contributions');
+    if(error) throw error;
+    AP_DATA = data || {exercises:[],foods:[],pending:{exercises:0,foods:0}};
+  }catch(e){ box.innerHTML='<p class="empty">Chargement impossible.</p>'; return; }
+  renderApBadge();
+  renderApports();
+}
+function renderApBadge(){
+  const b=$('#ap-badge'); if(!b||!AP_DATA) return;
+  const p=AP_DATA.pending||{};
+  const n=(+p.exercises||0)+(+p.foods||0);
+  b.textContent = n>99 ? '99+' : String(n);
+  b.classList.toggle('on', n>0);
+}
+function apEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function apDate(d){ return d ? new Date(d).toLocaleDateString('fr-BE',{day:'numeric',month:'short',year:'numeric'}) : '—'; }
+function renderApports(){
+  const box=$('#ap-body'); if(!box||!AP_DATA) return;
+  const pendingOnly = AP_VIEW==='pending';
+  const exs=(AP_DATA.exercises||[]).filter(e=>pendingOnly ? !e.is_published : true);
+  const fds=(AP_DATA.foods||[]).filter(f=>pendingOnly ? !f.is_verified : true);
+
+  if(!exs.length && !fds.length){
+    box.innerHTML = pendingOnly
+      ? '<p class="empty">Rien en attente. Tout est traité.</p>'
+      : '<p class="empty">Aucun apport pour le moment.</p>';
+    return;
+  }
+  let h='';
+  if(fds.length){
+    h+=`<div class="mini" style="margin:2px 0 8px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Aliments · ${fds.length}</div>`;
+    h+=fds.map(f=>{
+      const kcal=+f.kcal_per_100g||0, p=+f.protein_per_100g||0, c=+f.carbs_per_100g||0, g=+f.fat_per_100g||0;
+      /* On recalcule les calories à partir des macros : un écart énorme
+         trahit une saisie fantaisiste que le filtre n'aurait pas attrapée. */
+      const calc=Math.round(p*4+c*4+g*9);
+      const suspect = (p||c||g) && Math.abs(calc-kcal) > Math.max(60, kcal*0.3);
+      return `<div class="ap-card${f.is_verified?'':' pending'}">
+        <div class="nm">${apEsc(f.name_fr)}${f.brand?' <span style="color:var(--muted);font-weight:400">· '+apEsc(f.brand)+'</span>':''}
+          ${f.is_verified?'<span class="pill ok">Validé</span>':'<span class="pill verif">En attente</span>'}
+          ${suspect?'<span class="pill no">Valeurs douteuses</span>':''}</div>
+        <div class="who">${apEsc(f.author_name||f.author_email||'—')} · ${apDate(f.created_at)}</div>
+        <div class="ap-vals">
+          <span><b>${Math.round(kcal)}</b> kcal/100g</span>
+          <span>P ${p}</span><span>G ${c}</span><span>L ${g}</span>
+          ${f.fiber_per_100g!=null?`<span>Fibres ${f.fiber_per_100g}</span>`:''}
+          ${f.default_serving_g?`<span>Portion ${f.default_serving_g} g</span>`:''}
+          ${suspect?`<span style="color:var(--warn)">macros ≈ ${calc} kcal</span>`:''}
+        </div>
+        <div class="ap-acts">
+          ${f.is_verified?'':`<button class="btn sm" data-apf-ok="${f.id}">Valider</button>`}
+          <button class="btn danger sm" data-apf-no="${f.id}">Supprimer</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  if(exs.length){
+    h+=`<div class="mini" style="margin:16px 0 8px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Exercices · ${exs.length}</div>`;
+    h+=exs.map(e=>`<div class="ap-card${e.is_published?'':' pending'}">
+        <div class="nm">${apEsc(e.name_fr)}
+          ${e.is_published?'<span class="pill ok">Validé</span>':'<span class="pill verif">En attente</span>'}</div>
+        <div class="who">${apEsc(e.author_name||e.author_email||'—')} · ${apDate(e.created_at)}</div>
+        <div class="ap-vals">
+          <span>${apEsc(e.category||'')}</span><span>${apEsc(e.primary_muscle||'')}</span>
+          <span>${apEsc(e.equipment||'')}</span><span>${apEsc(e.difficulty||'')}</span>
+        </div>
+        ${e.cue_fr?`<div class="who" style="margin-top:7px">« ${apEsc(e.cue_fr)} »</div>`:''}
+        ${e.video_url?`<div style="margin-top:7px"><a href="${apEsc(e.video_url)}" target="_blank" rel="noopener" style="color:var(--brand);font-size:12.5px">Voir la vidéo proposée</a></div>`:''}
+        <div class="ap-acts">
+          ${e.is_published?'':`<button class="btn sm" data-ape-ok="${e.id}">Valider</button>`}
+          <button class="btn danger sm" data-ape-no="${e.id}">Supprimer</button>
+        </div>
+      </div>`).join('');
+  }
+  box.innerHTML=h;
+  box.querySelectorAll('[data-apf-ok]').forEach(b=>b.onclick=()=>apReview('food',b.dataset.apfOk,true));
+  box.querySelectorAll('[data-apf-no]').forEach(b=>b.onclick=()=>apReview('food',b.dataset.apfNo,false));
+  box.querySelectorAll('[data-ape-ok]').forEach(b=>b.onclick=()=>apReview('exercise',b.dataset.apeOk,true));
+  box.querySelectorAll('[data-ape-no]').forEach(b=>b.onclick=()=>apReview('exercise',b.dataset.apeNo,false));
+}
+async function apReview(kind,id,approve){
+  if(!approve && !confirm('Supprimer définitivement cet apport ?')) return;
+  const rpc = kind==='food' ? 'admin_review_food' : 'admin_review_exercise';
+  const { data, error } = await sb.rpc(rpc,{ p_id:id, p_approve:approve });
+  if(error || !data || data.ok===false){
+    /* Un exercice déjà utilisé dans une séance ne peut pas disparaître sans
+       casser la séance : on le dit, on ne supprime pas en silence. */
+    toast(data && data.reason==='in_use'
+      ? 'Impossible : déjà utilisé dans une séance. Laisse-le ou retire-le des séances d\'abord.'
+      : 'Échec de l\'opération');
+    return;
+  }
+  toast(approve ? 'Validé — visible par tous' : 'Supprimé');
+  loadApports();
+}
+document.querySelectorAll('#pane-apports .asub button').forEach(b=>b.onclick=()=>{
+  AP_VIEW=b.dataset.av;
+  document.querySelectorAll('#pane-apports .asub button').forEach(x=>x.classList.toggle('on',x===b));
+  renderApports();
+});
 
 /* ---- FONDATEURS (invitation nominative) ---- */
 async function loadFounders(){

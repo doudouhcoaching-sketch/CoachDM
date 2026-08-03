@@ -297,6 +297,10 @@
   .founder-badge{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(180deg,var(--gold-hi),var(--gold-mid) 60%,var(--gold-deep));color:var(--on-gold);font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.01em;text-transform:uppercase;border-radius:999px;padding:6px 14px;box-shadow:0 2px 10px rgba(212,167,60,.35),inset 0 1px 0 rgba(255,255,255,.5)}
   .founder-badge svg{flex:none}
   .founder-since{margin-top:9px;font-size:12.5px;color:var(--muted,#9fb3aa)}
+  /* Badge Coach : même traitement que le badge fondateur, teinte brand au
+     lieu de l'or, pour distinguer un rôle (coach) d'un statut (fondateur). */
+  .coach-badge{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#04120a;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.01em;text-transform:uppercase;border-radius:999px;padding:6px 14px;box-shadow:0 2px 10px rgba(0,255,160,.35)}
+  .coach-badge svg{flex:none}
   .plan-price{font-family:'Outfit',sans-serif;font-size:34px;font-weight:700;margin-bottom:4px}
   .plan-per{font-size:14px;color:var(--muted);font-weight:400;margin-left:4px}
   .plan-old{font-size:15px;color:var(--muted);text-decoration:line-through;margin-left:8px}
@@ -1114,6 +1118,7 @@
       </button>
     </div>
     <div id="home-founder"></div>
+    <div id="home-coach-badge"></div>
     <div class="block today-card" id="today-card">
       <div class="ring">
         <svg viewBox="0 0 208 208" width="112" height="112">
@@ -1159,6 +1164,15 @@
     <button class="ia-home gold" id="home-coach" type="button" style="display:none">
       <span class="ia-home-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20v-1.5a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3V20"/><circle cx="9.5" cy="7.5" r="3"/><path d="M18 8.5h4M20 6.5v4"/></svg></span>
       <span class="ia-home-tx"><b data-i18n="coach_home_t">Espace Coach</b><span data-i18n="coach_home_sub">Gère tes clients dans Coach DM · dès 29,99 €/mois</span></span>
+      <svg class="ia-home-ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
+
+    <!-- Entrée gratuite : aucun prix, aucun lien externe — un changement de
+         rôle sans aucune transaction. Reste donc visible même en natif,
+         contrairement à #home-coach (payant) juste au-dessus. -->
+    <button class="ia-home" id="home-coach-free" type="button" style="display:none">
+      <span class="ia-home-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20v-1.5a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3V20"/><circle cx="9.5" cy="7.5" r="3"/><path d="M18 8.5h4M20 6.5v4"/></svg></span>
+      <span class="ia-home-tx"><b data-i18n="coach_free_home_t">Devenir coach</b><span data-i18n="coach_free_home_sub">1 client offert pour découvrir la console</span></span>
       <svg class="ia-home-ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
     </button>
 
@@ -1397,6 +1411,16 @@
       <button class="btn subtle" id="p-sub-manage" style="width:100%;margin-bottom:9px;display:none" data-i18n="sub_manage">Gérer mon abonnement</button>
       <button class="btn subtle" id="p-lead-open" style="width:100%;margin-bottom:9px" data-i18n="lead_cta">Demander un coaching</button>
       <a class="btn subtle" id="p-contact-coach" href="https://instagram.com/coachdm.be" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none" data-i18n="contact_coach">Contacter le coach</a>
+    </div>
+
+    <!-- Entrée gratuite : gratuit, sans prix ni lien externe — reste visible
+         même en natif (contrairement à #p-coach-offer juste en dessous, qui
+         mène au paiement Stripe et reste masqué sur iOS/Android). -->
+    <div class="block" id="p-coach-free" style="display:none">
+      <h3 data-i18n="coach_free_title">Deviens coach — gratuit</h3>
+      <p class="empty" style="text-align:left;padding:0 0 12px" data-i18n="coach_free_sub">Accompagne un premier client avec ta propre console : programmes, messagerie, suivi. Gratuit, sans engagement.</p>
+      <button class="btn" id="p-coach-free-go" style="width:100%" data-i18n="coach_free_cta">Devenir coach (1 client offert)</button>
+      <div class="msg" id="p-coach-free-msg"></div>
     </div>
 
     <div class="block" id="p-coach-offer" style="display:none">
@@ -2312,6 +2336,14 @@ const T = {
  coach_offer_title:{fr:'Espace coach',en:'Coach hub',nl:'Coachruimte'},
  coach_offer_sub:{fr:'Tu es coach ? G\u00e8re tes clients, la messagerie et les appels vid\u00e9o depuis ta propre console.',en:'Are you a coach? Manage your clients, messaging and video calls from your own console.',nl:'Ben je coach? Beheer je klanten, berichten en videogesprekken vanuit je eigen console.'},
  coach_offer_cta:{fr:'Devenir coach',en:'Become a coach',nl:'Coach worden'},
+ coach_free_title:{fr:'Deviens coach — gratuit',en:'Become a coach — free',nl:'Word coach — gratis'},
+ coach_free_sub:{fr:'Accompagne un premier client avec ta propre console : programmes, messagerie, suivi. Gratuit, sans engagement.',en:'Coach a first client with your own console: programs, messaging, tracking. Free, no commitment.',nl:'Begeleid een eerste klant met je eigen console: programma’s, berichten, opvolging. Gratis, vrijblijvend.'},
+ coach_free_cta:{fr:'Devenir coach (1 client offert)',en:'Become a coach (1 free client)',nl:'Word coach (1 gratis klant)'},
+ coach_free_home_t:{fr:'Devenir coach',en:'Become a coach',nl:'Coach worden'},
+ coach_free_home_sub:{fr:'1 client offert pour découvrir la console',en:'1 free client to try the console',nl:'1 gratis klant om de console te ontdekken'},
+ coach_free_ok:{fr:'Tu es coach ! Ouvre ta console pour ajouter ton premier client.',en:'You’re a coach! Open your console to add your first client.',nl:'Je bent coach! Open je console om je eerste klant toe te voegen.'},
+ coach_free_err:{fr:'Échec — réessaie dans un instant.',en:'Failed — try again shortly.',nl:'Mislukt — probeer straks opnieuw.'},
+ coach_badge:{fr:'Coach',en:'Coach',nl:'Coach'},
  coach_sheet_title:{fr:'Deviens coach sur Coach DM',en:'Become a coach on Coach DM',nl:'Word coach op Coach DM'},
  coach_sheet_sub:{fr:'Ta console d\u00e9di\u00e9e : suivi de tes clients, messagerie temps r\u00e9el et programmation.',en:'Your dedicated console: client tracking, real-time messaging and programming.',nl:'Je eigen console: klantopvolging, realtime berichten en programmering.'},
  coach_note_20:{fr:'Jusqu\u2019\u00e0 20 clients actifs',en:'Up to 20 active clients',nl:'Tot 20 actieve klanten'},
@@ -2918,7 +2950,20 @@ async function loadProfileInfo(user){
       const cc=$('#p-coach-console'); if(cc) cc.style.display='block';
       if(role==='admin'){ const ac=$('#p-admin-console'); if(ac) ac.style.display='block'; }
     }
+    /* Badge Coach : uniquement si le rôle est coach ET que le badge doré
+       "Coach Fondateur" n'est pas déjà affiché plus haut, pour ne pas doubler
+       le message. */
+    { const hcb=$('#home-coach-badge');
+      if(hcb) hcb.innerHTML = (role==='coach' && !(prof2 && prof2.is_founder && prof2.founder_kind==='coach'))
+        ? '<span class="coach-badge"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 20v-1.5a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3V20"/><circle cx="9.5" cy="7.5" r="3"/></svg><span data-i18n="coach_badge">'+t('coach_badge')+'</span></span>'
+        : '';
+    }
     { const co=$('#p-coach-offer'); if(co) co.style.display=(IS_NATIVE||role==='coach'||role==='admin')?'none':'block'; }
+    /* Entrée gratuite : jamais de prix ni de lien externe dans ce bloc, donc
+       aucune raison de le masquer en natif — seul le fait d'être déjà coach
+       (ou admin) le cache. */
+    { const cf=$('#p-coach-free'); if(cf) cf.style.display=(role==='coach'||role==='admin')?'none':'block'; }
+    { const hcf=$('#home-coach-free'); if(hcf) hcf.style.display=(role==='coach'||role==='admin')?'none':'flex'; }
     syncCoachHome(role);
     { const lo=$('#p-lead-open'); if(lo) lo.onclick=openLead; }
     applyCoachIsolation();
@@ -3285,6 +3330,25 @@ function syncCoachHome(role){
   const el=$('#home-coach'); if(!el) return;
   el.style.display = (IS_NATIVE || role==='coach' || role==='admin') ? 'none' : 'flex';
 }
+
+/* Devenir coach gratuitement : become_coach() bascule le rôle sans aucun
+   paiement ni lien externe — visible y compris en natif (voir #p-coach-free
+   et #home-coach-free : ni prix ni CTA de paiement, donc hors du champ de la
+   règle 3.1.1, contrairement à openCoachSheet() juste au-dessus). */
+async function becomeCoachFree(){
+  if(!USER) return;
+  setMsg('p-coach-free-msg', t('sub_processing')||'…','');
+  const { data, error } = await sb.rpc('become_coach');
+  if(error || !data || data.ok===false){
+    setMsg('p-coach-free-msg', t('coach_free_err'), 'err');
+    return;
+  }
+  setMsg('p-coach-free-msg','','');
+  toast(t('coach_free_ok'));
+  await loadProfileInfo(USER);
+}
+{ const el=$('#p-coach-free-go'); if(el) el.onclick=becomeCoachFree; }
+{ const el=$('#home-coach-free'); if(el) el.onclick=becomeCoachFree; }
 { const ov=$('#coach-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); }); }
 { const ov=$('#sub-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); }); }
 { const el=$('#ck-close'); if(el) el.onclick=closeCheckout; }
