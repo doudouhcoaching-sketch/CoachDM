@@ -1424,9 +1424,18 @@
     </div>
 
     <div class="block" id="p-coach-offer" style="display:none">
-      <h3 data-i18n="coach_offer_title">Espace coach</h3>
-      <p class="empty" style="text-align:left;padding:0 0 12px" data-i18n="coach_offer_sub">Tu es coach ? Gère tes clients, la messagerie et les appels vidéo depuis ta propre console.</p>
+      <h3 id="p-coach-offer-t" data-i18n="coach_offer_title">Espace coach</h3>
+      <p class="empty" style="text-align:left;padding:0 0 12px" id="p-coach-offer-d" data-i18n="coach_offer_sub">Tu es coach ? Gère tes clients, la messagerie et les appels vidéo depuis ta propre console.</p>
       <button class="btn subtle" id="p-coach-open" style="width:100%" data-i18n="coach_offer_cta">Devenir coach</button>
+    </div>
+
+    <!-- Sortie du rôle coach. Visible uniquement pour un coach au palier
+         gratuit : un coach payant doit d'abord résilier, sinon il perdrait la
+         console tout en continuant à payer. -->
+    <div class="block" id="p-coach-quit" style="display:none">
+      <h3 data-i18n="cquit_t">Ne plus être coach</h3>
+      <p class="empty" style="text-align:left;padding:0 0 12px" data-i18n="cquit_sub">Tu redeviens un membre simple. Tes séances et tes apports sont conservés.</p>
+      <button class="btn subtle" id="p-coach-quit-go" style="width:100%" data-i18n="cquit_cta">Ne plus être coach</button>
     </div>
 
     </div>
@@ -1562,6 +1571,39 @@
     <button class="btn" id="cfree-go" style="width:100%;margin-top:18px" data-i18n="cfree_yes">Oui, devenir coach</button>
     <button class="btn subtle" id="cfree-no" style="width:100%;margin-top:9px" data-i18n="cfree_cancel">Non, pas maintenant</button>
     <div class="msg" id="cfree-msg"></div>
+  </div>
+</div>
+
+<!-- SUCCÈS : où trouver la console. Sans cet écran, le nouveau coach ne sait
+     pas où aller et cherche longtemps. -->
+<div class="overlay" id="cok-ov">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 data-i18n="cfree_ok_t">Te voilà coach 👊</h3>
+    <p class="fk" id="cok-p" style="margin:0 0 4px">Ta console est prête. Tu la retrouveras à tout moment dans <b>Profil › Compte › Console Coach</b>.</p>
+    <a class="btn" href="coach.html" style="display:block;width:100%;margin-top:18px;text-align:center;text-decoration:none" data-i18n="cfree_ok_go">Ouvrir ma console coach</a>
+    <button class="btn subtle" id="cok-later" style="width:100%;margin-top:9px" data-i18n="cfree_ok_later">Plus tard</button>
+  </div>
+</div>
+
+<!-- AVERTISSEMENT AVANT DE QUITTER LE RÔLE COACH -->
+<div class="overlay" id="cquit-ov">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 data-i18n="cquit_confirm_t">Ne plus être coach ?</h3>
+    <div style="margin-top:12px;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--surface-2)">
+      <div style="font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--brand);margin-bottom:6px" data-i18n="cquit_keep">Ce qui est conservé</div>
+      <div class="fk" style="line-height:1.6" data-i18n="cquit_keep_l">Tes séances, tes programmes et tes apports à la bibliothèque restent tels quels.</div>
+    </div>
+    <div style="margin-top:10px;border:1px solid rgba(255,92,92,.4);border-radius:14px;padding:14px;background:rgba(255,92,92,.06)">
+      <div style="font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--warn);margin-bottom:6px" data-i18n="cquit_lose">Ce que tu perds</div>
+      <div class="fk" style="line-height:1.6" data-i18n="cquit_lose_l">L'accès à la console coach. Tes clients sont déliés : ils ne t'auront plus comme coach.</div>
+      <div class="fk" id="cquit-count" style="line-height:1.6;margin-top:6px;font-weight:700;color:var(--warn)"></div>
+    </div>
+    <p class="fk" style="margin:12px 0 0;color:var(--muted)" data-i18n="cquit_again">Tu pourras redevenir coach quand tu veux.</p>
+    <button class="btn danger" id="cquit-go" style="width:100%;margin-top:18px" data-i18n="cquit_yes">Oui, ne plus être coach</button>
+    <button class="btn subtle" id="cquit-no" style="width:100%;margin-top:9px" data-i18n="cquit_no">Annuler</button>
+    <div class="msg" id="cquit-msg"></div>
   </div>
 </div>
 
@@ -2372,6 +2414,32 @@ const T = {
  cfree_note:{fr:'La bibliothèque Coach DM et la messagerie ne sont pas comprises. Tu peux revenir à un compte membre simple quand tu veux, en me le demandant.',en:'The Coach DM library and messaging are not included. You can go back to a regular member account whenever you want, just ask me.',nl:'De Coach DM-bibliotheek en berichten zijn niet inbegrepen. Je kunt altijd terug naar een gewoon lidmaatschap, vraag het me gewoon.'},
  cfree_yes:{fr:'Oui, devenir coach',en:'Yes, become a coach',nl:'Ja, coach worden'},
  cfree_cancel:{fr:'Non, pas maintenant',en:'No, not now',nl:'Nee, niet nu'},
+ /* Écran de réussite : sans lui, le nouveau coach cherche sa console. */
+ cfree_ok_t:{fr:'Te voilà coach \u{1F44A}',en:'You’re a coach now \u{1F44A}',nl:'Je bent nu coach \u{1F44A}'},
+ cfree_ok_p:{fr:'Ta console est prête. Tu la retrouveras à tout moment dans <b>Profil › Compte › Console Coach</b>.',en:'Your console is ready. You’ll find it anytime under <b>Profile › Account › Coach Console</b>.',nl:'Je console is klaar. Je vindt hem altijd via <b>Profiel › Account › Coach Console</b>.'},
+ cfree_ok_go:{fr:'Ouvrir ma console coach',en:'Open my coach console',nl:'Open mijn coachconsole'},
+ cfree_ok_later:{fr:'Plus tard',en:'Later',nl:'Later'},
+ /* Montée en gamme, proposée aussi aux coachs gratuits (web uniquement). */
+ coach_up_t:{fr:'Passer à l’offre Coach',en:'Upgrade to Coach',nl:'Upgrade naar Coach'},
+ coach_up_sub:{fr:'Plus de clients, bibliothèque et messagerie',en:'More clients, library and messaging',nl:'Meer klanten, bibliotheek en berichten'},
+ coach_up_title:{fr:'Accompagner plus de clients',en:'Coach more clients',nl:'Meer klanten begeleiden'},
+ coach_up_desc:{fr:'Ton palier gratuit couvre 1 client. Les offres Coach et Coach+ ouvrent la bibliothèque Coach DM, la messagerie et jusqu’à 50 clients.',en:'Your free tier covers 1 client. The Coach and Coach+ plans unlock the Coach DM library, messaging and up to 50 clients.',nl:'Je gratis niveau dekt 1 klant. De Coach- en Coach+-abonnementen ontgrendelen de Coach DM-bibliotheek, berichten en tot 50 klanten.'},
+ coach_up_cta:{fr:'Voir les offres Coach',en:'See the Coach plans',nl:'Bekijk de Coach-abonnementen'},
+ /* Sortie du rôle coach. */
+ cquit_t:{fr:'Ne plus être coach',en:'Stop being a coach',nl:'Geen coach meer zijn'},
+ cquit_sub:{fr:'Tu redeviens un membre simple. Tes séances et tes apports sont conservés.',en:'You go back to a regular member account. Your workouts and contributions are kept.',nl:'Je wordt weer gewoon lid. Je trainingen en bijdragen blijven behouden.'},
+ cquit_cta:{fr:'Ne plus être coach',en:'Stop being a coach',nl:'Geen coach meer zijn'},
+ cquit_confirm_t:{fr:'Ne plus être coach ?',en:'Stop being a coach?',nl:'Geen coach meer zijn?'},
+ cquit_keep:{fr:'Ce qui est conservé',en:'What you keep',nl:'Wat je behoudt'},
+ cquit_keep_l:{fr:'Tes séances, tes programmes et tes apports à la bibliothèque restent tels quels.',en:'Your workouts, programs and library contributions stay as they are.',nl:'Je trainingen, programma’s en bijdragen blijven ongewijzigd.'},
+ cquit_lose:{fr:'Ce que tu perds',en:'What you lose',nl:'Wat je verliest'},
+ cquit_lose_l:{fr:'L’accès à la console coach. Tes clients sont déliés : ils ne t’auront plus comme coach.',en:'Access to the coach console. Your clients are unlinked: you will no longer be their coach.',nl:'Toegang tot de coachconsole. Je klanten worden losgekoppeld: je bent niet langer hun coach.'},
+ cquit_clients:{fr:'{n} client(s) seront déliés.',en:'{n} client(s) will be unlinked.',nl:'{n} klant(en) worden losgekoppeld.'},
+ cquit_again:{fr:'Tu pourras redevenir coach quand tu veux.',en:'You can become a coach again whenever you want.',nl:'Je kunt altijd opnieuw coach worden.'},
+ cquit_yes:{fr:'Oui, ne plus être coach',en:'Yes, stop being a coach',nl:'Ja, stop met coachen'},
+ cquit_no:{fr:'Annuler',en:'Cancel',nl:'Annuleren'},
+ cquit_done:{fr:'Tu es de nouveau un membre simple.',en:'You are a regular member again.',nl:'Je bent weer een gewoon lid.'},
+ cquit_paid:{fr:'Résilie d’abord ton abonnement coach.',en:'Cancel your coach subscription first.',nl:'Zeg eerst je coachabonnement op.'},
  coach_sheet_title:{fr:'Deviens coach sur Coach DM',en:'Become a coach on Coach DM',nl:'Word coach op Coach DM'},
  coach_sheet_sub:{fr:'Ta console d\u00e9di\u00e9e : suivi de tes clients, messagerie temps r\u00e9el et programmation.',en:'Your dedicated console: client tracking, real-time messaging and programming.',nl:'Je eigen console: klantopvolging, realtime berichten en programmering.'},
  coach_note_20:{fr:'Jusqu\u2019\u00e0 20 clients actifs',en:'Up to 20 active clients',nl:'Tot 20 actieve klanten'},
@@ -2696,6 +2764,11 @@ function setTheme(m){
 if(themeMQ){ const _mqTheme=()=>{ if(THEME==='auto') applyTheme(); }; themeMQ.addEventListener ? themeMQ.addEventListener('change',_mqTheme) : themeMQ.addListener(_mqTheme); }
 
 let USER=null, TARGETS=null, SELECTED=null, CONV=null, BUSY=false, IA_LOADED=false, PREMIUM=false, IS_COACH=false;
+/* IS_COACH = le RÔLE coach (console, clients). IS_PAID_COACH = le rôle ET un
+   plan payé. Les deux ne se valent pas : un coach au palier gratuit n'a rien
+   acheté, il reste un prospect pour l'offre de coaching de Coach DM. Seul un
+   coach payant cesse de voir ces messages. */
+let IS_PAID_COACH=false;
 let SUB_STORE=null;   /* 'stripe' | 'apple' | 'google' — qui facture cet abonnement */
 // iOS natif (Capacitor) : aucune vente in-app — Apple 3.1.1 (modèle login-only acté)
 const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
@@ -2955,6 +3028,8 @@ async function loadProfileInfo(user){
   try{
     const role = prof2 && prof2.role;
     IS_COACH = (role==='coach'||role==='admin');
+    IS_PAID_COACH = role==='admin' ||
+      (role==='coach' && ['coach','coach_plus'].includes(prof2 && prof2.coach_plan));
     if(typeof renderAnalyseSection==='function') renderAnalyseSection();
     IS_FOUNDER = !!(prof2 && prof2.is_founder);
     FOUNDER_KIND = (prof2 && prof2.founder_kind) || null;
@@ -2974,10 +3049,10 @@ async function loadProfileInfo(user){
         hf.innerHTML='<span class="founder-badge"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.4L12 17.4l-5.8 3 1.1-6.4L2.6 9.4l6.5-.9L12 2.6z"/></svg><span data-i18n="'+hkey+'">'+t(hkey)+'</span></span>';
       }
     }
-    if(role==='coach'||role==='admin'){
-      const cc=$('#p-coach-console'); if(cc) cc.style.display='block';
-      if(role==='admin'){ const ac=$('#p-admin-console'); if(ac) ac.style.display='block'; }
-    }
+    /* Symétrique : ce lien doit aussi DISPARAÎTRE si la personne quitte le
+       rôle coach, sinon elle garde un raccourci vers une console fermée. */
+    { const cc=$('#p-coach-console'); if(cc) cc.style.display=(role==='coach'||role==='admin')?'block':'none'; }
+    { const ac=$('#p-admin-console'); if(ac) ac.style.display=(role==='admin')?'block':'none'; }
     /* Badge Coach : uniquement si le rôle est coach ET que le badge doré
        "Coach Fondateur" n'est pas déjà affiché plus haut, pour ne pas doubler
        le message. */
@@ -2986,7 +3061,23 @@ async function loadProfileInfo(user){
         ? '<span class="coach-badge"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 20v-1.5a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3V20"/><circle cx="9.5" cy="7.5" r="3"/></svg><span data-i18n="coach_badge">'+t('coach_badge')+'</span></span>'
         : '';
     }
-    { const co=$('#p-coach-offer'); if(co) co.style.display=(IS_NATIVE||role==='coach'||role==='admin')?'none':'block'; }
+    /* Les offres Coach et Coach+ restent visibles pour un coach GRATUIT :
+       il n'a rien acheté, c'est précisément la cible de la montée en gamme.
+       Seul un coach payant ne les voit plus. Rien de tout ça en natif. */
+    { const co=$('#p-coach-offer');
+      if(co){
+        co.style.display=(IS_NATIVE||IS_PAID_COACH)?'none':'block';
+        /* Le libellé « Devenir coach » n'a plus de sens pour quelqu'un qui
+           l'est déjà : on lui parle de capacité, pas de statut. */
+        const ct=$('#p-coach-offer-t'), cd=$('#p-coach-offer-d'), cb=$('#p-coach-open');
+        const up = IS_COACH && !IS_PAID_COACH;
+        if(ct){ ct.setAttribute('data-i18n', up?'coach_up_title':'coach_offer_title'); ct.textContent=t(up?'coach_up_title':'coach_offer_title'); }
+        if(cd){ cd.setAttribute('data-i18n', up?'coach_up_desc':'coach_offer_sub');   cd.textContent=t(up?'coach_up_desc':'coach_offer_sub'); }
+        if(cb){ cb.setAttribute('data-i18n', up?'coach_up_cta':'coach_offer_cta');    cb.textContent=t(up?'coach_up_cta':'coach_offer_cta'); }
+      }
+    }
+    /* Sortie du rôle : proposée au coach gratuit uniquement. */
+    { const cq=$('#p-coach-quit'); if(cq) cq.style.display=(IS_COACH && !IS_PAID_COACH)?'block':'none'; }
     /* Entrée gratuite : jamais de prix ni de lien externe dans ce bloc, donc
        aucune raison de le masquer en natif — seul le fait d'être déjà coach
        (ou admin) le cache. */
@@ -3368,7 +3459,13 @@ document.querySelectorAll('#coach-toggle button').forEach(b=>b.onclick=()=>{
 { const el=$('#home-coach'); if(el) el.onclick=openCoachSheet; }
 function syncCoachHome(role){
   const el=$('#home-coach'); if(!el) return;
-  el.style.display = (IS_NATIVE || role==='coach' || role==='admin') ? 'none' : 'flex';
+  /* Un coach gratuit garde cette entrée : c'est sa porte vers Coach et Coach+.
+     Seul un coach payant, ou le natif, la fait disparaître. */
+  el.style.display = (IS_NATIVE || IS_PAID_COACH) ? 'none' : 'flex';
+  const up = IS_COACH && !IS_PAID_COACH;
+  const b=el.querySelector('.ia-home-tx b'), s=el.querySelector('.ia-home-tx span');
+  if(b){ b.setAttribute('data-i18n', up?'coach_up_t':'coach_home_t'); b.textContent=t(up?'coach_up_t':'coach_home_t'); }
+  if(s){ s.setAttribute('data-i18n', up?'coach_up_sub':'coach_home_sub'); s.textContent=t(up?'coach_up_sub':'coach_home_sub'); }
 }
 
 /* Devenir coach gratuitement : become_coach() bascule le rôle sans aucun
@@ -3394,14 +3491,52 @@ async function becomeCoachFree(){
     return;
   }
   closeCoachFreeConfirm();
-  toast(t('coach_free_ok'));
   await loadProfileInfo(USER);
+  /* On dit où est la console plutôt que d'afficher un toast qui disparaît :
+     sans repère, le nouveau coach cherche longtemps. */
+  $('#cok-ov').classList.add('show');
 }
 { const el=$('#p-coach-free-go'); if(el) el.onclick=openCoachFreeConfirm; }
 { const el=$('#home-coach-free'); if(el) el.onclick=openCoachFreeConfirm; }
 { const el=$('#cfree-go'); if(el) el.onclick=becomeCoachFree; }
 { const el=$('#cfree-no'); if(el) el.onclick=closeCoachFreeConfirm; }
 { const ov=$('#cfree-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) closeCoachFreeConfirm(); }); }
+{ const el=$('#cok-later'); if(el) el.onclick=()=>$('#cok-ov').classList.remove('show'); }
+{ const ov=$('#cok-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); }); }
+
+/* ── Quitter le rôle coach ────────────────────────────────────────────────
+   leave_coach() sans confirmation ne modifie rien : elle renvoie ce qui va
+   se passer. On affiche donc un avertissement chiffré avant de trancher. */
+async function openCoachQuit(){
+  if(!USER) return;
+  setMsg('cquit-msg','','');
+  $('#cquit-count').textContent='';
+  setBtn('#cquit-go', false, t('cquit_yes'));
+  $('#cquit-ov').classList.add('show');
+  const { data, error } = await sb.rpc('leave_coach',{ p_confirm:false });
+  if(error || !data || data.ok===false){
+    if(data && data.reason==='paid_plan') setMsg('cquit-msg', t('cquit_paid'), 'err');
+    return;
+  }
+  const n = +data.clients || 0;
+  if(n>0) $('#cquit-count').textContent = t('cquit_clients').replace('{n}', n);
+}
+async function doCoachQuit(){
+  setBtn('#cquit-go', true, t('sub_processing')||'…');
+  const { data, error } = await sb.rpc('leave_coach',{ p_confirm:true });
+  if(error || !data || data.ok===false){
+    setBtn('#cquit-go', false, t('cquit_yes'));
+    setMsg('cquit-msg', (data && data.reason==='paid_plan') ? t('cquit_paid') : t('coach_free_err'), 'err');
+    return;
+  }
+  $('#cquit-ov').classList.remove('show');
+  toast(t('cquit_done'));
+  await loadProfileInfo(USER);
+}
+{ const el=$('#p-coach-quit-go'); if(el) el.onclick=openCoachQuit; }
+{ const el=$('#cquit-go'); if(el) el.onclick=doCoachQuit; }
+{ const el=$('#cquit-no'); if(el) el.onclick=()=>$('#cquit-ov').classList.remove('show'); }
+{ const ov=$('#cquit-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); }); }
 { const ov=$('#coach-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); }); }
 { const ov=$('#sub-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); }); }
 { const el=$('#ck-close'); if(el) el.onclick=closeCheckout; }
@@ -4304,7 +4439,13 @@ async function sendLead(){
    Et de toute facon Instagram est une vitrine, pas un canal de support : aucun
    coach n'est lese parce que son client suit le compte de la marque. */
 function applyCoachIsolation(){
-  const hide = HAS_COACH && !IS_COACH;
+  /* Deux raisons distinctes de ne pas montrer l'offre de coaching :
+     1. la personne est déjà le client d'un autre coach — on ne le démarche pas ;
+     2. c'est un coach PAYANT — il est du côté de l'outil, plus de la clientèle.
+     Un coach au palier gratuit ne relève d'aucune des deux : il continue de
+     voir l'offre, en ligne comme en présentiel. */
+  const clientDunAutreCoach = HAS_COACH && !IS_COACH;
+  const hide = clientDunAutreCoach || IS_PAID_COACH;
   const lead=$('#p-lead-open');   if(lead) lead.style.display = hide ? 'none' : '';
   const off=$('#p-coach-offer');  if(off && hide) off.style.display='none';
   const hc=$('#home-coach');      if(hc && hide) hc.style.display='none';
@@ -4325,7 +4466,9 @@ async function loadCoachCard(){
   const hub=$('#coach-hub');
   if(!COACH_THREAD){
     if(hub) hub.classList.remove('on');
-    if(!IS_COACH && !HAS_COACH) renderLeadCard(box); else box.innerHTML='';
+    /* Un coach gratuit voit toujours l'offre de coaching : il n'a rien payé,
+       il peut vouloir être coaché lui-même, en ligne ou à Reasfit. */
+    if(!IS_PAID_COACH && !HAS_COACH) renderLeadCard(box); else box.innerHTML='';
     return;
   }
   if(hub) hub.classList.add('on');
@@ -6015,7 +6158,7 @@ function renderAnalyseSection(){
         un membre iOS une fonction payante qu'il ne peut obtenir qu'en dehors
         de l'App Store — mot pour mot le motif du refus 3.1.3(b).
         La note reste sur le web, ou l'offre Coach est reellement achetable. */
-    (IS_COACH||IS_NATIVE)?'':`<div class="an-lock-note">${lockIc} ${t('an_pro')}</div>`}`;
+    (IS_PAID_COACH||IS_NATIVE)?'':`<div class="an-lock-note">${lockIc} ${t('an_pro')}</div>`}`;
   host.querySelectorAll('.an-card').forEach(c=>{
     c.onclick=()=>{ location.href=c.dataset.an; };
   });
