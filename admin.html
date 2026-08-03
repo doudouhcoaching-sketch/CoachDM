@@ -270,12 +270,14 @@
       <div class="subpane active" id="sub-ex">
         <div class="toolbar"><div class="sub" style="text-align:left;margin:0">Bibliothèque d'exercices.</div>
           <button class="btn sm" id="ex-new">＋ Exercice</button></div>
+        <div class="field" style="margin-bottom:11px"><input id="ex-q" type="search" autocomplete="off" placeholder="Rechercher : nom, muscle, catégorie, matériel…" /></div>
         <div id="ex-list"><div class="spin"></div></div>
       </div>
 
       <div class="subpane" id="sub-wk">
         <div class="toolbar"><div class="sub" style="text-align:left;margin:0">Séances publiées dans l'app.</div>
           <button class="btn sm" id="wk-new">＋ Séance</button></div>
+        <div class="field" style="margin-bottom:11px"><input id="wk-q" type="search" autocomplete="off" placeholder="Rechercher : nom, type, difficulté…" /></div>
         <div id="wk-list"><div class="spin"></div></div>
       </div>
     </div>
@@ -1018,13 +1020,28 @@ document.querySelectorAll('.subswitch button').forEach(b=>b.onclick=()=>{
 
 /* ---- EXERCICES : liste ---- */
 let EXS=[]; // cache complet pour la composition
+/* Les listes sont chargées une fois puis filtrées en mémoire : dérouler 392
+   exercices pour en trouver un était le geste le plus pénible de la console. */
+let EX_Q='';
 async function loadExercises(){
   $('#ex-list').innerHTML='<div class="spin"></div>';
   const { data, error } = await sb.rpc('admin_list_exercises');
   if(error){ $('#ex-list').innerHTML='<p class="empty">Erreur (accès admin requis).</p>'; return; }
   EXS = data||[];
+  renderExList();
+}
+function renderExList(){
   if(!EXS.length){ $('#ex-list').innerHTML='<p class="empty">Aucun exercice.</p>'; return; }
-  $('#ex-list').innerHTML = EXS.map(e=>{
+  const q=EX_Q.trim().toLowerCase();
+  const list = q ? EXS.filter(e=>{
+    const cat=L_CAT[e.category]||e.category||'', mus=L_MUS[e.primary_muscle]||e.primary_muscle||'',
+          eq=L_EQUIP[e.equipment]||e.equipment||'';
+    return (e.name_fr||'').toLowerCase().includes(q) || (e.name_en||'').toLowerCase().includes(q)
+        || cat.toLowerCase().includes(q) || mus.toLowerCase().includes(q) || eq.toLowerCase().includes(q);
+  }) : EXS;
+  const count=`<p class="empty" style="margin:0 0 10px;text-align:left">${list.length} exercice(s)${q?` sur ${EXS.length}`:''}</p>`;
+  if(!list.length){ $('#ex-list').innerHTML=`<p class="empty">Aucun exercice pour « ${esc(EX_Q)} ».</p>`; return; }
+  $('#ex-list').innerHTML = count + list.map(e=>{
     const pub = e.is_published?'':'<span class="pill no">Brouillon</span>';
     const vid = e.video_url?'<span class="pill vid">Vidéo ✓</span>':'';
     const cat = L_CAT[e.category]||e.category, mus = L_MUS[e.primary_muscle]||e.primary_muscle, eq = L_EQUIP[e.equipment]||e.equipment;
@@ -1040,6 +1057,7 @@ async function loadExercises(){
     document.querySelectorAll('#ex-list .item').forEach(el=>{ el.style.cursor='default'; el.style.opacity='.7'; });
   }
 }
+{ const el=$('#ex-q'); if(el) el.oninput=e=>{ EX_Q=e.target.value; renderExList(); }; }
 $('#ex-new').onclick = ()=>openExEditor(null);
 
 let EXEDIT=null;
@@ -1106,13 +1124,25 @@ $('#ex-del').onclick = async ()=>{
 
 /* ---- SÉANCES : liste ---- */
 let WKS=[];
+let WK_Q='';
 async function loadWorkouts(){
   $('#wk-list').innerHTML='<div class="spin"></div>';
   const { data, error } = await sb.rpc('admin_list_workouts');
   if(error){ $('#wk-list').innerHTML='<p class="empty">Erreur (accès admin requis).</p>'; return; }
   WKS = data||[];
+  renderWkList();
+}
+function renderWkList(){
   if(!WKS.length){ $('#wk-list').innerHTML='<p class="empty">Aucune séance.</p>'; return; }
-  $('#wk-list').innerHTML = WKS.map(w=>{
+  const q=WK_Q.trim().toLowerCase();
+  const list = q ? WKS.filter(w=>{
+    const t=L_TYPE[w.type]||w.type||'', d=L_DIFF[w.difficulty]||w.difficulty||'';
+    return (w.name_fr||'').toLowerCase().includes(q) || (w.name_en||'').toLowerCase().includes(q)
+        || t.toLowerCase().includes(q) || d.toLowerCase().includes(q);
+  }) : WKS;
+  const count=`<p class="empty" style="margin:0 0 10px;text-align:left">${list.length} séance(s)${q?` sur ${WKS.length}`:''}</p>`;
+  if(!list.length){ $('#wk-list').innerHTML=`<p class="empty">Aucune séance pour « ${esc(WK_Q)} ».</p>`; return; }
+  $('#wk-list').innerHTML = count + list.map(w=>{
     const pub = w.is_published?'<span class="pill ok">Publiée</span>':'<span class="pill no">Brouillon</span>';
     const t=L_TYPE[w.type]||w.type, d=L_DIFF[w.difficulty]||w.difficulty;
     return `<div class="item" data-wk="${w.id}">
@@ -1122,6 +1152,7 @@ async function loadWorkouts(){
   }).join('');
   document.querySelectorAll('#wk-list .item').forEach(el=>el.onclick=()=>openWkEditor(el.dataset.wk));
 }
+{ const el=$('#wk-q'); if(el) el.oninput=e=>{ WK_Q=e.target.value; renderWkList(); }; }
 $('#wk-new').onclick = ()=>openWkEditor(null);
 
 let WKEDIT=null;

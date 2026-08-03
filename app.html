@@ -1544,6 +1544,27 @@
   </div>
 </div>
 
+<!-- CONFIRMATION AVANT DE DEVENIR COACH
+     Le passage était immédiat au clic : beaucoup cliquent par curiosité et se
+     retrouvent avec un rôle qu'ils n'ont pas choisi. On explique d'abord ce
+     que ça change, puis on demande. Aucun prix ni lien ici : ce panneau doit
+     rester affichable en natif (Apple 3.1.1). -->
+<div class="overlay" id="cfree-ov">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 data-i18n="cfree_t">Devenir coach ?</h3>
+    <p class="fk" style="margin:0 0 4px" data-i18n="cfree_intro">Ton compte devient un compte coach. Tu gardes tout ce que tu as aujourd'hui — tes séances, ton journal, tes analyses — et tu débloques une console pour accompagner un client.</p>
+    <div style="margin-top:14px;border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--surface-2)">
+      <div style="font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--brand);margin-bottom:8px" data-i18n="cfree_inc">Inclus, gratuitement</div>
+      <div class="fk" style="line-height:1.7" data-i18n="cfree_list">1 client · sa fiche complète · tes propres séances et programmes · calories et macros · plans nutrition</div>
+    </div>
+    <p class="fk" style="margin:12px 0 0;color:var(--muted)" data-i18n="cfree_note">La bibliothèque Coach DM et la messagerie ne sont pas comprises. Tu peux revenir à un compte membre simple quand tu veux, en me le demandant.</p>
+    <button class="btn" id="cfree-go" style="width:100%;margin-top:18px" data-i18n="cfree_yes">Oui, devenir coach</button>
+    <button class="btn subtle" id="cfree-no" style="width:100%;margin-top:9px" data-i18n="cfree_cancel">Non, pas maintenant</button>
+    <div class="msg" id="cfree-msg"></div>
+  </div>
+</div>
+
 <!-- CHECKOUT STRIPE EMBARQUÉ -->
 <!-- ══ Avertissement fondateur avant résiliation ══ -->
 <div class="overlay" id="fw-ov">
@@ -2344,6 +2365,13 @@ const T = {
  coach_free_ok:{fr:'Tu es coach ! Ouvre ta console pour ajouter ton premier client.',en:'You’re a coach! Open your console to add your first client.',nl:'Je bent coach! Open je console om je eerste klant toe te voegen.'},
  coach_free_err:{fr:'Échec — réessaie dans un instant.',en:'Failed — try again shortly.',nl:'Mislukt — probeer straks opnieuw.'},
  coach_badge:{fr:'Coach',en:'Coach',nl:'Coach'},
+ cfree_t:{fr:'Devenir coach ?',en:'Become a coach?',nl:'Coach worden?'},
+ cfree_intro:{fr:'Ton compte devient un compte coach. Tu gardes tout ce que tu as aujourd’hui — tes séances, ton journal, tes analyses — et tu débloques une console pour accompagner un client.',en:'Your account becomes a coach account. You keep everything you have today — your workouts, your journal, your analyses — and you unlock a console to coach a client.',nl:'Je account wordt een coachaccount. Je behoudt alles wat je nu hebt — je trainingen, je dagboek, je analyses — en je ontgrendelt een console om een klant te begeleiden.'},
+ cfree_inc:{fr:'Inclus, gratuitement',en:'Included, free',nl:'Inbegrepen, gratis'},
+ cfree_list:{fr:'1 client · sa fiche complète · tes propres séances et programmes · calories et macros · plans nutrition',en:'1 client · their full profile · your own workouts and programs · calories and macros · meal plans',nl:'1 klant · zijn volledige fiche · je eigen trainingen en programma’s · calorieën en macro’s · voedingsplannen'},
+ cfree_note:{fr:'La bibliothèque Coach DM et la messagerie ne sont pas comprises. Tu peux revenir à un compte membre simple quand tu veux, en me le demandant.',en:'The Coach DM library and messaging are not included. You can go back to a regular member account whenever you want, just ask me.',nl:'De Coach DM-bibliotheek en berichten zijn niet inbegrepen. Je kunt altijd terug naar een gewoon lidmaatschap, vraag het me gewoon.'},
+ cfree_yes:{fr:'Oui, devenir coach',en:'Yes, become a coach',nl:'Ja, coach worden'},
+ cfree_cancel:{fr:'Non, pas maintenant',en:'No, not now',nl:'Nee, niet nu'},
  coach_sheet_title:{fr:'Deviens coach sur Coach DM',en:'Become a coach on Coach DM',nl:'Word coach op Coach DM'},
  coach_sheet_sub:{fr:'Ta console d\u00e9di\u00e9e : suivi de tes clients, messagerie temps r\u00e9el et programmation.',en:'Your dedicated console: client tracking, real-time messaging and programming.',nl:'Je eigen console: klantopvolging, realtime berichten en programmering.'},
  coach_note_20:{fr:'Jusqu\u2019\u00e0 20 clients actifs',en:'Up to 20 active clients',nl:'Tot 20 actieve klanten'},
@@ -2887,7 +2915,7 @@ let _PRE=null;
 async function prefetchBoot(uid){
   try{
     const [prof,sub,tg,lg] = await Promise.all([
-      sb.from('profiles').select('full_name,role,is_founder,founder_kind,founder_since').eq('id',uid).maybeSingle(),
+      sb.from('profiles').select('full_name,role,coach_plan,is_founder,founder_kind,founder_since').eq('id',uid).maybeSingle(),
       sb.from('subscriptions').select('status,current_period_end,trial_end,amount_cents,store')
         .eq('user_id',uid).order('current_period_end',{ascending:false,nullsFirst:false}).limit(1).maybeSingle(),
       sb.from('nutrition_targets').select('*').eq('user_id',uid).eq('is_active',true).maybeSingle(),
@@ -2919,7 +2947,7 @@ async function loadProfileInfo(user){
   if(_PRE){ prof2=_PRE.prof; }
   else {
     try{
-      const r = await sb.from('profiles').select('full_name,role,is_founder,founder_kind,founder_since').eq('id',user.id).maybeSingle();
+      const r = await sb.from('profiles').select('full_name,role,coach_plan,is_founder,founder_kind,founder_since').eq('id',user.id).maybeSingle();
       prof2 = r.data || null;
     }catch(e){}
   }
@@ -2977,11 +3005,18 @@ async function loadProfileInfo(user){
     }
     const now=Date.now();
     let key='sub_status_none', extra='';
+    /* ⚠️ Être coach est un RÔLE, pas un abonnement. Tant que seul l'admin
+       nommait les coachs, traiter le rôle comme un accès payé était sans
+       conséquence. Depuis que devenir coach est en libre-service, ça ouvrait
+       le premium à quiconque cliquait : un coach au palier gratuit doit voir
+       exactement ce que voit un membre gratuit. Le serveur applique déjà
+       cette règle (has_paid_access) ; l'interface doit dire la même chose. */
+    const paidRole = role==='admin' || (role==='coach' && ['coach','coach_plus'].includes(prof2 && prof2.coach_plan));
     const trialing = sub && (sub.status==='trialing' || (sub.trial_end && new Date(sub.trial_end).getTime()>now));
-    const active = (role==='coach'||role==='admin') || (sub && (sub.status==='active' || (sub.current_period_end && new Date(sub.current_period_end).getTime()>now)));
+    const active = paidRole || (sub && (sub.status==='active' || (sub.current_period_end && new Date(sub.current_period_end).getTime()>now)));
     if(!trialing && !active && ACCESS==='coach_client'){
       key='sub_status_coach';
-    } else if(trialing && !(role==='coach'||role==='admin')){
+    } else if(trialing && !paidRole){
       key='sub_status_trial';
       if(sub && sub.trial_end) extra = ' · ' + new Date(sub.trial_end).toLocaleDateString(locale(),{day:'numeric',month:'long'});
     } else if(active){
@@ -2990,8 +3025,10 @@ async function loadProfileInfo(user){
     }
     if($('#p-sub')){ $('#p-sub').dataset.key=key; $('#p-sub').dataset.extra=extra; $('#p-sub').textContent = t(key)+extra; }
     /* L'achat est desormais possible partout : StoreKit en natif, Stripe sur le web.
-       Seuls coach et admin n'ont rien a acheter, leur acces vient de leur role. */
-    const canPay = !(role==='coach'||role==='admin');
+       Seuls l'admin et un coach au plan payant n'ont rien a acheter. Un coach
+       au palier gratuit doit pouvoir s'abonner comme membre : son role ne lui
+       donne pas le contenu premium. */
+    const canPay = !paidRole;
     const bOpen=$('#p-sub-open'), bMan=$('#p-sub-manage');
     if(bOpen) bOpen.style.display = (canPay && !active && !trialing) ? 'block' : 'none';
     FOUNDER_AMOUNT = (sub && sub.amount_cents!=null) ? sub.amount_cents : null;
@@ -3014,10 +3051,13 @@ async function hasAccess(uid){
     const { data, error } = await sb.rpc('access_level');
     if(!error && data){ ACCESS = data; return ACCESS==='full'; }
   }catch(e){}
-  // Repli local si le RPC est indisponible (hors-ligne)
+  // Repli local si le RPC est indisponible (hors-ligne).
+  // Même règle qu'au serveur : le rôle coach seul ne donne pas le premium,
+  // il faut un plan coach payant. Sinon ce repli rouvrait la faille.
   try{
-    const { data:prof } = await sb.from('profiles').select('role').eq('id',uid).maybeSingle();
-    if(prof && (prof.role==='coach'||prof.role==='admin')){ ACCESS='full'; return true; }
+    const { data:prof } = await sb.from('profiles').select('role,coach_plan').eq('id',uid).maybeSingle();
+    if(prof && (prof.role==='admin' ||
+       (prof.role==='coach' && ['coach','coach_plus'].includes(prof.coach_plan)))){ ACCESS='full'; return true; }
   }catch(e){}
   try{
     const { data:sub } = await sb.from('subscriptions')
@@ -3335,20 +3375,33 @@ function syncCoachHome(role){
    paiement ni lien externe — visible y compris en natif (voir #p-coach-free
    et #home-coach-free : ni prix ni CTA de paiement, donc hors du champ de la
    règle 3.1.1, contrairement à openCoachSheet() juste au-dessus). */
+/* Le clic ouvre d'abord l'explication. Rien ne change tant que la personne
+   n'a pas confirmé : beaucoup ouvrent par curiosité. */
+function openCoachFreeConfirm(){
+  if(!USER) return;
+  setMsg('cfree-msg','','');
+  setBtn('#cfree-go', false, t('cfree_yes'));
+  $('#cfree-ov').classList.add('show');
+}
+function closeCoachFreeConfirm(){ $('#cfree-ov').classList.remove('show'); }
 async function becomeCoachFree(){
   if(!USER) return;
-  setMsg('p-coach-free-msg', t('sub_processing')||'…','');
+  setBtn('#cfree-go', true, t('sub_processing')||'…');
   const { data, error } = await sb.rpc('become_coach');
   if(error || !data || data.ok===false){
-    setMsg('p-coach-free-msg', t('coach_free_err'), 'err');
+    setBtn('#cfree-go', false, t('cfree_yes'));
+    setMsg('cfree-msg', t('coach_free_err'), 'err');
     return;
   }
-  setMsg('p-coach-free-msg','','');
+  closeCoachFreeConfirm();
   toast(t('coach_free_ok'));
   await loadProfileInfo(USER);
 }
-{ const el=$('#p-coach-free-go'); if(el) el.onclick=becomeCoachFree; }
-{ const el=$('#home-coach-free'); if(el) el.onclick=becomeCoachFree; }
+{ const el=$('#p-coach-free-go'); if(el) el.onclick=openCoachFreeConfirm; }
+{ const el=$('#home-coach-free'); if(el) el.onclick=openCoachFreeConfirm; }
+{ const el=$('#cfree-go'); if(el) el.onclick=becomeCoachFree; }
+{ const el=$('#cfree-no'); if(el) el.onclick=closeCoachFreeConfirm; }
+{ const ov=$('#cfree-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) closeCoachFreeConfirm(); }); }
 { const ov=$('#coach-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); }); }
 { const ov=$('#sub-ov'); if(ov) ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); }); }
 { const el=$('#ck-close'); if(el) el.onclick=closeCheckout; }
@@ -4255,6 +4308,11 @@ function applyCoachIsolation(){
   const lead=$('#p-lead-open');   if(lead) lead.style.display = hide ? 'none' : '';
   const off=$('#p-coach-offer');  if(off && hide) off.style.display='none';
   const hc=$('#home-coach');      if(hc && hide) hc.style.display='none';
+  /* Un membre déjà suivi par un coach ne doit pas être invité à devenir coach
+     lui-même : c'est le client de quelqu'un d'autre, on ne le détourne pas.
+     L'entrée ne s'adresse qu'aux membres sans coach. */
+  const cf=$('#p-coach-free');    if(cf && hide) cf.style.display='none';
+  const hcf=$('#home-coach-free');if(hcf && hide) hcf.style.display='none';
 }
 async function loadCoachCard(){
   const box=$('#coach-card'); if(!box) return;
