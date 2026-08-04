@@ -185,7 +185,7 @@
 </style>
 </head>
 <body>
-<div style="position:fixed;top:0;left:0;right:0;z-index:99998;background:#7a4a00;color:#fff;font:600 12px sans-serif;padding:6px 10px;text-align:center">PAGE DE TEST — coach-test.html — ne pas diffuser</div>
+<div style="position:fixed;top:0;left:0;right:0;z-index:99998;background:#7a4a00;color:#fff;font:600 12px sans-serif;padding:6px 10px;text-align:center">PAGE DE TEST — coach-test.html</div>
 
 <div id="boot" class="screen"><div class="spin"></div></div>
 <script>
@@ -953,7 +953,7 @@ const tr = (k)=> (T[k] ? (T[k][LANG] ?? T[k].fr) : k);
 /* trf('cle', a, b) : {0} et {1} sont remplaces. Indispensable pour le
    neerlandais, dont l'ordre des mots differe du francais. */
 const trf = (k,...v)=> tr(k).replace(/\{(\d+)\}/g,(m,i)=> v[i]!=null?v[i]:m);
-const locale = ()=> LANG==='fr' ? locale() : (LANG==='nl' ? 'nl-BE' : 'en-GB');
+const locale = ()=> LANG==='fr' ? 'fr-BE' : (LANG==='nl' ? 'nl-BE' : 'en-GB');
 let _i18nObs = null, _i18nOn = false, _i18nBusy = false;
 
 function applyI18n(root, deep){
