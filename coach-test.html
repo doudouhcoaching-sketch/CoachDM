@@ -959,9 +959,7 @@ let _i18nObs = null, _i18nOn = false, _i18nBusy = false;
 function applyI18n(root, deep){
   if(_i18nBusy) return;
   _i18nBusy = true;
-  const reprendre = _i18nOn;
   try{
-    if(_i18nObs) _i18nObs.disconnect();
     const r = root || document;
     /* querySelectorAll ne retourne JAMAIS la racine elle-meme : un element
        data-i18n place a la racine d'un fragment insere serait ignore. On le
@@ -985,10 +983,6 @@ function applyI18n(root, deep){
     console.warn('i18n', e);
   }finally{
     _i18nBusy = false;
-    if(reprendre && _i18nObs && document.body){
-      _i18nOn = true;
-_i18nObs.observe(document.body, { childList:true, subtree:true });
-    }
   }
 }
 
@@ -2971,6 +2965,7 @@ $('#comp-save').onclick = async ()=>{
 })();
 
 applyI18n();
+_i18nOn = true;
 _i18nObs.observe(document.body, { childList:true, subtree:true });
 document.querySelectorAll('#c-lang button').forEach(b=>{
   b.classList.toggle('on', b.dataset.lang===LANG);
