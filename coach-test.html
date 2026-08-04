@@ -1,0 +1,2975 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#050807" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#050807" />
+<title>Coach DM · Console Coach</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#050807; --bg-2:#0A0F0C;
+    --surface:#0E1512; --surface-2:#17201C; --line:rgba(255,255,255,.10);
+    --text:#FFFFFF; --muted:#7FAE97;
+    --brand:#00FFA3; --brand-2:#00D98A; --brand-soft:rgba(0,255,160,.14);
+    --ok:#34D399; --warn:#FF5C5C; --amber:#D4AF37;
+    --gold-hi:#FBF3D0; --gold:#E9C767; --gold-mid:#D4A73C; --gold-deep:#9A6E1B;
+    --gold-soft:rgba(212,167,60,.14); --on-gold:#3a2b08;
+    --shadow:0 16px 44px rgba(0,0,0,.5); --shadow-soft:0 8px 22px rgba(0,0,0,.4);
+    --glow:0 0 22px rgba(0,255,160,.45);
+    --radius:22px; --radius-sm:14px;
+    --font-d:'Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%}
+  body{font-family:'Outfit',-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+    background:
+      radial-gradient(120% 70% at 50% -10%, rgba(0,255,150,.16) 0%, transparent 60%),
+      linear-gradient(180deg,var(--bg-2),var(--bg) 30%);
+    color:var(--text);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+  h1,h2,h3,.mark,.cd-name,.topbar h2{font-family:var(--font-d);letter-spacing:-.01em}
+  .btn{font-family:var(--font-d);letter-spacing:.01em}
+  button{font-family:inherit;cursor:pointer;border:none;color:inherit}
+  input{font-family:inherit;font-size:16px}
+  .hidden{display:none!important}
+  .screen{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:32px 22px;max-width:440px;margin:0 auto}
+  .mark{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;margin:0 auto 14px;
+    background:linear-gradient(145deg,var(--brand),var(--brand-2));box-shadow:0 12px 30px rgba(0,255,160,.4);
+    font-weight:800;font-size:26px;color:#04120a}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
+  h1{font-size:22px;font-weight:800;margin:0 0 4px;text-align:center}
+  .sub{color:var(--muted);font-size:13px;text-align:center;margin:0 0 20px}
+  .field{margin-bottom:13px}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 6px 2px;text-transform:uppercase;letter-spacing:.5px}
+  .field input{width:100%;padding:13px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);outline:none}
+  .field input:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+  .field select,.field textarea{width:100%;padding:13px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);outline:none;font-size:16px;font-family:inherit}
+  .field select:focus,.field textarea:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+  .field textarea{min-height:72px;resize:vertical;font-size:15px;line-height:1.5}
+  .btn{width:100%;padding:14px;border-radius:var(--radius-sm);font-weight:800;font-size:15px;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#04120a;box-shadow:0 8px 22px rgba(0,255,160,.4)}
+  .btn:active{transform:scale(.99)}
+  .btn.subtle{background:var(--surface-2);color:var(--text);box-shadow:none;border:1px solid var(--line)}
+  .btn.danger{background:transparent;color:var(--warn);box-shadow:none;border:1.5px solid var(--warn)}
+  .btn.sm{width:auto;padding:8px 13px;font-size:13px;border-radius:11px}
+  .btn[disabled]{opacity:.55;pointer-events:none}
+  .msg{margin-top:12px;font-size:13px;text-align:center;min-height:16px}
+  .msg.err{color:var(--warn)} .msg.ok{color:var(--ok)}
+
+  .topbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 80%,transparent);
+    backdrop-filter:blur(16px);padding:calc(14px + env(safe-area-inset-top)) 18px 0;border-bottom:1px solid var(--line)}
+  .topbar .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .topbar h2{margin:0;font-size:20px;font-weight:800}
+  .tabs{display:flex;gap:8px;padding-bottom:12px}
+  .tabs button{flex:1;padding:11px 8px;border-radius:999px;font-weight:700;font-size:14px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);font-family:var(--font-d)}
+  .tabs button.on{color:#04120a;background:linear-gradient(135deg,var(--brand),var(--brand-2));border-color:transparent;box-shadow:0 6px 18px rgba(0,255,160,.3)}
+  .tb-id{display:flex;align-items:center;gap:11px}
+  .tb-id img{width:38px;height:38px;border-radius:11px;display:block}
+  .tb-kick{font-size:10px;font-weight:800;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:1px;font-family:var(--font-d)}
+  .page{padding:16px 16px 60px;max-width:680px;margin:0 auto}
+  .pane{display:none} .pane.active{display:block}
+
+  .item{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);box-shadow:var(--shadow-soft);padding:14px;margin-bottom:11px}
+  /* Accent additif (n'affecte pas .item de base, utilisé ailleurs pour les
+     clients) : une couleur par type/catégorie sur les listes séances/exercices,
+     pour repérer un ensemble d'un coup d'œil au lieu de lire chaque étiquette. */
+  .item.acc{border-left:3px solid var(--a,var(--line));border-radius:0 var(--radius-sm) var(--radius-sm) 0}
+  .item .nm{font-weight:700;font-size:15px}
+  .item .meta{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .item .acts{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:8px;text-transform:uppercase;letter-spacing:.4px}
+  .pill.ok{background:rgba(16,185,129,.15);color:var(--ok)}
+  .pill.no{background:rgba(239,68,68,.13);color:var(--warn)}
+  .pill.role{background:var(--brand-soft);color:var(--brand)}
+  .pill.warnp{background:rgba(245,158,11,.16);color:#D4AF37}
+  .pill.vid{background:rgba(56,189,248,.16);color:#0ea5e9}
+
+  .toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+
+  .subswitch{display:flex;gap:8px;margin-bottom:14px}
+  .subswitch button{flex:1;padding:10px;border-radius:12px;font-weight:700;font-size:13.5px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line)}
+  .subswitch button.on{color:var(--brand);background:var(--brand-soft);border-color:transparent}
+  .subpane{display:none} .subpane.active{display:block}
+  .mini{font-size:11px;font-weight:700;color:var(--muted);margin:0 0 5px 2px;text-transform:uppercase;letter-spacing:.4px}
+  .comp-item{background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:12px;margin-bottom:10px}
+  .comp-item .ci-top{display:flex;align-items:center;gap:7px;margin-bottom:9px}
+  .comp-item .ci-top .ord{font-weight:800;color:var(--brand);font-size:13px;min-width:20px}
+  .comp-item .ci-top .sp{flex:1}
+  .iconbtn{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:6px 10px;font-size:14px;font-weight:700;line-height:1}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+
+  .overlay{position:fixed;inset:0;z-index:60;background:rgba(8,8,20,.5);backdrop-filter:blur(3px);display:none;align-items:flex-end;justify-content:center}
+  .overlay.show{display:flex}
+  .sheet{width:100%;max-width:560px;max-height:92vh;overflow-y:auto;background:var(--surface);border-radius:24px 24px 0 0;
+    padding:20px 18px calc(24px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.3);animation:up .25s ease}
+  @keyframes up{from{transform:translateY(100%)}to{transform:none}}
+  @media (prefers-reduced-motion: reduce){.sheet{animation:none}}
+  .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 14px}
+  .sheet h3{margin:0 0 16px;font-size:18px}
+  .spin{width:28px;height:28px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--brand);animation:rot .7s linear infinite;margin:30px auto}
+  @keyframes rot{to{transform:rotate(360deg)}}
+  .empty{text-align:center;color:var(--muted);font-size:14px;padding:20px}
+  .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:13px;font-size:13px;font-weight:600;box-shadow:var(--shadow);z-index:90;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.show{opacity:1}
+
+  /* ===== Fiche client ===== */
+  .cd-head{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .cd-ava{width:48px;height:48px;border-radius:14px;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-weight:800;font-size:18px;flex-shrink:0}
+  .cd-name{font-weight:800;font-size:17px}
+  .cd-mail{color:var(--muted);font-size:12.5px;margin-top:2px;word-break:break-all}
+  .cd-pills{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px}
+  /* ── Fiche client : couche visuelle ──────────────────────────────────────
+     La structure des sections ne change pas ; on leur donne un corps, une
+     couleur d'accent et une entrée animée. Chaque section porte --a, la teinte
+     de son domaine, pour qu'un coach repère la nutrition ou la charge sans
+     lire les titres. */
+  .cd-sec{margin-top:16px;background:var(--surface);border:1px solid var(--line);
+    border-left:3px solid var(--a,var(--brand));border-radius:0 14px 14px 0;padding:13px 14px;
+    animation:cdIn .28s ease both}
+  @keyframes cdIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+  .cd-sec:nth-of-type(2){animation-delay:.04s} .cd-sec:nth-of-type(3){animation-delay:.08s}
+  .cd-sec:nth-of-type(4){animation-delay:.12s} .cd-sec:nth-of-type(5){animation-delay:.16s}
+  .cd-sec:nth-of-type(n+6){animation-delay:.2s}
+  .cd-sec .mini{margin-bottom:9px;color:var(--a,var(--brand));letter-spacing:.5px}
+  @media (prefers-reduced-motion:reduce){ .cd-sec{animation:none} }
+
+  /* Lignes en tableau : colonnes alignées, alternance discrète, chiffres
+     tabulaires pour que les valeurs se comparent verticalement. */
+  .cd-row:nth-child(even){background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
+  .cd-row{padding-left:7px;padding-right:7px;border-radius:6px}
+  .cd-up{color:var(--ok);font-weight:700}
+  .cd-dn{color:var(--warn);font-weight:700}
+  .cd-flat{color:var(--muted);font-weight:700}
+  /* Barre de remplissage sur une ligne : lecture instantanée d'un écart à la cible. */
+  .cd-bar{height:4px;border-radius:2px;background:var(--surface-2);overflow:hidden;margin-top:5px}
+  .cd-bar i{display:block;height:100%;background:var(--a,var(--brand));transition:width .5s ease}
+  .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .stat{background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:11px 12px}
+  .stat .sv{font-weight:800;font-size:17px;font-variant-numeric:tabular-nums}
+  .stat .sl{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
+  .stat .sv .up{color:var(--ok);font-size:13px} .stat .sv .down{color:var(--warn);font-size:13px}
+  .cd-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .cd-row:last-child{border-bottom:0}
+  .cd-row .l{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cd-row .r{color:var(--muted);font-size:12.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .cd-row .r b{color:var(--text)}
+  .spark{width:100%;height:56px;display:block}
+  .spark .bar{fill:var(--brand);opacity:.85}
+  .spark .bar.low{opacity:.35}
+  .spark .goal{stroke:var(--amber);stroke-width:1.5;stroke-dasharray:4 3}
+  .spark .wline{stroke:var(--brand);stroke-width:2;fill:none}
+  .spark .wdot{fill:var(--brand)}
+  .ratings{display:flex;gap:8px;flex-wrap:wrap}
+  .rating{flex:1;min-width:70px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:9px 6px;text-align:center}
+  .rating .rv{font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
+  .rating .rl{font-size:10.5px;color:var(--muted);font-weight:600;margin-top:1px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+.cl-list{max-height:280px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.cl-row{display:flex;align-items:center;gap:11px;width:100%;padding:12px 13px;background:none;border:0;border-bottom:1px solid var(--line);color:var(--text);font-family:inherit;text-align:left;cursor:pointer}
+.cl-row:last-child{border-bottom:0}
+.cl-chk{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line);flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800}
+.cl-row.on .cl-chk{background:var(--brand);border-color:var(--brand);color:#04120a}
+.cl-row.on .cl-chk::before{content:'\2713'}
+.cl-info{min-width:0}
+.cl-info b{display:block;font-size:14.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cl-info small{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+</style>
+</head>
+<body>
+<div style="position:fixed;top:0;left:0;right:0;z-index:99998;background:#7a4a00;color:#fff;font:600 12px sans-serif;padding:6px 10px;text-align:center">PAGE DE TEST — coach-test.html — ne pas diffuser</div>
+
+<div id="boot" class="screen"><div class="spin"></div></div>
+<script>
+/* ---------- Filet de securite au demarrage ----------
+   app.html et coach.html importent supabase-js depuis un CDN. Si le reseau ne
+   repond pas, le module ESM ne s'execute JAMAIS : impossible d'attraper cet
+   echec depuis le module lui-meme. D'ou ce chronometre en script CLASSIQUE,
+   pose avant le module. Il remplace le spinner infini par un message lisible
+   et un bouton Reessayer. show() l'annule des que l'app affiche un ecran, ce
+   qui couvre aussi le cas ou le module se charge mais ou un appel reseau
+   reste en attente. */
+(function(){
+  var L=(localStorage.getItem('cdm_lang')||navigator.language||'en').toLowerCase();
+  L = L.indexOf('fr')===0 ? 'fr' : (L.indexOf('nl')===0 ? 'nl' : 'en');
+  var M={
+    fr:['Connexion impossible','Coach DM n\'arrive pas \u00e0 joindre le r\u00e9seau. V\u00e9rifie ta connexion, puis r\u00e9essaie.','R\u00e9essayer'],
+    en:['Cannot connect','Coach DM cannot reach the network. Check your connection, then try again.','Try again'],
+    nl:['Verbinden mislukt','Coach DM kan het netwerk niet bereiken. Controleer je verbinding en probeer opnieuw.','Opnieuw proberen']
+  }[L];
+  window.__cdmWatch = setTimeout(function(){
+    var b=document.getElementById('boot'); if(!b) return;
+    b.innerHTML='<div style="max-width:330px;margin:auto;padding:30px;text-align:center;font:400 15px/1.55 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;color:#b9c6c0">'
+      +'<div style="font-size:34px;margin-bottom:12px">\u26A0\uFE0F</div>'
+      +'<div style="font-weight:800;font-size:18px;color:#fff;margin-bottom:9px">'+M[0]+'</div>'
+      +'<div style="margin-bottom:22px">'+M[1]+'</div>'
+      +'<button type="button" onclick="location.reload()" style="background:#00FFA3;color:#04120c;border:0;border-radius:999px;padding:13px 28px;font-weight:800;font-size:15px;cursor:pointer">'+M[2]+'</button>'
+      +'</div>';
+  }, 15000);
+  window.__cdmOK = function(){ if(window.__cdmWatch){ clearTimeout(window.__cdmWatch); window.__cdmWatch=null; } };
+})();
+</script>
+
+
+<div id="auth" class="screen hidden">
+  <div class="card">
+    <div class="mark"><img src="/logo-dm.png" alt="Coach DM" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block"></div>
+    <h1 data-i18n="c_title">Console Coach</h1>
+    <p class="sub" data-i18n="c_sub">Espace coach — Coach DM</p>
+    <div class="field"><label data-i18n="c_email">Email</label><input id="au-email" type="email" inputmode="email" placeholder="ton@email.be" data-i18n-ph="c_email_ph" /></div>
+    <div class="field"><label data-i18n="c_pass">Mot de passe</label><input id="au-pass" type="password" placeholder="••••••••" /></div>
+    <button class="btn" id="au-login" data-i18n="c_login">Se connecter</button>
+    <div class="msg" id="au-msg"></div>
+  </div>
+</div>
+
+<div id="gate" class="screen hidden">
+  <div class="card" style="text-align:center">
+    <div class="mark" style="background:var(--warn);box-shadow:none">✕</div>
+    <h1 data-i18n="c_denied">Accès refusé</h1>
+    <p class="sub" data-i18n="c_denied_sub">Ce compte n'est pas un compte coach.</p>
+    <button class="btn subtle" id="gate-out" data-i18n="c_signout">Se déconnecter</button>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <div class="topbar">
+    <div class="row">
+      <div class="tb-id"><img src="/logo-dm.png" alt="Coach DM"><div><div class="tb-kick">Power · Transform · Excel</div><h2 data-i18n="c_title">Console Coach</h2></div></div>
+      <div id="c-lang" class="langsw" style="display:flex;gap:4px;margin-right:8px"><button type="button" data-lang="fr">FR</button><button type="button" data-lang="en">EN</button><button type="button" data-lang="nl">NL</button></div><button class="btn subtle sm" id="logout" data-i18n="c_logout">Déconnexion</button>
+    </div>
+    <div class="tabs">
+      <button class="on" data-tab="clients" data-i18n="c_tab_clients">Clients</button>
+      <button data-tab="workouts" data-i18n="c_tab_workouts">Séances</button>
+      <button data-tab="cours" data-i18n="c_tab_classes">Cours</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <!-- CLIENTS -->
+    <div class="pane active" id="pane-clients">
+      <div id="cl-dash"></div>
+      <div id="cl-cap"></div>
+      <button class="btn" style="margin-bottom:14px" id="cl-new" data-i18n="c_add_client">＋ Ajouter un client</button>
+      <div id="cl-list"><div class="spin"></div></div>
+    </div>
+
+    <!-- SÉANCES -->
+    <div class="pane" id="pane-workouts">
+      <div class="subswitch">
+        <button class="on" data-sub="wk" data-i18n="c_sub_wk">Séances</button>
+        <button data-sub="ex" data-i18n="c_sub_ex">Exercices</button>
+        <button data-sub="my" data-i18n="c_sub_my">Mes apports</button>
+      </div>
+
+      <div class="subpane active" id="sub-wk">
+        <div class="toolbar"><div class="sub" style="text-align:left;margin:0"><span data-i18n="c_wk_hint">Une séance = une liste d'exercices. Tu l'assignes ensuite à un client depuis sa fiche.</span></div>
+          <button class="btn sm" id="wk-new" data-i18n="c_wk_new">＋ Séance</button></div>
+        <div class="field" style="margin-bottom:11px"><input id="wk-q" type="search" autocomplete="off" placeholder="Rechercher : nom, type…" data-i18n-ph="c_wk_q" /></div>
+        <div id="wk-list"><div class="spin"></div></div>
+      </div>
+
+      <div class="subpane" id="sub-ex">
+        <div class="toolbar"><div class="sub" style="text-align:left;margin:0"><span data-i18n="c_ex_hint">Bibliothèque commune. Ta contribution rejoint la liste après validation.</span></div>
+          <button class="btn sm" id="ex-new" data-i18n="c_ex_new">＋ Exercice</button></div>
+        <div class="field" style="margin-bottom:11px"><input id="ex-q" type="search" autocomplete="off" placeholder="Rechercher : nom, muscle, catégorie…" data-i18n-ph="c_ex_q" /></div>
+        <div id="ex-list"><div class="spin"></div></div>
+      </div>
+
+      <div class="subpane" id="sub-my">
+        <div class="toolbar"><div class="sub" style="text-align:left;margin:0"><span data-i18n="c_my_hint">Ce que tu as ajouté à la bibliothèque commune.</span></div>
+          <button class="btn sm" id="my-food" data-i18n="c_my_food">＋ Aliment</button></div>
+        <div id="my-body"><div class="spin"></div></div>
+      </div>
+    </div>
+
+    <!-- COURS -->
+    <div class="pane" id="pane-cours">
+      <div class="subswitch">
+        <button class="on" data-cv="planning" data-i18n="c_cv_planning">Planning</button>
+        <button data-cv="modeles" data-i18n="c_cv_models">Modèles</button>
+      </div>
+      <div id="cours-body"><div class="spin"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- FICHE CLIENT -->
+<div class="overlay" id="ov-cd">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div id="cd-body"><div class="spin"></div></div>
+  </div>
+</div>
+
+<!-- AJOUT CLIENT -->
+<div class="overlay" id="ov-cl">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div id="cl-sheet-body"></div>
+  </div>
+</div>
+
+<!-- MACROS CLIENT -->
+<div class="overlay" id="ov-macro">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div id="macro-body"></div>
+  </div>
+</div>
+
+<!-- PLANS NUTRITION -->
+<div class="overlay" id="ov-mp">
+  <div class="sheet" style="max-height:92dvh;overflow-y:auto">
+    <div class="grab"></div>
+    <div id="mp-body"></div>
+  </div>
+</div>
+
+<!-- WORKOUT EDITOR -->
+<div class="overlay" id="ov-wk">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 id="wk-title" data-i18n="c_wke_title">Éditer la séance</h3>
+    <div class="langsw">
+      <button type="button" class="on" data-lg="fr">Français</button>
+      <button type="button" data-lg="en">English</button>
+      <button type="button" data-lg="nl">Nederlands</button>
+    </div>
+    <div class="lgp on" data-lgp="fr">
+      <div class="field"><label>Nom <span class="req">obligatoire</span></label><input id="wk-fr" type="text" placeholder="Bas du corps — force" /></div>
+      <div class="field"><label>Description</label><textarea id="wk-dfr" placeholder="À qui elle s'adresse, ce qu'elle travaille…"></textarea></div>
+    </div>
+    <div class="lgp" data-lgp="en">
+      <div class="field"><label>Name</label><input id="wk-en" type="text" placeholder="Lower body — strength" /></div>
+      <div class="field"><label>Description</label><textarea id="wk-den"></textarea></div>
+    </div>
+    <div class="lgp" data-lgp="nl">
+      <div class="field"><label>Naam</label><input id="wk-nl" type="text" placeholder="Onderlichaam — kracht" /></div>
+      <div class="field"><label>Beschrijving</label><textarea id="wk-dnl"></textarea></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label data-i18n="c_type">Type</label><select id="wk-type"></select></div>
+      <div class="field"><label data-i18n="c_difficulty">Difficulté</label><select id="wk-diff"></select></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label data-i18n="c_goal_reco">Objectif (séance reco)</label><select id="wk-goal"></select></div>
+      <div class="field"><label data-i18n="c_muscle_focus">Muscle focus</label><select id="wk-focus"></select></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label data-i18n="c_duration_min"><span data-i18n="g_duration_min"><span data-i18n="g_duration">Durée</span></span></label><input id="wk-dur" type="number" inputmode="numeric" /></div>
+      <div class="field"><label data-i18n="c_cover_url">Image couverture (URL)</label><input id="wk-cover" type="url" inputmode="url" /></div>
+    </div>
+    <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);font-weight:600;margin:4px 0 16px"><input type="checkbox" id="wk-pub" style="width:18px;height:18px;accent-color:var(--brand)" /> <span data-i18n="c_published_cli">Publiée (visible par tes clients)</span></label>
+    <button class="btn" id="wk-save" data-i18n="c_save">Enregistrer</button>
+    <button class="btn subtle" id="wk-compose" style="margin-top:9px" data-i18n="c_compose_ex">Composer les exercices</button>
+    <button class="btn danger" id="wk-del" style="margin-top:9px" data-i18n="c_delete">Supprimer</button>
+    <button class="btn subtle" id="wk-cancel" style="margin-top:9px" data-i18n="c_close">Fermer</button>
+    <div class="msg" id="wk-msg"></div>
+  </div>
+</div>
+
+<!-- OFFRE COACH (masquée en natif : conformité Apple) -->
+<div class="overlay" id="ov-up">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div id="up-body"></div>
+  </div>
+</div>
+
+<!-- PROGRAMMES D'ENTRAÎNEMENT (par client) -->
+<div class="overlay" id="ov-tp">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div id="tp-body"><div class="spin"></div></div>
+  </div>
+</div>
+
+<!-- CHOIX D'UNE SÉANCE (recherche) -->
+<div class="overlay" id="ov-wkp">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 data-i18n="c_pick_wk">Choisir une séance</h3>
+    <p class="sub" style="text-align:left;margin:-8px 0 12px" data-i18n="c_pick_wk_sub">Tes séances et celles de la bibliothèque Coach DM.</p>
+    <div class="field"><input id="wkp-q" type="search" autocomplete="off" placeholder="Rechercher : squat, hyrox, haut du corps…" data-i18n-ph="c_pick_wk_q" /></div>
+    <div class="exres" id="wkp-res"></div>
+    <button class="btn subtle" id="wkp-close" style="margin-top:12px" data-i18n="c_cancel">Annuler</button>
+  </div>
+</div>
+
+<!-- CHOIX D'EXERCICE (recherche) -->
+<div class="overlay" id="ov-exp">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 data-i18n="c_pick_ex">Choisir un exercice</h3>
+    <div class="field"><input id="exp-q" type="search" autocomplete="off" placeholder="Rechercher : squat, tirage, fente…" data-i18n-ph="c_pick_ex_q" /></div>
+    <div class="exres" id="exp-res"></div>
+    <button class="btn subtle" id="exp-new" style="margin-top:12px" data-i18n="c_create_ex_btn">＋ Créer un exercice</button>
+    <button class="btn subtle" id="exp-close" style="margin-top:9px" data-i18n="c_cancel">Annuler</button>
+  </div>
+</div>
+
+<!-- NOUVEL EXERCICE (contribution coach) -->
+<div class="overlay" id="ov-exn">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 data-i18n="c_new_ex">Nouvel exercice</h3>
+    <p class="sub" style="text-align:left;margin:-8px 0 14px" data-i18n="c_new_ex_sub">Il rejoint la bibliothèque commune. Coach DM le validera avant qu'il soit visible par tous.</p>
+    <div class="field"><label><span data-i18n="c_name">Nom</span> <span class="req" data-i18n="c_required">obligatoire</span></label><input id="exn-fr" type="text" placeholder="Fente bulgare" data-i18n-ph="c_new_ex_name_ph" /></div>
+    <div class="row2">
+      <div class="field"><label data-i18n="c_category">Catégorie</label><select id="exn-cat"></select></div>
+      <div class="field"><label data-i18n="c_main_muscle">Muscle principal</label><select id="exn-mus"></select></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label data-i18n="c_equipment">Équipement</label><select id="exn-equip"></select></div>
+      <div class="field"><label data-i18n="c_difficulty">Difficulté</label><select id="exn-diff"></select></div>
+    </div>
+    <div class="field"><label data-i18n="c_video_opt">Lien vidéo (facultatif)</label><input id="exn-video" type="url" inputmode="url" placeholder="https://youtu.be/…" /></div>
+    <div class="field"><label data-i18n="c_cue_opt">Consigne courte (facultatif)</label><input id="exn-cue" type="text" placeholder="Genou dans l'axe, dos neutre" data-i18n-ph="c_cue_ph" /></div>
+    <button class="btn" id="exn-save" data-i18n="c_create_use">Créer et l'utiliser</button>
+    <button class="btn subtle" id="exn-cancel" style="margin-top:9px" data-i18n="c_cancel">Annuler</button>
+    <div class="msg" id="exn-msg"></div>
+  </div>
+</div>
+
+<!-- NOUVEL ALIMENT (contribution coach) -->
+<div class="overlay" id="ov-fdn">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 data-i18n="c_new_food">Nouvel aliment</h3>
+    <p class="sub" style="text-align:left;margin:-8px 0 14px"><span data-i18n="c_food_vals">Valeurs</span> <b data-i18n="c_food_per100">pour 100 g</b><span data-i18n="c_food_tail">. Il rejoint la bibliothèque commune, Coach DM le validera.</span></p>
+    <div class="field"><label><span data-i18n="c_name">Nom</span> <span class="req" data-i18n="c_required">obligatoire</span></label><input id="fdn-fr" type="text" placeholder="Skyr nature" data-i18n-ph="c_food_name_ph" /></div>
+    <div class="field"><label data-i18n="c_brand_opt">Marque (facultatif)</label><input id="fdn-brand" type="text" placeholder="Arla" /></div>
+    <div class="row2">
+      <div class="field"><label><span data-i18n="c_kcal100">Calories /100 g</span> <span class="req" data-i18n="c_required">obligatoire</span></label><input id="fdn-kcal" type="number" inputmode="numeric" placeholder="63" /></div>
+      <div class="field"><label data-i18n="c_prot_g"><span data-i18n="g_prot_g">Protéines</span></label><input id="fdn-prot" inputmode="decimal" placeholder="11" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label data-i18n="c_carb_g">Glucides (g)</label><input id="fdn-carb" inputmode="decimal" placeholder="4" /></div>
+      <div class="field"><label data-i18n="c_fat_g">Lipides (g)</label><input id="fdn-fat" inputmode="decimal" placeholder="0.2" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label data-i18n="c_fiber_g">Fibres (g)</label><input id="fdn-fib" inputmode="decimal" /></div>
+      <div class="field"><label>Portion type (g)</label><input id="fdn-serv" type="number" inputmode="numeric" placeholder="150" /></div>
+    </div>
+    <div id="fdn-check" class="sub" style="text-align:left;margin:2px 2px 0"></div>
+    <button class="btn" id="fdn-save" style="margin-top:14px" data-i18n="c_create_food">Créer l'aliment</button>
+    <button class="btn subtle" id="fdn-cancel" style="margin-top:9px" data-i18n="c_cancel">Annuler</button>
+    <div class="msg" id="fdn-msg"></div>
+  </div>
+</div>
+
+<!-- COMPOSITION -->
+<div class="overlay" id="ov-comp">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 id="comp-title" data-i18n="c_comp_title">Composer la séance</h3>
+    <p class="sub" style="text-align:left;margin:-8px 0 14px" data-i18n="c_comp_sub">Ajoute les exercices par bloc, dans l'ordre.</p>
+    <div id="comp-list"></div>
+    <button class="btn subtle" id="comp-add" style="margin-top:4px" data-i18n="c_comp_add">＋ Ajouter un exercice</button>
+    <button class="btn" id="comp-save" style="margin-top:14px" data-i18n="c_comp_save">Enregistrer la composition</button>
+    <button class="btn subtle" id="comp-cancel" style="margin-top:9px" data-i18n="c_cancel">Annuler</button>
+    <div class="msg" id="comp-msg"></div>
+  </div>
+</div>
+
+<!-- COURS SHEET -->
+<div class="overlay" id="cours-ov">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div id="cours-sheet-body"></div>
+  </div>
+</div>
+
+<!-- CHAT COACH <-> CLIENT -->
+<div class="overlay" id="ov-chat">
+  <div class="sheet" style="display:flex;flex-direction:column;height:92dvh;max-height:92dvh">
+    <div class="grab"></div>
+    <div class="chat-head">
+      <h3 id="ch-name" style="margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></h3>
+      <button class="btn subtle sm" id="ch-close" style="width:auto" data-i18n="c_close">Fermer</button>
+    </div>
+    <div class="chat-body" id="ch-body"></div>
+    <div class="chat-in">
+      <button class="btn subtle sm" id="ch-att" style="width:auto;flex:none;padding:10px 14px;font-size:18px;line-height:1" aria-label="Joindre un média" data-i18n-aria="c_attach">＋</button>
+      <textarea id="ch-in" rows="1" placeholder="Écris ton message…" data-i18n-ph="c_msg_ph"></textarea>
+      <button class="btn sm" id="ch-send" style="width:auto;flex:none" data-i18n="c_send">Envoyer</button>
+    </div>
+    <input type="file" id="ch-file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,video/mp4,video/quicktime,video/webm" style="display:none">
+  </div>
+</div>
+
+<style>
+  .chat-head{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+  .chat-body{flex:1;overflow-y:auto;padding:12px 2px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch}
+  .bub{max-width:80%;padding:9px 13px;border-radius:16px;font-size:14.5px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+  .bub.me{align-self:flex-end;background:var(--brand);color:#04120a;border-bottom-right-radius:5px}
+  .bub.them{align-self:flex-start;background:var(--surface-2);border:1px solid var(--line);border-bottom-left-radius:5px}
+  .bub time{display:block;font-size:10.5px;opacity:.62;margin-top:3px;text-align:right}
+  .chat-in{display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--line)}
+  .chat-in textarea{flex:1;min-height:42px;max-height:110px;resize:none;background:var(--surface-2);
+    border:1px solid var(--line);border-radius:13px;color:var(--text);padding:10px 13px;font-size:15px;font-family:inherit}
+  .chat-in textarea:focus{outline:none;border-color:var(--brand)}
+  .bub.media{padding:5px 5px 7px}
+  .bub.media time{padding-right:8px}
+  .bub img,.bub video{max-width:100%;max-height:320px;border-radius:12px;display:block}
+  .bub .cap{padding:5px 8px 0}
+  .pill.msg{background:var(--brand);color:#04120a;border:none}
+
+  /* Tableau de bord : ce qui demande une action, en un coup d'oeil */
+  .dash{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+  .dash .d{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:10px 8px;text-align:center}
+  .dash .d .dv{font-size:21px;font-weight:800;line-height:1.15;font-family:var(--font-d)}
+  .dash .d .dl{font-size:10.5px;color:var(--muted);font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
+  .dash .d.act{border-color:var(--brand)}
+  .dash .d.act .dv{color:var(--brand)}
+  /* Bandeau des places offertes : annonce l'offre gratuite sans parler d'argent,
+     donc affichable aussi dans l'app iOS. */
+  .freebar{display:flex;align-items:center;gap:10px;background:var(--brand-soft);
+    border:1px solid rgba(0,255,163,.25);border-radius:13px;padding:11px 13px;margin-bottom:12px}
+  .freebar .fb-t{flex:1;font-size:13px;color:var(--brand);font-weight:600}
+  /* Pastille de conformite : vert a jour, orange decroche, rouge decroche depuis
+     longtemps, gris invitation en attente. */
+  .cdot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none;margin-right:7px;vertical-align:1px}
+  .cdot.g{background:var(--ok)} .cdot.o{background:#D4AF37}
+  .cdot.r{background:var(--warn)} .cdot.n{background:var(--muted);opacity:.55}
+
+  /* Guide de démarrage. Un coach qui ouvre la console pour la première fois
+     voyait un écran vide : il faut lui montrer le parcours, pas le lui faire
+     deviner. Disparaît dès qu'il a un client. */
+  .guide{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:14px}
+  .guide h4{margin:0 0 3px;font-size:17px;font-family:var(--font-d)}
+  .guide .gsub{color:var(--muted);font-size:13px;margin:0 0 15px;line-height:1.5}
+  .gstep{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--line)}
+  .gstep .gn{width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;
+    background:var(--brand-soft);color:var(--brand);font-weight:800;font-size:13px;font-family:var(--font-d)}
+  .gstep .gt{min-width:0;font-size:14px;line-height:1.5}
+  .gstep .gt b{display:block;font-weight:700;margin-bottom:1px}
+  .gstep .gt span{color:var(--muted);font-size:13px}
+
+  /* Une langue a la fois. Six champs empiles rendaient le formulaire illisible
+     alors qu'on ne remplit presque jamais les trois langues d'un coup. */
+  .langsw{display:flex;gap:6px;margin:0 0 12px}
+  .langsw button{flex:1;padding:8px;border-radius:10px;border:1px solid var(--line);
+    background:var(--surface-2);color:var(--muted);font-weight:700;font-size:13px;font-family:var(--font-d)}
+  .langsw button.on{background:var(--brand);color:#04120a;border-color:transparent}
+  .lgp{display:none} .lgp.on{display:block}
+  .req{font-weight:700;color:var(--warn);text-transform:none;letter-spacing:0}
+
+  /* Recherche d'exercice : 392 entrees dans un menu deroulant etaient
+     impraticables, surtout au telephone. */
+  .expick{position:relative}
+  .exres{max-height:210px;overflow-y:auto;border:1px solid var(--line);border-radius:11px;
+    background:var(--surface-2);margin-top:6px}
+  .exres button{display:block;width:100%;text-align:left;padding:9px 11px;background:none;
+    border:none;border-bottom:1px solid var(--line);font-size:13.5px;color:var(--text)}
+  .exres button:last-child{border-bottom:none}
+  .exres button:hover{background:var(--surface)}
+  .exres .exmeta{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+  .exchosen{font-weight:700;font-size:14px;padding:2px 0}
+  .sysline{align-self:center;max-width:90%;text-align:center;font-size:12px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:5px 13px;margin:3px 0;font-variant-numeric:tabular-nums}
+  .call-row{display:flex;align-items:center;gap:10px;padding:11px 12px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;margin-top:8px}
+  .call-row .cw{flex:1;min-width:0;font-weight:700;font-size:13.5px;font-variant-numeric:tabular-nums}
+  .call-row .cw small{display:block;font-weight:500;color:var(--muted);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+</style>
+
+<div class="toast" id="toast"></div>
+
+<style>
+  /* ===== Cours (styles hérités de la console) ===== */
+  #pane-cours .daylabel{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:14px 2px 8px}
+  #pane-cours .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow-soft)}
+  #pane-cours .row{display:flex;align-items:center;gap:10px}
+  #pane-cours .sp{flex:1}
+  #pane-cours .inst{cursor:pointer}
+  #pane-cours .accent{width:4px;align-self:stretch;border-radius:4px;background:var(--brand)}
+  #pane-cours .title{font-weight:800;font-size:15px}
+  #pane-cours .sub{font-weight:400;color:var(--muted);font-size:13px;margin-top:2px;text-align:left}
+  #pane-cours .center{text-align:center;color:var(--muted);padding:30px 0}
+  #pane-cours .btn, #cours-ov .btn{width:auto;display:inline-block;border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;color:#04120a;background:var(--brand);box-shadow:none}
+  #pane-cours .btn.full, #cours-ov .btn.full{width:100%}
+  #pane-cours .btn.sec, #cours-ov .btn.sec{background:var(--surface-2);color:var(--text);border:1px solid var(--line)}
+  #pane-cours .btn.gho, #cours-ov .btn.gho{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  #pane-cours .btn.sm, #cours-ov .btn.sm{padding:7px 10px;font-size:13px;border-radius:10px}
+  #pane-cours .btn.grn, #cours-ov .btn.grn{background:var(--ok)}
+  #pane-cours .btn.red, #cours-ov .btn.red{background:var(--warn)}
+  #pane-cours .pill, #cours-ov .pill{display:inline-block;font-size:12px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap;text-transform:none;letter-spacing:0}
+  #pane-cours .pill.ok, #cours-ov .pill.ok{background:rgba(16,185,129,.15);color:var(--ok)}
+  #pane-cours .pill.warn, #cours-ov .pill.warn{background:rgba(245,158,11,.16);color:#D4AF37}
+  #pane-cours .pill.full, #cours-ov .pill.full{background:rgba(239,68,68,.14);color:var(--warn)}
+  #pane-cours .pill.cancel, #cours-ov .pill.cancel{background:var(--surface-2);color:var(--muted)}
+  #pane-cours .pill.vio, #cours-ov .pill.vio{background:var(--brand-soft);color:var(--brand)}
+  #cours-ov input,#cours-ov select,#cours-ov textarea,#ov-cl input,#ov-cl select{width:100%;background:var(--surface-2);border:1.5px solid var(--line);border-radius:11px;color:var(--text);padding:11px;font-size:16px;font-family:inherit;outline:none}
+  #cours-ov input:focus,#cours-ov select:focus,#cours-ov textarea:focus,#ov-cl input:focus{border-color:var(--brand)}
+  #cours-ov textarea{min-height:64px;resize:vertical}
+  #cours-ov label,#ov-cl label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:12px 0 5px}
+  #cours-ov h2,#ov-cl h2{margin:2px 0 4px;font-size:18px}
+  #cours-ov .row,#ov-cl .row{display:flex;align-items:center;gap:10px}
+  #cours-ov .sp,#ov-cl .sp{flex:1}
+  #cours-ov .muted,#ov-cl .muted{color:var(--muted);font-size:13px}
+  #cours-ov hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+  #cours-ov .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  #cours-ov .chips{display:flex;gap:6px;flex-wrap:wrap}
+  #cours-ov .chips button{flex:1;min-width:42px;padding:9px 0;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);font-weight:700;font-size:13px}
+  #cours-ov .chips button.on{background:var(--brand);color:#04120a;border-color:var(--brand)}
+  #ov-cl .seg{display:flex;gap:6px;margin:12px 0 6px}
+  #ov-cl .seg button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);font-weight:700;font-size:13px}
+  #ov-cl .seg button.on{background:var(--brand);color:#04120a;border-color:var(--brand)}
+  #ov-cl .btn{width:auto;display:inline-block;border-radius:12px;padding:10px 14px;font-weight:700;font-size:14px;color:#04120a;background:var(--brand);box-shadow:none}
+  #ov-cl .btn.sec{background:var(--surface-2);color:var(--text);border:1px solid var(--line)}
+  #cours-ov .member{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+  #cours-ov .member:last-child{border-bottom:0}
+  #cours-ov .mname{font-weight:700;font-size:14px}
+  #cours-ov .memail{color:var(--muted);font-size:12px}
+  #cours-ov .att{display:flex;gap:6px}
+
+/* cdm-scroll-fix : Chromium bride le defilement quand le body est
+   verrouille a 100% de hauteur. min-height + overflow-y explicite. */
+html,body{overflow-y:auto;overscroll-behavior-y:contain}
+</style>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const sb = createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
+const $ = s=>document.querySelector(s);
+
+/* ---------- i18n : la console suit la langue de l'utilisateur ----------
+   Meme mecanique et MEME cle localStorage que app.html : un membre qui a bascule
+   l'app en NL retrouve la console coach en NL, sans rien avoir a regler.
+   La fonction s'appelle tr() et non t() : `t` est deja une variable locale a
+   plusieurs endroits du fichier, le shadowing casserait les traductions. */
+let LANG = localStorage.getItem('cdm_lang') || (function(){
+  const n = String(navigator.language || navigator.userLanguage || 'en').toLowerCase();
+  if(n.startsWith('fr')) return 'fr';
+  if(n.startsWith('nl')) return 'nl';
+  return 'en';
+})();
+if(!['fr','en','nl'].includes(LANG)) LANG='fr';
+const T = {
+ c_title:{fr:'Console Coach',en:'Coach console',nl:'Coach-console'},
+ c_sub:{fr:'Espace coach — Coach DM',en:'Coach area — Coach DM',nl:'Coachruimte — Coach DM'},
+ c_email:{fr:'Email',en:'Email',nl:'E-mail'},
+ c_email_ph:{fr:'ton@email.be',en:'you@email.com',nl:'jij@email.be'},
+ c_pass:{fr:'Mot de passe',en:'Password',nl:'Wachtwoord'},
+ c_login:{fr:'Se connecter',en:'Sign in',nl:'Inloggen'},
+ c_denied:{fr:'Accès refusé',en:'Access denied',nl:'Toegang geweigerd'},
+ c_denied_sub:{fr:'Ce compte n\'est pas un compte coach.',en:'This account is not a coach account.',nl:'Dit account is geen coach-account.'},
+ c_signout:{fr:'Se déconnecter',en:'Sign out',nl:'Uitloggen'},
+ c_logout:{fr:'Déconnexion',en:'Sign out',nl:'Uitloggen'},
+ c_tab_clients:{fr:'Clients',en:'Clients',nl:'Klanten'},
+ c_tab_workouts:{fr:'Séances',en:'Workouts',nl:'Trainingen'},
+ c_tab_classes:{fr:'Cours',en:'Classes',nl:'Lessen'},
+ c_add_client:{fr:'＋ Ajouter un client',en:'＋ Add a client',nl:'＋ Klant toevoegen'},
+ c_sub_wk:{fr:'Séances',en:'Workouts',nl:'Trainingen'},
+ c_sub_ex:{fr:'Exercices',en:'Exercises',nl:'Oefeningen'},
+ c_sub_my:{fr:'Mes apports',en:'My contributions',nl:'Mijn bijdragen'},
+ c_wk_hint:{fr:'Une séance = une liste d\'exercices. Tu l\'assignes ensuite à un client depuis sa fiche.',en:'A workout is a list of exercises. You then assign it to a client from their profile.',nl:'Een training is een lijst oefeningen. Je wijst ze daarna toe aan een klant vanuit zijn fiche.'},
+ c_wk_new:{fr:'＋ Séance',en:'＋ Workout',nl:'＋ Training'},
+ c_wk_q:{fr:'Rechercher : nom, type…',en:'Search: name, type…',nl:'Zoeken: naam, type…'},
+ c_ex_hint:{fr:'Bibliothèque commune. Ta contribution rejoint la liste après validation.',en:'Shared library. Your contribution joins the list once approved.',nl:'Gedeelde bibliotheek. Je bijdrage komt in de lijst na goedkeuring.'},
+ c_ex_new:{fr:'＋ Exercice',en:'＋ Exercise',nl:'＋ Oefening'},
+ c_ex_q:{fr:'Rechercher : nom, muscle, catégorie…',en:'Search: name, muscle, category…',nl:'Zoeken: naam, spier, categorie…'},
+ c_my_hint:{fr:'Ce que tu as ajouté à la bibliothèque commune.',en:'What you have added to the shared library.',nl:'Wat jij aan de gedeelde bibliotheek hebt toegevoegd.'},
+ c_my_food:{fr:'＋ Aliment',en:'＋ Food',nl:'＋ Voedingsmiddel'},
+ c_cv_planning:{fr:'Planning',en:'Schedule',nl:'Planning'},
+ c_cv_models:{fr:'Modèles',en:'Templates',nl:'Sjablonen'},
+ c_wke_title:{fr:'Éditer la séance',en:'Edit workout',nl:'Training bewerken'},
+ c_name:{fr:'Nom',en:'Name',nl:'Naam'},
+ c_required:{fr:'obligatoire',en:'required',nl:'verplicht'},
+ c_new_ex_name_ph:{fr:'Fente bulgare',en:'Bulgarian split squat',nl:'Bulgaarse split squat'},
+ c_type:{fr:'Type',en:'Type',nl:'Type'},
+ c_difficulty:{fr:'Difficulté',en:'Difficulty',nl:'Moeilijkheid'},
+ c_goal_reco:{fr:'Objectif (séance reco)',en:'Goal (recommended workout)',nl:'Doel (aanbevolen training)'},
+ c_muscle_focus:{fr:'Muscle focus',en:'Muscle focus',nl:'Spierfocus'},
+ c_duration_min:{fr:'Durée (min)',en:'Duration (min)',nl:'Duur (min)'},
+ c_cover_url:{fr:'Image couverture (URL)',en:'Cover image (URL)',nl:'Omslagafbeelding (URL)'},
+ c_published_cli:{fr:'Publiée (visible par tes clients)',en:'Published (visible to your clients)',nl:'Gepubliceerd (zichtbaar voor je klanten)'},
+ c_save:{fr:'Enregistrer',en:'Save',nl:'Opslaan'},
+ c_compose_ex:{fr:'Composer les exercices',en:'Build the exercise list',nl:'Oefeningen samenstellen'},
+ c_delete:{fr:'Supprimer',en:'Delete',nl:'Verwijderen'},
+ c_close:{fr:'Fermer',en:'Close',nl:'Sluiten'},
+ c_pick_wk:{fr:'Choisir une séance',en:'Choose a workout',nl:'Kies een training'},
+ c_pick_wk_sub:{fr:'Tes séances et celles de la bibliothèque Coach DM.',en:'Your workouts and those from the Coach DM library.',nl:'Jouw trainingen en die uit de Coach DM-bibliotheek.'},
+ c_pick_wk_q:{fr:'Rechercher : squat, hyrox, haut du corps…',en:'Search: squat, hyrox, upper body…',nl:'Zoeken: squat, hyrox, bovenlichaam…'},
+ c_cancel:{fr:'Annuler',en:'Cancel',nl:'Annuleren'},
+ c_pick_ex:{fr:'Choisir un exercice',en:'Choose an exercise',nl:'Kies een oefening'},
+ c_pick_ex_q:{fr:'Rechercher : squat, tirage, fente…',en:'Search: squat, row, lunge…',nl:'Zoeken: squat, roeien, lunge…'},
+ c_create_ex_btn:{fr:'＋ Créer un exercice',en:'＋ Create an exercise',nl:'＋ Oefening aanmaken'},
+ c_new_ex:{fr:'Nouvel exercice',en:'New exercise',nl:'Nieuwe oefening'},
+ c_new_ex_sub:{fr:'Il rejoint la bibliothèque commune. Coach DM le validera avant qu\'il soit visible par tous.',en:'It joins the shared library. Coach DM will approve it before everyone can see it.',nl:'Ze komt in de gedeelde bibliotheek. Coach DM keurt ze goed voor iedereen ze ziet.'},
+ c_category:{fr:'Catégorie',en:'Category',nl:'Categorie'},
+ c_main_muscle:{fr:'Muscle principal',en:'Main muscle',nl:'Hoofdspier'},
+ c_equipment:{fr:'Équipement',en:'Equipment',nl:'Materiaal'},
+ c_video_opt:{fr:'Lien vidéo (facultatif)',en:'Video link (optional)',nl:'Videolink (optioneel)'},
+ c_cue_opt:{fr:'Consigne courte (facultatif)',en:'Short cue (optional)',nl:'Korte cue (optioneel)'},
+ c_cue_ph:{fr:'Genou dans l\'axe, dos neutre',en:'Knee tracking, neutral back',nl:'Knie in lijn, neutrale rug'},
+ c_create_use:{fr:'Créer et l\'utiliser',en:'Create and use it',nl:'Aanmaken en gebruiken'},
+ c_new_food:{fr:'Nouvel aliment',en:'New food',nl:'Nieuw voedingsmiddel'},
+ c_food_vals:{fr:'Valeurs',en:'Values',nl:'Waarden'},
+ c_food_per100:{fr:'pour 100 g',en:'per 100 g',nl:'per 100 g'},
+ c_food_tail:{fr:'. Il rejoint la bibliothèque commune, Coach DM le validera.',en:'. It joins the shared library, Coach DM will approve it.',nl:'. Ze komt in de gedeelde bibliotheek, Coach DM keurt ze goed.'},
+ c_food_name_ph:{fr:'Skyr nature',en:'Plain skyr',nl:'Skyr naturel'},
+ c_brand_opt:{fr:'Marque (facultatif)',en:'Brand (optional)',nl:'Merk (optioneel)'},
+ c_kcal100:{fr:'Calories /100 g',en:'Calories /100 g',nl:'Calorieën /100 g'},
+ c_prot_g:{fr:'Protéines (g)',en:'Protein (g)',nl:'Eiwitten (g)'},
+ c_carb_g:{fr:'Glucides (g)',en:'Carbs (g)',nl:'Koolhydraten (g)'},
+ c_fat_g:{fr:'Lipides (g)',en:'Fat (g)',nl:'Vetten (g)'},
+ c_fiber_g:{fr:'Fibres (g)',en:'Fibre (g)',nl:'Vezels (g)'},
+ c_serving_g:{fr:'Portion type (g)',en:'Typical serving (g)',nl:'Standaardportie (g)'},
+ c_create_food:{fr:'Créer l\'aliment',en:'Create the food',nl:'Voedingsmiddel aanmaken'},
+ c_comp_title:{fr:'Composer la séance',en:'Build the workout',nl:'Training samenstellen'},
+ c_comp_sub:{fr:'Ajoute les exercices par bloc, dans l\'ordre.',en:'Add the exercises block by block, in order.',nl:'Voeg de oefeningen blok per blok toe, in volgorde.'},
+ c_comp_add:{fr:'＋ Ajouter un exercice',en:'＋ Add an exercise',nl:'＋ Oefening toevoegen'},
+ c_comp_save:{fr:'Enregistrer la composition',en:'Save the list',nl:'Samenstelling opslaan'},
+ c_attach:{fr:'Joindre un média',en:'Attach media',nl:'Media toevoegen'},
+ c_msg_ph:{fr:'Écris ton message…',en:'Write your message…',nl:'Schrijf je bericht…'},
+ c_send:{fr:'Envoyer',en:'Send',nl:'Versturen'},
+ m_food_created:{fr:'Aliment créé — en attente de validation',en:'Food created — awaiting approval',nl:'Voedingsmiddel aangemaakt — wacht op goedkeuring'},
+ m_ex_created:{fr:'Exercice créé — en attente de validation',en:'Exercise created — awaiting approval',nl:'Oefening aangemaakt — wacht op goedkeuring'},
+ m_call_cancelled:{fr:'Appel annulé',en:'Call cancelled',nl:'Oproep geannuleerd'},
+ m_call_confirmed:{fr:'Appel vidéo confirmé',en:'Video call confirmed',nl:'Videogesprek bevestigd'},
+ m_call_proposed:{fr:'Appel vidéo proposé',en:'Video call proposed',nl:'Videogesprek voorgesteld'},
+ m_client_added:{fr:'Client ajouté',en:'Client added',nl:'Klant toegevoegd'},
+ m_client_archived:{fr:'Client archivé',en:'Client archived',nl:'Klant gearchiveerd'},
+ m_client_invited_ko:{fr:'Client invité (email KO)',en:'Client invited (email failed)',nl:'Klant uitgenodigd (e-mail mislukt)'},
+ m_client_unassigned:{fr:'Client non assigné — assigne-le via la Console Admin',en:'Client not assigned — assign them from the Admin console',nl:'Klant niet toegewezen — wijs toe via de Admin-console'},
+ m_client_notlinked:{fr:'Client non lié à toi',en:'This client is not linked to you',nl:'Deze klant is niet aan jou gekoppeld'},
+ m_comp_saved:{fr:'Composition enregistrée',en:'Exercise list saved',nl:'Samenstelling opgeslagen'},
+ m_copy_draft:{fr:'Copie créée en brouillon.',en:'Copy created as a draft.',nl:'Kopie aangemaakt als concept.'},
+ m_invite_sent:{fr:'Invitation envoyée ✓',en:'Invitation sent ✓',nl:'Uitnodiging verstuurd ✓'},
+ m_macros_updated:{fr:'Macros mises à jour',en:'Macros updated',nl:'Macro\'s bijgewerkt'},
+ m_plan_saved:{fr:'Plan enregistré',en:'Plan saved',nl:'Plan opgeslagen'},
+ m_plan_deleted:{fr:'Plan supprimé',en:'Plan deleted',nl:'Plan verwijderd'},
+ m_prog_saved:{fr:'Programme enregistré',en:'Program saved',nl:'Programma opgeslagen'},
+ m_prog_deleted:{fr:'Programme supprimé',en:'Program deleted',nl:'Programma verwijderd'},
+ m_proposal_sent:{fr:'Proposition envoyée au client',en:'Proposal sent to the client',nl:'Voorstel naar de klant verstuurd'},
+ m_wk_cancelled:{fr:'Séance annulée',en:'Session cancelled',nl:'Sessie geannuleerd'},
+ m_wk_created:{fr:'Séance créée',en:'Workout created',nl:'Training aangemaakt'},
+ m_wk_saved:{fr:'Séance enregistrée',en:'Workout saved',nl:'Training opgeslagen'},
+ m_wk_republished:{fr:'Séance republiée',en:'Workout republished',nl:'Training opnieuw gepubliceerd'},
+ m_wk_deleted:{fr:'Séance supprimée',en:'Workout deleted',nl:'Training verwijderd'},
+ m_wks_partial:{fr:'Séances créées, mais invitations partielles',en:'Workouts created, but some invitations failed',nl:'Trainingen aangemaakt, maar sommige uitnodigingen mislukten'},
+ m_already_client:{fr:'Ce membre est déjà ton client',en:'This member is already your client',nl:'Dit lid is al je klant'},
+ m_no_member_email:{fr:'Aucun membre avec cet email',en:'No member with that email',nl:'Geen lid met dat e-mailadres'},
+ m_food_exists:{fr:'Cet aliment existe déjà.',en:'That food already exists.',nl:'Dat voedingsmiddel bestaat al.'},
+ m_not_allowed:{fr:'Non autorisé',en:'Not allowed',nl:'Niet toegestaan'},
+ m_create_failed:{fr:'Échec création',en:'Creation failed',nl:'Aanmaken mislukt'},
+ m_create_failed2:{fr:'Échec de la création',en:'Creation failed',nl:'Aanmaken mislukt'},
+ m_saved:{fr:'Enregistré',en:'Saved',nl:'Opgeslagen'},
+ m_creating:{fr:'Création…',en:'Creating…',nl:'Aanmaken…'},
+ m_wk_locked:{fr:'Impossible : séance liée à des sessions enregistrées.',en:'Not possible: this workout is linked to recorded sessions.',nl:'Niet mogelijk: deze training is gekoppeld aan opgeslagen sessies.'},
+ m_del_refused:{fr:'Suppression refusée (séances liées ?)',en:'Deletion refused (linked workouts?)',nl:'Verwijderen geweigerd (gekoppelde trainingen?)'},
+ m_kcal_invalid:{fr:'Calories invalides pour 100 g (0 à 950).',en:'Invalid calories per 100 g (0 to 950).',nl:'Ongeldige calorieën per 100 g (0 tot 950).'},
+ m_video_url:{fr:'Le lien vidéo doit commencer par http:// ou https://.',en:'The video link must start with http:// or https://.',nl:'De videolink moet beginnen met http:// of https://.'},
+ m_slot_future:{fr:'Le créneau doit être dans le futur.',en:'The slot must be in the future.',nl:'Het tijdslot moet in de toekomst liggen.'},
+ m_slot_overlap:{fr:'Ce créneau chevauche un autre appel.',en:'This slot overlaps another call.',nl:'Dit tijdslot overlapt met een andere oproep.'},
+ m_macro_max:{fr:'Un macro ne peut pas dépasser 100 g pour 100 g de produit.',en:'A macro cannot exceed 100 g per 100 g of product.',nl:'Een macro kan niet hoger zijn dan 100 g per 100 g product.'},
+ m_video_long:{fr:'Vidéo trop longue (max 90 s).',en:'Video too long (max 90 s).',nl:'Video te lang (max 90 s).'},
+ m_no_dates:{fr:'Aucune date générée',en:'No dates generated',nl:'Geen datums gegenereerd'},
+ m_del_plan_q:{fr:'Supprimer ce plan ?',en:'Delete this plan?',nl:'Dit plan verwijderen?'},
+ m_del_prog_q:{fr:'Supprimer ce programme ? Le client ne le verra plus.',en:'Delete this program? The client will no longer see it.',nl:'Dit programma verwijderen? De klant ziet het dan niet meer.'},
+ m_del_wk_q:{fr:'Supprimer définitivement cette séance ?',en:'Permanently delete this workout?',nl:'Deze training definitief verwijderen?'},
+ m_cancel_call_q:{fr:'Annuler cet appel ? Le client sera notifié dans le chat.',en:'Cancel this call? The client will be notified in the chat.',nl:'Deze oproep annuleren? De klant krijgt een bericht in de chat.'},
+ s_owner_access:{fr:'Accès propriétaire · illimité',en:'Owner access · unlimited',nl:'Eigenaarstoegang · onbeperkt'},
+ s_change_wk:{fr:'Changer de séance',en:'Change workout',nl:'Training wijzigen'},
+ s_create_copy:{fr:'Créer la copie',en:'Create the copy',nl:'Kopie aanmaken'},
+ s_details_qty:{fr:'Détails, quantités…',en:'Details, quantities…',nl:'Details, hoeveelheden…'},
+ s_save_plan:{fr:'Enregistrer le plan',en:'Save the plan',nl:'Plan opslaan'},
+ s_save_macros:{fr:'Enregistrer les macros',en:'Save the macros',nl:'Macro\'s opslaan'},
+ s_typical_day:{fr:'Journée type',en:'Typical day',nl:'Typische dag'},
+ s_typical_bulk:{fr:'Journée type prise de masse',en:'Typical bulking day',nl:'Typische massadag'},
+ s_new_wk:{fr:'Nouvelle séance',en:'New workout',nl:'Nieuwe training'},
+ s_breakfast:{fr:'Petit-déj',en:'Breakfast',nl:'Ontbijt'},
+ s_lunch:{fr:'Déjeuner',en:'Lunch',nl:'Lunch'},
+ s_dinner:{fr:'Dîner',en:'Dinner',nl:'Avondeten'},
+ s_pretrain:{fr:'Pré-training',en:'Pre-workout',nl:'Pre-workout'},
+ s_no_client_linked:{fr:'Aucun client lié. Ajoute-en dans Clients.',en:'No client linked. Add one under Clients.',nl:'Geen klant gekoppeld. Voeg er een toe bij Klanten.'},
+ b_access_ok:{fr:'Accès en ordre',en:'Access OK',nl:'Toegang in orde'},
+ b_plan_adherence:{fr:'Adhérence au plan',en:'Plan adherence',nl:'Planopvolging'},
+ b_cancel_session:{fr:'Annuler la séance',en:'Cancel session',nl:'Sessie annuleren'},
+ b_cancel:{fr:'Annuler',en:'Cancel',nl:'Annuleren'},
+ b_cancelled:{fr:'Annulé',en:'Cancelled',nl:'Geannuleerd'},
+ b_video_calls:{fr:'Appels vidéo',en:'Video calls',nl:'Videogesprekken'},
+ b_no_call:{fr:'Aucun appel planifié avec ce client.',en:'No call scheduled with this client.',nl:'Geen oproep gepland met deze klant.'},
+ b_no_tpl_class:{fr:'Aucun cours modèle.',en:'No class template.',nl:'Geen lessjabloon.'},
+ b_no_ex_add:{fr:'Aucun exercice. Ajoute-en un.',en:'No exercises. Add one.',nl:'Geen oefeningen. Voeg er een toe.'},
+ b_no_ex:{fr:'Aucun exercice.',en:'No exercises.',nl:'Geen oefeningen.'},
+ b_no_plan_client:{fr:'Aucun plan pour ce client.',en:'No plan for this client.',nl:'Geen plan voor deze klant.'},
+ b_no_meal:{fr:'Aucun repas. Ajoute-en ci-dessous.',en:'No meals. Add one below.',nl:'Geen maaltijden. Voeg er hieronder een toe.'},
+ b_no_booking:{fr:'Aucune réservation.',en:'No bookings.',nl:'Geen reserveringen.'},
+ b_no_upcoming:{fr:'Aucune séance à venir.',en:'No upcoming sessions.',nl:'Geen komende sessies.'},
+ b_no_wk_add:{fr:'Aucune séance. Ajoute-en une.',en:'No workouts. Add one.',nl:'Geen trainingen. Voeg er een toe.'},
+ b_no_wk_first:{fr:'Aucune séance. Crée ta première séance.',en:'No workouts. Create your first one.',nl:'Geen trainingen. Maak je eerste aan.'},
+ b_blocked:{fr:'Bloqué',en:'Blocked',nl:'Geblokkeerd'},
+ b_confirmed:{fr:'Confirmé',en:'Confirmed',nl:'Bevestigd'},
+ b_declined:{fr:'Décliné',en:'Declined',nl:'Geweigerd'},
+ b_close:{fr:'Fermer',en:'Close',nl:'Sluiten'},
+ b_media_na:{fr:'Média indisponible',en:'Media unavailable',nl:'Media niet beschikbaar'},
+ b_present:{fr:'Présent',en:'Present',nl:'Aanwezig'},
+ b_published:{fr:'Publiée',en:'Published',nl:'Gepubliceerd'},
+ b_booked:{fr:'Réservé',en:'Booked',nl:'Gereserveerd'},
+ b_no_access:{fr:'Sans accès',en:'No access',nl:'Geen toegang'},
+ b_del_plan:{fr:'Supprimer le plan',en:'Delete the plan',nl:'Plan verwijderen'},
+ b_delete:{fr:'Supprimer',en:'Delete',nl:'Verwijderen'},
+ b_done:{fr:'Terminé',en:'Done',nl:'Klaar'},
+ b_pending_contrib:{fr:'Un apport en attente est déjà utilisable par toi. Seul Coach DM peut le retirer.',en:'A pending contribution is already usable by you. Only Coach DM can remove it.',nl:'Een bijdrage in afwachting kun je al gebruiken. Alleen Coach DM kan ze verwijderen.'},
+ b_video:{fr:'Vidéo',en:'Video',nl:'Video'},
+ b_to_settle:{fr:'À régulariser',en:'To settle',nl:'Te regelen'},
+ b_ok:{fr:'En ordre',en:'OK',nl:'In orde'},
+ b_dup_7d:{fr:'⧉ Dupliquer en décalant de 7 jours',en:'⧉ Duplicate shifted by 7 days',nl:'⧉ Dupliceren met 7 dagen verschuiving'},
+ b_schedule_wk:{fr:'＋ Programmer une séance',en:'＋ Schedule a session',nl:'＋ Sessie plannen'},
+ b_autodate:{fr:'📅 Dater auto (1×/semaine depuis le début)',en:'📅 Auto-date (1×/week from the start)',nl:'📅 Auto-datum (1×/week vanaf het begin)'},
+ b_slot_used:{fr:'Ta <b>place offerte</b> est utilisée',en:'Your <b>free slot</b> is in use',nl:'Je <b>gratis plaats</b> is in gebruik'},
+ b_slot_free:{fr:'Tu as <b>1 place offerte</b> pour découvrir la console',en:'You have <b>1 free slot</b> to try the console',nl:'Je hebt <b>1 gratis plaats</b> om de console te ontdekken'},
+ b_end_to_end:{fr:'Tu as géré un client de bout en bout : programmes, macros, messages, analyses.',en:'You have managed a client end to end: programs, macros, messages, analyses.',nl:'Je hebt een klant van begin tot eind begeleid: programma\'s, macro\'s, berichten, analyses.'},
+ q_archive:{fr:'Archiver {0} ? Le compte est conservé, le slot est libéré.',en:'Archive {0}? The account is kept, the slot is freed.',nl:'{0} archiveren? Het account blijft, de plaats komt vrij.'},
+ b_nodata:{fr:'Pas encore de données pour ce client. Elles apparaîtront dès qu\'il utilisera l\'app.',en:'No data for this client yet. It will appear once they use the app.',nl:'Nog geen gegevens voor deze klant. Ze verschijnen zodra hij de app gebruikt.'},
+ m_calls_plus:{fr:'Les appels vidéo nécessitent l\'offre Coach+.',en:'Video calls require the Coach+ plan.',nl:'Videogesprekken vereisen de Coach+ formule.'},
+ m_videos_plus:{fr:'Les vidéos nécessitent l\'offre Coach+.',en:'Videos require the Coach+ plan.',nl:'Video\'s vereisen de Coach+ formule.'},
+ m_meals_failed:{fr:'Repas non enregistrés : ',en:'Meals not saved: ',nl:'Maaltijden niet opgeslagen: '},
+ m_request_sent:{fr:'Demande envoyée — en attente de l\'accord du membre',en:'Request sent — waiting for the member to accept',nl:'Verzoek verstuurd — wacht op akkoord van het lid'},
+ b_proposed_on:{fr:'Proposé le',en:'Proposed on',nl:'Voorgesteld op'},
+ m_macros_ok:{fr:'Macros cohérentes (~{0} kcal).',en:'Macros consistent (~{0} kcal).',nl:'Macro\'s kloppen (~{0} kcal).'},
+ m_macros_warn:{fr:'Attention : tes macros donnent ~{0} kcal, tu as saisi {1}. Vérifie l\'étiquette.',en:'Careful: your macros give ~{0} kcal, you entered {1}. Check the label.',nl:'Let op: je macro\'s geven ~{0} kcal, je gaf {1} in. Controleer het etiket.'},
+ m_name_food:{fr:'Donne un nom à l\'aliment.',en:'Give the food a name.',nl:'Geef het voedingsmiddel een naam.'},
+ m_name_ex:{fr:'Donne un nom à l\'exercice.',en:'Give the exercise a name.',nl:'Geef de oefening een naam.'},
+ m_name_refused_food:{fr:'Ce nom a été refusé. Utilise le nom réel de l\'aliment.',en:'That name was refused. Use the real name of the food.',nl:'Die naam is geweigerd. Gebruik de echte naam van het voedingsmiddel.'},
+ m_name_refused_ex:{fr:'Ce nom a été refusé. Utilise le nom réel de l\'exercice.',en:'That name was refused. Use the real name of the exercise.',nl:'Die naam is geweigerd. Gebruik de echte naam van de oefening.'},
+ m_macro_sum:{fr:'Protéines + glucides + lipides dépassent 100 g pour 100 g. Vérifie l\'étiquette.',en:'Protein + carbs + fat exceed 100 g per 100 g. Check the label.',nl:'Eiwitten + koolhydraten + vetten overschrijden 100 g per 100 g. Controleer het etiket.'},
+ b_no_ex_for:{fr:'Aucun exercice pour « {0} ».',en:'No exercise for “{0}”.',nl:'Geen oefening voor “{0}”.'},
+ b_no_wk_for:{fr:'Aucune séance pour « {0} ».',en:'No workout for “{0}”.',nl:'Geen training voor “{0}”.'},
+ b_create_q:{fr:'＋ Créer « {0} »',en:'＋ Create “{0}”',nl:'＋ “{0}” aanmaken'},
+ m_save_wk_first:{fr:'Enregistre la séance d\'abord',en:'Save the workout first',nl:'Sla eerst de training op'},
+ m_copy_for:{fr:'Copie créée en brouillon pour {0}.',en:'Copy created as a draft for {0}.',nl:'Kopie als concept aangemaakt voor {0}.'},
+ q_replace_dates:{fr:'Remplacer les dates déjà saisies par un rythme d\'une séance par semaine ?',en:'Replace the dates already entered with one session per week?',nl:'De reeds ingevoerde datums vervangen door één sessie per week?'},
+ m_lib_paid:{fr:'La bibliothèque Coach DM est incluse dans l\'offre Coach. Tes propres séances restent assignables.',en:'The Coach DM library is included in the Coach plan. Your own workouts remain assignable.',nl:'De Coach DM-bibliotheek zit in de Coach-formule. Je eigen trainingen blijven toewijsbaar.'},
+ m_wk_not_yours:{fr:'Une séance choisie n\'est ni publiée ni à toi.',en:'One selected workout is neither published nor yours.',nl:'Een gekozen training is niet gepubliceerd en niet van jou.'},
+ b_assign_own:{fr:'Tu assignes tes propres séances. La bibliothèque Coach DM est incluse dans l\'offre Coach.',en:'You assign your own workouts. The Coach DM library is included in the Coach plan.',nl:'Je wijst je eigen trainingen toe. De Coach DM-bibliotheek zit in de Coach-formule.'},
+ b_no_wk_avail:{fr:'Aucune séance disponible. Crée-la dans l\'onglet Séances.',en:'No workout available. Create one in the Workouts tab.',nl:'Geen training beschikbaar. Maak er een aan bij Trainingen.'},
+ m_waitlist:{fr:'Ajouté (liste d\'attente)',en:'Added (waiting list)',nl:'Toegevoegd (wachtlijst)'},
+ b_sessions_30d:{fr:'{0} séance(s) / 30j',en:'{0} session(s) / 30d',nl:'{0} sessie(s) / 30d'},
+ b_sessions:{fr:'séances',en:'sessions',nl:'sessies'},
+ b_since:{fr:' · dès le ',en:' · from ',nl:' · vanaf '},
+ b_pct_done:{fr:'{0}% terminé',en:'{0}% done',nl:'{0}% klaar'},
+ b_programs:{fr:'programmes',en:'programs',nl:'programma\'s'},
+ b_wks_created:{fr:'{0} séances créées',en:'{0} workouts created',nl:'{0} trainingen aangemaakt'},
+ b_invited:{fr:' · {0} invité(s)',en:' · {0} invited',nl:' · {0} uitgenodigd'},
+ b_cancel_until:{fr:'Annulation jusqu\'à (min avant)',en:'Cancel until (min before)',nl:'Annuleren tot (min vooraf)'},
+ b_checkin_opens:{fr:'Pointage ouvre (min avant)',en:'Check-in opens (min before)',nl:'Aanmelden opent (min vooraf)'},
+ b_status_draft:{fr:'Brouillon',en:'Draft',nl:'Concept'},
+ b_status_assigned:{fr:'Assigné',en:'Assigned',nl:'Toegewezen'},
+ b_status_active:{fr:'En cours',en:'In progress',nl:'Bezig'},
+ b_status_completed:{fr:'Terminé',en:'Completed',nl:'Afgerond'},
+ b_status_archived:{fr:'Archivé',en:'Archived',nl:'Gearchiveerd'},
+ b_cancelled2:{fr:'Annulé',en:'Cancelled',nl:'Geannuleerd'},
+ m_present:{fr:'Présent',en:'Present',nl:'Aanwezig'},
+ m_absent:{fr:'Absent',en:'Absent',nl:'Afwezig'},
+ m_deleted:{fr:'Supprimé',en:'Deleted',nl:'Verwijderd'},
+ b_no_client_tab:{fr:'Aucun client lié. Ajoute-en dans l\'onglet Clients.',en:'No client linked. Add one in the Clients tab.',nl:'Geen klant gekoppeld. Voeg er een toe bij Klanten.'},
+ m_failed:{fr:'Échec : ',en:'Failed: ',nl:'Mislukt: '},
+ b_quota:{fr:'Quota de ton offre coach',en:'Quota of your coach plan',nl:'Quotum van je coachformule'},
+ b_active_clients:{fr:'Mes clients actifs',en:'My active clients',nl:'Mijn actieve klanten'},
+ g_start_title:{fr:'Par où commencer',en:'Where to start',nl:'Waar beginnen'},
+ g_start_sub:{fr:'Trois étapes, dans cet ordre. Compte cinq minutes pour la première.',en:'Three steps, in this order. Allow five minutes for the first.',nl:'Drie stappen, in deze volgorde. Reken vijf minuten voor de eerste.'},
+ g_s1_t:{fr:'Ajoute ton client',en:'Add your client',nl:'Voeg je klant toe'},
+ g_s1_d:{fr:'Bouton « Ajouter un client » au-dessus. Il reçoit une invitation par email et te retrouve dans l\'app.',en:'“Add a client” button above. They get an email invitation and find you in the app.',nl:'Knop “Klant toevoegen” hierboven. Hij krijgt een uitnodiging per e-mail en vindt je in de app.'},
+ g_s2_t:{fr:'Compose une séance',en:'Build a workout',nl:'Stel een training samen'},
+ g_s2_d:{fr:'Onglet Séances. Une séance, c\'est une liste d\'exercices avec séries, répétitions et repos.',en:'Workouts tab. A workout is a list of exercises with sets, reps and rest.',nl:'Tabblad Trainingen. Een training is een lijst oefeningen met sets, herhalingen en rust.'},
+ g_s3_t:{fr:'Assemble son programme',en:'Assemble their program',nl:'Stel zijn programma samen'},
+ g_s3_d:{fr:'Dans sa fiche. Un programme, c\'est tes séances posées sur des dates. Le client les coche, tu vois sa progression.',en:'In their profile. A program is your workouts placed on dates. The client ticks them off, you see their progress.',nl:'In zijn fiche. Een programma zijn je trainingen op datums. De klant vinkt ze af, jij ziet zijn vooruitgang.'},
+ g_no_prog:{fr:'Aucun programme assigné.',en:'No program assigned.',nl:'Geen programma toegewezen.'},
+ g_capacity:{fr:'Capacité',en:'Capacity',nl:'Capaciteit'},
+ g_capacity_def:{fr:'Capacité défaut',en:'Default capacity',nl:'Standaardcapaciteit'},
+ g_pick_client:{fr:'Choisis un de tes clients',en:'Choose one of your clients',nl:'Kies een van je klanten'},
+ g_allowed_clients:{fr:'Clients autorisés à voir ce cours',en:'Clients allowed to see this class',nl:'Klanten die deze les mogen zien'},
+ g_general_cue:{fr:'Consigne générale (facultatif)',en:'General note (optional)',nl:'Algemene richtlijn (optioneel)'},
+ g_copy_desc:{fr:'Crée une copie en brouillon de ce programme et de toutes ses séances, pour le client choisi, dates décalées automatiquement.',en:'Creates a draft copy of this program and all its sessions for the chosen client, with dates shifted automatically.',nl:'Maakt een conceptkopie van dit programma en al zijn sessies voor de gekozen klant, met automatisch verschoven datums.'},
+ g_create:{fr:'Créer',en:'Create',nl:'Aanmaken'},
+ g_create_copy:{fr:'Créer la copie',en:'Create the copy',nl:'Kopie aanmaken'},
+ g_duration:{fr:'Durée',en:'Duration',nl:'Duur'},
+ g_duration_min:{fr:'Durée (min)',en:'Duration (min)',nl:'Duur (min)'},
+ g_start:{fr:'Début',en:'Start',nl:'Start'},
+ g_save_macros:{fr:'Enregistrer les macros',en:'Save the macros',nl:'Macro\'s opslaan'},
+ g_qr:{fr:'Fais scanner ce QR au client en présentiel.',en:'Have the client scan this QR in person.',nl:'Laat de klant deze QR ter plaatse scannen.'},
+ g_typical_day:{fr:'Journée type',en:'Typical day',nl:'Typische dag'},
+ g_upto20:{fr:'Jusqu\'à 20 clients · bibliothèque Coach DM incluse',en:'Up to 20 clients · Coach DM library included',nl:'Tot 20 klanten · Coach DM-bibliotheek inbegrepen'},
+ g_upto50:{fr:'Jusqu\'à 50 clients · visios planifiées · vidéo dans la messagerie',en:'Up to 50 clients · scheduled video calls · video in messaging',nl:'Tot 50 klanten · geplande videogesprekken · video in berichten'},
+ g_msg_incl:{fr:'La messagerie est incluse dans l\'offre Coach. Ton offre actuelle couvre 1 client, avec tes propres programmes, les macros et le suivi.',en:'Messaging is included in the Coach plan. Your current plan covers 1 client, with your own programs, macros and tracking.',nl:'Berichten zitten in de Coach-formule. Je huidige formule dekt 1 klant, met je eigen programma\'s, macro\'s en opvolging.'},
+ g_invite_qr:{fr:'Le client reçoit une invitation par email + un QR à scanner pour créer son compte lui-même.',en:'The client gets an email invitation plus a QR code to create their own account.',nl:'De klant krijgt een uitnodiging per e-mail plus een QR-code om zelf een account aan te maken.'},
+ g_account_exists:{fr:'Le compte doit déjà exister. Une',en:'The account must already exist. A',nl:'Het account moet al bestaan. Een'},
+ g_hidden:{fr:'Masqué',en:'Hidden',nl:'Verborgen'},
+ g_msg_20:{fr:'Messagerie · jusqu\'à 20 clients · bibliothèque Coach DM incluse',en:'Messaging · up to 20 clients · Coach DM library included',nl:'Berichten · tot 20 klanten · Coach DM-bibliotheek inbegrepen'},
+ g_new_start:{fr:'Nouvelle date de début',en:'New start date',nl:'Nieuwe startdatum'},
+ g_open_progs:{fr:'Ouvrir les programmes',en:'Open the programs',nl:'Programma\'s openen'},
+ g_private:{fr:'Privé — clients choisis uniquement',en:'Private — chosen clients only',nl:'Privé — enkel gekozen klanten'},
+ g_prog_train:{fr:'Programme d\'entraînement',en:'Training program',nl:'Trainingsprogramma'},
+ g_schedule_wk:{fr:'Programmer une séance',en:'Schedule a session',nl:'Sessie plannen'},
+ g_progs_train:{fr:'Programmes d\'entraînement',en:'Training programs',nl:'Trainingsprogramma\'s'},
+ g_prot_g:{fr:'Protéines (g)',en:'Protein (g)',nl:'Eiwitten (g)'},
+ g_public:{fr:'Public — visible par tous les membres',en:'Public — visible to all members',nl:'Openbaar — zichtbaar voor alle leden'},
+ g_repeat:{fr:'Répéter chaque (laisse vide = séance unique)',en:'Repeat every (leave empty = one-off)',nl:'Herhaal elke (leeg laten = eenmalig)'},
+ g_upcoming_bookings:{fr:'Réservations à venir',en:'Upcoming bookings',nl:'Komende reserveringen'},
+ g_no_commit:{fr:'Sans engagement, résiliable en un clic.',en:'No commitment, cancel in one click.',nl:'Geen verbintenis, opzegbaar in één klik.'},
+ g_no_commit2:{fr:'Sans engagement, résiliable en un clic. Un seul client suffit généralement à couvrir l\'abonnement.',en:'No commitment, cancel in one click. A single client usually covers the subscription.',nl:'Geen verbintenis, opzegbaar in één klik. Eén klant dekt meestal het abonnement.'},
+ g_wk_done:{fr:'Séances complétées',en:'Completed sessions',nl:'Voltooide sessies'},
+ g_wk_of_prog:{fr:'Séances du programme',en:'Sessions in the program',nl:'Sessies van het programma'},
+ g_wk_recent:{fr:'Séances récentes complétées',en:'Recently completed sessions',nl:'Recent voltooide sessies'},
+ g_plan_covers1:{fr:'Ton offre actuelle couvre 1 client. Tes clients, programmes, macros et messages sont conservés.',en:'Your current plan covers 1 client. Your clients, programs, macros and messages are kept.',nl:'Je huidige formule dekt 1 klant. Je klanten, programma\'s, macro\'s en berichten blijven bewaard.'},
+ g_tap_select:{fr:'Touche pour sélectionner. Eux seuls verront ce cours privé dans leur calendrier.',en:'Tap to select. Only they will see this private class in their calendar.',nl:'Tik om te selecteren. Alleen zij zien deze privéles in hun agenda.'},
+ g_all_coach:{fr:'Tout Coach · vidéo dans la messagerie · visios planifiées · 50 clients',en:'Everything in Coach · video in messaging · scheduled video calls · 50 clients',nl:'Alles van Coach · video in berichten · geplande videogesprekken · 50 klanten'},
+ g_nothing_added:{fr:'Tu n\'as encore rien ajouté. Un exercice qui te manque ou un aliment que tes clients mangent souvent ? Ajoute-le : il te sert tout de suite, et rejoint la bibliothèque commune une fois validé.',en:'You have not added anything yet. An exercise you are missing, or a food your clients eat often? Add it: you can use it right away.',nl:'Je hebt nog niets toegevoegd. Een oefening die je mist of een voedingsmiddel dat je klanten vaak eten? Voeg het toe: je gebruikt het meteen.'},
+ g_phone:{fr:'Téléphone',en:'Phone',nl:'Telefoon'},
+ g_prog_expl:{fr:'Un programme, c\'est une suite de séances posées sur des dates. Ton client les voit dans son app, les coche quand il les a faites, et tu suis sa progression ici.',en:'A program is a series of sessions placed on dates. Your client sees them in the app, ticks them off when done, and you follow their progress.',nl:'Een programma is een reeks sessies op datums. Je klant ziet ze in de app, vinkt ze af, en jij volgt zijn vooruitgang.'},
+ g_validated:{fr:'Validé',en:'Approved',nl:'Goedgekeurd'},
+ g_visibility:{fr:'Visibilité',en:'Visibility',nl:'Zichtbaarheid'},
+ g_visible_client:{fr:'Visible par le client',en:'Visible to the client',nl:'Zichtbaar voor de klant'},
+ g_see_offers:{fr:'Voir les offres',en:'See the plans',nl:'Bekijk de formules'},
+ g_before_link:{fr:'avant d\'être lié à toi.',en:'before being linked to you.',nl:'voordat hij aan jou gekoppeld wordt.'},
+ g_invite_sent_to:{fr:'lui est envoyée : le membre doit l\'',en:'is sent to them: the member must',nl:'wordt naar hem gestuurd: het lid moet ze'},
+ g_msg_desc:{fr:'Échange avec tes clients directement dans la console : texte, photos, et vidéo avec Coach+.',en:'Talk with your clients straight from the console: text, photos, and video with Coach+.',nl:'Praat met je klanten rechtstreeks in de console: tekst, foto\'s en video met Coach+.'},
+ g_edit:{fr:'Éditer',en:'Edit',nl:'Bewerken'},
+ g_state:{fr:'État',en:'Status',nl:'Status'},
+ g_unchanged:{fr:'— inchangé —',en:'— unchanged —',nl:'— ongewijzigd —'},
+ g_reuse:{fr:'⧉ Réutiliser pour un autre client',en:'⧉ Reuse for another client',nl:'⧉ Hergebruiken voor een andere klant'},
+ g_add_wk:{fr:'＋ Ajouter une séance',en:'＋ Add a session',nl:'＋ Sessie toevoegen'},
+ g_invite_flow:{fr:'Le compte doit déjà exister. Une <b>demande</b> lui est envoyée : le membre doit l\'<b>accepter dans son app</b> avant d\'être lié à toi.',en:'The account must already exist. A <b>request</b> is sent: the member must <b>accept it in their app</b> before being linked to you.',nl:'Het account moet al bestaan. Er wordt een <b>verzoek</b> gestuurd: het lid moet het <b>in zijn app aanvaarden</b> voor het aan jou gekoppeld wordt.'},
+ g_add_client_h:{fr:'Ajouter un client',en:'Add a client',nl:'Klant toevoegen'},
+ g_fullname:{fr:'Nom complet *',en:'Full name *',nl:'Volledige naam *'},
+ g_fullname_ph:{fr:'Prénom Nom',en:'First name Last name',nl:'Voornaam Achternaam'},
+ g_client_lang:{fr:'Langue du client',en:'Client language',nl:'Taal van de klant'},
+ g_note_client:{fr:'Note au client',en:'Note to the client',nl:'Notitie voor de klant'},
+ g_add_my_client:{fr:'＋ Ajouter un de mes clients',en:'＋ Add one of my clients',nl:'＋ Een van mijn klanten toevoegen'},
+ g_wk_notfound:{fr:'Séance introuvable',en:'Workout not found',nl:'Training niet gevonden'},
+};
+const tr = (k)=> (T[k] ? (T[k][LANG] ?? T[k].fr) : k);
+/* trf('cle', a, b) : {0} et {1} sont remplaces. Indispensable pour le
+   neerlandais, dont l'ordre des mots differe du francais. */
+const trf = (k,...v)=> tr(k).replace(/\{(\d+)\}/g,(m,i)=> v[i]!=null?v[i]:m);
+const locale = ()=> LANG==='fr' ? locale() : (LANG==='nl' ? 'nl-BE' : 'en-GB');
+let _i18nObs = null, _i18nOn = false, _i18nBusy = false;
+
+function applyI18n(root, deep){
+  if(_i18nBusy) return;
+  _i18nBusy = true;
+  const reprendre = _i18nOn;
+  try{
+    if(_i18nObs) _i18nObs.disconnect();
+    const r = root || document;
+    if(r.querySelectorAll){
+      r.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(T[k] && el.textContent!==tr(k)) el.textContent=tr(k); });
+      r.querySelectorAll('[data-i18n-ph]').forEach(el=>{ const k=el.getAttribute('data-i18n-ph'); if(T[k]) el.setAttribute('placeholder',tr(k)); });
+      r.querySelectorAll('[data-i18n-aria]').forEach(el=>{ const k=el.getAttribute('data-i18n-aria'); if(T[k]) el.setAttribute('aria-label',tr(k)); });
+      /* innerHTML cree des elements : reserve aux appels explicites, jamais
+         declenche par l'observateur, sous peine de boucle. */
+      if(deep!==false) r.querySelectorAll('[data-i18n-html]').forEach(el=>{ const k=el.getAttribute('data-i18n-html'); if(T[k] && el.innerHTML!==tr(k)) el.innerHTML=tr(k); });
+    }
+    document.documentElement.lang = LANG;
+  }catch(e){
+    console.warn('i18n', e);
+  }finally{
+    _i18nBusy = false;
+    if(reprendre && _i18nObs && document.body){
+      _i18nOn = true;
+_i18nObs.observe(document.body, { childList:true, subtree:true });
+    }
+  }
+}
+
+/* Toute erreur non rattrapee devient visible : plus jamais un ecran fige sans
+   explication. */
+(function(){
+  let vu = false;
+  function montrer(msg){
+    if(vu) return; vu = true;
+    try{
+      const d = document.createElement('div');
+      d.style.cssText = 'position:fixed;left:10px;right:10px;bottom:10px;z-index:99999;background:#3a0d0d;color:#ffd9d9;border:1px solid #7a2020;border-radius:12px;padding:12px 14px;font:12px/1.45 -apple-system,sans-serif;max-height:42vh;overflow:auto';
+      d.textContent = 'Erreur : ' + msg;
+      const b = document.createElement('button');
+      b.textContent = 'Fermer';
+      b.style.cssText = 'margin-top:9px;background:#7a2020;color:#fff;border:0;border-radius:8px;padding:7px 14px;font-weight:700';
+      b.onclick = ()=>{ d.remove(); vu = false; };
+      d.appendChild(b);
+      document.body.appendChild(d);
+    }catch(_){}
+  }
+  window.addEventListener('error', e=>montrer((e.message||'?') + ' — ' + (e.filename||'').split('/').pop() + ':' + (e.lineno||'?')));
+  window.addEventListener('unhandledrejection', e=>montrer('promesse rejetee : ' + ((e.reason && (e.reason.message||e.reason)) || '?')));
+})();
+
+_i18nObs = new MutationObserver(ms=>{ for(const m of ms) for(const n of m.addedNodes) if(n.nodeType===1) applyI18n(n, false); });
+function setLang(l){
+  if(!['fr','en','nl'].includes(l)) return;
+  LANG=l; localStorage.setItem('cdm_lang',l);
+  buildLabels(); applyI18n();
+  document.querySelectorAll('#c-lang button').forEach(b=>b.classList.toggle('on', b.dataset.lang===LANG));
+  location.reload();
+}
+
+
+/* ⚠️ CONFORMITÉ APPLE — coach.html est embarqué dans le bundle iOS et
+   atteignable depuis l'app via le bouton « Console Coach ». Les offres Coach et
+   Coach+ ne sont PAS vendues en achat intégré : afficher un prix ou un lien
+   d'achat ici ferait tomber l'app sous la règle 3.1.1 (steering).
+   En natif, on se limite donc à un constat neutre, sans montant ni lien.
+   Sur le web et Android, on affiche l'offre complète. */
+const IS_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+const esc = s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const r0 = n=>Math.round(n||0);
+const r1 = n=>Math.round((n||0)*10)/10;
+function show(id){ if(id!=='boot' && window.__cdmOK) window.__cdmOK();
+  ['boot','auth','gate'].forEach(s=>$('#'+s).classList.toggle('hidden',s!==id));$('#app').classList.toggle('hidden',id!=='app');}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1800);}
+function setMsg(id,t,c){const e=$('#'+id);e.textContent=t;e.className='msg '+(c||'');}
+function setBtn(sel,busy,label){const b=$(sel);if(!b)return;b.disabled=busy;if(label!=null)b.textContent=label;}
+const dFR = d=>d?new Date(d).toLocaleDateString(locale(),{day:'numeric',month:'short'}):'—';
+const dhFR = d=>d?new Date(d).toLocaleDateString(locale(),{weekday:'short',day:'numeric',month:'short'})+' · '+new Date(d).toLocaleTimeString(locale(),{hour:'2-digit',minute:'2-digit'}):'—';
+
+async function boot(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(session?.user) await enter(session.user); else show('auth');
+}
+$('#au-login').onclick = async ()=>{
+  const email=$('#au-email').value.trim(), pass=$('#au-pass').value;
+  if(!email||!pass) return setMsg('au-msg','Email et mot de passe requis.','err');
+  $('#au-login').disabled=true; setMsg('au-msg','Connexion…','');
+  const { data, error } = await sb.auth.signInWithPassword({ email, password:pass });
+  $('#au-login').disabled=false;
+  if(error) return setMsg('au-msg','Email ou mot de passe incorrect.','err');
+  setMsg('au-msg','',''); await enter(data.user);
+};
+$('#gate-out').onclick = $('#logout').onclick = async ()=>{ await sb.auth.signOut(); show('auth'); };
+
+let ROLE=null, ME=null;
+async function enter(user){
+  show('boot');
+  ME = user.id;
+  const { data:prof } = await sb.from('profiles').select('role').eq('id',user.id).maybeSingle();
+  // Console réservée aux coachs (et admin) : les membres sont renvoyés vers l'app.
+  if(!prof || !['coach','admin'].includes(prof.role)){ location.replace('app.html'); return; }
+  ROLE = prof.role;
+  /* Statut payant connu dès l'entrée : le gating (bibliothèque, messagerie)
+     concerne toute la console, pas seulement l'écran des programmes. */
+  try{ const { data:pi } = await sb.rpc('coach_my_plan_info'); PLAN_INFO = pi || {paid:false}; }
+  catch(e){ PLAN_INFO = {paid:false}; }
+  show('app');
+  switchTab('clients'); loadClientList();
+  initChatLive();
+}
+/* Vrai tant qu'on ne sait pas : on n'inflige jamais un écran d'offre à un
+   coach payant à cause d'un appel réseau qui a échoué. */
+const isPaid = ()=> !PLAN_INFO || PLAN_INFO.paid !== false;
+
+/* ---- TABS ---- */
+function switchTab(t){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  $('#pane-'+t).classList.add('active');
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  if(t==='workouts' && !window.__wkLoaded){ window.__wkLoaded=true; loadExercises(); loadWorkouts(); }
+  if(t==='cours' && window.__coursOpen){ window.__coursOpen(); }
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+
+/* ===================================================================
+   CLIENTS — liste + fiche détaillée (RPCs partagées coach/admin)
+=================================================================== */
+let CLIST=[], CAP=null;
+const STATUS_PILL = { pending:'<span class="pill warnp">Invitation</span>', paused:'<span class="pill warnp">En pause</span>' };
+
+let DASH=null;
+async function loadClientList(){
+  $('#cl-list').innerHTML='<div class="spin"></div>';
+  const calls=[ sb.rpc('coach_list_clients') ];
+  const CAN_COACH = (ROLE==='coach'||ROLE==='admin');
+  if(CAN_COACH){ calls.push(sb.rpc('coach_my_capacity')); calls.push(sb.rpc('get_coach_dashboard')); }
+  const res = await Promise.all(calls);
+  const { data, error } = res[0];
+  if(error){ $('#cl-list').innerHTML='<p class="empty">Erreur de chargement.</p>'; return; }
+  CLIST = data||[];
+  CAP = null; DASH = null;
+  if(CAN_COACH && res[1] && res[1].data && res[1].data[0]) CAP = res[1].data[0];
+  if(CAN_COACH && res[2] && res[2].data) DASH = res[2].data;
+  await loadThreads();
+  renderDash();
+  renderCap();
+  renderClientList();
+}
+
+/* Les quatre chiffres qui repondent a "qu'est-ce qui m'attend ce matin ?".
+   Un compteur a zero reste affiche mais en gris : l'absence d'alerte est
+   une information, et une grille qui change de taille est desagreable. */
+function renderDash(){
+  const box=$('#cl-dash'); if(!box) return;
+  if(!DASH){ box.innerHTML=''; return; }
+  const cell=(v,l)=>`<div class="d${+v>0?' act':''}"><div class="dv">${+v||0}</div><div class="dl">${l}</div></div>`;
+  box.innerHTML = `<div class="dash">
+    ${cell(DASH.active_clients,'Clients')}
+    ${cell(DASH.checkins_to_review,'Check-ins')}
+    ${cell(DASH.unread_messages,'Messages')}
+    ${cell(DASH.active_plans,'Programmes')}
+  </div>`;
+}
+const CAP_UNLIMITED = CAP => CAP && CAP.max >= 100000;
+function renderCap(){
+  if(!CAP){ $('#cl-cap').innerHTML=''; return; }
+  const unlimited = CAP_UNLIMITED(CAP);
+  const full = !unlimited && CAP.active>=CAP.max;
+
+  /* Palier gratuit : on annonce la place offerte, jamais un prix ni un lien
+     d'achat — c'est ce qui rend ce bandeau affichable tel quel dans l'app iOS. */
+  if(!unlimited && CAP.max<=1){
+    const used = CAP.active>=CAP.max;
+    $('#cl-cap').innerHTML = `<div class="freebar">
+      <span style="font-size:17px">${used?'🔒':'🎁'}</span>
+      <div class="fb-t">${used
+        ? tr('b_slot_used')
+        : tr('b_slot_free')}</div>
+    </div>`;
+    return;
+  }
+
+  $('#cl-cap').innerHTML = `<div class="item" style="display:flex;align-items:center;gap:10px">
+    <div style="flex:1"><div class="nm"><span data-i18n="b_active_clients">Mes clients actifs</span></div>
+    <div class="meta">${unlimited?tr('s_owner_access'):tr('b_quota')}</div></div>
+    <span class="pill ${full?'no':'ok'}">${unlimited?CAP.active+' · ∞':CAP.active+' / '+CAP.max}</span></div>`;
+}
+
+/* Etat d'un client en une couleur. Le seuil est volontairement genereux :
+   7 jours sans seance n'est pas un abandon, 14 jours si. */
+function complianceDot(c){
+  if(c.link_status==='pending') return {cls:'n', label:'Invitation en attente'};
+  if(!c.last_session_at)        return {cls:'r', label:'Aucune séance'};
+  const days = Math.floor((Date.now()-new Date(c.last_session_at).getTime())/86400000);
+  if(days<=7)  return {cls:'g', label:`À jour · ${days<=1?'hier':days+' j'}`};
+  if(days<=14) return {cls:'o', label:`Décroche · ${days} j sans séance`};
+  return {cls:'r', label:`${days} j sans séance`};
+}
+function renderClientList(){
+  /* Premier lancement : on montre le chemin complet plutôt qu'un écran vide.
+     Le vocabulaire (séance / programme) est expliqué ici, une fois, au moment
+     où il sert — pas dans une page d'aide que personne n'ouvre. */
+  if(!CLIST.length){
+    $('#cl-list').innerHTML = `<div class="guide">
+      <h4><span data-i18n="g_start_title">Par</span></h4>
+      <p class="gsub"><span data-i18n="g_start_sub">Trois</span></p>
+      <div class="gstep"><div class="gn">1</div><div class="gt">
+        <b><span data-i18n="g_s1_t">Ajoute</span></b>
+        <span><span data-i18n="g_s1_d">Bouton</span></span></div></div>
+      <div class="gstep"><div class="gn">2</div><div class="gt">
+        <b><span data-i18n="g_s2_t">Compose</span></b>
+        <span><span data-i18n="g_s2_d">Onglet</span></span></div></div>
+      <div class="gstep"><div class="gn">3</div><div class="gt">
+        <b><span data-i18n="g_s3_t">Assemble</span></b>
+        <span><span data-i18n="g_s3_d">Dans</span></span></div></div>
+    </div>`;
+    return;
+  }
+  $('#cl-list').innerHTML = CLIST.map(c=>{
+    const access = c.has_access ? '<span class="pill ok"><span data-i18n="b_ok">En ordre</span></span>' : '<span class="pill no"><span data-i18n="b_no_access">Sans accès</span></span>';
+    const st = STATUS_PILL[c.link_status]||'';
+    const dot = complianceDot(c);
+    const bits=[];
+    bits.push(dot.label);
+    bits.push(trf('b_sessions_30d', c.sessions_30d||0));
+    if(c.last_weight_kg!=null) bits.push(`${r1(c.last_weight_kg)} kg (${dFR(c.last_weight_date)})`);
+    if(c.next_class_at) bits.push(`Cours ${dhFR(c.next_class_at)}`);
+    const th=THREADS[c.client_id];
+    const unread = th && +th.unread>0 ? `<span class="pill msg">${th.unread} non lu${+th.unread>1?'s':''}</span>` : '';
+    return `<div class="item" data-cid="${c.client_id}" data-name="${esc(c.full_name||c.email||'')}" style="cursor:pointer">
+      <div class="nm"><span class="cdot ${dot.cls}" title="${esc(dot.label)}"></span>${esc(c.full_name||c.email||'—')} ${access} ${st} ${unread}</div>
+      <div class="meta">${bits.map(esc).join(' · ')}</div>
+      <div class="acts">
+        <button class="btn subtle sm" data-open="${c.client_id}">Fiche</button>
+        <button class="btn subtle sm" data-chat="${c.client_id}">Messages${isPaid()?'':' 🔒'}</button>
+        ${ROLE==='coach'?`<button class="btn danger sm" data-arch="${c.client_id}">Archiver</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('#cl-list .item').forEach(el=>{
+    el.onclick=ev=>{ if(ev.target.closest('[data-arch]')||ev.target.closest('[data-chat]')) return; openClientDetail(el.dataset.cid); };
+  });
+  document.querySelectorAll('#cl-list [data-chat]').forEach(b=>b.onclick=ev=>{
+    ev.stopPropagation();
+    const it=b.closest('.item');
+    openChatGated(b.dataset.chat, it.dataset.name);
+  });
+  document.querySelectorAll('#cl-list [data-arch]').forEach(b=>b.onclick=ev=>{
+    ev.stopPropagation();
+    const it=b.closest('.item');
+    if(confirm(trf('q_archive', it.dataset.name))) archiveClient(b.dataset.arch);
+  });
+}
+async function archiveClient(cid){
+  const { data, error } = await sb.rpc('coach_set_member_status',{ p_client:cid, p_status:'ended' });
+  if(error||!data?.ok){ toast('Échec'); return; }
+  toast(tr('m_client_archived')); loadClientList();
+}
+
+/* ---- Fiche client ---- */
+function initials(n){ return (n||'?').split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+function sparkBars(vals, goal){
+  if(!vals.length) return '';
+  const W=300,H=56,P=2,max=Math.max(...vals, goal||0, 1);
+  const bw=W/vals.length;
+  let g='';
+  if(goal){ const gy=H-(goal/max)*(H-8)-2; g=`<line class="goal" x1="0" y1="${gy}" x2="${W}" y2="${gy}"/>`; }
+  const bars=vals.map((v,i)=>{
+    const h=Math.max(2,(v/max)*(H-8));
+    return `<rect class="bar ${goal&&v<goal*.7?'low':''}" x="${(i*bw+P).toFixed(1)}" y="${(H-h-2).toFixed(1)}" width="${(bw-2*P).toFixed(1)}" height="${h.toFixed(1)}" rx="2"/>`;
+  }).join('');
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${g}${bars}</svg>`;
+}
+function sparkLine(vals){
+  if(vals.length<2) return '';
+  const W=300,H=56,min=Math.min(...vals),max=Math.max(...vals),span=(max-min)||1;
+  const pts=vals.map((v,i)=>[ (i/(vals.length-1))*(W-12)+6, H-6-((v-min)/span)*(H-16) ]);
+  const path=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const last=pts[pts.length-1];
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path class="wline" d="${path}"/><circle class="wdot" cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="3.5"/></svg>`;
+}
+/* Écart signé, coloré, lisible d'un coup d'œil. Le seuil neutre évite de
+   peindre en rouge un écart de 12 kcal qui n'a aucun sens physiologique. */
+function deltaTxt(v, unit, seuil){
+  if(v==null || isNaN(v)) return '';
+  const s = seuil!=null ? seuil : 1;
+  if(Math.abs(v) <= s) return `<span class="cd-flat">=</span>`;
+  const cls = v>0 ? 'cd-up' : 'cd-dn';
+  const sign = v>0 ? '+' : '−';
+  return `<span class="${cls}">${sign}${Math.abs(Math.round(v))}${unit||''}</span>`;
+}
+
+async function openClientDetail(cid){
+  $('#cd-body').innerHTML='<div class="spin"></div>';
+  $('#ov-cd').classList.add('show');
+  const { data:d, error } = await sb.rpc('coach_client_detail',{ p_client:cid });
+  if(error||!d){ $('#cd-body').innerHTML='<p class="empty">Erreur de chargement de la fiche.</p>'; return; }
+  const p=d.profile||{};
+  const access = p.has_access ? '<span class="pill ok"><span data-i18n="b_access_ok">Accès en ordre</span></span>' : '<span class="pill no"><span data-i18n="b_no_access">Sans accès</span></span>';
+  let h=`<div class="cd-head">
+      <div class="cd-ava">${esc(initials(p.full_name||p.email))}</div>
+      <div style="min-width:0"><div class="cd-name">${esc(p.full_name||'—')}</div>
+      <div class="cd-mail">${esc(p.email||'')}</div></div>
+    </div>
+    <div class="cd-pills">${access}
+      ${p.member_since?`<span class="pill role">Membre depuis ${dFR(p.member_since)}</span>`:''}
+      ${p.height_cm?`<span class="pill role">${r0(p.height_cm)} cm</span>`:''}
+    </div>`;
+
+  /* Stats clés */
+  const wts=(d.weight||[]);
+  const lastW = wts.length ? wts[wts.length-1] : null;
+  const firstW = wts.length>1 ? wts[0] : null;
+  const delta = (lastW&&firstW) ? r1(lastW.weight_kg-firstW.weight_kg) : null;
+  const nt=d.nutrition_targets||null;
+  const n7=d.nutrition_7d||[];
+  const kcalAvg = n7.length ? r0(n7.reduce((s,x)=>s+(+x.total_kcal||0),0)/n7.length) : null;
+  const sleep = d.readiness && d.readiness.sleep_avg_7d;
+  const lci = d.readiness && d.readiness.last_check_in;
+  h+=`<div class="cd-sec"><div class="statgrid">
+    <div class="stat"><div class="sv">${lastW?r1(lastW.weight_kg)+' kg':'—'}${delta!=null?` <span class="${delta<=0?'up':'down'}">${delta>0?'+':''}${delta}</span>`:''}</div><div class="sl">Poids${lastW?' · '+dFR(lastW.logged_date):''}</div></div>
+    <div class="stat"><div class="sv">${kcalAvg!=null?kcalAvg+' kcal':'—'}</div><div class="sl">Moyenne 7j${nt&&nt.daily_calories_kcal?' · cible '+nt.daily_calories_kcal:''}</div></div>
+    <div class="stat"><div class="sv">${(d.sessions||[]).length}</div><div class="sl"><span data-i18n="g_wk_recent">Séances</span></div></div>
+    <div class="stat"><div class="sv">${sleep?Math.floor(sleep/60)+'h'+String(r0(sleep%60)).padStart(2,'0'):'—'}</div><div class="sl">Sommeil moyen 7 nuits</div></div>
+  </div></div>`;
+
+  /* Poids */
+  if(wts.length>1){
+    h+=`<div class="cd-sec" style="--a:#5DCAA5"><div class="mini">Évolution du poids (${wts.length} mesures)</div>${sparkLine(wts.map(x=>+x.weight_kg))}
+      <div class="cd-row"><span class="l">${dFR(firstW.logged_date)} → ${dFR(lastW.logged_date)}</span><span class="r"><b>${r1(firstW.weight_kg)} → ${r1(lastW.weight_kg)} kg</b></span></div></div>`;
+  }
+
+  /* Nutrition 7j — chaque jour est situé par rapport à la cible, avec sa barre.
+     Un coach doit voir « il décroche le week-end » sans faire de calcul. */
+  if(n7.length){
+    const cible = nt ? +nt.daily_calories_kcal : 0;
+    const moy = Math.round(n7.reduce((s,x)=>s+(+x.total_kcal||0),0)/n7.length);
+    h+=`<div class="cd-sec" style="--a:var(--carb,#E9C767)"><div class="mini">Nutrition — 7 derniers jours</div>
+      ${sparkBars(n7.map(x=>+x.total_kcal||0), cible)}
+      ${cible?`<div class="cd-row"><span class="l">Moyenne</span><span class="r"><b>${moy} kcal</b> · cible ${r0(cible)} ${deltaTxt(moy-cible,' kcal')}</span></div>`:''}
+      ${n7.map(x=>{
+        const k=+x.total_kcal||0;
+        const pct = cible ? Math.min(100, Math.round(k/cible*100)) : 0;
+        const ecart = cible ? k-cible : null;
+        return `<div class="cd-row" style="display:block">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline">
+            <span class="l">${dFR(x.logged_date)}</span>
+            <span class="r"><b>${r0(k)} kcal</b> · P${r0(x.total_protein_g)} G${r0(x.total_carbs_g)} L${r0(x.total_fat_g)}${ecart!=null?' '+deltaTxt(ecart,''):''}</span>
+          </div>
+          ${cible?`<div class="cd-bar"><i style="width:${pct}%"></i></div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  /* Readiness */
+  if(lci){
+    const R=(v,l)=>`<div class="rating"><div class="rv">${v!=null?v+'/5':'—'}</div><div class="rl">${l}</div></div>`;
+    h+=`<div class="cd-sec" style="--a:#EF9F27"><div class="mini">Dernier check-in${lci.period_end?' · '+dFR(lci.period_end):''}</div>
+      <div class="ratings">${R(lci.energy_rating,'Énergie')}${R(lci.sleep_rating,'Sommeil')}${R(lci.stress_rating,'Stress')}${R(lci.soreness_rating,'Courbatures')}</div>
+      ${lci.adherence_pct!=null?`<div class="cd-row"><span class="l"><span data-i18n="b_plan_adherence">Adhérence au plan</span></span><span class="r"><b>${lci.adherence_pct}%</b></span></div>`:''}
+      ${lci.client_note?`<div class="cd-row"><span class="l" style="white-space:normal;font-weight:400;color:var(--muted)">« ${esc(lci.client_note)} »</span></div>`:''}
+    </div>`;
+  }
+
+  /* Séances complétées */
+  const ss=d.sessions||[];
+  if(ss.length){
+    h+=`<div class="cd-sec" style="--a:var(--brand)"><div class="mini"><span data-i18n="g_wk_done">Séances</span></div>
+      ${ss.map(s=>`<div class="cd-row"><span class="l">${esc(s.name_fr||'Séance')}</span><span class="r">${dFR(s.completed_at)}${s.duration_min?' · '+s.duration_min+' min':''}${s.total_volume_kg?' · '+r0(s.total_volume_kg)+' kg':''}${s.session_rpe?' · RPE '+s.session_rpe:''}</span></div>`).join('')}
+    </div>`;
+  }
+
+  /* Charge hebdo */
+  const wl=d.weekly_load||[];
+  if(wl.length>1){
+    h+=`<div class="cd-sec" style="--a:#7F77DD"><div class="mini">Charge hebdomadaire (${wl.length} semaines)</div>
+      ${sparkBars(wl.map(x=>+x.weekly_load_au||0))}
+      <div class="cd-row"><span class="l">Semaine du ${dFR(wl[wl.length-1].week_start)}</span><span class="r"><b>${r0(wl[wl.length-1].weekly_load_au)} AU</b> · ${wl[wl.length-1].sessions_done} séance(s)</span></div>
+    </div>`;
+  }
+
+  /* PRs */
+  const prs=d.prs||[];
+  if(prs.length){
+    h+=`<div class="cd-sec" style="--a:var(--gold)"><div class="mini">Records personnels</div>
+      ${prs.map(x=>{
+        const up = x.prev_value!=null && +x.value>+x.prev_value;
+        return `<div class="cd-row"><span class="l">${esc(x.exercise_name||x.pr_key)}</span><span class="r"><b>${r1(x.value)} ${esc(x.unit||'')}</b>${up?' ↑':''} · ${dFR(x.achieved_at)}</span></div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  /* Objectifs */
+  const gs=d.goals||[];
+  if(gs.length){
+    const GST={active:'<span class="pill role">En cours</span>',blocked:'<span class="pill warnp"><span data-i18n="b_blocked">Bloqué</span></span>',completed:'<span class="pill ok">Atteint</span>'};
+    h+=`<div class="cd-sec"><div class="mini">Objectifs</div>
+      ${gs.map(g=>`<div class="cd-row"><span class="l">${esc(g.title_fr||'Objectif')}</span><span class="r">${g.target_value!=null?`<b>${r1(g.target_value)} ${esc(g.unit||'')}</b>`:''}${g.target_date?' · '+dFR(g.target_date):''} ${GST[g.status]||''}</span></div>`).join('')}
+    </div>`;
+  }
+
+  /* Réservations à venir */
+  const bk=d.upcoming_bookings||[];
+  if(bk.length){
+    h+=`<div class="cd-sec"><div class="mini"><span data-i18n="g_upcoming_bookings">Réservations</span></div>
+      ${bk.map(b=>`<div class="cd-row"><span class="l">${esc(b.name_fr||'Cours')}</span><span class="r">${dhFR(b.starts_at)}${b.location?' · '+esc(b.location):''}</span></div>`).join('')}
+    </div>`;
+  }
+
+  if(!wts.length && !n7.length && !ss.length && !prs.length && !bk.length && !lci){
+    h+='<p class="empty"><span data-i18n="b_nodata">Pas encore de donnees</span></p>';
+  }
+  /* L'entraînement est le cœur du métier : il passe en haut de la fiche, avec
+     l'état réel du programme en cours, et non plus derrière un bouton en bas. */
+  h+=`<div class="cd-sec" style="--a:var(--brand)"><div class="mini"><span data-i18n="g_prog_train">Programme</span></div>
+    <div id="cd-plan-box"><div class="spin" style="margin:14px auto"></div></div></div>`;
+  h+=`<div class="cd-sec"><div class="mini"><span data-i18n="b_video_calls">Appels vidéo</span></div><div id="cd-calls"><div class="spin"></div></div></div>`;
+  h+='<button class="btn" id="cd-macro" style="margin-top:18px">Calories & macros</button>';
+  h+='<button class="btn" id="cd-meal" style="margin-top:9px">Plans nutrition</button>';
+  h+=`<button class="btn${isPaid()?'':' subtle'}" id="cd-chat" style="margin-top:9px">Messages${isPaid()?'':' 🔒'}</button>`;
+  h+='<button class="btn subtle" id="cd-close" style="margin-top:9px"><span data-i18n="b_close">Fermer</span></button>';
+  $('#cd-body').innerHTML=h;
+  $('#cd-close').onclick=closeCd;
+  $('#cd-chat').onclick=()=>{ closeCd(); openChatGated(cid, p.full_name||p.email||''); };
+  $('#cd-macro').onclick=()=>openMacro(cid, p.full_name||p.email||'', nt);
+  $('#cd-meal').onclick=()=>openMealPlans(cid, p.full_name||p.email||'');
+  renderCdPlan(cid, p.full_name||p.email||'');
+  renderCdCalls(cid);
+}
+
+/* Programme en cours du client, directement dans sa fiche : le coach voit s'il
+   en a un, où il en est, et crée/ouvre sans changer d'écran. */
+async function renderCdPlan(cid, name){
+  const box=$('#cd-plan-box'); if(!box) return;
+  let rows=[];
+  try{
+    const { data, error } = await sb.rpc('coach_list_plans',{ p_client:cid });
+    if(error) throw error;
+    rows = data||[];
+  }catch(e){
+    box.innerHTML='<p class="empty" style="padding:8px 0">Programmes indisponibles.</p>';
+    return;
+  }
+  const live = rows.filter(r=>r.status==='assigned'||r.status==='active');
+  const cur = live[0] || rows[0] || null;
+  let h='';
+  if(!cur){
+    h=`<p class="empty" style="padding:6px 0 12px"><span data-i18n="g_no_prog">Aucun</span></p>
+       <button class="btn" id="cdp-new">＋ Créer un programme pour ${esc(name)}</button>`;
+  }else{
+    const pct = cur.item_count ? Math.round(cur.done_count/cur.item_count*100) : 0;
+    h=`<div class="cd-row"><span class="l">${esc(cur.title_fr)}</span>
+        <span class="r"><b>${cur.done_count}/${cur.item_count}</b> ${tr('b_sessions')}${cur.start_date?tr('b_since')+dFR(cur.start_date):''}</span></div>
+       <div class="cd-bar"><i style="width:${pct}%"></i></div>
+       <div class="cd-row"><span class="l">${TP_ST[cur.status]||cur.status}</span>
+        <span class="r">${trf('b_pct_done',pct)}${rows.length>1?' · '+rows.length+' '+tr('b_programs'):''}</span></div>
+       <button class="btn" id="cdp-open" style="margin-top:10px"><span data-i18n="g_open_progs">Ouvrir</span></button>`;
+  }
+  box.innerHTML=h;
+  /* On laisse la fiche ouverte dessous : fermer l'écran des programmes doit
+     ramener au client, pas à la liste. */
+  const nb=$('#cdp-new'); if(nb) nb.onclick=()=>openTrainPlans(cid,name);
+  const ob=$('#cdp-open'); if(ob) ob.onclick=()=>openTrainPlans(cid,name);
+}
+
+/* ---- Appels vidéo (Lot 6) : créneaux ciblés, gating Coach+ ---- */
+const CALL_ST = {
+  proposed:'<span class="pill warnp">En attente</span>',
+  confirmed:'<span class="pill ok"><span data-i18n="b_confirmed">Confirmé</span></span>',
+  declined:'<span class="pill no"><span data-i18n="b_declined">Décliné</span></span>',
+  cancelled:'<span class="pill no"><span data-i18n="b_cancelled">Annulé</span></span>',
+  done:'<span class="pill role"><span data-i18n="b_done">Terminé</span></span>'
+};
+async function renderCdCalls(cid){
+  const box=$('#cd-calls'); if(!box) return;
+  let rows=[];
+  try{
+    const { data } = await sb.rpc('call_list_coach');
+    rows=(data||[]).filter(x=>x.client_id===cid);
+  }catch(e){}
+  let h = rows.length ? rows.map(x=>`
+    <div class="call-row">
+      <div class="cw">${dhFR(x.starts_at)}<small>${esc(x.meeting_url||'')}</small></div>
+      ${CALL_ST[x.slot_status]||''}
+      ${['proposed','confirmed'].includes(x.slot_status)?`<button class="btn subtle sm" data-callcancel="${x.id}" style="width:auto"><span data-i18n="b_cancel">Annuler</span></button>`:''}
+    </div>`).join('')
+    : '<p class="empty" style="padding:8px 0"><span data-i18n="b_no_call">Aucun appel planifié avec ce client.</span></p>';
+  h += `<button class="btn sm" id="cd-call-new" style="margin-top:10px">＋ Proposer un appel</button>
+    <div id="cd-call-form" style="display:none;margin-top:12px">
+      <div class="row2">
+        <div class="field"><label>Date</label><input id="cf-date" type="date"></div>
+        <div class="field"><label>Heure</label><input id="cf-time" type="time" step="300"></div>
+      </div>
+      <div class="field"><label><span data-i18n="g_duration">Durée</span></label><select id="cf-dur">
+        <option value="15">15 min</option><option value="30" selected>30 min</option>
+        <option value="45">45 min</option><option value="60">60 min</option></select></div>
+      <div class="field"><label>Lien visio (Meet / Zoom)</label><input id="cf-url" type="url" inputmode="url" placeholder="https://meet.google.com/…"></div>
+      <button class="btn sm" id="cf-save">Envoyer la proposition</button>
+    </div>`;
+  box.innerHTML=h;
+  box.querySelectorAll('[data-callcancel]').forEach(b=>{
+    b.onclick=async ()=>{
+      if(!confirm(tr('m_cancel_call_q'))) return;
+      const { data, error } = await sb.rpc('call_cancel_slot',{ p_slot:b.getAttribute('data-callcancel') });
+      if(error||!data?.ok){ toast('Échec'); return; }
+      toast(tr('m_call_cancelled')); renderCdCalls(cid);
+    };
+  });
+  $('#cd-call-new').onclick=()=>{
+    const th=THREADS[cid];
+    if(th && th.video_allowed===false){ toast(tr('m_calls_plus')); return; }
+    const f=$('#cd-call-form');
+    f.style.display = f.style.display==='none' ? 'block' : 'none';
+  };
+  $('#cf-save').onclick=async ()=>{
+    const d=$('#cf-date').value, tm=$('#cf-time').value, dur=+$('#cf-dur').value, url=$('#cf-url').value.trim();
+    if(!d||!tm){ toast('Choisis une date et une heure.'); return; }
+    if(!/^https?:\/\//i.test(url)){ toast('Colle un lien visio valide (https://…).'); return; }
+    const starts=new Date(d+'T'+tm);
+    if(isNaN(starts.getTime())||starts.getTime()<=Date.now()){ toast(tr('m_slot_future')); return; }
+    const ends=new Date(starts.getTime()+dur*60000);
+    const { data, error } = await sb.rpc('call_create_slot',{ p_client:cid, p_starts:starts.toISOString(), p_ends:ends.toISOString(), p_url:url });
+    if(error||!data?.ok){
+      toast(data?.reason==='calls_require_plus' ? tr('m_calls_plus')
+        : data?.reason==='overlap' ? tr('m_slot_overlap')
+        : data?.reason==='no_link' ? tr('m_client_unassigned')
+        : data?.reason==='bad_url' ? 'Lien visio invalide.'
+        : tr('m_create_failed2'));
+      return;
+    }
+    toast(tr('m_proposal_sent')); renderCdCalls(cid);
+  };
+}
+function closeCd(){ $('#ov-cd').classList.remove('show'); }
+$('#ov-cd').onclick = ev=>{ if(ev.target.id==='ov-cd') closeCd(); };
+
+/* ================= MACROS CLIENT ================= */
+const MP_GOALS={lose_fat:'Perte de gras',maintain:'Maintien',build_muscle:'Prise de muscle',recomp:'Recomposition'};
+function numOrNull(v){ const n=parseFloat(String(v).replace(',','.')); return isNaN(n)?null:n; }
+function openMacro(cid, name, nt){
+  nt=nt||{};
+  const goalOpts=Object.keys(MP_GOALS).map(k=>`<option value="${k}"${nt.goal===k?' selected':''}>${MP_GOALS[k]}</option>`).join('');
+  $('#macro-body').innerHTML=`
+    <h3 style="margin:0 0 2px">Calories & macros</h3>
+    <p class="sub" style="text-align:left;margin:0 0 14px">${esc(name)}</p>
+    <div class="field"><label>Calories cible (kcal/jour)</label><input id="mc-kcal" type="number" inputmode="numeric" value="${nt.daily_calories_kcal??''}" placeholder="2100" /></div>
+    <div class="row2">
+      <div class="field"><label data-i18n="c_prot_g"><span data-i18n="g_prot_g">Protéines</span></label><input id="mc-prot" inputmode="decimal" value="${nt.protein_g??''}" /></div>
+      <div class="field"><label data-i18n="c_carb_g">Glucides (g)</label><input id="mc-carb" inputmode="decimal" value="${nt.carbs_g??''}" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label data-i18n="c_fat_g">Lipides (g)</label><input id="mc-fat" inputmode="decimal" value="${nt.fat_g??''}" /></div>
+      <div class="field"><label data-i18n="c_fiber_g">Fibres (g)</label><input id="mc-fib" inputmode="decimal" value="${nt.fiber_g??''}" /></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Eau (ml)</label><input id="mc-water" type="number" inputmode="numeric" value="${nt.water_ml??''}" placeholder="2500" /></div>
+      <div class="field"><label>Objectif</label><select id="mc-goal"><option value=""><span data-i18n="g_unchanged">—</span></option>${goalOpts}</select></div>
+    </div>
+    <div id="mc-kcalc" class="sub" style="text-align:left;margin:6px 2px 0"></div>
+    <button class="btn" id="mc-save" style="margin-top:16px"><span data-i18n="g_save_macros">Enregistrer</span></button>
+    <button class="btn subtle" id="mc-cancel" style="margin-top:9px"><span data-i18n="b_close">Fermer</span></button>
+    <div class="msg" id="mc-msg"></div>`;
+  const recalc=()=>{
+    const p=numOrNull($('#mc-prot').value)||0, c=numOrNull($('#mc-carb').value)||0, f=numOrNull($('#mc-fat').value)||0;
+    const kc=Math.round(p*4+c*4+f*9);
+    $('#mc-kcalc').textContent = (p||c||f)?`Macros = ~${kc} kcal (P·4 + G·4 + L·9)`:'';
+  };
+  ['mc-prot','mc-carb','mc-fat'].forEach(id=>$('#'+id).oninput=recalc); recalc();
+  $('#ov-macro').classList.add('show');
+  $('#mc-cancel').onclick=()=>$('#ov-macro').classList.remove('show');
+  $('#mc-save').onclick=async()=>{
+    const kcal=intOrNull($('#mc-kcal').value);
+    if(kcal===null||kcal<0) return setMsg('mc-msg','Indique des calories valides.','err');
+    setBtn('#mc-save',true,'…');
+    const { error } = await sb.rpc('coach_upsert_nutrition_targets',{
+      p_client:cid, p_daily_calories_kcal:kcal,
+      p_protein_g:numOrNull($('#mc-prot').value), p_carbs_g:numOrNull($('#mc-carb').value),
+      p_fat_g:numOrNull($('#mc-fat').value), p_fiber_g:numOrNull($('#mc-fib').value),
+      p_water_ml:intOrNull($('#mc-water').value), p_goal:$('#mc-goal').value||null
+    });
+    setBtn('#mc-save',false,tr('s_save_macros'));
+    if(error) return setMsg('mc-msg','Erreur : '+error.message,'err');
+    toast(tr('m_macros_updated'));
+    $('#ov-macro').classList.remove('show');
+  };
+}
+
+/* ================= PLANS NUTRITION (journée / semaine type) ================= */
+const MP_SLOTS={breakfast:tr('s_breakfast'),lunch:tr('s_lunch'),dinner:tr('s_dinner'),snack:'Collation',preworkout:tr('s_pretrain'),postworkout:'Post-training',meal:'Repas'};
+const MP_DAYS=['Jour','Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+let MP_LIST=[], MP_CID=null, MP_NAME='', MP_CUR=null, MP_ITEMS=[];
+async function openMealPlans(cid, name){
+  MP_CID=cid; MP_NAME=name; MP_CUR=null;
+  $('#ov-mp').classList.add('show');
+  await mpRenderList();
+}
+async function mpRenderList(){
+  $('#mp-body').innerHTML='<div class="spin"></div>';
+  const { data, error } = await sb.rpc('coach_list_meal_plans',{ p_client:MP_CID });
+  if(error){ $('#mp-body').innerHTML=`<p class="empty">Erreur : ${esc(error.message)}</p>`; return; }
+  MP_LIST=data||[];
+  let h=`<h3 style="margin:0 0 2px">Plans nutrition</h3>
+    <p class="sub" style="text-align:left;margin:0 0 14px">${esc(MP_NAME)}</p>`;
+  if(!MP_LIST.length) h+='<p class="empty" style="padding:16px 0"><span data-i18n="b_no_plan_client">Aucun plan pour ce client.</span></p>';
+  else h+=MP_LIST.map(p=>`<div class="card" style="display:flex;align-items:center;gap:10px">
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:700">${esc(p.title)}</div>
+      <div class="sub" style="text-align:left;margin:2px 0 0">${p.plan_type==='week'?'Semaine type':tr('s_typical_day')} · ${p.item_count} repas${p.is_active?'':' · inactif'}</div>
+    </div>
+    <button class="btn subtle sm" data-mpe="${p.id}" style="width:auto"><span data-i18n="g_edit">Éditer</span></button>
+  </div>`).join('');
+  h+='<button class="btn" id="mp-new" style="margin-top:14px">＋ Nouveau plan</button>';
+  h+='<button class="btn subtle" id="mp-close" style="margin-top:9px"><span data-i18n="b_close">Fermer</span></button>';
+  $('#mp-body').innerHTML=h;
+  $('#mp-close').onclick=()=>$('#ov-mp').classList.remove('show');
+  $('#mp-new').onclick=()=>mpEdit(null);
+  $('#mp-body').querySelectorAll('[data-mpe]').forEach(b=>b.onclick=()=>mpEdit(b.dataset.mpe));
+}
+async function mpEdit(id){
+  let plan={ title:'', notes:'', plan_type:'day', is_active:true }; MP_ITEMS=[];
+  if(id){
+    const { data, error } = await sb.rpc('coach_get_meal_plan',{ p_id:id });
+    if(error||!data){ toast('Chargement KO'); return; }
+    plan=data.plan; MP_ITEMS=(data.items||[]).map(it=>({...it}));
+  }
+  MP_CUR=id;
+  const h=`<h3 style="margin:0 0 12px">${id?'Modifier le plan':'Nouveau plan'}</h3>
+    <div class="field"><label>Titre</label><input id="mp-title" value="${esc(plan.title)}" placeholder="${tr('s_typical_bulk')}" /></div>
+    <div class="row2">
+      <div class="field"><label>Type</label><select id="mp-type">
+        <option value="day"${plan.plan_type==='day'?' selected':''}><span data-i18n="g_typical_day">Journée</span></option>
+        <option value="week"${plan.plan_type==='week'?' selected':''}>Semaine type</option>
+      </select></div>
+      <div class="field"><label>Actif</label><select id="mp-active">
+        <option value="1"${plan.is_active?' selected':''}><span data-i18n="g_visible_client">Visible</span></option>
+        <option value="0"${!plan.is_active?' selected':''}><span data-i18n="g_hidden">Masqué</span></option>
+      </select></div>
+    </div>
+    <div class="field"><label>Note (optionnel)</label><textarea id="mp-notes" placeholder="Hydratation, timing, rappels…">${esc(plan.notes)}</textarea></div>
+    <div class="mini" style="margin:14px 0 8px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.5px">Repas</div>
+    <div id="mp-items"></div>
+    <button class="btn subtle" id="mp-add" style="margin-top:4px">＋ Ajouter un repas</button>
+    <button class="btn" id="mp-save" style="margin-top:14px">Enregistrer le plan</button>
+    ${id?'<button class="btn danger" id="mp-del" style="margin-top:9px"><span data-i18n="b_del_plan">Supprimer le plan</span></button>':''}
+    <button class="btn subtle" id="mp-back" style="margin-top:9px">Retour</button>
+    <div class="msg" id="mp-msg"></div>`;
+  $('#mp-body').innerHTML=h;
+  mpPaintItems();
+  $('#mp-type').onchange=mpPaintItems;
+  $('#mp-add').onclick=()=>{ MP_ITEMS.push({day_index:1,slot:'meal',title:'',description:'',kcal:'',protein_g:'',carbs_g:'',fat_g:''}); mpPaintItems(); };
+  $('#mp-back').onclick=mpRenderList;
+  if(id) $('#mp-del').onclick=async()=>{
+    if(!confirm(tr('m_del_plan_q'))) return;
+    const { error } = await sb.rpc('coach_delete_meal_plan',{ p_id:id });
+    if(error) return toast('Erreur : '+error.message);
+    toast(tr('m_plan_deleted')); mpRenderList();
+  };
+  $('#mp-save').onclick=mpSave;
+}
+function mpPaintItems(){
+  const box=$('#mp-items'); if(!box) return;
+  const isWeek=$('#mp-type') && $('#mp-type').value==='week';
+  if(!MP_ITEMS.length){ box.innerHTML='<p class="sub" style="text-align:left;margin:0 0 6px"><span data-i18n="b_no_meal">Aucun repas. Ajoute-en ci-dessous.</span></p>'; return; }
+  const dayOpts=(sel)=>MP_DAYS.slice(1).map((d,i)=>`<option value="${i+1}"${+sel===i+1?' selected':''}>${d}</option>`).join('');
+  const slotOpts=(sel)=>Object.keys(MP_SLOTS).map(k=>`<option value="${k}"${sel===k?' selected':''}>${MP_SLOTS[k]}</option>`).join('');
+  box.innerHTML=MP_ITEMS.map((it,i)=>`<div class="card" style="padding:11px">
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+      ${isWeek?`<select data-f="day_index" data-i="${i}" style="width:auto;flex:none">${dayOpts(it.day_index)}</select>`:''}
+      <select data-f="slot" data-i="${i}" style="width:auto;flex:none">${slotOpts(it.slot)}</select>
+      <div style="flex:1"></div>
+      <button class="btn subtle sm" data-mprm="${i}" style="width:auto;color:var(--warn)">✕</button>
+    </div>
+    <div class="field" style="margin:0 0 6px"><input data-f="title" data-i="${i}" value="${esc(it.title)}" placeholder="Ex. Flocons d'avoine + oeufs" /></div>
+    <div class="field" style="margin:0 0 6px"><textarea data-f="description" data-i="${i}" placeholder="${tr('s_details_qty')}" style="min-height:44px">${esc(it.description)}</textarea></div>
+    <div class="row2" style="gap:6px">
+      <input data-f="kcal" data-i="${i}" inputmode="numeric" value="${it.kcal??''}" placeholder="kcal" />
+      <input data-f="protein_g" data-i="${i}" inputmode="decimal" value="${it.protein_g??''}" placeholder="P (g)" />
+    </div>
+    <div class="row2" style="gap:6px;margin-top:6px">
+      <input data-f="carbs_g" data-i="${i}" inputmode="decimal" value="${it.carbs_g??''}" placeholder="G (g)" />
+      <input data-f="fat_g" data-i="${i}" inputmode="decimal" value="${it.fat_g??''}" placeholder="L (g)" />
+    </div>
+  </div>`).join('');
+  box.querySelectorAll('[data-f]').forEach(inp=>inp.oninput=()=>{ MP_ITEMS[+inp.dataset.i][inp.dataset.f]=inp.value; });
+  box.querySelectorAll('[data-mprm]').forEach(b=>b.onclick=()=>{ MP_ITEMS.splice(+b.dataset.mprm,1); mpPaintItems(); });
+}
+async function mpSave(){
+  const title=$('#mp-title').value.trim();
+  if(!title) return setMsg('mp-msg','Titre requis.','err');
+  const type=$('#mp-type').value;
+  setBtn('#mp-save',true,'…');
+  const { data:pid, error } = await sb.rpc('coach_upsert_meal_plan',{
+    p_id:MP_CUR, p_client:MP_CID, p_title:title,
+    p_notes:$('#mp-notes').value.trim()||null, p_plan_type:type,
+    p_is_active:$('#mp-active').value==='1'
+  });
+  if(error){ setBtn('#mp-save',false,tr('s_save_plan')); return setMsg('mp-msg','Erreur : '+error.message,'err'); }
+  const items=MP_ITEMS.map((it,i)=>({
+    day_index: type==='week' ? (+it.day_index||1) : 1,
+    slot: it.slot||'meal', title: (it.title||'').trim()||'Repas',
+    description: (it.description||'').trim()||null,
+    kcal: intOrNull(it.kcal), protein_g: numOrNull(it.protein_g),
+    carbs_g: numOrNull(it.carbs_g), fat_g: numOrNull(it.fat_g), display_order:i
+  }));
+  const { error:e2 } = await sb.rpc('coach_set_meal_plan_items',{ p_plan:pid, p_items:items });
+  setBtn('#mp-save',false,tr('s_save_plan'));
+  if(e2) return setMsg('mp-msg',tr('m_meals_failed')+e2.message,'err');
+  toast(tr('m_plan_saved')); mpRenderList();
+}
+$('#ov-macro').onclick = ev=>{ if(ev.target.id==='ov-macro') $('#ov-macro').classList.remove('show'); };
+$('#ov-mp').onclick = ev=>{ if(ev.target.id==='ov-mp') $('#ov-mp').classList.remove('show'); };
+
+/* ---- Messagerie ---- */
+let THREADS={}, CHAT_PEER=null, CHAT_CH=null;
+async function loadThreads(){
+  try{
+    const { data } = await sb.rpc('msg_threads');
+    THREADS={}; (data||[]).forEach(t=>{ THREADS[t.peer_id]=t; });
+  }catch(e){}
+}
+function msgBub(m){
+  if(m.kind==='system'){
+    const c=/^call:(proposed|confirmed):(.+)$/.exec(m.body||'');
+    const txt = c ? ((c[1]==='proposed'?tr('m_call_proposed'):tr('m_call_confirmed'))+' — '+dhFR(c[2])) : (m.body||'');
+    return `<div class="sysline">${esc(txt)}</div>`;
+  }
+  const at=new Date(m.created_at).toLocaleTimeString(locale(),{hour:'2-digit',minute:'2-digit'});
+  const isMedia = m.kind==='image'||m.kind==='video';
+  let inner='';
+  if(m.kind==='image' && m._url) inner=`<a href="${m._url}" target="_blank" rel="noopener"><img src="${m._url}" alt=""></a>`;
+  else if(m.kind==='video' && m._url) inner=`<video src="${m._url}" controls playsinline preload="metadata"></video>`;
+  else if(isMedia) inner=`<span style="opacity:.7"><span data-i18n="b_media_na">Média indisponible</span></span>`;
+  else inner=esc(m.body||'');
+  if(isMedia && m.body) inner+=`<div class="cap">${esc(m.body)}</div>`;
+  return `<div class="bub ${m.sender_id===ME?'me':'them'}${isMedia?' media':''}">${inner}<time>${at}</time></div>`;
+}
+async function signMedia(list){
+  const paths=list.filter(m=>m.attachment_url).map(m=>m.attachment_url);
+  if(!paths.length) return;
+  try{
+    const { data } = await sb.storage.from('coaching-media').createSignedUrls(paths, 3600);
+    const map={}; (data||[]).forEach(x=>{ if(x.signedUrl) map[x.path]=x.signedUrl; });
+    list.forEach(m=>{ if(m.attachment_url) m._url=map[m.attachment_url]; });
+  }catch(e){}
+}
+/* Porte d'entrée unique de la messagerie. Le serveur refuse déjà l'envoi
+   (fn_msg_allowed), mais laisser un coach gratuit ouvrir un fil, écrire et se
+   faire jeter à l'envoi est une mauvaise expérience : on l'arrête avant.
+   Web : on présente l'offre. Natif : constat neutre, sans prix ni lien —
+   la vente se fait par email (Apple 3.1.1). */
+function openChatGated(cid,name){
+  if(isPaid()){ openChat(cid,name); return; }
+  openMsgUpsell();
+}
+function openMsgUpsell(){
+  let h = `<h3 style="margin:0 0 4px">Messagerie</h3>
+    <p class="sub" style="text-align:left;margin:0 0 16px"><span data-i18n="g_msg_desc">Échange</span></p>`;
+  if(IS_NATIVE){
+    /* Strictement descriptif : aucun montant, aucun lien, aucun verbe d'action
+       vers un paiement extérieur. */
+    h += `<div class="item"><div class="meta" style="line-height:1.6"><span data-i18n="g_msg_incl">La</span></div></div>
+      <button class="btn subtle" id="up-close" style="margin-top:14px"><span data-i18n="b_close">Fermer</span></button>`;
+  }else{
+    h += `<div class="card" style="border-color:var(--gold)">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <div style="flex:1"><div class="nm">Coach</div>
+            <div class="meta"><span data-i18n="g_msg_20">Messagerie</span></div></div>
+          <div style="font-weight:800;color:var(--gold);white-space:nowrap">39,99 €<span style="font-size:12px;font-weight:600">/mois</span></div>
+        </div>
+      </div>
+      <div class="card" style="border-color:var(--brand)">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <div style="flex:1"><div class="nm">Coach+</div>
+            <div class="meta"><span data-i18n="g_all_coach">Tout</span></div></div>
+          <div style="font-weight:800;color:var(--brand);white-space:nowrap">59,99 €<span style="font-size:12px;font-weight:600">/mois</span></div>
+        </div>
+      </div>
+      <p class="sub" style="text-align:left;margin:10px 0 0"><span data-i18n="g_no_commit">Sans</span></p>
+      <a class="btn" href="https://coachdm.be/tarifs.html" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:14px">Activer la messagerie</a>
+      <button class="btn subtle" id="up-close" style="margin-top:9px">Plus tard</button>`;
+  }
+  $('#up-body').innerHTML=h;
+  $('#up-close').onclick=()=>$('#ov-up').classList.remove('show');
+  $('#ov-up').classList.add('show');
+}
+async function openChat(cid,name){
+  CHAT_PEER=cid;
+  $('#ch-name').textContent=name||'Messages';
+  $('#ch-body').innerHTML='<div class="spin"></div>';
+  $('#ov-chat').classList.add('show');
+  const { data, error } = await sb.rpc('msg_list',{ p_peer:cid });
+  if(error){ $('#ch-body').innerHTML='<p class="empty">Erreur de chargement.</p>'; return; }
+  const list=(data||[]).slice().reverse();
+  await signMedia(list);
+  $('#ch-body').innerHTML = list.length ? list.map(msgBub).join('') : '<p class="empty">Pas encore de messages. Lance la discussion.</p>';
+  $('#ch-body').scrollTop=$('#ch-body').scrollHeight;
+  sb.rpc('msg_mark_read',{ p_peer:cid }).then(loadThreads).then(renderClientList);
+  setTimeout(()=>$('#ch-in').focus(),150);
+}
+function closeChat(){ $('#ov-chat').classList.remove('show'); CHAT_PEER=null; }
+$('#ch-close').onclick=closeChat;
+$('#ov-chat').onclick=ev=>{ if(ev.target.id==='ov-chat') closeChat(); };
+async function sendMsg(){
+  const txt=$('#ch-in').value.trim();
+  if(!txt||!CHAT_PEER) return;
+  $('#ch-in').value='';
+  const { data, error } = await sb.rpc('msg_send',{ p_peer:CHAT_PEER, p_body:txt });
+  if(error||!data?.ok){
+    toast(data?.reason==='no_link' ? tr('m_client_unassigned')
+      : data?.reason==='messaging_requires_paid_plan' ? 'La messagerie est incluse dans l\'offre Coach.'
+      : "Échec de l'envoi");
+    $('#ch-in').value=txt; return;
+  }
+  const body=$('#ch-body'); const e=body.querySelector('.empty'); if(e) e.remove();
+  body.insertAdjacentHTML('beforeend', msgBub({sender_id:ME,body:txt,created_at:new Date().toISOString()}));
+  body.scrollTop=body.scrollHeight;
+}
+$('#ch-send').onclick=sendMsg;
+$('#ch-in').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMsg(); } });
+function videoDuration(f){ return new Promise(res=>{ try{
+  const v=document.createElement('video'); v.preload='metadata';
+  v.onloadedmetadata=()=>{ const d=v.duration||0; URL.revokeObjectURL(v.src); res(d); };
+  v.onerror=()=>res(0); v.src=URL.createObjectURL(f);
+}catch(e){ res(0); } }); }
+$('#ch-att').onclick=()=>$('#ch-file').click();
+$('#ch-file').onchange=async ev=>{
+  const f=ev.target.files[0]; ev.target.value='';
+  if(!f||!CHAT_PEER) return;
+  const th=THREADS[CHAT_PEER];
+  if(!th||!th.relationship_id){ toast('Échec'); return; }
+  const isVideo=(f.type||'').startsWith('video');
+  if(isVideo && !th.video_allowed){ toast(tr('m_videos_plus')); return; }
+  if(f.size>50*1024*1024){ toast('Fichier trop lourd (max 50 Mo).'); return; }
+  if(isVideo){
+    const dur=await videoDuration(f);
+    if(dur>95){ toast(tr('m_video_long')); return; }
+  }
+  toast('Envoi en cours…');
+  const ext=(f.name.split('.').pop()||(isVideo?'mp4':'jpg')).toLowerCase();
+  const path=`${th.relationship_id}/${crypto.randomUUID()}.${ext}`;
+  const { error:upErr } = await sb.storage.from('coaching-media').upload(path, f, { contentType:f.type||undefined });
+  if(upErr){ toast("Échec de l'envoi"); return; }
+  const { data, error } = await sb.rpc('msg_send_media',{ p_peer:CHAT_PEER, p_kind:isVideo?'video':'image', p_path:path });
+  if(error||!data?.ok){
+    toast(data?.reason==='video_requires_plus' ? tr('m_videos_plus')
+      : data?.reason==='no_link' ? tr('m_client_unassigned')
+      : data?.reason==='messaging_requires_paid_plan' ? 'La messagerie est incluse dans l\'offre Coach.'
+      : "Échec de l'envoi");
+    return;
+  }
+  const body=$('#ch-body'); const e=body.querySelector('.empty'); if(e) e.remove();
+  body.insertAdjacentHTML('beforeend', msgBub({sender_id:ME,kind:isVideo?'video':'image',_url:URL.createObjectURL(f),created_at:new Date().toISOString()}));
+  body.scrollTop=body.scrollHeight;
+};
+function initChatLive(){
+  if(CHAT_CH) return;
+  CHAT_CH = sb.channel('msg-live')
+    .on('postgres_changes',{ event:'INSERT', schema:'public', table:'messages' }, async payload=>{
+      const m=payload.new||{};
+      if(m.sender_id===ME) return;
+      if(CHAT_PEER && m.sender_id===CHAT_PEER && $('#ov-chat').classList.contains('show')){
+        if(m.attachment_url) await signMedia([m]);
+        const body=$('#ch-body'); const e=body.querySelector('.empty'); if(e) e.remove();
+        body.insertAdjacentHTML('beforeend', msgBub(m));
+        body.scrollTop=body.scrollHeight;
+        sb.rpc('msg_mark_read',{ p_peer:CHAT_PEER });
+      } else {
+        loadThreads().then(()=>{ if(CLIST.length) renderClientList(); });
+      }
+    })
+    .subscribe();
+}
+
+/* ---- Ajout client (créer / lier) ---- */
+$('#cl-new').onclick = ()=>{
+  if(CAP && !CAP_UNLIMITED(CAP) && CAP.active>=CAP.max){ openUpgrade(); return; }
+  openClientForm();
+};
+
+/* Le moment où le coach a vu la console tourner sur un vrai client et veut le
+   deuxième : c'est là, et seulement là, qu'on parle de l'offre. */
+function openUpgrade(){
+  const free = CAP && CAP.max<=1;
+  let h = `<h3 style="margin:0 0 4px">${free?'Ta place offerte est utilisée':'Quota atteint'}</h3>
+    <p class="sub" style="text-align:left;margin:0 0 16px">
+      ${free ? tr('b_end_to_end')
+             : `Tu suis ${CAP.active} clients sur ${CAP.max}.`}</p>`;
+
+  if(IS_NATIVE){
+    /* Aucun montant, aucun lien, aucun appel à l'action vers un paiement
+       extérieur : constat factuel uniquement (Apple 3.1.1). */
+    /* Strictement descriptif : aucune mention d'un ailleurs où payer, aucun
+       verbe d'action. On constate la limite, on rassure sur les données. */
+    h += `<div class="item"><div class="meta" style="line-height:1.6"><span data-i18n="g_plan_covers1">Ton</span></div></div>
+      <button class="btn subtle" id="up-close" style="margin-top:14px"><span data-i18n="b_close">Fermer</span></button>`;
+  }else{
+    h += `<div class="card" style="border-color:var(--gold)">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <div style="flex:1"><div class="nm">Coach</div>
+            <div class="meta"><span data-i18n="g_upto20">Jusqu'à</span></div></div>
+          <div style="font-weight:800;color:var(--gold);white-space:nowrap">39,99 €<span style="font-size:12px;font-weight:600">/mois</span></div>
+        </div>
+      </div>
+      <div class="card" style="border-color:var(--brand)">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <div style="flex:1"><div class="nm">Coach+</div>
+            <div class="meta"><span data-i18n="g_upto50">Jusqu'à</span></div></div>
+          <div style="font-weight:800;color:var(--brand);white-space:nowrap">59,99 €<span style="font-size:12px;font-weight:600">/mois</span></div>
+        </div>
+      </div>
+      <p class="sub" style="text-align:left;margin:10px 0 0"><span data-i18n="g_no_commit2">Sans</span></p>
+      <a class="btn" href="https://coachdm.be/tarifs.html" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:14px"><span data-i18n="g_see_offers">Voir</span></a>
+      <button class="btn subtle" id="up-close" style="margin-top:9px">Plus tard</button>`;
+  }
+  $('#up-body').innerHTML=h;
+  $('#up-close').onclick=()=>$('#ov-up').classList.remove('show');
+  $('#ov-up').classList.add('show');
+}
+$('#ov-up').onclick = ev=>{ if(ev.target.id==='ov-up') $('#ov-up').classList.remove('show'); };
+function openClientForm(){
+  let mode='create';
+  const draw=()=>{
+    let h=`<h2><span data-i18n="g_add_client_h">Ajouter un client</span></h2>
+     <div class="seg">
+       <button data-m="create" class="${mode==='create'?'on':''}">Inviter (email / QR)</button>
+       <button data-m="link" class="${mode==='link'?'on':''}">Lier un existant</button>
+     </div>`;
+    if(mode==='create'){
+      h+=`<label><span data-i18n="g_fullname">Nom complet *</span></label><input id="c_name" placeholder="Prénom Nom" data-i18n-ph="g_fullname_ph">
+       <label>Email *</label><input id="c_email" type="email" placeholder="client@email.com">
+       <label><span data-i18n="g_phone">Téléphone</span></label><input id="c_phone" type="tel" placeholder="+32 4XX XX XX XX">
+       <label>Objectif principal</label><input id="c_goal" placeholder="Ex : prise de masse, perte de poids, Hyrox…">
+       <label><span data-i18n="g_client_lang">Langue du client</span></label>
+       <select id="c_lang"><option value="fr" selected>Français</option><option value="en">English</option><option value="nl">Nederlands</option></select>
+       <p class="muted"><span data-i18n="g_invite_qr">Le</span></p>
+       <div id="c_qr_wrap" style="display:none;text-align:center;margin-top:16px;padding:16px;background:#0E1512;border:1px solid var(--line);border-radius:14px">
+         <div id="c_qr" style="display:inline-block;background:#fff;padding:12px;border-radius:12px"></div>
+         <p class="muted" style="margin-top:10px"><span data-i18n="g_qr">Fais</span></p>
+       </div>`;
+    }else{
+      h+=`<label>Email du membre existant *</label><input id="c_email2" type="email">
+       <p class="muted" data-i18n-html="g_invite_flow">Invitation</p>`;
+    }
+    h+=`<div class="row" style="margin-top:16px;gap:8px"><div class="sp"></div>
+      <button class="btn sec" id="c_cancel"><span data-i18n="b_close">Fermer</span></button>
+      <button class="btn" id="c_save">${mode==='create'?'Envoyer invitation':'Lier'}</button></div>`;
+    $('#cl-sheet-body').innerHTML=h;
+    $('#ov-cl').classList.add('show');
+    $('#cl-sheet-body').querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{mode=b.dataset.m;draw();});
+    $('#c_cancel').onclick=closeCl;
+    $('#c_save').onclick=save;
+  };
+  const save=async()=>{
+    if(mode==='create'){
+      const email=$('#c_email').value.trim(), name=$('#c_name').value.trim();
+      const phone=($('#c_phone')&&$('#c_phone').value.trim())||'', goal=($('#c_goal')&&$('#c_goal').value.trim())||'';
+      if(!name||!email)return toast('Nom et email requis');
+      const btn=$('#c_save'); btn.disabled=true; btn.textContent='Envoi…';
+      const lang=($('#c_lang')&&$('#c_lang').value)||'fr';
+      const {data,error}=await sb.functions.invoke('coach-invite-client',{body:{full_name:name,email:email,phone:phone,goal:goal,lang:lang}});
+      btn.disabled=false; btn.textContent='Envoyer invitation';
+      if(error||!data||!data.ok){
+        const r=data&&data.reason;
+        toast(r==='limit_reached'?'Quota clients atteint':r==='forbidden'?tr('m_not_allowed'):'Échec de l invitation');
+        return;
+      }
+      toast(data.emailed?tr('m_invite_sent'):tr('m_client_invited_ko'));
+      if(data.action_link && window.QRCode){
+        const wrap=$('#c_qr_wrap'), box=$('#c_qr');
+        box.innerHTML=''; new QRCode(box,{text:data.action_link,width:180,height:180,correctLevel:QRCode.CorrectLevel.M});
+        wrap.style.display='';
+      }
+      loadClientList();
+      return;
+    }else{
+      const email=$('#c_email2').value.trim();if(!email)return toast('Email requis');
+      const {data,error}=await sb.rpc('coach_link_member',{p_email:email});
+      if(error){toast('Échec');return;}
+      if(data?.reason==='limit_reached')return toast('Quota atteint');
+      if(!data?.ok){toast(data.reason==='not_found'?tr('m_no_member_email'):'Échec');return;}
+      toast(data.already?tr('m_already_client'):tr('m_request_sent'));
+    }
+    closeCl();loadClientList();
+  };
+  draw();
+}
+function closeCl(){ $('#ov-cl').classList.remove('show'); }
+$('#ov-cl').onclick = ev=>{ if(ev.target.id==='ov-cl') closeCl(); };
+
+/* ===================================================================
+   SÉANCES & EXERCICES (bibliothèque lecture seule, séances scopées)
+=================================================================== */
+const LBL_SRC = {
+  cat:{warmup:['Échauffement','Warm-up','Opwarming'],activation:['Activation','Activation','Activatie'],sprint:['Sprint','Sprint','Sprint'],plyometric:['Pliométrie','Plyometrics','Plyometrie'],strength:['Force','Strength','Kracht'],hypertrophy:['Hypertrophie','Hypertrophy','Hypertrofie'],olympic:['Haltéro','Olympic lifting','Gewichtheffen'],core:['Gainage','Core','Core'],conditioning:['Conditionnement','Conditioning','Conditie'],mobility:['Mobilité','Mobility','Mobiliteit'],cardio:['Cardio','Cardio','Cardio']},
+  mus:{chest:['Pectoraux','Chest','Borst'],back:['Dos','Back','Rug'],lats:['Dorsaux','Lats','Latissimus'],traps:['Trapèzes','Traps','Trapezius'],shoulders:['Épaules','Shoulders','Schouders'],biceps:['Biceps','Biceps','Biceps'],triceps:['Triceps','Triceps','Triceps'],forearms:['Avant-bras','Forearms','Onderarmen'],quads:['Quadriceps','Quads','Quadriceps'],hamstrings:['Ischios','Hamstrings','Hamstrings'],glutes:['Fessiers','Glutes','Bilspieren'],calves:['Mollets','Calves','Kuiten'],adductors:['Adducteurs','Adductors','Adductoren'],abductors:['Abducteurs','Abductors','Abductoren'],core:['Gainage/Core','Core','Core'],full_body:['Corps entier','Full body','Volledig lichaam'],cardio:['Cardio','Cardio','Cardio']},
+  equip:{bodyweight:['Poids du corps','Bodyweight','Lichaamsgewicht'],barbell:['Barre','Barbell','Barbell'],dumbbell:['Haltères','Dumbbells','Dumbbells'],kettlebell:['Kettlebell','Kettlebell','Kettlebell'],ez_bar:['Barre EZ','EZ bar','EZ-bar'],trap_bar:['Trap bar','Trap bar','Trap bar'],machine:['Machine','Machine','Machine'],cable:['Poulie','Cable','Kabel'],bands:['Élastiques','Bands','Elastieken'],bench:['Banc','Bench','Bank'],pullup_bar:['Barre traction','Pull-up bar','Optrekstang'],box:['Box','Box','Box'],medicine_ball:['Med ball','Med ball','Medicijnbal'],sled:['Sled','Sled','Slee'],rower:['Rameur','Rower','Roeier'],skierg:['SkiErg','SkiErg','SkiErg'],assault_bike:['Assault bike','Assault bike','Assault bike'],jump_rope:['Corde à sauter','Jump rope','Springtouw'],none:['Aucun','None','Geen']},
+  diff:{beginner:['Débutant','Beginner','Beginner'],intermediate:['Intermédiaire','Intermediate','Gevorderd'],advanced:['Avancé','Advanced','Expert']},
+  type:{strength:['Force','Strength','Kracht'],hypertrophy:['Hypertrophie','Hypertrophy','Hypertrofie'],hiit:['HIIT','HIIT','HIIT'],hyrox:['Hyrox','Hyrox','Hyrox'],conditioning:['Conditionnement','Conditioning','Conditie'],mobility:['Mobilité','Mobility','Mobiliteit'],football:['Football','Football','Voetbal'],full_body:['Full Body','Full Body','Full Body'],emom:['EMOM','EMOM','EMOM'],amrap:['AMRAP','AMRAP','AMRAP'],for_time:['For Time','For Time','For Time'],circuit:['Circuit','Circuit','Circuit']}
+};
+const _LI = ()=> LANG==='en'?1:(LANG==='nl'?2:0);
+const _lbl = o=>{const i=_LI(),r={};for(const k in o) r[k]=o[k][i]||o[k][0];return r;};
+let L_CAT, L_MUS, L_EQUIP, L_DIFF, L_TYPE;
+function buildLabels(){
+  L_CAT=_lbl(LBL_SRC.cat); L_MUS=_lbl(LBL_SRC.mus); L_EQUIP=_lbl(LBL_SRC.equip);
+  L_DIFF=_lbl(LBL_SRC.diff); L_TYPE=_lbl(LBL_SRC.type);
+  if(LBL_SRC.block) L_BLOCK=_lbl(LBL_SRC.block);
+}
+buildLabels();
+const L_GOAL={lose_fat:'Perte de gras',maintain:'Maintien',build_muscle:'Prise de muscle',recomp:'Recomposition'};
+LBL_SRC.block={activation:['Activation','Activation','Activatie'],sprint_plyo:['Sprint/Plyo','Sprint/Plyo','Sprint/Plyo'],strength:['Force','Strength','Kracht'],conditioning:['Conditionnement','Conditioning','Conditie'],recovery:['Récupération','Recovery','Herstel'],accessory:['Accessoire','Accessory','Accessoire']};
+let L_BLOCK=_lbl(LBL_SRC.block);
+const KEYS=o=>Object.keys(o);
+
+function fillSelect(id,labels,sel,allowEmpty){
+  const el=$('#'+id); if(!el) return;
+  let html = allowEmpty ? '<option value="">—</option>' : '';
+  html += KEYS(labels).map(v=>`<option value="${v}">${esc(labels[v])}</option>`).join('');
+  el.innerHTML=html; if(sel!=null) el.value=sel;
+}
+const intOrNull = v=>{ const n=parseInt(v,10); return isNaN(n)?null:n; };
+
+/* ---- sous-onglets ---- */
+document.querySelectorAll('.subswitch [data-sub]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#pane-workouts .subpane').forEach(p=>p.classList.remove('active'));
+  $('#sub-'+b.dataset.sub).classList.add('active');
+  document.querySelectorAll('.subswitch [data-sub]').forEach(x=>x.classList.toggle('on',x===b));
+  if(b.dataset.sub==='my') loadMyContrib();
+});
+
+/* ── Mes apports ─────────────────────────────────────────────────────────
+   Le coach enrichit la bibliothèque commune (exercices, aliments). Il voit
+   ici ce qu'il a proposé et où ça en est. La suppression reste réservée à
+   l'admin : un apport validé sert à tout le monde, il ne doit pas pouvoir
+   disparaître sur un clic. */
+async function loadMyContrib(){
+  const box=$('#my-body'); if(!box) return;
+  box.innerHTML='<div class="spin"></div>';
+  let d=null;
+  try{
+    const { data, error } = await sb.rpc('coach_my_contributions');
+    if(error) throw error;
+    d=data||{};
+  }catch(e){ box.innerHTML='<p class="empty">Chargement impossible.</p>'; return; }
+  const exs=d.exercises||[], fds=d.foods||[];
+  if(!exs.length && !fds.length){
+    box.innerHTML=`<div class="item"><div class="meta" style="line-height:1.6"><span data-i18n="g_nothing_added">Tu</span></div></div>`;
+    return;
+  }
+  let h='';
+  if(exs.length){
+    h+=`<div class="mini" style="margin:2px 0 7px">Exercices · ${exs.length}</div>`;
+    h+=exs.map(e=>`<div class="item acc" style="--a:${accentFor('ex')}">
+      <div class="nm">${esc(e.name_fr)} ${e.is_published?'<span class="pill ok"><span data-i18n="g_validated">Validé</span></span>':'<span class="pill warnp">En attente</span>'}${e.video_url?' <span class="pill vid"><span data-i18n="b_video">Vidéo</span></span>':''}</div>
+      <div class="meta">${tr('b_proposed_on')} ${dFR(e.created_at)}</div></div>`).join('');
+  }
+  if(fds.length){
+    h+=`<div class="mini" style="margin:14px 0 7px">Aliments · ${fds.length}</div>`;
+    h+=fds.map(f=>`<div class="item acc" style="--a:${accentFor('food')}">
+      <div class="nm">${esc(f.name_fr)} ${f.is_verified?'<span class="pill ok"><span data-i18n="g_validated">Validé</span></span>':'<span class="pill warnp">En attente</span>'}</div>
+      <div class="meta">${f.brand?esc(f.brand)+' · ':''}${tr('b_proposed_on')} ${dFR(f.created_at)}</div></div>`).join('');
+  }
+  h+=`<p class="sub" style="text-align:left;margin:14px 2px 0"><span data-i18n="b_pending_contrib">Un apport en attente est déjà utilisable par toi. Seul Coach DM peut le retirer.</span></p>`;
+  box.innerHTML=h;
+}
+
+/* Création d'un aliment. Le contrôle de cohérence évite l'erreur de saisie
+   la plus fréquente : des macros qui ne correspondent pas aux calories
+   annoncées (P·4 + G·4 + L·9). On avertit sans bloquer — un aliment réel
+   peut légèrement s'écarter (alcool, polyols, arrondis d'étiquette). */
+$('#my-food').onclick = ()=>{
+  ['fdn-fr','fdn-brand','fdn-kcal','fdn-prot','fdn-carb','fdn-fat','fdn-fib','fdn-serv'].forEach(id=>{ const el=$('#'+id); if(el) el.value=''; });
+  $('#fdn-check').textContent=''; setMsg('fdn-msg','','');
+  $('#ov-fdn').classList.add('show');
+};
+$('#fdn-cancel').onclick = ()=>$('#ov-fdn').classList.remove('show');
+$('#ov-fdn').onclick = ev=>{ if(ev.target.id==='ov-fdn') $('#ov-fdn').classList.remove('show'); };
+function fdnCheck(){
+  const k=numOrNull($('#fdn-kcal').value), p=numOrNull($('#fdn-prot').value)||0,
+        c=numOrNull($('#fdn-carb').value)||0, f=numOrNull($('#fdn-fat').value)||0;
+  const el=$('#fdn-check');
+  if(k==null || (!p&&!c&&!f)){ el.textContent=''; el.style.color=''; return; }
+  const calc=Math.round(p*4+c*4+f*9), ecart=Math.abs(calc-k);
+  if(ecart<=Math.max(12, k*0.12)){ el.textContent=trf('m_macros_ok', calc); el.style.color='var(--ok)'; }
+  else { el.textContent=trf('m_macros_warn', calc, k); el.style.color='var(--amber)'; }
+}
+['fdn-kcal','fdn-prot','fdn-carb','fdn-fat'].forEach(id=>{ const el=$('#'+id); if(el) el.oninput=fdnCheck; });
+$('#fdn-save').onclick = async ()=>{
+  const nm=$('#fdn-fr').value.trim();
+  if(nm.length<2){ setMsg('fdn-msg',tr('m_name_food'),'err'); return; }
+  const kcal=numOrNull($('#fdn-kcal').value);
+  if(kcal===null||kcal<0||kcal>950){ setMsg('fdn-msg','Calories pour 100 g : entre 0 et 950.','err'); return; }
+  setBtn('#fdn-save',true,tr('m_creating'));
+  const { data, error } = await sb.rpc('coach_add_food',{
+    p_name_fr:nm, p_kcal:kcal,
+    p_protein:numOrNull($('#fdn-prot').value), p_carbs:numOrNull($('#fdn-carb').value),
+    p_fat:numOrNull($('#fdn-fat').value), p_fiber:numOrNull($('#fdn-fib').value),
+    p_brand:$('#fdn-brand').value.trim()||null, p_serving_g:numOrNull($('#fdn-serv').value)
+  });
+  setBtn('#fdn-save',false,tr('c_create_food'));
+  if(error||!data||data.ok===false){
+    const r=(data&&data.reason)||'';
+    setMsg('fdn-msg', r==='barcode_exists' ? tr('m_food_exists')
+      : r==='bad_kcal' ? tr('m_kcal_invalid')
+      : r==='name_too_short' ? 'Nom trop court.'
+      : r==='inappropriate' ? tr('m_name_refused_food')
+      : r==='bad_macro' ? tr('m_macro_max')
+      : r==='macro_sum' ? tr('m_macro_sum')
+      : r==='kcal_mismatch' ? `Tes macros donnent ~${(data&&data.computed)||'?'} kcal, tu as saisi ${kcal}. Corrige l'un ou l'autre.`
+      : 'Échec : '+((error&&error.message)||r), 'err');
+    return;
+  }
+  $('#ov-fdn').classList.remove('show');
+  toast(tr('m_food_created'));
+  loadMyContrib();
+};
+
+/* Palette d'accents dérivée du nom (type/catégorie) : pas de table à
+   entretenir manuellement, une couleur stable par valeur. */
+const ACCENTS=['#00FFA3','#E9C767','#7F77DD','#0ea5e9','#FF8A66','#5DCAA5','#D46FB0','#F2B84B'];
+function accentFor(key){ let h=0; const s=String(key||''); for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return ACCENTS[h%ACCENTS.length]; }
+
+/* ---- EXERCICES : bibliothèque commune (le coach peut y contribuer) ---- */
+let EXS=[], EX_Q='';
+async function loadExercises(){
+  $('#ex-list').innerHTML='<div class="spin"></div>';
+  const { data, error } = await sb.rpc('admin_list_exercises');
+  if(error){ $('#ex-list').innerHTML='<p class="empty">Erreur de chargement.</p>'; return; }
+  EXS = data||[];
+  renderExList();
+}
+function renderExList(){
+  if(!EXS.length){ $('#ex-list').innerHTML='<p class="empty"><span data-i18n="b_no_ex">Aucun exercice.</span></p>'; return; }
+  const q=EX_Q.trim().toLowerCase();
+  const list = q ? EXS.filter(e=>{
+    const cat=L_CAT[e.category]||e.category||'', mus=L_MUS[e.primary_muscle]||e.primary_muscle||'';
+    return (e.name_fr||'').toLowerCase().includes(q) || cat.toLowerCase().includes(q) || mus.toLowerCase().includes(q);
+  }) : EXS;
+  if(!list.length){ $('#ex-list').innerHTML=`<p class="empty">${trf('b_no_ex_for', esc(EX_Q))}</p>`; return; }
+  $('#ex-list').innerHTML = list.map(e=>{
+    const vid = e.video_url?'<span class="pill vid"><span data-i18n="b_video">Vidéo</span></span>':'';
+    const cat = L_CAT[e.category]||e.category, mus = L_MUS[e.primary_muscle]||e.primary_muscle, eq = L_EQUIP[e.equipment]||e.equipment;
+    return `<div class="item acc" style="--a:${accentFor(e.category)}">
+      <div class="nm">${esc(e.name_fr)} ${vid}</div>
+      <div class="meta">${esc(cat)} · ${esc(mus)} · ${esc(eq)}</div>
+    </div>`;
+  }).join('');
+}
+$('#ex-q').oninput = e=>{ EX_Q=e.target.value; renderExList(); };
+/* Entrée directe depuis l'onglet Bibliothèque : même sheet de création que
+   celle ouverte depuis le composeur de séance, sans callback à invoquer. */
+$('#ex-new').onclick = ()=>{
+  /* EXPICK_CB peut porter le callback d'une composition de séance ouverte
+     plus tôt dans la session : on l'annule pour ne pas réinjecter cet
+     exercice dans une séance qui n'est plus à l'écran. */
+  EXPICK_CB=null;
+  fillSelect('exn-cat',L_CAT); fillSelect('exn-mus',L_MUS);
+  fillSelect('exn-equip',L_EQUIP); fillSelect('exn-diff',L_DIFF);
+  $('#exn-fr').value=''; $('#exn-video').value=''; $('#exn-cue').value='';
+  setMsg('exn-msg','','');
+  $('#ov-exn').classList.add('show');
+};
+
+/* ---- SÉANCES : liste (scopées created_by côté serveur) ---- */
+let WKS=[], WK_Q='';
+async function loadWorkouts(){
+  $('#wk-list').innerHTML='<div class="spin"></div>';
+  const { data, error } = await sb.rpc('admin_list_workouts');
+  if(error){ $('#wk-list').innerHTML='<p class="empty">Erreur de chargement.</p>'; return; }
+  WKS = data||[];
+  renderWkList();
+}
+function renderWkList(){
+  if(!WKS.length){ $('#wk-list').innerHTML='<p class="empty"><span data-i18n="b_no_wk_first">Aucune séance. Crée ta première séance.</span></p>'; return; }
+  const q=WK_Q.trim().toLowerCase();
+  const list = q ? WKS.filter(w=>{
+    const t=L_TYPE[w.type]||w.type||'';
+    return (w.name_fr||'').toLowerCase().includes(q) || t.toLowerCase().includes(q);
+  }) : WKS;
+  if(!list.length){ $('#wk-list').innerHTML=`<p class="empty">${trf('b_no_wk_for', esc(WK_Q))}</p>`; return; }
+  $('#wk-list').innerHTML = list.map(w=>{
+    const pub = w.is_published?'<span class="pill ok"><span data-i18n="b_published">Publiée</span></span>':'<span class="pill no">Brouillon</span>';
+    const t=L_TYPE[w.type]||w.type, d=L_DIFF[w.difficulty]||w.difficulty;
+    return `<div class="item acc" data-wk="${w.id}" style="--a:${accentFor(w.type)};cursor:pointer">
+      <div class="nm">${esc(w.name_fr)} ${pub}</div>
+      <div class="meta">${esc(t)} · ${esc(d)} · ${w.exercise_count||0} exercice(s)${w.estimated_duration_min?` · ${w.estimated_duration_min} min`:''}</div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('#wk-list .item').forEach(el=>el.onclick=()=>openWkEditor(el.dataset.wk));
+}
+$('#wk-q').oninput = e=>{ WK_Q=e.target.value; renderWkList(); };
+$('#wk-new').onclick = ()=>openWkEditor(null);
+
+let WKEDIT=null;
+async function openWkEditor(id){
+  fillSelect('wk-type',L_TYPE); fillSelect('wk-diff',L_DIFF);
+  fillSelect('wk-goal',L_GOAL,null,true); fillSelect('wk-focus',L_MUS,null,true);
+  setMsg('wk-msg','','');
+  if(id){
+    setMsg('wk-msg','Chargement…','');
+    const { data, error } = await sb.rpc('admin_get_workout',{ p_id:id });
+    if(error||!data||!data.length){ setMsg('wk-msg','Erreur de chargement.','err'); return; }
+    WKEDIT = data[0]; setMsg('wk-msg','','');
+  } else {
+    WKEDIT = { id:null, equipment_needed:[], type:'strength', difficulty:'intermediate', is_published:false };
+  }
+  const w=WKEDIT;
+  $('#wk-title').textContent = id?tr('c_wke_title'):tr('s_new_wk');
+  $('#wk-fr').value=w.name_fr||''; $('#wk-en').value=w.name_en||''; $('#wk-nl').value=w.name_nl||'';
+  $('#wk-dfr').value=w.description_fr||''; $('#wk-den').value=w.description_en||''; $('#wk-dnl').value=w.description_nl||'';
+  $('#wk-type').value=w.type||'strength'; $('#wk-diff').value=w.difficulty||'intermediate';
+  $('#wk-goal').value=w.goal||''; $('#wk-focus').value=w.focus_muscle||'';
+  $('#wk-dur').value=w.estimated_duration_min??''; $('#wk-cover').value=w.cover_image_url||'';
+  $('#wk-pub').checked = !!w.is_published;
+  $('#wk-compose').style.display = id?'block':'none';
+  $('#wk-del').style.display = id?'block':'none';
+  wkLang('fr');
+  $('#ov-wk').classList.add('show');
+}
+/* Bascule de langue du formulaire séance. On revient toujours sur FR à
+   l'ouverture : c'est la langue de saisie, les deux autres sont facultatives. */
+function wkLang(lg){
+  document.querySelectorAll('.langsw button').forEach(b=>b.classList.toggle('on', b.dataset.lg===lg));
+  document.querySelectorAll('.lgp').forEach(p=>p.classList.toggle('on', p.dataset.lgp===lg));
+}
+document.querySelectorAll('.langsw button').forEach(b=>b.onclick=()=>wkLang(b.dataset.lg));
+
+function closeWk(){ $('#ov-wk').classList.remove('show'); WKEDIT=null; }
+$('#wk-cancel').onclick = closeWk;
+$('#ov-wk').onclick = ev=>{ if(ev.target.id==='ov-wk') closeWk(); };
+
+async function saveWorkout(){
+  const fr=$('#wk-fr').value.trim();
+  if(!fr){ setMsg('wk-msg','Le nom FR est requis.','err'); return null; }
+  $('#wk-save').disabled=true; setMsg('wk-msg','Enregistrement…','');
+  const { data, error } = await sb.rpc('admin_upsert_workout',{
+    p_id: WKEDIT?WKEDIT.id:null, p_name_fr:fr, p_name_en:$('#wk-en').value.trim()||null, p_name_nl:$('#wk-nl').value.trim()||null,
+    p_description_fr:$('#wk-dfr').value.trim()||null, p_description_en:$('#wk-den').value.trim()||null, p_description_nl:$('#wk-dnl').value.trim()||null,
+    p_type:$('#wk-type').value, p_difficulty:$('#wk-diff').value,
+    p_goal:$('#wk-goal').value||null, p_focus_muscle:$('#wk-focus').value||null,
+    p_equipment: (WKEDIT&&WKEDIT.equipment_needed)||[],
+    p_estimated_duration_min:intOrNull($('#wk-dur').value), p_cover_image_url:$('#wk-cover').value.trim()||null,
+    p_is_published:$('#wk-pub').checked
+  });
+  $('#wk-save').disabled=false;
+  if(error){ setMsg('wk-msg','Échec de l\'enregistrement.','err'); return null; }
+  if(!WKEDIT) WKEDIT={};
+  WKEDIT.id = data;
+  return data;
+}
+$('#wk-save').onclick = async ()=>{
+  const isNew = !(WKEDIT && WKEDIT.id);
+  const id = await saveWorkout();
+  if(!id) return;
+  $('#wk-compose').style.display='block'; $('#wk-del').style.display='block';
+  toast(tr('m_wk_saved')); loadWorkouts();
+  /* Une séance sans exercices ne sert à rien. Sur une création, on enchaîne
+     directement sur la composition au lieu de laisser le coach chercher
+     un bouton qui vient d'apparaître sous celui qu'il a cliqué. */
+  if(isNew) openComposer(id);
+};
+$('#wk-del').onclick = async ()=>{
+  if(!WKEDIT||!WKEDIT.id) return;
+  if(!confirm(tr('m_del_wk_q'))) return;
+  $('#wk-del').disabled=true;
+  const { data, error } = await sb.rpc('admin_delete_workout',{ p_id:WKEDIT.id });
+  $('#wk-del').disabled=false;
+  if(error){ setMsg('wk-msg','Échec de la suppression.','err'); return; }
+  if(data===false){ setMsg('wk-msg',tr('m_wk_locked'),'err'); return; }
+  closeWk(); toast(tr('m_wk_deleted')); loadWorkouts();
+};
+
+/* ---- COMPOSITION ---- */
+let COMP=[]; let COMP_WID=null;
+function exOptions(sel){
+  return EXS.map(e=>`<option value="${e.id}"${e.id===sel?' selected':''}>${esc(e.name_fr)}</option>`).join('');
+}
+function exName(id){
+  const e=EXS.find(x=>x.id===id);
+  return e ? (e.name_fr||e.name_en||'—') : 'Choisir un exercice…';
+}
+
+/* Sélecteur d'exercice par recherche. Remplace un menu déroulant de 392 lignes.
+   Le bouton "créer" retombe sur coach_add_exercise() : le coach enrichit la
+   bibliothèque commune, l'admin valide ensuite. */
+let EXPICK_CB=null;
+function openExPicker(cb){
+  EXPICK_CB=cb;
+  $('#exp-q').value='';
+  renderExResults('');
+  $('#ov-exp').classList.add('show');
+  setTimeout(()=>$('#exp-q').focus(),120);
+}
+function renderExResults(q){
+  const s=(q||'').trim().toLowerCase();
+  const list = s
+    ? EXS.filter(e=>((e.name_fr||'')+' '+(e.name_en||'')).toLowerCase().includes(s)).slice(0,40)
+    : EXS.slice(0,40);
+  const box=$('#exp-res');
+  if(!list.length){
+    box.innerHTML=`<div style="padding:14px;color:var(--muted);font-size:13px">${trf('b_no_ex_for', esc(q))}</div>`;
+  }else{
+    box.innerHTML=list.map(e=>`<button type="button" data-ex="${e.id}">${esc(e.name_fr||e.name_en)}
+      <span class="exmeta">${esc(L_MUS[e.primary_muscle]||e.primary_muscle||'')}${e.equipment?' · '+esc(L_EQUIP[e.equipment]||e.equipment):''}${e.is_published===false?' · en attente de validation':''}</span></button>`).join('');
+    box.querySelectorAll('[data-ex]').forEach(b=>b.onclick=()=>{
+      if(EXPICK_CB) EXPICK_CB(b.dataset.ex);
+      $('#ov-exp').classList.remove('show');
+    });
+  }
+  $('#exp-new').textContent = s ? trf('b_create_q', q.trim()) : tr('c_create_ex_btn');
+}
+async function openComposer(wid){
+  if(!wid){ toast(tr('m_save_wk_first')); return; }
+  if(!EXS.length) await loadExercises();
+  COMP_WID = wid;
+  setMsg('comp-msg','Chargement…','');
+  const { data, error } = await sb.rpc('admin_get_workout_exercises',{ p_workout_id:COMP_WID });
+  setMsg('comp-msg','','');
+  if(error){ toast('Erreur'); return; }
+  COMP = (data||[]).map(x=>({ exercise_id:x.exercise_id, block:x.block||'strength', sets:x.sets??'', reps:x.reps||'', rest_sec:x.rest_sec??'', target_rpe:x.target_rpe??'', notes_fr:x.notes_fr||'' }));
+  renderComp();
+  $('#ov-comp').classList.add('show');
+}
+$('#wk-compose').onclick = ()=>openComposer(WKEDIT&&WKEDIT.id);
+function renderComp(){
+  if(!COMP.length){ $('#comp-list').innerHTML='<p class="empty"><span data-i18n="b_no_ex_add">Aucun exercice. Ajoute-en un.</span></p>'; return; }
+  $('#comp-list').innerHTML = COMP.map((c,i)=>`
+    <div class="comp-item" data-i="${i}">
+      <div class="ci-top">
+        <span class="ord">${i+1}</span>
+        <span class="sp exchosen">${esc(exName(c.exercise_id))}</span>
+        <button class="iconbtn" data-swap="${i}" title="Changer d'exercice">⇄</button>
+        <button class="iconbtn" data-up="${i}">↑</button>
+        <button class="iconbtn" data-down="${i}">↓</button>
+        <button class="iconbtn" data-rm="${i}" style="color:var(--warn)">✕</button>
+      </div>
+      <div class="field" style="margin-bottom:9px"><div class="mini">Bloc</div>
+        <select data-f="block">${KEYS(L_BLOCK).map(v=>`<option value="${v}"${v===c.block?' selected':''}>${esc(L_BLOCK[v])}</option>`).join('')}</select></div>
+      <div class="row3">
+        <div><div class="mini">Sets</div><input type="number" inputmode="numeric" data-f="sets" value="${c.sets}" /></div>
+        <div><div class="mini">Reps</div><input type="text" data-f="reps" value="${esc(c.reps)}" placeholder="8-10" /></div>
+        <div><div class="mini">Repos s</div><input type="number" inputmode="numeric" data-f="rest_sec" value="${c.rest_sec}" /></div>
+      </div>
+      <div class="row2" style="margin-top:9px">
+        <div><div class="mini">RPE cible</div><input type="number" inputmode="decimal" data-f="target_rpe" value="${c.target_rpe}" /></div>
+        <div><div class="mini">Note FR</div><input type="text" data-f="notes_fr" value="${esc(c.notes_fr)}" /></div>
+      </div>
+    </div>`).join('');
+  document.querySelectorAll('#comp-list .comp-item').forEach(el=>{
+    const i=+el.dataset.i;
+    el.querySelectorAll('[data-f]').forEach(inp=>{
+      inp.onchange=()=>{ COMP[i][inp.dataset.f]=inp.value; };
+    });
+  });
+  document.querySelectorAll('[data-swap]').forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.swap;
+    syncCompFromDom();
+    openExPicker(exId=>{ COMP[i].exercise_id=exId; renderComp(); });
+  });
+  document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>moveComp(+b.dataset.up,-1));
+  document.querySelectorAll('[data-down]').forEach(b=>b.onclick=()=>moveComp(+b.dataset.down,1));
+  document.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{ COMP.splice(+b.dataset.rm,1); renderComp(); });
+}
+function syncCompFromDom(){
+  document.querySelectorAll('#comp-list .comp-item').forEach(el=>{
+    const i=+el.dataset.i;
+    el.querySelectorAll('[data-f]').forEach(inp=>{ COMP[i][inp.dataset.f]=inp.value; });
+  });
+}
+function moveComp(i,dir){
+  syncCompFromDom();
+  const j=i+dir; if(j<0||j>=COMP.length) return;
+  const t=COMP[i]; COMP[i]=COMP[j]; COMP[j]=t; renderComp();
+}
+$('#comp-add').onclick = ()=>{
+  syncCompFromDom();
+  if(!EXS.length){ toast('Charge les exercices d\'abord'); return; }
+  /* On choisit AVANT d'ajouter la ligne : inserer le premier exercice de la
+     liste par defaut obligeait a le corriger systematiquement. */
+  openExPicker(exId=>{
+    COMP.push({ exercise_id:exId, block:'strength', sets:'', reps:'', rest_sec:'', target_rpe:'', notes_fr:'' });
+    renderComp();
+  });
+};
+/* ═══════════════════════════════════════════════════════════════════════
+   PROGRAMMES D'ENTRAÎNEMENT — même geste que les plans nutrition, mais on
+   assigne des séances datées. Le client les voit sur son onglet Aujourd'hui
+   et les cases se cochent seules quand il termine la séance.
+═══════════════════════════════════════════════════════════════════════ */
+let TP_LIST=[], TP_CID=null, TP_NAME='', TP_CUR=null, TP_ITEMS=[];
+let TP_ST={}; function buildTpSt(){ TP_ST={draft:tr('b_status_draft'),assigned:tr('b_status_assigned'),active:tr('b_status_active'),completed:tr('b_status_completed'),archived:tr('b_status_archived')}; } buildTpSt();
+
+/* ASSIGN = les séances que CE coach a le droit d'assigner. C'est le serveur
+   qui tranche (bibliothèque réservée à l'offre Coach), pas l'interface. */
+let PLAN_INFO=null, ASSIGN=[];
+async function openTrainPlans(cid,name){
+  TP_CID=cid; TP_NAME=name; TP_CUR=null;
+  const [inf, asg] = await Promise.all([
+    PLAN_INFO ? Promise.resolve({data:PLAN_INFO}) : sb.rpc('coach_my_plan_info'),
+    sb.rpc('coach_list_assignable_workouts')
+  ]);
+  PLAN_INFO = inf.data || {paid:false};
+  ASSIGN = asg.data || [];
+  $('#ov-tp').classList.add('show');
+  await tpRenderList();
+}
+async function tpRenderList(){
+  $('#tp-body').innerHTML='<div class="spin"></div>';
+  const { data, error } = await sb.rpc('coach_list_plans',{ p_client:TP_CID });
+  if(error){ $('#tp-body').innerHTML=`<p class="empty">Erreur : ${esc(error.message)}</p>`; return; }
+  TP_LIST=data||[];
+  let h=`<h3 style="margin:0 0 2px"><span data-i18n="g_progs_train">Programmes</span></h3>
+    <p class="sub" style="text-align:left;margin:0 0 14px">${esc(TP_NAME)}</p>`;
+  if(!TP_LIST.length) h+=`<div class="item"><div class="meta" style="line-height:1.6"><span data-i18n="g_prog_expl">Un</span></div></div>`;
+  else h+=TP_LIST.map(p=>{
+    const pct = p.item_count ? Math.round(p.done_count/p.item_count*100) : 0;
+    return `<div class="card">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700">${esc(p.title_fr)}</div>
+          <div class="sub" style="text-align:left;margin:2px 0 0">${TP_ST[p.status]||p.status} · ${p.done_count}/${p.item_count} ${tr('b_sessions')}${p.start_date?tr('b_since')+dFR(p.start_date):''}</div>
+        </div>
+        <button class="btn subtle sm" data-tpe="${p.id}" style="width:auto">Ouvrir</button>
+      </div>
+      ${p.item_count?`<div style="height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden;margin-top:9px">
+        <div style="width:${pct}%;height:100%;background:var(--ok)"></div></div>`:''}
+      <button class="btn subtle sm" data-tpdup="${p.id}" style="width:auto;margin-top:9px"><span data-i18n="g_reuse">⧉</span></button>
+    </div>`;
+  }).join('');
+  h+='<button class="btn" id="tp-new" style="margin-top:14px">＋ Nouveau programme</button>';
+  h+='<button class="btn subtle" id="tp-close" style="margin-top:9px"><span data-i18n="b_close">Fermer</span></button>';
+  $('#tp-body').innerHTML=h;
+  $('#tp-close').onclick=()=>$('#ov-tp').classList.remove('show');
+  $('#tp-new').onclick=()=>tpEdit(null);
+  $('#tp-body').querySelectorAll('[data-tpe]').forEach(b=>b.onclick=()=>tpEdit(b.dataset.tpe));
+  $('#tp-body').querySelectorAll('[data-tpdup]').forEach(b=>b.onclick=()=>tpDupPrompt(b.dataset.tpdup));
+}
+
+/* Réutilisation d'un programme : coach_duplicate_plan (déjà en place côté
+   serveur, jamais branché côté interface) copie le programme ET ses séances
+   vers un autre client (ou le même, pour un nouveau bloc), dates décalées
+   automatiquement. Évite de reconstruire le même programme à la main pour
+   chaque client — le point le plus lourd du constructeur. */
+function tpDupPrompt(planId){
+  const plan = TP_LIST.find(p=>p.id===planId);
+  if(!plan) return;
+  const opts = CLIST.map(c=>`<option value="${c.client_id}"${c.client_id===TP_CID?' selected':''}>${esc(c.full_name||c.email||'—')}${c.client_id===TP_CID?' (ce client)':''}</option>`).join('');
+  const h=`<h3 style="margin:0 0 6px">Réutiliser « ${esc(plan.title_fr)} »</h3>
+    <p class="sub" style="text-align:left;margin:0 0 14px"><span data-i18n="g_copy_desc">Crée</span></p>
+    <div class="field"><label>Client</label><select id="tpd-client">${opts}</select></div>
+    <div class="field"><label><span data-i18n="g_new_start">Nouvelle</span></label><input id="tpd-start" type="date" value="${plan.start_date||''}" /></div>
+    <button class="btn" id="tpd-go"><span data-i18n="g_create_copy"><span data-i18n="g_create">Créer</span></span></button>
+    <button class="btn subtle" id="tpd-back" style="margin-top:9px">Retour</button>
+    <div class="msg" id="tpd-msg"></div>`;
+  $('#tp-body').innerHTML=h;
+  $('#tpd-back').onclick=tpRenderList;
+  $('#tpd-go').onclick=async ()=>{
+    const cid=$('#tpd-client').value;
+    if(!cid){ setMsg('tpd-msg','Choisis un client.','err'); return; }
+    setBtn('#tpd-go',true,tr('m_creating'));
+    const { data, error } = await sb.rpc('coach_duplicate_plan',{ p_id:planId, p_client:cid, p_start_date:$('#tpd-start').value||null });
+    setBtn('#tpd-go',false,tr('s_create_copy'));
+    if(error){ setMsg('tpd-msg','Échec : '+error.message,'err'); return; }
+    const cName = (CLIST.find(c=>c.client_id===cid)||{}).full_name || 'ce client';
+    /* On reste sur la liste du client courant : la nouvelle copie appartient au
+       client choisi dans le picker (potentiellement un autre) et TP_CID/ASSIGN
+       ne correspondent qu'au client actuellement ouvert. L'ouvrir ici afficherait
+       un contexte incohérent — le coach la retrouve dans la fiche du bon client. */
+    toast(cid===TP_CID ? tr('m_copy_draft') : trf('m_copy_for', cName));
+    tpRenderList();
+  };
+}
+
+async function tpEdit(id){
+  let plan={ title_fr:'', summary_fr:'', status:'assigned', start_date:'' };
+  TP_ITEMS=[]; TP_CUR=id||null;
+  if(id){
+    $('#tp-body').innerHTML='<div class="spin"></div>';
+    const { data, error } = await sb.rpc('coach_get_plan',{ p_id:id });
+    if(error||!data){ $('#tp-body').innerHTML=`<p class="empty">Erreur de chargement.</p>`; return; }
+    plan=data.plan;
+    TP_ITEMS=(data.items||[]).map(it=>({
+      workout_id:it.workout_id, scheduled_date:it.scheduled_date||'',
+      notes:it.notes||'', completed_at:it.completed_at||null
+    }));
+  }
+  const h=`<h3 style="margin:0 0 12px">${id?'Modifier le programme':'Nouveau programme'}</h3>
+    <div class="field"><label>Titre <span class="req">obligatoire</span></label>
+      <input id="tp-title" value="${esc(plan.title_fr||'')}" placeholder="Bloc force — 4 semaines" /></div>
+    <div class="row2">
+      <div class="field"><label><span data-i18n="g_start">Début</span></label><input id="tp-start" type="date" value="${plan.start_date||''}" /></div>
+      <div class="field"><label><span data-i18n="g_state">État</span></label><select id="tp-status">
+        ${Object.keys(TP_ST).map(k=>`<option value="${k}"${k===(plan.status||'assigned')?' selected':''}>${TP_ST[k]}</option>`).join('')}
+      </select></div>
+    </div>
+    <div class="field"><label><span data-i18n="g_general_cue">Consigne</span></label>
+      <textarea id="tp-sum" placeholder="Objectif du bloc, points de vigilance…">${esc(plan.summary_fr||'')}</textarea></div>
+    <div class="mini" style="margin:14px 0 6px"><span data-i18n="g_wk_of_prog">Séances</span></div>
+    <div id="tp-items"></div>
+    <button class="btn subtle" id="tp-add" style="margin-top:4px"><span data-i18n="g_add_wk">＋</span></button>
+    ${TP_ITEMS.length?'<button class="btn subtle" id="tp-auto" style="margin-top:9px"><span data-i18n="b_autodate">📅 Dater auto (1×/semaine depuis le début)</span></button>':''}
+    ${TP_ITEMS.length?'<button class="btn subtle" id="tp-week" style="margin-top:9px"><span data-i18n="b_dup_7d">⧉ Dupliquer en décalant de 7 jours</span></button>':''}
+    <button class="btn" id="tp-save" style="margin-top:14px">Enregistrer</button>
+    ${id?'<button class="btn danger" id="tp-del" style="margin-top:9px"><span data-i18n="b_delete">Supprimer</span></button>':''}
+    <button class="btn subtle" id="tp-back" style="margin-top:9px">Retour</button>
+    <div class="msg" id="tp-msg"></div>`;
+  $('#tp-body').innerHTML=h;
+  tpRenderItems();
+  $('#tp-back').onclick=tpRenderList;
+  $('#tp-add').onclick=()=>{
+    tpSyncFromDom();
+    openWkPicker(wid=>{ TP_ITEMS.push({workout_id:wid, scheduled_date:'', notes:'', completed_at:null}); tpRenderItems(); });
+  };
+  /* Dater à la main chaque séance est le geste le plus répétitif du
+     constructeur. Un rythme hebdomadaire depuis le début couvre le cas
+     courant ; le coach garde la main pour corriger au cas par cas ensuite. */
+  const auto=$('#tp-auto'); if(auto) auto.onclick=()=>{
+    tpSyncFromDom();
+    const start=$('#tp-start').value;
+    if(!start){ setMsg('tp-msg','Choisis d\'abord une date de début.','err'); return; }
+    if(TP_ITEMS.some(x=>x.scheduled_date) && !confirm(tr('q_replace_dates'))) return;
+    const d0=new Date(start+'T12:00:00');
+    TP_ITEMS.forEach((it,i)=>{ const d=new Date(d0); d.setDate(d.getDate()+i*7); it.scheduled_date=d.toLocaleDateString('sv-SE'); });
+    setMsg('tp-msg','','');
+    tpRenderItems();
+  };
+  const wk=$('#tp-week'); if(wk) wk.onclick=tpDuplicateWeek;
+  $('#tp-save').onclick=tpSave;
+  const dl=$('#tp-del'); if(dl) dl.onclick=async ()=>{
+    if(!confirm(tr('m_del_prog_q'))) return;
+    const { error } = await sb.rpc('coach_delete_plan',{ p_id:TP_CUR });
+    if(error){ setMsg('tp-msg','Échec : '+error.message,'err'); return; }
+    toast(tr('m_prog_deleted')); tpRenderList();
+  };
+}
+function wkName(id){
+  const w = ASSIGN.find(x=>x.id===id) || WKS.find(x=>x.id===id);
+  return w ? (w.name_fr||'—') : tr('g_wk_notfound');
+}
+function tpRenderItems(){
+  const box=$('#tp-items'); if(!box) return;
+  if(!TP_ITEMS.length){ box.innerHTML='<p class="empty" style="padding:10px 0"><span data-i18n="b_no_wk_add">Aucune séance. Ajoute-en une.</span></p>'; return; }
+  box.innerHTML=TP_ITEMS.map((it,i)=>`
+    <div class="comp-item" data-ti="${i}">
+      <div class="ci-top">
+        <span class="ord">${i+1}</span>
+        <span class="sp exchosen">${esc(wkName(it.workout_id))}${it.completed_at?' ✓':''}</span>
+        <button class="iconbtn" data-tswap="${i}" title="${tr('s_change_wk')}">⇄</button>
+        <button class="iconbtn" data-tup="${i}">↑</button>
+        <button class="iconbtn" data-tdown="${i}">↓</button>
+        <button class="iconbtn" data-trm="${i}" style="color:var(--warn)">✕</button>
+      </div>
+      <div class="row2">
+        <div><div class="mini">Date</div><input type="date" data-tf="scheduled_date" value="${it.scheduled_date||''}" /></div>
+        <div><div class="mini"><span data-i18n="g_note_client">Note au client</span></div><input type="text" data-tf="notes" value="${esc(it.notes||'')}" placeholder="Charge, ressenti…" /></div>
+      </div>
+    </div>`).join('');
+  box.querySelectorAll('.comp-item').forEach(el=>{
+    const i=+el.dataset.ti;
+    el.querySelectorAll('[data-tf]').forEach(inp=>{ inp.onchange=()=>{ TP_ITEMS[i][inp.dataset.tf]=inp.value; }; });
+  });
+  box.querySelectorAll('[data-tswap]').forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.tswap; tpSyncFromDom();
+    openWkPicker(wid=>{ TP_ITEMS[i].workout_id=wid; tpRenderItems(); });
+  });
+  box.querySelectorAll('[data-tup]').forEach(b=>b.onclick=()=>tpMove(+b.dataset.tup,-1));
+  box.querySelectorAll('[data-tdown]').forEach(b=>b.onclick=()=>tpMove(+b.dataset.tdown,1));
+  box.querySelectorAll('[data-trm]').forEach(b=>b.onclick=()=>{ tpSyncFromDom(); TP_ITEMS.splice(+b.dataset.trm,1); tpRenderItems(); });
+}
+function tpSyncFromDom(){
+  document.querySelectorAll('#tp-items .comp-item').forEach(el=>{
+    const i=+el.dataset.ti;
+    el.querySelectorAll('[data-tf]').forEach(inp=>{ TP_ITEMS[i][inp.dataset.tf]=inp.value; });
+  });
+}
+function tpMove(i,dir){
+  tpSyncFromDom();
+  const j=i+dir; if(j<0||j>=TP_ITEMS.length) return;
+  [TP_ITEMS[i],TP_ITEMS[j]]=[TP_ITEMS[j],TP_ITEMS[i]];
+  tpRenderItems();
+}
+/* Construire une semaine puis la répéter est le geste le plus courant d'un
+   coach. On recopie les séances datées en ajoutant 7 jours. */
+function tpDuplicateWeek(){
+  tpSyncFromDom();
+  const dated=TP_ITEMS.filter(x=>x.scheduled_date);
+  if(!dated.length){ setMsg('tp-msg','Donne d\'abord une date aux séances à répéter.','err'); return; }
+  dated.forEach(x=>{
+    const d=new Date(x.scheduled_date+'T12:00:00'); d.setDate(d.getDate()+7);
+    TP_ITEMS.push({ workout_id:x.workout_id, scheduled_date:d.toLocaleDateString('sv-SE'), notes:x.notes, completed_at:null });
+  });
+  setMsg('tp-msg','','');
+  tpRenderItems();
+}
+async function tpSave(){
+  tpSyncFromDom();
+  const title=$('#tp-title').value.trim();
+  if(!title){ setMsg('tp-msg','Donne un titre au programme.','err'); return; }
+  setBtn('#tp-save',true,'Enregistrement…');
+  const up = await sb.rpc('coach_upsert_plan',{
+    p_id:TP_CUR, p_client:TP_CID, p_title_fr:title, p_title_en:null, p_title_nl:null,
+    p_summary_fr:$('#tp-sum').value.trim()||null,
+    p_start_date:$('#tp-start').value||null, p_status:$('#tp-status').value
+  });
+  if(up.error){ setBtn('#tp-save',false,tr('c_save')); setMsg('tp-msg',tr('m_failed')+up.error.message,'err'); return; }
+  TP_CUR = up.data;
+  const items = TP_ITEMS.filter(x=>x.workout_id).map((x,i)=>({
+    workout_id:x.workout_id, scheduled_date:x.scheduled_date||null, pos:i, notes:x.notes||null
+  }));
+  const it = await sb.rpc('coach_set_plan_items',{ p_plan:TP_CUR, p_items:items });
+  setBtn('#tp-save',false,tr('c_save'));
+  if(it.error){
+    const m=it.error.message||'';
+    setMsg('tp-msg',
+      m.includes('library_requires_paid_plan') ? tr('m_lib_paid')
+      : m.includes('not_your_workout') ? tr('m_wk_not_yours')
+      : 'Échec : '+m, 'err');
+    return;
+  }
+  toast(tr('m_prog_saved')); tpRenderList();
+}
+
+/* Choix d'une séance, par recherche — même principe que pour les exercices. */
+let WKPICK_CB=null;
+function openWkPicker(cb){
+  WKPICK_CB=cb; $('#wkp-q').value=''; renderWkResults('');
+  $('#ov-wkp').classList.add('show');
+  setTimeout(()=>$('#wkp-q').focus(),120);
+}
+function renderWkResults(q){
+  const s=(q||'').trim().toLowerCase();
+  const paid = !PLAN_INFO || PLAN_INFO.paid !== false;
+  const list = (s ? ASSIGN.filter(w=>(w.name_fr||'').toLowerCase().includes(s)) : ASSIGN).slice(0,40);
+  const box=$('#wkp-res');
+  /* Constat neutre, sans prix ni bouton d'achat : affichable tel quel sur iOS. */
+  const note = paid ? '' :
+    `<div style="padding:11px 12px;font-size:12.5px;color:var(--muted);border-bottom:1px solid var(--line)">
+       ${tr('b_assign_own')}
+     </div>`;
+  if(!list.length){
+    box.innerHTML = note + `<div style="padding:14px;color:var(--muted);font-size:13px">${
+      s ? trf('b_no_wk_for', esc(q)) : tr('b_no_wk_avail')}</div>`;
+    return;
+  }
+  box.innerHTML = note + list.map(w=>`<button type="button" data-wk="${w.id}">${esc(w.name_fr)}
+    <span class="exmeta">${esc(L_TYPE[w.type]||w.type||'')}${w.estimated_duration_min?' · '+w.estimated_duration_min+' min':''}${w.exercise_count?' · '+w.exercise_count+' exercices':''}${w.is_mine?' · à moi':''}</span></button>`).join('');
+  box.querySelectorAll('[data-wk]').forEach(b=>b.onclick=()=>{
+    if(WKPICK_CB) WKPICK_CB(b.dataset.wk);
+    $('#ov-wkp').classList.remove('show');
+  });
+}
+$('#wkp-q').oninput = e=>renderWkResults(e.target.value);
+$('#wkp-close').onclick = ()=>$('#ov-wkp').classList.remove('show');
+$('#ov-wkp').onclick = ev=>{ if(ev.target.id==='ov-wkp') $('#ov-wkp').classList.remove('show'); };
+$('#ov-tp').onclick = ev=>{ if(ev.target.id==='ov-tp') $('#ov-tp').classList.remove('show'); };
+
+/* ── Recherche d'exercice + création à la volée ─────────────────────────── */
+$('#exp-q').oninput = e=>renderExResults(e.target.value);
+$('#exp-close').onclick = ()=>$('#ov-exp').classList.remove('show');
+$('#ov-exp').onclick = ev=>{ if(ev.target.id==='ov-exp') $('#ov-exp').classList.remove('show'); };
+$('#exp-new').onclick = ()=>{
+  fillSelect('exn-cat',L_CAT); fillSelect('exn-mus',L_MUS);
+  fillSelect('exn-equip',L_EQUIP); fillSelect('exn-diff',L_DIFF);
+  $('#exn-fr').value = $('#exp-q').value.trim();
+  $('#exn-video').value=''; $('#exn-cue').value='';
+  setMsg('exn-msg','','');
+  $('#ov-exn').classList.add('show');
+};
+$('#exn-cancel').onclick = ()=>$('#ov-exn').classList.remove('show');
+$('#exn-save').onclick = async ()=>{
+  const nm=$('#exn-fr').value.trim();
+  if(nm.length<2){ setMsg('exn-msg',tr('m_name_ex'),'err'); return; }
+  setBtn('#exn-save',true,tr('m_creating'));
+  const { data, error } = await sb.rpc('coach_add_exercise',{
+    p_name_fr:nm, p_category:$('#exn-cat').value, p_primary_muscle:$('#exn-mus').value,
+    p_equipment:$('#exn-equip').value, p_difficulty:$('#exn-diff').value,
+    p_video_url:$('#exn-video').value.trim()||null, p_cue_fr:$('#exn-cue').value.trim()||null
+  });
+  setBtn('#exn-save',false,tr('c_create_use'));
+  if(error||!data||data.ok===false){
+    const r=(data&&data.reason)||'';
+    setMsg('exn-msg', r==='inappropriate' ? tr('m_name_refused_ex')
+      : r==='bad_video_url' ? tr('m_video_url')
+      : r==='name_too_short' ? 'Nom trop court.'
+      : 'Échec : '+(r||(error&&error.message)||''), 'err');
+    return;
+  }
+  await loadExercises();                       /* la bibliothèque contient le nouvel exercice */
+  $('#ov-exn').classList.remove('show');
+  $('#ov-exp').classList.remove('show');
+  if(EXPICK_CB) EXPICK_CB(data.id);
+  toast(tr('m_ex_created'));
+};
+
+function closeComp(){ $('#ov-comp').classList.remove('show'); }
+$('#comp-cancel').onclick = closeComp;
+$('#ov-comp').onclick = ev=>{ if(ev.target.id==='ov-comp') closeComp(); };
+$('#comp-save').onclick = async ()=>{
+  syncCompFromDom();
+  const items = COMP.map((c,i)=>({
+    exercise_id:c.exercise_id, block:c.block, display_order:i+1,
+    sets:c.sets, reps:c.reps, rest_sec:c.rest_sec, target_rpe:c.target_rpe, notes_fr:c.notes_fr
+  }));
+  $('#comp-save').disabled=true; setMsg('comp-msg','Enregistrement…','');
+  const { error } = await sb.rpc('admin_set_workout_exercises',{ p_workout_id:COMP_WID, p_items:items });
+  $('#comp-save').disabled=false;
+  if(error){ setMsg('comp-msg','Échec de l\'enregistrement.','err'); return; }
+  closeComp(); toast(tr('m_comp_saved')); loadWorkouts();
+};
+
+/* ===================================================================
+   COURS — planning + modèles
+=================================================================== */
+(function(){
+  let VIEW='planning', PLANNING=[], TEMPLATES=[], CLIENTS=[];
+  const dKey=d=>{const s=new Date(d).toLocaleDateString(locale(),{weekday:'long',day:'numeric',month:'long'});return s.charAt(0).toUpperCase()+s.slice(1);};
+  const hhmm=d=>new Date(d).toLocaleTimeString(locale(),{hour:'2-digit',minute:'2-digit'});
+  function openSheet(html){ $('#cours-sheet-body').innerHTML=html; $('#cours-ov').classList.add('show'); }
+  function closeSheet(){ $('#cours-ov').classList.remove('show'); }
+
+  function setView(v){
+    VIEW=v;
+    document.querySelectorAll('#pane-cours .subswitch [data-cv]').forEach(b=>b.classList.toggle('on',b.dataset.cv===v));
+    if(v==='planning')loadPlanning();
+    else loadTemplates();
+  }
+
+  /* PLANNING */
+  async function loadPlanning(){
+    const body=$('#cours-body');body.innerHTML='<div class="spin"></div>';
+    const {data,error}=await sb.rpc('class_coach_planning');
+    if(error){body.innerHTML='<div class="center">Erreur de chargement</div>';return;}
+    PLANNING=data||[];renderPlanning();
+  }
+  function renderPlanning(){
+    const body=$('#cours-body');
+    let h=`<button class="btn full" style="margin-bottom:14px" id="newInst"><span data-i18n="b_schedule_wk">＋ Programmer une séance</span></button>`;
+    if(!PLANNING.length){h+='<div class="center"><span data-i18n="b_no_upcoming">Aucune séance à venir.</span></div>';}
+    let lastDay='';
+    PLANNING.forEach(it=>{
+      const day=dKey(it.starts_at);
+      if(day!==lastDay){h+=`<div class="daylabel">${esc(day)}</div>`;lastDay=day;}
+      const full=it.spots_left<=0, cancelled=it.status==='cancelled';
+      const pc=cancelled?'cancel':full?'full':'ok';
+      const ptxt=cancelled?tr('b_cancelled2'):`${it.booked_count}/${it.capacity}`;
+      const col=it.color||'#00FFA3';
+      h+=`<div class="card inst row" data-id="${it.id}" style="gap:12px">
+        <div class="accent" style="background:${esc(col)}"></div>
+        <div style="flex:1">
+          <div class="title">${esc(it.name_fr)} ${it.kind==='personal_training'?'<span class="pill vio">PT</span>':''}</div>
+          <div class="sub">${hhmm(it.starts_at)}–${hhmm(it.ends_at)}${it.location?' · '+esc(it.location):''}</div>
+        </div>
+        <span class="pill ${pc}">${ptxt}</span>
+      </div>`;
+    });
+    body.innerHTML=h;
+    $('#newInst').onclick=()=>openSchedule();
+    body.querySelectorAll('.inst').forEach(c=>c.onclick=()=>openRoster(c.dataset.id));
+  }
+
+  /* ROSTER + PRÉSENCE */
+  async function openRoster(id){
+    const it=PLANNING.find(x=>x.id===id);
+    const {data,error}=await sb.rpc('class_roster',{p_instance:id});
+    if(error){toast('Roster indisponible');return;}
+    const rows=data||[];
+    const present=rows.filter(r=>r.status==='attended').length;
+    let h=`<h2>${esc(it.name_fr)}</h2>
+     <div class="muted">${esc(dKey(it.starts_at))} · ${hhmm(it.starts_at)}–${hhmm(it.ends_at)}${it.location?' · '+esc(it.location):''}</div>
+     <div class="row" style="margin:12px 0;gap:8px;flex-wrap:wrap">
+       <span class="pill ${it.status==='cancelled'?'cancel':'vio'}">${rows.length}/${it.capacity} inscrits</span>
+       <span class="pill ok">${present} présents</span>
+       <div class="sp"></div>
+       ${it.status==='cancelled'
+         ? `<button class="btn sec sm" data-act="republish">Republier</button>`
+         : `<button class="btn red sm" data-act="cancelinst"><span data-i18n="b_cancel_session">Annuler la séance</span></button>`}
+     </div>
+     <button class="btn sec full" id="addMember"><span data-i18n="g_add_my_client">＋ Ajouter un de mes clients</span></button>
+     <hr>`;
+    if(!rows.length)h+='<div class="center"><span data-i18n="b_no_booking">Aucune réservation.</span></div>';
+    rows.forEach(r=>{
+      const pay=r.has_access?'<span class="pill ok"><span data-i18n="b_ok">En ordre</span></span>':'<span class="pill full"><span data-i18n="b_to_settle">À régulariser</span></span>';
+      const st=r.status==='attended'?'<span class="pill ok"><span data-i18n="b_present">Présent</span></span>'
+              :r.status==='no_show'?'<span class="pill full">Absent</span>'
+              :r.status==='waitlist'?'<span class="pill warn">Attente</span>':'<span class="pill vio"><span data-i18n="b_booked">Réservé</span></span>';
+      h+=`<div class="member">
+        <div style="flex:1;min-width:0">
+          <div class="mname">${esc(r.full_name||'—')}</div>
+          <div class="memail">${esc(r.email||'')}</div>
+          <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${st} ${pay}</div>
+        </div>
+        <div class="att">
+          <button class="btn grn sm" data-pres="${r.booking_id}">✓</button>
+          <button class="btn red sm" data-abs="${r.booking_id}">✗</button>
+        </div>
+      </div>`;
+    });
+    openSheet(h);
+    const sheet=$('#cours-sheet-body');
+    sheet.querySelectorAll('[data-pres]').forEach(b=>b.onclick=()=>mark(b.dataset.pres,'attended',id));
+    sheet.querySelectorAll('[data-abs]').forEach(b=>b.onclick=()=>mark(b.dataset.abs,'no_show',id));
+    const ci=sheet.querySelector('[data-act="cancelinst"]'); if(ci)ci.onclick=()=>setInstStatus(id,'cancelled');
+    const rp=sheet.querySelector('[data-act="republish"]'); if(rp)rp.onclick=()=>setInstStatus(id,'scheduled');
+    sheet.querySelector('#addMember').onclick=()=>pickMember(id);
+  }
+  async function pickMember(instId){
+    if(!CLIENTS.length){const {data}=await sb.rpc('class_my_clients');CLIENTS=data||[];}
+    if(!CLIENTS.length){toast(tr('s_no_client_linked'));return;}
+    const opts=CLIENTS.map(c=>`<option value="${c.client_id}">${esc((c.full_name||c.email||'')+(c.full_name&&c.email?' — '+c.email:''))}</option>`).join('');
+    let h=`<h2><span data-i18n="g_add_client_h">Ajouter un client</span></h2>
+     <label><span data-i18n="g_pick_client">Choisis</span></label>
+     <select id="pm_sel">${opts}</select>
+     <div class="row" style="margin-top:16px;gap:8px"><div class="sp"></div>
+     <button class="btn sec" id="pm_cancel">Retour</button>
+     <button class="btn" id="pm_add">Ajouter</button></div>`;
+    openSheet(h);
+    $('#pm_cancel').onclick=()=>openRoster(instId);
+    $('#pm_add').onclick=async()=>{
+      const {data,error}=await sb.rpc('class_book_member',{p_instance:instId,p_member:$('#pm_sel').value});
+      if(error||!data?.ok){toast(data?.reason==='not_your_member'?tr('m_client_notlinked'):'Échec');return;}
+      toast(data.status==='waitlist'?tr('m_waitlist'):tr('m_client_added'));
+      await loadPlanning();openRoster(instId);
+    };
+  }
+  async function mark(bid,status,instId){
+    const {data,error}=await sb.rpc('class_mark_attendance',{p_booking:bid,p_status:status});
+    if(error||!data?.ok){toast('Échec');return;}
+    toast(status==='attended'?tr('m_present'):tr('m_absent'));
+    await loadPlanning();openRoster(instId);
+  }
+  async function setInstStatus(id,status){
+    const {error}=await sb.from('class_instances').update({status}).eq('id',id);
+    if(error){toast('Échec');return;}
+    closeSheet();toast(status==='cancelled'?tr('m_wk_cancelled'):tr('m_wk_republished'));loadPlanning();
+  }
+
+  /* MODÈLES */
+  async function loadTemplates(){
+    const body=$('#cours-body');body.innerHTML='<div class="spin"></div>';
+    const {data,error}=await sb.from('class_templates').select('*').order('created_at',{ascending:false});
+    if(error){body.innerHTML='<div class="center">Erreur</div>';return;}
+    TEMPLATES=data||[];renderTemplates();
+  }
+  function renderTemplates(){
+    const body=$('#cours-body');
+    let h=`<button class="btn full" style="margin-bottom:14px" id="newTpl">＋ Nouveau cours</button>`;
+    if(!TEMPLATES.length)h+='<div class="center"><span data-i18n="b_no_tpl_class">Aucun cours modèle.</span></div>';
+    TEMPLATES.forEach(t=>{
+      h+=`<div class="card row" style="gap:12px">
+        <div class="accent" style="background:${esc(t.color||'#00FFA3')}"></div>
+        <div style="flex:1">
+          <div class="title">${esc(t.name_fr)} ${t.kind==='personal_training'?'<span class="pill vio">PT</span>':''} ${t.is_active?'':'<span class="pill cancel">inactif</span>'}</div>
+          <div class="sub">Cap. ${t.default_capacity} · ${t.default_duration_min} min${t.location?' · '+esc(t.location):''}</div>
+        </div>
+        <button class="btn sec sm" data-edit="${t.id}"><span data-i18n="g_edit">Éditer</span></button>
+        <button class="btn sm" data-sched="${t.id}">Programmer</button>
+      </div>`;
+    });
+    body.innerHTML=h;
+    $('#newTpl').onclick=()=>openTemplate();
+    body.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openTemplate(TEMPLATES.find(t=>t.id===b.dataset.edit)));
+    body.querySelectorAll('[data-sched]').forEach(b=>b.onclick=()=>openSchedule(TEMPLATES.find(t=>t.id===b.dataset.sched)));
+  }
+  function openTemplate(t={}){
+    const e=t.id?t:{};
+    let h=`<h2>${t.id?'Éditer le cours':'Nouveau cours'}</h2>
+     <label>Type</label>
+     <select id="t_kind"><option value="group" ${e.kind!=='personal_training'?'selected':''}>Cours collectif</option>
+     <option value="personal_training" ${e.kind==='personal_training'?'selected':''}>Personal training (PT)</option></select>
+     <label>Nom — FR *</label><input id="t_fr" value="${esc(e.name_fr)}">
+     <div class="grid2"><div><label>Nom — EN</label><input id="t_en" value="${esc(e.name_en)}"></div>
+     <div><label>Nom — NL</label><input id="t_nl" value="${esc(e.name_nl)}"></div></div>
+     <label>Description — FR</label><textarea id="d_fr">${esc(e.description_fr)}</textarea>
+     <div class="grid2"><div><label>Desc — EN</label><textarea id="d_en">${esc(e.description_en)}</textarea></div>
+     <div><label>Desc — NL</label><textarea id="d_nl">${esc(e.description_nl)}</textarea></div></div>
+     <label>Image (URL)</label><input id="t_img" value="${esc(e.cover_image_url)}" placeholder="https://…">
+     <div class="grid2"><div><label><span data-i18n="g_capacity_def"><span data-i18n="g_capacity">Capacité</span></span></label><input id="t_cap" type="number" min="1" value="${e.default_capacity||12}"></div>
+     <div><label><span data-i18n="g_duration_min"><span data-i18n="g_duration">Durée</span></span></label><input id="t_dur" type="number" min="5" value="${e.default_duration_min||60}"></div></div>
+     <div class="grid2"><div><label>Lieu</label><input id="t_loc" value="${esc(e.location)}"></div>
+     <div><label>Couleur</label><input id="t_col" type="text" value="${esc(e.color||'#00FFA3')}"></div></div>
+     <label>Actif</label><select id="t_act"><option value="true" ${e.is_active!==false?'selected':''}>Oui</option><option value="false" ${e.is_active===false?'selected':''}>Non</option></select>
+     <div class="row" style="margin-top:18px;gap:8px">
+       ${t.id?'<button class="btn red sec sm" id="t_del"><span data-i18n="b_delete">Supprimer</span></button>':''}
+       <div class="sp"></div>
+       <button class="btn sec" id="t_cancel"><span data-i18n="b_close">Fermer</span></button>
+       <button class="btn" id="t_save">Enregistrer</button>
+     </div>`;
+    openSheet(h);
+    $('#t_cancel').onclick=closeSheet;
+    if($('#t_del'))$('#t_del').onclick=async()=>{
+      const {error}=await sb.from('class_templates').delete().eq('id',t.id);
+      if(error){toast(tr('m_del_refused'));return;}
+      closeSheet();toast(tr('m_deleted'));loadTemplates();
+    };
+    $('#t_save').onclick=async()=>{
+      const fr=$('#t_fr').value.trim();if(!fr)return toast('Nom FR requis');
+      const p={coach_id:ME,kind:$('#t_kind').value,name_fr:fr,
+        name_en:$('#t_en').value.trim()||null,name_nl:$('#t_nl').value.trim()||null,
+        description_fr:$('#d_fr').value.trim()||null,description_en:$('#d_en').value.trim()||null,description_nl:$('#d_nl').value.trim()||null,
+        cover_image_url:$('#t_img').value.trim()||null,default_capacity:+$('#t_cap').value||12,
+        default_duration_min:+$('#t_dur').value||60,location:$('#t_loc').value.trim()||null,
+        color:$('#t_col').value.trim()||'#00FFA3',is_active:$('#t_act').value==='true'};
+      const q=t.id?sb.from('class_templates').update(p).eq('id',t.id):sb.from('class_templates').insert(p);
+      const {error}=await q;
+      if(error){toast('Échec enregistrement');return;}
+      closeSheet();toast(tr('m_saved'));loadTemplates();
+    };
+  }
+
+  /* PROGRAMMER (récurrence) */
+  function openSchedule(t={}){
+    const e=t.id?t:{};
+    const today=new Date().toISOString().slice(0,10);
+    const days=[['MO','Lun'],['TU','Mar'],['WE','Mer'],['TH','Jeu'],['FR','Ven'],['SA','Sam'],['SU','Dim']];
+    let h=`<h2><span data-i18n="g_schedule_wk">Programmer</span></h2>
+     <label>Type</label><select id="s_kind"><option value="group" ${e.kind!=='personal_training'?'selected':''}>Cours collectif</option>
+     <option value="personal_training" ${e.kind==='personal_training'?'selected':''}>PT</option></select>
+     <label><span data-i18n="g_visibility">Visibilité</span></label><select id="s_vis"><option value="private" selected><span data-i18n="g_private">Privé</span></option>
+     <option value="public"><span data-i18n="g_public">Public</span></option></select>
+     <div id="s_invite_wrap"><label><span data-i18n="g_allowed_clients">Clients</span></label>
+       <input id="s_cl_search" type="text" placeholder="Rechercher un client…" autocomplete="off" style="margin-bottom:8px">
+       <div class="cl-list" id="s_clients"><div class="muted" style="font-size:12px;padding:10px">Chargement…</div></div>
+       <div class="muted" style="font-size:11.5px;margin-top:4px"><span data-i18n="g_tap_select">Touche</span></div></div>
+     <label>Nom — FR *</label><input id="s_fr" value="${esc(e.name_fr)}">
+     <div class="grid2"><div><label>Nom — EN</label><input id="s_en" value="${esc(e.name_en)}"></div>
+     <div><label>Nom — NL</label><input id="s_nl" value="${esc(e.name_nl)}"></div></div>
+     <div class="grid2"><div><label>Date</label><input id="s_date" type="date" value="${today}"></div>
+     <div><label>Heure</label><input id="s_time" type="time" value="18:00"></div></div>
+     <div class="grid2"><div><label><span data-i18n="g_duration_min"><span data-i18n="g_duration">Durée</span></span></label><input id="s_dur" type="number" min="5" value="${e.default_duration_min||60}"></div>
+     <div><label><span data-i18n="g_capacity">Capacité</span></label><input id="s_cap" type="number" min="1" value="${e.default_capacity||12}"></div></div>
+     <div class="grid2"><div><label>Lieu</label><input id="s_loc" value="${esc(e.location)}"></div>
+     <div><label>Couleur</label><input id="s_col" value="${esc(e.color||'#00FFA3')}"></div></div>
+     <label><span data-i18n="g_repeat">Répéter</span></label>
+     <div class="chips" id="s_days">${days.map(d=>`<button data-d="${d[0]}">${d[1]}</button>`).join('')}</div>
+     <label>Pendant combien de semaines</label><input id="s_weeks" type="number" min="1" max="26" value="4">
+     <div class="grid2"><div><label><span data-i18n="b_cancel_until">Annulation</span></label><input id="s_cut" type="number" min="0" value="120"></div>
+     <div><label><span data-i18n="b_checkin_opens">Pointage</span></label><input id="s_chk" type="number" min="0" value="10"></div></div>
+     <div class="row" style="margin-top:18px;gap:8px"><div class="sp"></div>
+       <button class="btn sec" id="s_cancel"><span data-i18n="b_close">Fermer</span></button>
+       <button class="btn" id="s_save"><span data-i18n="g_create">Créer</span></button></div>`;
+    openSheet(h);
+    const sel=new Set();
+    $('#s_days').querySelectorAll('button').forEach(b=>b.onclick=()=>{b.classList.toggle('on');b.classList.contains('on')?sel.add(b.dataset.d):sel.delete(b.dataset.d);});
+    const inviteSel=new Set();
+    const visEl=$('#s_vis'), invWrap=$('#s_invite_wrap');
+    const syncVis=()=>{ invWrap.style.display = visEl.value==='private' ? '' : 'none'; };
+    visEl.onchange=syncVis; syncVis();
+    (async()=>{
+      if(!CLIENTS.length){const {data}=await sb.rpc('class_my_clients');CLIENTS=data||[];}
+      const box=$('#s_clients');
+      if(!CLIENTS.length){ box.innerHTML=`<div class="muted" style="font-size:12px">${tr('b_no_client_tab')}</div>`; return; }
+      const rowHtml=c=>`<button type="button" class="cl-row" data-cid="${c.client_id}" data-q="${esc(((c.full_name||'')+' '+(c.email||'')).toLowerCase())}"><span class="cl-chk"></span><span class="cl-info"><b>${esc(c.full_name||c.email||'—')}</b><small>${esc(c.email||'')}</small></span></button>`;
+      box.innerHTML=CLIENTS.map(rowHtml).join('');
+      box.querySelectorAll('[data-cid]').forEach(b=>b.onclick=()=>{b.classList.toggle('on');b.classList.contains('on')?inviteSel.add(b.dataset.cid):inviteSel.delete(b.dataset.cid);});
+      const se=document.getElementById('s_cl_search');
+      if(se) se.oninput=()=>{const q=se.value.trim().toLowerCase();box.querySelectorAll('.cl-row').forEach(r=>{r.style.display=!q||r.dataset.q.includes(q)?'':'none';});};
+    })();
+    $('#s_cancel').onclick=closeSheet;
+    $('#s_save').onclick=async()=>{
+      const fr=$('#s_fr').value.trim();if(!fr)return toast('Nom FR requis');
+      const date=$('#s_date').value,time=$('#s_time').value;if(!date||!time)return toast('Date/heure requises');
+      const dur=+$('#s_dur').value||60, weeks=+$('#s_weeks').value||1;
+      const map={SU:0,MO:1,TU:2,WE:3,TH:4,FR:5,SA:6};
+      const wd=[...sel].map(d=>map[d]);
+      const first=new Date(`${date}T${time}`);
+      let dates=[];
+      if(!wd.length){dates=[first];}
+      else{
+        const horizon=new Date(first);horizon.setDate(horizon.getDate()+weeks*7);
+        let cur=new Date(first);
+        while(cur<horizon){if(wd.includes(cur.getDay()))dates.push(new Date(cur));cur.setDate(cur.getDate()+1);}
+      }
+      if(!dates.length)return toast(tr('m_no_dates'));
+      const base={template_id:t.id||null,coach_id:ME,kind:$('#s_kind').value,name_fr:fr,
+        name_en:$('#s_en').value.trim()||null,name_nl:$('#s_nl').value.trim()||null,
+        description_fr:e.description_fr||null,description_en:e.description_en||null,description_nl:e.description_nl||null,
+        cover_image_url:e.cover_image_url||null,color:$('#s_col').value.trim()||'#00FFA3',
+        location:$('#s_loc').value.trim()||null,capacity:+$('#s_cap').value||12,
+        visibility:$('#s_vis').value||'private',
+        cancel_cutoff_min_before:+$('#s_cut').value||0,checkin_opens_min_before:+$('#s_chk').value||0};
+      const payload=dates.map(d=>({...base,starts_at:d.toISOString(),ends_at:new Date(d.getTime()+dur*60000).toISOString()}));
+      const {data:created,error}=await sb.from('class_instances').insert(payload).select('id');
+      if(error){toast(tr('m_create_failed'));return;}
+      // Cours privé + clients choisis → invitations
+      if(base.visibility==='private' && inviteSel.size && created?.length){
+        const invites=[];
+        created.forEach(ci=>inviteSel.forEach(uid=>invites.push({instance_id:ci.id,user_id:uid})));
+        const {error:ie}=await sb.from('class_invites').insert(invites);
+        if(ie) toast(tr('m_wks_partial'));
+      }
+      closeSheet();
+      const nInv=(base.visibility==='private'?inviteSel.size:0);
+      toast((payload.length>1?trf('b_wks_created', payload.length):tr('m_wk_created'))+(nInv?trf('b_invited', nInv):''));
+      setView('planning');
+    };
+  }
+
+  window.__coursOpen = async function(){
+    if(!window.__coursInit){
+      window.__coursInit=true;
+      document.querySelectorAll('#pane-cours .subswitch [data-cv]').forEach(b=>b.onclick=()=>setView(b.dataset.cv));
+      $('#cours-ov').onclick=ev=>{ if(ev.target.id==='cours-ov') closeSheet(); };
+    }
+    setView(VIEW);
+  };
+})();
+
+applyI18n();
+_i18nObs.observe(document.body, { childList:true, subtree:true });
+document.querySelectorAll('#c-lang button').forEach(b=>{
+  b.classList.toggle('on', b.dataset.lang===LANG);
+  b.onclick = ()=>setLang(b.dataset.lang);
+});
+
+boot();
+</script>
+<a id="cdm-backapp" href="app.html" style="position:fixed;left:14px;bottom:14px;z-index:9999;background:#0c1210;color:#00FFA3;border:1px solid #1e2a25;border-radius:999px;padding:10px 16px;font:600 14px/1 -apple-system,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.4)">&#8249; App</a>
+</body>
+</html>
