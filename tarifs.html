@@ -131,7 +131,48 @@ footer a{color:var(--gold);text-decoration:none}
     </div>
   </div>
 
-  <footer>
+  
+<!-- ═══ TELECHARGEMENT DE L'APP ═══ -->
+<section id="app-dl" style="background:linear-gradient(135deg,#0D0D0D 0%,#141414 55%,#0D0D0D 100%);border-top:1px solid rgba(201,168,76,.14);border-bottom:1px solid rgba(201,168,76,.14);padding:54px 20px">
+  <div style="max-width:940px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:32px">
+    <img src="/icon-192.png" alt="Coach DM" width="104" height="104" loading="lazy" style="width:104px;height:104px;border-radius:24px;box-shadow:0 12px 34px rgba(0,0,0,.6);flex:none;margin:0 auto">
+    <div style="flex:1;min-width:270px">
+      <div class="t" data-fr="DISPONIBLE SUR IPHONE" data-en="AVAILABLE ON IPHONE" data-nl="BESCHIKBAAR OP IPHONE" style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:3px;color:#C9A84C;margin-bottom:8px">DISPONIBLE SUR IPHONE</div>
+      <h3 class="t" data-fr="Coach DM dans ta poche" data-en="Coach DM in your pocket" data-nl="Coach DM in je zak" style="font-family:'Barlow Condensed',sans-serif;font-size:31px;font-weight:700;color:#F0EBE0;margin:0 0 10px;line-height:1.1">Coach DM dans ta poche</h3>
+      <p class="t" data-fr="Tes programmes, l'analyse vidéo par IA, tes macros et ton coach — partout avec toi." data-en="Your programs, AI video analysis, your macros and your coach — everywhere with you." data-nl="Je programma's, AI-videoanalyse, je macro's en je coach — overal bij je." style="font-size:14px;color:#8b8b8b;line-height:1.6;margin:0 0 20px;max-width:520px">Tes programmes, l'analyse vidéo par IA, tes macros et ton coach — partout avec toi.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+        <a href="https://apps.apple.com/be/app/coach-dm/id6792289062" target="_blank" rel="noopener" style="display:inline-block;line-height:0;border-radius:8px"><span class="t" data-fr="&lt;img src=&quot;/badge-appstore-fr.svg&quot; alt=&quot;Telecharger dans l&amp;#39;App Store&quot; height=&quot;52&quot; style=&quot;height:52px;width:auto;display:block&quot;&gt;" data-en="&lt;img src=&quot;/badge-appstore-en.svg&quot; alt=&quot;Download on the App Store&quot; height=&quot;52&quot; style=&quot;height:52px;width:auto;display:block&quot;&gt;" data-nl="&lt;img src=&quot;/badge-appstore-nl.svg&quot; alt=&quot;Download in de App Store&quot; height=&quot;52&quot; style=&quot;height:52px;width:auto;display:block&quot;&gt;" style="display:block"><img src="/badge-appstore-fr.svg" alt="Telecharger dans l&#39;App Store" height="52" style="height:52px;width:auto;display:block"></span></a>
+        <span class="t" data-fr="Android — bientôt disponible" data-en="Android — coming soon" data-nl="Android — binnenkort beschikbaar" style="display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(201,168,76,.32);color:#7a7a7a;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;padding:13px 22px;border-radius:4px">Android — bientôt disponible</span>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+  function repli(img){
+    var a = img.closest('a'); if(!a) return;
+    var l = (document.documentElement.lang||'fr').slice(0,2);
+    var txt = {fr:"Télécharger sur l'App Store", en:"Download on the App Store", nl:"Download in de App Store"}[l] || "Télécharger sur l'App Store";
+    a.innerHTML = '<span style="display:inline-block;background:#C9A84C;color:#060606;font-family:\'Barlow Condensed\',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:14px 26px;border-radius:4px;line-height:1">'+txt+'</span>';
+  }
+  function armer(){
+    var l = document.querySelectorAll('img[src^="/badge-appstore-"]');
+    for(var i=0;i<l.length;i++){
+      (function(img){
+        if(img.dataset.arme) return; img.dataset.arme='1';
+        img.onerror = function(){ repli(img); };
+        if(img.complete && img.naturalWidth === 0) repli(img);
+      })(l[i]);
+    }
+  }
+  document.addEventListener('DOMContentLoaded', armer);
+  armer();
+  setInterval(armer, 1200);
+})();
+</script>
+
+
+<footer>
     Coach DM · Doudouh M. · BCE BE0840.260.421<br>
     <span data-i18n="vat_line">Non assujetti à la TVA. TVA non applicable.</span><br>
     <a href="https://coachdm.be">coachdm.be</a> ·
