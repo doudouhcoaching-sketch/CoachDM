@@ -39,7 +39,7 @@
     --font-d:'Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;padding:0;height:100%}
+  html,body{margin:0;padding:0;min-height:100%}
   body{
     font-family:'Outfit',-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,Helvetica,Arial,sans-serif;
     background:
@@ -1009,6 +1009,36 @@
 </div></div>
 
 <!-- ============ AUTH ============ -->
+<script>
+/* ---------- Filet de securite au demarrage ----------
+   app.html et coach.html importent supabase-js depuis un CDN. Si le reseau ne
+   repond pas, le module ESM ne s'execute JAMAIS : impossible d'attraper cet
+   echec depuis le module lui-meme. D'ou ce chronometre en script CLASSIQUE,
+   pose avant le module. Il remplace le spinner infini par un message lisible
+   et un bouton Reessayer. show() l'annule des que l'app affiche un ecran, ce
+   qui couvre aussi le cas ou le module se charge mais ou un appel reseau
+   reste en attente. */
+(function(){
+  var L=(localStorage.getItem('cdm_lang')||navigator.language||'en').toLowerCase();
+  L = L.indexOf('fr')===0 ? 'fr' : (L.indexOf('nl')===0 ? 'nl' : 'en');
+  var M={
+    fr:['Connexion impossible','Coach DM n\'arrive pas \u00e0 joindre le r\u00e9seau. V\u00e9rifie ta connexion, puis r\u00e9essaie.','R\u00e9essayer'],
+    en:['Cannot connect','Coach DM cannot reach the network. Check your connection, then try again.','Try again'],
+    nl:['Verbinden mislukt','Coach DM kan het netwerk niet bereiken. Controleer je verbinding en probeer opnieuw.','Opnieuw proberen']
+  }[L];
+  window.__cdmWatch = setTimeout(function(){
+    var b=document.getElementById('boot'); if(!b) return;
+    b.innerHTML='<div style="max-width:330px;margin:auto;padding:30px;text-align:center;font:400 15px/1.55 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;color:#b9c6c0">'
+      +'<div style="font-size:34px;margin-bottom:12px">\u26A0\uFE0F</div>'
+      +'<div style="font-weight:800;font-size:18px;color:#fff;margin-bottom:9px">'+M[0]+'</div>'
+      +'<div style="margin-bottom:22px">'+M[1]+'</div>'
+      +'<button type="button" onclick="location.reload()" style="background:#00FFA3;color:#04120c;border:0;border-radius:999px;padding:13px 28px;font-weight:800;font-size:15px;cursor:pointer">'+M[2]+'</button>'
+      +'</div>';
+  }, 15000);
+  window.__cdmOK = function(){ if(window.__cdmWatch){ clearTimeout(window.__cdmWatch); window.__cdmWatch=null; } };
+})();
+</script>
+
 <div id="auth" class="screen hidden">
   <div class="brand-head">
     <div class="coin-stage" id="coin-stage">
@@ -1963,6 +1993,10 @@
   .qtile{box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
   .mcard{box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
   @media (prefers-reduced-motion:reduce){.nav button,.search-row button{transition:none}}
+
+/* cdm-scroll-fix : Chromium bride le defilement quand le body est
+   verrouille a 100% de hauteur. min-height + overflow-y explicite. */
+html,body{overflow-y:auto;overscroll-behavior-y:contain}
 </style>
 <div class="overlay" id="up-ov"><div class="sheet" style="text-align:center">
   <div class="grab"></div>
@@ -2784,7 +2818,8 @@ const todayStr = ()=>{const d=new Date();return `${d.getFullYear()}-${String(d.g
 const r0=(n)=>Math.round(n||0);
 const r1=(n)=>Math.round((n||0)*10)/10;
 
-function show(id){['boot','auth','gate','app'].forEach(s=>$('#'+s).classList.toggle('hidden', s!==id));
+function show(id){ if(id!=='boot' && window.__cdmOK) window.__cdmOK();
+  ['boot','auth','gate','app'].forEach(s=>$('#'+s).classList.toggle('hidden', s!==id));
   $('#app').style.display = id==='app' ? 'block' : 'none';
   /* On revient toujours sur la carte de connexion : sans ca, une deconnexion
      survenue pendant la saisie d'un code laisserait l'ecran de code ou celui de
