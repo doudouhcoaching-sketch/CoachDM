@@ -185,7 +185,7 @@
 </style>
 </head>
 <body>
-<div style="position:fixed;top:0;left:0;right:0;z-index:99998;background:#7a4a00;color:#fff;font:600 12px sans-serif;padding:6px 10px;text-align:center">PAGE DE TEST — coach-test.html</div>
+<div style="position:fixed;top:0;left:0;right:0;z-index:99998;background:#7a4a00;color:#fff;font:600 12px sans-serif;padding:6px 10px;text-align:center">PAGE DE TEST</div>
 
 <div id="boot" class="screen"><div class="spin"></div></div>
 <script>
@@ -365,7 +365,7 @@
       <div class="field"><label data-i18n="c_muscle_focus">Muscle focus</label><select id="wk-focus"></select></div>
     </div>
     <div class="row2">
-      <div class="field"><label data-i18n="c_duration_min"><span data-i18n="g_duration_min"><span data-i18n="g_duration">Durée</span></span></label><input id="wk-dur" type="number" inputmode="numeric" /></div>
+      <div class="field"><label data-i18n="c_duration_min"><span data-i18n="g_duration_min">Durée (min)</span></label><input id="wk-dur" type="number" inputmode="numeric" /></div>
       <div class="field"><label data-i18n="c_cover_url">Image couverture (URL)</label><input id="wk-cover" type="url" inputmode="url" /></div>
     </div>
     <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);font-weight:600;margin:4px 0 16px"><input type="checkbox" id="wk-pub" style="width:18px;height:18px;accent-color:var(--brand)" /> <span data-i18n="c_published_cli">Publiée (visible par tes clients)</span></label>
@@ -450,7 +450,7 @@
     <div class="field"><label data-i18n="c_brand_opt">Marque (facultatif)</label><input id="fdn-brand" type="text" placeholder="Arla" /></div>
     <div class="row2">
       <div class="field"><label><span data-i18n="c_kcal100">Calories /100 g</span> <span class="req" data-i18n="c_required">obligatoire</span></label><input id="fdn-kcal" type="number" inputmode="numeric" placeholder="63" /></div>
-      <div class="field"><label data-i18n="c_prot_g"><span data-i18n="g_prot_g">Protéines</span></label><input id="fdn-prot" inputmode="decimal" placeholder="11" /></div>
+      <div class="field"><label data-i18n="c_prot_g"><span data-i18n="g_prot_g">Protéines (g)</span></label><input id="fdn-prot" inputmode="decimal" placeholder="11" /></div>
     </div>
     <div class="row2">
       <div class="field"><label data-i18n="c_carb_g">Glucides (g)</label><input id="fdn-carb" inputmode="decimal" placeholder="4" /></div>
@@ -963,6 +963,15 @@ function applyI18n(root, deep){
   try{
     if(_i18nObs) _i18nObs.disconnect();
     const r = root || document;
+    /* querySelectorAll ne retourne JAMAIS la racine elle-meme : un element
+       data-i18n place a la racine d'un fragment insere serait ignore. On le
+       traite explicitement. */
+    if(r.nodeType===1 && r.matches){
+      if(r.matches('[data-i18n]')){ const k=r.getAttribute('data-i18n'); if(T[k] && r.textContent!==tr(k)) r.textContent=tr(k); }
+      if(r.matches('[data-i18n-ph]')){ const k=r.getAttribute('data-i18n-ph'); if(T[k]) r.setAttribute('placeholder',tr(k)); }
+      if(r.matches('[data-i18n-aria]')){ const k=r.getAttribute('data-i18n-aria'); if(T[k]) r.setAttribute('aria-label',tr(k)); }
+      if(deep!==false && r.matches('[data-i18n-html]')){ const k=r.getAttribute('data-i18n-html'); if(T[k] && r.innerHTML!==tr(k)) r.innerHTML=tr(k); }
+    }
     if(r.querySelectorAll){
       r.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(T[k] && el.textContent!==tr(k)) el.textContent=tr(k); });
       r.querySelectorAll('[data-i18n-ph]').forEach(el=>{ const k=el.getAttribute('data-i18n-ph'); if(T[k]) el.setAttribute('placeholder',tr(k)); });
@@ -1158,17 +1167,17 @@ function renderClientList(){
      où il sert — pas dans une page d'aide que personne n'ouvre. */
   if(!CLIST.length){
     $('#cl-list').innerHTML = `<div class="guide">
-      <h4><span data-i18n="g_start_title">Par</span></h4>
-      <p class="gsub"><span data-i18n="g_start_sub">Trois</span></p>
+      <h4><span data-i18n="g_start_title">Par où commencer</span></h4>
+      <p class="gsub"><span data-i18n="g_start_sub">Trois étapes, dans cet ordre. Compte cinq minutes pour la première.</span></p>
       <div class="gstep"><div class="gn">1</div><div class="gt">
-        <b><span data-i18n="g_s1_t">Ajoute</span></b>
-        <span><span data-i18n="g_s1_d">Bouton</span></span></div></div>
+        <b><span data-i18n="g_s1_t">Ajoute ton client</span></b>
+        <span><span data-i18n="g_s1_d">Bouton « Ajouter un client » au-dessus. Il reçoit une invitation par email et te retrouve dans l'app.</span></span></div></div>
       <div class="gstep"><div class="gn">2</div><div class="gt">
-        <b><span data-i18n="g_s2_t">Compose</span></b>
-        <span><span data-i18n="g_s2_d">Onglet</span></span></div></div>
+        <b><span data-i18n="g_s2_t">Compose une séance</span></b>
+        <span><span data-i18n="g_s2_d">Onglet Séances. Une séance, c'est une liste d'exercices avec séries, répétitions et repos.</span></span></div></div>
       <div class="gstep"><div class="gn">3</div><div class="gt">
-        <b><span data-i18n="g_s3_t">Assemble</span></b>
-        <span><span data-i18n="g_s3_d">Dans</span></span></div></div>
+        <b><span data-i18n="g_s3_t">Assemble son programme</span></b>
+        <span><span data-i18n="g_s3_d">Dans sa fiche. Un programme, c'est tes séances posées sur des dates. Le client les coche, tu vois sa progression.</span></span></div></div>
     </div>`;
     return;
   }
@@ -1276,7 +1285,7 @@ async function openClientDetail(cid){
   h+=`<div class="cd-sec"><div class="statgrid">
     <div class="stat"><div class="sv">${lastW?r1(lastW.weight_kg)+' kg':'—'}${delta!=null?` <span class="${delta<=0?'up':'down'}">${delta>0?'+':''}${delta}</span>`:''}</div><div class="sl">Poids${lastW?' · '+dFR(lastW.logged_date):''}</div></div>
     <div class="stat"><div class="sv">${kcalAvg!=null?kcalAvg+' kcal':'—'}</div><div class="sl">Moyenne 7j${nt&&nt.daily_calories_kcal?' · cible '+nt.daily_calories_kcal:''}</div></div>
-    <div class="stat"><div class="sv">${(d.sessions||[]).length}</div><div class="sl"><span data-i18n="g_wk_recent">Séances</span></div></div>
+    <div class="stat"><div class="sv">${(d.sessions||[]).length}</div><div class="sl"><span data-i18n="g_wk_recent">Séances récentes complétées</span></div></div>
     <div class="stat"><div class="sv">${sleep?Math.floor(sleep/60)+'h'+String(r0(sleep%60)).padStart(2,'0'):'—'}</div><div class="sl">Sommeil moyen 7 nuits</div></div>
   </div></div>`;
 
@@ -1322,7 +1331,7 @@ async function openClientDetail(cid){
   /* Séances complétées */
   const ss=d.sessions||[];
   if(ss.length){
-    h+=`<div class="cd-sec" style="--a:var(--brand)"><div class="mini"><span data-i18n="g_wk_done">Séances</span></div>
+    h+=`<div class="cd-sec" style="--a:var(--brand)"><div class="mini"><span data-i18n="g_wk_done">Séances complétées</span></div>
       ${ss.map(s=>`<div class="cd-row"><span class="l">${esc(s.name_fr||'Séance')}</span><span class="r">${dFR(s.completed_at)}${s.duration_min?' · '+s.duration_min+' min':''}${s.total_volume_kg?' · '+r0(s.total_volume_kg)+' kg':''}${s.session_rpe?' · RPE '+s.session_rpe:''}</span></div>`).join('')}
     </div>`;
   }
@@ -1359,17 +1368,17 @@ async function openClientDetail(cid){
   /* Réservations à venir */
   const bk=d.upcoming_bookings||[];
   if(bk.length){
-    h+=`<div class="cd-sec"><div class="mini"><span data-i18n="g_upcoming_bookings">Réservations</span></div>
+    h+=`<div class="cd-sec"><div class="mini"><span data-i18n="g_upcoming_bookings">Réservations à venir</span></div>
       ${bk.map(b=>`<div class="cd-row"><span class="l">${esc(b.name_fr||'Cours')}</span><span class="r">${dhFR(b.starts_at)}${b.location?' · '+esc(b.location):''}</span></div>`).join('')}
     </div>`;
   }
 
   if(!wts.length && !n7.length && !ss.length && !prs.length && !bk.length && !lci){
-    h+='<p class="empty"><span data-i18n="b_nodata">Pas encore de donnees</span></p>';
+    h+='<p class="empty"><span data-i18n="b_nodata">Pas encore de donnees pour ce client.</span></p>';
   }
   /* L'entraînement est le cœur du métier : il passe en haut de la fiche, avec
      l'état réel du programme en cours, et non plus derrière un bouton en bas. */
-  h+=`<div class="cd-sec" style="--a:var(--brand)"><div class="mini"><span data-i18n="g_prog_train">Programme</span></div>
+  h+=`<div class="cd-sec" style="--a:var(--brand)"><div class="mini"><span data-i18n="g_prog_train">Programme d'entraînement</span></div>
     <div id="cd-plan-box"><div class="spin" style="margin:14px auto"></div></div></div>`;
   h+=`<div class="cd-sec"><div class="mini"><span data-i18n="b_video_calls">Appels vidéo</span></div><div id="cd-calls"><div class="spin"></div></div></div>`;
   h+='<button class="btn" id="cd-macro" style="margin-top:18px">Calories & macros</button>';
@@ -1402,7 +1411,7 @@ async function renderCdPlan(cid, name){
   const cur = live[0] || rows[0] || null;
   let h='';
   if(!cur){
-    h=`<p class="empty" style="padding:6px 0 12px"><span data-i18n="g_no_prog">Aucun</span></p>
+    h=`<p class="empty" style="padding:6px 0 12px"><span data-i18n="g_no_prog">Aucun programme assigné.</span></p>
        <button class="btn" id="cdp-new">＋ Créer un programme pour ${esc(name)}</button>`;
   }else{
     const pct = cur.item_count ? Math.round(cur.done_count/cur.item_count*100) : 0;
@@ -1411,7 +1420,7 @@ async function renderCdPlan(cid, name){
        <div class="cd-bar"><i style="width:${pct}%"></i></div>
        <div class="cd-row"><span class="l">${TP_ST[cur.status]||cur.status}</span>
         <span class="r">${trf('b_pct_done',pct)}${rows.length>1?' · '+rows.length+' '+tr('b_programs'):''}</span></div>
-       <button class="btn" id="cdp-open" style="margin-top:10px"><span data-i18n="g_open_progs">Ouvrir</span></button>`;
+       <button class="btn" id="cdp-open" style="margin-top:10px"><span data-i18n="g_open_progs">Ouvrir les programmes</span></button>`;
   }
   box.innerHTML=h;
   /* On laisse la fiche ouverte dessous : fermer l'écran des programmes doit
@@ -1502,7 +1511,7 @@ function openMacro(cid, name, nt){
     <p class="sub" style="text-align:left;margin:0 0 14px">${esc(name)}</p>
     <div class="field"><label>Calories cible (kcal/jour)</label><input id="mc-kcal" type="number" inputmode="numeric" value="${nt.daily_calories_kcal??''}" placeholder="2100" /></div>
     <div class="row2">
-      <div class="field"><label data-i18n="c_prot_g"><span data-i18n="g_prot_g">Protéines</span></label><input id="mc-prot" inputmode="decimal" value="${nt.protein_g??''}" /></div>
+      <div class="field"><label data-i18n="c_prot_g"><span data-i18n="g_prot_g">Protéines (g)</span></label><input id="mc-prot" inputmode="decimal" value="${nt.protein_g??''}" /></div>
       <div class="field"><label data-i18n="c_carb_g">Glucides (g)</label><input id="mc-carb" inputmode="decimal" value="${nt.carbs_g??''}" /></div>
     </div>
     <div class="row2">
@@ -1511,10 +1520,10 @@ function openMacro(cid, name, nt){
     </div>
     <div class="row2">
       <div class="field"><label>Eau (ml)</label><input id="mc-water" type="number" inputmode="numeric" value="${nt.water_ml??''}" placeholder="2500" /></div>
-      <div class="field"><label>Objectif</label><select id="mc-goal"><option value=""><span data-i18n="g_unchanged">—</span></option>${goalOpts}</select></div>
+      <div class="field"><label>Objectif</label><select id="mc-goal"><option value=""><span data-i18n="g_unchanged">— inchangé —</span></option>${goalOpts}</select></div>
     </div>
     <div id="mc-kcalc" class="sub" style="text-align:left;margin:6px 2px 0"></div>
-    <button class="btn" id="mc-save" style="margin-top:16px"><span data-i18n="g_save_macros">Enregistrer</span></button>
+    <button class="btn" id="mc-save" style="margin-top:16px"><span data-i18n="g_save_macros">Enregistrer les macros</span></button>
     <button class="btn subtle" id="mc-cancel" style="margin-top:9px"><span data-i18n="b_close">Fermer</span></button>
     <div class="msg" id="mc-msg"></div>`;
   const recalc=()=>{
@@ -1585,11 +1594,11 @@ async function mpEdit(id){
     <div class="field"><label>Titre</label><input id="mp-title" value="${esc(plan.title)}" placeholder="${tr('s_typical_bulk')}" /></div>
     <div class="row2">
       <div class="field"><label>Type</label><select id="mp-type">
-        <option value="day"${plan.plan_type==='day'?' selected':''}><span data-i18n="g_typical_day">Journée</span></option>
+        <option value="day"${plan.plan_type==='day'?' selected':''}><span data-i18n="g_typical_day">Journée type</span></option>
         <option value="week"${plan.plan_type==='week'?' selected':''}>Semaine type</option>
       </select></div>
       <div class="field"><label>Actif</label><select id="mp-active">
-        <option value="1"${plan.is_active?' selected':''}><span data-i18n="g_visible_client">Visible</span></option>
+        <option value="1"${plan.is_active?' selected':''}><span data-i18n="g_visible_client">Visible par le client</span></option>
         <option value="0"${!plan.is_active?' selected':''}><span data-i18n="g_hidden">Masqué</span></option>
       </select></div>
     </div>
@@ -1711,28 +1720,28 @@ function openChatGated(cid,name){
 }
 function openMsgUpsell(){
   let h = `<h3 style="margin:0 0 4px">Messagerie</h3>
-    <p class="sub" style="text-align:left;margin:0 0 16px"><span data-i18n="g_msg_desc">Échange</span></p>`;
+    <p class="sub" style="text-align:left;margin:0 0 16px"><span data-i18n="g_msg_desc">Échange avec tes clients directement dans la console : texte, photos, et vidéo avec Coach+.</span></p>`;
   if(IS_NATIVE){
     /* Strictement descriptif : aucun montant, aucun lien, aucun verbe d'action
        vers un paiement extérieur. */
-    h += `<div class="item"><div class="meta" style="line-height:1.6"><span data-i18n="g_msg_incl">La</span></div></div>
+    h += `<div class="item"><div class="meta" style="line-height:1.6"><span data-i18n="g_msg_incl">La messagerie est incluse dans l'offre Coach. Ton offre actuelle couvre 1 client, avec tes propres programmes, les macros et le suivi.</span></div></div>
       <button class="btn subtle" id="up-close" style="margin-top:14px"><span data-i18n="b_close">Fermer</span></button>`;
   }else{
     h += `<div class="card" style="border-color:var(--gold)">
         <div style="display:flex;align-items:baseline;gap:8px">
           <div style="flex:1"><div class="nm">Coach</div>
-            <div class="meta"><span data-i18n="g_msg_20">Messagerie</span></div></div>
+            <div class="meta"><span data-i18n="g_msg_20">Messagerie · jusqu'à 20 clients · bibliothèque Coach DM incluse</span></div></div>
           <div style="font-weight:800;color:var(--gold);white-space:nowrap">39,99 €<span style="font-size:12px;font-weight:600">/mois</span></div>
         </div>
       </div>
       <div class="card" style="border-color:var(--brand)">
         <div style="display:flex;align-items:baseline;gap:8px">
           <div style="flex:1"><div class="nm">Coach+</div>
-            <div class="meta"><span data-i18n="g_all_coach">Tout</span></div></div>
+            <div class="meta"><span data-i18n="g_all_coach">Tout Coach · vidéo dans la messagerie · visios planifiées · 50 clients</span></div></div>
           <div style="font-weight:800;color:var(--brand);white-space:nowrap">59,99 €<span style="font-size:12px;font-weight:600">/mois</span></div>
         </div>
       </div>
-      <p class="sub" style="text-align:left;margin:10px 0 0"><span data-i18n="g_no_commit">Sans</span></p>
+      <p class="sub" style="text-align:left;margin:10px 0 0"><span data-i18n="g_no_commit">Sans engagement, résiliable en un clic.</span></p>
       <a class="btn" href="https://coachdm.be/tarifs.html" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:14px">Activer la messagerie</a>
       <button class="btn subtle" id="up-close" style="margin-top:9px">Plus tard</button>`;
   }
@@ -1848,25 +1857,25 @@ function openUpgrade(){
        extérieur : constat factuel uniquement (Apple 3.1.1). */
     /* Strictement descriptif : aucune mention d'un ailleurs où payer, aucun
        verbe d'action. On constate la limite, on rassure sur les données. */
-    h += `<div class="item"><div class="meta" style="line-height:1.6"><span data-i18n="g_plan_covers1">Ton</span></div></div>
+    h += `<div class="item"><div class="meta" style="line-height:1.6"><span data-i18n="g_plan_covers1">Ton offre actuelle couvre 1 client. Tes clients, programmes, macros et messages sont conservés.</span></div></div>
       <button class="btn subtle" id="up-close" style="margin-top:14px"><span data-i18n="b_close">Fermer</span></button>`;
   }else{
     h += `<div class="card" style="border-color:var(--gold)">
         <div style="display:flex;align-items:baseline;gap:8px">
           <div style="flex:1"><div class="nm">Coach</div>
-            <div class="meta"><span data-i18n="g_upto20">Jusqu'à</span></div></div>
+            <div class="meta"><span data-i18n="g_upto20">Jusqu'à 20 clients · bibliothèque Coach DM incluse</span></div></div>
           <div style="font-weight:800;color:var(--gold);white-space:nowrap">39,99 €<span style="font-size:12px;font-weight:600">/mois</span></div>
         </div>
       </div>
       <div class="card" style="border-color:var(--brand)">
         <div style="display:flex;align-items:baseline;gap:8px">
           <div style="flex:1"><div class="nm">Coach+</div>
-            <div class="meta"><span data-i18n="g_upto50">Jusqu'à</span></div></div>
+            <div class="meta"><span data-i18n="g_upto50">Jusqu'à 50 clients · visios planifiées · vidéo dans la messagerie</span></div></div>
           <div style="font-weight:800;color:var(--brand);white-space:nowrap">59,99 €<span style="font-size:12px;font-weight:600">/mois</span></div>
         </div>
       </div>
-      <p class="sub" style="text-align:left;margin:10px 0 0"><span data-i18n="g_no_commit2">Sans</span></p>
-      <a class="btn" href="https://coachdm.be/tarifs.html" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:14px"><span data-i18n="g_see_offers">Voir</span></a>
+      <p class="sub" style="text-align:left;margin:10px 0 0"><span data-i18n="g_no_commit2">Sans engagement, résiliable en un clic. Un seul client suffit généralement à couvrir l'abonnement.</span></p>
+      <a class="btn" href="https://coachdm.be/tarifs.html" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:14px"><span data-i18n="g_see_offers">Voir les offres</span></a>
       <button class="btn subtle" id="up-close" style="margin-top:9px">Plus tard</button>`;
   }
   $('#up-body').innerHTML=h;
@@ -1889,10 +1898,10 @@ function openClientForm(){
        <label>Objectif principal</label><input id="c_goal" placeholder="Ex : prise de masse, perte de poids, Hyrox…">
        <label><span data-i18n="g_client_lang">Langue du client</span></label>
        <select id="c_lang"><option value="fr" selected>Français</option><option value="en">English</option><option value="nl">Nederlands</option></select>
-       <p class="muted"><span data-i18n="g_invite_qr">Le</span></p>
+       <p class="muted"><span data-i18n="g_invite_qr">Le client reçoit une invitation par email + un QR à scanner pour créer son compte lui-même.</span></p>
        <div id="c_qr_wrap" style="display:none;text-align:center;margin-top:16px;padding:16px;background:#0E1512;border:1px solid var(--line);border-radius:14px">
          <div id="c_qr" style="display:inline-block;background:#fff;padding:12px;border-radius:12px"></div>
-         <p class="muted" style="margin-top:10px"><span data-i18n="g_qr">Fais</span></p>
+         <p class="muted" style="margin-top:10px"><span data-i18n="g_qr">Fais scanner ce QR au client en présentiel.</span></p>
        </div>`;
     }else{
       h+=`<label>Email du membre existant *</label><input id="c_email2" type="email">
@@ -2000,7 +2009,7 @@ async function loadMyContrib(){
   }catch(e){ box.innerHTML='<p class="empty">Chargement impossible.</p>'; return; }
   const exs=d.exercises||[], fds=d.foods||[];
   if(!exs.length && !fds.length){
-    box.innerHTML=`<div class="item"><div class="meta" style="line-height:1.6"><span data-i18n="g_nothing_added">Tu</span></div></div>`;
+    box.innerHTML=`<div class="item"><div class="meta" style="line-height:1.6"><span data-i18n="g_nothing_added">Tu n'as encore rien ajouté. Un exercice qui te manque ou un aliment que tes clients mangent souvent ? Ajoute-le : il te sert tout de suite, et rejoint la bibliothèque commune une fois validé.</span></div></div>`;
     return;
   }
   let h='';
@@ -2365,9 +2374,9 @@ async function tpRenderList(){
   const { data, error } = await sb.rpc('coach_list_plans',{ p_client:TP_CID });
   if(error){ $('#tp-body').innerHTML=`<p class="empty">Erreur : ${esc(error.message)}</p>`; return; }
   TP_LIST=data||[];
-  let h=`<h3 style="margin:0 0 2px"><span data-i18n="g_progs_train">Programmes</span></h3>
+  let h=`<h3 style="margin:0 0 2px"><span data-i18n="g_progs_train">Programmes d'entraînement</span></h3>
     <p class="sub" style="text-align:left;margin:0 0 14px">${esc(TP_NAME)}</p>`;
-  if(!TP_LIST.length) h+=`<div class="item"><div class="meta" style="line-height:1.6"><span data-i18n="g_prog_expl">Un</span></div></div>`;
+  if(!TP_LIST.length) h+=`<div class="item"><div class="meta" style="line-height:1.6"><span data-i18n="g_prog_expl">Un programme, c'est une suite de séances posées sur des dates. Ton client les voit dans son app, les coche quand il les a faites, et tu suis sa progression ici.</span></div></div>`;
   else h+=TP_LIST.map(p=>{
     const pct = p.item_count ? Math.round(p.done_count/p.item_count*100) : 0;
     return `<div class="card">
@@ -2380,7 +2389,7 @@ async function tpRenderList(){
       </div>
       ${p.item_count?`<div style="height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden;margin-top:9px">
         <div style="width:${pct}%;height:100%;background:var(--ok)"></div></div>`:''}
-      <button class="btn subtle sm" data-tpdup="${p.id}" style="width:auto;margin-top:9px"><span data-i18n="g_reuse">⧉</span></button>
+      <button class="btn subtle sm" data-tpdup="${p.id}" style="width:auto;margin-top:9px"><span data-i18n="g_reuse">⧉ Réutiliser pour un autre client</span></button>
     </div>`;
   }).join('');
   h+='<button class="btn" id="tp-new" style="margin-top:14px">＋ Nouveau programme</button>';
@@ -2402,10 +2411,10 @@ function tpDupPrompt(planId){
   if(!plan) return;
   const opts = CLIST.map(c=>`<option value="${c.client_id}"${c.client_id===TP_CID?' selected':''}>${esc(c.full_name||c.email||'—')}${c.client_id===TP_CID?' (ce client)':''}</option>`).join('');
   const h=`<h3 style="margin:0 0 6px">Réutiliser « ${esc(plan.title_fr)} »</h3>
-    <p class="sub" style="text-align:left;margin:0 0 14px"><span data-i18n="g_copy_desc">Crée</span></p>
+    <p class="sub" style="text-align:left;margin:0 0 14px"><span data-i18n="g_copy_desc">Crée une copie en brouillon de ce programme et de toutes ses séances, pour le client choisi, dates décalées automatiquement.</span></p>
     <div class="field"><label>Client</label><select id="tpd-client">${opts}</select></div>
-    <div class="field"><label><span data-i18n="g_new_start">Nouvelle</span></label><input id="tpd-start" type="date" value="${plan.start_date||''}" /></div>
-    <button class="btn" id="tpd-go"><span data-i18n="g_create_copy"><span data-i18n="g_create">Créer</span></span></button>
+    <div class="field"><label><span data-i18n="g_new_start">Nouvelle date de début</span></label><input id="tpd-start" type="date" value="${plan.start_date||''}" /></div>
+    <button class="btn" id="tpd-go"><span data-i18n="g_create_copy">Créer la copie</span></button>
     <button class="btn subtle" id="tpd-back" style="margin-top:9px">Retour</button>
     <div class="msg" id="tpd-msg"></div>`;
   $('#tp-body').innerHTML=h;
@@ -2449,11 +2458,11 @@ async function tpEdit(id){
         ${Object.keys(TP_ST).map(k=>`<option value="${k}"${k===(plan.status||'assigned')?' selected':''}>${TP_ST[k]}</option>`).join('')}
       </select></div>
     </div>
-    <div class="field"><label><span data-i18n="g_general_cue">Consigne</span></label>
+    <div class="field"><label><span data-i18n="g_general_cue">Consigne générale (facultatif)</span></label>
       <textarea id="tp-sum" placeholder="Objectif du bloc, points de vigilance…">${esc(plan.summary_fr||'')}</textarea></div>
-    <div class="mini" style="margin:14px 0 6px"><span data-i18n="g_wk_of_prog">Séances</span></div>
+    <div class="mini" style="margin:14px 0 6px"><span data-i18n="g_wk_of_prog">Séances du programme</span></div>
     <div id="tp-items"></div>
-    <button class="btn subtle" id="tp-add" style="margin-top:4px"><span data-i18n="g_add_wk">＋</span></button>
+    <button class="btn subtle" id="tp-add" style="margin-top:4px"><span data-i18n="g_add_wk">＋ Ajouter une séance</span></button>
     ${TP_ITEMS.length?'<button class="btn subtle" id="tp-auto" style="margin-top:9px"><span data-i18n="b_autodate">📅 Dater auto (1×/semaine depuis le début)</span></button>':''}
     ${TP_ITEMS.length?'<button class="btn subtle" id="tp-week" style="margin-top:9px"><span data-i18n="b_dup_7d">⧉ Dupliquer en décalant de 7 jours</span></button>':''}
     <button class="btn" id="tp-save" style="margin-top:14px">Enregistrer</button>
@@ -2764,7 +2773,7 @@ $('#comp-save').onclick = async ()=>{
     if(!CLIENTS.length){toast(tr('s_no_client_linked'));return;}
     const opts=CLIENTS.map(c=>`<option value="${c.client_id}">${esc((c.full_name||c.email||'')+(c.full_name&&c.email?' — '+c.email:''))}</option>`).join('');
     let h=`<h2><span data-i18n="g_add_client_h">Ajouter un client</span></h2>
-     <label><span data-i18n="g_pick_client">Choisis</span></label>
+     <label><span data-i18n="g_pick_client">Choisis un de tes clients</span></label>
      <select id="pm_sel">${opts}</select>
      <div class="row" style="margin-top:16px;gap:8px"><div class="sp"></div>
      <button class="btn sec" id="pm_cancel">Retour</button>
@@ -2830,8 +2839,8 @@ $('#comp-save').onclick = async ()=>{
      <div class="grid2"><div><label>Desc — EN</label><textarea id="d_en">${esc(e.description_en)}</textarea></div>
      <div><label>Desc — NL</label><textarea id="d_nl">${esc(e.description_nl)}</textarea></div></div>
      <label>Image (URL)</label><input id="t_img" value="${esc(e.cover_image_url)}" placeholder="https://…">
-     <div class="grid2"><div><label><span data-i18n="g_capacity_def"><span data-i18n="g_capacity">Capacité</span></span></label><input id="t_cap" type="number" min="1" value="${e.default_capacity||12}"></div>
-     <div><label><span data-i18n="g_duration_min"><span data-i18n="g_duration">Durée</span></span></label><input id="t_dur" type="number" min="5" value="${e.default_duration_min||60}"></div></div>
+     <div class="grid2"><div><label><span data-i18n="g_capacity_def">Capacité défaut</span></label><input id="t_cap" type="number" min="1" value="${e.default_capacity||12}"></div>
+     <div><label><span data-i18n="g_duration_min">Durée (min)</span></label><input id="t_dur" type="number" min="5" value="${e.default_duration_min||60}"></div></div>
      <div class="grid2"><div><label>Lieu</label><input id="t_loc" value="${esc(e.location)}"></div>
      <div><label>Couleur</label><input id="t_col" type="text" value="${esc(e.color||'#00FFA3')}"></div></div>
      <label>Actif</label><select id="t_act"><option value="true" ${e.is_active!==false?'selected':''}>Oui</option><option value="false" ${e.is_active===false?'selected':''}>Non</option></select>
@@ -2868,25 +2877,25 @@ $('#comp-save').onclick = async ()=>{
     const e=t.id?t:{};
     const today=new Date().toISOString().slice(0,10);
     const days=[['MO','Lun'],['TU','Mar'],['WE','Mer'],['TH','Jeu'],['FR','Ven'],['SA','Sam'],['SU','Dim']];
-    let h=`<h2><span data-i18n="g_schedule_wk">Programmer</span></h2>
+    let h=`<h2><span data-i18n="g_schedule_wk">Programmer une séance</span></h2>
      <label>Type</label><select id="s_kind"><option value="group" ${e.kind!=='personal_training'?'selected':''}>Cours collectif</option>
      <option value="personal_training" ${e.kind==='personal_training'?'selected':''}>PT</option></select>
-     <label><span data-i18n="g_visibility">Visibilité</span></label><select id="s_vis"><option value="private" selected><span data-i18n="g_private">Privé</span></option>
-     <option value="public"><span data-i18n="g_public">Public</span></option></select>
-     <div id="s_invite_wrap"><label><span data-i18n="g_allowed_clients">Clients</span></label>
+     <label><span data-i18n="g_visibility">Visibilité</span></label><select id="s_vis"><option value="private" selected><span data-i18n="g_private">Privé — clients choisis uniquement</span></option>
+     <option value="public"><span data-i18n="g_public">Public — visible par tous les membres</span></option></select>
+     <div id="s_invite_wrap"><label><span data-i18n="g_allowed_clients">Clients autorisés à voir ce cours</span></label>
        <input id="s_cl_search" type="text" placeholder="Rechercher un client…" autocomplete="off" style="margin-bottom:8px">
        <div class="cl-list" id="s_clients"><div class="muted" style="font-size:12px;padding:10px">Chargement…</div></div>
-       <div class="muted" style="font-size:11.5px;margin-top:4px"><span data-i18n="g_tap_select">Touche</span></div></div>
+       <div class="muted" style="font-size:11.5px;margin-top:4px"><span data-i18n="g_tap_select">Touche pour sélectionner. Eux seuls verront ce cours privé dans leur calendrier.</span></div></div>
      <label>Nom — FR *</label><input id="s_fr" value="${esc(e.name_fr)}">
      <div class="grid2"><div><label>Nom — EN</label><input id="s_en" value="${esc(e.name_en)}"></div>
      <div><label>Nom — NL</label><input id="s_nl" value="${esc(e.name_nl)}"></div></div>
      <div class="grid2"><div><label>Date</label><input id="s_date" type="date" value="${today}"></div>
      <div><label>Heure</label><input id="s_time" type="time" value="18:00"></div></div>
-     <div class="grid2"><div><label><span data-i18n="g_duration_min"><span data-i18n="g_duration">Durée</span></span></label><input id="s_dur" type="number" min="5" value="${e.default_duration_min||60}"></div>
+     <div class="grid2"><div><label><span data-i18n="g_duration_min">Durée (min)</span></label><input id="s_dur" type="number" min="5" value="${e.default_duration_min||60}"></div>
      <div><label><span data-i18n="g_capacity">Capacité</span></label><input id="s_cap" type="number" min="1" value="${e.default_capacity||12}"></div></div>
      <div class="grid2"><div><label>Lieu</label><input id="s_loc" value="${esc(e.location)}"></div>
      <div><label>Couleur</label><input id="s_col" value="${esc(e.color||'#00FFA3')}"></div></div>
-     <label><span data-i18n="g_repeat">Répéter</span></label>
+     <label><span data-i18n="g_repeat">Répéter chaque (laisse vide = séance unique)</span></label>
      <div class="chips" id="s_days">${days.map(d=>`<button data-d="${d[0]}">${d[1]}</button>`).join('')}</div>
      <label>Pendant combien de semaines</label><input id="s_weeks" type="number" min="1" max="26" value="4">
      <div class="grid2"><div><label><span data-i18n="b_cancel_until">Annulation</span></label><input id="s_cut" type="number" min="0" value="120"></div>
