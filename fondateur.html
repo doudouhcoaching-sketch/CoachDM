@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Coach DM · Ton tarif fondateur</title>
+<style>
+:root{--bg:#0A0A0A;--card:#141414;--line:#2A2A2A;--gold:#D4AF37;--txt:#F5F5F5;--mut:#9A9A9A;--red:#EF4444}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,system-ui,Segoe UI,Roboto,Helvetica,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+.wrap{max-width:560px;margin:0 auto;padding:40px 18px 60px}
+.brand{text-align:center;margin-bottom:8px}
+.brand .name{font-size:28px;font-weight:900;letter-spacing:3px;color:var(--gold)}
+.brand .tag{font-size:11px;letter-spacing:4px;color:var(--mut);margin-top:6px;text-transform:uppercase}
+.lang-seg{display:flex;gap:6px;justify-content:center;margin:14px auto 0;width:fit-content}
+.lang-seg button{padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--mut);font-weight:700;font-size:12px;cursor:pointer;font-family:inherit}
+.lang-seg button.on{background:var(--gold);color:#0A0A0A;border-color:var(--gold)}
+.toggle{display:flex;justify-content:center;gap:0;margin:28px auto 18px;width:fit-content;border:1px solid var(--line);border-radius:999px;padding:4px;background:var(--card)}
+.toggle button{border:0;background:transparent;color:var(--mut);font-weight:800;font-size:13px;padding:8px 18px;border-radius:999px;cursor:pointer;font-family:inherit}
+.toggle button.on{background:var(--gold);color:#0A0A0A}
+.founder{border:1.5px solid var(--gold);border-radius:20px;padding:20px 18px;background:linear-gradient(180deg,rgba(212,175,55,.08),rgba(212,175,55,0))}
+.head{text-align:center;margin-bottom:6px}
+.head .k{display:inline-block;font-size:11px;font-weight:800;letter-spacing:2px;color:#0A0A0A;background:var(--gold);padding:5px 12px;border-radius:999px;text-transform:uppercase}
+.head h1{margin:12px 0 2px;font-size:22px}
+.head p{margin:0;color:var(--mut);font-size:13px}
+.cards{display:grid;gap:14px;margin-top:16px}
+@media(min-width:640px){.cards.two{grid-template-columns:1fr 1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-direction:column;border-color:var(--gold)}
+.tier{font-weight:800;font-size:17px}
+.price{margin:12px 0 2px;font-size:30px;font-weight:900;color:var(--gold)}
+.price small{font-size:14px;color:var(--mut);font-weight:600}
+.price .old{font-size:15px;color:var(--mut);font-weight:700;text-decoration:line-through;margin-left:8px}
+.peryear{font-size:13px;color:var(--mut)}
+.feat{list-style:none;padding:0;margin:14px 0 0;font-size:13.5px;color:#E2E2E2}
+.feat li{padding:6px 0;border-bottom:1px solid var(--line);display:flex;gap:8px}
+.feat li:last-child{border-bottom:0}
+.feat li::before{content:"✓";color:var(--gold);font-weight:900}
+.cta{margin-top:16px;display:block;width:100%;text-align:center;text-decoration:none;background:var(--gold);color:#0A0A0A;font-weight:800;padding:12px;border-radius:12px;border:0;font-size:14px;cursor:pointer;font-family:inherit}
+.note{font-size:12px;color:var(--mut);text-align:center;margin-top:14px}
+.state{text-align:center;padding:40px 10px;color:var(--mut);font-size:14px}
+footer{margin-top:40px;border-top:1px solid var(--line);padding-top:18px;text-align:center;color:var(--mut);font-size:12px}
+footer a{color:var(--gold);text-decoration:none}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;z-index:60}
+.ov.show{display:flex}
+.ovbox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;max-width:520px;width:100%;margin:auto}
+#ck-mount{margin-top:6px}
+.ck-x{display:block;margin-left:auto;background:transparent;border:0;color:var(--mut);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;padding:2px 4px}
+.msg{margin-top:10px;font-size:12.5px;color:var(--red);text-align:center;min-height:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <div class="name">COACH DM</div>
+    <div class="tag">Offre fondateur</div>
+  </div>
+
+  <div class="lang-seg" id="lang-seg">
+    <button data-lang="fr">Français</button>
+    <button data-lang="en">English</button>
+    <button data-lang="nl">Nederlands</button>
+  </div>
+
+  <div id="state" class="state" data-i18n="loading">Chargement…</div>
+
+  <div id="content" style="display:none">
+    <div class="toggle" id="iv-toggle">
+      <button data-iv="month" class="on" data-i18n="iv_month">Mensuel</button>
+      <button data-iv="year" data-i18n="iv_year">Annuel</button>
+    </div>
+
+    <div class="founder">
+      <div class="head">
+        <span class="k" data-i18n="limited">Offre nominative</span>
+        <h1 data-i18n="lock_title">Ton tarif fondateur, à vie</h1>
+        <p data-i18n="lock_sub">Tarif garanti tant que l'abonnement reste actif</p>
+      </div>
+      <div class="cards" id="founder-cards"></div>
+      <p class="note" data-i18n="founder_note">Ce tarif est réservé à ton adresse email et reste le tien tant que ton abonnement continue. En cas d'annulation, retour au tarif public.</p>
+    </div>
+  </div>
+
+  <footer>
+    Coach DM · Doudouh M. · BCE BE0840.260.421<br>
+    <a href="https://coachdm.be">coachdm.be</a> ·
+    <a href="mailto:doudouh.coaching@gmail.com">doudouh.coaching@gmail.com</a>
+  </footer>
+</div>
+
+<div class="ov" id="ck-ov">
+  <div class="ovbox">
+    <button class="ck-x" id="ck-cancel" data-i18n="ck_close" aria-label="Fermer">Fermer ✕</button>
+    <div id="ck-mount"></div>
+    <div class="msg" id="ck-msg"></div>
+  </div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+const sb=createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
+const STRIPE_PK='pk_live_51TpzX7J0YSDZQQHK1pZpLyBD1QX0c95OWwdhGO1BpTvs3vb99GAq8D9JA9voqURFI5GpkfeQmORt8fnwWaipMLGq00re93zamr';
+const $=s=>document.querySelector(s);
+
+const TOKEN = new URLSearchParams(location.search).get('t') || '';
+
+let LANG = localStorage.getItem('cdm_lang') || 'fr';
+if(!['fr','en','nl'].includes(LANG)) LANG='fr';
+
+const T = {
+  loading:{fr:"Chargement de ton offre…",en:"Loading your offer…",nl:"Je aanbod laden…"},
+  err_invalid:{fr:"Ce lien n'est plus valide. Écris-nous à doudouh.coaching@gmail.com et on te renvoie ton tarif fondateur.",en:"This link isn't valid anymore. Email us at doudouh.coaching@gmail.com and we'll send your founder price again.",nl:"Deze link is niet meer geldig. Mail ons op doudouh.coaching@gmail.com en we sturen je oprichterstarief opnieuw."},
+  err_claimed:{fr:"Cette offre a déjà été utilisée sur un autre compte. Écris-nous si ce n'est pas toi : doudouh.coaching@gmail.com.",en:"This offer was already used on another account. Email us if that wasn't you: doudouh.coaching@gmail.com.",nl:"Dit aanbod is al gebruikt op een ander account. Mail ons als jij dat niet was: doudouh.coaching@gmail.com."},
+  err_soldout:{fr:"Toutes les places fondateur ont été prises entre-temps. Désolé — écris-nous à doudouh.coaching@gmail.com.",en:"All founder spots have been claimed in the meantime. Sorry — email us at doudouh.coaching@gmail.com.",nl:"Alle oprichtersplaatsen zijn intussen ingenomen. Sorry — mail ons op doudouh.coaching@gmail.com."},
+  err_generic:{fr:"Une erreur est survenue. Réessaie dans un instant ou écris-nous.",en:"Something went wrong. Try again shortly or email us.",nl:"Er ging iets mis. Probeer het zo meteen opnieuw of mail ons."},
+  iv_month:{fr:"Mensuel",en:"Monthly",nl:"Maandelijks"},
+  iv_year:{fr:"Annuel",en:"Yearly",nl:"Jaarlijks"},
+  limited:{fr:"Offre nominative",en:"Personal offer",nl:"Persoonlijk aanbod"},
+  lock_title:{fr:"Ton tarif fondateur, à vie",en:"Your founder price, for life",nl:"Jouw oprichterstarief, levenslang"},
+  lock_sub:{fr:"Tarif garanti tant que l'abonnement reste actif",en:"Price guaranteed as long as your subscription stays active",nl:"Tarief gegarandeerd zolang je abonnement actief blijft"},
+  founder_note:{fr:"Ce tarif est réservé à ton adresse email et reste le tien tant que ton abonnement continue. En cas d'annulation, retour au tarif public.",en:"This price is tied to your email address and stays yours as long as your subscription runs. If you cancel, you return to the public price.",nl:"Dit tarief is gekoppeld aan je e-mailadres en blijft van jou zolang je abonnement loopt. Bij annulering keer je terug naar het publieke tarief."},
+  per_month:{fr:" / mois",en:" / month",nl:" / maand"},
+  per_year:{fr:" / an",en:" / year",nl:" / jaar"},
+  note_month:{fr:"Sans engagement · résiliable à tout moment",en:"No commitment · cancel anytime",nl:"Zonder verplichting · altijd opzegbaar"},
+  note_year:{fr:"Facturé à l'année · deux mois offerts",en:"Billed yearly · two months free",nl:"Jaarlijks gefactureerd · twee maanden gratis"},
+  locked_life:{fr:"Tarif bloqué à vie",en:"Price locked for life",nl:"Tarief levenslang vast"},
+  tier_membre_f:{fr:"Membre Fondateur",en:"Founder Member",nl:"Oprichter-lid"},
+  tier_coach_f:{fr:"Coach Fondateur",en:"Founder Coach",nl:"Oprichter-coach"},
+  tier_coachplus_f:{fr:"Coach+ Fondateur",en:"Founder Coach+",nl:"Oprichter Coach+"},
+  f_all_member:{fr:"Tout le contenu membre",en:"All member content",nl:"Alle ledeninhoud"},
+  f_4analyses:{fr:"Les 4 analyses vidéo IA (squat, saut, barre, course)",en:"All 4 AI video analyses (squat, jump, barbell, run)",nl:"Alle 4 AI-video-analyses (squat, sprong, barbell, hardlopen)"},
+  f_ai_photo:{fr:"Coach IA + photo-calories",en:"AI Coach + photo-calories",nl:"AI-coach + foto-calorieën"},
+  f_badge:{fr:"Badge « Fondateur » + accès prioritaire aux nouveautés",en:"“Founder” badge + priority access to new features",nl:"“Oprichter”-badge + voorrang op nieuwe functies"},
+  f_client_mgmt:{fr:"Gestion clients, planning, présences",en:"Client management, scheduling, attendance",nl:"Klantenbeheer, planning, aanwezigheden"},
+  f_msg_checkins:{fr:"Messagerie et check-ins",en:"Messaging and check-ins",nl:"Berichten en check-ins"},
+  f_featured:{fr:"Mis en avant dans l'app",en:"Featured in the app",nl:"Uitgelicht in de app"},
+  f_onboarding:{fr:"Onboarding direct avec Coach DM",en:"Direct onboarding with Coach DM",nl:"Directe onboarding met Coach DM"},
+  f_all_coach_ext:{fr:"Tout Coach, capacité étendue",en:"Everything in Coach, extended capacity",nl:"Alles van Coach, uitgebreide capaciteit"},
+  f_video_clients:{fr:"Appels vidéo avec tes clients",en:"Video calls with your clients",nl:"Videogesprekken met je klanten"},
+  f_gyms:{fr:"Idéal salles & gros volumes",en:"Ideal for gyms & high volume",nl:"Ideaal voor sportscholen & grote volumes"},
+  start:{fr:"Je réserve ma place",en:"Claim my spot",nl:"Ik neem mijn plaats"},
+  ck_close:{fr:"Fermer",en:"Close",nl:"Sluiten"},
+  ck_err:{fr:"Paiement indisponible. Réessaie dans un instant.",en:"Payment unavailable. Please try again shortly.",nl:"Betaling niet beschikbaar. Probeer het zo meteen opnieuw."},
+};
+const t = k => (T[k] ? (T[k][LANG] ?? T[k].fr) : k);
+
+function applyI18n(){
+  document.documentElement.lang=LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(T[k]) el.textContent=t(k); });
+}
+function renderLangBtns(){ document.querySelectorAll('#lang-seg button').forEach(b=>b.classList.toggle('on', b.dataset.lang===LANG)); }
+function setLang(l){
+  if(!['fr','en','nl'].includes(l)) return;
+  LANG=l; localStorage.setItem('cdm_lang',l);
+  applyI18n(); renderLangBtns();
+  if(PRICES) render();
+}
+document.querySelectorAll('#lang-seg button').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
+applyI18n(); renderLangBtns();
+
+const money=c=>(c/100).toFixed(2).replace('.',',').replace(/,00$/,'')+' €';
+const per=iv=>iv==='year'?t('per_year'):t('per_month');
+
+function stripeJs(){
+  return new Promise((res,rej)=>{
+    if(window.Stripe) return res(window.Stripe);
+    const s=document.createElement('script');
+    s.src='https://js.stripe.com/v3/';
+    s.onload=()=>res(window.Stripe);
+    s.onerror=()=>rej(new Error('stripe.js'));
+    document.head.appendChild(s);
+  });
+}
+
+let PRICES=null, KIND=null, IV='month', STRIPE=null, CK=null;
+
+function find(tier,iv){ return (PRICES||[]).find(p=>p.tier===tier && p.founder===true && p.billing_interval===iv); }
+
+function card(tier,badge,feats){
+  const off=find(tier,IV);
+  const reg=(PRICES||[]).find(p=>p.tier===tier && p.founder===false && p.billing_interval===IV);
+  if(!off) return '';
+  let h='<div class="card">';
+  h+='<div class="tier">'+badge+'</div>';
+  h+='<div class="price">'+money(off.amount_cents)+'<small>'+per(IV)+'</small>';
+  if(reg) h+='<span class="old">'+money(reg.amount_cents)+'</span>';
+  h+='</div>';
+  h+='<div class="peryear">'+t('locked_life')+' · '+(IV==='year'?t('note_year'):t('note_month'))+'</div>';
+  h+='<ul class="feat">'+feats.map(f=>'<li>'+f+'</li>').join('')+'</ul>';
+  h+='<button class="cta" data-lk="'+off.lookup_key+'">'+t('start')+'</button>';
+  return h+'</div>';
+}
+
+function render(){
+  const wrap=$('#founder-cards');
+  if(KIND==='coach'){
+    wrap.className='cards two';
+    wrap.innerHTML =
+      card('coach',t('tier_coach_f'),[t('f_client_mgmt'),t('f_msg_checkins'),t('f_featured'),t('f_onboarding')])
+    + card('coach_plus',t('tier_coachplus_f'),[t('f_all_coach_ext'),t('f_video_clients'),t('f_gyms')]);
+  } else {
+    wrap.className='cards';
+    wrap.innerHTML = card('membre',t('tier_membre_f'),[t('f_all_member'),t('f_4analyses'),t('f_ai_photo'),t('f_badge')]);
+  }
+  document.querySelectorAll('[data-lk]').forEach(b=>{ b.onclick=()=>onChoose(b.dataset.lk); });
+}
+
+document.querySelectorAll('#iv-toggle button').forEach(b=>{
+  b.onclick=()=>{
+    IV=b.dataset.iv;
+    document.querySelectorAll('#iv-toggle button').forEach(x=>x.classList.toggle('on',x===b));
+    render();
+  };
+});
+
+let PENDING=null;
+function onChoose(lk){
+  PENDING=lk;
+  if(CK){ try{CK.destroy();}catch(e){} CK=null; }
+  $('#ck-mount').innerHTML='';
+  $('#ck-msg').textContent='';
+  $('#ck-ov').classList.add('show');
+  mountCk();
+}
+function closeCk(){
+  $('#ck-ov').classList.remove('show');
+  if(CK){ try{CK.destroy();}catch(e){} CK=null; }
+  PENDING=null;
+}
+async function mountCk(){
+  if(!PENDING) return;
+  const lk=PENDING;
+  $('#ck-mount').innerHTML='';
+  try{
+    const S=await stripeJs();
+    if(!STRIPE) STRIPE=S(STRIPE_PK);
+    CK=await STRIPE.initEmbeddedCheckout({ fetchClientSecret: async ()=>{
+      const { data, error } = await sb.functions.invoke('founder-checkout',{ body:{
+        token: TOKEN, action:'checkout', lookup_key:lk, locale:LANG
+      }});
+      if(error||!data||!data.client_secret) throw new Error((data&&data.error)||'checkout');
+      return data.client_secret;
+    }});
+    CK.mount('#ck-mount');
+  }catch(e){
+    $('#ck-msg').textContent=t('ck_err');
+  }
+}
+$('#ck-cancel').onclick=closeCk;
+$('#ck-ov').onclick=e=>{ if(e.target.id==='ck-ov') closeCk(); };
+
+(async()=>{
+  if(!TOKEN){ $('#state').textContent=t('err_invalid'); return; }
+  let info;
+  try{
+    const { data, error } = await sb.functions.invoke('founder-checkout',{ body:{ token:TOKEN, action:'info' } });
+    if(error) throw error;
+    info=data;
+  }catch(e){ info=null; }
+
+  if(!info || info.ok!==true){
+    const reason = info && info.error;
+    const key = reason==='invalid_token' ? 'err_invalid'
+      : reason==='already_claimed' ? 'err_claimed'
+      : reason==='founder_sold_out' ? 'err_soldout'
+      : 'err_generic';
+    $('#state').textContent = t(key);
+    return;
+  }
+
+  KIND = info.kind;
+  try{
+    const { data } = await sb.from('billing_prices').select('*').eq('active',true);
+    PRICES = data||[];
+  }catch(e){ PRICES=[]; }
+
+  if(!PRICES.length){
+    $('#state').textContent = t('err_generic');
+    return;
+  }
+
+  $('#state').style.display='none';
+  $('#content').style.display='';
+  render();
+})();
+</script>
+</body>
+</html>
