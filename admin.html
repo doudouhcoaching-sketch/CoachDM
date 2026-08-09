@@ -84,6 +84,26 @@
   .pill.verif{background:rgba(212,175,55,.18);color:var(--amber)}
   .pill.vid{background:rgba(56,189,248,.16);color:#0ea5e9}
   .pill.founder{background:rgba(212,175,55,.2);color:#D4AF37}
+  .pill.paid{background:rgba(16,185,129,.22);color:var(--ok)}
+  .pill.gift{background:rgba(148,163,184,.2);color:#94a3b8}
+  /* Liste des membres : fiche repliee par defaut. Les 5 groupes d'actions
+     deroules en permanence rendaient la page illisible des 20 inscrits. */
+  .ufil{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+  .ufil button{padding:7px 11px;border-radius:999px;border:1px solid var(--line);
+    background:var(--surface-2);color:var(--muted);font-weight:700;font-size:12.5px;
+    font-family:inherit;cursor:pointer;white-space:nowrap}
+  .ufil button.on{background:var(--brand);color:#04120a;border-color:var(--brand)}
+  .ufil button b{font-weight:800;opacity:.75;margin-left:4px}
+  .uitem{padding:11px 13px;margin-bottom:8px}
+  .uhead{display:flex;align-items:flex-start;gap:10px}
+  .uhead .uhl{flex:1;min-width:0}
+  .uitem.has-acts .uhead{cursor:pointer}
+  .ucar{flex:none;color:var(--muted);font-size:15px;line-height:1.2;
+    transition:transform .15s ease;user-select:none}
+  .uitem.open .ucar{transform:rotate(180deg)}
+  .uacts{display:none;margin-top:4px;padding-top:6px;border-top:1px solid var(--line)}
+  .uitem.open .uacts{display:block}
+  .uitem .nm{word-break:break-word}
   .item .actgrp{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:9px}
   .item .agl{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);min-width:74px}
   .item .actgrp.danger-zone{margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}
@@ -258,7 +278,16 @@
         <div id="notif-list"></div>
       </div>
       <input id="m-search" type="search" inputmode="search" autocomplete="off" placeholder="Rechercher par nom ou email…" style="width:100%;margin-bottom:6px">
-      <div id="m-hint" class="sub" style="text-align:left;margin:0 2px 12px;font-size:12px;color:var(--muted)"></div>
+      <div id="m-hint" class="sub" style="text-align:left;margin:0 2px 10px;font-size:12px;color:var(--muted)"></div>
+      <div class="ufil" id="m-filters">
+        <button class="on" data-f="all">Tous<b></b></button>
+        <button data-f="paid">Payants<b></b></button>
+        <button data-f="trial">Essais<b></b></button>
+        <button data-f="gift">Offerts à vie<b></b></button>
+        <button data-f="expired">Expirés<b></b></button>
+        <button data-f="coach">Coachs<b></b></button>
+        <button data-f="none">Sans accès<b></b></button>
+      </div>
       <div id="m-list"><div class="spin"></div></div>
     </div>
 
@@ -836,23 +865,66 @@ async function loadNotifs(){
 $('#m-refresh').onclick = ()=>loadUsers();
 let M_SEARCH_T=null;
 { const si=$('#m-search'); if(si) si.oninput=()=>{ clearTimeout(M_SEARCH_T); M_SEARCH_T=setTimeout(()=>loadUsers(si.value.trim()),280); }; }
+/* Categorie d'un inscrit — sert aux filtres et aux compteurs. */
+function userCat(u){
+  if(u.role==='admin' || u.role==='coach') return 'coach';
+  if(['stripe','apple','google'].includes(u.sub_source)) return 'paid';
+  if(u.sub_source==='offert_illimite') return 'gift';
+  if(u.sub_source==='offert') return u.has_access ? 'trial' : 'expired';
+  return u.has_access ? 'trial' : 'none';
+}
+let USERS=[], M_FILTER='all', M_Q='';
 async function loadUsers(q){
   const _si=$('#m-search');
   q = (q!==undefined ? q : (_si?_si.value:'')||'').trim();
+  M_Q=q;
   $('#m-list').innerHTML='<div class="spin"></div>';
   const { data, error } = await sb.rpc('admin_list_users',{ p_q:q, p_limit:200 });
-  const hint=$('#m-hint');
-  if(error){ $('#m-list').innerHTML='<p class="empty">Erreur de chargement.</p>'; if(hint)hint.textContent=''; return; }
-  if(!data||!data.length){ $('#m-list').innerHTML=`<p class="empty">${q?'Aucun membre pour « '+esc(q)+' ».':'Aucun inscrit.'}</p>`; if(hint)hint.textContent=''; return; }
-  if(hint){
-    const nv = data.filter(u=>!u.email_verified).length;
-    const alerte = nv ? ` · ${nv} email${nv>1?'s':''} non vérifié${nv>1?'s':''}` : '';
-    if(q) hint.textContent = `${data.length} résultat${data.length>1?'s':''} pour « ${q} »${alerte}`;
-    else hint.textContent = (data.length>=200 ? '200 membres les plus récents — tape un nom ou un email pour chercher dans tous.' : `${data.length} membre${data.length>1?'s':''}`) + alerte;
+  if(error){ USERS=[]; $('#m-list').innerHTML='<p class="empty">Erreur de chargement.</p>'; $('#m-hint').textContent=''; return; }
+  USERS = data||[];
+  renderUsers();
+}
+{ const fb=$('#m-filters'); if(fb) fb.onclick=e=>{
+    const b=e.target.closest('button[data-f]'); if(!b) return;
+    M_FILTER=b.dataset.f;
+    fb.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+    renderUsers();
+  };
+}
+function renderUsers(){
+  const hint=$('#m-hint'), fb=$('#m-filters');
+  /* Compteurs par categorie : on sait d'un coup d'oeil ou regarder. */
+  if(fb){
+    const n={all:USERS.length,paid:0,trial:0,gift:0,expired:0,coach:0,none:0};
+    USERS.forEach(u=>{ n[userCat(u)]++; });
+    fb.querySelectorAll('button[data-f]').forEach(b=>{
+      const c=n[b.dataset.f]||0;
+      b.querySelector('b').textContent = c ? ' '+c : '';
+      b.style.opacity = (c===0 && b.dataset.f!=='all') ? .4 : 1;
+    });
   }
+  const data = M_FILTER==='all' ? USERS : USERS.filter(u=>userCat(u)===M_FILTER);
+  if(!USERS.length){ $('#m-list').innerHTML=`<p class="empty">${M_Q?'Aucun membre pour « '+esc(M_Q)+' ».':'Aucun inscrit.'}</p>`; if(hint)hint.textContent=''; return; }
+  if(hint){
+    const nv = USERS.filter(u=>!u.email_verified).length;
+    const alerte = nv ? ` · ${nv} email${nv>1?'s':''} non vérifié${nv>1?'s':''}` : '';
+    const base = M_Q ? `${USERS.length} résultat${USERS.length>1?'s':''} pour « ${M_Q} »`
+      : (USERS.length>=200 ? '200 membres les plus récents — cherche par nom ou email pour aller au-delà.'
+                           : `${USERS.length} inscrit${USERS.length>1?'s':''}`);
+    hint.textContent = base + (M_FILTER!=='all' ? ` · ${data.length} affiché${data.length>1?'s':''}` : '') + alerte;
+  }
+  if(!data.length){ $('#m-list').innerHTML='<p class="empty">Aucun membre dans ce filtre.</p>'; return; }
   $('#m-list').innerHTML = data.map(u=>{
     const isSelf = u.user_id===ADMIN_UID;
-    const access = u.has_access ? '<span class="pill ok">Accès</span>' : '<span class="pill no">Sans accès</span>';
+    /* "Accès" seul ne disait pas d'ou il venait : un abonne qui paie et un
+       compte credite a la main etaient identiques a l'ecran. On distingue. */
+    const PAYANT = { stripe:'Stripe', apple:'App Store', google:'Play Store' };
+    let access;
+    if(!u.has_access) access = '<span class="pill no">Sans accès</span>';
+    else if(PAYANT[u.sub_source]) access = `<span class="pill paid">Payant · ${PAYANT[u.sub_source]}</span>`;
+    else if(u.sub_source==='offert_illimite') access = '<span class="pill gift">Offert · illimité</span>';
+    else if(u.sub_source==='offert') access = '<span class="pill gift">Offert</span>';
+    else access = '<span class="pill gift">Accès par rôle</span>';
     let role='';
     if(u.role==='admin') role='<span class="pill role">admin</span>';
     else if(u.role==='coach'){
@@ -865,16 +937,35 @@ async function loadUsers(q){
        Un compte non verifie peut avoir ete cree avec une adresse inexistante. */
     const verif = u.email_verified ? '' : '<span class="pill verif">Email non vérifié</span>';
     let detail='';
-    if(u.sub_status) detail = u.sub_status + (u.trial_end?` · essai → ${u.trial_end.slice(0,10)}`:'') + (u.current_period_end?` · jusqu'au ${u.current_period_end.slice(0,10)}`:'');
+    if(u.sub_status){
+      const eur = c => (c/100).toFixed(2).replace('.',',').replace(/,00$/,'')+' €';
+      const par = { month:'/mois', year:'/an' }[u.sub_interval] || '';
+      const TIER = { membre:'Membre', coach:'Coach', coach_plus:'Coach+' };
+      const bits = [];
+      bits.push(PAYANT[u.sub_source] || (u.sub_source==='offert_illimite'?'Offert à vie':'Offert'));
+      if(u.sub_amount_cents!=null) bits.push(eur(u.sub_amount_cents)+par);
+      if(u.sub_tier) bits.push((TIER[u.sub_tier]||u.sub_tier) + (u.sub_founder?' fondateur':''));
+      bits.push(u.sub_status);
+      if(u.trial_end) bits.push(`essai → ${u.trial_end.slice(0,10)}`);
+      /* Une echeance a un siecle est un acces offert, pas une date utile. */
+      if(u.current_period_end && u.sub_source!=='offert_illimite') bits.push(`jusqu'au ${u.current_period_end.slice(0,10)}`);
+      if(u.sub_cancel_at_period_end) bits.push('annulation programmée');
+      detail = bits.join(' · ');
+    }
     const jour = s => s ? new Date(s).toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit',year:'2-digit'}) : '—';
     const src = ({ios:'iOS',android:'Android',web:'Web'})[u.signup_source] || 'origine inconnue';
     const trace = `Inscrit le ${jour(u.created_at)} · ${src} · dernière connexion ${jour(u.last_sign_in_at)}`;
     const on = v => v?' style="border-color:var(--brand);color:var(--brand)"':'';
-    return `<div class="item">
-      <div class="nm">${esc(u.email||'—')} ${access} ${verif} ${role} ${founder}</div>
-      <div class="meta">${esc(u.full_name||'')}${detail?' · '+esc(detail):''}${isSelf?' · (toi)':''}</div>
-      <div class="meta" style="color:var(--muted)">${esc(trace)}</div>
-      ${isSelf?'<div class="meta" style="color:var(--muted)">Ton propre compte — non modifiable.</div>':`
+    return `<div class="item uitem${isSelf?'':' has-acts'}">
+      <div class="uhead">
+        <div class="uhl">
+          <div class="nm">${esc(u.email||'—')} ${access} ${verif} ${role} ${founder}</div>
+          <div class="meta">${esc(u.full_name||'')}${detail?' · '+esc(detail):''}${isSelf?' · (toi)':''}</div>
+          <div class="meta" style="color:var(--muted)">${esc(trace)}</div>
+        </div>
+        ${isSelf?'':'<span class="ucar">⌄</span>'}
+      </div>
+      ${isSelf?'<div class="meta" style="color:var(--muted)">Ton propre compte — non modifiable.</div>':`<div class="uacts">
       <div class="actgrp"><span class="agl">Rôle / Plan</span>
         <button class="btn subtle sm" data-role="client" data-u="${u.user_id}"${on(u.role==='client')}>Membre</button>
         <button class="btn subtle sm" data-coach="coach" data-u="${u.user_id}"${on(u.role==='coach'&&u.coach_plan!=='coach_plus')}>Coach</button>
@@ -896,9 +987,14 @@ async function loadUsers(q){
       </div>
       <div class="actgrp danger-zone"><span class="agl">Danger</span>
         <button class="btn danger sm" data-del="${u.user_id}" data-email="${esc(u.email||'')}">Supprimer définitivement</button>
-      </div>`}
+      </div></div>`}
       </div>`;
   }).join('');
+  /* Un clic sur l'entete deplie la fiche. Delegation : les boutons internes
+     gardent leurs propres gestionnaires, on ignore donc les clics sur eux. */
+  $('#m-list').querySelectorAll('.uitem.has-acts .uhead').forEach(h=>{
+    h.onclick = e => { if(e.target.closest('button')) return; h.parentElement.classList.toggle('open'); };
+  });
   document.querySelectorAll('[data-grant]').forEach(b=>b.onclick=()=>grant(b.dataset.u,+b.dataset.grant));
   document.querySelectorAll('[data-revoke]').forEach(b=>b.onclick=()=>revoke(b.dataset.revoke));
   document.querySelectorAll('[data-role]').forEach(b=>b.onclick=()=>setRole(b.dataset.u,b.dataset.role));
