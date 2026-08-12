@@ -59,6 +59,12 @@ h1{font-family:'Barlow Condensed',sans-serif;font-size:clamp(38px,9vw,60px);font
 .beta a{color:var(--g2);text-decoration:none;border-bottom:1px solid rgba(232,201,122,.35)}
 .beta a:hover{color:var(--g)}
 
+/* Avertissement affiche uniquement dans un navigateur embarque (Instagram,
+   Facebook, TikTok) : ces webviews n'ouvrent pas l'App Store directement. */
+.inapp{display:none;margin-top:14px;border:1px solid rgba(201,168,76,.3);background:rgba(201,168,76,.07);padding:13px 15px;border-radius:3px;font-size:13.5px;line-height:1.6;color:#b8b8b8}
+.inapp b{color:var(--g2);font-weight:600}
+.inapp.show{display:block}
+
 /* ── Fonctionnalités ─────────────────────────────────────── */
 .feats{margin-top:42px;display:grid;gap:1px;background:rgba(201,168,76,.13);border:1px solid rgba(201,168,76,.13)}
 .feat{background:var(--d1);padding:19px 18px}
@@ -111,6 +117,8 @@ footer a:hover{color:var(--g)}
     </span>
 
   </div>
+
+  <div class="inapp" id="inapp" data-t="inapp">Tu navigues depuis Instagram. Son navigateur interne n'ouvre pas l'App Store directement — appuie sur les <b>trois points en haut à droite</b>, puis sur <b>Ouvrir dans le navigateur</b>.</div>
 
   <div class="beta">
     <div class="bt" data-t="beta_t">Bêta Android — 12 places</div>
@@ -168,6 +176,7 @@ const T = {
     beta_t:"Android beta — 12 spots",
     beta_p:"The Android version is in closed testing. I'm looking for 12 people to try it for two weeks — three months of full access free in return. You need an Android phone and a Gmail address.",
     beta_cta:"Message me on Instagram",
+    inapp:"You're browsing from Instagram. Its built-in browser won't open the App Store directly — tap the three dots at the top right, then Open in browser.",
     f1_t:"Training",
     f1_p:"Ten complete programs — strength, hypertrophy, fat loss, cross-training, Hyrox, football. Guided sessions with rest timer, audio cues and load tracking.",
     f2_t:"Nutrition",
@@ -185,6 +194,7 @@ const T = {
     beta_t:"Android-bèta — 12 plaatsen",
     beta_p:"De Android-versie zit in gesloten test. Ik zoek 12 mensen om hem twee weken uit te proberen — drie maanden volledige toegang gratis in ruil. Je hebt een Android-telefoon en een Gmail-adres nodig.",
     beta_cta:"Stuur me een bericht op Instagram",
+    inapp:"Je surft vanuit Instagram. De ingebouwde browser opent de App Store niet rechtstreeks — tik op de drie puntjes rechtsboven en dan op Openen in browser.",
     f1_t:"Training",
     f1_p:"Tien volledige programma's — kracht, hypertrofie, vetverlies, cross-training, Hyrox, voetbal. Begeleide sessies met rusttimer, audiosignalen en gewichten bijhouden.",
     f2_t:"Voeding",
@@ -237,6 +247,36 @@ if(isIOS){
   ios.classList.add('primary');
 } else if(isAndroid){
   box.insertBefore(and, ios);
+}
+
+/* ── Ouverture de l'App Store ─────────────────────────────────────────────
+   Les navigateurs embarques (Instagram, Facebook, TikTok) ne transmettent
+   pas les liens https d'Apple a l'application App Store : la page reste
+   coincee dans la webview. Le schema itms-apps:// force l'ouverture. On le
+   tente d'abord, et si rien ne se passe au bout d'un instant — cas d'un
+   ordinateur, ou d'un navigateur qui refuse le schema — on retombe sur le
+   lien https classique, qui lui fonctionne partout. */
+const APPSTORE = 'https://apps.apple.com/be/app/coach-dm/id6792289062';
+if(isIOS){
+  ios.addEventListener('click', e => {
+    e.preventDefault();
+    const t0 = Date.now();
+    const retour = setTimeout(() => {
+      /* Si l'App Store s'est ouvert, l'onglet a perdu le focus et le minuteur
+         se declenche bien plus tard que prevu : dans ce cas on ne fait rien. */
+      if(document.hidden || Date.now() - t0 > 1600) return;
+      window.location.href = APPSTORE;
+    }, 900);
+    document.addEventListener('visibilitychange', () => {
+      if(document.hidden) clearTimeout(retour);
+    }, { once:true });
+    window.location.href = 'itms-apps://apps.apple.com/be/app/coach-dm/id6792289062';
+  });
+}
+
+/* Navigateur embarque : on l'annonce, avec la manoeuvre pour en sortir. */
+if(/Instagram|FBAN|FBAV|FB_IAB|TikTok|Line\//i.test(ua)){
+  document.getElementById('inapp').classList.add('show');
 }
 </script>
 </body>
