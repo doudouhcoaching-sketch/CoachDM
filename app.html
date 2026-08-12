@@ -3042,6 +3042,10 @@ async function prefetchBoot(uid){
 async function enter(user){
   USER=user;
   show('boot');
+  /* Trace l'appareil reellement utilise et la date d'ouverture, pour la console
+     admin. Volontairement non bloquant et silencieux : si l'appel echoue, le
+     boot continue — cette information est du confort, pas une dependance. */
+  try{ sb.rpc('touch_platform',{ p_platform: NATIVE_PLATFORM }); }catch(_){}
   iapInit(user.id);          /* non bloquant : StoreKit s'initialise pendant le boot */
   const [access] = await Promise.all([ hasAccess(user.id), prefetchBoot(user.id) ]);
   PREMIUM = access;

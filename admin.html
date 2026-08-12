@@ -86,6 +86,7 @@
   .pill.founder{background:rgba(212,175,55,.2);color:#D4AF37}
   .pill.paid{background:rgba(16,185,129,.22);color:var(--ok)}
   .pill.gift{background:rgba(148,163,184,.2);color:#94a3b8}
+  .pill.dev{background:rgba(56,189,248,.14);color:#7dd3fc;text-transform:none;letter-spacing:0}
   /* Liste des membres : fiche repliee par defaut. Les 5 groupes d'actions
      deroules en permanence rendaient la page illisible des 20 inscrits. */
   .ufil{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
@@ -953,13 +954,17 @@ function renderUsers(){
       detail = bits.join(' · ');
     }
     const jour = s => s ? new Date(s).toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit',year:'2-digit'}) : '—';
-    const src = ({ios:'iOS',android:'Android',web:'Web'})[u.signup_source] || 'origine inconnue';
-    const trace = `Inscrit le ${jour(u.created_at)} · ${src} · dernière connexion ${jour(u.last_sign_in_at)}`;
+    /* L'appareil reellement utilise, ecrit par l'app a chaque ouverture.
+       signup_source ne servait plus a rien : 'unknown' pour 18 comptes sur 24. */
+    const DEV = { ios:'iPhone', android:'Android', web:'Web' };
+    const device = u.last_platform ? `<span class="pill dev">${DEV[u.last_platform]||u.last_platform}</span>` : '';
+    const vu = u.last_seen_at ? `vu ${jour(u.last_seen_at)}` : `dernière connexion ${jour(u.last_sign_in_at)}`;
+    const trace = `Inscrit le ${jour(u.created_at)} · ${vu}`;
     const on = v => v?' style="border-color:var(--brand);color:var(--brand)"':'';
     return `<div class="item uitem${isSelf?'':' has-acts'}">
       <div class="uhead">
         <div class="uhl">
-          <div class="nm">${esc(u.email||'—')} ${access} ${verif} ${role} ${founder}</div>
+          <div class="nm">${esc(u.email||'—')} ${access} ${device} ${verif} ${role} ${founder}</div>
           <div class="meta">${esc(u.full_name||'')}${detail?' · '+esc(detail):''}${isSelf?' · (toi)':''}</div>
           <div class="meta" style="color:var(--muted)">${esc(trace)}</div>
         </div>
@@ -974,6 +979,7 @@ function renderUsers(){
       </div>
       <div class="actgrp"><span class="agl">Accès</span>
         <button class="btn subtle sm" data-grant="7" data-u="${u.user_id}">Essai 7j</button>
+        <button class="btn subtle sm" data-grant="90" data-u="${u.user_id}">3 mois (testeur)</button>
         <button class="btn subtle sm" data-grant="0" data-u="${u.user_id}">Premium (illimité)</button>
         <button class="btn subtle sm" data-revoke="${u.user_id}">Révoquer</button>
       </div>
@@ -1008,7 +1014,7 @@ function renderUsers(){
 async function grant(uid,days){
   const { error } = await sb.rpc('admin_grant_access',{ p_user:uid, p_days:days });
   if(error){ toast('Échec'); return; }
-  toast(days>0?'Essai 7j accordé':'Premium illimité accordé'); loadUsers();
+  toast(days===0?'Premium illimité accordé':(days>=90?'3 mois offerts':`Essai ${days}j accordé`)); loadUsers();
 }
 async function revoke(uid){
   const { error } = await sb.rpc('admin_revoke_access',{ p_user:uid });
