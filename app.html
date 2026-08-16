@@ -1130,6 +1130,16 @@
 
 <!-- ============ APP ============ -->
 <div id="app">
+  <!-- Invitation coach en attente.
+       Deux invitations sont restees 28 et 38 jours sans reponse simplement
+       parce que rien, nulle part dans l'app, n'annoncait au membre qu'un coach
+       l'avait invite : msg_threads() ne retourne que les relations 'active' et
+       'admin_dm', donc une invitation 'pending' etait litteralement invisible.
+       Cette banniere est collee en haut de TOUS les onglets et n'a pas de
+       croix de fermeture : la seule sortie est Accepter ou Refuser. Elle ne
+       bloque rien d'autre — la messagerie et le reste de l'app restent
+       utilisables en dessous. -->
+  <div id="coach-invite-bar"></div>
   <div class="topbar">
     <h2 id="tb-title">Aujourd'hui</h2>
     <div class="sub" id="tb-sub"></div>
@@ -1489,10 +1499,14 @@
         <button data-theme-set="light" data-i18n="th_light">Clair</button>
       </div>
       <div class="opt-row" style="margin-top:14px"><span data-i18n="opt_units">Unités</span><span class="fk" data-i18n="opt_metric">Métrique (kg, cm)</span></div>
-      <!-- Ligne "Rappels & notifications — Bientot disponible" retiree : le plugin
-           push n'est pas encore branche cote app, et Apple sanctionne les
-           fonctions annoncees mais absentes (2.1). A remettre le jour ou
-           PushNotifications.register() sera en place. -->
+      <!-- Ligne remise : PushNotifications.register() est desormais branche
+           (voir pushInit plus bas), la fonction est donc reellement presente
+           et non plus seulement annoncee — Apple 2.1 est satisfait.
+           La ligne n'existe qu'en natif : sur le web il n'y a pas d'APNs. -->
+      <div class="opt-row" id="p-notif-row" style="margin-top:14px;display:none">
+        <span data-i18n="notif_row">Rappels &amp; notifications</span>
+        <button class="btn sm" id="p-notif-btn" type="button" style="width:auto;padding:7px 15px"></button>
+      </div>
     </div>
 
     </div>
@@ -1544,7 +1558,7 @@
 
   <!-- NAV -->
   <div class="nav">
-    <button class="on" data-tab="home"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></span><span data-i18n="nav_home">Accueil</span></button>
+    <button class="on" data-tab="home"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></span><span data-i18n="nav_home">Accueil</span><span class="nav-dot" id="nav-unread" hidden></span></button>
     <button data-tab="journal"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11l3 3v13H5z"/><path d="M9 12h6M12 9v6"/></svg></span><span data-i18n="nav_journal">Journal</span></button>
     <button data-tab="seances"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg></span><span data-i18n="nav_seances">Séances</span></button>
     <button data-tab="cours"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg></span><span data-i18n="nav_cours">Cours</span></button>
@@ -1945,6 +1959,26 @@
   .nav::before{content:'';position:absolute;top:0;left:8%;right:8%;height:1px;pointer-events:none;
     background:linear-gradient(90deg,transparent,rgba(0,255,163,.30),transparent)}
   .nav{position:fixed}
+  /* ---- Banniere d'invitation coach ---- */
+  .inv-bar{margin:10px 14px 0;border-radius:16px;padding:14px 15px;
+    background:linear-gradient(135deg,rgba(0,255,163,.14),rgba(0,255,163,.05));
+    border:1px solid rgba(0,255,163,.34);box-shadow:0 6px 20px rgba(0,0,0,.18)}
+  :root[data-theme="light"] .inv-bar{background:linear-gradient(135deg,rgba(0,168,112,.11),rgba(0,168,112,.04));border-color:rgba(0,168,112,.3)}
+  .inv-bar+.inv-bar{margin-top:8px}
+  .inv-bar b{display:block;font-family:'Outfit',sans-serif;font-size:15px;margin-bottom:2px}
+  .inv-who{font-size:13.5px;line-height:1.45;opacity:.92}
+  .inv-since{margin-top:6px;font-size:11.5px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;opacity:.62}
+  .inv-act{display:flex;gap:9px;margin-top:12px}
+  .inv-act button{flex:1;border-radius:11px;padding:10px 12px;font-family:'Outfit',sans-serif;
+    font-size:13.5px;font-weight:700;border:0;cursor:pointer}
+  .inv-act .inv-yes{background:var(--brand);color:#04120a}
+  .inv-act .inv-no{background:var(--surface-2);color:var(--text);border:1px solid var(--line)}
+  .inv-act button[disabled]{opacity:.55;pointer-events:none}
+  /* ---- Pastille non-lu sur l'onglet Accueil ---- */
+  .nav-dot{position:absolute;top:4px;left:calc(50% + 7px);min-width:17px;height:17px;padding:0 4px;
+    border-radius:999px;background:#ff4d4d;color:#fff;font-family:'Outfit',sans-serif;font-size:10.5px;
+    font-weight:800;line-height:17px;text-align:center;box-shadow:0 0 0 2px var(--bg);pointer-events:none}
+  .nav-dot[hidden]{display:none}
   .nav button{position:relative;transition:color .18s,background .18s,transform .12s}
   .nav button:active{transform:scale(.94)}
   .nav button.on{background:linear-gradient(180deg,rgba(0,255,163,.16),rgba(0,255,163,.07));
@@ -2758,7 +2792,26 @@ const T = {
  shop_free:{fr:'Gratuit',en:'Free',nl:'Gratis'},
  shop_download:{fr:'Télécharger gratuitement',en:'Download for free',nl:'Gratis downloaden'},
  shop_buy:{fr:'Acheter',en:'Buy',nl:'Kopen'},
- shop_custom:{fr:'Sur mesure',en:'Custom',nl:'Op maat'}
+ shop_custom:{fr:'Sur mesure',en:'Custom',nl:'Op maat'},
+ /* ---- Invitation coach en attente (lot A : invitations jamais vues) ---- */
+ inv_title:{fr:'Un coach t’a invité',en:'A coach invited you',nl:'Een coach heeft je uitgenodigd'},
+ inv_body:{fr:'te propose de devenir ton coach.',en:'wants to become your coach.',nl:'wil jouw coach worden.'},
+ inv_since_one:{fr:'En attente depuis 1 jour',en:'Waiting for 1 day',nl:'1 dag in afwachting'},
+ inv_since:{fr:'En attente depuis {n} jours',en:'Waiting for {n} days',nl:'{n} dagen in afwachting'},
+ inv_since_today:{fr:'Reçue aujourd’hui',en:'Received today',nl:'Vandaag ontvangen'},
+ inv_accept:{fr:'Accepter',en:'Accept',nl:'Accepteren'},
+ inv_decline:{fr:'Refuser',en:'Decline',nl:'Weigeren'},
+ inv_accepted:{fr:'C’est bon, tu es suivi par ton coach.',en:'Done — your coach now follows you.',nl:'Klaar — je coach volgt je nu.'},
+ inv_declined:{fr:'Invitation refusée.',en:'Invitation declined.',nl:'Uitnodiging geweigerd.'},
+ inv_full:{fr:'Ce coach a atteint son nombre maximum de clients.',en:'This coach has reached their client limit.',nl:'Deze coach heeft zijn maximum aantal klanten bereikt.'},
+ inv_err:{fr:'Impossible de répondre pour le moment.',en:'Could not respond right now.',nl:'Kan nu niet antwoorden.'},
+ /* ---- Notifications push ---- */
+ notif_row:{fr:'Rappels & notifications',en:'Reminders & notifications',nl:'Herinneringen & meldingen'},
+ notif_enable:{fr:'Activer',en:'Enable',nl:'Inschakelen'},
+ notif_on:{fr:'Activées',en:'On',nl:'Aan'},
+ notif_blocked:{fr:'Bloquées',en:'Blocked',nl:'Geblokkeerd'},
+ notif_ok_toast:{fr:'Notifications activées.',en:'Notifications enabled.',nl:'Meldingen ingeschakeld.'},
+ notif_ko_toast:{fr:'Refusé. Réactive-les dans Réglages › Coach DM › Notifications.',en:'Denied. Turn them back on in Settings › Coach DM › Notifications.',nl:'Geweigerd. Zet ze weer aan in Instellingen › Coach DM › Meldingen.'}
 };
 const t = (k)=> (T[k] ? (T[k][LANG] ?? T[k].fr) : k);
 const pick = (o,base)=> o ? (o[base+'_'+LANG] || o[base+'_fr'] || o[base+'_en'] || '') : '';
@@ -3057,7 +3110,15 @@ async function enter(user){
   _PRE=null;
   switchTab('home');
   loadCoachCard(); loadCalls(); initChatLive();
+  /* Les invitations en attente sont chargees des l'entree : c'est la premiere
+     chose que doit voir un membre invite, avant meme sa seance du jour. */
+  loadCoachInvites();
   resumePendingPlan();
+  /* Les notifications se demandent apres que tout est affiche. loadCoachCard()
+     et loadCoachInvites() alimentent HAS_COACH et COACH_INVITES, dont depend
+     la decision de demander ou non — d'ou le petit delai plutot qu'un appel
+     immediat qui les lirait encore vides. */
+  setTimeout(()=>{ try{ pushMaybeAsk(); }catch(_){} }, 1500);
 }
 
 async function loadProfileInfo(user){
@@ -3208,7 +3269,16 @@ async function hasAccess(uid){
   return false;
 }
 
-$('#gate-out').onclick = $('#p-out').onclick = async ()=>{ await sb.auth.signOut(); USER=null; show('auth'); };
+$('#gate-out').onclick = $('#p-out').onclick = async ()=>{
+  /* Le token est lie au compte, pas a l'appareil : sans ce desenregistrement,
+     l'appareil continuerait de recevoir les notifications du compte precedent
+     apres une deconnexion — un membre lirait les messages d'un autre. */
+  if(PUSH_TOKEN){ try{ await sb.rpc('push_unregister',{ p_token: PUSH_TOKEN }); }catch(_){} PUSH_TOKEN=null; }
+  await sb.auth.signOut(); USER=null;
+  COACH_INVITES=[]; try{ renderUnreadDot(0); }catch(_){}
+  { const b=document.getElementById('coach-invite-bar'); if(b) b.innerHTML=''; }
+  show('auth');
+};
 /* ---- Changement de mot de passe depuis le Profil ---- */
 (function(){
   const open=$('#p-pw-open'), panel=$('#p-pw-panel'), go=$('#p-pw-go'), cancel=$('#p-pw-cancel');
@@ -4507,6 +4577,9 @@ async function loadCoachCard(){
     COACH_THREAD = (data||[]).find(t=>t.peer_is_coach) || null;
   }catch(e){ COACH_THREAD=null; }
   HAS_COACH = !!COACH_THREAD || ACCESS==='coach_client';
+  /* La pastille de l'onglet Accueil suit le meme compteur que la carte du hub :
+     une seule source de verite, msg_threads().unread. */
+  try{ renderUnreadDot(COACH_THREAD ? COACH_THREAD.unread : 0); }catch(_){}
   applyCoachIsolation();
   const hub=$('#coach-hub');
   if(!COACH_THREAD){
@@ -7439,6 +7512,249 @@ enter = async function(u){
     history.pushState({tab:'home'},'','#home');              /* point de départ */
   }
 };
+
+/* ==========================================================================
+   LOT A — NOTIFICATIONS PUSH
+   --------------------------------------------------------------------------
+   Constat de depart : device_tokens = 0 ligne, aucune notification n'est
+   jamais partie depuis la mise en ligne. Le diagnostic a montre que TOUT le
+   reste de la chaine etait deja en place et correct :
+     - AppDelegate.swift relaie bien le token APNs au plugin Capacitor
+     - PushNotificationsPlugin est dans packageClassList
+     - le trigger push_on_message sur INSERT messages appelle push_enqueue
+     - push_enqueue POSTe vers l'edge function push-send via pg_net
+     - push-send a ses secrets APNs (verifie : il repond {ok:true,sent:0}
+       et non {reason:'apns_not_configured'})
+   Le seul maillon manquant etait cote app : personne n'appelait jamais
+   PushNotifications.register(). Sans token, push-send avait beau tourner,
+   il n'avait aucune adresse ou envoyer. C'est ce que ce bloc corrige.
+   ========================================================================== */
+let PUSH_TOKEN = null;
+let PUSH_STATE = 'unknown';          /* unknown | granted | denied | prompt */
+const PUSH_ASKED_KEY = 'cdm_push_asked_v1';
+
+function pushPlugin(){
+  const P = window.Capacitor && window.Capacitor.Plugins;
+  return (P && P.PushNotifications) || null;
+}
+
+/* Les ecouteurs ne doivent etre poses qu'une seule fois pour toute la duree de
+   vie de l'app : addListener empile, et un double enregistrement enverrait
+   deux fois le meme token a push_register a chaque demarrage. */
+let PUSH_WIRED = false;
+function pushWire(){
+  const PN = pushPlugin();
+  if(!PN || PUSH_WIRED) return;
+  PUSH_WIRED = true;
+
+  PN.addListener('registration', async (token)=>{
+    const val = token && token.value;
+    if(!val) return;
+    PUSH_TOKEN = val;
+    try{
+      /* push_register fait un upsert on conflict(token) : si le membre se
+         reconnecte sur un appareil deja connu par quelqu'un d'autre, le token
+         est simplement reattribue au compte courant. Pas de doublon. */
+      await sb.rpc('push_register', { p_token: val, p_platform: NATIVE_PLATFORM || 'ios' });
+    }catch(e){ /* un token non enregistre ne doit jamais casser le boot */ }
+  });
+
+  PN.addListener('registrationError', ()=>{ /* silencieux : pas de push, l'app marche */ });
+
+  /* App au premier plan : iOS n'affiche pas la banniere lui-meme. On ne cree
+     donc pas d'alerte intrusive, on rafraichit ce que le membre a sous les
+     yeux pour que le compteur non-lu bouge en direct. */
+  PN.addListener('pushNotificationReceived', ()=>{
+    try{ if(typeof loadCoachCard==='function') loadCoachCard(); }catch(_){}
+  });
+
+  /* Le membre a tape la notification : on l'emmene la ou elle pointe plutot
+     que de le laisser sur l'accueil. Un push message doit ouvrir le fil. */
+  PN.addListener('pushNotificationActionPerformed', async ()=>{
+    try{
+      if(typeof switchTab==='function') switchTab('home');
+      if(typeof loadCoachCard==='function') await loadCoachCard();
+      if(COACH_THREAD && typeof openCoachChat==='function') openCoachChat();
+    }catch(_){}
+  });
+}
+
+async function pushSyncState(){
+  const PN = pushPlugin();
+  if(!IS_NATIVE || !PN){ PUSH_STATE='unsupported'; return PUSH_STATE; }
+  try{
+    const r = await PN.checkPermissions();
+    PUSH_STATE = (r && r.receive) || 'prompt';
+  }catch(e){ PUSH_STATE='unknown'; }
+  return PUSH_STATE;
+}
+
+/* opts.ask = true  -> on a le droit d'afficher la demande systeme iOS.
+   opts.ask = false -> on se contente de re-enregistrer si c'est deja accorde.
+   Cette distinction compte : la demande systeme ne peut etre affichee qu'UNE
+   fois par installation. Si on la brule au tout premier lancement, avant que
+   le membre ait compris a quoi sert l'app, il refuse — et on ne peut plus
+   jamais lui redemander autrement qu'en l'envoyant dans les Reglages iOS. */
+async function pushInit(opts){
+  const PN = pushPlugin();
+  if(!IS_NATIVE || !PN) return 'unsupported';
+  pushWire();
+  await pushSyncState();
+
+  if(PUSH_STATE === 'granted'){
+    try{ await PN.register(); }catch(e){}
+    return 'granted';
+  }
+  if(PUSH_STATE === 'denied') return 'denied';
+  if(!(opts && opts.ask)) return PUSH_STATE;
+
+  let res;
+  try{ res = await PN.requestPermissions(); }catch(e){ return PUSH_STATE; }
+  try{ localStorage.setItem(PUSH_ASKED_KEY,'1'); }catch(_){}
+  PUSH_STATE = (res && res.receive) || 'denied';
+  if(PUSH_STATE === 'granted'){
+    try{ await PN.register(); }catch(e){}
+  }
+  return PUSH_STATE;
+}
+
+/* Moment choisi pour demander : apres le boot complet, et seulement si le
+   membre a un lien coach (invitation en attente, coach actif, ou lui-meme
+   coach). C'est le seul cas ou une notification a un contenu reel a livrer
+   aujourd'hui — demander a quelqu'un qui n'a personne a qui parler, c'est
+   collecter un refus definitif pour rien. */
+async function pushMaybeAsk(){
+  if(!IS_NATIVE || !pushPlugin()) return;
+  await pushSyncState();
+  if(PUSH_STATE === 'granted'){ await pushInit({ask:false}); pushRenderRow(); return; }
+  if(PUSH_STATE === 'denied'){ pushRenderRow(); return; }
+  let asked = false;
+  try{ asked = localStorage.getItem(PUSH_ASKED_KEY)==='1'; }catch(_){}
+  const pertinent = HAS_COACH || IS_COACH || (Array.isArray(COACH_INVITES) && COACH_INVITES.length>0);
+  if(!asked && pertinent) await pushInit({ask:true});
+  pushRenderRow();
+}
+
+/* Ligne Profil > Options : rattrapage pour qui a refuse ou n'a jamais ete
+   sollicite. Visible uniquement en natif. */
+function pushRenderRow(){
+  const row = document.getElementById('p-notif-row');
+  const btn = document.getElementById('p-notif-btn');
+  if(!row || !btn) return;
+  if(!IS_NATIVE || !pushPlugin()){ row.style.display='none'; return; }
+  row.style.display='';
+  if(PUSH_STATE === 'granted'){
+    btn.textContent = t('notif_on');
+    btn.disabled = true;
+    btn.style.opacity = '.6';
+  } else if(PUSH_STATE === 'denied'){
+    btn.textContent = t('notif_blocked');
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  } else {
+    btn.textContent = t('notif_enable');
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  }
+}
+{
+  const b = document.getElementById('p-notif-btn');
+  if(b) b.onclick = async ()=>{
+    if(PUSH_STATE === 'denied'){
+      /* iOS ne redemande jamais : la seule voie est les Reglages systeme. */
+      toast(t('notif_ko_toast'));
+      return;
+    }
+    const st = await pushInit({ask:true});
+    pushRenderRow();
+    toast(st === 'granted' ? t('notif_ok_toast') : t('notif_ko_toast'));
+  };
+}
+
+/* ==========================================================================
+   LOT A — INVITATIONS COACH EN ATTENTE
+   --------------------------------------------------------------------------
+   Les RPC client_coach_requests() et client_respond_coach() existaient deja
+   cote base mais n'etaient appelees nulle part dans l'app : le membre invite
+   n'avait aucun moyen de voir ni d'accepter l'invitation. D'ou deux
+   invitations restees 28 et 38 jours en 'pending'.
+   ========================================================================== */
+let COACH_INVITES = [];
+
+function invDaysLabel(iso){
+  const ms = Date.now() - new Date(iso).getTime();
+  const d = Math.floor(ms / 86400000);
+  if(d <= 0) return t('inv_since_today');
+  if(d === 1) return t('inv_since_one');
+  return t('inv_since').replace('{n}', d);
+}
+
+async function loadCoachInvites(){
+  const bar = document.getElementById('coach-invite-bar');
+  if(!bar) return;
+  try{
+    const { data } = await sb.rpc('client_coach_requests');
+    COACH_INVITES = data || [];
+  }catch(e){ COACH_INVITES = []; }
+  if(!COACH_INVITES.length){ bar.innerHTML=''; return; }
+  bar.innerHTML = COACH_INVITES.map(iv=>{
+    const who = esc(iv.coach_name || iv.coach_email || 'Coach DM');
+    return `<div class="inv-bar" data-inv="${iv.coach_id}">
+      <b>${t('inv_title')}</b>
+      <div class="inv-who"><b style="display:inline;font-size:13.5px">${who}</b> ${t('inv_body')}</div>
+      <div class="inv-since">${invDaysLabel(iv.requested_at)}</div>
+      <div class="inv-act">
+        <button class="inv-yes" data-inv-yes="${iv.coach_id}">${t('inv_accept')}</button>
+        <button class="inv-no" data-inv-no="${iv.coach_id}">${t('inv_decline')}</button>
+      </div>
+    </div>`;
+  }).join('');
+  bar.querySelectorAll('[data-inv-yes]').forEach(b=>{
+    b.onclick = ()=>respondInvite(b.getAttribute('data-inv-yes'), true, b);
+  });
+  bar.querySelectorAll('[data-inv-no]').forEach(b=>{
+    b.onclick = ()=>respondInvite(b.getAttribute('data-inv-no'), false, b);
+  });
+}
+
+async function respondInvite(coachId, accept, btn){
+  const card = btn && btn.closest('.inv-bar');
+  if(card) card.querySelectorAll('button').forEach(x=>x.disabled=true);
+  let r = null;
+  try{
+    const { data } = await sb.rpc('client_respond_coach', { p_coach: coachId, p_accept: !!accept });
+    r = data;
+  }catch(e){ r = null; }
+  if(!r || r.ok !== true){
+    if(card) card.querySelectorAll('button').forEach(x=>x.disabled=false);
+    toast(r && r.reason === 'coach_full' ? t('inv_full') : t('inv_err'));
+    return;
+  }
+  toast(accept ? t('inv_accepted') : t('inv_declined'));
+  await loadCoachInvites();
+  /* Accepter fait passer la relation en 'active' : msg_threads() la retourne
+     desormais, donc le hub coach et la messagerie apparaissent immediatement
+     sans avoir a relancer l'app. */
+  try{ await loadCoachCard(); }catch(_){}
+  /* Le membre vient d'accepter un coach : c'est le moment le plus legitime
+     pour demander les notifications, il attend justement d'etre contacte. */
+  if(accept) pushMaybeAsk();
+}
+
+/* ==========================================================================
+   LOT A — BADGE NON-LU
+   --------------------------------------------------------------------------
+   Delai de lecture moyen mesure : 10,6 h. Le compteur existait deja dans la
+   carte du hub coach, mais il fallait deja etre sur l'accueil pour le voir.
+   La pastille sur l'onglet le rend visible depuis n'importe quel ecran.
+   ========================================================================== */
+function renderUnreadDot(n){
+  const el = document.getElementById('nav-unread');
+  if(!el) return;
+  const v = +n || 0;
+  if(v > 0){ el.textContent = v > 9 ? '9+' : String(v); el.hidden = false; }
+  else { el.hidden = true; }
+}
 
 applyI18n(); renderLangBtns();
 hkInit();          /* apres applyI18n : le libelle du bouton Sante depend de l'etat de connexion */

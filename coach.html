@@ -1147,8 +1147,28 @@ function renderCap(){
 
 /* Etat d'un client en une couleur. Le seuil est volontairement genereux :
    7 jours sans seance n'est pas un abandon, 14 jours si. */
+/* Depuis combien de temps une invitation attend-elle ?
+   Deux invitations sont restees 28 et 38 jours sans que rien, cote coach, ne
+   le signale : la pastille disait « Invitation » sans jamais dire depuis
+   quand. Une invitation d'hier et une invitation morte depuis cinq semaines
+   avaient exactement la meme apparence. */
+function invWaitLabel(c){
+  const ref = c.invited_at || c.started_at;
+  if(!ref) return 'Invitation en attente';
+  const d = Math.floor((Date.now()-new Date(ref).getTime())/86400000);
+  if(d <= 0) return 'Invitation envoyée aujourd’hui';
+  if(d === 1) return 'En attente depuis 1 jour';
+  return `En attente depuis ${d} jours`;
+}
 function complianceDot(c){
-  if(c.link_status==='pending') return {cls:'n', label:'Invitation en attente'};
+  if(c.link_status==='pending'){
+    /* Une invitation qui traine est un probleme actif, pas un etat neutre :
+       la pastille vire a l'orange puis au rouge comme pour un client qui
+       decroche. Sinon elle se fond dans la liste et on l'oublie. */
+    const ref = c.invited_at || c.started_at;
+    const d = ref ? Math.floor((Date.now()-new Date(ref).getTime())/86400000) : 0;
+    return {cls: d>14 ? 'r' : d>7 ? 'o' : 'n', label:invWaitLabel(c)};
+  }
   if(!c.last_session_at)        return {cls:'r', label:'Aucune séance'};
   const days = Math.floor((Date.now()-new Date(c.last_session_at).getTime())/86400000);
   if(days<=7)  return {cls:'g', label:`À jour · ${days<=1?'hier':days+' j'}`};
@@ -1192,12 +1212,17 @@ function renderClientList(){
       <div class="acts">
         <button class="btn subtle sm" data-open="${c.client_id}">Fiche</button>
         <button class="btn subtle sm" data-chat="${c.client_id}">Messages${isPaid()?'':' 🔒'}</button>
+        ${c.link_status==='pending'?`<button class="btn subtle sm" data-resend="${c.client_id}">Renvoyer</button>`:''}
         ${ROLE==='coach'?`<button class="btn danger sm" data-arch="${c.client_id}">Archiver</button>`:''}
       </div>
     </div>`;
   }).join('');
   document.querySelectorAll('#cl-list .item').forEach(el=>{
-    el.onclick=ev=>{ if(ev.target.closest('[data-arch]')||ev.target.closest('[data-chat]')) return; openClientDetail(el.dataset.cid); };
+    el.onclick=ev=>{ if(ev.target.closest('[data-arch]')||ev.target.closest('[data-chat]')||ev.target.closest('[data-resend]')) return; openClientDetail(el.dataset.cid); };
+  });
+  document.querySelectorAll('#cl-list [data-resend]').forEach(b=>b.onclick=ev=>{
+    ev.stopPropagation();
+    resendInvite(b.dataset.resend, b);
   });
   document.querySelectorAll('#cl-list [data-chat]').forEach(b=>b.onclick=ev=>{
     ev.stopPropagation();
@@ -1209,6 +1234,36 @@ function renderClientList(){
     const it=b.closest('.item');
     if(confirm(trf('q_archive', it.dataset.name))) archiveClient(b.dataset.arch);
   });
+}
+/* Renvoyer une invitation restee sans reponse.
+   On reutilise coach-invite-client tel quel : quand l'adresse existe deja, la
+   fonction bascule d'elle-meme du lien d'invitation vers un lien magique et
+   re-appelle coach_link_invited, qui fait un upsert. Rien n'est duplique, la
+   relation garde son invited_at d'origine — donc le compteur de jours continue
+   d'afficher l'anciennete reelle de la demande, pas la date du dernier renvoi.
+   C'est voulu : ce qui compte est depuis quand la personne n'a pas repondu. */
+async function resendInvite(cid, btn){
+  const c = CLIST.find(x=>x.client_id===cid);
+  if(!c || !c.email) return toast('Adresse introuvable');
+  const old = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Envoi…';
+  let data=null, error=null;
+  try{
+    const r = await sb.functions.invoke('coach-invite-client', { body:{
+      full_name: c.full_name || '', email: c.email, phone:'', goal:'', lang:'fr'
+    }});
+    data = r.data; error = r.error;
+  }catch(e){ error = e; }
+  btn.disabled = false; btn.textContent = old;
+  if(error || !data || !data.ok){
+    const r = data && data.reason;
+    toast(r==='limit_reached' ? 'Quota clients atteint'
+        : r==='forbidden' ? tr('m_not_allowed')
+        : 'Échec du renvoi');
+    return;
+  }
+  toast(data.emailed ? 'Invitation renvoyée ✓' : 'Lien recréé, mais l’email n’est pas parti');
+  loadClientList();
 }
 async function archiveClient(cid){
   const { data, error } = await sb.rpc('coach_set_member_status',{ p_client:cid, p_status:'ended' });
