@@ -161,7 +161,25 @@
     background:rgba(212,175,55,.10);border-left:3px solid var(--gold);
     color:#E8D9A0;font-size:12.5px;font-weight:600;line-height:1.45}
   .cue-fix{display:inline-block;margin-left:4px;color:var(--gold);font-weight:800;
-    text-decoration:underline;white-space:nowrap}
+    text-decoration:underline;white-space:nowrap;cursor:pointer;background:none;border:0;
+    font-family:inherit;font-size:inherit;padding:0}
+  /* Lecteur video, identique a celui de l'app : la demo ne doit jamais faire
+     sortir de la page d'analyse. */
+  .yt-ov{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.92);display:none;
+    align-items:center;justify-content:center;padding:16px}
+  .yt-ov.show{display:flex}
+  .yt-box{width:100%;max-width:520px}
+  .yt-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .yt-name{font-size:14px;font-weight:700;color:#fff;min-width:0;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .yt-close{flex:0 0 36px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.25);
+    background:rgba(255,255,255,.08);color:#fff;font-size:16px;display:grid;place-items:center}
+  .yt-frame{position:relative;width:100%;padding-top:56.25%;border-radius:14px;overflow:hidden;
+    background:#000;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+  .yt-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .yt-fb{display:none;width:100%;margin-top:10px;padding:12px 14px;border-radius:12px;
+    background:var(--surface2);border:1px solid var(--line);color:var(--txt);
+    font-size:13.5px;font-weight:600;text-align:center}
   .pro-note{margin-top:12px;font-size:12px;font-weight:700;color:var(--gold);display:flex;align-items:center;gap:7px}
   #day-card{border:1px solid rgba(212,175,55,.45);background:linear-gradient(180deg,rgba(212,175,55,.10),rgba(212,175,55,.03))}
   #day-card h3{color:var(--gold)}
@@ -229,6 +247,7 @@
        Il doit donc etre lisible sans se pencher, et rester assez longtemps
        pour etre lu ET dit. -->
   <div class="livecue" id="livecue" hidden></div>
+
   <div class="dbg" id="cdm-dbg" hidden></div>
   <div class="splash" id="splash">
     <svg class="squatter" viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><path d="M12 6.5v3.5M12 10l-3.5 3 .5 4M12 10l3.5 3-.5 4M7 9.5l5 .5 5-.5"/><path d="M4 21h16" stroke-dasharray="2 3"/></svg>
@@ -469,6 +488,7 @@ const I18N = {
   b_high:{fr:'Pas cassée ✗',en:'Not below ✗',nl:'Niet onder ✗'},
   b_torso:{fr:'Buste penché',en:'Torso lean',nl:'Rompheling'},
   b_torso_w:{fr:'⚠ Buste très penché',en:'⚠ Excessive lean',nl:'⚠ Sterk voorovergebogen'},
+  yt_fb:{fr:'La vidéo ne démarre pas ? Ouvrir le lecteur',en:'Video not playing? Open the player',nl:'Video start niet? Open de speler'},
   cue_clean:{fr:'Propre — rien à corriger',en:'Clean — nothing to fix',nl:'Zuiver — niets te corrigeren'},
   b_flex_ok:{fr:'Dos gainé ✓',en:'Back braced ✓',nl:'Rug gespannen ✓'},
   b_flex_m:{fr:'⚠ Dos qui s’arrondit',en:'⚠ Back starting to round',nl:'⚠ Rug begint te ronden'},
@@ -598,7 +618,7 @@ const fixName = f => (f && (f['name_'+LANG] || f.name_fr)) || '';
 async function cuesLoad(sbClient){
   try{
     const { data } = await sbClient.from('analysis_cues')
-      .select('fault,priority,cue_fr,cue_en,cue_nl,fix:exercises(slug,name_fr,name_en,name_nl)')
+      .select('fault,priority,cue_fr,cue_en,cue_nl,fix:exercises(slug,name_fr,name_en,name_nl,video_url,youtube_query)')
       .eq('page','squat').eq('active',true).order('priority',{ascending:true});
     const m={};
     (data||[]).forEach(r=>{ m[r.fault]={priority:r.priority, fr:r.cue_fr, en:r.cue_en, nl:r.cue_nl, fix:r.fix||null}; });
@@ -606,6 +626,57 @@ async function cuesLoad(sbClient){
     renderReps(); /* les reps deja faites recuperent leur phrase */
   }catch(_){ CUES={}; }
 }
+/* ── Lecteur video ────────────────────────────────────────────────────────
+   Le lien pointait vers « ../app.html#ex/<slug> ». Deux fautes : squat.html
+   est a la racine, donc « ../ » sort du site ; et app.html n'a aucune route
+   « #ex/ ». Le membre quittait la page d'analyse pour atterrir nulle part.
+   On ouvre desormais la video sur place, avec le meme lecteur que l'app. */
+const YT_PLAYER='https://coachdm.be/player.html';
+function ytId(u){ if(!u) return null; const m=String(u).match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/); return m?m[1]:null; }
+function exDemoUrl(ex){
+  if(!ex) return null;
+  if(ex.video_url) return ex.video_url;
+  if(ex.youtube_query) return 'https://www.youtube.com/results?search_query='+encodeURIComponent(ex.youtube_query);
+  return null;
+}
+/* Repli : navigateur in-app sous Capacitor, on ne quitte jamais l'app. */
+async function ytExternal(url){
+  try{
+    const P=window.Capacitor&&window.Capacitor.Plugins;
+    if(P&&P.Browser){ await P.Browser.open({url, presentationStyle:'popover'}); return; }
+  }catch(_){}
+  window.open(url,'_blank','noopener');
+}
+function ytOpen(url,name){
+  const id=ytId(url);
+  /* Pas d'identifiant YouTube exploitable (recherche, lien tiers) : on ouvre
+     en navigateur in-app plutot que d'afficher un cadre noir vide. */
+  if(!id){ if(url) ytExternal(url); return; }
+  const ov=document.getElementById('yt-ov'), slot=document.getElementById('yt-slot');
+  if(!ov||!slot) return;
+  const nm=document.getElementById('yt-name'); if(nm) nm.textContent=name||'';
+  slot.innerHTML='<iframe src="'+YT_PLAYER+'?v='+encodeURIComponent(id)+'" title="'+String(name||'').replace(/"/g,'')+'"'
+    +' referrerpolicy="strict-origin-when-cross-origin"'
+    +' allow="autoplay; encrypted-media; picture-in-picture; fullscreen"'
+    +' allowfullscreen webkitallowfullscreen playsinline></iframe>';
+  const fb=document.getElementById('yt-fallback');
+  if(fb){ fb.textContent=t('yt_fb'); fb.style.display='block';
+          fb.onclick=()=>ytExternal(YT_PLAYER+'?v='+encodeURIComponent(id)); }
+  ov.classList.add('show');
+}
+function ytClose(){
+  const ov=document.getElementById('yt-ov'); if(!ov) return;
+  ov.classList.remove('show');
+  /* Vider l'iframe coupe le son : sinon la video continue derriere l'analyse. */
+  const slot=document.getElementById('yt-slot'); if(slot) slot.innerHTML='';
+  const fb=document.getElementById('yt-fallback'); if(fb){ fb.style.display='none'; fb.onclick=null; }
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest && (e.target.closest('#yt-close') || e.target.id==='yt-ov')) ytClose();
+  const b=e.target.closest && e.target.closest('[data-fix]');
+  if(b){ e.preventDefault(); ytOpen(b.dataset.fix, b.dataset.fixName||''); }
+});
+
 /* Affichage live pour le coach en salle. 7 secondes : le temps de lire la
    phrase ET de la dire. Une rep suivante remplace immediatement — on ne veut
    jamais que le coach lise un conseil qui ne correspond plus a ce qu'il voit. */
@@ -1182,8 +1253,9 @@ function renderReps(){
     /* La phrase passe sous les badges : les badges disent CE QUI ne va pas,
        la phrase dit QUOI FAIRE. Une ligne, pas deux. */
     const cue=cueForRep(r);
+    const fixUrl = cue && cue.fix ? exDemoUrl(cue.fix) : null;
     const cueEl = cue ? `<div class="cue">${esc(cueText(cue))}${
-        cue.fix ? ` <a class="cue-fix" href="../app.html#ex/${esc(cue.fix.slug)}">→ ${esc(fixName(cue.fix))}</a>` : ''
+        fixUrl ? ` <button type="button" class="cue-fix" data-fix="${esc(fixUrl)}" data-fix-name="${esc(fixName(cue.fix))}">▶ ${esc(fixName(cue.fix))}</button>` : ''
       }</div>` : '';
     li.innerHTML=`<span class="n">#${reps.length-i}</span>${badges.join('')}${cueEl}`;
     ul.appendChild(li);
@@ -1800,5 +1872,17 @@ proUI();
 loadLogo();
 try{document.fonts.load('800 300px Outfit');document.fonts.load('700 44px Outfit');document.fonts.load('700 40px Outfit');}catch(_){}
 </script>
+<!-- Lecteur video, pose en fin de body pour passer au-dessus de tout. -->
+<div class="yt-ov" id="yt-ov">
+  <div class="yt-box">
+    <div class="yt-top">
+      <div class="yt-name" id="yt-name"></div>
+      <button class="yt-close" id="yt-close" aria-label="Fermer">&#10005;</button>
+    </div>
+    <div class="yt-frame" id="yt-slot"></div>
+    <button class="yt-fb" id="yt-fallback"></button>
+  </div>
+</div>
+
 </body>
 </html>
