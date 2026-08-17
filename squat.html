@@ -565,6 +565,12 @@ const t=k=>{const e=I18N[k];return e?(e[LANG]||e.fr):k;};
 
 /* ───────── DOM ───────── */
 const $=s=>document.querySelector(s);
+/* Les phrases de correction viennent de la base et sont ecrites par le coach :
+   elles passent donc par innerHTML et doivent etre echappees. Cette fonction
+   existait dans app.html, pas ici — j'ai recopie l'idiome sans la fonction, et
+   chaque fin de rep levait « Can't find variable: esc », ce qui tuait le
+   comptage ET la boucle video. */
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const video=$('#cam'), canvas=$('#overlay'), stage=$('#stage'), splash=$('#splash');
 const pill=$('#pill'), pillTxt=$('#pill-txt'), chip=$('#chip'), spdChip=$('#spd');
 const bStart=$('#b-start'), bFlip=$('#b-flip'), bReset=$('#b-reset');
@@ -1034,7 +1040,11 @@ function handle(lm,w,ts){
 
   if(S.mode==='ready'){
     if(PRO)vbtCalib(lm,side); // référence debout + échelle, mise à jour en continu
-    if(k>STAND)flexCalib(lm,side); // tronc de référence : debout, jamais en descente
+    /* 160 deg, ce n'est pas « debout » : le genou est deja legerement flechi
+       et le femur commence a tourner. La reference se prenait donc dans une
+       position variable, d'ou des ecarts negatifs (« flex: -10,7 % »).
+       On exige une jambe franchement tendue. */
+    if(k>168)flexCalib(lm,side); // tronc de référence : debout, jamais en descente
     setStatus(viewOf(lm,side)==='mixed'?'st_view':'st_ready'); // coaching placement en direct
     if(k<DOWN_TRIG){
       S.mode='down';
@@ -1123,13 +1133,19 @@ function finishRep(r,mcv){
   if(r.minKnee<bestDepth)bestDepth=r.minKnee;
   /* Le bandeau live part sur la rep qu'on vient de terminer, pas sur la
      derniere de la liste : le coach doit voir ce qu'il vient de regarder. */
-  { const last=reps[reps.length-1];
+  /* Tout ce qui suit est de l'AFFICHAGE. Une erreur ici ne doit jamais
+     empecher de compter une rep ni arreter la camera — c'est exactement ce
+     qui vient de se produire : un `esc` manquant dans le bandeau a fait
+     tomber le compteur a zero et fige l'image. Le calcul est deja fait et
+     stocke plus haut ; le reste est decoratif. */
+  try{
+    const last=reps[reps.length-1];
     const c=cueForRep(last);
-    liveCue(reps.length, c?cueText(c):null, !c); }
-  parallel?sndGood():sndBad();
-  buzz(parallel?'ok':'no');
-  if(PRO)vbtOnRep(mcv);
-  renderReps();updateSummary();
+    liveCue(reps.length, c?cueText(c):null, !c);
+  }catch(e){ try{ console.warn('cue',e); }catch(_){} }
+  try{ parallel?sndGood():sndBad(); buzz(parallel?'ok':'no'); }catch(_){}
+  try{ if(PRO)vbtOnRep(mcv); }catch(_){}
+  try{ renderReps();updateSummary(); }catch(e){ try{ console.warn('render',e); }catch(_){} }
 }
 
 /* ───────── Results UI ───────── */
