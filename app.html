@@ -5330,22 +5330,72 @@ document.addEventListener('click',(e)=>{
 });
 
 /* D#25 — quel écran d'analyse correspond à cet exercice ?
-   L'ordre des tests n'est pas arbitraire : « jump-squat » contient a la fois
-   « jump » et « squat », et c'est un mouvement pliometrique — le saut doit
-   donc etre teste AVANT le squat, sinon on enverrait le membre sur le mauvais
-   analyseur. Meme logique pour le sprint, teste en premier. */
+
+   PAS de detection par mot-cle. On a essaye, ca donne n'importe quoi :
+   « squat clean » contient « squat » mais c'est de l'halterophilie, pas un
+   squat ; « skin the cat » contient « ski » ; « jump rope » contient « jump ».
+   Un membre qui clique « Filmer cette serie » sur un clean et qui atterrit
+   sur l'analyse du squat perd confiance dans tout le reste de l'app.
+
+   Donc : liste explicite, mouvement par mouvement, et rien d'autre. Chaque
+   analyseur ne sait mesurer que ce pour quoi il a ete ecrit —
+     squat.html  : squat bilateral (profondeur, genoux, dos)
+     saut.html   : detente verticale / horizontale
+     course.html : sprint et course
+     barre.html  : trajectoire de barre — arrache, epaule, jete UNIQUEMENT
+     hyrox.html  : wall ball (seul mouvement filme de la page Hyrox)
+   Un mouvement absent de ces listes n'affiche simplement pas le bouton.
+   Mieux vaut pas de bouton qu'un bouton qui ment.
+
+   Pour ajouter un mouvement : verifier d'abord que l'analyseur le mesure
+   vraiment, puis ajouter son slug ici. */
+const AN_BY_SLUG = (()=>{
+  const m = Object.create(null);
+  const add = (page, k, slugs) => slugs.forEach(s => { m[s] = {page, k}; });
+
+  add('squat.html', 'an_squat', [
+    'back-squat','front-squat','box-squat','pin-squat','paused-back-squat',
+    'tempo-back-squat','overhead-squat','goblet-squat','air-squat',
+    'db-front-squat','db-overhead-squat','sandbag-squat','zercher-squat'
+  ]);
+  add('saut.html', 'an_jump', [
+    'box-jump','broad-jump','depth-jump','tuck-jump','pogo-jump','pogo-hops',
+    'jump-squat','jump-lunge'
+  ]);
+  /* Pas de shuttle ni de lateral-shuffle : l'analyseur lit une foulee en
+     ligne droite, un changement de direction le met en defaut. */
+  add('course.html', 'an_run', [
+    'sprint-40m','accel-sprint-20m','strides','run','zone2-run'
+  ]);
+  /* barre.html suit la barre : uniquement les mouvements olympiques a la
+     barre. Ni souleve de terre, ni developpe couche, ni rowing — l'analyseur
+     n'a pas ete calibre pour eux. */
+  /* barre.html sait mesurer trois trajectoires differentes. On lui dit
+     laquelle, sinon il garde le dernier mouvement choisi et le membre voit
+     « Snatch » alors qu'il vient de filmer une epaulee. */
+  const bar = (mv, slugs) => slugs.forEach(s => {
+    m[s] = {page:'barre.html?mv='+mv, k:'an_bar'};
+  });
+  bar('snatch', [
+    'snatch','power-snatch','hang-snatch','hang-power-snatch','muscle-snatch',
+    'split-snatch','snatch-balance','snatch-pull','snatch-high-pull'
+  ]);
+  bar('clean', [
+    'squat-clean','power-clean','hang-clean','hang-power-clean',
+    'clean-pull','clean-high-pull'
+  ]);
+  /* clean & jerk et hang clean + push jerk : deux mouvements en un. On ouvre
+     sur le jete, c'est la partie ou la trajectoire pardonne le moins. */
+  bar('jerk', [
+    'push-jerk','power-jerk','split-jerk','jerk-dip-drive',
+    'clean-jerk','hang-clean-push-jerk'
+  ]);
+  add('hyrox.html', 'an_hyrox', ['wall-ball']);
+  return m;
+})();
 function analysisFor(ex){
   if(!ex) return null;
-  const s=(ex.slug||'').toLowerCase();
-  const c=(ex.category||'').toLowerCase();
-  const eq=(ex.equipment||'').toLowerCase();
-  if(c==='sprint' || /(^|-)(sprint|run)(-|$)/.test(s)) return {page:'course.html', k:'an_run'};
-  if(c==='plyometric' || /jump/.test(s))               return {page:'saut.html',   k:'an_jump'};
-  if(/squat/.test(s))                                  return {page:'squat.html',  k:'an_squat'};
-  if(eq==='barbell' && (c==='strength'||c==='olympic'||c==='hypertrophy'))
-                                                       return {page:'barre.html',  k:'an_bar'};
-  if(/wall.?ball|sled|burpee|row(er)?|ski/.test(s))     return {page:'hyrox.html',  k:'an_hyrox'};
-  return null;
+  return AN_BY_SLUG[(ex.slug||'').toLowerCase()] || null;
 }
 
 const ACT_HIDE_KEY='cdm_activation_hidden_v1';

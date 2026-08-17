@@ -623,7 +623,14 @@ function proUI(){
    clean, au-dessus du nez pour snatch/jerk) et revient à la base. */
 const WARMUP_FRAMES=15, MIN_REP_MS=600, TRAIL_MAX=260, DEV_WARN_CM=15;
 const MV_REQ={snatch:2,clean:1,jerk:2}; /* 1=épaules, 2=overhead */
-let MV=localStorage.getItem('cdm_mv')||'snatch'; if(!MV_REQ[MV])MV='snatch';
+/* Le mouvement peut arriver depuis la seance : « Filmer cette serie » sur un
+   squat clean ouvre ?mv=clean. Sans ca on tombait sur le dernier mouvement
+   choisi — un membre qui filme une epaulee et voit « Snatch » selectionne ne
+   comprend pas ce qu'il regarde. Le parametre gagne sur la memoire locale. */
+const MV_URL=(new URLSearchParams(location.search).get('mv')||'').toLowerCase();
+let MV = MV_REQ[MV_URL] ? MV_URL : (localStorage.getItem('cdm_mv')||'snatch');
+if(!MV_REQ[MV]) MV='snatch';
+if(MV_REQ[MV_URL]){ try{ localStorage.setItem('cdm_mv',MV); }catch(_){} }
 const S={mode:'idle',rep:null,lastGoodTs:0,good:0,by:null,bx:null,pv:null,pt:null,vel:0};
 let reps=[],bestPeak=null,bestDev=null,lastPath=null;
 
