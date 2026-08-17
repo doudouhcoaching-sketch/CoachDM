@@ -143,6 +143,25 @@
   .b-mut{color:var(--muted)}
   .b-spd{color:var(--neon);border-color:rgba(0,255,163,.4)}
   .empty{color:var(--muted);font-size:13px}
+  /* Bandeau live : en bas de l'image, sur toute la largeur, gros et contraste.
+     17 px gras sur fond opaque se lit a un bras de distance ; c'est la
+     contrainte reelle du coach en salle, pas l'esthetique. */
+  .livecue{position:absolute;left:8px;right:8px;bottom:8px;z-index:3;
+    background:rgba(8,8,8,.92);border-left:4px solid var(--gold);border-radius:12px;
+    padding:11px 13px;color:#F6E7B4;font-size:17px;font-weight:800;line-height:1.32;
+    letter-spacing:-.01em;pointer-events:none;
+    animation:cuein .18s ease-out}
+  .livecue.ok{border-left-color:var(--neon);color:#B9FFE2;font-size:15px}
+  .livecue b{color:var(--gold);font-weight:900}
+  .livecue.ok b{color:var(--neon)}
+  @keyframes cuein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  /* Assez pour etre lu d'un coup d'oeil pendant la serie, pas assez pour
+     manger l'ecran : une ligne, coupee proprement si elle deborde. */
+  .cue{flex-basis:100%;margin-top:7px;padding:8px 10px;border-radius:10px;
+    background:rgba(212,175,55,.10);border-left:3px solid var(--gold);
+    color:#E8D9A0;font-size:12.5px;font-weight:600;line-height:1.45}
+  .cue-fix{display:inline-block;margin-left:4px;color:var(--gold);font-weight:800;
+    text-decoration:underline;white-space:nowrap}
   .pro-note{margin-top:12px;font-size:12px;font-weight:700;color:var(--gold);display:flex;align-items:center;gap:7px}
   #day-card{border:1px solid rgba(212,175,55,.45);background:linear-gradient(180deg,rgba(212,175,55,.10),rgba(212,175,55,.03))}
   #day-card h3{color:var(--gold)}
@@ -205,6 +224,11 @@
   <div class="hud"><span class="pill" id="pill"><span class="dot"></span><span id="pill-txt"></span></span></div>
   <div class="speed-chip" id="spd" hidden><small>m/s</small><span id="spd-val">—</span></div>
   <div class="angle-chip" id="chip" hidden><small id="chip-lbl"></small><span id="chip-val">—</span></div>
+  <!-- Bandeau de coaching. Le coach tient le telephone (ou il est sur trepied
+       a 2-4 m) et lit la phrase a voix haute pendant que l'athlete travaille.
+       Il doit donc etre lisible sans se pencher, et rester assez longtemps
+       pour etre lu ET dit. -->
+  <div class="livecue" id="livecue" hidden></div>
   <div class="dbg" id="cdm-dbg" hidden></div>
   <div class="splash" id="splash">
     <svg class="squatter" viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><path d="M12 6.5v3.5M12 10l-3.5 3 .5 4M12 10l3.5 3-.5 4M7 9.5l5 .5 5-.5"/><path d="M4 21h16" stroke-dasharray="2 3"/></svg>
@@ -445,6 +469,7 @@ const I18N = {
   b_high:{fr:'Pas cassée ✗',en:'Not below ✗',nl:'Niet onder ✗'},
   b_torso:{fr:'Buste penché',en:'Torso lean',nl:'Rompheling'},
   b_torso_w:{fr:'⚠ Buste très penché',en:'⚠ Excessive lean',nl:'⚠ Sterk voorovergebogen'},
+  cue_clean:{fr:'Propre — rien à corriger',en:'Clean — nothing to fix',nl:'Zuiver — niets te corrigeren'},
   b_flex_ok:{fr:'Dos gainé ✓',en:'Back braced ✓',nl:'Rug gespannen ✓'},
   b_flex_m:{fr:'⚠ Dos qui s’arrondit',en:'⚠ Back starting to round',nl:'⚠ Rug begint te ronden'},
   b_flex_w:{fr:'⚠ Dos rond',en:'⚠ Rounded back',nl:'⚠ Ronde rug'},
@@ -547,6 +572,56 @@ const inVH=$('#in-vh'), inVL=$('#in-vl');
 const ctx=canvas.getContext('2d');
 let du=null;
 let SB=null,UIDG=null;
+
+/* ── Phrases de correction ────────────────────────────────────────────────
+   Les defauts sont deja detectes rep par rep. Ce qui manquait, c'est de dire
+   QUOI FAIRE. Les phrases vivent en base pour que le coach les reecrive dans
+   ses mots sans attendre un redeploiement.
+
+   Regle : UNE phrase par rep, celle de plus faible « priority ». Le dos passe
+   avant tout le reste parce que c'est le seul defaut qui blesse sous charge,
+   et parce que regler le gainage corrige souvent la profondeur dans la
+   foulee. Une rep qui reproche quatre choses n'est lue par personne. */
+let CUES={};   /* fault -> {cue, fix:{slug,name}, priority} */
+async function cuesLoad(sbClient){
+  try{
+    const { data } = await sbClient.from('analysis_cues')
+      .select('fault,priority,cue_fr,cue_en,cue_nl,fix:exercises(slug,name_fr,name_en,name_nl)')
+      .eq('page','squat').eq('active',true).order('priority',{ascending:true});
+    const m={};
+    (data||[]).forEach(r=>{ m[r.fault]={priority:r.priority, cue:r['cue_'+LANG]||r.cue_fr, fix:r.fix||null}; });
+    CUES=m;
+    renderReps(); /* les reps deja faites recuperent leur phrase */
+  }catch(_){ CUES={}; }
+}
+/* Affichage live pour le coach en salle. 7 secondes : le temps de lire la
+   phrase ET de la dire. Une rep suivante remplace immediatement — on ne veut
+   jamais que le coach lise un conseil qui ne correspond plus a ce qu'il voit. */
+let CUE_T=0;
+function liveCue(n,cue,ok){
+  const el=document.getElementById('livecue'); if(!el) return;
+  clearTimeout(CUE_T);
+  if(!cue && !ok){ el.hidden=true; return; }
+  el.className='livecue'+(ok?' ok':'');
+  el.innerHTML = ok ? `<b>#${n}</b> ${t('cue_clean')}` : `<b>#${n}</b> ${esc(cue)}`;
+  el.hidden=false;
+  /* Une rep propre disparait vite, un defaut reste : ce n'est pas la meme
+     information et elle n'a pas la meme duree de vie utile. */
+  CUE_T=setTimeout(()=>{ el.hidden=true; }, ok?2500:7000);
+}
+/* Quel defaut retenir pour cette rep ? Le plus prioritaire present. */
+function cueForRep(r){
+  const faults=[];
+  if(r.flexWarn) faults.push('flex_w');
+  else if(r.flexMild) faults.push('flex_m');
+  if(r.valgus) faults.push('valgus');
+  if(!r.parallel) faults.push('depth');
+  if(r.torsoWarn) faults.push('torso');
+  let best=null;
+  faults.forEach(f=>{ const c=CUES[f];
+    if(c && (!best || c.priority<best.priority)) best=c; });
+  return best;
+}
 
 /* ───────── Accès (freemium) ─────────
    Gratuit pour tous : compteur de reps + parallèle + profondeur.
@@ -1040,6 +1115,11 @@ function finishRep(r,mcv){
     mcv:mcv!=null?+mcv.toFixed(3):null
   });
   if(r.minKnee<bestDepth)bestDepth=r.minKnee;
+  /* Le bandeau live part sur la rep qu'on vient de terminer, pas sur la
+     derniere de la liste : le coach doit voir ce qu'il vient de regarder. */
+  { const last=reps[reps.length-1];
+    const c=cueForRep(last);
+    liveCue(reps.length, c?c.cue:null, !c); }
   parallel?sndGood():sndBad();
   buzz(parallel?'ok':'no');
   if(PRO)vbtOnRep(mcv);
@@ -1077,7 +1157,13 @@ function renderReps(){
       if(r.view!=='side')badges.push(`<span class="badge ${r.valgus?'b-no':'b-ok'}">${t(r.valgus?'b_valgus':'b_knees_ok')}</span>`);
       if(r.mcv!=null)badges.push(`<span class="badge b-spd">${r.mcv.toFixed(2)} m/s</span>`);
     }
-    li.innerHTML=`<span class="n">#${reps.length-i}</span>${badges.join('')}`;
+    /* La phrase passe sous les badges : les badges disent CE QUI ne va pas,
+       la phrase dit QUOI FAIRE. Une ligne, pas deux. */
+    const cue=cueForRep(r);
+    const cueEl = cue ? `<div class="cue">${esc(cue.cue)}${
+        cue.fix ? ` <a class="cue-fix" href="../app.html#ex/${esc(cue.fix.slug)}">→ ${esc(cue.fix['name_'+LANG]||cue.fix.name_fr)}</a>` : ''
+      }</div>` : '';
+    li.innerHTML=`<span class="n">#${reps.length-i}</span>${badges.join('')}${cueEl}`;
     ul.appendChild(li);
   });
 }
@@ -1633,6 +1719,9 @@ bRec.onclick=()=>{RECST.on?recStop():recStart();};
 import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient})=>{
   const sbClient=createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
   SB=sbClient;
+  /* Les phrases se chargent sans attendre la session : elles sont publiques,
+     et un coach qui filme un prospect non connecte doit les avoir aussi. */
+  cuesLoad(sbClient);
   let UID=null;
   sbClient.auth.getSession().then(async({data})=>{
     UID=data?.session?.user?.id||null;
