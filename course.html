@@ -176,6 +176,37 @@
   .mvseg button{flex:1;padding:10px 4px;border-radius:13px;font-size:13.5px;font-weight:800;letter-spacing:.02em;background:rgba(255,255,255,.05);color:var(--muted);border:1px solid rgba(255,255,255,.09)}
   .mvseg button.on{background:linear-gradient(135deg,rgba(212,175,55,.22),rgba(212,175,55,.10));color:var(--gold);border-color:rgba(212,175,55,.55)}
   @media (prefers-reduced-motion:reduce){.stage{transition:none}.btn{transition:none}.vbar i{transition:none}}
+
+  /* ── Conseils de correction (moteur commun aux 5 analyses) ── */
+  .cue{flex-basis:100%;margin-top:7px;padding:8px 10px;border-radius:10px;
+    background:rgba(212,175,55,.10);border-left:3px solid var(--gold);
+    color:#E8D9A0;font-size:12.5px;font-weight:600;line-height:1.45}
+  .cue-fix{display:inline-block;margin-left:4px;color:var(--gold);font-weight:800;
+    text-decoration:underline;white-space:nowrap;cursor:pointer;background:none;border:0;
+    font-family:inherit;font-size:inherit;padding:0}
+  .livecue{position:absolute;left:8px;right:8px;bottom:8px;z-index:3;
+    background:rgba(8,8,8,.92);border-left:4px solid var(--gold);border-radius:12px;
+    padding:11px 13px;color:#F6E7B4;font-size:17px;font-weight:800;line-height:1.32;
+    letter-spacing:-.01em;pointer-events:none;animation:cuein .18s ease-out}
+  .livecue.ok{border-left-color:var(--neon);color:#B9FFE2;font-size:15px}
+  .livecue b{color:var(--gold);font-weight:900}
+  .livecue.ok b{color:var(--neon)}
+  @keyframes cuein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .yt-ov{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.92);display:none;
+    align-items:center;justify-content:center;padding:16px}
+  .yt-ov.show{display:flex}
+  .yt-box{width:100%;max-width:520px}
+  .yt-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .yt-name{font-size:14px;font-weight:700;color:#fff;min-width:0;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .yt-close{flex:0 0 36px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.25);
+    background:rgba(255,255,255,.08);color:#fff;font-size:16px;display:grid;place-items:center}
+  .yt-frame{position:relative;width:100%;padding-top:56.25%;border-radius:14px;overflow:hidden;
+    background:#000;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+  .yt-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .yt-fb{display:none;width:100%;margin-top:10px;padding:12px 14px;border-radius:12px;
+    background:var(--surface2);border:1px solid var(--line);color:var(--txt);
+    font-size:13.5px;font-weight:600;text-align:center}
 </style>
 </head>
 <body>
@@ -197,6 +228,7 @@
   <div class="hud"><span class="pill" id="pill"><span class="dot"></span><span id="pill-txt"></span></span></div>
   <div class="speed-chip" id="spd" hidden><small>m/s</small><span id="spd-val">—</span></div>
   <div class="angle-chip" id="chip" hidden><small id="chip-lbl"></small><span id="chip-val">—</span></div>
+  <div class="livecue" id="livecue" hidden></div>
   <div class="dbg" id="cdm-dbg" hidden></div>
   <div class="splash" id="splash">
     <svg class="squatter" viewBox="0 0 24 24"><circle cx="13.5" cy="4.5" r="2"/><path d="M13 7l-2.5 4.5L7 13M10.5 11.5l2 3-1.5 5M12.5 14.5l3.5 1.5 2 4M13 7l4 1.5 2.5 3"/></svg>
@@ -304,6 +336,9 @@ import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdel
 
 /* ───────── i18n ───────── */
 const I18N = {
+
+  cue_clean:{fr:'Propre — rien à corriger',en:'Clean — nothing to fix',nl:'Zuiver — niets te corrigeren'},
+  yt_fb:{fr:'La vidéo ne démarre pas ? Ouvrir le lecteur',en:'Video not playing? Open the player',nl:'Video start niet? Open de speler'},
   subline:{fr:'Analyse Course — cadence gratuite · Technique en Pro',en:'Running Analysis — free cadence · Technique in Pro',nl:'Loopanalyse — gratis cadans · Techniek in Pro'},
   splash:{fr:'Idéal sur tapis : téléphone stable à 3–5 m, DE PROFIL (90°), corps entier dans le cadre. Cours, tout se mesure en direct.',en:'Best on a treadmill: stable phone at 3–5 m, SIDE-ON (90°), full body in frame. Run — everything is measured live.',nl:'Ideaal op de loopband: stabiele telefoon op 3–5 m, ZIJWAARTS (90°), hele lichaam in beeld. Loop — alles wordt live gemeten.'},
   start:{fr:'Lancer la caméra',en:'Start camera',nl:'Camera starten'},
@@ -413,6 +448,102 @@ const t=k=>{const e=I18N[k];return e?(e[LANG]||e.fr):k;};
 
 /* ───────── DOM ───────── */
 const $=s=>document.querySelector(s);
+/* Les phrases viennent de la base et sont ecrites par le coach : elles passent
+   par innerHTML et doivent etre echappees. */
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ── Moteur de conseils, commun aux 5 analyses ────────────────────────────
+   Les defauts sont deja detectes par chaque page ; ce moteur ne fait que
+   dire QUOI FAIRE. Une seule phrase par rep, celle de plus faible priority :
+   une rep qui reproche quatre choses n'est lue par personne.
+   Les trois langues sont conservees et choisies A L'AFFICHAGE, jamais au
+   chargement — sinon un changement de langue en cours de seance laisserait
+   les conseils dans l'ancienne. */
+const CUE_PAGE='course';
+let CUES={};
+const cueText = c => (c && (c[LANG] || c.fr)) || '';
+const fixName = f => (f && (f['name_'+LANG] || f.name_fr)) || '';
+async function cuesLoad(sbClient){
+  try{
+    const { data } = await sbClient.from('analysis_cues')
+      .select('fault,priority,cue_fr,cue_en,cue_nl,fix:exercises(slug,name_fr,name_en,name_nl,video_url,youtube_query)')
+      .eq('page',CUE_PAGE).eq('active',true).order('priority',{ascending:true});
+    const m={};
+    (data||[]).forEach(r=>{ m[r.fault]={priority:r.priority,fr:r.cue_fr,en:r.cue_en,nl:r.cue_nl,fix:r.fix||null}; });
+    CUES=m;
+    try{ renderSplits(); }catch(_){}
+  }catch(_){ CUES={}; }
+}
+function cuePick(faults){
+  let best=null;
+  (faults||[]).forEach(f=>{ const c=CUES[f];
+    if(c && (!best || c.priority<best.priority)) best=c; });
+  return best;
+}
+function cueHtml(cue){
+  if(!cue) return '';
+  const url=cue.fix?exDemoUrl(cue.fix):null;
+  return `<div class="cue">${esc(cueText(cue))}${
+    url ? ` <button type="button" class="cue-fix" data-fix="${esc(url)}" data-fix-name="${esc(fixName(cue.fix))}">&#9654; ${esc(fixName(cue.fix))}</button>` : ''
+  }</div>`;
+}
+
+/* ── Lecteur video : la demo ne doit jamais faire quitter l'analyse ── */
+const YT_PLAYER='https://coachdm.be/player.html';
+function ytId(u){ if(!u) return null; const m=String(u).match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/); return m?m[1]:null; }
+function exDemoUrl(ex){
+  if(!ex) return null;
+  if(ex.video_url) return ex.video_url;
+  if(ex.youtube_query) return 'https://www.youtube.com/results?search_query='+encodeURIComponent(ex.youtube_query);
+  return null;
+}
+async function ytExternal(url){
+  try{ const P=window.Capacitor&&window.Capacitor.Plugins;
+    if(P&&P.Browser){ await P.Browser.open({url, presentationStyle:'popover'}); return; } }catch(_){}
+  window.open(url,'_blank','noopener');
+}
+function ytOpen(url,name){
+  const id=ytId(url);
+  if(!id){ if(url) ytExternal(url); return; }
+  const ov=document.getElementById('yt-ov'), slot=document.getElementById('yt-slot');
+  if(!ov||!slot) return;
+  const nm=document.getElementById('yt-name'); if(nm) nm.textContent=name||'';
+  slot.innerHTML='<iframe src="'+YT_PLAYER+'?v='+encodeURIComponent(id)+'" title="'+String(name||'').replace(/"/g,'')+'"'
+    +' referrerpolicy="strict-origin-when-cross-origin"'
+    +' allow="autoplay; encrypted-media; picture-in-picture; fullscreen"'
+    +' allowfullscreen webkitallowfullscreen playsinline></iframe>';
+  const fb=document.getElementById('yt-fallback');
+  if(fb){ fb.textContent=t('yt_fb'); fb.style.display='block';
+          fb.onclick=()=>ytExternal(YT_PLAYER+'?v='+encodeURIComponent(id)); }
+  ov.classList.add('show');
+}
+function ytClose(){
+  const ov=document.getElementById('yt-ov'); if(!ov) return;
+  ov.classList.remove('show');
+  /* Vider l'iframe coupe le son, sinon la video tourne derriere l'analyse. */
+  const slot=document.getElementById('yt-slot'); if(slot) slot.innerHTML='';
+  const fb=document.getElementById('yt-fallback'); if(fb){ fb.style.display='none'; fb.onclick=null; }
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest && (e.target.closest('#yt-close') || e.target.id==='yt-ov')) ytClose();
+  const b=e.target.closest && e.target.closest('[data-fix]');
+  if(b){ e.preventDefault(); ytOpen(b.dataset.fix, b.dataset.fixName||''); }
+});
+
+/* ── Bandeau live : le coach tient le telephone et lit a voix haute. ── */
+let CUE_T=0;
+function liveCue(n,cue,ok){
+  const el=document.getElementById('livecue'); if(!el) return;
+  clearTimeout(CUE_T);
+  if(!cue && !ok){ el.hidden=true; return; }
+  el.className='livecue'+(ok?' ok':'');
+  const tag=(n==null||n==='\u2014')?'':`<b>#${n}</b> `;
+  el.innerHTML = ok ? `${tag}${t('cue_clean')}` : `${tag}${esc(cue)}`;
+  el.hidden=false;
+  /* Un defaut reste 7 s — le temps de lire ET de dire. Une rep propre part
+     vite : ce n'est pas la meme information ni la meme duree de vie utile. */
+  CUE_T=setTimeout(()=>{ el.hidden=true; }, ok?2500:7000);
+}
 const video=$('#cam'), canvas=$('#overlay'), stage=$('#stage'), splash=$('#splash');
 const pill=$('#pill'), pillTxt=$('#pill-txt'), chip=$('#chip'), spdChip=$('#spd');
 const bStart=$('#b-start'), bFlip=$('#b-flip'), bReset=$('#b-reset');
@@ -741,6 +872,13 @@ function handle(lm,w,ts){
     const leanAvg=splitLean.length?splitLean.reduce((a,b)=>a+b,0)/splitLean.length:null;
     const oscAvg=splitOsc.length?splitOsc.reduce((a,b)=>a+b,0)/splitOsc.length:null;
     SPLITS.push({min:mins,cad:cadAvg,lean:leanAvg,osc:oscAvg});
+    /* La cadence est la seule mesure de cette page qui a une cible admise
+       (170-180 pas/min). Le reste attend une detection. */
+    try{
+      const f=[]; if(cadAvg && cadAvg<165) f.push('cadence_low');
+      const c=cuePick(f);
+      liveCue(mins, c?cueText(c):null, !c);
+    }catch(_){}
     splitT0=ts;splitSteps=0;splitLean=[];splitOsc=[];
     renderSplits();
   }
@@ -778,7 +916,8 @@ function renderSplits(){
       if(sp.lean!=null)badges.push(`<span class="badge b-mut">${t('vbt_lean')} ${sp.lean.toFixed(0)}°</span>`);
       if(sp.osc!=null)badges.push(`<span class="badge b-mut">${t('vbt_osc')} ${sp.osc.toFixed(1)} cm</span>`);
     }
-    li.innerHTML=`<span class="n">${t('split_min')} ${sp.min}</span>${badges.join('')}`;
+    const c=cuePick((sp.cad&&sp.cad<165)?['cadence_low']:[]);
+    li.innerHTML=`<span class="n">${t('split_min')} ${sp.min}</span>${badges.join('')}${cueHtml(c)}`;
     ul.appendChild(li);
   });
 }
@@ -1322,6 +1461,7 @@ bRec.onclick=()=>{RECST.on?recStop():recStart();};
 import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient})=>{
   const sbClient=createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
   SB=sbClient;
+  cuesLoad(sbClient); /* phrases publiques : pas besoin d'attendre la session */
   let UID=null;
   sbClient.auth.getSession().then(async({data})=>{
     UID=data?.session?.user?.id||null;
@@ -1367,5 +1507,16 @@ proUI();
 loadLogo();
 try{document.fonts.load('800 300px Outfit');document.fonts.load('700 44px Outfit');document.fonts.load('700 40px Outfit');}catch(_){}
 </script>
+<div class="yt-ov" id="yt-ov">
+  <div class="yt-box">
+    <div class="yt-top">
+      <div class="yt-name" id="yt-name"></div>
+      <button class="yt-close" id="yt-close" aria-label="Fermer">&#10005;</button>
+    </div>
+    <div class="yt-frame" id="yt-slot"></div>
+    <button class="yt-fb" id="yt-fallback"></button>
+  </div>
+</div>
+
 </body>
 </html>
