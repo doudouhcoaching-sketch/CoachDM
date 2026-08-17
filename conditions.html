@@ -339,5 +339,28 @@ footer a{color:var(--gold);text-decoration:none}
   });
 })();
 </script>
+<script>
+/* E#27 — cette page etait la seule sortie sans retour.
+   openLegal() ouvre normalement les mentions legales dans le navigateur in-app
+   Capacitor, d'ou l'on ressort par « Terminer ». Mais si le plugin Browser
+   manque, le repli charge la copie embarquee DANS la webview de l'app : elle
+   remplace l'application, et conditions.html n'offrait alors aucun moyen de
+   revenir. Le membre etait pris au piege, oblige de tuer l'app.
+   aide.html et privacy.html avaient deja ce bouton ; celle-ci avait ete
+   oubliee — et c'est justement celle qu'Apple exige au point d'achat
+   (3.1.2(a)), donc celle qu'un testeur d'App Review peut ouvrir.
+   On ne l'injecte qu'en natif : sur le web, le bouton Retour du navigateur
+   fait le travail. */
+(function(){
+  if(!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())) return;
+  var back=document.createElement('button');
+  back.textContent='‹  Retour';
+  back.setAttribute('style','position:sticky;top:0;z-index:99;display:block;width:100%;'+
+    'border:0;border-bottom:1px solid #2A2A2A;background:#0A0A0A;color:#00FFA3;'+
+    'font:700 15px -apple-system,system-ui,sans-serif;padding:14px 16px;text-align:left;cursor:pointer');
+  back.onclick=function(){ history.back(); };
+  document.body.insertBefore(back, document.body.firstChild);
+})();
+</script>
 </body>
 </html>

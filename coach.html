@@ -745,6 +745,18 @@ const T = {
  m_comp_saved:{fr:'Composition enregistrée',en:'Exercise list saved',nl:'Samenstelling opgeslagen'},
  m_copy_draft:{fr:'Copie créée en brouillon.',en:'Copy created as a draft.',nl:'Kopie aangemaakt als concept.'},
  m_invite_sent:{fr:'Invitation envoyée ✓',en:'Invitation sent ✓',nl:'Uitnodiging verstuurd ✓'},
+ /* ---- Lot A #6 : attente visible cote coach ---- */
+ inv_wait:{fr:'Invitation en attente',en:'Invitation pending',nl:'Uitnodiging in afwachting'},
+ inv_wait_today:{fr:'Invitation envoyée aujourd’hui',en:'Invitation sent today',nl:'Uitnodiging vandaag verstuurd'},
+ inv_wait_one:{fr:'En attente depuis 1 jour',en:'Waiting for 1 day',nl:'1 dag in afwachting'},
+ inv_wait_n:{fr:'En attente depuis {0} jours',en:'Waiting for {0} days',nl:'{0} dagen in afwachting'},
+ inv_resend:{fr:'Renvoyer',en:'Resend',nl:'Opnieuw sturen'},
+ inv_resending:{fr:'Envoi…',en:'Sending…',nl:'Versturen…'},
+ inv_resent:{fr:'Invitation renvoyée ✓',en:'Invitation resent ✓',nl:'Uitnodiging opnieuw verstuurd ✓'},
+ inv_resent_nomail:{fr:'Lien recréé, mais l’email n’est pas parti',en:'Link recreated, but the email did not go out',nl:'Link opnieuw aangemaakt, maar de e-mail is niet verstuurd'},
+ inv_resend_fail:{fr:'Échec du renvoi',en:'Resend failed',nl:'Opnieuw sturen mislukt'},
+ inv_no_email:{fr:'Adresse introuvable',en:'Address not found',nl:'Adres niet gevonden'},
+ inv_quota:{fr:'Quota clients atteint',en:'Client quota reached',nl:'Klantenquota bereikt'},
  m_macros_updated:{fr:'Macros mises à jour',en:'Macros updated',nl:'Macro\'s bijgewerkt'},
  m_plan_saved:{fr:'Plan enregistré',en:'Plan saved',nl:'Plan opgeslagen'},
  m_plan_deleted:{fr:'Plan supprimé',en:'Plan deleted',nl:'Plan verwijderd'},
@@ -1154,11 +1166,13 @@ function renderCap(){
    avaient exactement la meme apparence. */
 function invWaitLabel(c){
   const ref = c.invited_at || c.started_at;
-  if(!ref) return 'Invitation en attente';
+  if(!ref) return tr('inv_wait');
   const d = Math.floor((Date.now()-new Date(ref).getTime())/86400000);
-  if(d <= 0) return 'Invitation envoyée aujourd’hui';
-  if(d === 1) return 'En attente depuis 1 jour';
-  return `En attente depuis ${d} jours`;
+  if(d <= 0) return tr('inv_wait_today');
+  if(d === 1) return tr('inv_wait_one');
+  /* trf et non une interpolation : en neerlandais le nombre passe devant
+     (« 38 dagen in afwachting »), l'ordre des mots n'est pas le meme. */
+  return trf('inv_wait_n', d);
 }
 function complianceDot(c){
   if(c.link_status==='pending'){
@@ -1212,7 +1226,7 @@ function renderClientList(){
       <div class="acts">
         <button class="btn subtle sm" data-open="${c.client_id}">Fiche</button>
         <button class="btn subtle sm" data-chat="${c.client_id}">Messages${isPaid()?'':' 🔒'}</button>
-        ${c.link_status==='pending'?`<button class="btn subtle sm" data-resend="${c.client_id}">Renvoyer</button>`:''}
+        ${c.link_status==='pending'?`<button class="btn subtle sm" data-resend="${c.client_id}">${tr('inv_resend')}</button>`:''}
         ${ROLE==='coach'?`<button class="btn danger sm" data-arch="${c.client_id}">Archiver</button>`:''}
       </div>
     </div>`;
@@ -1244,25 +1258,27 @@ function renderClientList(){
    C'est voulu : ce qui compte est depuis quand la personne n'a pas repondu. */
 async function resendInvite(cid, btn){
   const c = CLIST.find(x=>x.client_id===cid);
-  if(!c || !c.email) return toast('Adresse introuvable');
+  if(!c || !c.email) return toast(tr('inv_no_email'));
   const old = btn.textContent;
-  btn.disabled = true; btn.textContent = 'Envoi…';
+  btn.disabled = true; btn.textContent = tr('inv_resending');
   let data=null, error=null;
   try{
+    /* La langue de l'email suit celle de la console : un coach qui travaille
+       en neerlandais n'envoie pas une invitation en francais. */
     const r = await sb.functions.invoke('coach-invite-client', { body:{
-      full_name: c.full_name || '', email: c.email, phone:'', goal:'', lang:'fr'
+      full_name: c.full_name || '', email: c.email, phone:'', goal:'', lang: LANG
     }});
     data = r.data; error = r.error;
   }catch(e){ error = e; }
   btn.disabled = false; btn.textContent = old;
   if(error || !data || !data.ok){
     const r = data && data.reason;
-    toast(r==='limit_reached' ? 'Quota clients atteint'
+    toast(r==='limit_reached' ? tr('inv_quota')
         : r==='forbidden' ? tr('m_not_allowed')
-        : 'Échec du renvoi');
+        : tr('inv_resend_fail'));
     return;
   }
-  toast(data.emailed ? 'Invitation renvoyée ✓' : 'Lien recréé, mais l’email n’est pas parti');
+  toast(data.emailed ? tr('inv_resent') : tr('inv_resent_nomail'));
   loadClientList();
 }
 async function archiveClient(cid){

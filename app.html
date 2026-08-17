@@ -26,6 +26,7 @@
     --surface:#0E1512; --surface-2:#17201C; --line:rgba(255,255,255,.10);
     --text:#FFFFFF; --muted:#7FAE97;
     --brand:#00FFA3; --brand-2:#00D98A; --brand-soft:rgba(0,255,160,.14);
+    --brand-ink:#00FFA3;   /* en sombre le neon atteint deja 15:1 : rien a corriger */
     /* Or bijou métallique — identité/prestige */
     --gold-hi:#FBF3D0; --gold:#E9C767; --gold-mid:#D4A73C; --gold-deep:#9A6E1B; --bronze:#6E4E12;
     --gold-soft:rgba(212,167,60,.14); --on-gold:#3a2b08; --gold-ink:var(--gold);
@@ -374,8 +375,14 @@
     background:color-mix(in srgb,var(--surface) 86%,transparent);
     backdrop-filter:saturate(160%) blur(20px);-webkit-backdrop-filter:saturate(160%) blur(20px);
     border-top:1px solid var(--line);display:flex;gap:4px;max-width:560px;margin:0 auto}
-  .nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px 7px;
+  .nav button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px 7px;
     border-radius:16px;color:var(--muted);font-size:11px;font-weight:600;transition:color .15s,background .15s}
+  /* C#15 ajoute un 7e onglet. Sur un iPhone SE (320 pt) sept libelles a 11px
+     se chevauchaient ; on resserre au lieu de tronquer, un libelle coupe
+     etant pire qu'un libelle petit. */
+  .nav button span:last-child{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  @media (max-width:400px){ .nav button{font-size:10px;padding:9px 1px 7px} .nav button .ic svg{width:20px;height:20px} }
+  @media (max-width:340px){ .nav button{font-size:9px} }
   .nav button .ic{font-size:21px;line-height:1}
   .nav button.on{color:var(--brand);background:var(--brand-soft)}
   .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(100px + env(safe-area-inset-bottom));
@@ -521,12 +528,21 @@
   .wo-track{flex:1;height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden}
   .wo-track i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--brand),#00d488);transition:width .45s cubic-bezier(.22,1,.36,1)}
   .wo-count{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.4px;white-space:nowrap;font-variant-numeric:tabular-nums}
-  .rest-bar{display:none;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px;border-radius:16px;
+  .rest-bar{display:none;align-items:center;gap:14px;padding:16px 16px;margin-bottom:8px;border-radius:16px;
     background:color-mix(in srgb,#D4AF37 13%,var(--surface));border:1px solid color-mix(in srgb,#D4AF37 42%,transparent);
     backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
   .rest-bar.on{display:flex}
-  .rest-num{font-variant-numeric:tabular-nums;font-size:24px;font-weight:900;color:#E9C767;min-width:58px;line-height:1}
-  .rest-lbl{font-size:9px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+  /* E#29 — « lisible a 2 m ». A 24px, un chrono pose au sol pendant qu'on
+     souffle entre deux series est illisible : on se penche, ou on ne le
+     regarde pas. 46px le rend lisible sans se baisser. Les chiffres sont en
+     tabular-nums pour que la largeur ne saute pas a chaque seconde. */
+  .rest-num{font-variant-numeric:tabular-nums;font-size:46px;font-weight:900;color:#E9C767;min-width:112px;
+    line-height:1;letter-spacing:-.02em;transition:color .2s,transform .2s}
+  /* Les trois dernieres secondes changent de couleur et grossissent : on doit
+     pouvoir anticiper la reprise du coin de l'oeil, sans compter. */
+  .rest-bar.ending .rest-num{color:var(--brand);transform:scale(1.06)}
+  @media (max-width:360px){ .rest-num{font-size:38px;min-width:94px} }
+  .rest-lbl{font-size:11px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
   .rest-track{height:5px;border-radius:99px;background:var(--surface-2);overflow:hidden}
   .rest-track i{display:block;height:100%;width:100%;background:#E9C767;border-radius:99px;transition:width 1s linear}
   .rest-btn{height:38px;min-width:44px;padding:0 12px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;font-weight:800}
@@ -538,7 +554,7 @@
   .wod-bar.warn{background:color-mix(in srgb,#EF4444 14%,var(--surface));border-color:color-mix(in srgb,#EF4444 44%,transparent)}
   .wod-num{font-variant-numeric:tabular-nums;font-size:26px;font-weight:900;color:var(--brand);min-width:76px;line-height:1}
   .wod-bar.warn .wod-num{color:#EF4444}
-  .wod-sub{font-size:9px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+  .wod-sub{font-size:11px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
   .wod-round{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
   .wod-btn{height:38px;padding:0 14px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;font-weight:800}
   .wod-btn:active{transform:scale(.95)}
@@ -553,7 +569,7 @@
   .sum-stats{display:flex;gap:10px;margin:14px 0 18px}
   .sum-stat{flex:1;padding:14px 6px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line)}
   .sum-stat b{display:block;font-size:22px;font-weight:900;color:var(--brand);font-variant-numeric:tabular-nums}
-  .sum-stat span{font-size:9px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+  .sum-stat span{font-size:10.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
   @media (prefers-reduced-motion:reduce){.pill.done{animation:none}.wo-track i,.rest-track i{transition:none}}
   .shop-free{background:color-mix(in srgb,var(--fiber) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--fiber) 36%,transparent);border-radius:var(--radius);padding:16px;margin-bottom:14px}
   .shop-note{font-size:12.5px;color:var(--muted);line-height:1.45;margin:0 2px 6px}
@@ -699,6 +715,13 @@
     --surface:#FFFFFF; --surface-2:#EEF3F0; --line:rgba(12,32,24,.10);
     --text:#0A1512; --muted:#5A7A6B;
     --brand:#00A870; --brand-2:#008F5E; --brand-soft:rgba(0,168,112,.12);
+    /* E#31 — --brand (#00A870) ne donne que 2,74:1 sur --surface-2 : tout
+       petit texte vert etait sous le seuil WCAG AA en theme clair, donc
+       difficilement lisible en plein jour. --brand-ink est la variante
+       reservee au TEXTE : 4,86:1 sur le fond clair le plus sombre, 5,46:1
+       sur blanc. --brand reste inchangee pour les fonds, bordures et
+       icones, ou le seuil est de 3:1 et ou l'identite visuelle compte. */
+    --brand-ink:#00794F;
     --go:#00A870;
     --gold-ink:#9A6E1B; --gold-soft:rgba(212,167,60,.18);
     --shadow:0 14px 34px rgba(18,44,32,.10);
@@ -1189,6 +1212,10 @@
          Cette carte traduit ses cibles en une phrase qu'il peut repeter, dit
          quelle ligne est prioritaire selon son objectif, et lui donne l'action
          suivante — noter un repas — au lieu de le laisser devant un tableau. -->
+    <!-- D#21 : « Par ou je commence ? ». Placee tout en haut de l'accueil et
+         retiree d'elle-meme des que les quatre etapes sont faites — un
+         tutoriel qui reste apres coup devient du bruit. -->
+    <div id="activation"></div>
     <div id="goal-plain"></div>
     <div class="block coach-card hidden" id="coach-today">
       <div class="ct-head"><span class="ct-badge" data-i18n="ct_badge">Coach du jour</span></div>
@@ -1202,6 +1229,11 @@
 
     <div id="wod"></div>
     <div id="myplan"></div>
+    <!-- C#16 : les cours reserves n'apparaissaient que dans leur onglet. Un
+         membre qui ouvre l'app le matin ne pensait pas a aller verifier s'il
+         avait cours le soir. Cette carte ne s'affiche que s'il a reellement
+         quelque chose de reserve a venir — sinon elle reste vide. -->
+    <div id="home-cours"></div>
     <div class="coach-hub" id="coach-hub">
       <div id="coach-card"></div>
       <div id="calls-card"></div>
@@ -1309,11 +1341,36 @@
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.6 9.2a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.8-.9 1.4v.5"/><path d="M12 17h.01"/></svg>
         <span data-i18n="lex_open">Comment lire ta séance</span>
       </button>
-      <div id="go-section"></div>
-      <div id="analyse-section"></div>
+      <!-- C#19 : l'onglet melangeait objectifs et catalogue sans hierarchie.
+           Trois blocs nommes, dans l'ordre ou on s'en sert : ce que je fais
+           aujourd'hui, ou j'en suis, et seulement ensuite le catalogue.
+           #se-top regroupe les deux premiers pour qu'ils disparaissent d'un
+           bloc quand on ouvre le detail d'un programme. -->
+      <div id="se-top">
+        <div class="se-bh" data-i18n="se_b1">Ma séance du jour</div>
+        <div id="se-wod"></div>
+        <div class="se-bh" data-i18n="se_b2">Mes cycles &amp; objectifs</div>
+        <div id="go-section"></div>
+        <div class="se-bh" id="se-bh-prog" data-i18n="se_b3">Choisir un programme</div>
+        <!-- D#23 : pour qui ne sait pas lequel prendre — c'est-à-dire 96 % -->
+        <button type="button" class="quiz-btn" id="quiz-open">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 9a2.5 2.5 0 1 1 3.3 2.4c-.7.2-1.05.85-1.05 1.5v.6"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="9.5"/></svg>
+          <span data-i18n="quiz_cta">Trouve-moi un programme</span>
+        </button>
+      </div>
       <div id="se-cards"><div class="spin"></div></div>
     </div>
     <div id="se-detail" class="hidden"></div>
+  </div>
+
+  <!-- ANALYSE (C#15) : l'analyse video etait enfouie dans l'onglet Seances,
+       sous les programmes. C'est pourtant la fonction la plus distinctive de
+       l'app — celle qu'aucun concurrent n'a — et personne ne la trouvait.
+       Elle devient un onglet a part entiere. Le conteneur #analyse-section
+       est simplement deplace ici : une seule source de rendu, aucune
+       duplication de la liste des cinq analyses. -->
+  <div class="page tabpane" id="pane-analyse">
+    <div id="analyse-section"></div>
   </div>
 
   <!-- BOUTIQUE -->
@@ -1358,7 +1415,7 @@
   <!-- PROFIL -->
   <div class="page tabpane" id="pane-profile" data-view="hub">
 
-    <button class="pf-back" id="pf-back" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg><span id="pf-back-title"></span></button>
+    <button class="pf-back" id="pf-back" type="button" aria-label="Retour" data-i18n-aria="go_back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg><span id="pf-back-title"></span></button>
 
     <div id="pf-hub">
     <div class="block founder-card" id="p-founder" style="display:none">
@@ -1581,6 +1638,8 @@
          des couverts disent la meme chose que le libelle, en un coup d'oeil. -->
     <button data-tab="journal"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v8a2 2 0 0 0 4 0V3"/><path d="M8 11v10"/><path d="M17 3c-1.7 1-2.5 2.8-2.5 5s.8 3.3 2.5 3.5V21"/></svg></span><span data-i18n="nav_journal">Repas</span></button>
     <button data-tab="seances"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg></span><span data-i18n="nav_seances">Séances</span></button>
+    <!-- C#15 : l'analyse video, sortie de sa cachette. -->
+    <button data-tab="analyse"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l4.5-5 3 3L15 9l6 7"/><circle cx="8" cy="6.5" r="1.6"/><rect x="2.5" y="3.5" width="19" height="17" rx="2.5"/></svg></span><span data-i18n="nav_analyse">Analyse</span></button>
     <button data-tab="cours"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg></span><span data-i18n="nav_cours">Cours</span></button>
     <button data-tab="ia"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg></span><span data-i18n="nav_ia">Coach IA</span></button>
     <button data-tab="profile"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></span><span data-i18n="nav_profile">Profil</span></button>
@@ -1712,6 +1771,30 @@
      l'est partout a la fois, et il ne peut pas exister de definition qui
      traine dans un ecran et pas dans l'autre. La feuille sert donc deux
      usages : le lexique complet, ou un seul terme quand on tape un « ? ». -->
+<!-- « Quoi de neuf » : une seule fois par version, à la première ouverture. -->
+<div class="overlay" id="wn-ov">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div id="wn-body"></div>
+  </div>
+</div>
+
+<!-- D#22 : le rendez-vous de la première séance. -->
+<div class="overlay" id="fs-ov">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div id="fs-body"></div>
+  </div>
+</div>
+
+<!-- D#23 : quiz « Trouve-moi un programme », 3 questions. -->
+<div class="overlay" id="quiz-ov">
+  <div class="sheet">
+    <div class="grab"></div>
+    <div id="quiz-body"></div>
+  </div>
+</div>
+
 <div class="overlay" id="lex-ov">
   <div class="sheet">
     <div class="grab"></div>
@@ -1994,6 +2077,106 @@
   .nav::before{content:'';position:absolute;top:0;left:8%;right:8%;height:1px;pointer-events:none;
     background:linear-gradient(90deg,transparent,rgba(0,255,163,.30),transparent)}
   .nav{position:fixed}
+  /* ---- D#23 : quiz « Trouve-moi un programme » ---- */
+  .quiz-btn{display:flex;align-items:center;gap:8px;width:100%;margin:0 0 14px;padding:12px 14px;
+    border-radius:13px;border:1px dashed rgba(0,255,163,.42);background:rgba(0,255,163,.06);
+    color:var(--brand-ink);font-family:'Outfit',sans-serif;font-size:13.5px;font-weight:700;cursor:pointer}
+  .quiz-btn svg{width:17px;height:17px;flex:none}
+  :root[data-theme="light"] .quiz-btn{background:rgba(0,168,112,.06);border-color:rgba(0,168,112,.4)}
+  .qz-step{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brand-ink);margin-bottom:7px}
+  .qz-q{font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;line-height:1.25;margin:0 0 14px}
+  .qz-a{display:block;width:100%;text-align:left;margin-bottom:8px;padding:13px 15px;border-radius:13px;
+    border:1px solid var(--line);background:var(--surface-2);color:var(--text);
+    font-family:'Outfit',sans-serif;font-size:14.5px;font-weight:600;cursor:pointer}
+  .qz-a:active{transform:scale(.985)}
+  .qz-a small{display:block;margin-top:2px;font-family:inherit;font-size:12px;font-weight:500;opacity:.6}
+  .qz-res-h{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brand-ink);margin-bottom:6px}
+  .qz-res-n{font-family:'Outfit',sans-serif;font-size:21px;font-weight:800;line-height:1.2;margin-bottom:8px}
+  .qz-res-d{font-size:13.5px;line-height:1.55;opacity:.88;margin:0 0 10px}
+  .qz-res-w{font-size:12.5px;line-height:1.5;padding:11px 13px;border-radius:12px;
+    background:rgba(0,255,163,.09);border:1px solid rgba(0,255,163,.26);margin-bottom:14px}
+  .qz-res-w b{color:var(--brand-ink)}
+  .qz-res-free{font-size:12.5px;line-height:1.5;opacity:.72;margin:-6px 0 14px}
+  /* ---- Explications des moteurs dans l'assistant ---- */
+  .go-explain{display:flex;flex-direction:column;gap:7px;margin-top:14px}
+  .go-explain .lex-open{width:100%;justify-content:flex-start}
+  /* ---- Programmes expliques ---- */
+  .pf-desc{font-size:12.5px;line-height:1.5;opacity:.85;margin:5px 0 6px}
+  .pf-for{font-size:12px;line-height:1.45;opacity:.7;margin-bottom:8px}
+  .pf-for b{color:var(--brand-ink);font-weight:700}
+  /* ---- D#24 : carte hero analyse ---- */
+  .act-hero{margin-top:12px;border-radius:18px;padding:17px 17px 15px;cursor:pointer;
+    background:linear-gradient(145deg,#141a17,#0c1210);border:1px solid rgba(0,255,163,.4);
+    box-shadow:0 10px 34px rgba(0,0,0,.32)}
+  :root[data-theme="light"] .act-hero{background:linear-gradient(145deg,#F2FBF7,#E8F6F0);border-color:rgba(0,168,112,.35);box-shadow:0 8px 26px rgba(0,0,0,.07)}
+  .ah-badge{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+    color:#04120a;background:var(--brand);border-radius:999px;padding:4px 10px;margin-bottom:10px}
+  .ah-t{font-family:'Outfit',sans-serif;font-size:19px;font-weight:800;line-height:1.2;margin-bottom:7px}
+  .ah-d{font-size:13.5px;line-height:1.55;opacity:.82}
+  .ah-cta{margin-top:13px;display:inline-flex;align-items:center;gap:6px;font-family:'Outfit',sans-serif;
+    font-size:14px;font-weight:700;color:var(--brand-ink)}
+  /* ---- D#25 : filmer une serie depuis le player ---- */
+  .film-set{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:7px 12px;border-radius:10px;
+    border:1px solid rgba(0,255,163,.32);background:rgba(0,255,163,.09);color:var(--brand);
+    font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
+  .film-set{color:var(--brand-ink)}
+  .film-set svg{width:13px;height:13px}
+  :root[data-theme="light"] .film-set{background:rgba(0,168,112,.08);border-color:rgba(0,168,112,.3)}
+  /* ---- D#21 : checklist d'activation ---- */
+  .act{margin-top:12px;border-radius:18px;padding:16px 16px 13px;
+    background:linear-gradient(160deg,rgba(0,255,163,.10),rgba(0,255,163,.03));
+    border:1px solid rgba(0,255,163,.28)}
+  :root[data-theme="light"] .act{background:linear-gradient(160deg,rgba(0,168,112,.09),rgba(0,168,112,.03));border-color:rgba(0,168,112,.26)}
+  .act-h{display:flex;align-items:baseline;gap:8px;margin-bottom:3px}
+  .act-h b{flex:1;font-family:'Outfit',sans-serif;font-size:15.5px}
+  .act-h span{font-size:12px;font-weight:700;color:var(--brand-ink)}
+  .act-sub{font-size:12.5px;line-height:1.5;opacity:.72;margin:0 0 12px}
+  .act-bar{height:4px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-bottom:12px}
+  .act-bar i{display:block;height:100%;background:var(--brand);border-radius:99px;transition:width .4s ease}
+  .act-s{display:flex;align-items:center;gap:11px;padding:9px 0;cursor:pointer;border:0;background:none;width:100%;text-align:left;color:inherit}
+  .act-s+.act-s{border-top:1px solid var(--line)}
+  .act-tick{width:21px;height:21px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+    border:1.6px solid var(--line);color:transparent}
+  .act-s.ok .act-tick{background:var(--brand);border-color:var(--brand);color:#04120a}
+  .act-tick svg{width:12px;height:12px}
+  .act-tx{flex:1;min-width:0}
+  .act-tt{font-size:13.5px;font-weight:600;line-height:1.35}
+  .act-s.ok .act-tt{opacity:.5;text-decoration:line-through}
+  .act-td{font-size:11.5px;opacity:.6;margin-top:1px}
+  .act-s.ok .act-td{display:none}
+  .act-go{font-size:16px;opacity:.35;flex:none}
+  .act-hide{display:block;width:100%;margin-top:10px;padding:8px;border:0;background:none;
+    color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer}
+  .ah-x,.sheet-x{position:absolute;top:10px;right:12px;width:34px;height:34px;border:0;background:none;
+    color:var(--muted);font-size:24px;line-height:1;cursor:pointer;z-index:2}
+  /* ---- « Quoi de neuf » ---- */
+  #wn-list{max-height:52vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .wn-i{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+  .wn-i:first-child{border-top:0;padding-top:2px}
+  .wn-n{width:23px;height:23px;flex:none;border-radius:50%;background:var(--brand);color:#04120a;
+    font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;line-height:23px;text-align:center}
+  .wn-t{font-family:'Outfit',sans-serif;font-size:14.5px;font-weight:700;margin-bottom:3px}
+  .wn-d{font-size:13px;line-height:1.5;opacity:.82}
+  #wn-body{position:relative}
+  .act-hero{position:relative}
+  #fs-body{position:relative}
+  .act-s.ok .act-go{display:none}
+  /* ---- C#19 : en-tetes de bloc dans Seances ---- */
+  .se-bh{margin:20px 0 9px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;
+    letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+  #se-top>.se-bh:first-child{margin-top:4px}
+  /* ---- C#16 : carte Cours sur l'accueil ---- */
+  .hc{margin-top:12px;border-radius:16px;padding:14px 15px;background:var(--surface);border:1px solid var(--line);cursor:pointer}
+  .hc-h{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .hc-h svg{width:17px;height:17px;flex:none;color:var(--brand)}
+  .hc-h b{flex:1;font-family:'Outfit',sans-serif;font-size:14.5px}
+  .hc-h span{font-size:12px;opacity:.55}
+  .hc-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+  .hc-row:first-of-type{border-top:0;padding-top:0}
+  .hc-dot{width:8px;height:8px;border-radius:50%;flex:none}
+  .hc-nm{flex:1;min-width:0;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hc-when{font-size:12px;opacity:.7;white-space:nowrap}
+  .hc-wait{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:#D4AF37}
   /* ---- B#13 : premiere seance guidee ---- */
   .tour-ov{position:fixed;inset:0;z-index:120;display:none}
   .tour-ov.on{display:block}
@@ -2006,7 +2189,7 @@
   .tour-bub{position:fixed;left:14px;right:14px;max-width:460px;margin:0 auto;
     background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px 17px;
     box-shadow:0 18px 50px rgba(0,0,0,.45)}
-  .tour-step{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brand);margin-bottom:6px}
+  .tour-step{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brand-ink);margin-bottom:6px}
   .tour-bub h4{margin:0 0 6px;font-family:'Outfit',sans-serif;font-size:16px}
   .tour-bub p{margin:0;font-size:13.5px;line-height:1.55;opacity:.9}
   .tour-act{display:flex;align-items:center;gap:10px;margin-top:14px}
@@ -2030,7 +2213,7 @@
   .lex-item{padding:13px 0;border-bottom:1px solid var(--line)}
   .lex-item:last-child{border-bottom:0}
   .lex-term{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
-  .lex-term b{font-family:'Outfit',sans-serif;font-size:15px;color:var(--brand)}
+  .lex-term b{font-family:'Outfit',sans-serif;font-size:15px;color:var(--brand-ink)}
   .lex-term span{font-size:12px;opacity:.6}
   .lex-def{font-size:13.5px;line-height:1.55;margin:0}
   .lex-ex{margin-top:6px;font-size:12.5px;line-height:1.5;opacity:.68;font-style:italic}
@@ -2043,7 +2226,7 @@
   .sk-foryou{margin:0 0 10px;padding:11px 13px;border-radius:12px;font-size:13px;line-height:1.5;
     background:rgba(0,255,163,.09);border:1px solid rgba(0,255,163,.26)}
   :root[data-theme="light"] .sk-foryou{background:rgba(0,168,112,.08);border-color:rgba(0,168,112,.24)}
-  .sk-foryou b{color:var(--brand);font-weight:700}
+  .sk-foryou b{color:var(--brand-ink);font-weight:700}
   /* ---- B#10 : carte « Ton objectif en clair » ---- */
   .gp{margin-top:12px;border-radius:16px;padding:15px 16px;background:var(--surface);border:1px solid var(--line)}
   .gp-h{display:flex;align-items:center;gap:8px;margin-bottom:8px}
@@ -2051,7 +2234,7 @@
   .gp-h svg{width:17px;height:17px;flex:none;color:var(--brand)}
   .gp-goal{font-family:'Outfit',sans-serif;font-size:16.5px;font-weight:700;line-height:1.3;margin-bottom:7px}
   .gp-p{font-size:13.5px;line-height:1.55;opacity:.9;margin:0 0 6px}
-  .gp-key{color:var(--brand);font-weight:700}
+  .gp-key{color:var(--brand-ink);font-weight:700}
   .gp-why{font-size:12.5px;line-height:1.5;opacity:.68;margin:0}
   .gp-w{margin-top:9px;padding-top:9px;border-top:1px solid var(--line);font-size:12.5px;opacity:.8}
   .gp-cta{margin-top:12px;width:100%;border:0;border-radius:12px;padding:12px;
@@ -2191,7 +2374,7 @@ const T = {
  rc_sub:{fr:'Des repas prêts à logger, calés sur tes objectifs.',en:'Ready-to-log meals, built around your goals.',nl:'Kant-en-klare maaltijden, afgestemd op je doelen.'},
  rc_all:{fr:'Tout',en:'All',nl:'Alles'},
  rc_hp:{fr:'Haute protéine',en:'High protein',nl:'Eiwitrijk'},
- rc_none:{fr:'Aucune recette.',en:'No recipe.',nl:'Geen recept.'},
+ rc_none:{fr:'Aucune recette pour l’instant. Cherche un aliment ci-dessus pour composer ton repas.',en:'No recipes yet. Search a food above to build your meal.',nl:'Nog geen recepten. Zoek hierboven een voedingsmiddel om je maaltijd samen te stellen.'},
  rc_ing:{fr:'Ingrédients',en:'Ingredients',nl:'Ingrediënten'},
  rc_steps:{fr:'Préparation',en:'Method',nl:'Bereiding'},
  rc_servings:{fr:'Portions',en:'Servings',nl:'Porties'},
@@ -2217,6 +2400,8 @@ const T = {
  tr_inrange:{fr:'Dans la cible',en:'On target',nl:'Op doel'},
  nav_seances:{fr:'Séances',en:'Workouts',nl:'Trainingen'},
  nav_cours:{fr:'Cours',en:'Classes',nl:'Lessen'},
+ nav_analyse:{fr:'Analyse',en:'Analysis',nl:'Analyse'},
+ sub_analyse:{fr:'Filme ton mouvement, l\u2019app le corrige',en:'Film your movement, the app corrects it',nl:'Film je beweging, de app corrigeert ze'},
  nav_ia:{fr:'Coach IA',en:'AI Coach',nl:'AI-coach'},
  nav_profile:{fr:'Profil',en:'Profile',nl:'Profiel'},
  nav_boutique:{fr:'Boutique',en:'Shop',nl:'Shop'},
@@ -2246,7 +2431,7 @@ const T = {
  sc_close:{fr:'Fermer',en:'Close',nl:'Sluiten'},
  sc_manual:{fr:'Saisir le code',en:'Enter code',nl:'Code invoeren'},
  sc_prompt:{fr:'Code-barres (8 \u00e0 13 chiffres)',en:'Barcode (8 to 13 digits)',nl:'Streepjescode (8 tot 13 cijfers)'},
- sc_none:{fr:'Code {c} introuvable dans OpenFoodFacts.',en:'Code {c} not found in OpenFoodFacts.',nl:'Code {c} niet gevonden in OpenFoodFacts.'},
+ sc_none:{fr:'Code {c} inconnu. Tu peux chercher le produit par son nom, ou l’ajouter toi-même.',en:'Code {c} unknown. You can search the product by name, or add it yourself.',nl:'Code {c} onbekend. Zoek het product op naam of voeg het zelf toe.'},
  sc_cam:{fr:'Cam\u00e9ra indisponible. V\u00e9rifie l\u2019autorisation dans R\u00e9glages.',en:'Camera unavailable. Check the permission in Settings.',nl:'Camera niet beschikbaar. Controleer de toestemming in Instellingen.'},
  sc_lib:{fr:'Scanner indisponible hors connexion.',en:'Scanner unavailable offline.',nl:'Scanner niet beschikbaar offline.'},
  nf_cta:{fr:'Cr\u00e9er cet aliment',en:'Create this food',nl:'Dit voedingsmiddel aanmaken'},
@@ -2347,6 +2532,10 @@ const T = {
  ld_err:{fr:'Envoi impossible. R\u00e9essaie dans un instant.',en:'Could not send. Try again shortly.',nl:'Verzenden mislukt. Probeer straks opnieuw.'},
  go_title:{fr:'Mes objectifs',en:'My goals',nl:'Mijn doelen'},
  go_new:{fr:'Objectif',en:'Goal',nl:'Doel'},
+ go_lock_t:{fr:'Les cycles sont réservés aux membres',en:'Cycles are for members',nl:'Cycli zijn voor leden'},
+ go_lock_s:{fr:'Le moteur construit un programme sur mesure à partir de tes records et le fait progresser sur 8 semaines. Avec ton accès gratuit, tu peux déjà tester 2 séances de chaque programme.',en:'The engine builds a program from your records and progresses it over 8 weeks. On the free tier you can already try 2 sessions of every program.',nl:'De motor bouwt een programma uit je records en laat het 8 weken groeien. Gratis kan je al 2 sessies van elk programma proberen.'},
+ go_need_pr_t:{fr:'Entre tes 3 records pour débloquer tes cycles',en:'Enter your 3 records to unlock your cycles',nl:'Voer je 3 records in om je cycli te ontgrendelen'},
+ go_need_pr_s:{fr:'{n}/3 enregistrés. Squat, développé couché, soulevé de terre : l’app calcule tes charges à partir de là.',en:'{n}/3 saved. Squat, bench press, deadlift: the app works out your loads from these.',nl:'{n}/3 opgeslagen. Squat, bankdrukken, deadlift: daarop berekent de app je belastingen.'},
  go_empty_t:{fr:'Fixe ton premier objectif',en:'Set your first goal',nl:'Stel je eerste doel in'},
  go_empty_s:{fr:"Force ou skill \u2014 l'app construit ton cycle",en:'Strength or skill \u2014 the app builds your cycle',nl:'Kracht of skill \u2014 de app bouwt je cyclus'},
  go_weeks:{fr:'sem.',en:'wks',nl:'wkn'},
@@ -2402,6 +2591,9 @@ const T = {
  go_skill_lvl_s:{fr:'Choisis ton niveau',en:'Pick your level',nl:'Kies je niveau'},
  go_skill_prereq:{fr:'Prérequis',en:'Prerequisite',nl:'Vereiste'},
  go_skill_foryou:{fr:'C’est pour toi si',en:'This is for you if',nl:'Dit is voor jou als'},
+ a11y_plus:{fr:'Augmenter',en:'Increase',nl:'Verhogen'},
+ go_how_charge:{fr:'Comment marche le moteur de charge ?',en:'How does the load engine work?',nl:'Hoe werkt de belastingsmotor?'},
+ go_how_skill:{fr:'Comment marche le moteur de skill ?',en:'How does the skill engine work?',nl:'Hoe werkt de skill-motor?'},
  go_skill_bench:{fr:'Objectif',en:'Target',nl:'Doel'},
  go_skill_done_s:{fr:'jours/sem.',en:'days/wk',nl:'dagen/wk'},
  go_skill_phases:{fr:'phases',en:'phases',nl:'fasen'},
@@ -2410,6 +2602,9 @@ const T = {
  title_home:{fr:"Aujourd'hui",en:'Today',nl:'Vandaag'},
  sub_journal:{fr:'Cherche, ajoute, suis tes repas',en:'Search, add and track your meals',nl:'Zoek, voeg toe en volg je maaltijden'},
  sub_seances:{fr:'Tes programmes Coach DM',en:'Your Coach DM programs',nl:'Jouw Coach DM-programma\u2019s'},
+ se_b1:{fr:'Ma séance du jour',en:'My workout today',nl:'Mijn training vandaag'},
+ se_b2:{fr:'Mes cycles & objectifs',en:'My cycles & goals',nl:'Mijn cycli & doelen'},
+ se_b3:{fr:'Choisir un programme',en:'Choose a program',nl:'Kies een programma'},
  sub_cours:{fr:'Réserve tes séances collectives & PT',en:'Book your classes & PT',nl:'Reserveer je groepslessen & PT'},
  sub_boutique:{fr:'Programmes PDF premium',en:'Premium PDF programs',nl:'Premium PDF-programma\u2019s'},
  home_hello:{fr:'Salut',en:'Hi',nl:'Hallo'},
@@ -2456,7 +2651,7 @@ const T = {
  co_place:{fr:'place',en:'spot',nl:'plaats'},
  co_places:{fr:'places',en:'spots',nl:'plaatsen'},
  co_none_up:{fr:'Aucun cours programmé pour le moment.',en:'No classes scheduled yet.',nl:'Nog geen lessen gepland.'},
- co_none_mine:{fr:'Aucune réservation à venir.',en:'No upcoming bookings.',nl:'Geen komende reservaties.'},
+ co_none_mine:{fr:'Aucune réservation. Ouvre « À venir » juste au-dessus pour prendre ta place.',en:'No bookings. Open “Upcoming” just above to grab your spot.',nl:'Geen reservaties. Open “Binnenkort” hierboven om je plaats te nemen.'},
  co_cancel_closed:{fr:'Annulation fermée (trop proche du début).',en:'Cancellation closed (too close to start).',nl:'Annuleren gesloten (te dicht bij de start).'},
  co_booked_ok:{fr:'Réservé ✓',en:'Booked ✓',nl:'Gereserveerd ✓'},
  co_wl_ok:{fr:"Ajouté à la liste d'attente",en:'Added to the waitlist',nl:'Op de wachtlijst gezet'},
@@ -2473,7 +2668,11 @@ const T = {
  ia_c4:{fr:'Ma readiness aujourd\u2019hui',en:'My readiness today',nl:'Mijn readiness vandaag'},
  pr_title:{fr:'Mes Records (1RM)',en:'My Records (1RM)',nl:'Mijn Records (1RM)'},
  pr_sub:{fr:'Tes maxes alimentent toute l\u2019app : les séances et le Coach IA convertissent les % en kilos exacts, arrondis à 2,5 kg.',en:'Your maxes power the whole app: workouts and the AI Coach convert % into exact kilos, rounded to 2.5 kg.',nl:'Je maxen voeden de hele app: trainingen en de AI-coach zetten % om in exacte kilo\u2019s, afgerond op 2,5 kg.'},
- pr_none:{fr:'Aucun record enregistré.',en:'No record saved yet.',nl:'Nog geen record opgeslagen.'},
+ /* E#28 — un etat vide doit dire quoi faire, et pourquoi ca vaut le coup.
+    Celui-ci garde la porte du moteur de charge : « Aucun record enregistre »
+    constatait sans jamais expliquer que c'est ce chiffre qui debloque le
+    calcul automatique des kilos. */
+ pr_none:{fr:'Aucun record pour l’instant. Entre ton squat, ton développé couché et ton soulevé de terre : l’app calcule ensuite toutes tes charges à ta place.',en:'No records yet. Enter your squat, bench press and deadlift: the app then works out every load for you.',nl:'Nog geen records. Voer je squat, bankdrukken en deadlift in: de app berekent daarna al je belastingen.'},
  pr_add:{fr:'＋ Ajouter / modifier un record',en:'＋ Add / update a record',nl:'＋ Record toevoegen / bijwerken'},
  pr_sheet_title:{fr:'Enregistrer un record',en:'Save a record',nl:'Record opslaan'},
  pr_hint:{fr:'Ton 1RM sert de référence : les variantes du mouvement en héritent automatiquement.',en:'Your 1RM is the reference: movement variations inherit it automatically.',nl:'Je 1RM is de referentie: varianten van de beweging erven die automatisch.'},
@@ -2752,7 +2951,7 @@ const T = {
  ph_analyzing:{fr:'Analyse en cours…',en:'Analyzing…',nl:'Bezig met analyseren…'},
  ph_title:{fr:'Analyse de ton plat',en:'Your plate, analyzed',nl:'Analyse van je bord'},
  ph_conf:{fr:'Confiance',en:'Confidence',nl:'Zekerheid'},
- ph_none:{fr:'Aucun aliment détecté sur la photo.',en:'No food detected in the photo.',nl:'Geen voedsel gedetecteerd op de foto.'},
+ ph_none:{fr:'Rien de reconnu sur la photo. Réessaie de plus près, avec plus de lumière — ou cherche l’aliment par son nom.',en:'Nothing recognised in the photo. Try closer, with more light — or search the food by name.',nl:'Niets herkend op de foto. Probeer dichterbij, met meer licht — of zoek het voedingsmiddel op naam.'},
  ph_add:{fr:'Ajouter à mes repas',en:'Add to meals',nl:'Toevoegen aan maaltijden'},
  ph_fail:{fr:'Analyse impossible, réessaie.',en:'Analysis failed, try again.',nl:'Analyse mislukt, probeer opnieuw.'},
  wg_target:{fr:'Poids cible (kg)',en:'Target weight (kg)',nl:'Streefgewicht (kg)'},
@@ -2888,7 +3087,7 @@ const T = {
  otp_wait:{fr:'Patiente {s} s avant de redemander un code.',en:'Wait {s} s before requesting another code.',nl:'Wacht {s} s voor je een nieuwe code vraagt.'},
  no_food_a:{fr:'Aucun aliment trouvé pour « ',en:'No food found for "',nl:'Geen voedsel gevonden voor "'},
  no_food_b:{fr:' ».',en:'".',nl:'".'},
- jo_none_today:{fr:"Aucun aliment enregistré aujourd'hui.",en:'No food logged today.',nl:'Vandaag nog niets geregistreerd.'},
+ jo_none_today:{fr:'Rien de noté aujourd’hui. Cherche un aliment, scanne un code-barres, ou photographie ton assiette.',en:'Nothing logged today. Search a food, scan a barcode, or photograph your plate.',nl:'Vandaag niets genoteerd. Zoek een voedingsmiddel, scan een barcode of fotografeer je bord.'},
  qty_invalid:{fr:'Quantité invalide',en:'Invalid quantity',nl:'Ongeldige hoeveelheid'},
  need_fields:{fr:'Renseigne poids, taille et âge.',en:'Enter weight, height and age.',nl:'Vul gewicht, lengte en leeftijd in.'},
  save_fail:{fr:"Échec de l'enregistrement.",en:'Save failed.',nl:'Opslaan mislukt.'},
@@ -2897,6 +3096,91 @@ const T = {
  shop_download:{fr:'Télécharger gratuitement',en:'Download for free',nl:'Gratis downloaden'},
  shop_buy:{fr:'Acheter',en:'Buy',nl:'Kopen'},
  shop_custom:{fr:'Sur mesure',en:'Custom',nl:'Op maat'},
+ /* ---- « Quoi de neuf » ---- */
+ wn_title:{fr:'Ce qui a changé',en:'What’s new',nl:'Wat is er nieuw'},
+ wn_sub:{fr:'Quelques nouveautés depuis ta dernière visite. Trente secondes de lecture, puis on n’en reparle plus.',en:'A few things added since your last visit. Thirty seconds to read, then we won’t mention it again.',nl:'Enkele nieuwigheden sinds je laatste bezoek. Dertig seconden lezen, daarna zwijgen we erover.'},
+ wn_close:{fr:'C’est parti',en:'Got it',nl:'Begrepen'},
+ wn_1t:{fr:'Tu es enfin prévenu',en:'You finally get notified',nl:'Je wordt eindelijk verwittigd'},
+ wn_1d:{fr:'Les notifications fonctionnent. Quand ton coach t’écrit, tu le sais — au lieu de le découvrir des heures plus tard.',en:'Notifications work. When your coach writes, you know — instead of finding out hours later.',nl:'Meldingen werken. Als je coach schrijft, weet je het meteen.'},
+ wn_2t:{fr:'Un onglet Analyse',en:'An Analysis tab',nl:'Een Analyse-tab'},
+ wn_2d:{fr:'Filme ton squat, ton saut, ta course : l’app mesure et corrige. C’était caché au fond des Séances, c’est maintenant un onglet à part.',en:'Film your squat, jump or run: the app measures and corrects. It was buried inside Workouts, now it has its own tab.',nl:'Film je squat, sprong of loop: de app meet en corrigeert. Nu een eigen tab.'},
+ wn_3t:{fr:'Plus de jargon',en:'No more jargon',nl:'Geen jargon meer'},
+ wn_3d:{fr:'Tempo, RPE, EMOM, AMRAP, 1RM — chaque code a son « ? » qui l’explique, avec un exemple. Et les dix programmes disent enfin ce qu’ils sont et à qui ils s’adressent.',en:'Tempo, RPE, EMOM, AMRAP, 1RM — every code has a “?” explaining it, with an example. And the ten programs finally say what they are and who they suit.',nl:'Tempo, RPE, EMOM, AMRAP, 1RM — elke code heeft een “?” met uitleg en voorbeeld.'},
+ wn_4t:{fr:'Tu ne choisis plus à l’aveugle',en:'No more blind choices',nl:'Niet meer blind kiezen'},
+ wn_4d:{fr:'Trois questions et l’app te dit quel programme te correspond — et pourquoi celui-là.',en:'Three questions and the app tells you which program fits you — and why that one.',nl:'Drie vragen en de app zegt welk programma bij je past — en waarom.'},
+ wn_5t:{fr:'Le chrono se voit de loin',en:'The timer reads from across the room',nl:'De timer lees je van ver'},
+ wn_5d:{fr:'Deux fois plus gros, avec un décompte des trois dernières secondes — son et vibration. Plus besoin de se pencher entre deux séries.',en:'Twice as big, with a three-second countdown — sound and vibration. No more leaning over between sets.',nl:'Twee keer zo groot, met aftelling van drie seconden — geluid en trilling.'},
+ /* ---- D#22 : rendez-vous de la première séance ---- */
+ fs_title:{fr:'Ta première séance, c’est quand ?',en:'When is your first workout?',nl:'Wanneer is je eerste training?'},
+ fs_sub:{fr:'Elle est déjà choisie et prête. Il ne te reste qu’à décider du moment — et je te le rappellerai.',en:'It is already picked and ready. All that is left is deciding when — and I will remind you.',nl:'Ze is al gekozen en klaar. Je moet enkel het moment kiezen — ik herinner je eraan.'},
+ fs_now:{fr:'Maintenant',en:'Right now',nl:'Nu meteen'},
+ fs_now_s:{fr:'Je l’ouvre tout de suite',en:'Open it straight away',nl:'Meteen openen'},
+ fs_eve:{fr:'Ce soir, 18 h',en:'Tonight, 6 pm',nl:'Vanavond, 18 u'},
+ fs_morn:{fr:'Demain matin, 8 h',en:'Tomorrow morning, 8 am',nl:'Morgenochtend, 8 u'},
+ fs_later:{fr:'Plus tard, sans rappel',en:'Later, no reminder',nl:'Later, zonder herinnering'},
+ fs_set:{fr:'C’est noté. Je te préviens {when}.',en:'Noted. I’ll ping you {when}.',nl:'Genoteerd. Ik verwittig je {when}.'},
+ fs_when_eve:{fr:'ce soir à 18 h',en:'tonight at 6 pm',nl:'vanavond om 18 u'},
+ fs_when_morn:{fr:'demain à 8 h',en:'tomorrow at 8 am',nl:'morgen om 8 u'},
+ fs_notif_t:{fr:'Ta séance t’attend',en:'Your workout is waiting',nl:'Je training wacht'},
+ fs_notif_b:{fr:'Tu avais dit maintenant. 30 à 40 minutes, c’est tout.',en:'You said now. 30 to 40 minutes, that’s all.',nl:'Je zei nu. 30 tot 40 minuten, meer niet.'},
+ /* ---- D#23 : quiz « Trouve-moi un programme » ---- */
+ quiz_cta:{fr:'Trouve-moi un programme',en:'Find me a program',nl:'Zoek een programma voor mij'},
+ qz_step:{fr:'Question {n} sur 3',en:'Question {n} of 3',nl:'Vraag {n} van 3'},
+ qz_q1:{fr:'Qu’est-ce que tu veux d’abord ?',en:'What do you want first?',nl:'Wat wil je eerst?'},
+ qz_q2:{fr:'Où tu en es aujourd’hui ?',en:'Where are you today?',nl:'Waar sta je vandaag?'},
+ qz_q2e:{fr:'Quelle épreuve ?',en:'Which event?',nl:'Welk evenement?'},
+ qz_q3:{fr:'Tes séances, tu les veux comment ?',en:'How do you want your sessions?',nl:'Hoe wil je je sessies?'},
+ qz_a_fat:{fr:'Perdre du gras',en:'Lose fat',nl:'Vet verliezen'},
+ qz_a_mus:{fr:'Prendre du muscle',en:'Build muscle',nl:'Spier opbouwen'},
+ qz_a_str:{fr:'Devenir plus fort',en:'Get stronger',nl:'Sterker worden'},
+ qz_a_gym:{fr:'Maîtriser mon corps',en:'Master my bodyweight',nl:'Mijn lichaam beheersen'},
+ qz_a_gym_s:{fr:'Tractions, dips, équilibre',en:'Pull-ups, dips, handstands',nl:'Pull-ups, dips, handstand'},
+ qz_a_eng:{fr:'Avoir plus de souffle',en:'Build my engine',nl:'Meer uithouding'},
+ qz_a_evt:{fr:'Préparer une épreuve',en:'Prepare for an event',nl:'Een evenement voorbereiden'},
+ qz_a_beg:{fr:'Je débute, ou je reprends',en:'I’m starting, or coming back',nl:'Ik begin, of herstart'},
+ qz_a_reg:{fr:'Je m’entraîne régulièrement',en:'I train regularly',nl:'Ik train regelmatig'},
+ qz_a_adv:{fr:'Je suis à l’aise avec la barre',en:'I’m confident with the barbell',nl:'Ik ben vlot met de barbell'},
+ qz_a_adv_s:{fr:'Squat, arraché, épaulé-jeté',en:'Squat, snatch, clean & jerk',nl:'Squat, snatch, clean & jerk'},
+ qz_a_hyrox:{fr:'Une Hyrox',en:'A Hyrox',nl:'Een Hyrox'},
+ qz_a_open:{fr:'Le CrossFit Open',en:'The CrossFit Open',nl:'De CrossFit Open'},
+ qz_a_foot:{fr:'La saison de football',en:'The football season',nl:'Het voetbalseizoen'},
+ qz_a_short:{fr:'Courtes et intenses',en:'Short and intense',nl:'Kort en intens'},
+ qz_a_short_s:{fr:'30 à 40 minutes',en:'30 to 40 minutes',nl:'30 tot 40 minuten'},
+ qz_a_any:{fr:'Peu importe, j’ai le temps',en:'Doesn’t matter, I have time',nl:'Maakt niet uit, ik heb tijd'},
+ qz_res_h:{fr:'Ton programme',en:'Your program',nl:'Jouw programma'},
+ qz_why:{fr:'Pourquoi celui-là :',en:'Why this one:',nl:'Waarom dit:'},
+ qz_go:{fr:'Ouvrir ce programme',en:'Open this program',nl:'Dit programma openen'},
+ qz_free:{fr:'Avec ton accès gratuit, 2 séances de ce programme sont ouvertes — de quoi l’essayer avant de décider.',en:'On the free tier, 2 sessions of this program are open — enough to try it before deciding.',nl:'Gratis zijn 2 sessies van dit programma open — genoeg om het te proberen.'},
+ qz_again:{fr:'Recommencer',en:'Start over',nl:'Opnieuw'},
+ qz_w_beg:{fr:'tu débutes, donc on apprend les mouvements proprement avant d’ajouter de la charge. Les autres programmes t’attendront, et tu y arriveras bien mieux préparé.',en:'you are starting out, so we learn the movements properly before adding load. The other programs will wait, and you will get there far better prepared.',nl:'je begint, dus we leren de bewegingen eerst goed. De andere programma’s wachten wel.'},
+ qz_w_short:{fr:'tu as peu de temps : ce format tient en 30-40 minutes et l’intensité fait le travail à la place du volume.',en:'you are short on time: this format fits in 30-40 minutes and intensity does the work volume would.',nl:'je hebt weinig tijd: dit format past in 30-40 minuten.'},
+ qz_w_goal:{fr:'c’est le programme le plus direct pour ce que tu as choisi, à ton niveau.',en:'it is the most direct route to what you picked, at your level.',nl:'dit is de meest directe weg naar wat je koos, op jouw niveau.'},
+ qz_w_str_reg:{fr:'la force se construit sur du muscle. On passe par l’hypertrophie d’abord — la barre lourde viendra ensuite, sur des bases solides.',en:'strength is built on muscle. We go through hypertrophy first — the heavy barbell comes next, on solid ground.',nl:'kracht bouwt op spier. Eerst hypertrofie — de zware stang komt daarna.'},
+ /* ---- D#24 : carte hero « Filme ton squat » à J+2 ---- */
+ ah_badge:{fr:'Ce que l’app fait de mieux',en:'What the app does best',nl:'Wat de app het best kan'},
+ ah_title:{fr:'Filme ton squat — 30 secondes',en:'Film your squat — 30 seconds',nl:'Film je squat — 30 seconden'},
+ ah_desc:{fr:'Pose ton téléphone de côté, fais 3 répétitions. L’app mesure ta profondeur, ta vitesse et l’alignement de tes genoux, puis te dit quoi corriger.',en:'Prop your phone side-on and do 3 reps. The app measures your depth, speed and knee alignment, then tells you what to fix.',nl:'Zet je telefoon opzij en doe 3 herhalingen. De app meet je diepte, snelheid en kniestand, en zegt wat je moet corrigeren.'},
+ ah_cta:{fr:'Lancer l’analyse',en:'Start the analysis',nl:'Analyse starten'},
+ /* ---- D#25 : filmer depuis le player ---- */
+ film_set:{fr:'Filmer cette série',en:'Film this set',nl:'Deze set filmen'},
+ /* ---- D#21 : checklist « Par où je commence ? » ---- */
+ act_title:{fr:'Par où je commence ?',en:'Where do I start?',nl:'Waar begin ik?'},
+ act_hide:{fr:'Masquer ces conseils',en:'Hide these tips',nl:'Deze tips verbergen'},
+ act_hidden:{fr:'C’est masqué. Tout reste accessible depuis les onglets.',en:'Hidden. Everything stays reachable from the tabs.',nl:'Verborgen. Alles blijft bereikbaar via de tabs.'},
+ tour_close:{fr:'Fermer',en:'Close',nl:'Sluiten'},
+ act_sub:{fr:'Quatre étapes pour que l’app travaille vraiment pour toi. Compte dix minutes en tout.',en:'Four steps to make the app actually work for you. Ten minutes in total.',nl:'Vier stappen zodat de app echt voor jou werkt. Tien minuten in totaal.'},
+ act_1t:{fr:'Calcule tes objectifs',en:'Work out your targets',nl:'Bereken je doelen'},
+ act_1d:{fr:'Poids, activité, but — l’app en déduit tes calories et tes macros.',en:'Weight, activity, goal — the app derives your calories and macros.',nl:'Gewicht, activiteit, doel — de app leidt je calorieën en macro’s af.'},
+ act_2t:{fr:'Note ton premier repas',en:'Log your first meal',nl:'Noteer je eerste maaltijd'},
+ act_2d:{fr:'Cherche un aliment, scanne un code-barres, ou photographie ton assiette.',en:'Search a food, scan a barcode, or photograph your plate.',nl:'Zoek een voedingsmiddel, scan een barcode of fotografeer je bord.'},
+ act_3t:{fr:'Fais ta première séance',en:'Do your first workout',nl:'Doe je eerste training'},
+ act_3d:{fr:'Ta séance du jour est déjà choisie. Coche tes séries au fur et à mesure.',en:'Your workout is already picked. Tick your sets as you go.',nl:'Je training is al gekozen. Vink je sets af terwijl je gaat.'},
+ act_4t:{fr:'Filme un mouvement',en:'Film a movement',nl:'Film een beweging'},
+ act_4d:{fr:'30 secondes de squat, et l’app corrige ta technique. C’est ce qu’elle fait de mieux.',en:'30 seconds of squatting and the app corrects your technique. This is what it does best.',nl:'30 seconden squatten en de app corrigeert je techniek. Dat kan ze het best.'},
+ /* ---- C#16 : carte Cours sur l'accueil ---- */
+ hc_title:{fr:'Tes prochains cours',en:'Your next classes',nl:'Je volgende lessen'},
+ hc_all:{fr:'Tout voir ›',en:'See all ›',nl:'Alles zien ›'},
+ hc_waitlist:{fr:'Liste d’attente',en:'Waitlist',nl:'Wachtlijst'},
  /* ---- B#13 : première séance guidée ---- */
  tour_step:{fr:'Étape {n} sur {tot}',en:'Step {n} of {tot}',nl:'Stap {n} van {tot}'},
  tour_next:{fr:'Suivant',en:'Next',nl:'Volgende'},
@@ -2966,6 +3250,9 @@ function applyI18n(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(T[k]) el.textContent=t(k); });
   document.querySelectorAll('[data-i18n-html]').forEach(el=>{ const k=el.getAttribute('data-i18n-html'); if(T[k]) el.innerHTML=t(k); });
   document.querySelectorAll('[data-i18n-ph]').forEach(el=>{ const k=el.getAttribute('data-i18n-ph'); if(T[k]) el.setAttribute('placeholder',t(k)); });
+  /* E#31 — les noms accessibles doivent suivre la langue eux aussi : un
+     bouton annonce « Retour » par VoiceOver a un neerlandophone n'aide pas. */
+  document.querySelectorAll('[data-i18n-aria]').forEach(el=>{ const k=el.getAttribute('data-i18n-aria'); if(T[k]) el.setAttribute('aria-label',t(k)); });
   const ps=document.getElementById('p-sub'); if(ps && ps.dataset.key){ ps.textContent = t(ps.dataset.key) + (ps.dataset.extra||''); }
 }
 function renderLangBtns(){ document.querySelectorAll('#lang-seg button, #auth-lang button').forEach(b=>b.classList.toggle('on', b.dataset.lang===LANG)); }
@@ -4738,6 +5025,17 @@ async function loadCoachCard(){
     if(!IS_PAID_COACH && !HAS_COACH) renderLeadCard(box); else box.innerHTML='';
     return;
   }
+  /* C#17 — la carte Messages n'apparait que si la conversation existe
+     vraiment. Un lien coach tout juste cree affichait « Messages · Aucun
+     message » : une carte qui occupe la place la plus visible de l'accueil
+     pour annoncer qu'il n'y a rien. On exige au moins un message echange,
+     ou un non-lu. Sinon le hub reste ferme et l'accueil respire. */
+  const hasConversation = !!(COACH_THREAD.last_at || +COACH_THREAD.unread>0);
+  if(!hasConversation){
+    if(hub) hub.classList.remove('on');
+    box.innerHTML='';
+    return;
+  }
   if(hub) hub.classList.add('on');
   const th=COACH_THREAD;
   const preview = th.last_kind==='image' ? t('chat_photo')
@@ -4760,6 +5058,394 @@ async function loadCoachCard(){
   $('#cc-open').onclick=openCoachChat;
   { const m=$('#cc-msg'); if(m) m.onclick=openCoachChat; }
 }
+/* ==========================================================================
+   D#21 — CHECKLIST « PAR OÙ JE COMMENCE ? »
+   --------------------------------------------------------------------------
+   Les chiffres sortis de l'instrumentation (D#26) sur 26 clients : 31 % ont
+   note un repas, 15 % ont fait une seance, 4 % ont choisi un programme, et
+   0 % — zero — ont filme un mouvement. La fonction la plus distinctive de
+   l'app n'a jamais servi a personne.
+   D'ou l'ordre des quatre etapes : du plus facile au plus difficile, en
+   terminant par l'analyse video, avec une phrase qui dit pourquoi elle vaut
+   le detour. Une checklist qui commence par la marche la plus haute ne fait
+   que confirmer au membre qu'il n'y arrivera pas.
+   ========================================================================== */
+/* ==========================================================================
+   « QUOI DE NEUF » — une seule fois par version
+   --------------------------------------------------------------------------
+   Une mise a jour qui ne se voit pas n'existe pas. Le membre rouvre l'app,
+   trouve un onglet de plus et des ecrans differents, sans savoir si c'est
+   voulu ni ce qu'il a gagne. Cet ecran repond a la question avant qu'il se la
+   pose.
+   Deux regles : il ne parle QUE de ce qui change pour lui — pas de bugs
+   corriges, pas de vocabulaire technique — et il ne revient jamais une fois
+   ferme. La cle stocke la version vue : a la prochaine mise a jour, le
+   numero change et l'ecran reapparait, une fois.
+   ========================================================================== */
+const APP_VERSION = '1.3';
+const WN_KEY = 'cdm_whatsnew_seen';
+
+function wnMaybeShow(){
+  let seen=null;
+  try{ seen=localStorage.getItem(WN_KEY); }catch(_){}
+  if(seen===APP_VERSION) return;
+  /* Un compte tout neuf n'a rien vu d'« avant » : lui annoncer ce qui a
+     change n'a aucun sens, et lui prendrait son premier ecran. On marque la
+     version comme vue sans rien afficher. */
+  const brandNew = ACT_STATE && ACT_STATE.ok===true && +ACT_STATE.days_since_signup<1
+                   && !ACT_STATE.session && !ACT_STATE.meal;
+  try{ localStorage.setItem(WN_KEY, APP_VERSION); }catch(_){}
+  if(brandNew) return;
+
+  const b=document.getElementById('wn-body'); if(!b) return;
+  const items=[1,2,3,4,5].map(i=>`<div class="wn-i">
+    <div class="wn-n">${i}</div>
+    <div><div class="wn-t">${t('wn_'+i+'t')}</div><div class="wn-d">${t('wn_'+i+'d')}</div></div>
+  </div>`).join('');
+  b.innerHTML=`<button type="button" class="sheet-x" id="wn-x" aria-label="${t('wn_close')}">×</button>
+    <h3 style="margin:0 0 5px">${t('wn_title')}</h3>
+    <p class="empty" style="text-align:left;padding:0 0 12px">${t('wn_sub')}</p>
+    <div id="wn-list">${items}</div>
+    <button class="btn" id="wn-go" style="margin-top:14px">${t('wn_close')}</button>`;
+  const close=()=>document.getElementById('wn-ov').classList.remove('show');
+  { const x=document.getElementById('wn-x'); if(x) x.onclick=close; }
+  { const g=document.getElementById('wn-go'); if(g) g.onclick=close; }
+  document.getElementById('wn-ov').classList.add('show');
+}
+{
+  const ov=document.getElementById('wn-ov');
+  if(ov) ov.onclick=(e)=>{ if(e.target.id==='wn-ov') ov.classList.remove('show'); };
+}
+
+/* ==========================================================================
+   D#22 — LE RENDEZ-VOUS DE LA PREMIÈRE SÉANCE
+   --------------------------------------------------------------------------
+   L'audit demandait un assistant qui « impose » la premiere seance dans les
+   10 minutes. Un membre qui s'inscrit dans le metro, au bureau ou a 23 h ne
+   peut pas s'entrainer maintenant : un ecran qui bloque l'app tant qu'il n'a
+   pas fini ne produit pas une seance, il produit une desinstallation.
+   Les chiffres disent d'ailleurs autre chose : 3,6 jours de delai moyen n'est
+   pas un probleme de volonte, c'est qu'aucun moment n'est jamais fixe.
+   On remplace donc la contrainte par un ENGAGEMENT DATE : trois creneaux, un
+   rappel programme sur le telephone. Prendre rendez-vous avec soi-meme est ce
+   qui transforme une intention en acte — pas la coercition.
+   La permission de notification locale est LA MEME que celle du push : si le
+   membre a accepte a l'ouverture, le rappel part sans rien redemander.
+   ========================================================================== */
+const FS_KEY='cdm_first_session_asked_v1';
+
+function fsPlugin(){ const P=window.Capacitor&&window.Capacitor.Plugins; return (P&&P.LocalNotifications)||null; }
+
+async function fsMaybeShow(){
+  if(!ACT_STATE || ACT_STATE.ok!==true) return;
+  /* Le membre a demande qu'on lui fiche la paix : on ne revient pas par une
+     autre porte. */
+  try{ if(localStorage.getItem(ACT_HIDE_KEY)==='1') return; }catch(_){}
+  if(ACT_STATE.session) return;                 /* deja fait : rien a proposer */
+  if(+ACT_STATE.days_since_signup > 1) return;  /* passe le 2e jour, D#24 prend le relais */
+  let asked=false; try{ asked=localStorage.getItem(FS_KEY)==='1'; }catch(_){}
+  if(asked) return;
+  try{ localStorage.setItem(FS_KEY,'1'); }catch(_){}
+  fsRender();
+  document.getElementById('fs-ov').classList.add('show');
+}
+
+function fsRender(){
+  const b=document.getElementById('fs-body'); if(!b) return;
+  b.innerHTML=`<button type="button" class="sheet-x" id="fs-x" aria-label="${t('fs_later')}">×</button>
+    <h3 style="margin:0 0 6px">${t('fs_title')}</h3>
+    <p class="empty" style="text-align:left;padding:0 0 14px">${t('fs_sub')}</p>
+    <button type="button" class="qz-a" data-fs="now">${t('fs_now')}<small>${t('fs_now_s')}</small></button>
+    <button type="button" class="qz-a" data-fs="eve">${t('fs_eve')}</button>
+    <button type="button" class="qz-a" data-fs="morn">${t('fs_morn')}</button>
+    <button class="btn subtle" data-fs="later" style="margin-top:6px">${t('fs_later')}</button>`;
+  b.querySelectorAll('[data-fs]').forEach(x=>{ x.onclick=()=>fsChoose(x.getAttribute('data-fs')); });
+  { const x=document.getElementById('fs-x'); if(x) x.onclick=()=>fsChoose('later'); }
+}
+
+async function fsChoose(kind){
+  document.getElementById('fs-ov').classList.remove('show');
+  if(kind==='later') return;
+  if(kind==='now'){ switchTab('seances'); return; }
+
+  /* Le creneau est calcule sur l'horloge du telephone, pas sur un decalage
+     fixe : « ce soir 18 h » doit tomber a 18 h chez le membre, et si on est
+     deja apres 18 h, le rendez-vous glisse a demain plutot que de partir
+     dans le passe — une notification programmee dans le passe ne part jamais. */
+  const d=new Date();
+  if(kind==='eve'){
+    d.setHours(18,0,0,0);
+    if(d.getTime() <= Date.now()+60000) d.setDate(d.getDate()+1);
+  } else {
+    d.setDate(d.getDate()+1); d.setHours(8,0,0,0);
+  }
+
+  const PN=fsPlugin();
+  if(PN){
+    try{
+      /* checkPermissions d'abord : si le push a deja ete accepte, la
+         permission est acquise et on n'affiche pas une seconde demande. */
+      let st=null;
+      try{ st=await PN.checkPermissions(); }catch(_){}
+      if(!st || st.display!=='granted'){ try{ await PN.requestPermissions(); }catch(_){} }
+      await PN.schedule({ notifications:[{
+        id: 7301,
+        title: t('fs_notif_t'),
+        body:  t('fs_notif_b'),
+        schedule: { at: d },
+      }]});
+    }catch(e){ /* pas de rappel possible : le rendez-vous reste pris de tete */ }
+  }
+  toast(t('fs_set').replace('{when}', kind==='eve'?t('fs_when_eve'):t('fs_when_morn')));
+}
+{
+  const ov=document.getElementById('fs-ov');
+  if(ov) ov.onclick=(e)=>{ if(e.target.id==='fs-ov') ov.classList.remove('show'); };
+}
+
+/* ==========================================================================
+   D#23 — QUIZ « TROUVE-MOI UN PROGRAMME »
+   --------------------------------------------------------------------------
+   4 % des membres choisissent un programme. Le probleme n'est pas qu'ils
+   refusent : c'est qu'on leur presente dix cartes et qu'on les laisse
+   trancher seuls. Trois questions suffisent a decider a leur place.
+   La deuxieme question est contextuelle : si le but est une epreuve, demander
+   « ou tu en es ? » ne sert a rien — c'est l'epreuve qui determine le
+   programme. On demande donc laquelle. Le parcours reste a trois questions.
+   Le resultat explique TOUJOURS son choix : une recommandation sans raison
+   ne se distingue pas d'un tirage au sort, et ne cree aucune confiance.
+   ========================================================================== */
+let QZ={};
+function quizOpen(){ QZ={}; quizStep(1); document.getElementById('quiz-ov').classList.add('show'); }
+function quizClose(){ document.getElementById('quiz-ov').classList.remove('show'); }
+
+function quizStep(n){
+  const body=document.getElementById('quiz-body'); if(!body) return;
+  const btn=(val,key,sub)=>`<button type="button" class="qz-a" data-qz="${val}">${t(key)}${sub?`<small>${t(sub)}</small>`:''}</button>`;
+  let q='', opts='';
+  if(n===1){
+    q=t('qz_q1');
+    opts=btn('fat','qz_a_fat')+btn('mus','qz_a_mus')+btn('str','qz_a_str')
+        +btn('gym','qz_a_gym','qz_a_gym_s')+btn('eng','qz_a_eng')+btn('evt','qz_a_evt');
+  } else if(n===2){
+    if(QZ.goal==='evt'){
+      q=t('qz_q2e');
+      opts=btn('hyrox','qz_a_hyrox')+btn('open','qz_a_open')+btn('foot','qz_a_foot');
+    } else {
+      q=t('qz_q2');
+      opts=btn('beg','qz_a_beg')+btn('reg','qz_a_reg')+btn('adv','qz_a_adv','qz_a_adv_s');
+    }
+  } else {
+    q=t('qz_q3');
+    opts=btn('short','qz_a_short','qz_a_short_s')+btn('any','qz_a_any');
+  }
+  body.innerHTML=`<div class="qz-step">${t('qz_step').replace('{n}',n)}</div>
+    <h3 class="qz-q">${q}</h3>${opts}
+    <button class="btn subtle" id="qz-cancel" style="margin-top:6px">${t('btn_cancel')}</button>`;
+  body.querySelectorAll('[data-qz]').forEach(b=>{
+    b.onclick=()=>{
+      const v=b.getAttribute('data-qz');
+      if(n===1){ QZ.goal=v; quizStep(2); }
+      else if(n===2){ if(QZ.goal==='evt') QZ.event=v; else QZ.level=v; quizStep(3); }
+      else { QZ.time=v; quizResult(); }
+    };
+  });
+  { const c=document.getElementById('qz-cancel'); if(c) c.onclick=quizClose; }
+}
+
+/* La regle de decision, ecrite pour etre lisible plutot que compacte : c'est
+   elle qu'il faudra ajuster quand de nouveaux programmes arriveront. */
+function quizPick(){
+  const { goal, level, time, event } = QZ;
+  if(goal==='evt'){
+    if(event==='hyrox') return { slug:'hyrox-engine-12w', why:'qz_w_goal' };
+    if(event==='open')  return { slug:'open-prep-8w',     why:'qz_w_goal' };
+    return { slug:'football-elite-12w', why:'qz_w_goal' };
+  }
+  /* Un debutant passe par Foundation quel que soit son objectif : lui donner
+     un programme avance, c'est lui garantir de l'abandonner en deux semaines. */
+  if(level==='beg') return { slug:'foundation-8w', why:'qz_w_beg' };
+
+  if(goal==='fat') return time==='short'
+    ? { slug:'metcon-emom-8w', why:'qz_w_short' }
+    : { slug:'fat-burner-10w', why:'qz_w_goal' };
+  if(goal==='mus') return { slug:'physique-12w', why:'qz_w_goal' };
+  if(goal==='gym') return { slug:'gravity-10w',  why:'qz_w_goal' };
+  if(goal==='eng') return time==='short'
+    ? { slug:'metcon-emom-8w',   why:'qz_w_short' }
+    : { slug:'engine-amrap-10w', why:'qz_w_goal' };
+  /* Force : la barre lourde n'a de sens qu'une fois le muscle construit. */
+  if(goal==='str') return level==='adv'
+    ? { slug:'barbell-strength-12w', why:'qz_w_goal' }
+    : { slug:'physique-12w',         why:'qz_w_str_reg' };
+  return { slug:'foundation-8w', why:'qz_w_goal' };
+}
+
+function quizResult(){
+  const body=document.getElementById('quiz-body'); if(!body) return;
+  const pick=quizPick();
+  const inf=PROG_INFO[pick.slug]||null;
+  const w=(SE_WORKOUTS||[]).find(x=>x.program_slug===pick.slug);
+  const nom=(w&&w.source)||pick.slug;
+  body.innerHTML=`<div class="qz-res-h">${t('qz_res_h')}</div>
+    <div class="qz-res-n">${esc(nom)}</div>
+    ${inf?`<p class="qz-res-d">${esc(lexPick(inf.d))}</p>`:''}
+    <div class="qz-res-w"><b>${t('qz_why')}</b> ${t(pick.why)}</div>
+    ${PREMIUM?'':`<div class="qz-res-free">${t('qz_free')}</div>`}
+    <button class="btn" id="qz-go">${t('qz_go')}</button>
+    <button class="btn subtle" id="qz-again" style="margin-top:9px">${t('qz_again')}</button>`;
+  { const g=document.getElementById('qz-go'); if(g) g.onclick=()=>{
+      quizClose();
+      SE_PROG=pick.slug;
+      try{ switchTab('seances'); renderSeances(); }catch(_){}
+    }; }
+  { const a=document.getElementById('qz-again'); if(a) a.onclick=()=>{ QZ={}; quizStep(1); }; }
+}
+{
+  const ov=document.getElementById('quiz-ov');
+  if(ov) ov.onclick=(e)=>{ if(e.target.id==='quiz-ov') quizClose(); };
+}
+document.addEventListener('click',(e)=>{
+  if(e.target.closest && e.target.closest('#quiz-open')) quizOpen();
+});
+
+/* D#25 — quel écran d'analyse correspond à cet exercice ?
+   L'ordre des tests n'est pas arbitraire : « jump-squat » contient a la fois
+   « jump » et « squat », et c'est un mouvement pliometrique — le saut doit
+   donc etre teste AVANT le squat, sinon on enverrait le membre sur le mauvais
+   analyseur. Meme logique pour le sprint, teste en premier. */
+function analysisFor(ex){
+  if(!ex) return null;
+  const s=(ex.slug||'').toLowerCase();
+  const c=(ex.category||'').toLowerCase();
+  const eq=(ex.equipment||'').toLowerCase();
+  if(c==='sprint' || /(^|-)(sprint|run)(-|$)/.test(s)) return {page:'course.html', k:'an_run'};
+  if(c==='plyometric' || /jump/.test(s))               return {page:'saut.html',   k:'an_jump'};
+  if(/squat/.test(s))                                  return {page:'squat.html',  k:'an_squat'};
+  if(eq==='barbell' && (c==='strength'||c==='olympic'||c==='hypertrophy'))
+                                                       return {page:'barre.html',  k:'an_bar'};
+  if(/wall.?ball|sled|burpee|row(er)?|ski/.test(s))     return {page:'hyrox.html',  k:'an_hyrox'};
+  return null;
+}
+
+const ACT_HIDE_KEY='cdm_activation_hidden_v1';
+/* Masquer la checklist masque AUSSI la carte hero J+2 : les deux poussent la
+   meme chose. En laisser une survivre a l'autre donnerait le sentiment que le
+   choix n'a pas ete respecte — et c'est exactement ce sentiment qui fait
+   desinstaller. Le rendez-vous de la premiere seance est coupe lui aussi. */
+function actHide(){
+  try{ localStorage.setItem(ACT_HIDE_KEY,'1'); localStorage.setItem(FS_KEY,'1'); }catch(_){}
+  const box=document.getElementById('activation'); if(box) box.innerHTML='';
+  try{ toast(t('act_hidden')); }catch(_){}
+}
+let ACT_STATE=null;
+async function loadActivation(){
+  const box=$('#activation'); if(!box||!USER) return;
+  try{
+    const { data } = await sb.rpc('activation_state');
+    ACT_STATE = data || null;
+  }catch(e){ ACT_STATE=null; }
+  if(!ACT_STATE || ACT_STATE.ok!==true){ box.innerHTML=''; return; }
+  /* Tout est fait : la carte disparait definitivement. Un tutoriel qui reste
+     affiche apres coup devient du decor, puis du bruit. */
+  if(ACT_STATE.done){ box.innerHTML=''; return; }
+  /* Et si le membre l'a masquee, on ne la lui remet pas sous le nez au
+     prochain demarrage. On propose, on n'impose pas : les quatre etapes
+     restent atteignables par la navigation normale, la carte n'etait qu'un
+     raccourci. Ce choix est definitif et assume — reafficher « au cas ou »
+     serait exactement le harcelement qu'on veut eviter. */
+  try{ if(localStorage.getItem(ACT_HIDE_KEY)==='1'){ box.innerHTML=''; return; } }catch(_){}
+
+  const steps=[
+    { k:'1', ok:!!ACT_STATE.targets,  go:()=>{ switchTab('profile'); } },
+    { k:'2', ok:!!ACT_STATE.meal,     go:()=>switchTab('journal') },
+    { k:'3', ok:!!ACT_STATE.session,  go:()=>switchTab('seances') },
+    { k:'4', ok:!!ACT_STATE.analysis, go:()=>switchTab('analyse') },
+  ];
+  const done=steps.filter(s=>s.ok).length;
+  const tick='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
+
+  /* D#24 — a partir de J+2, si le mouvement n'a toujours pas ete filme,
+     l'etape sort de la liste et devient une carte pleine largeur.
+     Elle ne s'AJOUTE pas a la checklist, elle REMPLACE sa 4e ligne : dire
+     deux fois la meme chose sur le meme ecran, c'est du bruit, et le bruit
+     fait ignorer les deux. Deux jours est le bon delai — assez pour avoir
+     pris ses marques, avant que l'app devienne un decor. */
+  const heroAnalyse = (+ACT_STATE.days_since_signup >= 2) && !ACT_STATE.analysis;
+  const listSteps = heroAnalyse ? steps.slice(0,3) : steps;
+
+  const heroHtml = heroAnalyse ? `<div class="act-hero" id="act-hero">
+    <button type="button" class="ah-x" id="ah-x" aria-label="${t('act_hide')}">×</button>
+    <div class="ah-badge">${t('ah_badge')}</div>
+    <div class="ah-t">${t('ah_title')}</div>
+    <div class="ah-d">${t('ah_desc')}</div>
+    <div class="ah-cta">${t('ah_cta')} <span>›</span></div>
+  </div>` : '';
+
+  box.innerHTML=heroHtml+`<div class="act">
+    <div class="act-h"><b>${t('act_title')}</b><span>${done}/4</span></div>
+    <p class="act-sub">${t('act_sub')}</p>
+    <div class="act-bar"><i style="width:${done*25}%"></i></div>
+    ${listSteps.map((s,i)=>`<button type="button" class="act-s${s.ok?' ok':''}" data-act="${i}">
+      <span class="act-tick">${tick}</span>
+      <span class="act-tx"><span class="act-tt">${t('act_'+s.k+'t')}</span><span class="act-td">${t('act_'+s.k+'d')}</span></span>
+      <span class="act-go">›</span>
+    </button>`).join('')}
+    <button type="button" class="act-hide" id="act-hide">${t('act_hide')}</button>
+  </div>`;
+  box.querySelectorAll('[data-act]').forEach(b=>{
+    b.onclick=()=>{ const s=listSteps[+b.getAttribute('data-act')]; if(s) s.go(); };
+  });
+  /* D#22 : le rendez-vous se propose apres la checklist, pas avant — le
+     membre doit d'abord voir OU il en est, sinon la question tombe sans
+     contexte. Le delai laisse l'accueil finir de s'afficher. */
+  /* « Quoi de neuf » passe AVANT le rendez-vous de premiere seance : deux
+     feuilles qui s'ouvrent l'une sur l'autre sont illisibles. fsMaybeShow()
+     ne fera rien si celle-ci est encore ouverte, il attend le tour suivant. */
+  setTimeout(()=>{ try{ wnMaybeShow(); }catch(_){} }, 700);
+  setTimeout(()=>{ try{
+    const wn=document.getElementById('wn-ov');
+    if(wn && wn.classList.contains('show')) return;   /* on ne superpose pas */
+    fsMaybeShow();
+  }catch(_){} }, 1600);
+  { const h=document.getElementById('act-hero'); if(h) h.onclick=()=>switchTab('analyse'); }
+  { const hx=document.getElementById('ah-x'); if(hx) hx.onclick=(e)=>{ e.stopPropagation(); actHide(); }; }
+  { const ah=document.getElementById('act-hide'); if(ah) ah.onclick=actHide; }
+}
+
+/* C#16 — les cours réservés sur l'accueil.
+   La carte n'existe que si le membre a au moins une réservation à venir :
+   une carte « Tes prochains cours » vide n'apprend rien et pousse le reste
+   de l'accueil vers le bas. On se limite à trois lignes — au-delà, c'est
+   l'onglet Cours qui a les dates et les filtres, et un clic y mène. */
+async function loadHomeCours(){
+  const box=$('#home-cours'); if(!box||!USER) return;
+  let rows=[];
+  try{
+    const { data } = await sb.rpc('class_list_instances');
+    const now=Date.now();
+    rows=(data||[]).filter(c=>
+      (c.my_status==='booked' || c.my_status==='waitlist')
+      && c.status!=='cancelled'
+      && new Date(c.starts_at).getTime() > now
+    ).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at)).slice(0,3);
+  }catch(e){ rows=[]; }
+  if(!rows.length){ box.innerHTML=''; return; }
+  box.innerHTML=`<div class="hc" id="hc-open">
+    <div class="hc-h">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg>
+      <b>${t('hc_title')}</b><span>${t('hc_all')}</span>
+    </div>
+    ${rows.map(c=>`<div class="hc-row">
+      <i class="hc-dot" style="background:${esc(c.color||'#00FFA3')}"></i>
+      <span class="hc-nm">${esc(pick(c,'name')||'Cours')}</span>
+      ${c.my_status==='waitlist'?`<span class="hc-wait">${t('hc_waitlist')}</span>`:''}
+      <span class="hc-when">${esc(fmtCallAt(c.starts_at))}</span>
+    </div>`).join('')}
+  </div>`;
+  { const el=$('#hc-open'); if(el) el.onclick=()=>switchTab('cours'); }
+}
+
 /* ---- Appels vidéo (Lot 6) : le client confirme ou décline, jamais d'initiation ---- */
 let CALLS=[];
 async function loadCalls(){
@@ -5413,7 +6099,7 @@ async function rcOpen(r){
     ${steps.length?`<div class="rc-sec" data-i18n="rc_steps">Pr\u00e9paration</div><ol class="rc-steps">${steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`:''}
     <div class="rc-sec" data-i18n="rc_servings">Portions</div>
     <div class="rc-srv">
-      <button id="rc-minus" type="button">\u2212</button><b id="rc-srv-n">1</b><button id="rc-plus" type="button">+</button>
+      <button id="rc-minus" type="button">\u2212</button><b id="rc-srv-n">1</b><button id="rc-plus" type="button" aria-label="Augmenter" data-i18n-aria="a11y_plus">+</button>
       <span class="rc-sub" style="margin:0" id="rc-srv-kcal"></span>
     </div>
     <div class="field" style="margin-bottom:12px"><label data-i18n="sh_meal">Repas</label>
@@ -6107,12 +6793,17 @@ function switchTab(tab, quiet){
   $('#pane-'+tab).classList.add('active');
   document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
   $('#tb-title').textContent = tab==='home' ? t('title_home') : (tab==='boutique' ? t('nav_boutique') : t('nav_'+tab));
-  const SUBS={journal:'sub_journal',seances:'sub_seances',cours:'sub_cours',boutique:'sub_boutique'};
+  const SUBS={journal:'sub_journal',seances:'sub_seances',cours:'sub_cours',boutique:'sub_boutique',analyse:'sub_analyse'};
   $('#tb-sub').textContent = SUBS[tab] ? t(SUBS[tab]) : '';
   $('.topbar').style.display = (tab==='ia'||tab==='home') ? 'none' : 'block';
   if(tab==='home') loadHome();
   if(tab==='journal'){ loadLogs(); loadRecipes(); }
   if(tab==='seances' && !quiet) loadWorkouts();
+  /* C#19 : la seance du jour est calculee par loadWod(), appele depuis
+     l'accueil. Si le membre arrive sur Seances sans etre passe par l'accueil
+     — retour d'analyse, lien direct — le bloc serait vide : on le remplit. */
+  if(tab==='seances'){ const sw=$('#se-wod'); if(sw && !sw.innerHTML.trim() && typeof loadWod==='function') loadWod(); }
+  if(tab==='analyse') renderAnalyseSection();   /* C#15 : onglet dedie */
   if(tab==='cours') loadCours();
   if(tab==='boutique') loadBoutique();
   if(tab==='profile'){ renderPRList(); if(typeof pfShow==='function') pfShow('hub'); }
@@ -6194,6 +6885,8 @@ async function loadHome(){
   loadMyPlan();
   loadWod();
   loadInsight();
+  loadHomeCours();   /* C#16 : cours reserves a venir, si le membre en a */
+  loadActivation();  /* D#21 : checklist, tant que les 4 etapes ne sont pas faites */
 }
 
 /* ---- Mon programme (assigné par mon coach) ---- */
@@ -6373,8 +7066,12 @@ async function loadWod(){
   const cta=locked
     ? `<button class="hero-cta gold" data-wod-up="1">${t('wod_unlock')}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>`
     : `<button class="hero-cta" data-open="${w.id}">${label===t('wod_continue')?t('wod_continue'):t('wod_see')}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>`;
-  $('#wod').innerHTML=`<div class="home-eyebrow">${t('home_training')}</div>
-  <div class="hero-w" style="--c:${col}">
+  /* C#19 — la meme seance du jour alimente l'accueil ET le premier bloc de
+     l'onglet Seances. Un seul calcul, un seul HTML, injecte a deux endroits :
+     dupliquer le rendu aurait garanti qu'un jour les deux ne montrent plus la
+     meme seance. L'eyebrow n'a de sens que sur l'accueil — dans Seances,
+     l'en-tete du bloc le dit deja. */
+  const heroHtml=`<div class="hero-w" style="--c:${col}">
     <div class="hero-bg${cov?'':' none'}" style="${cov}"></div>
     <div class="hero-veil"></div>
     <div class="hero-in">
@@ -6390,7 +7087,11 @@ async function loadWod(){
       </div>
     </div>
   </div>`;
-  const up=$('#wod [data-wod-up]'); if(up) up.onclick=()=>showUpsell('workout');
+  $('#wod').innerHTML=`<div class="home-eyebrow">${t('home_training')}</div>`+heroHtml;
+  { const sw=$('#se-wod'); if(sw) sw.innerHTML=heroHtml; }
+  /* Les deux copies ont chacune leur bouton : on cable les deux, sinon celui
+     de l'onglet Seances resterait inerte. */
+  document.querySelectorAll('[data-wod-up]').forEach(b=>b.onclick=()=>showUpsell('workout'));
 }
 
 const INSIGHTS=[
@@ -6486,6 +7187,48 @@ function refreshWorkoutsBg(){
   }).catch(()=>{});
 }
 const PROG_ORDER=['barbell-strength-12w','physique-12w','open-prep-8w','gravity-10w','hyrox-engine-12w','engine-amrap-10w','metcon-emom-8w','fat-burner-10w','football-elite-12w','foundation-8w'];
+/* Les dix programmes, expliques.
+   Les cartes n'affichaient que le nom, la duree et le nombre de seances. Un
+   membre voyait « GRAVITY 10W » et « Engine AMRAP 10W » sans aucun moyen de
+   savoir ce que c'etait, ni lequel lui correspondait — d'ou 4 % seulement qui
+   en choisissent un.
+   Chaque entree est ecrite a partir du contenu reel du programme (type des
+   seances, niveau, volume), pas d'apres son nom : « barbell-strength-12w »
+   s'appelle en fait « Weightlifting Strength 12W » et fait de l'halterophilie,
+   ce que le slug ne dit pas.
+   d = ce que c'est. f = a qui ca s'adresse, formule pour qu'on se reconnaisse. */
+const PROG_INFO={
+ 'foundation-8w':{
+   d:{fr:'Repartir des bases. Corps entier, mouvements appris proprement avant d’ajouter de la charge.',en:'Back to basics. Full body, movements learned properly before any load is added.',nl:'Terug naar de basis. Volledig lichaam, bewegingen eerst goed leren voor je gewicht toevoegt.'},
+   f:{fr:'tu débutes, ou tu reprends après une longue coupure.',en:'you are starting out, or coming back after a long break.',nl:'je begint, of je herstart na een lange pauze.'}},
+ 'physique-12w':{
+   d:{fr:'Construire du muscle, groupe par groupe. Volume, tempo et charges qui montent semaine après semaine.',en:'Build muscle, group by group. Volume, tempo and loads climbing week after week.',nl:'Spier opbouwen, spiergroep per spiergroep. Volume, tempo en stijgende belasting.'},
+   f:{fr:'tu veux gagner en masse et voir la différence dans le miroir.',en:'you want size and to see the difference in the mirror.',nl:'je wil massa winnen en het verschil zien in de spiegel.'}},
+ 'barbell-strength-12w':{
+   d:{fr:'Haltérophilie et force pure. Arraché, épaulé-jeté, squat — chaque charge calculée sur ton record.',en:'Weightlifting and pure strength. Snatch, clean & jerk, squat — every load worked out from your record.',nl:'Gewichtheffen en pure kracht. Snatch, clean & jerk, squat — elke belasting op basis van je record.'},
+   f:{fr:'tu maîtrises déjà les mouvements et tu veux soulever plus lourd. Niveau avancé.',en:'you already own the movements and want to lift heavier. Advanced level.',nl:'je beheerst de bewegingen al en wil zwaarder tillen. Gevorderd niveau.'}},
+ 'gravity-10w':{
+   d:{fr:'Gymnastique et poids du corps. Tractions, dips, équilibre, gainage, travaillés en circuits.',en:'Gymnastics and bodyweight. Pull-ups, dips, handstands, core — worked in circuits.',nl:'Gymnastiek en lichaamsgewicht. Pull-ups, dips, handstand, core — in circuits.'},
+   f:{fr:'tu veux maîtriser ton propre corps avant d’empiler des kilos.',en:'you want to master your own bodyweight before stacking plates.',nl:'je wil eerst je eigen lichaam beheersen voor je gewicht stapelt.'}},
+ 'open-prep-8w':{
+   d:{fr:'Préparation au CrossFit Open. Les trois formats de compétition — AMRAP, EMOM, For Time — en conditions réelles.',en:'CrossFit Open prep. The three competition formats — AMRAP, EMOM, For Time — under real conditions.',nl:'CrossFit Open-voorbereiding. De drie wedstrijdformats onder echte omstandigheden.'},
+   f:{fr:'tu comptes faire l’Open, ou tu veux tester ta polyvalence.',en:'you plan to do the Open, or want to test how well-rounded you are.',nl:'je doet mee aan de Open, of wil je veelzijdigheid testen.'}},
+ 'hyrox-engine-12w':{
+   d:{fr:'Préparation Hyrox. Les 8 stations et les 8 km de course, à l’intensité de la compétition.',en:'Hyrox prep. The 8 stations and the 8 km of running, at race intensity.',nl:'Hyrox-voorbereiding. De 8 stations en 8 km lopen, op wedstrijdintensiteit.'},
+   f:{fr:'tu as une Hyrox à l’agenda, ou tu veux ce type d’endurance.',en:'you have a Hyrox booked, or want that kind of endurance.',nl:'je hebt een Hyrox gepland, of wil dat soort uithouding.'}},
+ 'engine-amrap-10w':{
+   d:{fr:'Capacité de travail en AMRAP. Apprendre à tenir un rythme long sans exploser à la troisième minute.',en:'Work capacity through AMRAPs. Learning to hold a pace without blowing up at minute three.',nl:'Werkcapaciteit via AMRAPs. Leren een tempo vasthouden zonder te ontploffen.'},
+   f:{fr:'tu t’écroules au bout de quelques minutes et tu veux durer.',en:'you fall apart after a few minutes and want to last.',nl:'je zakt na enkele minuten in elkaar en wil langer doorgaan.'}},
+ 'metcon-emom-8w':{
+   d:{fr:'Conditionnement en EMOM. Séances courtes et denses : plus tu vas vite, plus tu récupères.',en:'Conditioning through EMOMs. Short, dense sessions: the faster you go, the more you rest.',nl:'Conditie via EMOMs. Korte, dichte sessies: hoe sneller je bent, hoe meer rust.'},
+   f:{fr:'tu as peu de temps et tu veux quand même de l’intensité.',en:'you are short on time but still want intensity.',nl:'je hebt weinig tijd maar wil toch intensiteit.'}},
+ 'fat-burner-10w':{
+   d:{fr:'Perte de gras. Circuits, HIIT et force alternés pour dépenser sans fondre le muscle.',en:'Fat loss. Circuits, HIIT and strength alternated to burn without melting muscle.',nl:'Vetverlies. Circuits, HIIT en kracht afgewisseld om te verbranden zonder spierverlies.'},
+   f:{fr:'tu veux sécher en gardant ta force.',en:'you want to lean out while keeping your strength.',nl:'je wil droger worden met behoud van kracht.'}},
+ 'football-elite-12w':{
+   d:{fr:'Préparation football. Sprint, changements de direction, prévention des blessures au genou, force spécifique.',en:'Football prep. Sprints, changes of direction, knee-injury prevention, sport-specific strength.',nl:'Voetbalvoorbereiding. Sprint, richtingveranderingen, knieblessurepreventie, specifieke kracht.'},
+   f:{fr:'tu joues au foot et tu veux tenir toute la saison.',en:'you play football and want to last the whole season.',nl:'je voetbalt en wil het hele seizoen volhouden.'}},
+};
 const PROG_MOTIF={'barbell-strength-12w':'m-str','physique-12w':'m-str','open-prep-8w':'m-pulse','gravity-10w':'m-rings','hyrox-engine-12w':'m-pulse','engine-amrap-10w':'m-pulse','metcon-emom-8w':'m-flame','fat-burner-10w':'m-flame','football-elite-12w':'m-found','foundation-8w':'m-found'};
 let SE_PROG=null;
 /* Le cycle et la séance partagent le conteneur #se-detail : ouvrir un jour
@@ -6500,15 +7243,18 @@ async function loadWorkouts(){
 function renderSeances(){
   const CAT=(SE_WORKOUTS||[]).filter(w=>PROG_ORDER.indexOf(w.program_slug)>=0);
   const go=$('#go-section');
+  const top=$('#se-top');
   if(SE_PROG){
     if(go) go.style.display='none';
-    const anp=$('#analyse-section'); if(anp) anp.style.display='none';
+    if(top) top.style.display='none';   /* C#19 : les 3 en-tetes s'effacent avec */
     renderProgramDays(CAT, SE_PROG);
     return;
   }
   if(go) go.style.display='';
-  { const anp=$('#analyse-section'); if(anp) anp.style.display=''; }
-  renderAnalyseSection();
+  if(top) top.style.display='';
+  /* C#15 : la liste des analyses vit desormais dans son propre onglet.
+     renderSeances() ne la pilote plus — sinon on la masquerait ou on la
+     redessinerait depuis un ecran qui ne la contient plus. */
   loadGoals();
   if(!CAT.length){ $('#se-cards').innerHTML=emptyIllus('i-dumbbell',t('co_none_up')); return; }
   renderProgramFolders(CAT);
@@ -6586,6 +7332,9 @@ function renderProgramFolders(CAT){
     html+=`<div class="pf-card" data-prog="${esc(slug)}">${cover}
       <div class="pf-body">
         <div class="pf-title">${esc(first.source||slug)}</div>
+        ${(()=>{ const inf=PROG_INFO[slug]; if(!inf) return '';
+          return `<div class="pf-desc">${esc(lexPick(inf.d))}</div>
+                  <div class="pf-for"><b>${t('go_skill_foryou')}</b> ${esc(lexPick(inf.f))}</div>`; })()}
         <div class="pf-badges">
           <span class="badge">${weeks} ${t('pf_weeks')}</span>
           <span class="badge">${items.length} ${t('pf_sessions')}</span>
@@ -6660,9 +7409,31 @@ async function loadGoals(){
   let html='<div class="go-head"><span>'+t('go_title')+'</span>'
     +'<button class="go-new" data-goal-new="1">\uFF0B '+t('go_new')+'</button></div>';
   if(!goals.length){
-    html+='<div class="go-empty" data-goal-new="1"><div class="go-empty-ic">\uD83C\uDFAF</div>'
-      +'<div class="go-empty-t">'+t('go_empty_t')+'</div>'
-      +'<div class="go-empty-s">'+t('go_empty_s')+'</div></div>';
+    /* C#20 \u2014 l'etat vide disait \u00AB Fixe ton premier objectif \u00BB, ce qui invite a
+       cliquer sans dire ce qui manque. Or un cycle de force se calcule a
+       partir des records : sans eux, l'assistant s'ouvre et se bloque plus
+       loin. On annonce donc le prerequis reel, avec le compte deja obtenu, et
+       on ouvre directement la saisie des records plutot que l'assistant.
+       Trois records suffisent a couvrir les grands mouvements. */
+    let prCount = 0;
+    try{ await loadPRMap(); prCount = PRMAP ? Object.keys(PRMAP).length : 0; }catch(_){}
+    /* Un compte gratuit n'a PAS le moteur de cycle. Lui dire « entre tes 3
+       records pour débloquer tes cycles » est un mensonge : ses records ne
+       débloqueront rien, et il se heurtera au mur Premium juste après avoir
+       fait ce qu'on lui demandait. On annonce la vraie condition. */
+    if(!PREMIUM){
+      html+='<div class="go-empty" data-goal-new="1"><div class="go-empty-ic">🔒</div>'
+        +'<div class="go-empty-t">'+t('go_lock_t')+'</div>'
+        +'<div class="go-empty-s">'+t('go_lock_s')+'</div></div>';
+    } else if(prCount < 3){
+      html+='<div class="go-empty" data-pr-open=""><div class="go-empty-ic">\uD83C\uDFCB\uFE0F</div>'
+        +'<div class="go-empty-t">'+t('go_need_pr_t')+'</div>'
+        +'<div class="go-empty-s">'+t('go_need_pr_s').replace('{n}',prCount)+'</div></div>';
+    } else {
+      html+='<div class="go-empty" data-goal-new="1"><div class="go-empty-ic">\uD83C\uDFAF</div>'
+        +'<div class="go-empty-t">'+t('go_empty_t')+'</div>'
+        +'<div class="go-empty-s">'+t('go_empty_s')+'</div></div>';
+    }
   } else {
     html+=goals.map(g=>{
       const cyc=(g.goal_cycles||[])[0];
@@ -6714,6 +7485,12 @@ function goalStepKind(){
     +'<div class="go-lifts">'
     +'<button class="go-lift" data-goal-kind="charge"><span>'+t('go_kind_charge')+'</span><small>'+t('go_kind_charge_s')+'</small></button>'
     +'<button class="go-lift" data-goal-kind="skill"><span>'+t('go_kind_skill')+'</span><small>'+t('go_kind_skill_s')+'</small></button>'
+    +'</div>'
+    /* C'est ici, au moment de choisir, qu'il faut pouvoir demander « mais
+       comment ça marche ? » — pas dans une page d'aide ouverte plus tard. */
+    +'<div class="go-explain">'
+      +'<button type="button" class="lex-open" data-lex="moteur_1rm">'+t('go_how_charge')+'</button>'
+      +'<button type="button" class="lex-open" data-lex="moteur_skill">'+t('go_how_skill')+'</button>'
     +'</div>'
     +'<button class="btn subtle" data-goal-close="1" style="margin-top:12px">'+t('btn_cancel')+'</button>';
 }
@@ -7102,6 +7879,9 @@ function renderDetail(w,items,tips){
         ${tipEl}
         ${cue?`<details class="tech"><summary>${t('tech_lbl')}</summary><p>${esc(cue)}</p></details>`:''}
         ${demo?`<a class="ex-demo" href="${esc(demo)}" target="_blank" rel="noopener">▶ ${t('see_demo')}</a>`:''}
+        ${(()=>{ const an=analysisFor(ex); return an
+          ? `<button type="button" class="film-set" data-film="${esc(an.page)}" data-film-w="${esc(String(w&&w.id||''))}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-3.5l6 3.5V7z"/></svg>${t('film_set')}</button>`
+          : ''; })()}
         ${pills}
       </div></div>`;
   });
@@ -7126,6 +7906,18 @@ function renderDetail(w,items,tips){
   $('#se-start').onclick=startOrFinish;
   $('#rest-skip').onclick=()=>stopRest();
   $('#rest-plus').onclick=()=>{ if(REST){ REST.left+=30; REST.total+=30; } };
+  /* D#25 — « Filmer cette série » depuis le player.
+     Le retour doit ramener sur LA SÉANCE, pas sur la liste des programmes :
+     quelqu'un qui filme son squat au milieu de sa séance veut reprendre ou il
+     s'est arrete. On memorise donc l'onglet ET l'identifiant de la seance. */
+  document.querySelectorAll('#se-detail [data-film]').forEach(b=>{
+    b.onclick=(ev)=>{
+      ev.stopPropagation();
+      const wid=b.getAttribute('data-film-w')||'';
+      try{ localStorage.setItem(AN_BACK_KEY, JSON.stringify({tab:'seances', w:wid})); }catch(_){}
+      location.href=b.getAttribute('data-film');
+    };
+  });
   /* B#13 — premiere seance guidee. Declenchee ici et nulle part ailleurs :
      c'est le seul moment ou tous les elements a montrer sont a l'ecran.
      Le delai laisse le rendu se poser avant qu'on mesure les positions. */
@@ -7156,7 +7948,8 @@ function tones(seq){ try{
 const SND={
   start:()=>tones([[523,.15],[659,.15],[784,.28]]),
   finish:()=>tones([[784,.14],[988,.14],[1175,.32]]),
-  rest:()=>tones([[880,.12],[880,.12],[1046,.26]])
+  rest:()=>tones([[880,.12],[880,.12],[1046,.26]]),
+  tick:()=>tones([[660,.07]])
 };
 function parsePlan(repsStr,setsN,rmv,defKg){
   const s=String(repsStr||''); const plan=[];
@@ -7214,7 +8007,10 @@ async function quickSet(wrap,pill){
   pill.style.opacity='';
   if(error){ toast('Échec de l\'enregistrement'); return; }
   pill.classList.add('done'); pill.textContent='✓';
-  WO_DONE++; WO_VOL+=(row.weight_kg||0)*(row.reps||0); updHud(); buzz(15);
+  /* E#30 — la validation d'une serie merite un retour franc : buzz(15)
+     declenchait un impact LIGHT, trop discret pour confirmer un acte qu'on
+     vient de faire les mains occupees. 90 ms => impact MEDIUM. */
+  WO_DONE++; WO_VOL+=(row.weight_kg||0)*(row.reps||0); updHud(); buzz(90);
   LAST_SET[wrap.dataset.ex]={reps:row.reps,kg:row.weight_kg,dur:row.duration_sec,dist:row.distance_m,cal:row.calories};
   toast(fb);
   const restS=parseInt(wrap.dataset.rest,10)||0; if(restS) startRest(restS);
@@ -7232,9 +8028,16 @@ function startRest(sec){
     if(REST.left<=0){ stopRest(); buzz(200); SND.rest(); toast(t('rest_done')); return; }
     $('#rest-num').textContent=fmtRest(REST.left);
     $('#rest-fill').style.width=Math.max(0,REST.left/REST.total*100)+'%';
+    /* Decompte des trois dernieres secondes : un seul bip a zero arrive trop
+       tard pour se replacer sous la barre. Bip court + impact leger, pour
+       reprendre au bon moment sans regarder l'ecran. */
+    if(REST.left<=3){
+      bar.classList.add('ending');
+      SND.tick(); buzz(15);
+    }
   },1000);
 }
-function stopRest(){ if(REST&&REST.iv) clearInterval(REST.iv); REST=null; const b=$('#rest-bar'); if(b) b.classList.remove('on'); }
+function stopRest(){ if(REST&&REST.iv) clearInterval(REST.iv); REST=null; const b=$('#rest-bar'); if(b){ b.classList.remove('on'); b.classList.remove('ending'); } }
 
 /* ---- Moteur WOD : EMOM / AMRAP / For Time / RFT ---- */
 let WOD=null, WOD_SCORE_SAVED=false;
@@ -7774,8 +8577,16 @@ window.addEventListener('popstate',(e)=>{
   }
 });
 
-/* E#27 — onglet à restaurer après un aller-retour vers une page d'analyse. */
+/* E#27 — onglet à restaurer après un aller-retour vers une page séparée. */
 const AN_BACK_KEY = 'cdm_return_tab';
+
+/* Les consoles coach et admin sont, elles aussi, des documents separes qui
+   reviennent par href="app.html". Meme cause, meme symptome : on partait du
+   Profil et on revenait sur l'Accueil. Le portail Stripe, lui, n'a pas besoin
+   de ce traitement — il est bloque en natif par le garde-fou Apple 3.1.1. */
+document.querySelectorAll('#p-coach-console, #p-admin-console, [data-i18n="cfree_ok_go"]').forEach(a=>{
+  a.addEventListener('click', ()=>{ try{ localStorage.setItem(AN_BACK_KEY,'profile'); }catch(_){} });
+});
 
 /* Mise en place au moment où l'utilisateur entre dans l'app */
 const _enter_hist = enter;
@@ -7785,11 +8596,20 @@ enter = async function(u){
      lieu de l'accueil impose par enter(). Le drapeau est consomme
      immediatement — il ne doit servir qu'une fois, sinon le prochain
      demarrage normal de l'app atterrirait lui aussi sur Seances. */
-  let back=null;
+  let raw=null, back=null, backW=null;
   try{
-    back=localStorage.getItem(AN_BACK_KEY);
-    if(back) localStorage.removeItem(AN_BACK_KEY);
+    raw=localStorage.getItem(AN_BACK_KEY);
+    if(raw) localStorage.removeItem(AN_BACK_KEY);
   }catch(_){}
+  if(raw){
+    /* Deux formats coexistent : une simple chaine (« seances », « profile »)
+       posee par les cartes d'analyse et les consoles, et un objet quand il
+       faut aussi rouvrir une seance precise (D#25). On accepte les deux
+       plutot que de migrer un localStorage deja pose chez des membres. */
+    if(raw.charAt(0)==='{'){
+      try{ const o=JSON.parse(raw); back=o.tab||null; backW=o.w||null; }catch(_){ back=null; }
+    } else back=raw;
+  }
   if(back){ try{ switchTab(back); }catch(_){} }
   if(!NAV_READY){
     NAV_READY=true;
@@ -7799,6 +8619,9 @@ enter = async function(u){
     const t0 = back || 'home';
     history.pushState({tab:t0},'','#'+t0);
   }
+  /* La seance se rouvre apres la mise en place de l'historique, sinon son
+     propre pushState serait ecrase par l'entree de garde. */
+  if(backW){ setTimeout(()=>{ try{ openWorkout(backW); }catch(_){} }, 220); }
 };
 
 /* ==========================================================================
@@ -8105,8 +8928,24 @@ const LEX = {
     s:{fr:'ton record sur une répétition',en:'your one-rep max',nl:'je één-herhalingsmaximum'},
     d:{fr:'La charge la plus lourde que tu peux soulever une seule fois avec une technique propre. Elle sert de référence à tous les pourcentages de tes séances.',en:'The heaviest load you can lift once with clean technique. Every percentage in your workouts refers back to it.',nl:'De zwaarste last die je één keer met propere techniek tilt. Alle percentages verwijzen ernaar.'},
     e:{fr:'Sans 1RM enregistré, l’app ne peut pas calculer tes charges : c’est le premier chiffre à entrer.',en:'Without a saved 1RM the app cannot work out your loads: it is the first number to enter.',nl:'Zonder opgeslagen 1RM kan de app je belastingen niet berekenen: dat is het eerste getal.'} },
+  /* ---- Les deux moteurs de l'app ----
+     Ce sont ses fonctions les plus fortes et les moins comprises : elles
+     fabriquent un programme sur mesure, mais rien n'expliquait comment, ni ce
+     qu'elles attendaient du membre. Un moteur qu'on ne comprend pas, on ne
+     lui fait pas confiance — et on ne l'utilise pas (4 % de programmes
+     choisis, 0 % d'analyses). */
+  moteur_1rm:{
+    n:{fr:'Le moteur de charge',en:'The load engine',nl:'De belastingsmotor'},
+    s:{fr:'comment l’app choisit tes kilos',en:'how the app picks your kilos',nl:'hoe de app je kilo’s kiest'},
+    d:{fr:'Tu entres ton record sur une répétition. À partir de là, l’app calcule chaque charge de chaque séance en pourcentage de ce record, et la fait monter par blocs de plusieurs semaines : on part volontairement plus léger que ce que tu peux faire, pour finir plus lourd que ton point de départ. Tu ne choisis plus tes kilos à l’instinct, et tu ne stagnes plus au même poids pendant des mois.',en:'You enter your one-rep record. From there the app works out every load of every session as a percentage of it, and raises it in multi-week blocks: you start deliberately lighter than you can handle, to finish heavier than where you began. No more guessing your kilos, no more months stuck at the same weight.',nl:'Je voert je één-herhalingsrecord in. Daarop berekent de app elke belasting als percentage, en verhoogt die in blokken van meerdere weken: je start bewust lichter dan je kan, om zwaarder te eindigen dan je begon.'},
+    e:{fr:'Sans record enregistré, l’app ne peut rien calculer : c’est le seul chiffre qu’elle te demande vraiment.',en:'Without a saved record the app can compute nothing: it is the one number it really needs from you.',nl:'Zonder opgeslagen record kan de app niets berekenen: dat is het enige getal dat ze echt nodig heeft.'} },
+  moteur_skill:{
+    n:{fr:'Le moteur de skill',en:'The skill engine',nl:'De skill-motor'},
+    s:{fr:'comment on apprend un mouvement difficile',en:'how you learn a hard movement',nl:'hoe je een moeilijke beweging leert'},
+    d:{fr:'Tu choisis un mouvement que tu ne sais pas faire — passer la barre, marcher sur les mains. L’app le découpe en quatre phases sur huit semaines : d’abord la force qui te manque, puis la technique à vide, puis le mouvement complet assisté, puis en enchaînement. Chaque phase a ses exercices préparatoires et son critère de passage. Tu ne t’acharnes pas sur le mouvement final, tu construis ce qui le rend possible.',en:'You pick a movement you cannot do yet — getting over the bar, walking on your hands. The app breaks it into four phases over eight weeks: first the strength you lack, then the technique unloaded, then the full movement assisted, then linked. Each phase has its prep drills and its pass criterion. You do not grind at the final movement, you build what makes it possible.',nl:'Je kiest een beweging die je nog niet kan. De app splitst ze in vier fasen over acht weken: eerst de ontbrekende kracht, dan techniek zonder belasting, dan de volledige beweging met hulp, dan aaneengeschakeld.'},
+    e:{fr:'Chaque programme t’annonce ses prérequis avant que tu commences : si tu ne les as pas, l’app te propose le niveau en dessous plutôt que de te laisser échouer.',en:'Every program states its prerequisites up front: if you do not have them, the app offers the level below rather than letting you fail.',nl:'Elk programma toont vooraf zijn vereisten: heb je ze niet, dan stelt de app het niveau eronder voor.'} },
 };
-const LEX_ORDER = ['sets_reps','pct','onerm','tempo','rpe','emom','amrap','for_time','superset','unbroken'];
+const LEX_ORDER = ['sets_reps','pct','onerm','tempo','rpe','emom','amrap','for_time','superset','unbroken','moteur_1rm','moteur_skill'];
 
 const lexPick = (o)=> o ? (o[LANG] || o.fr) : '';
 function lexCard(k){
@@ -8239,7 +9078,9 @@ function tourRender(){
       <p>${t('tour_'+st.k+'_d')}</p>
       <div class="tour-act">
         <button class="tour-next" id="tour-next">${last?t('tour_last'):t('tour_next')}</button>
-        ${last?'':`<button class="tour-skip" id="tour-skip">${t('tour_skip')}</button>`}
+        <!-- La sortie reste offerte jusqu'a la derniere bulle : une visite
+             dont on ne peut plus sortir a la fin est une visite subie. -->
+        <button class="tour-skip" id="tour-skip">${last?t('tour_close'):t('tour_skip')}</button>
       </div>
       <div class="tour-dots">${TOUR.steps.map((_,i)=>`<i class="${i===TOUR.i?'on':''}"></i>`).join('')}</div>
     </div>`;
