@@ -1004,11 +1004,61 @@ function bodyVisible(lm){
   const chain=(sh,hip,kn,an)=>Math.min(vis(lm[sh]),vis(lm[hip]),vis(lm[kn]),vis(lm[an]));
   return Math.max(chain(11,23,25,27),chain(12,24,26,28))>0.6;
 }
-function pickSide(lm){
+/* Choix du cote suivi.
+
+   L'ancienne version comparait les visibilites SANS marge et rechoisissait a
+   chaque image. De profil, une jambe est franchement plus visible que
+   l'autre : le choix etait stable. DE FACE, les deux jambes ont des
+   visibilites quasi identiques — le cote basculait d'une image a l'autre au
+   gre du bruit.
+
+   Or tout l'etat de la rep en cours est attache a un cote : angle du genou
+   lisse, hanche la plus basse, « hanche sous le genou ». Un basculement en
+   plein mouvement corrompt ces trois valeurs d'un coup. Plus on va vite,
+   plus il y a d'images ambigues par rep — d'ou une rep sur deux perdue de
+   face, et aucune de profil.
+
+   Deux verrous : une marge de 0,12 pour changer d'avis, et surtout aucun
+   changement TANT QU'UNE REP EST EN COURS. */
+const SIDE_L={hip:23,knee:25,ankle:27,sh:11};
+const SIDE_R={hip:24,knee:26,ankle:28,sh:12};
+let SIDE_CUR=null;
+function pickSide(lm, locked){
+  if(locked && SIDE_CUR) return SIDE_CUR;
   const L=(vis(lm[23])+vis(lm[25])+vis(lm[27]))/3;
   const R=(vis(lm[24])+vis(lm[26])+vis(lm[28]))/3;
-  return L>=R?{hip:23,knee:25,ankle:27,sh:11}:{hip:24,knee:26,ankle:28,sh:12};
+  if(!SIDE_CUR){ SIDE_CUR = L>=R?SIDE_L:SIDE_R; return SIDE_CUR; }
+  const curIsL = SIDE_CUR===SIDE_L;
+  const cur = curIsL?L:R, alt = curIsL?R:L;
+  if(alt > cur + 0.12) SIDE_CUR = curIsL?SIDE_R:SIDE_L;
+  return SIDE_CUR;
 }
+
+/* Second detecteur, fiable quelle que soit la vue : la CHUTE DE HANCHE.
+   L'angle du genou se calcule en 3D ; de face sa flexion se joue surtout en
+   profondeur, l'axe que MediaPipe estime le plus mal. La hauteur de hanche,
+   elle, est verticale dans l'image — donc mesuree dans le meilleur axe,
+   quel que soit l'angle de prise de vue.
+   On la normalise par la longueur de jambe debout : le rapport devient
+   independant de la taille et de la distance au telephone. */
+const HIPCAL={hip0:null,an0:null};
+function hipCalib(lm,side){
+  const hy=lm[side.hip].y, ay=lm[side.ankle].y;
+  if(!(ay>hy)) return;                 /* cheville sous la hanche, sinon aberrant */
+  if(HIPCAL.hip0==null){HIPCAL.hip0=hy;HIPCAL.an0=ay;}
+  else{HIPCAL.hip0=HIPCAL.hip0*0.9+hy*0.1;HIPCAL.an0=HIPCAL.an0*0.9+ay*0.1;}
+}
+function hipDrop(lm,side){
+  if(HIPCAL.hip0==null) return null;
+  const leg=HIPCAL.an0-HIPCAL.hip0;
+  if(leg<0.05) return null;            /* sujet trop petit dans l'image */
+  return (lm[side.hip].y-HIPCAL.hip0)/leg;
+}
+/* Anthropometrie : debout, la hanche est a ~0,53 de la stature ; cuisse a
+   l'horizontale, elle descend a ~0,25. La chute vaut donc ~0,55 de la
+   longueur de jambe a la parallele. Les seuils restent prudents, et le
+   panneau de debug affiche la valeur en direct pour les recaler sur du reel. */
+const DROP_REP=0.30, DROP_PAR=0.45;
 function kneeAngle(w,side){return angle3(w[side.hip],w[side.knee],w[side.ankle]);}
 /* ── Indice de flexion du tronc ──────────────────────────────────────────
    A dire clairement : MediaPipe Pose n'a AUCUN point entre les epaules et
@@ -1115,7 +1165,7 @@ function handle(lm,w,ts){
     return;
   }
   S.lastGoodTs=ts;
-  const side=pickSide(lm);
+  const side=pickSide(lm, S.mode==='down'||S.mode==='up');
   const raw=kneeAngle(w,side);
   S.knee=S.knee*0.6+raw*0.4; // EMA smoothing
   const k=S.knee;
@@ -1129,13 +1179,13 @@ function handle(lm,w,ts){
        et le femur commence a tourner. La reference se prenait donc dans une
        position variable, d'ou des ecarts negatifs (« flex: -10,7 % »).
        On exige une jambe franchement tendue. */
-    if(k>168)flexCalib(lm,side); // tronc de référence : debout, jamais en descente
+    if(k>168){ flexCalib(lm,side); hipCalib(lm,side); } // références debout, jamais en descente
     setStatus(viewOf(lm,side)==='mixed'?'st_view':'st_ready'); // coaching placement en direct
     if(k<DOWN_TRIG){
       S.mode='down';
       S.rep={t0:ts,minKnee:raw,torsoMax:0,kasrMin:99,flexBuf:[],hipBelowKnee:false,
              vCnt:{side:0,front:0,mixed:0},view:'side',refAtEnd:null,
-             hipMax:lm[side.hip].y,hipMaxT:ts};
+             hipMax:lm[side.hip].y,hipMaxT:ts,dropMax:0};
       setStatus('st_down');
     }
   }else if(S.mode==='down'||S.mode==='up'){
@@ -1159,6 +1209,7 @@ function handle(lm,w,ts){
     if(ka!=null&&k<DOWN_TRIG&&ka<r.kasrMin)r.kasrMin=ka;
     /* On ne retient le tronc que sous DOWN_TRIG : au-dessus on est encore
        quasi debout, le ratio y vaut la reference et ecraserait le minimum. */
+    { const dr=hipDrop(lm,side); if(dr!=null&&dr>r.dropMax)r.dropMax=dr; }
     if(k<DOWN_TRIG){
       const rt=trunkRatio(lm,side);
       if(rt!=null){ r.flexBuf.push(rt); if(r.flexBuf.length>240)r.flexBuf.shift(); }
@@ -1169,7 +1220,7 @@ function handle(lm,w,ts){
        aucune mesure de dos. On vote sur l'ensemble des images de la rep. */
     r.vCnt[viewOf(lm,side)]++;
 
-    const deep=r.hipBelowKnee||r.minKnee<=BELOW_PARALLEL_ANGLE;
+    const deep=r.hipBelowKnee||r.minKnee<=BELOW_PARALLEL_ANGLE||r.dropMax>=DROP_PAR;
     stage.classList.toggle('deep',deep&&k<DOWN_TRIG);
     if(S.mode==='down'){
       setStatus(deep?'st_deep':'st_down');
@@ -1181,11 +1232,12 @@ function handle(lm,w,ts){
       /* Une rep rejetee ne produisait AUCUN signal : ni son, ni message. On
          relevait simplement d'un squat trop haut sans jamais savoir qu'il
          n'avait pas compte. C'est le pire des trois cas a laisser muet. */
-      if(!(r.minKnee<REP_MIN&&ts-r.t0>=MIN_REP_MS)){
+      const deepEnough = r.minKnee<REP_MIN || r.dropMax>=DROP_REP;
+      if(!(deepEnough&&ts-r.t0>=MIN_REP_MS)){
         try{ sndReject(); buzz('alert');
              liveCue('—', t(r.minKnee>=REP_MIN?'cue_shallow':'cue_tooquick'), false); }catch(_){}
       }
-      if(r.minKnee<REP_MIN&&ts-r.t0>=MIN_REP_MS){
+      if(deepEnough&&ts-r.t0>=MIN_REP_MS){
         let mcv=null;
         if(PRO&&VBT.scale){ // vitesse concentrique moyenne = déplacement vertical hanche / durée montée
           const dur=(ts-r.hipMaxT)/1000;
@@ -1201,7 +1253,7 @@ function handle(lm,w,ts){
 }
 
 function finishRep(r,mcv){
-  const parallel=r.hipBelowKnee||r.minKnee<=BELOW_PARALLEL_ANGLE;
+  const parallel=r.hipBelowKnee||r.minKnee<=BELOW_PARALLEL_ANGLE||r.dropMax>=DROP_PAR;
   /* La flexion n'a de sens que de profil, et seulement si le tronc debout a
      eu le temps d'etre calibre. Sinon on n'affiche RIEN plutot qu'un chiffre
      invente — c'est exactement ce genre de chiffre qui fait perdre confiance. */
@@ -1327,6 +1379,7 @@ function updateDbg(ts,k,side,lm){
   dbgEl.textContent=
     'état: '+S.mode+'  fps: '+dbgFps+'\n'+
     'genou: '+k.toFixed(0)+'°  vue: '+viewOf(lm,side)+' ('+viewRatio(lm,side).toFixed(2)+')\n'+
+    'chute: '+((d=>d==null?'—':d.toFixed(2))(hipDrop(lm,side)))+'  côté: '+(side===SIDE_L?'G':'D')+'\n'+
     'tronc: '+(rt!=null?rt.toFixed(3):'—')+
       '  réf: '+(FLEXCAL.ref!=null?FLEXCAL.ref.toFixed(3):'—')+
       '  flex: '+(fx!=null?fx.toFixed(1)+'%':'—')+'\n'+
