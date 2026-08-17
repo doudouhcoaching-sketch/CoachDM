@@ -125,6 +125,7 @@
   .vbar.stop i{background:var(--danger)}
   .vmark{position:absolute;top:-2px;left:50%;width:2px;height:16px;background:rgba(255,255,255,.55)}
   .vscale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);font-weight:700;margin-top:5px;font-variant-numeric:tabular-nums}
+  .vneedh{margin-top:12px;background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.5);color:#D4AF37;font-size:13px;font-weight:700;border-radius:12px;padding:11px 13px;line-height:1.5}
   .vstop{margin-top:12px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.5);color:#EF4444;font-size:13px;font-weight:700;border-radius:12px;padding:11px 13px;line-height:1.5}
   .vnote{margin-top:10px;font-size:11.5px;color:var(--muted);line-height:1.5}
 
@@ -260,6 +261,9 @@
     <div class="vfield"><label id="l-vh"></label><input id="in-vh" type="number" inputmode="decimal" min="120" max="220" step="0.5" placeholder="180"></div>
     <div class="vfield"><label id="l-vl"></label><input id="in-vl" type="number" inputmode="decimal" min="0" max="400" step="0.5" placeholder="100"></div>
   </div>
+  <!-- Sans taille, la vitesse n'a aucune echelle : les quatre chiffres
+       restent a « — » et rien n'explique pourquoi. On le dit. -->
+  <div class="vneedh" id="v-needh" style="display:none"></div>
   <div class="vres">
     <div class="m"><div class="v"><span id="v-last">—</span><small> m/s</small></div><div class="k" id="k-last"></div></div>
     <div class="m"><div class="v"><span id="v-best">—</span><small> m/s</small></div><div class="k" id="k-best"></div></div>
@@ -471,6 +475,7 @@ const I18N = {
   day_clamp:{fr:'Valeur bornée à ±15 % : la force fluctue, elle ne double pas d\u2019un jour à l\u2019autre (Jovanović & Flanagan 2014).',en:'Value capped at ±15%: strength fluctuates, it does not double overnight (Jovanović & Flanagan 2014).',nl:'Waarde begrensd op ±15%: kracht schommelt, maar verdubbelt niet van de ene dag op de andere (Jovanović & Flanagan 2014).'},
   day_note:{fr:'Le 1RM du jour vaut pour aujourd\u2019hui seulement. Il repart de zéro demain — c\u2019est le principe : on prescrit sur ta forme réelle, pas sur un chiffre figé.',en:'The daily 1RM applies to today only. It resets tomorrow — that is the point: we prescribe on your actual readiness, not on a frozen number.',nl:'De 1RM van vandaag geldt alleen voor vandaag. Morgen begint hij opnieuw — dat is het principe: we schrijven voor op je werkelijke vorm, niet op een vast getal.'},
   vbt_h:{fr:'Analyse Pro — Vitesse (VBT)',en:'Pro Analysis — Bar speed (VBT)',nl:'Pro-analyse — Snelheid (VBT)'},
+  vbt_needh:{fr:'⚠ Entre ta taille ci-dessus : sans elle, l’app ne peut pas convertir les pixels en mètres, donc pas de vitesse ni de 1RM estimé. La profondeur, le dos et le valgus fonctionnent déjà sans.',en:'⚠ Enter your height above: without it the app cannot convert pixels into metres, so no velocity and no estimated 1RM. Depth, back and valgus already work without it.',nl:'⚠ Vul hierboven je lengte in: zonder die kan de app pixels niet naar meters omrekenen, dus geen snelheid en geen geschatte 1RM. Diepte, rug en valgus werken al zonder.'},
   vbt_hint:{fr:'Entre ta taille (une fois) et la charge sur la barre. Chaque rep : vitesse concentrique moyenne, perte de vitesse et 1RM estimé. Coupe ta série à −20% de vitesse : tu gagnes autant de force avec moins de fatigue (Pareja-Blanco 2017).',en:'Enter your height (once) and the load on the bar. Every rep: mean concentric velocity, velocity loss and estimated 1RM. Cut your set at −20% velocity: same strength gains with less fatigue (Pareja-Blanco 2017).',nl:'Vul één keer je lengte in en de belasting op de bar. Elke rep: gemiddelde concentrische snelheid, snelheidsverlies en geschatte 1RM. Stop je set bij −20% snelheid: evenveel krachtwinst met minder vermoeidheid (Pareja-Blanco 2017).'},
   vbt_height:{fr:'Taille (cm)',en:'Height (cm)',nl:'Lengte (cm)'},
   vbt_load:{fr:'Charge barre (kg)',en:'Bar load (kg)',nl:'Bar belasting (kg)'},
@@ -708,6 +713,12 @@ function vbtOnRep(mcv){
 function vbtResetSet(){VBT.best=null;VBT.last=null;VBT.vl=null;VBT.e1=null;VBT.e1Blocked=false;VBT.stop=false;renderVBT();}
 function renderVBT(){
   if(!PRO)return;
+  /* La taille ne debloque QUE la vitesse et le 1RM : elle sert d'echelle
+     pour convertir des pixels en metres. Le dos, le valgus et la profondeur
+     n'en dependent pas. */
+  { const nh=$('#v-needh');
+    if(nh){ const miss=!VBT.heightCm; nh.style.display=miss?'':'none';
+            if(miss)nh.textContent=t('vbt_needh'); } }
   const f=x=>x==null?'—':x.toFixed(2);
   $('#v-last').textContent=f(VBT.last);
   $('#v-best').textContent=f(VBT.best);
