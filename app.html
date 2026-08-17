@@ -1813,6 +1813,15 @@
   </div>
 </div>
 
+<div class="overlay" id="swap-ov">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 id="swap-title">Remplacer</h3>
+    <div class="fk"><b id="swap-orig"></b> — <span id="swap-sub"></span></div>
+    <div id="swap-body"></div>
+  </div>
+</div>
+
 <div class="overlay" id="lex-ov">
   <div class="sheet">
     <div class="grab"></div>
@@ -2140,6 +2149,23 @@
   .film-set{color:var(--brand-ink)}
   .film-set svg{width:13px;height:13px}
   :root[data-theme="light"] .film-set{background:rgba(0,168,112,.08);border-color:rgba(0,168,112,.3)}
+  /* ---- H#37 : substitutions ---- */
+  .swap-btn{display:inline-flex;align-items:center;gap:6px;margin-top:8px;margin-left:8px;padding:7px 12px;
+    border-radius:10px;border:1px solid rgba(212,175,55,.34);background:rgba(212,175,55,.10);color:#D4AF37;
+    font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
+  .swap-btn svg{width:13px;height:13px}
+  .swap-tag{display:inline-flex;align-items:center;gap:6px;margin-bottom:6px;padding:4px 9px;border-radius:8px;
+    background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.4);color:#D4AF37;font-size:11.5px;font-weight:800}
+  .swap-tag button{background:none;border:0;color:inherit;font-weight:800;text-decoration:underline;cursor:pointer;font-size:11.5px}
+  .swap-warn{margin-top:6px;padding:8px 10px;border-radius:10px;background:rgba(212,175,55,.10);
+    border:1px solid rgba(212,175,55,.36);color:#D4AF37;font-size:12px;font-weight:700;line-height:1.45}
+  .swap-opt{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:12px;margin-bottom:8px;
+    border-radius:14px;border:1px solid var(--line);background:var(--surface-2);color:inherit;cursor:pointer}
+  .swap-opt.on{border-color:rgba(212,175,55,.6);background:rgba(212,175,55,.10)}
+  .swap-opt .nm{font-size:14.5px;font-weight:700;line-height:1.25}
+  .swap-opt .eq{font-size:11.5px;font-weight:700;color:var(--muted);margin-top:2px}
+  .swap-opt .rk{flex:0 0 24px;height:24px;border-radius:8px;display:grid;place-items:center;
+    background:rgba(212,175,55,.16);color:#D4AF37;font-size:11.5px;font-weight:800}
   /* ---- D#21 : checklist d'activation ---- */
   .act{margin-top:12px;border-radius:18px;padding:16px 16px 13px;
     background:linear-gradient(160deg,rgba(0,255,163,.10),rgba(0,255,163,.03));
@@ -3183,6 +3209,17 @@ const T = {
  ah_cta:{fr:'Lancer l’analyse',en:'Start the analysis',nl:'Analyse starten'},
  /* ---- D#25 : filmer depuis le player ---- */
  film_set:{fr:'Filmer cette série',en:'Film this set',nl:'Deze set filmen'},
+ /* H#37 — substitutions */
+ swap_btn:{fr:'Remplacer',en:'Swap',nl:'Vervangen'},
+ swap_other:{fr:'Changer',en:'Change',nl:'Wijzigen'},
+ swap_sub:{fr:'Tu n’as pas le matériel ? Choisis un remplaçant.',en:'No equipment for this? Pick a replacement.',nl:'Geen materiaal? Kies een vervanging.'},
+ swap_replaces:{fr:'remplace {n}',en:'replaces {n}',nl:'vervangt {n}'},
+ swap_revert:{fr:'revenir à l’original',en:'back to the original',nl:'terug naar origineel'},
+ swap_keep:{fr:'Garder l’exercice d’origine',en:'Keep the original exercise',nl:'Originele oefening houden'},
+ swap_done:{fr:'Exercice remplacé pour aujourd’hui',en:'Exercise swapped for today',nl:'Oefening vervangen voor vandaag'},
+ swap_undone:{fr:'Exercice d’origine rétabli',en:'Original exercise restored',nl:'Originele oefening hersteld'},
+ swap_pct_off:{fr:'charge à ajuster',en:'adjust the load',nl:'belasting aanpassen'},
+ swap_pct_warn:{fr:'Le pourcentage venait de ton record sur l’exercice d’origine : il ne vaut plus rien ici. Choisis une charge qui te laisse finir toutes tes séries au même RPE.',en:'The percentage came from your record on the original exercise: it means nothing here. Pick a load that lets you finish every set at the same RPE.',nl:'Het percentage kwam van je record op de originele oefening: hier zegt het niets meer. Kies een belasting waarmee je alle sets op dezelfde RPE afmaakt.'},
  /* ---- D#21 : checklist « Par où je commence ? » ---- */
  act_title:{fr:'Par où je commence ?',en:'Where do I start?',nl:'Waar begin ik?'},
  act_hide:{fr:'Masquer ces conseils',en:'Hide these tips',nl:'Deze tips verbergen'},
@@ -5324,6 +5361,15 @@ function quizResult(){
 {
   const ov=document.getElementById('quiz-ov');
   if(ov) ov.onclick=(e)=>{ if(e.target.id==='quiz-ov') quizClose(); };
+  const sov=document.getElementById('swap-ov');
+  if(sov){
+    sov.onclick=(e)=>{
+      if(e.target.id==='swap-ov'){ subClose(); return; }
+      const opt=e.target.closest && e.target.closest('.swap-opt');
+      if(opt){ subPick(sov.dataset.ex, opt.getAttribute('data-sub')); return; }
+      if(e.target.closest && e.target.closest('#swap-none')) subPick(sov.dataset.ex, null);
+    };
+  }
 }
 document.addEventListener('click',(e)=>{
   if(e.target.closest && e.target.closest('#quiz-open')) quizOpen();
@@ -5396,6 +5442,64 @@ const AN_BY_SLUG = (()=>{
 function analysisFor(ex){
   if(!ex) return null;
   return AN_BY_SLUG[(ex.slug||'').toLowerCase()] || null;
+}
+
+/* ── H#37 — substitutions d'exercices ───────────────────────────────────────
+   La table n'expose en lecture que les lignes approuvees par le coach (RLS).
+   Un mouvement sans substitution validee n'affiche donc simplement aucun
+   bouton : l'ecran ne promet jamais un remplacement qui n'existe pas.
+
+   Le choix vit en local, pas en base. Remplacer le rameur par de la course
+   parce qu'on s'entraine chez soi, ce n'est pas une modification du programme
+   du coach — c'est une adaptation du jour. L'ecrire en base reviendrait a
+   reecrire la seance de quelqu'un d'autre. */
+const SUB_KEY='cdm_subs_v1';
+let SE_ITEMS=null, SE_TIPS=null;
+let SUBS={};      /* exercise_id -> lignes approuvees, deja triees par rang */
+let SUB_PICK={};  /* exercise_id -> substitute_id retenu par le membre */
+try{ SUB_PICK=JSON.parse(localStorage.getItem(SUB_KEY)||'{}')||{}; }catch(_){ SUB_PICK={}; }
+function subSave(){ try{ localStorage.setItem(SUB_KEY,JSON.stringify(SUB_PICK)); }catch(_){} }
+function subChosen(exId){
+  const id=SUB_PICK[exId]; if(!id) return null;
+  const hit=(SUBS[exId]||[]).find(s=>s.substitute&&s.substitute.id===id);
+  /* Si le coach retire une substitution deja choisie par un membre, on nettoie
+     au lieu de la garder fantome. */
+  if(!hit){ delete SUB_PICK[exId]; subSave(); return null; }
+  return hit.substitute;
+}
+async function subLoad(exIds){
+  SUBS={};
+  if(!exIds || !exIds.length) return;
+  try{
+    const { data } = await sb.from('exercise_substitutions')
+      .select('exercise_id,rank,substitute:exercises!exercise_substitutions_substitute_id_fkey(id,slug,pct_ref_slug,name_fr,name_en,name_nl,primary_muscle,equipment,load_type,video_url,youtube_query,thumbnail_url,cue_fr,cue_en,cue_nl)')
+      .in('exercise_id',exIds).eq('reason','equipment').order('rank',{ascending:true});
+    (data||[]).forEach(r=>{ if(r.substitute) (SUBS[r.exercise_id]=SUBS[r.exercise_id]||[]).push(r); });
+  }catch(_){ SUBS={}; }
+}
+function subOpen(exId){
+  const list=SUBS[exId]||[]; if(!list.length) return;
+  const ov=document.getElementById('swap-ov'); if(!ov) return;
+  const orig=(SE_ITEMS||[]).map(i=>i.exercise).find(e=>e&&e.id===exId)||{};
+  document.getElementById('swap-orig').textContent=pick(orig,'name')||'';
+  document.getElementById('swap-sub').textContent=t('swap_sub');
+  const cur=SUB_PICK[exId]||null;
+  document.getElementById('swap-body').innerHTML=
+    list.map((s,i)=>`<button type="button" class="swap-opt${cur===s.substitute.id?' on':''}" data-sub="${esc(s.substitute.id)}">
+        <span class="rk">${i+1}</span>
+        <span><span class="nm">${esc(pick(s.substitute,'name')||'')}</span>
+        <span class="eq">${esc(equipL(s.substitute.equipment))}</span></span>
+      </button>`).join('')
+    + `<button type="button" class="btn subtle" id="swap-none" style="margin-top:6px">${t(cur?'swap_revert':'swap_keep')}</button>`;
+  ov.dataset.ex=exId;
+  ov.classList.add('show');
+}
+function subClose(){ const ov=document.getElementById('swap-ov'); if(ov) ov.classList.remove('show'); }
+function subPick(exId,subId){
+  if(subId) SUB_PICK[exId]=subId; else delete SUB_PICK[exId];
+  subSave(); subClose();
+  if(SE_CUR&&SE_CUR.w&&SE_ITEMS) renderDetail(SE_CUR.w,SE_ITEMS,SE_TIPS||{});
+  try{ toast(t(subId?'swap_done':'swap_undone')); }catch(_){}
 }
 
 const ACT_HIDE_KEY='cdm_activation_hidden_v1';
@@ -7022,6 +7126,10 @@ const blockL=(x)=>{const o=BLOCK_L[x];return o?(o[LANG]||o.fr):(x||'');};
 const BLOCK_COLOR={activation:'#38BDF8',sprint_plyo:'#A78BFA',strength:'#E9C767',accessory:'#10B981',conditioning:'#EF4444',recovery:'#10B981'};
 const MUSCLE_L={chest:{fr:'Pectoraux',en:'Chest',nl:'Borst'},back:{fr:'Dos',en:'Back',nl:'Rug'},lats:{fr:'Dorsaux',en:'Lats',nl:'Lats'},traps:{fr:'Trapèzes',en:'Traps',nl:'Trapezius'},shoulders:{fr:'Épaules',en:'Shoulders',nl:'Schouders'},biceps:{fr:'Biceps',en:'Biceps',nl:'Biceps'},triceps:{fr:'Triceps',en:'Triceps',nl:'Triceps'},forearms:{fr:'Avant-bras',en:'Forearms',nl:'Onderarmen'},quads:{fr:'Quadriceps',en:'Quads',nl:'Quadriceps'},hamstrings:{fr:'Ischios',en:'Hamstrings',nl:'Hamstrings'},glutes:{fr:'Fessiers',en:'Glutes',nl:'Bilspieren'},calves:{fr:'Mollets',en:'Calves',nl:'Kuiten'},adductors:{fr:'Adducteurs',en:'Adductors',nl:'Adductoren'},abductors:{fr:'Abducteurs',en:'Abductors',nl:'Abductoren'},core:{fr:'Gainage',en:'Core',nl:'Core'},full_body:{fr:'Full body',en:'Full body',nl:'Full body'},cardio:{fr:'Cardio',en:'Cardio',nl:'Cardio'}};
 const muscleL=(x)=>{const o=MUSCLE_L[x];return o?(o[LANG]||o.fr):(x||'');};
+/* H#37 — le materiel doit etre lisible : c'est LA raison pour laquelle on
+   choisit un remplacant. « dumbbell » ne dit rien a personne. */
+const EQUIP_L={bodyweight:{fr:'Poids du corps',en:'Bodyweight',nl:'Lichaamsgewicht'},none:{fr:'Sans matériel',en:'No equipment',nl:'Zonder materiaal'},barbell:{fr:'Barre',en:'Barbell',nl:'Barbell'},dumbbell:{fr:'Haltères',en:'Dumbbells',nl:'Dumbbells'},kettlebell:{fr:'Kettlebell',en:'Kettlebell',nl:'Kettlebell'},bands:{fr:'Élastiques',en:'Bands',nl:'Elastieken'},machine:{fr:'Machine',en:'Machine',nl:'Machine'},cable:{fr:'Poulie',en:'Cable',nl:'Kabel'},pullup_bar:{fr:'Barre de traction',en:'Pull-up bar',nl:'Optrekstang'},box:{fr:'Box',en:'Box',nl:'Box'},bench:{fr:'Banc',en:'Bench',nl:'Bank'},rower:{fr:'Rameur',en:'Rower',nl:'Roeimachine'},skierg:{fr:'SkiErg',en:'SkiErg',nl:'SkiErg'},sled:{fr:'Traîneau',en:'Sled',nl:'Slee'},sandbag:{fr:'Sandbag',en:'Sandbag',nl:'Sandbag'},medicine_ball:{fr:'Medicine ball',en:'Medicine ball',nl:'Medicijnbal'},jump_rope:{fr:'Corde à sauter',en:'Jump rope',nl:'Springtouw'},trap_bar:{fr:'Trap bar',en:'Trap bar',nl:'Trap bar'}};
+const equipL=(x)=>{const o=EQUIP_L[x];return o?(o[LANG]||o.fr):(x||'');};
 const SEV={success:{c:'--fiber',i:'✓'},warning:{c:'--prot',i:'✗'},info:{c:'--carb',i:'ⓘ'},tactic:{c:'--fat',i:'⚑'}};
 const typeColor=(t)=>TYPE_COLOR[t]||'#00FFA3';
 function ytId(u){ if(!u) return null; const m=String(u).match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/); return m?m[1]:null; }
@@ -7914,6 +8022,8 @@ async function openWorkout(id){
     const { data:tp } = await sb.from('exercise_tips').select('exercise_id,severity,body_fr,body_en,body_nl,reference').in('exercise_id',exIds).order('display_order',{ascending:true});
     (tp||[]).forEach(t=>{ if(!tips[t.exercise_id]) tips[t.exercise_id]=t; });
   }
+  await subLoad(exIds);
+  SE_ITEMS=list; SE_TIPS=tips; /* H#37 : necessaires pour re-rendre apres un remplacement */
   renderDetail(w,list,tips);
 }
 
@@ -7932,7 +8042,14 @@ function renderDetail(w,items,tips){
     </div>${wodBanner(w)}${dayBanner(items)}`;
   let lastBlock=null;
   items.forEach(it=>{
-    const ex=it.exercise||{}, bc=BLOCK_COLOR[it.block]||col;
+    /* H#37 — si un remplacement est actif, TOUT bascule sur le remplacant :
+       vignette, demo, consigne technique, muscle, et l'ecran d'analyse. Garder
+       l'ancienne vignette sur le nouveau nom serait le meme mensonge que
+       « filmer cette serie » sur un clean. */
+    const exOrig=it.exercise||{};
+    const exSwap=subChosen(exOrig.id);
+    const ex = exSwap || exOrig;
+    const bc=BLOCK_COLOR[it.block]||col;
     if(it.block!==lastBlock){
       if(lastBlock!==null) html+=`</div>`;
       html+=`<div class="blk"><div class="blk-h" style="--bc:${bc}">${blockL(it.block)}</div>`;
@@ -7957,6 +8074,10 @@ function renderDetail(w,items,tips){
     }
     const pctChip=(()=>{
       if(it.load_pct_1rm==null) return '';
+      /* Un % de 1RM se rapporte a UN mouvement. 80 % de back squat n'a aucun
+         sens sur un goblet squat. On coupe le calcul plutot que d'afficher un
+         kilo faux : c'est le genre de chiffre qui blesse quelqu'un. */
+      if(exSwap) return `<span class="chip">${it.load_pct_1rm}% · ${t('swap_pct_off')}</span>`;
       if(rm){ const kg=kg25(rm.v*it.load_pct_1rm/100);
         return `<span class="chip pct${rm.daily?' day':''}">${it.load_pct_1rm}% = ${kg} kg${rm.daily?' · '+t('day_chip'):''}${lexQ('pct')}</span>`; }
       return `<button class="chip pct miss" data-pr-open="${ex.pct_ref_slug&&PRSLUG[ex.pct_ref_slug]?PRSLUG[ex.pct_ref_slug].id:ex.id}">${it.load_pct_1rm}% · ${t('pr_add_missing')}</button>`;
@@ -7969,8 +8090,15 @@ function renderDetail(w,items,tips){
     const planAttr=plan.map(p=>(p.r!=null?p.r:'')+'@'+(p.k!=null?p.k:'')).join(';');
     const pills = nSets>0 ? `<div class="pills" data-we="${it.id}" data-ex="${ex.id}" data-load="${ex.load_type||'reps_only'}" data-rest="${it.rest_sec||''}" data-kg="${presKg}" data-plan="${planAttr}" data-rx="${encodeURIComponent(String(it.reps||''))}">`+
       Array.from({length:nSets},(_,i)=>`<span class="pill" data-on="0" data-set="${i+1}">${i+1}</span>`).join('')+`</div>` : '';
+    const swapTag = exSwap
+      ? `<div class="swap-tag">⇄ ${t('swap_replaces').replace('{n}',esc(pick(exOrig,'name')||''))} · <button type="button" data-swap-undo="${esc(exOrig.id)}">${t('swap_revert')}</button></div>`
+      : '';
+    const swapBtn = (SUBS[exOrig.id]||[]).length
+      ? `<button type="button" class="swap-btn" data-swap="${esc(exOrig.id)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>${t(exSwap?'swap_other':'swap_btn')}</button>`
+      : '';
     html+=`<div class="exrow">${thumbEl}
       <div class="ex-main">
+        ${swapTag}
         <div class="ex-name">${esc(pick(ex,'name')||t('ex_fallback'))}</div>
         <div class="ex-meta">
           ${setsN?`<span class="chip k">${setsN} × ${reps}</span>`:(reps?`<span class="chip k">${reps}</span>`:'')}
@@ -7988,6 +8116,8 @@ function renderDetail(w,items,tips){
         ${(()=>{ const an=analysisFor(ex); return an
           ? `<button type="button" class="film-set" data-film="${esc(an.page)}" data-film-w="${esc(String(w&&w.id||''))}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-3.5l6 3.5V7z"/></svg>${t('film_set')}</button>`
           : ''; })()}
+        ${swapBtn}
+        ${exSwap&&it.load_pct_1rm!=null?`<div class="swap-warn">${t('swap_pct_warn')}</div>`:''}
         ${pills}
       </div></div>`;
   });
@@ -8016,6 +8146,12 @@ function renderDetail(w,items,tips){
      Le retour doit ramener sur LA SÉANCE, pas sur la liste des programmes :
      quelqu'un qui filme son squat au milieu de sa séance veut reprendre ou il
      s'est arrete. On memorise donc l'onglet ET l'identifiant de la seance. */
+  document.querySelectorAll('#se-detail [data-swap]').forEach(b=>{
+    b.onclick=(ev)=>{ ev.stopPropagation(); subOpen(b.getAttribute('data-swap')); };
+  });
+  document.querySelectorAll('#se-detail [data-swap-undo]').forEach(b=>{
+    b.onclick=(ev)=>{ ev.stopPropagation(); subPick(b.getAttribute('data-swap-undo'),null); };
+  });
   document.querySelectorAll('#se-detail [data-film]').forEach(b=>{
     b.onclick=(ev)=>{
       ev.stopPropagation();
