@@ -621,7 +621,11 @@ function proUI(){
    Barre = point milieu des poignets (15/16). Rep valide si la barre part de la ligne
    de base (hanche — ou épaules pour le jerk), atteint le niveau requis (épaules pour
    clean, au-dessus du nez pour snatch/jerk) et revient à la base. */
-const WARMUP_FRAMES=15, MIN_REP_MS=600, TRAIL_MAX=260, DEV_WARN_CM=15;
+/* MIN_REP_MS : 600 ms plafonnait a 100 reps/min. Un cycle d'arrache leger en
+   touch-and-go peut s'en approcher, et une rep plus rapide etait jetee sans
+   un mot. 250 ms = 240 reps/min, hors de portee humaine sur un mouvement
+   olympique : le filtre anti-bruit reste, le plafond artificiel saute. */
+const WARMUP_FRAMES=15, MIN_REP_MS=250, TRAIL_MAX=260, DEV_WARN_CM=15;
 const MV_REQ={snatch:2,clean:1,jerk:2}; /* 1=épaules, 2=overhead */
 /* Le mouvement peut arriver depuis la seance : « Filmer cette serie » sur un
    squat clean ouvre ?mv=clean. Sans ca on tombait sur le dernier mouvement

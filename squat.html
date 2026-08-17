@@ -776,6 +776,14 @@ function proUI(){
 
 /* ───────── Squat engine (3D angles + rep state machine) ───────── */
 const STAND=160, DOWN_TRIG=150, REP_MIN=130, BELOW_PARALLEL_ANGLE=90, TORSO_WARN=55, KASR_WARN=0.85;
+/* MIN_REP_MS etait a 900 ms. C'est un plafond de 67 reps/min : au-dela, CHAQUE
+   rep etait jetee en silence. Or des air squats en metcon tournent a 70-90
+   reps/min — autrement dit le travail le plus rapide etait invisible, et le
+   compteur affichait zero sans rien dire.
+   300 ms = 200 reps/min. Aucun etre humain ne descend et ne remonte d'un squat
+   en moins de 300 ms : le garde-fou anti-bruit reste, le plafond artificiel
+   disparait. */
+const MIN_REP_MS=300;
 /* Seuils de l'indice de flexion du tronc, en % de raccourcissement de la
    corde epaule-hanche. Correspondance calculee sur une colonne de 50 cm
    flechie en arc de cercle :
@@ -787,7 +795,8 @@ const STAND=160, DOWN_TRIG=150, REP_MIN=130, BELOW_PARALLEL_ANGLE=90, TORSO_WARN
    recaler sur des videos reelles : le panneau de debug affiche le % en
    direct exactement pour ca. */
 const FLEX_MILD=2.0, FLEX_WARN=4.0;
-const WARMUP_FRAMES=15, MIN_REP_MS=900;
+const WARMUP_FRAMES=15;
+let LAST_REP_MS=0; /* affiche dans le panneau de debug : sert a verifier qu'aucune rep rapide n'est rejetee */
 const S={mode:'idle',knee:180,rep:null,lastGoodTs:0,good:0};
 let reps=[],bestDepth=180;
 
@@ -904,14 +913,24 @@ function handle(lm,w,ts){
     setStatus(viewOf(lm,side)==='mixed'?'st_view':'st_ready'); // coaching placement en direct
     if(k<DOWN_TRIG){
       S.mode='down';
-      S.rep={t0:ts,minKnee:k,torsoMax:0,kasrMin:99,flexBuf:[],hipBelowKnee:false,view:viewOf(lm,side),hipMax:lm[side.hip].y,hipMaxT:ts};
+      S.rep={t0:ts,minKnee:raw,torsoMax:0,kasrMin:99,flexBuf:[],hipBelowKnee:false,view:viewOf(lm,side),hipMax:lm[side.hip].y,hipMaxT:ts};
       setStatus('st_down');
     }
   }else if(S.mode==='down'||S.mode==='up'){
     const r=S.rep;
     const hy=lm[side.hip].y;
     if(hy>r.hipMax){r.hipMax=hy;r.hipMaxT=ts;} // point bas de la hanche = début du concentrique
-    if(k<r.minKnee)r.minKnee=k;
+    /* La profondeur se lit sur l'angle BRUT, jamais sur le lisse.
+       Le lissage (EMA a 0,4) sert a stabiliser la machine a etats — sans lui
+       elle re-declencherait sur le bruit. Mais il traine : environ 83 ms a
+       30 fps. Sur une rep de 2 s c'est 1 degre, sur une rep de 0,5 s c'est
+       11 degres perdus. Concretement, a cette vitesse il fallait descendre a
+       80 deg reels pour etre credite d'une parallele cassee a 90 deg — la
+       rep etait bonne, l'app disait non.
+       Mesurer sur le brut supprime l'erreur entierement. Le bruit de MediaPipe
+       sur un angle de genou est de l'ordre du degre, sans commune mesure avec
+       les 11 degres que coutait le lissage. */
+    if(raw<r.minKnee)r.minKnee=raw;
     const tl=torsoLean(w,side);
     if(tl>r.torsoMax)r.torsoMax=tl;
     const ka=kasr(lm);
@@ -933,6 +952,7 @@ function handle(lm,w,ts){
     }
     if(k>STAND){
       stage.classList.remove('deep');
+      LAST_REP_MS=Math.round(ts-r.t0);
       if(r.minKnee<REP_MIN&&ts-r.t0>=MIN_REP_MS){
         let mcv=null;
         if(PRO&&VBT.scale){ // vitesse concentrique moyenne = déplacement vertical hanche / durée montée
@@ -1048,7 +1068,9 @@ function updateDbg(ts,k,side,lm){
       '  réf: '+(FLEXCAL.ref!=null?FLEXCAL.ref.toFixed(3):'—')+
       '  flex: '+(fx!=null?fx.toFixed(1)+'%':'—')+'\n'+
     'pro: '+(ENT.known?(PRO?'oui':'non'):'…')+'  compte: '+(ACCT||'déconnecté')+'\n'+
-    'reps: '+reps.length+(PRO&&VBT.scale?'  éch: '+VBT.scale.toFixed(2):'');
+    'reps: '+reps.length+'  dernière: '+(LAST_REP_MS?LAST_REP_MS+' ms':'—')+
+      '  cadence max: '+Math.round(60000/MIN_REP_MS)+'/min'+
+      (PRO&&VBT.scale?'  éch: '+VBT.scale.toFixed(2):'');
 }
 
 /* ───────── Camera + loop ───────── */
