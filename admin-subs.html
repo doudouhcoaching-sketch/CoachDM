@@ -66,7 +66,9 @@
 <body>
 
 <header>
-  <a class="back" href="admin.html">‹</a>
+  <!-- On peut arriver ici depuis la console admin OU depuis le profil de l'app.
+       Un retour code en dur enverrait la moitie des visites au mauvais endroit. -->
+  <a class="back" href="admin.html" id="back">‹</a>
   <h1>Substitutions d'exercices</h1>
 </header>
 
@@ -100,6 +102,10 @@
 const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(m){const el=$('#toast');el.textContent=m;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200);}
+
+$('#back').addEventListener('click',e=>{
+  if(document.referrer && history.length>1){ e.preventDefault(); history.back(); }
+});
 
 const EQUIP_L={bodyweight:'Poids du corps',none:'Sans matériel',barbell:'Barre',dumbbell:'Haltères',
   kettlebell:'Kettlebell',bands:'Élastiques',machine:'Machine',cable:'Poulie',pullup_bar:'Barre de traction',

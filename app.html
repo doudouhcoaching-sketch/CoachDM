@@ -1627,6 +1627,7 @@
       <div class="empty" style="text-align:left;padding:0 0 12px" id="p-email"></div>
       <a class="btn subtle" id="p-coach-console" href="coach.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_coach_console">Console Coach</a>
       <a class="btn subtle" id="p-admin-console" href="admin.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_admin_console">Console Admin</a>
+      <a class="btn subtle" id="p-admin-subs" href="admin-subs.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_admin_subs">Substitutions d'exercices</a>
       <!-- Changer son mot de passe une fois connecte : l'app ne le permettait
            nulle part. Indispensable si un membre pense que son mot de passe a
            fuite, et attendu par Apple au meme titre que la suppression. -->
@@ -2907,6 +2908,7 @@ const T = {
  chat_video_plus:{fr:"Les vidéos nécessitent l'offre Coach+ de ton coach.",en:'Videos require your coach\u2019s Coach+ plan.',nl:'Video\u2019s vereisen het Coach+ abonnement van je coach.'},
  chat_media_na:{fr:'Média indisponible',en:'Media unavailable',nl:'Media niet beschikbaar'},
  btn_admin_console:{fr:'Console Admin',en:'Admin Console',nl:'Admin Console'},
+ btn_admin_subs:{fr:'Substitutions d’exercices',en:'Exercise substitutions',nl:'Oefeningvervangingen'},
  contact_coach:{fr:'Contacter le coach',en:'Contact the coach',nl:'Contacteer de coach'},
  prof_options:{fr:'Options',en:'Options',nl:'Opties'},
  lbl_theme:{fr:'Thème',en:'Theme',nl:'Thema'},
@@ -3652,6 +3654,7 @@ async function loadProfileInfo(user){
        rôle coach, sinon elle garde un raccourci vers une console fermée. */
     { const cc=$('#p-coach-console'); if(cc) cc.style.display=(role==='coach'||role==='admin')?'block':'none'; }
     { const ac=$('#p-admin-console'); if(ac) ac.style.display=(role==='admin')?'block':'none'; }
+    { const as=$('#p-admin-subs');    if(as) as.style.display=(role==='admin')?'block':'none'; }
     /* Badge Coach : uniquement si le rôle est coach ET que le badge doré
        "Coach Fondateur" n'est pas déjà affiché plus haut, pour ne pas doubler
        le message. */
@@ -8826,7 +8829,7 @@ const AN_BACK_KEY = 'cdm_return_tab';
    reviennent par href="app.html". Meme cause, meme symptome : on partait du
    Profil et on revenait sur l'Accueil. Le portail Stripe, lui, n'a pas besoin
    de ce traitement — il est bloque en natif par le garde-fou Apple 3.1.1. */
-document.querySelectorAll('#p-coach-console, #p-admin-console, [data-i18n="cfree_ok_go"]').forEach(a=>{
+document.querySelectorAll('#p-coach-console, #p-admin-console, #p-admin-subs, [data-i18n="cfree_ok_go"]').forEach(a=>{
   a.addEventListener('click', ()=>{ try{ localStorage.setItem(AN_BACK_KEY,'profile'); }catch(_){} });
 });
 
