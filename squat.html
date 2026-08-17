@@ -420,12 +420,18 @@ const I18N = {
   sh_fail:{fr:'Partage impossible sur ce navigateur — image téléchargée.',en:'Sharing unavailable on this browser — image downloaded.',nl:'Delen niet beschikbaar in deze browser — afbeelding gedownload.'},
   b_par:{fr:'Sous la parallèle ✓',en:'Below parallel ✓',nl:'Onder parallel ✓'},
   b_high:{fr:'Pas cassée ✗',en:'Not below ✗',nl:'Niet onder ✗'},
-  b_torso:{fr:'Dos',en:'Torso',nl:'Romp'},
-  b_torso_w:{fr:'⚠ Dos très penché',en:'⚠ Excessive lean',nl:'⚠ Sterk voorovergebogen'},
+  b_torso:{fr:'Buste penché',en:'Torso lean',nl:'Rompheling'},
+  b_torso_w:{fr:'⚠ Buste très penché',en:'⚠ Excessive lean',nl:'⚠ Sterk voorovergebogen'},
+  b_flex_ok:{fr:'Dos gainé ✓',en:'Back braced ✓',nl:'Rug gespannen ✓'},
+  b_flex_m:{fr:'⚠ Dos qui s’arrondit',en:'⚠ Back starting to round',nl:'⚠ Rug begint te ronden'},
+  b_flex_w:{fr:'⚠ Dos rond',en:'⚠ Rounded back',nl:'⚠ Ronde rug'},
+  b_flex_na:{fr:'Dos : non mesurable de face',en:'Back: not measurable front-on',nl:'Rug: niet meetbaar vooraan'},
   b_valgus:{fr:'⚠ Genoux qui rentrent',en:'⚠ Knees caving in',nl:'⚠ Knieën naar binnen'},
   b_knees_ok:{fr:'Genoux ✓',en:'Knees ✓',nl:'Knieën ✓'},
   view_side:{fr:'profil',en:'side',nl:'zijkant'},
   view_front:{fr:'face',en:'front',nl:'voorkant'},
+  gate_anon_h:{fr:'Connecte-toi pour l’Analyse Pro',en:'Log in for Pro Analysis',nl:'Log in voor Pro-analyse'},
+  gate_anon_p:{fr:'Le compteur de reps et la profondeur marchent sans compte. Le dos, le valgus et la vitesse (VBT) ont besoin de savoir qui tu es : ouvre l’app Coach DM et connecte-toi, puis reviens sur cette page. Si tu es déjà abonné, rien de plus à payer.',en:'Rep counting and depth work without an account. Back, valgus and speed (VBT) need to know who you are: open the Coach DM app and log in, then come back to this page. If you already subscribe, there is nothing more to pay.',nl:'Reps tellen en diepte werken zonder account. Rug, valgus en snelheid (VBT) moeten weten wie je bent: open de Coach DM-app en log in, kom dan terug op deze pagina. Ben je al geabonneerd, dan betaal je niets extra.'},
   vbt_gate_h:{fr:'Analyse Pro (VBT) — fonctionnalité Premium',en:'Pro Analysis (VBT) — Premium feature',nl:'Pro-analyse (VBT) — Premium functie'},
   vbt_gate_p:{fr:'Le compteur de reps et la profondeur (parallèle cassée) sont gratuits pour tous. L\'Analyse Pro — inclinaison du dos, valgus des genoux, vitesse de chaque rep (VBT), perte de vitesse et 1RM estimé en direct — est incluse dans l’abonnement. Abonne-toi directement ici, sans quitter la page.',en:'Rep counting and depth (below parallel) are free for everyone. Pro Analysis — torso lean, knee valgus, per-rep bar speed (VBT), velocity loss and live estimated 1RM — is for the subscription. Subscribe right here, without leaving the page.',nl:'Reps tellen en de diepte (onder parallel) zijn gratis voor iedereen. Pro-analyse — romphelling, knievalgus, snelheid per rep (VBT), snelheidsverlies en live geschatte 1RM — is voor de abonnement. Abonneer je hier, zonder de pagina te verlaten.'},
   pw_native:{fr:'Les abonnements ne sont pas disponibles dans cette version de l\u2019app.',en:'Subscriptions are not available in this version of the app.',nl:'Abonnementen zijn niet beschikbaar in deze versie van de app.'},
@@ -518,7 +524,8 @@ let SB=null,UIDG=null;
 /* ───────── Accès (freemium) ─────────
    Gratuit pour tous : compteur de reps + parallèle + profondeur.
    Pro (fn_can_analyze) : dos, valgus, VBT (vitesse, perte, e1RM). */
-const ENT={known:false,ok:false};
+const ENT={known:false,ok:false,auth:false};
+let ACCT=null; /* e-mail du compte connecte, affiche dans le panneau de debug */
 let PRO=false;
 
 function applyLang(){
@@ -733,7 +740,17 @@ function renderDay(d){
 }
 function proUI(){
   $('#vbt-gate').style.display=(ENT.known&&!PRO)?'':'none';
-  if(ENT.known&&!PRO)pwLoad();
+  /* Non connecte et non abonne, ce n'est pas la meme chose. Afficher un
+     paywall a quelqu'un qui a deja l'abonnement mais dont la session n'est
+     pas ouverte sur cette page, c'est le meilleur moyen de lui faire croire
+     que l'app est cassee — c'est arrive. */
+  if(ENT.known&&!PRO){
+    const anon=!ENT.auth;
+    $('#vbt-gate-h').textContent=t(anon?'gate_anon_h':'vbt_gate_h');
+    $('#vbt-gate-p').textContent=t(anon?'gate_anon_p':'vbt_gate_p');
+    const gp=$('#gate-plans'); if(gp)gp.style.display=anon?'none':'';
+    if(!anon)pwLoad();
+  }
   $('#vbt-card').style.display=PRO?'':'none';
   $('#pro-note').style.display=(ENT.known&&!PRO)?'':'none';
   if(PRO){vbtInputs();}
@@ -741,7 +758,18 @@ function proUI(){
 }
 
 /* ───────── Squat engine (3D angles + rep state machine) ───────── */
-const STAND=160, DOWN_TRIG=150, REP_MIN=130, BELOW_PARALLEL_ANGLE=90, TORSO_WARN=60, KASR_WARN=0.85;
+const STAND=160, DOWN_TRIG=150, REP_MIN=130, BELOW_PARALLEL_ANGLE=90, TORSO_WARN=55, KASR_WARN=0.85;
+/* Seuils de l'indice de flexion du tronc, en % de raccourcissement de la
+   corde epaule-hanche. Correspondance calculee sur une colonne de 50 cm
+   flechie en arc de cercle :
+        30 deg de flexion totale -> 1,1 %      60 deg -> 4,5 %
+        40 deg                   -> 2,0 %      70 deg -> 6,1 %
+        50 deg                   -> 3,1 %      80 deg -> 7,9 %
+   Un dos visiblement rond sous la barre, c'est 40 a 60 deg. D'ou 2 % pour
+   l'alerte douce et 4 % pour l'alerte franche. Ces deux chiffres sont a
+   recaler sur des videos reelles : le panneau de debug affiche le % en
+   direct exactement pour ca. */
+const FLEX_MILD=2.0, FLEX_WARN=4.0;
 const WARMUP_FRAMES=15, MIN_REP_MS=900;
 const S={mode:'idle',knee:180,rep:null,lastGoodTs:0,good:0};
 let reps=[],bestDepth=180;
@@ -766,6 +794,57 @@ function pickSide(lm){
   return L>=R?{hip:23,knee:25,ankle:27,sh:11}:{hip:24,knee:26,ankle:28,sh:12};
 }
 function kneeAngle(w,side){return angle3(w[side.hip],w[side.knee],w[side.ankle]);}
+/* ── Indice de flexion du tronc ──────────────────────────────────────────
+   A dire clairement : MediaPipe Pose n'a AUCUN point entre les epaules et
+   les hanches. Il n'existe donc aucun moyen de VOIR la courbure de la
+   colonne. L'ancienne mesure « Dos » etait l'angle epaule-hanche par rapport
+   a la verticale : c'est une INCLINAISON, elle ne bouge pas d'un degre quand
+   on arrondit le dos en gardant le meme angle de buste. D'ou le « ca va »
+   sur un dos volontairement rond.
+
+   Ce qui est reellement mesurable : la CORDE epaule->hanche. Quand le dos
+   s'arrondit, les epaules se rapprochent des hanches et cette corde
+   raccourcit. On la normalise par le femur (hanche->genou), segment rigide
+   vu dans la meme image : le rapport devient independant de la distance au
+   telephone et de la morphologie.
+
+   Limites, honnetement : valable de PROFIL uniquement (de face ou a 45 deg
+   les deux segments se raccourcissent differemment et le rapport ne veut
+   plus rien dire), et capable de voir un arrondi franc, pas un butt wink de
+   deux degres. C'est un indice, pas un verdict medical. */
+function trunkRatio(lm,side){
+  const sh=lm[side.sh],hip=lm[side.hip],kn=lm[side.knee];
+  if(vis(sh)<0.5||vis(hip)<0.5||vis(kn)<0.5)return null;
+  const tr=Math.hypot(sh.x-hip.x,sh.y-hip.y);
+  const fem=Math.hypot(hip.x-kn.x,hip.y-kn.y);
+  if(fem<0.02)return null;
+  const r=tr/fem;
+  return (r>0.4&&r<3)?r:null; /* hors de cette plage = detection aberrante */
+}
+/* Reference = mediane des ratios debout, de profil. Mediane et pas moyenne :
+   une seule frame ou MediaPipe perd une epaule suffirait a fausser une
+   moyenne, et fausser la reference fausse TOUTES les reps qui suivent. */
+const FLEXCAL={buf:[],ref:null};
+function flexCalib(lm,side){
+  if(viewOf(lm,side)!=='side')return;
+  const r=trunkRatio(lm,side); if(r==null)return;
+  FLEXCAL.buf.push(r); if(FLEXCAL.buf.length>90)FLEXCAL.buf.shift();
+  if(FLEXCAL.buf.length>=20){
+    const s=[...FLEXCAL.buf].sort((a,b)=>a-b);
+    FLEXCAL.ref=s[s.length>>1];
+  }
+}
+/* On ne prend PAS le minimum de la rep. Le minimum, c'est la frame ou
+   MediaPipe a le plus mal place l'epaule — prendre le minimum revient a
+   mesurer le bruit et a hurler au dos rond sur une rep propre. On prend le
+   20e percentile des ratios du bas de la rep : le creux reel survit, le
+   decrochage d'une frame isolee est ecrase. */
+function flexPct(samples){
+  if(FLEXCAL.ref==null||!samples||samples.length<5)return null;
+  const s=[...samples].sort((a,b)=>a-b);
+  const low=s[Math.floor(s.length*0.20)];
+  return Math.max(0,(1-low/FLEXCAL.ref)*100);
+}
 function torsoLean(w,side){
   const sh=w[side.sh],hip=w[side.hip];
   const dx=sh.x-hip.x,dy=sh.y-hip.y,dz=sh.z-hip.z;
@@ -804,10 +883,11 @@ function handle(lm,w,ts){
 
   if(S.mode==='ready'){
     if(PRO)vbtCalib(lm,side); // référence debout + échelle, mise à jour en continu
+    if(k>STAND)flexCalib(lm,side); // tronc de référence : debout, jamais en descente
     setStatus(viewOf(lm,side)==='mixed'?'st_view':'st_ready'); // coaching placement en direct
     if(k<DOWN_TRIG){
       S.mode='down';
-      S.rep={t0:ts,minKnee:k,torsoMax:0,kasrMin:99,hipBelowKnee:false,view:viewOf(lm,side),hipMax:lm[side.hip].y,hipMaxT:ts};
+      S.rep={t0:ts,minKnee:k,torsoMax:0,kasrMin:99,flexBuf:[],hipBelowKnee:false,view:viewOf(lm,side),hipMax:lm[side.hip].y,hipMaxT:ts};
       setStatus('st_down');
     }
   }else if(S.mode==='down'||S.mode==='up'){
@@ -819,6 +899,12 @@ function handle(lm,w,ts){
     if(tl>r.torsoMax)r.torsoMax=tl;
     const ka=kasr(lm);
     if(ka!=null&&k<DOWN_TRIG&&ka<r.kasrMin)r.kasrMin=ka;
+    /* On ne retient le tronc que sous DOWN_TRIG : au-dessus on est encore
+       quasi debout, le ratio y vaut la reference et ecraserait le minimum. */
+    if(k<DOWN_TRIG){
+      const rt=trunkRatio(lm,side);
+      if(rt!=null){ r.flexBuf.push(rt); if(r.flexBuf.length>240)r.flexBuf.shift(); }
+    }
     if(lm[side.hip].y>lm[side.knee].y+0.01)r.hipBelowKnee=true; // crête de hanche SOUS le genou (standard CrossFit)
     r.view=viewOf(lm,side);
 
@@ -847,11 +933,18 @@ function handle(lm,w,ts){
 
 function finishRep(r,mcv){
   const parallel=r.hipBelowKnee||r.minKnee<=BELOW_PARALLEL_ANGLE;
+  /* La flexion n'a de sens que de profil, et seulement si le tronc debout a
+     eu le temps d'etre calibre. Sinon on n'affiche RIEN plutot qu'un chiffre
+     invente — c'est exactement ce genre de chiffre qui fait perdre confiance. */
+  const fx=(r.view==='side')?flexPct(r.flexBuf):null;
   reps.push({
     minKnee:Math.round(r.minKnee),
     parallel,
     torso:Math.round(r.torsoMax),
     torsoWarn:r.torsoMax>TORSO_WARN,
+    flex:fx!=null?+fx.toFixed(1):null,
+    flexWarn:fx!=null&&fx>=FLEX_WARN,
+    flexMild:fx!=null&&fx>=FLEX_MILD&&fx<FLEX_WARN,
     valgus:r.view!=='side'&&r.kasrMin<KASR_WARN,
     view:r.view,
     mcv:mcv!=null?+mcv.toFixed(3):null
@@ -882,6 +975,13 @@ function renderReps(){
     badges.push(`<span class="badge ${r.parallel?'b-ok':'b-no'}">${t(r.parallel?'b_par':'b_high')} · ${r.minKnee}°</span>`);
     if(PRO){
       badges.push(`<span class="badge ${r.torsoWarn?'b-warn':'b-mut'}">${r.torsoWarn?t('b_torso_w'):t('b_torso')} ${r.torso}°</span>`);
+      if(r.flex!=null){
+        const cls=r.flexWarn?'b-no':(r.flexMild?'b-warn':'b-ok');
+        const lbl=r.flexWarn?t('b_flex_w'):(r.flexMild?t('b_flex_m'):t('b_flex_ok'));
+        badges.push(`<span class="badge ${cls}">${lbl} ${r.flex.toFixed(1)}%</span>`);
+      }else if(r.view!=='side'){
+        badges.push(`<span class="badge b-mut">${t('b_flex_na')}</span>`);
+      }
       if(r.view!=='side')badges.push(`<span class="badge ${r.valgus?'b-no':'b-ok'}">${t(r.valgus?'b_valgus':'b_knees_ok')}</span>`);
       if(r.mcv!=null)badges.push(`<span class="badge b-spd">${r.mcv.toFixed(2)} m/s</span>`);
     }
@@ -919,9 +1019,18 @@ function updateDbg(ts,k,side,lm){
   dbgFrames++;
   if(ts-dbgFpsT>=1000){dbgFps=dbgFrames;dbgFrames=0;dbgFpsT=ts;}
   dbgEl.hidden=false;
+  /* Le panneau sert a diagnostiquer sur le terrain. « pro » et « compte » y
+     figurent parce qu'une analyse muette sans raison affichee, on ne sait pas
+     si c'est un bug ou un droit manquant. */
+  const rt=trunkRatio(lm,side);
+  const fx=(FLEXCAL.ref!=null&&rt!=null)?((1-rt/FLEXCAL.ref)*100):null;
   dbgEl.textContent=
     'état: '+S.mode+'  fps: '+dbgFps+'\n'+
     'genou: '+k.toFixed(0)+'°  vue: '+viewOf(lm,side)+'\n'+
+    'tronc: '+(rt!=null?rt.toFixed(3):'—')+
+      '  réf: '+(FLEXCAL.ref!=null?FLEXCAL.ref.toFixed(3):'—')+
+      '  flex: '+(fx!=null?fx.toFixed(1)+'%':'—')+'\n'+
+    'pro: '+(ENT.known?(PRO?'oui':'non'):'…')+'  compte: '+(ACCT||'déconnecté')+'\n'+
     'reps: '+reps.length+(PRO&&VBT.scale?'  éch: '+VBT.scale.toFixed(2):'');
 }
 
@@ -1434,6 +1543,8 @@ import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({creat
   sbClient.auth.getSession().then(async({data})=>{
     UID=data?.session?.user?.id||null;
     UIDG=UID;
+    ACCT=data?.session?.user?.email||null;
+    ENT.auth=!!UID;
     if(UID){
       try{
         const {data:ok}=await sbClient.rpc('fn_can_analyze',{p_user:UID});
