@@ -43,6 +43,12 @@
     background:linear-gradient(145deg,var(--brand),var(--brand-2));box-shadow:0 12px 30px rgba(0,255,160,.4);
     font-weight:800;font-size:26px;color:#04120a}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
+  /* Traductions repliees : presentes quand on en a besoin, invisibles sinon. */
+  .mp-tr{border:1px dashed var(--line);border-radius:10px;padding:9px 11px;background:rgba(255,255,255,.02)}
+  .mp-tr > summary{cursor:pointer;font-size:12px;font-weight:700;color:var(--muted);list-style:none}
+  .mp-tr > summary::-webkit-details-marker{display:none}
+  .mp-tr > summary::before{content:'▸ ';font-size:11px}
+  .mp-tr[open] > summary::before{content:'▾ '}
   h1{font-size:22px;font-weight:800;margin:0 0 4px;text-align:center}
   .sub{color:var(--muted);font-size:13px;text-align:center;margin:0 0 20px}
   .field{margin-bottom:13px}
@@ -1668,6 +1674,19 @@ async function mpEdit(id){
       </select></div>
     </div>
     <div class="field"><label>Note (optionnel)</label><textarea id="mp-notes" placeholder="Hydratation, timing, rappels…">${esc(plan.notes)}</textarea></div>
+    <!-- Traductions. Repliees par defaut : la grande majorite des plans
+         restent en francais, et un formulaire trois fois plus long
+         decouragerait d'en ecrire un seul. Ce qu'on laisse vide retombe
+         automatiquement sur la version ci-dessus cote client. -->
+    <details class="mp-tr">
+      <summary>Traductions (facultatif) — vide = le client reçoit ta version ci-dessus</summary>
+      <div class="row2" style="margin-top:10px">
+        <div class="field"><label>Titre · NL</label><input id="mp-title-nl" value="${esc(plan.title_nl||'')}" placeholder="Cut 12 weken" /></div>
+        <div class="field"><label>Titre · EN</label><input id="mp-title-en" value="${esc(plan.title_en||'')}" placeholder="12-week cut" /></div>
+      </div>
+      <div class="field"><label>Note · NL</label><textarea id="mp-notes-nl" placeholder="Hydratatie, timing…">${esc(plan.notes_nl||'')}</textarea></div>
+      <div class="field"><label>Note · EN</label><textarea id="mp-notes-en" placeholder="Hydration, timing…">${esc(plan.notes_en||'')}</textarea></div>
+    </details>
     <div class="mini" style="margin:14px 0 8px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.5px">Repas</div>
     <div id="mp-items"></div>
     <button class="btn subtle" id="mp-add" style="margin-top:4px">＋ Ajouter un repas</button>
@@ -1711,6 +1730,13 @@ function mpPaintItems(){
       <input data-f="carbs_g" data-i="${i}" inputmode="decimal" value="${it.carbs_g??''}" placeholder="G (g)" />
       <input data-f="fat_g" data-i="${i}" inputmode="decimal" value="${it.fat_g??''}" placeholder="L (g)" />
     </div>
+    <details class="mp-tr" style="margin-top:8px">
+      <summary>Traductions${(it.title_nl||it.title_en||it.description_nl||it.description_en)?' ✓':''}</summary>
+      <div class="field" style="margin:8px 0 6px"><input data-f="title_nl" data-i="${i}" value="${esc(it.title_nl||'')}" placeholder="Titre · NL" /></div>
+      <div class="field" style="margin:0 0 6px"><textarea data-f="description_nl" data-i="${i}" placeholder="Détails · NL" style="min-height:38px">${esc(it.description_nl||'')}</textarea></div>
+      <div class="field" style="margin:0 0 6px"><input data-f="title_en" data-i="${i}" value="${esc(it.title_en||'')}" placeholder="Titre · EN" /></div>
+      <div class="field" style="margin:0"><textarea data-f="description_en" data-i="${i}" placeholder="Détails · EN" style="min-height:38px">${esc(it.description_en||'')}</textarea></div>
+    </details>
   </div>`).join('');
   box.querySelectorAll('[data-f]').forEach(inp=>inp.oninput=()=>{ MP_ITEMS[+inp.dataset.i][inp.dataset.f]=inp.value; });
   box.querySelectorAll('[data-mprm]').forEach(b=>b.onclick=()=>{ MP_ITEMS.splice(+b.dataset.mprm,1); mpPaintItems(); });
@@ -1720,16 +1746,22 @@ async function mpSave(){
   if(!title) return setMsg('mp-msg','Titre requis.','err');
   const type=$('#mp-type').value;
   setBtn('#mp-save',true,'…');
+  const v=id=>{ const el=$(id); return el ? (el.value.trim()||null) : null; };
   const { data:pid, error } = await sb.rpc('coach_upsert_meal_plan',{
     p_id:MP_CUR, p_client:MP_CID, p_title:title,
     p_notes:$('#mp-notes').value.trim()||null, p_plan_type:type,
-    p_is_active:$('#mp-active').value==='1'
+    p_is_active:$('#mp-active').value==='1',
+    p_title_en:v('#mp-title-en'), p_title_nl:v('#mp-title-nl'),
+    p_notes_en:v('#mp-notes-en'), p_notes_nl:v('#mp-notes-nl')
   });
   if(error){ setBtn('#mp-save',false,tr('s_save_plan')); return setMsg('mp-msg','Erreur : '+error.message,'err'); }
   const items=MP_ITEMS.map((it,i)=>({
     day_index: type==='week' ? (+it.day_index||1) : 1,
     slot: it.slot||'meal', title: (it.title||'').trim()||'Repas',
     description: (it.description||'').trim()||null,
+    title_nl: (it.title_nl||'').trim()||null, title_en: (it.title_en||'').trim()||null,
+    description_nl: (it.description_nl||'').trim()||null,
+    description_en: (it.description_en||'').trim()||null,
     kcal: intOrNull(it.kcal), protein_g: numOrNull(it.protein_g),
     carbs_g: numOrNull(it.carbs_g), fat_g: numOrNull(it.fat_g), display_order:i
   }));

@@ -1286,6 +1286,19 @@
 
   <!-- JOURNAL -->
   <div class="page tabpane" id="pane-journal">
+    <!-- Le plan du coach passe AVANT le journal : quand quelqu'un a un plan,
+         c'est ce qu'il vient chercher. Le bloc reste invisible s'il n'y en a
+         pas — on ne montre pas un cadre vide a un membre sans coach. -->
+    <div class="block" id="mp-card" style="display:none">
+      <div class="tr-head">
+        <h3 id="mp-h">Mon plan nutrition</h3>
+        <span class="act-badge" id="mp-upd"></span>
+      </div>
+      <div class="mp-notes" id="mp-notes" style="display:none"></div>
+      <div id="mp-days"></div>
+      <div class="mp-tot" id="mp-tot"></div>
+    </div>
+
     <div class="block">
       <h3 data-i18n="jo_add">Ajouter un aliment</h3>
       <div class="search-row">
@@ -2150,6 +2163,23 @@
   .film-set{color:var(--brand-ink)}
   .film-set svg{width:13px;height:13px}
   :root[data-theme="light"] .film-set{background:rgba(0,168,112,.08);border-color:rgba(0,168,112,.3)}
+  /* ---- Plan nutrition du coach ---- */
+  .mp-notes{margin-bottom:12px;padding:10px 12px;border-radius:12px;background:rgba(212,175,55,.10);
+    border-left:3px solid #D4AF37;color:#E8D9A0;font-size:13px;font-weight:600;line-height:1.5;white-space:pre-wrap}
+  .mp-day{margin-bottom:14px}
+  .mp-day > h4{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 8px}
+  .mp-meal{padding:11px 12px;border-radius:14px;background:var(--surface-2);
+    border:1px solid var(--line);margin-bottom:8px}
+  .mp-slot{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--brand-ink)}
+  .mp-name{font-size:14.5px;font-weight:700;line-height:1.3;margin-top:2px}
+  .mp-desc{font-size:12.5px;font-weight:600;color:var(--muted);line-height:1.45;margin-top:3px;white-space:pre-wrap}
+  .mp-mac{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+  .mp-mac span{font-size:11px;font-weight:800;padding:3px 8px;border-radius:7px;
+    background:rgba(255,255,255,.05);border:1px solid var(--line);font-variant-numeric:tabular-nums}
+  .mp-tot{margin-top:4px;padding:11px 12px;border-radius:12px;background:rgba(0,255,163,.08);
+    border:1px solid rgba(0,255,163,.28);font-size:13px;font-weight:800;color:var(--brand-ink);
+    font-variant-numeric:tabular-nums;text-align:center}
   /* ---- H#37 : substitutions ---- */
   .swap-btn{display:inline-flex;align-items:center;gap:6px;margin-top:8px;margin-left:8px;padding:7px 12px;
     border-radius:10px;border:1px solid rgba(212,175,55,.34);background:rgba(212,175,55,.10);color:#D4AF37;
@@ -3016,6 +3046,11 @@ const T = {
  btn_cancel:{fr:'Annuler',en:'Cancel',nl:'Annuleren'},
  set_title:{fr:'Série',en:'Set',nl:'Set'},
  set_save:{fr:'Valider la série',en:'Save set',nl:'Set opslaan'},
+ mp_h:{fr:'Mon plan nutrition',en:'My nutrition plan',nl:'Mijn voedingsplan'},
+ mp_day:{fr:'Jour {n}',en:'Day {n}',nl:'Dag {n}'},
+ mp_upd:{fr:'mis à jour le {n}',en:'updated {n}',nl:'bijgewerkt op {n}'},
+ mp_total:{fr:'Total du jour : {n}',en:'Daily total: {n}',nl:'Dagtotaal: {n}'},
+ mp_meal:{fr:'Repas',en:'Meal',nl:'Maaltijd'},
  meal_breakfast:{fr:'Petit-déj',en:'Breakfast',nl:'Ontbijt'},
  meal_lunch:{fr:'Déjeuner',en:'Lunch',nl:'Lunch'},
  meal_dinner:{fr:'Dîner',en:'Dinner',nl:'Diner'},
@@ -5531,6 +5566,74 @@ function subPick(exId,subId){
   try{ toast(t(subId?'swap_done':'swap_undone')); }catch(_){}
 }
 
+/* ── Plan nutrition ecrit par le coach ────────────────────────────────────
+   La RPC fait deja le travail de langue : elle sert la traduction si le coach
+   l'a remplie, la version d'origine sinon. Cote app on n'a donc rien a
+   arbitrer — et surtout rien a deviner. */
+async function mpLoad(){
+  const card=document.getElementById('mp-card'); if(!card) return;
+  let d=null;
+  try{ const r=await sb.rpc('client_meal_plan'); d=r.data||null; }catch(_){ d=null; }
+  if(!d || !Array.isArray(d.items) || !d.items.length){ card.style.display='none'; return; }
+
+  document.getElementById('mp-h').textContent=t('mp_h');
+  { const u=document.getElementById('mp-upd');
+    u.textContent = d.updated_at
+      ? t('mp_upd').replace('{n}', new Date(d.updated_at).toLocaleDateString(
+          LANG==='fr'?'fr-BE':(LANG==='nl'?'nl-BE':'en-GB'), {day:'numeric',month:'short'}))
+      : ''; }
+  { const n=document.getElementById('mp-notes');
+    if(d.notes && d.notes.trim()){ n.textContent=d.notes; n.style.display=''; }
+    else n.style.display='none'; }
+
+  /* Regroupement par jour. Un plan « day » n'a qu'un jour : dans ce cas on
+     n'affiche pas de titre « Jour 1 », ca n'apporte rien et ca prend une ligne. */
+  const days=new Map();
+  d.items.forEach(it=>{ const k=+it.day_index||1;
+    if(!days.has(k)) days.set(k,[]); days.get(k).push(it); });
+  const multi=days.size>1;
+
+  const macs=it=>[
+    it.kcal!=null      ? `<span>${Math.round(it.kcal)} kcal</span>` : '',
+    it.protein_g!=null ? `<span>P ${(+it.protein_g).toFixed(0)} g</span>` : '',
+    it.carbs_g!=null   ? `<span>G ${(+it.carbs_g).toFixed(0)} g</span>` : '',
+    it.fat_g!=null     ? `<span>L ${(+it.fat_g).toFixed(0)} g</span>` : ''
+  ].filter(Boolean).join('');
+
+  let html='';
+  [...days.keys()].sort((a,b)=>a-b).forEach(k=>{
+    html+=`<div class="mp-day">`;
+    if(multi) html+=`<h4>${t('mp_day').replace('{n}',k)}</h4>`;
+    days.get(k).forEach(it=>{
+      const slot = T['meal_'+it.slot] ? t('meal_'+it.slot) : t('mp_meal');
+      const m=macs(it);
+      html+=`<div class="mp-meal">
+        <div class="mp-slot">${esc(slot)}</div>
+        <div class="mp-name">${esc(it.title||'')}</div>
+        ${it.description?`<div class="mp-desc">${esc(it.description)}</div>`:''}
+        ${m?`<div class="mp-mac">${m}</div>`:''}
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  document.getElementById('mp-days').innerHTML=html;
+
+  /* Total : uniquement si au moins une ligne porte des kcal, sinon la somme
+     vaudrait « 0 kcal » et ferait croire a un plan vide. */
+  const tot=d.items.reduce((a,it)=>({
+    k:a.k+(+it.kcal||0), p:a.p+(+it.protein_g||0),
+    c:a.c+(+it.carbs_g||0), f:a.f+(+it.fat_g||0)
+  }),{k:0,p:0,c:0,f:0});
+  const el=document.getElementById('mp-tot');
+  if(tot.k>0 && !multi){
+    el.textContent=t('mp_total').replace('{n}',
+      `${Math.round(tot.k)} kcal · P ${Math.round(tot.p)} · G ${Math.round(tot.c)} · L ${Math.round(tot.f)}`);
+    el.style.display='';
+  } else el.style.display='none';
+
+  card.style.display='';
+}
+
 const ACT_HIDE_KEY='cdm_activation_hidden_v1';
 /* Masquer la checklist masque AUSSI la carte hero J+2 : les deux poussent la
    meme chose. En laisser une survivre a l'autre donnerait le sentiment que le
@@ -7000,7 +7103,7 @@ function switchTab(tab, quiet){
   $('#tb-sub').textContent = SUBS[tab] ? t(SUBS[tab]) : '';
   $('.topbar').style.display = (tab==='ia'||tab==='home') ? 'none' : 'block';
   if(tab==='home') loadHome();
-  if(tab==='journal'){ loadLogs(); loadRecipes(); }
+  if(tab==='journal'){ loadLogs(); loadRecipes(); mpLoad(); }
   if(tab==='seances' && !quiet) loadWorkouts();
   /* C#19 : la seance du jour est calculee par loadWod(), appele depuis
      l'accueil. Si le membre arrive sur Seances sans etre passe par l'accueil
