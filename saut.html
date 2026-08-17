@@ -1519,7 +1519,13 @@ function recStart(){
   bRec.classList.add('rec-on');
   RECST.timer=setInterval(()=>{
     const sec=Math.round((performance.now()-RECST.t0)/1000);
-    bRec.textContent=t('rec_stop').replace('{t}',Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'));
+    /* La video s'accumule en MEMOIRE : iOS n'offre aucun moyen d'ecrire au fil
+       de l'eau depuis une WebView. C'est le seul poste qui grossit vraiment
+       pendant une seance, et il etait invisible. On l'affiche : un chiffre
+       qu'on voit monter est un risque qu'on peut arreter a temps. */
+    const mo=RECST.bytes/1048576;
+    bRec.textContent=t('rec_stop').replace('{t}',Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'))
+      +(mo>=1?'  '+mo.toFixed(0)+' Mo':'');
   },500);
 }
 function recStop(){
