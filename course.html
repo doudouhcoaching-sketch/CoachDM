@@ -300,7 +300,7 @@
    shadows them via named access, force real functions so the glue never crashes. */
 try{window.dbg=function(){};window.out=window.out&&typeof window.out==='function'?window.out:function(){};window.err=window.err&&typeof window.err==='function'?window.err:function(){};}catch(_){}
 
-import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21";
 
 /* ───────── i18n ───────── */
 const I18N = {
@@ -339,6 +339,8 @@ const I18N = {
   rec_stop:{fr:'■ {t}',en:'■ {t}',nl:'■ {t}'},
   rec_fail:{fr:'Enregistrement vidéo non supporté sur ce navigateur.',en:'Video recording not supported on this browser.',nl:'Video-opname wordt niet ondersteund in deze browser.'},
   rec_dl:{fr:'Partage indisponible — vidéo téléchargée.',en:'Sharing unavailable — video downloaded.',nl:'Delen niet beschikbaar — video gedownload.'},
+  rec_cap:{fr:'⬇ Enregistrer (10 min atteintes)',en:'⬇ Save (10 min reached)',nl:'⬇ Bewaren (10 min bereikt)'},
+  rec_cap_msg:{fr:'Limite de 10 minutes atteinte — appuie sur ⬇ pour enregistrer ta vidéo.',en:'10-minute limit reached — tap ⬇ to save your video.',nl:'Limiet van 10 minuten bereikt — tik op ⬇ om je video te bewaren.'},
   b_ovs:{fr:'⚠ Overstride',en:'⚠ Overstride',nl:'⚠ Overstride'},
   vbt_gate_h:{fr:'Analyse Pro (Technique) — fonctionnalité Premium',en:'Pro Analysis (Technique) — Premium feature',nl:'Pro-analyse (Techniek) — Premium functie'},
   vbt_gate_p:{fr:'La cadence en direct et le compteur de pas sont gratuits pour tous. L\'Analyse Pro — inclinaison du tronc, oscillation verticale en cm, temps de contact au sol et détection de l\'overstride (pied qui atterrit trop loin devant) — est incluse dans l’abonnement. Abonne-toi directement ici, sans quitter la page.',en:'Live cadence and step counting are free for everyone. Pro Analysis — trunk lean, vertical oscillation in cm, ground contact time and overstride detection (foot landing too far ahead) — is for the subscription. Subscribe right here, without leaving the page.',nl:'Live cadans en stappen tellen zijn gratis voor iedereen. Pro-analyse — romphelling, verticale oscillatie in cm, grondcontacttijd en overstride-detectie (voet die te ver vooruit landt) — is voor de abonnement. Abonneer je hier, zonder de pagina te verlaten.'},
@@ -829,7 +831,13 @@ let landmarker=null,stream=null,running=false,facing='environment',lastTs=-1,wak
 async function loadModel(){
   if(landmarker)return;
   setStatus('st_loading');
-  const base='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm';
+  /* Runtime 0.10.21 : derniere version de la ligne 0.10 publiee sur npm.
+     Meme API que 0.10.14, sept correctifs de plus, aucune migration.
+     La ligne 1.0.x existe mais c'est un changement majeur : on la garde pour
+     un chantier a part, une variable a la fois.
+     A savoir : passer de 0.10.14 a 0.10.21 ne change PAS la precision des
+     points detectes. Celle-ci depend du MODELE (.task), pas du runtime. */
+  const base='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm';
   const model='https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
   const vision=await FilesetResolver.forVisionTasks(base);
   const opts=d=>({baseOptions:{modelAssetPath:model,delegate:d},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:0.6,minPosePresenceConfidence:0.6,minTrackingConfidence:0.6});
@@ -883,7 +891,10 @@ async function start(){
   try{await loadModel();}
   catch(e){
     setStatus('st_err_model');showErr('Modèle: '+(e&&e.message||e)+' ['+VER+']');
-    if(stream){stream.getTracks().forEach(tr=>tr.stop());stream=null;}
+    /* Arreter les pistes ne suffit pas : tant que l'element video garde une
+     reference au MediaStream, WebKit conserve ses tampons de decodage. */
+  if(stream){stream.getTracks().forEach(tr=>tr.stop());stream=null;}
+  try{ video.srcObject=null; }catch(_){}
     splash.style.display='flex';bStart.disabled=false;return;
   }
   running=true;lastTs=-1;
@@ -920,6 +931,15 @@ bFlip.onclick=async()=>{
   try{await startCam();}
   catch(e){setStatus('st_err_cam');}
 };
+/* Le PoseLandmarker detient un tas WebAssembly de plusieurs dizaines de Mo.
+   Il n'etait jamais libere : en quittant la page, WKWebView tarde a le
+   reclamer et iOS le compte toujours contre l'app. On le ferme
+   explicitement au depart — pagehide couvre le retour vers app.html, la
+   fermeture d'onglet et la mise en arriere-plan sur iOS. */
+addEventListener('pagehide',()=>{
+  try{ if(running) stop(); }catch(_){}
+  try{ if(landmarker&&landmarker.close){ landmarker.close(); landmarker=null; } }catch(_){}
+});
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&running)stop();
 });
@@ -1125,7 +1145,18 @@ document.getElementById('b-share').onclick=()=>{if(steps>10)shGo();};
 /* ───────── Sauvegarde Supabase (session partagée avec l'app) ───────── */
 
 /* ═════════ REC — vidéo watermarkée, 100% locale ═════════ */
-const RECST={on:false,mr:null,chunks:[],cv:null,ctx:null,raf:0,t0:0,timer:0,mime:'',ext:'mp4'};
+/* Plafond memoire de l'enregistrement.
+   MediaRecorder empile ses fragments en RAM : il n'existe pas d'ecriture en
+   flux vers le disque depuis une webview iOS. La duree utile ne se gagne donc
+   pas en levant le plafond, mais en baissant le DEBIT.
+   5 Mbit/s etait surdimensionne pour du 720p avec incrustation : a 2,5 Mbit/s
+   la difference est invisible sur une video d'analyse technique, et on passe
+   de 5 a 10 minutes pour la meme empreinte memoire.
+   10 min couvre 100 wall balls (~4 min) avec une marge confortable. */
+const REC_BITRATE=2_500_000;
+const REC_MAX_BYTES=180*1024*1024;   /* ~10 min a 2,5 Mbit/s */
+const REC_MAX_MS=10*60*1000;
+const RECST={on:false,auto:false,pending:null,mr:null,chunks:[],bytes:0,cv:null,ctx:null,raf:0,t0:0,timer:0,maxTimer:0,mime:'',ext:'mp4'};
 const bRec=$('#b-rec');
 function recMime(){
   const c=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm'];
@@ -1208,12 +1239,25 @@ function recStart(){
   let strm=null;
   try{strm=RECST.cv.captureStream(30);}catch(_){alert(t('rec_fail'));return;}
   RECST.chunks=[];
-  try{RECST.mr=new MediaRecorder(strm,{mimeType:mime,videoBitsPerSecond:5_000_000});}
+  try{RECST.mr=new MediaRecorder(strm,{mimeType:mime,videoBitsPerSecond:REC_BITRATE});}
   catch(_){try{RECST.mr=new MediaRecorder(strm);}catch(__){alert(t('rec_fail'));return;}}
-  RECST.mr.ondataavailable=e=>{if(e.data&&e.data.size)RECST.chunks.push(e.data);};
+  /* Garde-fou memoire. A 5 Mbit/s, chaque minute enregistree pese ~37 Mo
+     conserves en RAM : 10 minutes suffisent a faire tuer la webview par iOS.
+     On compte les octets au fil de l'eau et on coupe net a 120 Mo, ce qui
+     laisse environ 3 minutes — largement au-dela d'une serie filmee. */
+  RECST.bytes=0;
+  RECST.mr.ondataavailable=e=>{
+    if(!e.data||!e.data.size) return;
+    RECST.chunks.push(e.data);
+    RECST.bytes+=e.data.size;
+    if(RECST.bytes>REC_MAX_BYTES){ try{ RECST.auto=true; recStop(); }catch(_){} }
+  };
   RECST.mr.onstop=recFinish;
-  RECST.on=true;RECST.t0=performance.now();
+  RECST.on=true;RECST.auto=false;RECST.t0=performance.now();
   RECST.mr.start(1000);
+  /* Second filet : une coupure au temps, au cas ou le debit reel serait plus
+     bas que prevu et repousserait le plafond d'octets trop loin. */
+  RECST.maxTimer=setTimeout(()=>{ try{ RECST.auto=true; recStop(); }catch(_){} }, REC_MAX_MS);
   recDrawFrame();
   bRec.classList.add('rec-on');
   RECST.timer=setInterval(()=>{
@@ -1226,14 +1270,43 @@ function recStop(){
   RECST.on=false;
   cancelAnimationFrame(RECST.raf);
   clearInterval(RECST.timer);
+  clearTimeout(RECST.maxTimer);
   bRec.classList.remove('rec-on');
   bRec.textContent=t('rec_hint');
   try{RECST.mr.stop();}catch(_){}
 }
 async function recFinish(){
   const blob=new Blob(RECST.chunks,{type:RECST.mime||'video/mp4'});
-  RECST.chunks=[];
+  /* Coupure automatique (plafond memoire ou 3 min) : on N'APPELLE PAS
+     navigator.share ici. iOS n'autorise le partage que dans la fenetre du
+     geste utilisateur — un partage declenche par un minuteur est rejete, et
+     la video serait perdue alors qu'on vient justement de l'enregistrer.
+     On la garde de cote et on transforme le bouton REC en bouton
+     d'enregistrement : le prochain appui EST un geste utilisateur. */
+  if(RECST.auto){
+    RECST.auto=false;
+    RECST.chunks=[]; RECST.bytes=0; RECST.cv=null; RECST.ctx=null;
+    if(!blob.size) return;
+    RECST.pending=blob;
+    bRec.textContent=t('rec_cap');
+    bRec.classList.add('rec-on');
+    bRec.onclick=()=>{ const b=RECST.pending; RECST.pending=null;
+      bRec.classList.remove('rec-on'); bRec.textContent=t('rec_hint');
+      bRec.onclick=()=>{RECST.on?recStop():recStart();};
+      recShareBlob(b); };
+    try{ alert(t('rec_cap_msg')); }catch(_){}
+    return;
+  }
+  RECST.chunks=[]; RECST.bytes=0;
+  /* Le canvas d'enregistrement fait la taille de la video : le garder
+     apres coup retient plusieurs Mo pour rien. */
+  RECST.cv=null; RECST.ctx=null;
   if(!blob.size)return;
+  return recShareBlob(blob);
+}
+
+async function recShareBlob(blob){
+  if(!blob||!blob.size) return;
   const file=new File([blob],'coachdm-course.'+RECST.ext,{type:blob.type});
   if(navigator.canShare&&navigator.canShare({files:[file]})){
     try{await navigator.share({files:[file],title:'Coach DM'});return;}catch(e){if(e&&e.name==='AbortError')return;}
@@ -1243,6 +1316,7 @@ async function recFinish(){
   setTimeout(()=>URL.revokeObjectURL(a.href),6000);
   alert(t('rec_dl'));
 }
+
 bRec.onclick=()=>{RECST.on?recStop():recStart();};
 
 import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient})=>{

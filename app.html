@@ -250,13 +250,31 @@
   .an-h h3{font-size:16px;font-weight:800;letter-spacing:-.02em;margin:0}
   .an-live{font-size:9.5px;font-weight:800;letter-spacing:.06em;color:var(--bg,#0A0A0A);background:#00FFA3;border-radius:6px;padding:2px 6px}
   .an-sub{font-size:12px;color:var(--muted);margin:0 0 10px;line-height:1.45}
-  .an-card{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:13px 14px;margin-bottom:10px;cursor:pointer}
+  /* Cartes d'analyse : elles portent maintenant 4 niveaux d'information, la
+     mise en page passe donc en colonne. Le degrade et le liftage au contact
+     leur donnent le poids qu'elles meritent — c'est la fonction signature. */
+  .an-card{display:block;border:1px solid var(--line);border-radius:18px;padding:14px 15px 12px;margin-bottom:12px;cursor:pointer;
+    background:linear-gradient(158deg,var(--surface) 0%,color-mix(in srgb,var(--surface) 82%,var(--brand) 18%) 190%);
+    box-shadow:0 6px 20px rgba(0,0,0,.16);transition:transform .14s ease,border-color .14s ease}
+  .an-card:active{transform:scale(.985);border-color:rgba(0,255,163,.4)}
+  :root[data-theme="light"] .an-card{box-shadow:0 5px 16px rgba(18,44,32,.07)}
+  .an-top{display:flex;align-items:flex-start;gap:12px}
+  .an-hd{flex:1;min-width:0}
+  .an-sec{flex:none;font-family:'Outfit',sans-serif;font-size:11px;font-weight:800;letter-spacing:.02em;
+    color:var(--brand-ink);background:var(--brand-soft);border-radius:999px;padding:4px 9px}
+  .an-how{display:flex;gap:8px;margin-top:11px;padding:9px 11px;border-radius:11px;background:var(--surface-2);
+    font-size:12.5px;line-height:1.45}
+  .an-how-ic{flex:none;font-size:13px}
+  .an-get{margin-top:9px;font-size:12.5px;line-height:1.45;opacity:.85}
+  .an-get b{color:var(--brand-ink);font-weight:700}
+  .an-go{margin-top:11px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--brand-ink)}
+  .an-go span{opacity:.6}
   .an-card:active{transform:scale(.985)}
   .an-ic{flex:0 0 auto;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:#00FFA3;background:rgba(0,255,163,.09);border:1px solid rgba(0,255,163,.25)}
   .an-body{flex:1;min-width:0}
   .an-t{font-weight:800;font-size:14.5px;letter-spacing:-.02em}
   .an-d{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.35}
-  .an-end{color:var(--muted);display:grid;place-items:center;font-size:20px}
+  .an-end-unused{color:var(--muted);display:grid;place-items:center;font-size:20px}
   .an-card.locked .an-ic{color:#D4AF37;background:rgba(212,175,55,.09);border-color:rgba(212,175,55,.28)}
   .an-card.locked .an-end{color:#D4AF37}
   .an-lock-note{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;color:#D4AF37;margin:2px 2px 14px}
@@ -2926,6 +2944,8 @@ const T = {
  an_run_sub:{fr:'Gratuit : cadence + pas \u00b7 Pro : tronc, oscillation, overstride',en:'Free: cadence + steps \u00b7 Pro: trunk, oscillation, overstride',nl:'Gratis: cadans + stappen \u00b7 Pro: romp, oscillatie, overstride'},
  an_hyrox:{fr:'Analyse HYROX',en:'HYROX Analysis',nl:'HYROX-analyse'},
  an_hyrox_sub:{fr:'Gratuit : reps + no-reps + cadence \u00b7 Pro : fade, blocage, p\u00e9nalit\u00e9',en:'Free: reps + no-reps + cadence \u00b7 Pro: fade, rest, penalty',nl:'Gratis: reps + no-reps + cadans \u00b7 Pro: fade, rust, straf'},
+ an_you_get:{fr:'Tu obtiens :',en:'You get:',nl:'Je krijgt:'},
+ an_start:{fr:'Lancer l’analyse',en:'Start the analysis',nl:'Analyse starten'},
  an_pro:{fr:'Analyses Pro (VBT, Profil F-V) \u2014 offres Coach & Coach+',en:'Pro analyses (VBT, F-V profile) \u2014 Coach & Coach+ plans',nl:'Pro-analyses (VBT, K-S profiel) \u2014 Coach & Coach+ abonnementen'},
  /* Sous-titres natifs : ils decrivent ce que fait l'analyse, sans jamais citer
     de palier \u00ab Pro \u00bb. Les versions web opposent Gratuit et Pro, ce qui est
@@ -7259,6 +7279,38 @@ function renderSeances(){
   if(!CAT.length){ $('#se-cards').innerHTML=emptyIllus('i-dumbbell',t('co_none_up')); return; }
   renderProgramFolders(CAT);
 }
+/* Les cinq analyses, expliquees.
+   L'onglet listait cinq lignes de jargon (« Gratuit : reps + parallele · Pro :
+   dos, valgus, vitesse (VBT) ») : ni ce que ca mesure en francais, ni comment
+   filmer, ni ce qu'on obtient a la fin. Resultat mesure : 0 % d'utilisation.
+   Trois champs, dans l'ordre des questions qu'on se pose :
+     d = ce que ca regarde   h = comment poser le telephone   g = ce que tu recois
+   « h » est le champ decisif : c'est l'absence de mode d'emploi qui bloque,
+   pas le manque d'envie. Personne ne devine tout seul a quelle distance se
+   mettre ni sous quel angle. */
+const AN_INFO={
+ 'squat.html':{ sec:30, lex:['valgus','vbt'],
+   d:{fr:'Ta profondeur, la vitesse de remontée et l’alignement de tes genoux.',en:'Your depth, your drive speed and your knee alignment.',nl:'Je diepte, je opwaartse snelheid en je kniestand.'},
+   h:{fr:'Téléphone posé de côté, à 2-3 m, corps entier dans l’image. 3 répétitions suffisent.',en:'Phone side-on, 2-3 m away, whole body in frame. 3 reps is enough.',nl:'Telefoon opzij, 2-3 m, volledig lichaam in beeld. 3 herhalingen volstaan.'},
+   g:{fr:'Répétitions comptées, parallèle validée ou non, et le degré de valgus rep par rep.',en:'Reps counted, parallel passed or not, and knee valgus degree rep by rep.',nl:'Herhalingen geteld, parallel gehaald of niet, en valgus per herhaling.'}},
+ 'saut.html':{ sec:20, lex:['fv_profile'],
+   d:{fr:'La hauteur réelle de ton saut, au centimètre, et ce qui te limite.',en:'Your true jump height, to the centimetre, and what limits it.',nl:'Je echte sprunghoogte, tot op de centimeter.'},
+   h:{fr:'Téléphone de face, à 3 m, bien stable. Deux sauts maximum, sans élan.',en:'Phone facing you, 3 m away, held steady. Two max jumps, no run-up.',nl:'Telefoon frontaal, 3 m, stabiel. Twee maximale sprongen, zonder aanloop.'},
+   g:{fr:'Hauteur en cm, temps de contact au sol, et ton profil force-vitesse.',en:'Height in cm, ground contact time, and your force-velocity profile.',nl:'Hoogte in cm, contacttijd, en je kracht-snelheidsprofiel.'}},
+ 'barre.html':{ sec:30, lex:['bar_path','vbt'],
+   d:{fr:'La trajectoire de ta barre et la vitesse de chaque répétition.',en:'Your bar path and the speed of every rep.',nl:'Je stangbaan en de snelheid van elke herhaling.'},
+   h:{fr:'Téléphone de côté, perpendiculaire à la barre, à 2-3 m. Filme la série entière.',en:'Phone side-on, perpendicular to the bar, 2-3 m away. Film the whole set.',nl:'Telefoon opzij, loodrecht op de stang, 2-3 m. Film de hele set.'},
+   g:{fr:'La ligne de la barre tracée en direct, la déviation en cm, la vitesse pic.',en:'The bar line drawn live, drift in cm, and peak velocity.',nl:'De stanglijn live getekend, afwijking in cm, piek­snelheid.'}},
+ 'course.html':{ sec:20, lex:['overstride'],
+   d:{fr:'Ta cadence, la longueur de tes foulées et la façon dont tu poses le pied.',en:'Your cadence, stride length and how your foot lands.',nl:'Je cadans, pasl engte en hoe je voet landt.'},
+   h:{fr:'Sur tapis, téléphone de côté à 2-3 m. Ou fais-toi filmer 20 s en courant de profil.',en:'On a treadmill, phone side-on 2-3 m away. Or have someone film you 20 s from the side.',nl:'Op een loopband, telefoon opzij op 2-3 m. Of laat je 20 s van opzij filmen.'},
+   g:{fr:'Pas par minute, oscillation verticale, et si tu poses le pied trop loin devant.',en:'Steps per minute, vertical oscillation, and whether you land too far ahead.',nl:'Stappen per minuut, verticale oscillatie, en of je te ver voor je landt.'}},
+ 'hyrox.html':{ sec:60, lex:[],
+   d:{fr:'Tes répétitions sur les stations Hyrox, et celles qui ne compteraient pas en compétition.',en:'Your reps on Hyrox stations, and which ones would not count in competition.',nl:'Je herhalingen op Hyrox-stations, en welke niet zouden tellen.'},
+   h:{fr:'Téléphone de côté, station entière visible. Filme une minute au rythme de course.',en:'Phone side-on, whole station in frame. Film one minute at race pace.',nl:'Telefoon opzij, volledig station in beeld. Film één minuut op wedstrijdtempo.'},
+   g:{fr:'Reps valides, no-reps signalés, et la baisse de cadence quand la fatigue arrive.',en:'Valid reps, no-reps flagged, and the cadence drop as fatigue sets in.',nl:'Geldige reps, no-reps gemarkeerd, en cadansdaling bij vermoeidheid.'}},
+};
+
 function renderAnalyseSection(){
   const host=$('#analyse-section'); if(!host) return;
   const lockIc='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
@@ -7266,31 +7318,30 @@ function renderAnalyseSection(){
   const jumpIc='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><path d="M12 6.5v4.5M12 11l-4 3.5M12 11l4 3.5M8 8l4 1.5L16 8"/></svg>';
   const barIc='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="2"/><path d="M12 9v4M12 13l-3 4M12 13l3 4M12 10l-5-4M12 10l5-4"/><rect x="3" y="4.5" width="2.6" height="3" rx=".6"/><rect x="18.4" y="4.5" width="2.6" height="3" rx=".6"/></svg>';
   const runIc='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="4.5" r="2"/><path d="M13 7l-2.5 4.5L7 13M10.5 11.5l2 3-1.5 5M12.5 14.5l3.5 1.5 2 4M13 7l4 1.5 2.5 3"/></svg>';
+  const hyroxIc='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2.5-6 4 12 2.5-6H21"/></svg>';
   host.innerHTML=`<div class="an-h"><h3>${t('an_title')}</h3><span class="an-live">LIVE</span></div>
   <div class="an-sub">${t('an_sub')}</div>
-  <div class="an-card" data-an="squat.html">
-    <span class="an-ic">${squatIc}</span>
-    <div class="an-body"><div class="an-t">${t('an_squat')}</div><div class="an-d">${anSub('an_squat_sub')}</div></div>
-    <span class="an-end">›</span>
-  </div>
-  <div class="an-card" data-an="saut.html">
-    <span class="an-ic">${jumpIc}</span>
-    <div class="an-body"><div class="an-t">${t('an_jump')}</div><div class="an-d">${anSub('an_jump_sub')}</div></div>
-    <span class="an-end">›</span>
-  </div>
-  <div class="an-card" data-an="barre.html">
-    <span class="an-ic">${barIc}</span>
-    <div class="an-body"><div class="an-t">${t('an_bar')}</div><div class="an-d">${anSub('an_bar_sub')}</div></div>
-    <span class="an-end">›</span>
-  </div>
-  <div class="an-card" data-an="course.html">
-    <span class="an-ic">${runIc}</span>
-    <div class="an-body"><div class="an-t">${t('an_run')}</div><div class="an-d">${anSub('an_run_sub')}</div></div>
-    <span class="an-end">›</span>
-  </div>
-  <div class="an-card" data-an="hyrox.html">
-    <span class="an-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2.5-6 4 12 2.5-6H21"/></svg></span>
-    <div class="an-body"><div class="an-t">${t('an_hyrox')}</div><div class="an-d">${anSub('an_hyrox_sub')}</div></div>
+  ${[
+    ['squat.html', squatIc, 'an_squat'],
+    ['saut.html',  jumpIc,  'an_jump'],
+    ['barre.html', barIc,   'an_bar'],
+    ['course.html',runIc,   'an_run'],
+    ['hyrox.html', hyroxIc, 'an_hyrox'],
+  ].map(([page,ic,key])=>{
+    const inf=AN_INFO[page]||{};
+    const lexBtns=(inf.lex||[]).map(k=>lexQ(k)).join('');
+    return `<div class="an-card" data-an="${page}">
+      <div class="an-top">
+        <span class="an-ic">${ic}</span>
+        <div class="an-hd"><div class="an-t">${t(key)}</div>
+          <div class="an-d">${esc(lexPick(inf.d))}${lexBtns}</div></div>
+        <span class="an-sec">${inf.sec||30}s</span>
+      </div>
+      <div class="an-how"><span class="an-how-ic">\u{1F4F1}</span><span>${esc(lexPick(inf.h))}</span></div>
+      <div class="an-get"><b>${t('an_you_get')}</b> ${esc(lexPick(inf.g))}</div>
+      <div class="an-go">${t('an_start')} <span>\u203A</span></div>
+    </div>`;
+  }).join('')}
     <span class="an-end">›</span>
   </div>
   ${/* ⚠️ Cette ligne annonce les analyses Pro comme reservees aux offres
@@ -7309,7 +7360,12 @@ function renderAnalyseSection(){
        sur l'Accueil, comme si l'app avait saute.
        On note d'ou il part ; au rechargement, le boot le ramene ici. */
     c.onclick=()=>{
-      try{ localStorage.setItem(AN_BACK_KEY,'seances'); }catch(_){}
+      /* REGRESSION corrigee : ce marqueur valait 'seances' parce que la liste
+         des analyses vivait alors DANS l'onglet Seances. C#15 l'a sortie dans
+         son propre onglet, et ce retour n'a pas suivi — on revenait donc d'une
+         analyse en atterrissant sur Seances, hors de l'onglet d'ou l'on
+         venait. On revient la ou on etait parti. */
+      try{ localStorage.setItem(AN_BACK_KEY,'analyse'); }catch(_){}
       location.href=c.dataset.an;
     };
   });
@@ -8928,6 +8984,35 @@ const LEX = {
     s:{fr:'ton record sur une répétition',en:'your one-rep max',nl:'je één-herhalingsmaximum'},
     d:{fr:'La charge la plus lourde que tu peux soulever une seule fois avec une technique propre. Elle sert de référence à tous les pourcentages de tes séances.',en:'The heaviest load you can lift once with clean technique. Every percentage in your workouts refers back to it.',nl:'De zwaarste last die je één keer met propere techniek tilt. Alle percentages verwijzen ernaar.'},
     e:{fr:'Sans 1RM enregistré, l’app ne peut pas calculer tes charges : c’est le premier chiffre à entrer.',en:'Without a saved 1RM the app cannot work out your loads: it is the first number to enter.',nl:'Zonder opgeslagen 1RM kan de app je belastingen niet berekenen: dat is het eerste getal.'} },
+  /* ---- Le vocabulaire des analyses ----
+     Les cartes annonçaient « valgus », « VBT », « bar path », « overstride »
+     sans jamais les traduire. Un membre qui ne sait pas ce qu'est un valgus
+     ne clique pas pour le decouvrir : il passe. */
+  valgus:{
+    n:{fr:'Valgus',en:'Knee valgus',nl:'Knievalgus'},
+    s:{fr:'genoux qui rentrent vers l’intérieur',en:'knees caving inward',nl:'knieën die naar binnen vallen'},
+    d:{fr:'Quand tu remontes d’un squat, les genoux partent vers l’intérieur au lieu de suivre la pointe des pieds. C’est le défaut le plus courant, et celui qui abîme le plus les genoux à la longue.',en:'As you come up from a squat, the knees drift inward instead of tracking over the toes. It is the most common fault, and the hardest on your knees over time.',nl:'Bij het omhoogkomen vallen de knieën naar binnen in plaats van over de tenen te volgen. De meest voorkomende fout.'},
+    e:{fr:'L’app le mesure en degrés à chaque répétition et te dit à partir de laquelle ça dérape.',en:'The app measures it in degrees on every rep and tells you which one starts to slip.',nl:'De app meet het in graden per herhaling.'} },
+  vbt:{
+    n:{fr:'VBT',en:'VBT',nl:'VBT'},
+    s:{fr:'entraînement basé sur la vitesse',en:'velocity-based training',nl:'snelheidsgebaseerd trainen'},
+    d:{fr:'Au lieu de juger une série au ressenti, on mesure la vitesse de montée de la barre. Une barre qui ralentit d’une répétition à l’autre annonce la fatigue avant que tu la sentes — c’est le signal pour arrêter la série ou baisser la charge.',en:'Instead of judging a set by feel, you measure how fast the bar goes up. A bar slowing between reps signals fatigue before you feel it — your cue to stop the set or drop the load.',nl:'In plaats van op gevoel meet je de snelheid van de stang. Vertraging kondigt vermoeidheid aan voor je ze voelt.'},
+    e:{fr:'0,30 m/s sur un squat, c’est proche du maximum. 0,80 m/s, c’est de la vitesse.',en:'0.30 m/s on a squat is near maximal. 0.80 m/s is speed work.',nl:'0,30 m/s bij een squat is bijna maximaal. 0,80 m/s is snelheidswerk.'} },
+  bar_path:{
+    n:{fr:'Trajectoire de barre',en:'Bar path',nl:'Stangbaan'},
+    s:{fr:'le chemin que dessine la barre',en:'the line the bar draws',nl:'de lijn die de stang tekent'},
+    d:{fr:'Une barre efficace monte presque droit. Si elle part vers l’avant, tu dépenses de la force à la ramener au lieu de la monter — et ton dos encaisse la différence.',en:'An efficient bar goes up almost vertically. Drift forward and you spend force pulling it back instead of up — and your back pays the difference.',nl:'Een efficiënte stang gaat bijna recht omhoog. Drift naar voren kost kracht en belast je rug.'},
+    e:{fr:'L’app trace la ligne en direct par-dessus la vidéo : tu vois la déviation en centimètres.',en:'The app draws the line live over the video: you see the drift in centimetres.',nl:'De app tekent de lijn live over de video.'} },
+  overstride:{
+    n:{fr:'Overstride',en:'Overstriding',nl:'Overstriden'},
+    s:{fr:'poser le pied trop loin devant',en:'landing too far in front',nl:'te ver voor je landen'},
+    d:{fr:'Le pied se pose devant le bassin, talon en premier. Chaque foulée freine au lieu de propulser, et le choc remonte dans le genou. C’est la cause la plus fréquente de douleurs chez le coureur.',en:'The foot lands ahead of the hips, heel first. Every stride brakes instead of propelling, and the shock travels up the knee. The most common source of runner’s pain.',nl:'De voet landt voor de heupen, hiel eerst. Elke pas remt in plaats van voort te stuwen.'},
+    e:{fr:'Le remède tient souvent en un seul réglage : augmenter la cadence de 5 %.',en:'The fix is often one adjustment: raise your cadence by 5 %.',nl:'De oplossing is vaak één aanpassing: verhoog je cadans met 5 %.'} },
+  fv_profile:{
+    n:{fr:'Profil force-vitesse',en:'Force-velocity profile',nl:'Kracht-snelheidsprofiel'},
+    s:{fr:'ce qui te manque pour sauter plus haut',en:'what is missing for a higher jump',nl:'wat ontbreekt voor hoger springen'},
+    d:{fr:'Deux athlètes sautent la même hauteur pour des raisons opposées : l’un est fort mais lent, l’autre rapide mais faible. Le profil dit dans quel camp tu es — donc quoi travailler pour progresser au lieu de tout faire à moitié.',en:'Two athletes jump the same height for opposite reasons: one is strong but slow, the other fast but weak. The profile says which you are — so you train the missing half instead of everything at once.',nl:'Twee atleten springen even hoog om tegengestelde redenen. Het profiel zegt welke helft jou ontbreekt.'},
+    e:{fr:'Déficit de force → charges lourdes. Déficit de vitesse → pliométrie.',en:'Force deficit → heavy loads. Velocity deficit → plyometrics.',nl:'Krachttekort → zwaar. Snelheidstekort → plyometrie.'} },
   /* ---- Les deux moteurs de l'app ----
      Ce sont ses fonctions les plus fortes et les moins comprises : elles
      fabriquent un programme sur mesure, mais rien n'expliquait comment, ni ce
@@ -8945,7 +9030,8 @@ const LEX = {
     d:{fr:'Tu choisis un mouvement que tu ne sais pas faire — passer la barre, marcher sur les mains. L’app le découpe en quatre phases sur huit semaines : d’abord la force qui te manque, puis la technique à vide, puis le mouvement complet assisté, puis en enchaînement. Chaque phase a ses exercices préparatoires et son critère de passage. Tu ne t’acharnes pas sur le mouvement final, tu construis ce qui le rend possible.',en:'You pick a movement you cannot do yet — getting over the bar, walking on your hands. The app breaks it into four phases over eight weeks: first the strength you lack, then the technique unloaded, then the full movement assisted, then linked. Each phase has its prep drills and its pass criterion. You do not grind at the final movement, you build what makes it possible.',nl:'Je kiest een beweging die je nog niet kan. De app splitst ze in vier fasen over acht weken: eerst de ontbrekende kracht, dan techniek zonder belasting, dan de volledige beweging met hulp, dan aaneengeschakeld.'},
     e:{fr:'Chaque programme t’annonce ses prérequis avant que tu commences : si tu ne les as pas, l’app te propose le niveau en dessous plutôt que de te laisser échouer.',en:'Every program states its prerequisites up front: if you do not have them, the app offers the level below rather than letting you fail.',nl:'Elk programma toont vooraf zijn vereisten: heb je ze niet, dan stelt de app het niveau eronder voor.'} },
 };
-const LEX_ORDER = ['sets_reps','pct','onerm','tempo','rpe','emom','amrap','for_time','superset','unbroken','moteur_1rm','moteur_skill'];
+const LEX_ORDER = ['sets_reps','pct','onerm','tempo','rpe','emom','amrap','for_time','superset','unbroken',
+                   'moteur_1rm','moteur_skill','valgus','vbt','bar_path','overstride','fv_profile'];
 
 const lexPick = (o)=> o ? (o[LANG] || o.fr) : '';
 function lexCard(k){
