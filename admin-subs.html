@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>Substitutions — Coach DM Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#0A0A0A; --surface:#131313; --surface-2:#1B1B1B; --line:rgba(255,255,255,.10);
+    --txt:#F4F4F5; --muted:#9A9AA2; --gold:#D4AF37; --neon:#00FFA3; --danger:#EF4444;
+  }
+  html,body{background:var(--bg);color:var(--txt);font-family:'Outfit',system-ui,sans-serif}
+  body{padding:18px 14px 60px;max-width:760px;margin:0 auto;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;border:0;color:inherit;background:none;-webkit-appearance:none}
+  a{color:var(--gold)}
+  header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .back{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;
+    border:1px solid var(--line);color:var(--gold);text-decoration:none;font-size:20px;font-weight:800}
+  h1{font-size:21px;font-weight:900;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:13.5px;font-weight:600;line-height:1.5;margin:8px 0 16px}
+  .bar{position:sticky;top:0;z-index:5;background:rgba(10,10,10,.94);backdrop-filter:blur(8px);
+    padding:10px 0 12px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+  .counts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .cnt{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px;
+    font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums}
+  .cnt.on{border-color:rgba(0,255,163,.5);color:var(--neon);background:rgba(0,255,163,.08)}
+  .cnt.off{border-color:rgba(212,175,55,.5);color:var(--gold);background:rgba(212,175,55,.08)}
+  .acts{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:9px 13px;
+    font-size:13px;font-weight:800}
+  .btn.primary{background:var(--neon);color:#062A1D;border-color:transparent}
+  .btn:disabled{opacity:.45;pointer-events:none}
+  .grp{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:12px}
+  .grp h2{font-size:15.5px;font-weight:800;line-height:1.3}
+  .grp .meta{color:var(--muted);font-size:12px;font-weight:700;margin-top:3px}
+  .eqtag{display:inline-block;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);
+    color:#F87171;border-radius:7px;padding:2px 7px;font-size:11px;font-weight:800;margin-left:6px}
+  .row{display:flex;align-items:center;gap:11px;margin-top:9px;padding:10px 11px;border-radius:13px;
+    background:var(--surface-2);border:1px solid var(--line)}
+  .row.ok{border-color:rgba(0,255,163,.45);background:rgba(0,255,163,.07)}
+  .rk{flex:0 0 22px;height:22px;border-radius:7px;display:grid;place-items:center;
+    background:rgba(212,175,55,.16);color:var(--gold);font-size:11px;font-weight:800}
+  .nm{flex:1;min-width:0;font-size:14px;font-weight:700;line-height:1.3}
+  .nm small{display:block;color:var(--muted);font-size:11.5px;font-weight:700;margin-top:1px}
+  .tg{flex:0 0 auto;border-radius:10px;padding:7px 11px;font-size:12px;font-weight:800;
+    border:1px solid var(--line);background:transparent;color:var(--muted)}
+  .tg.on{border-color:rgba(0,255,163,.55);background:rgba(0,255,163,.12);color:var(--neon)}
+  .warn{background:rgba(212,175,55,.10);border:1px solid rgba(212,175,55,.4);color:var(--gold);
+    border-radius:12px;padding:11px 13px;font-size:12.5px;font-weight:700;line-height:1.5;margin-top:12px}
+  .err{background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.45);color:#F87171;
+    border-radius:12px;padding:12px 14px;font-size:13.5px;font-weight:700;line-height:1.5;margin-top:14px}
+  .skel{height:74px;border-radius:18px;background:linear-gradient(90deg,#141414,#1D1D1D,#141414);
+    background-size:200% 100%;animation:sh 1.2s linear infinite;margin-top:12px}
+  @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);
+    background:#1F1F1F;border:1px solid var(--line);border-radius:13px;padding:11px 16px;
+    font-size:13.5px;font-weight:700;opacity:0;pointer-events:none;transition:.22s;z-index:20;max-width:92vw}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="back" href="admin.html">‹</a>
+  <h1>Substitutions d'exercices</h1>
+</header>
+
+<p class="sub">
+  Un membre ne voit un remplaçant que si tu l'as approuvé ici. Tant qu'une ligne est
+  grise, elle n'existe pas pour lui — le bouton « Remplacer » ne s'affiche même pas.
+  Approuve ce qui te va, laisse le reste éteint.
+</p>
+
+<div class="bar">
+  <div class="counts">
+    <span class="cnt" id="c-total">—</span>
+    <span class="cnt on" id="c-ok">—</span>
+    <span class="cnt off" id="c-no">—</span>
+  </div>
+  <div class="acts">
+    <button class="btn primary" id="b-save" disabled>Enregistrer</button>
+    <button class="btn" id="b-all">Tout approuver</button>
+    <button class="btn" id="b-none">Tout éteindre</button>
+    <button class="btn" id="b-reset" disabled>Annuler mes changements</button>
+  </div>
+</div>
+
+<div id="body">
+  <div class="skel"></div><div class="skel"></div><div class="skel"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(m){const el=$('#toast');el.textContent=m;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200);}
+
+const EQUIP_L={bodyweight:'Poids du corps',none:'Sans matériel',barbell:'Barre',dumbbell:'Haltères',
+  kettlebell:'Kettlebell',bands:'Élastiques',machine:'Machine',cable:'Poulie',pullup_bar:'Barre de traction',
+  box:'Box',bench:'Banc',rower:'Rameur',skierg:'SkiErg',sled:'Traîneau',sandbag:'Sandbag',
+  medicine_ball:'Medicine ball',jump_rope:'Corde à sauter',trap_bar:'Trap bar'};
+const eqL=x=>EQUIP_L[x]||x||'';
+
+const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
+const sb = createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
+
+let ROWS=[];            /* etat serveur */
+let DIRTY=new Map();    /* id -> approved souhaite, uniquement ce qui differe */
+
+function fail(html){ $('#body').innerHTML=`<div class="err">${html}</div>`; }
+
+/* La session est celle de l'app : meme domaine, meme stockage. Si elle manque,
+   on le dit au lieu d'afficher une page vide — l'erreur muette a deja coute
+   assez de temps sur la page squat. */
+const { data:sess } = await sb.auth.getSession();
+const uid = sess?.session?.user?.id || null;
+if(!uid){
+  fail(`Aucune session sur ce navigateur.<br><br>Ouvre <a href="app.html">l'app</a>, connecte-toi
+        avec ton compte admin, puis reviens sur cette page.`);
+} else {
+  const { data:prof } = await sb.from('profiles').select('role').eq('id',uid).maybeSingle();
+  if(!prof || prof.role!=='admin'){
+    fail(`Ce compte (${esc(sess.session.user.email||'—')}) n'est pas administrateur.<br><br>
+          Seul un compte <b>admin</b> peut approuver des substitutions.`);
+  } else {
+    await load();
+  }
+}
+
+async function load(){
+  /* On lit avec le compte admin : la policy admin voit TOUT, approuve ou non.
+     C'est exactement ce qu'il faut ici, et rien d'autre ne le peut. */
+  const { data, error } = await sb.from('exercise_substitutions')
+    .select(`id,rank,approved,reason,
+             src:exercises!exercise_substitutions_exercise_id_fkey(id,name_fr,equipment),
+             dst:exercises!exercise_substitutions_substitute_id_fkey(id,name_fr,equipment)`)
+    .eq('reason','equipment')
+    .order('rank',{ascending:true});
+  if(error){ fail('Lecture impossible : '+esc(error.message)); return; }
+  ROWS=(data||[]).filter(r=>r.src&&r.dst);
+  DIRTY.clear();
+  render();
+}
+
+function want(r){ return DIRTY.has(r.id) ? DIRTY.get(r.id) : r.approved; }
+
+function render(){
+  const groups=new Map();
+  ROWS.forEach(r=>{
+    const k=r.src.id;
+    if(!groups.has(k)) groups.set(k,{src:r.src,rows:[]});
+    groups.get(k).rows.push(r);
+  });
+  const total=ROWS.length, ok=ROWS.filter(want).length;
+  $('#c-total').textContent=total+' substitutions';
+  $('#c-ok').textContent=ok+' approuvées';
+  $('#c-no').textContent=(total-ok)+' éteintes';
+  $('#b-save').disabled = DIRTY.size===0;
+  $('#b-reset').disabled = DIRTY.size===0;
+  $('#b-save').textContent = DIRTY.size ? `Enregistrer (${DIRTY.size})` : 'Enregistrer';
+
+  let html='';
+  [...groups.values()]
+    .sort((a,b)=>a.src.name_fr.localeCompare(b.src.name_fr,'fr'))
+    .forEach(g=>{
+      html+=`<div class="grp">
+        <h2>${esc(g.src.name_fr)}<span class="eqtag">${esc(eqL(g.src.equipment))}</span></h2>
+        <div class="meta">Remplaçants proposés, par ordre de préférence</div>`;
+      g.rows.sort((a,b)=>a.rank-b.rank).forEach(r=>{
+        const on=want(r);
+        html+=`<div class="row${on?' ok':''}">
+          <span class="rk">${r.rank}</span>
+          <span class="nm">${esc(r.dst.name_fr)}<small>${esc(eqL(r.dst.equipment))}</small></span>
+          <button class="tg${on?' on':''}" data-id="${esc(r.id)}">${on?'Approuvé':'Éteint'}</button>
+        </div>`;
+      });
+      html+=`</div>`;
+    });
+  if(!ROWS.length) html=`<div class="warn">Aucune substitution en base.</div>`;
+  $('#body').innerHTML=html;
+}
+
+document.addEventListener('click',e=>{
+  const tg=e.target.closest('.tg'); if(!tg) return;
+  const r=ROWS.find(x=>x.id===tg.dataset.id); if(!r) return;
+  const next=!want(r);
+  /* Revenir a la valeur serveur retire la ligne de DIRTY : le compteur
+     « Enregistrer (n) » doit refleter ce qui va VRAIMENT partir. */
+  if(next===r.approved) DIRTY.delete(r.id); else DIRTY.set(r.id,next);
+  render();
+});
+
+$('#b-all').onclick=()=>{ ROWS.forEach(r=>{ if(r.approved) DIRTY.delete(r.id); else DIRTY.set(r.id,true); }); render(); };
+$('#b-none').onclick=()=>{ ROWS.forEach(r=>{ if(!r.approved) DIRTY.delete(r.id); else DIRTY.set(r.id,false); }); render(); };
+$('#b-reset').onclick=()=>{ DIRTY.clear(); render(); };
+
+$('#b-save').onclick=async()=>{
+  if(!DIRTY.size) return;
+  const btn=$('#b-save'); btn.disabled=true; btn.textContent='Enregistrement…';
+  /* Deux updates groupes plutot qu'un par ligne : 104 requetes sequentielles
+     sur un reseau mobile, c'est une minute d'attente et une chance sur deux
+     de finir a moitie enregistre. */
+  const onIds =[...DIRTY.entries()].filter(([,v])=>v).map(([k])=>k);
+  const offIds=[...DIRTY.entries()].filter(([,v])=>!v).map(([k])=>k);
+  let err=null;
+  if(onIds.length){
+    const { error } = await sb.from('exercise_substitutions').update({approved:true}).in('id',onIds);
+    if(error) err=error;
+  }
+  if(!err && offIds.length){
+    const { error } = await sb.from('exercise_substitutions').update({approved:false}).in('id',offIds);
+    if(error) err=error;
+  }
+  if(err){
+    btn.disabled=false; btn.textContent='Enregistrer';
+    toast('Échec : '+err.message);
+    return;
+  }
+  toast('Enregistré — visible par les membres immédiatement');
+  await load();
+};
+</script>
+</body>
+</html>
