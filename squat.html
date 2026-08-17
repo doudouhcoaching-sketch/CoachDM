@@ -582,14 +582,20 @@ let SB=null,UIDG=null;
    avant tout le reste parce que c'est le seul defaut qui blesse sous charge,
    et parce que regler le gainage corrige souvent la profondeur dans la
    foulee. Une rep qui reproche quatre choses n'est lue par personne. */
-let CUES={};   /* fault -> {cue, fix:{slug,name}, priority} */
+/* On garde les TROIS langues et on choisit au moment d'afficher, jamais au
+   chargement. Figer la langue au fetch marchait tant qu'on ne touchait pas au
+   selecteur — et cassait des qu'un membre passait en NL en cours de seance :
+   toute l'interface basculait sauf les conseils, restes en francais. */
+let CUES={};   /* fault -> {priority, fr, en, nl, fix} */
+const cueText = c => (c && (c[LANG] || c.fr)) || '';
+const fixName = f => (f && (f['name_'+LANG] || f.name_fr)) || '';
 async function cuesLoad(sbClient){
   try{
     const { data } = await sbClient.from('analysis_cues')
       .select('fault,priority,cue_fr,cue_en,cue_nl,fix:exercises(slug,name_fr,name_en,name_nl)')
       .eq('page','squat').eq('active',true).order('priority',{ascending:true});
     const m={};
-    (data||[]).forEach(r=>{ m[r.fault]={priority:r.priority, cue:r['cue_'+LANG]||r.cue_fr, fix:r.fix||null}; });
+    (data||[]).forEach(r=>{ m[r.fault]={priority:r.priority, fr:r.cue_fr, en:r.cue_en, nl:r.cue_nl, fix:r.fix||null}; });
     CUES=m;
     renderReps(); /* les reps deja faites recuperent leur phrase */
   }catch(_){ CUES={}; }
@@ -1119,7 +1125,7 @@ function finishRep(r,mcv){
      derniere de la liste : le coach doit voir ce qu'il vient de regarder. */
   { const last=reps[reps.length-1];
     const c=cueForRep(last);
-    liveCue(reps.length, c?c.cue:null, !c); }
+    liveCue(reps.length, c?cueText(c):null, !c); }
   parallel?sndGood():sndBad();
   buzz(parallel?'ok':'no');
   if(PRO)vbtOnRep(mcv);
@@ -1160,8 +1166,8 @@ function renderReps(){
     /* La phrase passe sous les badges : les badges disent CE QUI ne va pas,
        la phrase dit QUOI FAIRE. Une ligne, pas deux. */
     const cue=cueForRep(r);
-    const cueEl = cue ? `<div class="cue">${esc(cue.cue)}${
-        cue.fix ? ` <a class="cue-fix" href="../app.html#ex/${esc(cue.fix.slug)}">→ ${esc(cue.fix['name_'+LANG]||cue.fix.name_fr)}</a>` : ''
+    const cueEl = cue ? `<div class="cue">${esc(cueText(cue))}${
+        cue.fix ? ` <a class="cue-fix" href="../app.html#ex/${esc(cue.fix.slug)}">→ ${esc(fixName(cue.fix))}</a>` : ''
       }</div>` : '';
     li.innerHTML=`<span class="n">#${reps.length-i}</span>${badges.join('')}${cueEl}`;
     ul.appendChild(li);
