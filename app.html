@@ -3145,8 +3145,8 @@ const T = {
  shop_buy:{fr:'Acheter',en:'Buy',nl:'Kopen'},
  shop_custom:{fr:'Sur mesure',en:'Custom',nl:'Op maat'},
  /* ---- « Quoi de neuf » ---- */
- wn_title:{fr:'Ce qui a changé',en:'What’s new',nl:'Wat is er nieuw'},
- wn_sub:{fr:'Quelques nouveautés depuis ta dernière visite. Trente secondes de lecture, puis on n’en reparle plus.',en:'A few things added since your last visit. Thirty seconds to read, then we won’t mention it again.',nl:'Enkele nieuwigheden sinds je laatste bezoek. Dertig seconden lezen, daarna zwijgen we erover.'},
+ wn_title:{fr:'Coach DM 2.0',en:'Coach DM 2.0',nl:'Coach DM 2.0'},
+ wn_sub:{fr:'L’app a beaucoup changé. Une minute de lecture, puis on n’en reparle plus.',en:'The app has changed a lot. One minute to read, then we won’t mention it again.',nl:'De app is sterk veranderd. Eén minuut lezen, daarna zwijgen we erover.'},
  wn_close:{fr:'C’est parti',en:'Got it',nl:'Begrepen'},
  wn_1t:{fr:'Tu es enfin prévenu',en:'You finally get notified',nl:'Je wordt eindelijk verwittigd'},
  wn_1d:{fr:'Les notifications fonctionnent. Quand ton coach t’écrit, tu le sais — au lieu de le découvrir des heures plus tard.',en:'Notifications work. When your coach writes, you know — instead of finding out hours later.',nl:'Meldingen werken. Als je coach schrijft, weet je het meteen.'},
@@ -3158,6 +3158,12 @@ const T = {
  wn_4d:{fr:'Trois questions et l’app te dit quel programme te correspond — et pourquoi celui-là.',en:'Three questions and the app tells you which program fits you — and why that one.',nl:'Drie vragen en de app zegt welk programma bij je past — en waarom.'},
  wn_5t:{fr:'Le chrono se voit de loin',en:'The timer reads from across the room',nl:'De timer lees je van ver'},
  wn_5d:{fr:'Deux fois plus gros, avec un décompte des trois dernières secondes — son et vibration. Plus besoin de se pencher entre deux séries.',en:'Twice as big, with a three-second countdown — sound and vibration. No more leaning over between sets.',nl:'Twee keer zo groot, met aftelling van drie seconden — geluid en trilling.'},
+ wn_6t:{fr:'Filme ta série sans quitter ta séance',en:'Film your set without leaving your workout',nl:'Film je set zonder je training te verlaten'},
+ wn_6d:{fr:'Un bouton « Filmer cette série » sur les mouvements que l’app sait vraiment analyser — et uniquement ceux-là. Le squat va sur l’analyse du squat, l’épaulée sur la trajectoire de barre. Après, tu retombes exactement où tu en étais.',en:'A “Film this set” button on the movements the app can genuinely analyse — and only those. A squat goes to squat analysis, a clean to bar-path. Afterwards you land back exactly where you were.',nl:'Een knop “Deze set filmen” op de bewegingen die de app echt kan analyseren — en alleen die. Daarna kom je precies terug waar je was.'},
+ wn_7t:{fr:'Ton dos est enfin regardé',en:'Your back is finally checked',nl:'Je rug wordt eindelijk bekeken'},
+ wn_7d:{fr:'L’analyse du squat mesurait l’inclinaison du buste, pas l’arrondi du dos — deux choses différentes. Elle mesure maintenant les deux, et te dit franchement quand elle ne peut pas voir (de face, c’est impossible).',en:'Squat analysis measured torso lean, not back rounding — two different things. It now measures both, and tells you plainly when it cannot see (front-on, it can’t).',nl:'De squat-analyse mat de romphelling, niet het ronden van de rug. Nu meet ze beide, en zegt eerlijk wanneer ze het niet kan zien.'},
+ wn_subs_t:{fr:'Pas le matériel ? Remplace',en:'No equipment? Swap it',nl:'Geen materiaal? Vervang het'},
+ wn_subs_d:{fr:'Rameur, poulie, machine : un bouton « Remplacer » propose ce que ton coach a validé, réalisable avec ce que tu as. La charge en % est coupée — elle ne veut plus rien dire sur un autre mouvement.',en:'Rower, cable, machine: a “Swap” button offers what your coach approved, doable with what you have. The %1RM load is switched off — it means nothing on a different movement.',nl:'Roeimachine, kabel, machine: een knop “Vervangen” toont wat je coach heeft goedgekeurd. De %1RM-belasting vervalt — die zegt niets op een andere oefening.'},
  /* ---- D#22 : rendez-vous de la première séance ---- */
  fs_title:{fr:'Ta première séance, c’est quand ?',en:'When is your first workout?',nl:'Wanneer is je eerste training?'},
  fs_sub:{fr:'Elle est déjà choisie et prête. Il ne te reste qu’à décider du moment — et je te le rappellerai.',en:'It is already picked and ready. All that is left is deciding when — and I will remind you.',nl:'Ze is al gekozen en klaar. Je moet enkel het moment kiezen — ik herinner je eraan.'},
@@ -5142,10 +5148,28 @@ async function loadCoachCard(){
    ferme. La cle stocke la version vue : a la prochaine mise a jour, le
    numero change et l'ecran reapparait, une fois.
    ========================================================================== */
-const APP_VERSION = '1.3';
+const APP_VERSION = '2.0';
 const WN_KEY = 'cdm_whatsnew_seen';
 
-function wnMaybeShow(){
+/* Le nombre de nouveautes n'est plus code en dur : on compte les cles
+   presentes. Ajouter un wn_8t/wn_8d suffit a faire apparaitre la ligne. */
+function wnKeys(){
+  const out=[];
+  for(let i=1;i<=12;i++){ if(T['wn_'+i+'t']) out.push(i); else break; }
+  return out;
+}
+/* On n'annonce « Remplacer un exercice » que si le coach a reellement approuve
+   au moins une substitution. Promettre une fonction qui n'apparait nulle part,
+   c'est la meilleure facon de passer pour une app qui raconte n'importe quoi. */
+async function wnHasSubs(){
+  try{
+    const { count } = await sb.from('exercise_substitutions')
+      .select('id',{count:'exact',head:true});
+    return (count||0)>0;
+  }catch(_){ return false; }
+}
+
+async function wnMaybeShow(){
   let seen=null;
   try{ seen=localStorage.getItem(WN_KEY); }catch(_){}
   if(seen===APP_VERSION) return;
@@ -5158,9 +5182,11 @@ function wnMaybeShow(){
   if(brandNew) return;
 
   const b=document.getElementById('wn-body'); if(!b) return;
-  const items=[1,2,3,4,5].map(i=>`<div class="wn-i">
-    <div class="wn-n">${i}</div>
-    <div><div class="wn-t">${t('wn_'+i+'t')}</div><div class="wn-d">${t('wn_'+i+'d')}</div></div>
+  let keys=wnKeys();
+  if(T['wn_subs_t'] && await wnHasSubs()) keys=keys.concat(['subs']);
+  const items=keys.map((k,idx)=>`<div class="wn-i">
+    <div class="wn-n">${idx+1}</div>
+    <div><div class="wn-t">${t('wn_'+k+'t')}</div><div class="wn-d">${t('wn_'+k+'d')}</div></div>
   </div>`).join('');
   b.innerHTML=`<button type="button" class="sheet-x" id="wn-x" aria-label="${t('wn_close')}">×</button>
     <h3 style="margin:0 0 5px">${t('wn_title')}</h3>
