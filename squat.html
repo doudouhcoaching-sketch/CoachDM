@@ -247,6 +247,9 @@
   <h3 id="vbt-gate-h" style="margin-bottom:8px"></h3>
   <p class="gatep" id="vbt-gate-p"></p>
   <div class="plans" id="gate-plans"></div>
+  <!-- Chemin de sortie pour qui est deconnecte : sans ce lien, la page dit
+       « connecte-toi » sans dire ou, et on tourne en rond. -->
+  <a class="goldbtn" id="gate-login" href="app.html" style="display:none;margin-top:4px"></a>
 </div>
 
 <!-- ══ Analyse Pro (VBT) — panneau Premium ══ -->
@@ -430,6 +433,7 @@ const I18N = {
   b_knees_ok:{fr:'Genoux ✓',en:'Knees ✓',nl:'Knieën ✓'},
   view_side:{fr:'profil',en:'side',nl:'zijkant'},
   view_front:{fr:'face',en:'front',nl:'voorkant'},
+  gate_login_btn:{fr:'Ouvrir l’app et me connecter',en:'Open the app and log in',nl:'Open de app en log in'},
   gate_anon_h:{fr:'Connecte-toi pour l’Analyse Pro',en:'Log in for Pro Analysis',nl:'Log in voor Pro-analyse'},
   gate_anon_p:{fr:'Le compteur de reps et la profondeur marchent sans compte. Le dos, le valgus et la vitesse (VBT) ont besoin de savoir qui tu es : ouvre l’app Coach DM et connecte-toi, puis reviens sur cette page. Si tu es déjà abonné, rien de plus à payer.',en:'Rep counting and depth work without an account. Back, valgus and speed (VBT) need to know who you are: open the Coach DM app and log in, then come back to this page. If you already subscribe, there is nothing more to pay.',nl:'Reps tellen en diepte werken zonder account. Rug, valgus en snelheid (VBT) moeten weten wie je bent: open de Coach DM-app en log in, kom dan terug op deze pagina. Ben je al geabonneerd, dan betaal je niets extra.'},
   vbt_gate_h:{fr:'Analyse Pro (VBT) — fonctionnalité Premium',en:'Pro Analysis (VBT) — Premium feature',nl:'Pro-analyse (VBT) — Premium functie'},
@@ -749,6 +753,8 @@ function proUI(){
     $('#vbt-gate-h').textContent=t(anon?'gate_anon_h':'vbt_gate_h');
     $('#vbt-gate-p').textContent=t(anon?'gate_anon_p':'vbt_gate_p');
     const gp=$('#gate-plans'); if(gp)gp.style.display=anon?'none':'';
+    const gl=$('#gate-login');
+    if(gl){ gl.style.display=anon?'':'none'; gl.textContent=t('gate_login_btn'); }
     if(!anon)pwLoad();
   }
   $('#vbt-card').style.display=PRO?'':'none';
