@@ -489,6 +489,8 @@ const I18N = {
   b_torso:{fr:'Buste penché',en:'Torso lean',nl:'Rompheling'},
   b_torso_w:{fr:'⚠ Buste très penché',en:'⚠ Excessive lean',nl:'⚠ Sterk voorovergebogen'},
   yt_fb:{fr:'La vidéo ne démarre pas ? Ouvrir le lecteur',en:'Video not playing? Open the player',nl:'Video start niet? Open de speler'},
+  cue_shallow:{fr:'Rep non comptée — tu n’es pas descendu assez bas',en:'Rep not counted — you didn’t go low enough',nl:'Rep niet geteld — je ging niet diep genoeg'},
+  cue_tooquick:{fr:'Rep non comptée — mouvement trop bref pour être mesuré',en:'Rep not counted — movement too brief to measure',nl:'Rep niet geteld — beweging te kort om te meten'},
   cue_clean:{fr:'Propre — rien à corriger',en:'Clean — nothing to fix',nl:'Zuiver — niets te corrigeren'},
   b_flex_ok:{fr:'Dos gainé ✓',en:'Back braced ✓',nl:'Rug gespannen ✓'},
   b_flex_m:{fr:'⚠ Dos qui s’arrondit',en:'⚠ Back starting to round',nl:'⚠ Rug begint te ronden'},
@@ -686,7 +688,10 @@ function liveCue(n,cue,ok){
   clearTimeout(CUE_T);
   if(!cue && !ok){ el.hidden=true; return; }
   el.className='livecue'+(ok?' ok':'');
-  el.innerHTML = ok ? `<b>#${n}</b> ${t('cue_clean')}` : `<b>#${n}</b> ${esc(cue)}`;
+  /* Une rep rejetee n'a pas de numero : afficher « #— » ferait croire a un
+     bug. On n'affiche alors aucun prefixe. */
+  const tag = (n==null||n==='—') ? '' : `<b>#${n}</b> `;
+  el.innerHTML = ok ? `${tag}${t('cue_clean')}` : `${tag}${esc(cue)}`;
   el.hidden=false;
   /* Une rep propre disparait vite, un defaut reste : ce n'est pas la meme
      information et elle n'a pas la meme duree de vie utile. */
@@ -821,8 +826,17 @@ function beep(freq,ms,type,gain){
     o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+ms/1000);
   }catch(_){}
 }
-function sndGood(){beep(880,90,'sine',0.16);setTimeout(()=>beep(1340,150,'sine',0.17),80);}
-function sndBad(){beep(300,200,'square',0.13);setTimeout(()=>beep(185,240,'square',0.13),95);}
+/* Trois retours distincts, reconnaissables sans regarder l'ecran — c'est tout
+   l'interet : en pleine serie on ne lit pas, on entend.
+     parfaite  : deux notes qui MONTENT, claires
+     a ameliorer : deux notes plates, ni recompense ni sanction
+     ne compte pas : une note grave qui DESCEND, sans ambiguite */
+function sndPerfect(){beep(880,90,'sine',0.18);setTimeout(()=>beep(1340,150,'sine',0.19),80);}
+function sndImprove(){beep(620,110,'triangle',0.16);setTimeout(()=>beep(620,150,'triangle',0.14),130);}
+function sndReject(){beep(300,180,'square',0.15);setTimeout(()=>beep(170,260,'square',0.15),110);}
+/* Anciens noms conserves : d'autres endroits du fichier les appellent. */
+function sndGood(){sndPerfect();}
+function sndBad(){sndImprove();}
 
 /* ───────── VBT (Pro) : calibration & état ─────────
    Échelle métrique : hauteur du grand trochanter ≈ 0.53 × stature (anthropométrie).
@@ -1164,6 +1178,13 @@ function handle(lm,w,ts){
     if(k>STAND){
       stage.classList.remove('deep');
       LAST_REP_MS=Math.round(ts-r.t0);
+      /* Une rep rejetee ne produisait AUCUN signal : ni son, ni message. On
+         relevait simplement d'un squat trop haut sans jamais savoir qu'il
+         n'avait pas compte. C'est le pire des trois cas a laisser muet. */
+      if(!(r.minKnee<REP_MIN&&ts-r.t0>=MIN_REP_MS)){
+        try{ sndReject(); buzz('alert');
+             liveCue('—', t(r.minKnee>=REP_MIN?'cue_shallow':'cue_tooquick'), false); }catch(_){}
+      }
       if(r.minKnee<REP_MIN&&ts-r.t0>=MIN_REP_MS){
         let mcv=null;
         if(PRO&&VBT.scale){ // vitesse concentrique moyenne = déplacement vertical hanche / durée montée
@@ -1214,7 +1235,14 @@ function finishRep(r,mcv){
     const c=cueForRep(last);
     liveCue(reps.length, c?cueText(c):null, !c);
   }catch(e){ try{ console.warn('cue',e); }catch(_){} }
-  try{ parallel?sndGood():sndBad(); buzz(parallel?'ok':'no'); }catch(_){}
+  /* Le son se decide sur la rep complete, pas sur la seule profondeur : une
+     rep sous la parallele avec le dos rond n'est pas une rep parfaite. */
+  try{
+    const last=reps[reps.length-1];
+    const flawless = parallel && !cueForRep(last);
+    if(flawless){ sndPerfect(); buzz('ok'); }
+    else{ sndImprove(); buzz('no'); }
+  }catch(_){ try{ parallel?sndPerfect():sndImprove(); }catch(__){} }
   try{ if(PRO)vbtOnRep(mcv); }catch(_){}
   try{ renderReps();updateSummary(); }catch(e){ try{ console.warn('render',e); }catch(_){} }
 }
@@ -1302,7 +1330,8 @@ function updateDbg(ts,k,side,lm){
     'tronc: '+(rt!=null?rt.toFixed(3):'—')+
       '  réf: '+(FLEXCAL.ref!=null?FLEXCAL.ref.toFixed(3):'—')+
       '  flex: '+(fx!=null?fx.toFixed(1)+'%':'—')+'\n'+
-    'pro: '+(ENT.known?(PRO?'oui':'non'):'…')+'  compte: '+(ACCT||'déconnecté')+'\n'+
+    'pro: '+(ENT.known?(PRO?'oui':'non'):'…')+'  son: '+audioState()+'\n'+
+    'compte: '+(ACCT||'déconnecté')+'\n'+
     'reps: '+reps.length+'  dernière: '+(LAST_REP_MS?LAST_REP_MS+' ms':'—')+
       '  cadence max: '+Math.round(60000/MIN_REP_MS)+'/min'+
       (PRO&&VBT.scale?'  éch: '+VBT.scale.toFixed(2):'');
