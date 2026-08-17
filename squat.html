@@ -335,10 +335,26 @@ try{window.dbg=function(){};window.out=window.out&&typeof window.out==='function
    Deux variables separees, donc on peut isoler laquelle cause quoi. Les
    valeurs par defaut restent celles de production : un membre qui ouvre la
    page normalement n'est jamais expose au banc d'essai. */
+/* Quelle version viser ? Il n'existe aucune note de version chez Google pour
+   la 1.0.x, et les telechargements npm de la semaine sont sans appel :
+
+       0.10.17   2 890 312   77,9 %   (dependance transitive, pas un choix)
+       0.10.35     295 126    8,0 %   <- la plus utilisee des versions recentes
+       1.0.1        64 443    1,7 %   <- pourtant taguee « latest »
+       0.10.21      16 579    0,4 %   <- la notre
+
+   La 1.0.1 est ce qu'un « npm install » nu installe par defaut, et elle ne
+   represente quand meme que 1,7 % : l'ecosysteme s'en detourne activement.
+   La 0.10.35 fait 4,6 fois mieux tout en restant dans la meme ligne majeure.
+   C'est donc elle le prochain candidat, pas la 1.0.1.
+
+   Un seul endroit a changer le jour ou le test tranche. */
+const MP_DEFAULT_VER   = '0.10.21';
+const MP_DEFAULT_MODEL = 'lite';
 const MPQ = new URLSearchParams(location.search);
-const MP_VER   = /^[0-9]+\.[0-9]+\.[0-9]+$/.test(MPQ.get('mp')||'') ? MPQ.get('mp') : '0.10.21';
-const MP_MODEL = ['lite','full','heavy'].includes(MPQ.get('model')||'') ? MPQ.get('model') : 'lite';
-const MP_TEST  = MP_VER!=='0.10.21' || MP_MODEL!=='lite';
+const MP_VER   = /^[0-9]+\.[0-9]+\.[0-9]+$/.test(MPQ.get('mp')||'') ? MPQ.get('mp') : MP_DEFAULT_VER;
+const MP_MODEL = ['lite','full','heavy'].includes(MPQ.get('model')||'') ? MPQ.get('model') : MP_DEFAULT_MODEL;
+const MP_TEST  = MP_VER!==MP_DEFAULT_VER || MP_MODEL!==MP_DEFAULT_MODEL;
 const { PoseLandmarker, FilesetResolver, DrawingUtils } =
   await import(`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}`);
 
