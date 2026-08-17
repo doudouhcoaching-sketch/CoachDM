@@ -449,6 +449,8 @@ const I18N = {
   b_flex_m:{fr:'⚠ Dos qui s’arrondit',en:'⚠ Back starting to round',nl:'⚠ Rug begint te ronden'},
   b_flex_w:{fr:'⚠ Dos rond',en:'⚠ Rounded back',nl:'⚠ Ronde rug'},
   b_flex_na:{fr:'Dos : non mesurable de face',en:'Back: not measurable front-on',nl:'Rug: niet meetbaar vooraan'},
+  b_flex_cal:{fr:'Dos : pas calibré — reste debout 2 s de profil',en:'Back: not calibrated — stand still 2 s side-on',nl:'Rug: niet gekalibreerd — sta 2 s stil in zijaanzicht'},
+  b_flex_nd:{fr:'Dos : détection incomplète sur cette rep',en:'Back: incomplete detection on this rep',nl:'Rug: onvolledige detectie bij deze rep'},
   b_valgus:{fr:'⚠ Genoux qui rentrent',en:'⚠ Knees caving in',nl:'⚠ Knieën naar binnen'},
   b_knees_ok:{fr:'Genoux ✓',en:'Knees ✓',nl:'Knieën ✓'},
   view_side:{fr:'profil',en:'side',nl:'zijkant'},
@@ -854,14 +856,30 @@ function kneeAngle(w,side){return angle3(w[side.hip],w[side.knee],w[side.ankle])
    les deux segments se raccourcissent differemment et le rapport ne veut
    plus rien dire), et capable de voir un arrondi franc, pas un butt wink de
    deux degres. C'est un indice, pas un verdict medical. */
+/* MediaPipe normalise x par la LARGEUR de l'image et y par la HAUTEUR. Sur une
+   video 720x960, un pas de 0,01 en x vaut 7,2 px et le meme pas en y vaut
+   9,6 px. Les melanger dans un hypot() ne mesure aucune longueur reelle.
+
+   C'etait le bug. Pendant un squat le femur passe de la verticale a
+   l'horizontale : en coordonnees deformees sa longueur mesuree gonflait de
+   33 % au point bas, pendant que le tronc, lui, ne gonflait que de 18 %. Le
+   rapport tronc/femur chutait donc d'environ 12 % a chaque rep — un dos
+   parfaitement gaine aurait ete annonce « rond ». Et en portrait ou en
+   paysage le chiffre n'aurait meme pas ete le meme.
+
+   On repasse en pixels avant toute mesure de longueur. */
+function pxLen(a,b){
+  const W=canvas.width||720, H=canvas.height||960;
+  return Math.hypot((a.x-b.x)*W,(a.y-b.y)*H);
+}
 function trunkRatio(lm,side){
   const sh=lm[side.sh],hip=lm[side.hip],kn=lm[side.knee];
   if(vis(sh)<0.5||vis(hip)<0.5||vis(kn)<0.5)return null;
-  const tr=Math.hypot(sh.x-hip.x,sh.y-hip.y);
-  const fem=Math.hypot(hip.x-kn.x,hip.y-kn.y);
-  if(fem<0.02)return null;
+  const tr=pxLen(sh,hip);
+  const fem=pxLen(hip,kn);
+  if(fem<20)return null; /* moins de 20 px de femur = detection inexploitable */
   const r=tr/fem;
-  return (r>0.4&&r<3)?r:null; /* hors de cette plage = detection aberrante */
+  return (r>0.4&&r<3)?r:null;
 }
 /* Reference = mediane des ratios debout, de profil. Mediane et pas moyenne :
    une seule frame ou MediaPipe perd une epaule suffirait a fausser une
@@ -898,11 +916,21 @@ function kasr(lm){
   const kn=Math.abs(lm[25].x-lm[26].x),an=Math.abs(lm[27].x-lm[28].x);
   return an>0.01?kn/an:null;
 }
+/* Meme correction ici : l'ancien calcul comparait une largeur normalisee par
+   la largeur d'image a une longueur normalisee surtout par la hauteur. Le
+   verdict « profil / face » dependait donc de l'orientation du telephone.
+   En pixels, le rapport a un sens physique : largeur d'epaules sur longueur
+   de tronc vaut environ 0,75 de face et tombe sous 0,2 de profil, quand les
+   deux epaules se superposent. */
+function viewRatio(lm,side){
+  const W=canvas.width||720;
+  const shw=Math.abs(lm[11].x-lm[12].x)*W;
+  const torso=pxLen(lm[side.sh],lm[side.hip])||1e-9;
+  return shw/torso;
+}
 function viewOf(lm,side){
-  const shw=Math.abs(lm[11].x-lm[12].x);
-  const torso=Math.hypot(lm[side.sh].x-lm[side.hip].x,lm[side.sh].y-lm[side.hip].y)||1e-9;
-  const r=shw/torso;
-  return r>0.5?'front':(r<0.35?'side':'mixed');
+  const r=viewRatio(lm,side);
+  return r>0.55?'front':(r<0.35?'side':'mixed');
 }
 
 function handle(lm,w,ts){
@@ -929,7 +957,9 @@ function handle(lm,w,ts){
     setStatus(viewOf(lm,side)==='mixed'?'st_view':'st_ready'); // coaching placement en direct
     if(k<DOWN_TRIG){
       S.mode='down';
-      S.rep={t0:ts,minKnee:raw,torsoMax:0,kasrMin:99,flexBuf:[],hipBelowKnee:false,view:viewOf(lm,side),hipMax:lm[side.hip].y,hipMaxT:ts};
+      S.rep={t0:ts,minKnee:raw,torsoMax:0,kasrMin:99,flexBuf:[],hipBelowKnee:false,
+             vCnt:{side:0,front:0,mixed:0},view:'side',refAtEnd:null,
+             hipMax:lm[side.hip].y,hipMaxT:ts};
       setStatus('st_down');
     }
   }else if(S.mode==='down'||S.mode==='up'){
@@ -958,7 +988,10 @@ function handle(lm,w,ts){
       if(rt!=null){ r.flexBuf.push(rt); if(r.flexBuf.length>240)r.flexBuf.shift(); }
     }
     if(lm[side.hip].y>lm[side.knee].y+0.01)r.hipBelowKnee=true; // crête de hanche SOUS le genou (standard CrossFit)
-    r.view=viewOf(lm,side);
+    /* La vue etait relevee a la DERNIERE image de la rep. Une seule frame ou
+       MediaPipe hesite, et toute la rep basculait en « de face » — donc plus
+       aucune mesure de dos. On vote sur l'ensemble des images de la rep. */
+    r.vCnt[viewOf(lm,side)]++;
 
     const deep=r.hipBelowKnee||r.minKnee<=BELOW_PARALLEL_ANGLE;
     stage.classList.toggle('deep',deep&&k<DOWN_TRIG);
@@ -989,6 +1022,8 @@ function finishRep(r,mcv){
   /* La flexion n'a de sens que de profil, et seulement si le tronc debout a
      eu le temps d'etre calibre. Sinon on n'affiche RIEN plutot qu'un chiffre
      invente — c'est exactement ce genre de chiffre qui fait perdre confiance. */
+  r.view=Object.keys(r.vCnt).reduce((a,b)=>r.vCnt[a]>=r.vCnt[b]?a:b,'side');
+  r.refAtEnd=FLEXCAL.ref;
   const fx=(r.view==='side')?flexPct(r.flexBuf):null;
   reps.push({
     minKnee:Math.round(r.minKnee),
@@ -996,6 +1031,8 @@ function finishRep(r,mcv){
     torso:Math.round(r.torsoMax),
     torsoWarn:r.torsoMax>TORSO_WARN,
     flex:fx!=null?+fx.toFixed(1):null,
+    flexWhy: fx!=null ? null
+           : (r.view!=='side' ? 'na' : (r.refAtEnd==null ? 'cal' : 'nd')),
     flexWarn:fx!=null&&fx>=FLEX_WARN,
     flexMild:fx!=null&&fx>=FLEX_MILD&&fx<FLEX_WARN,
     valgus:r.view!=='side'&&r.kasrMin<KASR_WARN,
@@ -1032,8 +1069,10 @@ function renderReps(){
         const cls=r.flexWarn?'b-no':(r.flexMild?'b-warn':'b-ok');
         const lbl=r.flexWarn?t('b_flex_w'):(r.flexMild?t('b_flex_m'):t('b_flex_ok'));
         badges.push(`<span class="badge ${cls}">${lbl} ${r.flex.toFixed(1)}%</span>`);
-      }else if(r.view!=='side'){
-        badges.push(`<span class="badge b-mut">${t('b_flex_na')}</span>`);
+      }else{
+        /* Jamais muet. Un badge absent sans explication, c'est ce qui fait
+           croire que l'app n'a rien vu alors qu'elle n'a pas pu voir. */
+        badges.push(`<span class="badge b-mut">${t('b_flex_'+(r.flexWhy||'nd'))}</span>`);
       }
       if(r.view!=='side')badges.push(`<span class="badge ${r.valgus?'b-no':'b-ok'}">${t(r.valgus?'b_valgus':'b_knees_ok')}</span>`);
       if(r.mcv!=null)badges.push(`<span class="badge b-spd">${r.mcv.toFixed(2)} m/s</span>`);
@@ -1079,7 +1118,7 @@ function updateDbg(ts,k,side,lm){
   const fx=(FLEXCAL.ref!=null&&rt!=null)?((1-rt/FLEXCAL.ref)*100):null;
   dbgEl.textContent=
     'état: '+S.mode+'  fps: '+dbgFps+'\n'+
-    'genou: '+k.toFixed(0)+'°  vue: '+viewOf(lm,side)+'\n'+
+    'genou: '+k.toFixed(0)+'°  vue: '+viewOf(lm,side)+' ('+viewRatio(lm,side).toFixed(2)+')\n'+
     'tronc: '+(rt!=null?rt.toFixed(3):'—')+
       '  réf: '+(FLEXCAL.ref!=null?FLEXCAL.ref.toFixed(3):'—')+
       '  flex: '+(fx!=null?fx.toFixed(1)+'%':'—')+'\n'+
