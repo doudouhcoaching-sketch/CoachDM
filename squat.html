@@ -1111,7 +1111,11 @@ function flexCalib(lm,side){
   if(viewOf(lm,side)!=='side')return;
   const r=trunkRatio(lm,side); if(r==null)return;
   FLEXCAL.buf.push(r); if(FLEXCAL.buf.length>90)FLEXCAL.buf.shift();
-  if(FLEXCAL.buf.length>=20){
+  /* 20 images, c'est 0,7 s d'immobilite parfaite. Sur une vraie serie
+     personne ne fait ca : tes 4 premieres reps sont sorties avec « pas
+     calibre ». 12 images suffisent pour une mediane fiable, et la reference
+     continue de s'affiner entre chaque rep. */
+  if(FLEXCAL.buf.length>=12){
     const s=[...FLEXCAL.buf].sort((a,b)=>a-b);
     FLEXCAL.ref=s[s.length>>1];
   }
@@ -1218,7 +1222,13 @@ function handle(lm,w,ts){
     /* La vue etait relevee a la DERNIERE image de la rep. Une seule frame ou
        MediaPipe hesite, et toute la rep basculait en « de face » — donc plus
        aucune mesure de dos. On vote sur l'ensemble des images de la rep. */
-    r.vCnt[viewOf(lm,side)]++;
+    /* On ne vote la vue QUE dans la partie haute du mouvement.
+       Au fond d'un squat tres penche, MediaPipe finit par voir les deux
+       epaules et le rapport largeur/tronc grimpe : la rep basculait en
+       « de face », ce qui supprimait la mesure du dos ET declenchait un faux
+       « genoux qui rentrent » — le valgus ne se calcule que hors profil.
+       Pres de la position debout, la lecture est franche. */
+    if(k>140) r.vCnt[viewOf(lm,side)]++;
 
     const deep=r.hipBelowKnee||r.minKnee<=BELOW_PARALLEL_ANGLE||r.dropMax>=DROP_PAR;
     stage.classList.toggle('deep',deep&&k<DOWN_TRIG);
@@ -1257,7 +1267,8 @@ function finishRep(r,mcv){
   /* La flexion n'a de sens que de profil, et seulement si le tronc debout a
      eu le temps d'etre calibre. Sinon on n'affiche RIEN plutot qu'un chiffre
      invente — c'est exactement ce genre de chiffre qui fait perdre confiance. */
-  r.view=Object.keys(r.vCnt).reduce((a,b)=>r.vCnt[a]>=r.vCnt[b]?a:b,'side');
+  const vTot=r.vCnt.side+r.vCnt.front+r.vCnt.mixed;
+  r.view = vTot ? Object.keys(r.vCnt).reduce((a,b)=>r.vCnt[a]>=r.vCnt[b]?a:b,'side') : 'side';
   r.refAtEnd=FLEXCAL.ref;
   const fx=(r.view==='side')?flexPct(r.flexBuf):null;
   reps.push({
