@@ -495,6 +495,7 @@ const I18N = {
   b_flex_ok:{fr:'Dos gainé ✓',en:'Back braced ✓',nl:'Rug gespannen ✓'},
   b_flex_m:{fr:'⚠ Dos qui s’arrondit',en:'⚠ Back starting to round',nl:'⚠ Rug begint te ronden'},
   b_flex_w:{fr:'⚠ Dos rond',en:'⚠ Rounded back',nl:'⚠ Ronde rug'},
+  b_torso_na:{fr:'Buste : non mesurable de face',en:'Torso: not measurable front-on',nl:'Romp: niet meetbaar vooraan'},
   b_flex_na:{fr:'Dos : non mesurable de face',en:'Back: not measurable front-on',nl:'Rug: niet meetbaar vooraan'},
   b_flex_cal:{fr:'Dos : pas calibré — reste debout 2 s de profil',en:'Back: not calibrated — stand still 2 s side-on',nl:'Rug: niet gekalibreerd — sta 2 s stil in zijaanzicht'},
   b_flex_nd:{fr:'Dos : détection incomplète sur cette rep',en:'Back: incomplete detection on this rep',nl:'Rug: onvolledige detectie bij deze rep'},
@@ -1222,13 +1223,14 @@ function handle(lm,w,ts){
     /* La vue etait relevee a la DERNIERE image de la rep. Une seule frame ou
        MediaPipe hesite, et toute la rep basculait en « de face » — donc plus
        aucune mesure de dos. On vote sur l'ensemble des images de la rep. */
-    /* On ne vote la vue QUE dans la partie haute du mouvement.
-       Au fond d'un squat tres penche, MediaPipe finit par voir les deux
-       epaules et le rapport largeur/tronc grimpe : la rep basculait en
-       « de face », ce qui supprimait la mesure du dos ET declenchait un faux
-       « genoux qui rentrent » — le valgus ne se calcule que hors profil.
-       Pres de la position debout, la lecture est franche. */
-    if(k>140) r.vCnt[viewOf(lm,side)]++;
+    /* Vote sur TOUTES les images de la rep.
+       J'avais restreint ce vote au haut du mouvement en croyant a un faux
+       « de face » au fond du squat. C'etait une erreur de diagnostic : le
+       coach changeait reellement de position entre les series. Restreindre
+       le vote reduisait l'echantillon sans rien corriger, et le repli sur
+       « profil » quand aucune image n'etait votee aurait pu masquer un vrai
+       valgus. On revient a la mesure honnete. */
+    r.vCnt[viewOf(lm,side)]++;
 
     const deep=r.hipBelowKnee||r.minKnee<=BELOW_PARALLEL_ANGLE||r.dropMax>=DROP_PAR;
     stage.classList.toggle('deep',deep&&k<DOWN_TRIG);
@@ -1275,7 +1277,13 @@ function finishRep(r,mcv){
     minKnee:Math.round(r.minKnee),
     parallel,
     torso:Math.round(r.torsoMax),
-    torsoWarn:r.torsoMax>TORSO_WARN,
+    /* L'inclinaison du buste se calcule sur le vecteur epaule->hanche en 3D.
+       De profil il vit dans le plan de l'image : mesure fiable. DE FACE, il
+       se joue presque entierement en profondeur — l'axe que MediaPipe estime
+       le plus mal. C'est de la que sortent les 86 degres sur une rep normale.
+       On ne l'annonce donc plus hors profil, exactement comme le dos. */
+    torsoWarn:(r.view==='side') && r.torsoMax>TORSO_WARN,
+    torsoNA:(r.view!=='side'),
     flex:fx!=null?+fx.toFixed(1):null,
     flexWhy: fx!=null ? null
            : (r.view!=='side' ? 'na' : (r.refAtEnd==null ? 'cal' : 'nd')),
@@ -1328,7 +1336,9 @@ function renderReps(){
     const badges=[];
     badges.push(`<span class="badge ${r.parallel?'b-ok':'b-no'}">${t(r.parallel?'b_par':'b_high')} · ${r.minKnee}°</span>`);
     if(PRO){
-      badges.push(`<span class="badge ${r.torsoWarn?'b-warn':'b-mut'}">${r.torsoWarn?t('b_torso_w'):t('b_torso')} ${r.torso}°</span>`);
+      badges.push(r.torsoNA
+        ? `<span class="badge b-mut">${t('b_torso_na')}</span>`
+        : `<span class="badge ${r.torsoWarn?'b-warn':'b-mut'}">${r.torsoWarn?t('b_torso_w'):t('b_torso')} ${r.torso}°</span>`);
       if(r.flex!=null){
         const cls=r.flexWarn?'b-no':(r.flexMild?'b-warn':'b-ok');
         const lbl=r.flexWarn?t('b_flex_w'):(r.flexMild?t('b_flex_m'):t('b_flex_ok'));
