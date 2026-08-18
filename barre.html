@@ -342,6 +342,8 @@ import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdel
 /* ───────── i18n ───────── */
 const I18N = {
 
+
+  st_walking:{fr:'Tu te déplaces — pose-toi de profil pour mesurer',en:'You are moving — stand still, side-on, to measure',nl:'Je beweegt — sta stil in zijaanzicht om te meten'},
   cue_clean:{fr:'Propre — rien à corriger',en:'Clean — nothing to fix',nl:'Zuiver — niets te corrigeren'},
   yt_fb:{fr:'La vidéo ne démarre pas ? Ouvrir le lecteur',en:'Video not playing? Open the player',nl:'Video start niet? Open de speler'},
   subline:{fr:'Analyse Barre — reps & bar path gratuits · VBT en Pro',en:'Barbell Analysis — free reps & bar path · VBT in Pro',nl:'Barbell-analyse — gratis reps & bar path · VBT in Pro'},
@@ -805,6 +807,33 @@ function avgY(lm,a,b){
   if(vb>0.5)return lm[b].y;
   return null;
 }
+/* Detecteur de deplacement.
+
+   Le moteur suit le milieu des poignets. Il ne se demandait jamais si la
+   personne etait en train de SOULEVER : marcher vers le telephone fait monter
+   les poignets par rapport a la hanche et leur donne une vitesse verticale —
+   assez pour armer une « tirade ». Le balancement des bras remplit alors
+   xmin/xmax, et la rep se termine sur « barre trop loin de toi » alors que la
+   barre n'a jamais bouge.
+
+   On ne souleve pas en marchant. On mesure donc le deplacement horizontal des
+   chevilles sur la derniere seconde : au-dela d'un seuil, la personne se
+   deplace, le moteur se met en pause et annule la rep en cours. */
+const FEET=[];              /* {t, x} sur ~1 s */
+const WALK_X=0.035;         /* amplitude horizontale des chevilles tolerée */
+function feetTrack(lm,ts){
+  const a=vis(lm[27])>0.5?lm[27].x:null, b=vis(lm[28])>0.5?lm[28].x:null;
+  const x = (a!=null&&b!=null)?(a+b)/2 : (a!=null?a:b);
+  if(x==null) return;
+  FEET.push({t:ts,x});
+  while(FEET.length && ts-FEET[0].t>1000) FEET.shift();
+}
+function walking(){
+  if(FEET.length<8) return false;
+  let lo=Infinity, hi=-Infinity;
+  FEET.forEach(f=>{ if(f.x<lo)lo=f.x; if(f.x>hi)hi=f.x; });
+  return (hi-lo) > WALK_X;
+}
 function barPoint(lm){
   const vl=vis(lm[15]),vr=vis(lm[16]);
   if(vl>0.5&&vr>0.5)return {x:(lm[15].x+lm[16].x)/2,y:(lm[15].y+lm[16].y)/2};
@@ -819,9 +848,14 @@ function viewOf(lm,side){
   return r>0.5?'front':(r<0.35?'side':'mixed');
 }
 /* déviation horizontale en cm : dx normalisé × ratio d'aspect × échelle métrique */
+const DEV_ABSURD_CM=60;
 function devCm(dx){
   if(!VBT.scale||!canvas.height)return null;
-  return dx*(canvas.width/canvas.height)*VBT.scale*100;
+  const cm=dx*(canvas.width/canvas.height)*VBT.scale*100;
+  /* Personne ne deplace une barre de 60 cm a l'horizontale pendant un tirage.
+     Au-dela, c'est le suivi qui a decroche — on prefere ne rien annoncer
+     plutot que d'accuser l'athlete d'une faute qu'il n'a pas commise. */
+  return (cm>=0 && cm<DEV_ABSURD_CM) ? cm : null;
 }
 
 function handle(lm,w,ts){
@@ -835,8 +869,16 @@ function handle(lm,w,ts){
   }
   S.lastGoodTs=ts;
   const side=pickSide(lm);
+  feetTrack(lm,ts);
   const bp=barPoint(lm);
   if(!bp){updateDbg(ts,side,lm);return;}
+  if(walking()){
+    /* En deplacement : on annule la rep en cours plutot que de la finir sur
+       une mesure de trajectoire qui ne veut rien dire. */
+    if(S.mode==='pull'){ S.mode='ready'; S.rep=null; stage.classList.remove('deep'); }
+    setStatus('st_walking'); chip.hidden=true;
+    updateDbg(ts,side,lm); return;
+  }
 
   // lissage léger (mouvement balistique : réactivité > filtrage)
   S.by=S.by==null?bp.y:S.by*0.45+bp.y*0.55;
@@ -868,7 +910,11 @@ function handle(lm,w,ts){
 
   if(S.mode==='ready'){
     setStatus(viewOf(lm,side)!=='side'?'st_view':'st_ready'); // profil obligatoire pour un bar path fiable
-    if(S.by<baseY-0.04&&S.vel>0.15){
+    /* Une trajectoire de barre mesuree de face ne veut rien dire : les
+       ecarts horizontaux qu'on lit sont de la perspective, pas de la
+       technique. On n'arme donc pas la rep hors du profil — meme logique que
+       le dos au squat, qu'on refuse de mesurer de face. */
+    if(viewOf(lm,side)==='side' && S.by<baseY-0.04 && S.vel>0.15){
       S.mode='pull';
       S.rep={t0:ts,x0:S.bx,pts:[{x:S.bx,y:S.by}],topY:S.by,level:0,xmin:S.bx,xmax:S.bx,peakV:0,view:viewOf(lm,side)};
       setStatus('st_pull');
