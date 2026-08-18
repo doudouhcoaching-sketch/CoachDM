@@ -7581,8 +7581,13 @@ function renderSeances(){
 const AN_INFO={
  'squat.html':{ sec:30, lex:['valgus','vbt'],
    d:{fr:'Ta profondeur, la vitesse de remontée et l’alignement de tes genoux.',en:'Your depth, your drive speed and your knee alignment.',nl:'Je diepte, je opwaartse snelheid en je kniestand.'},
-   h:{fr:'Téléphone posé de côté, à 2-3 m, corps entier dans l’image. 3 répétitions suffisent.',en:'Phone side-on, 2-3 m away, whole body in frame. 3 reps is enough.',nl:'Telefoon opzij, 2-3 m, volledig lichaam in beeld. 3 herhalingen volstaan.'},
-   g:{fr:'Répétitions comptées, parallèle validée ou non, et le degré de valgus rep par rep.',en:'Reps counted, parallel passed or not, and knee valgus degree rep by rep.',nl:'Herhalingen geteld, parallel gehaald of niet, en valgus per herhaling.'}},
+   /* La carte promettait le valgus en annoncant un placement DE COTE. Les deux
+      ne vont pas ensemble : le valgus est un ecart horizontal des genoux, il
+      n'existe pas dans une vue de profil. Inversement le dos et le buste ne se
+      mesurent que de profil. On dit donc les deux placements, et ce que chacun
+      donne — c'est la seule facon de ne pas promettre une mesure impossible. */
+   h:{fr:'À 2-3 m, corps entier dans l’image. De côté pour la profondeur et le dos, de face pour les genoux. 3 répétitions suffisent.',en:'2-3 m away, whole body in frame. Side-on for depth and back, front-on for knees. 3 reps is enough.',nl:'Op 2-3 m, volledig lichaam in beeld. Zijwaarts voor diepte en rug, frontaal voor de knieën. 3 herhalingen volstaan.'},
+   g:{fr:'Répétitions et parallèle dans les deux vues. De côté : profondeur, dos arrondi, inclinaison du buste, vitesse. De face : valgus des genoux.',en:'Reps and parallel in both views. Side-on: depth, back rounding, torso lean, speed. Front-on: knee valgus.',nl:'Herhalingen en parallel in beide standen. Zijwaarts: diepte, ronde rug, romphelling, snelheid. Frontaal: knievalgus.'}},
  'saut.html':{ sec:20, lex:['fv_profile'],
    d:{fr:'La hauteur réelle de ton saut, au centimètre, et ce qui te limite.',en:'Your true jump height, to the centimetre, and what limits it.',nl:'Je echte sprunghoogte, tot op de centimeter.'},
    h:{fr:'Téléphone de face, à 3 m, bien stable. Deux sauts maximum, sans élan.',en:'Phone facing you, 3 m away, held steady. Two max jumps, no run-up.',nl:'Telefoon frontaal, 3 m, stabiel. Twee maximale sprongen, zonder aanloop.'},
