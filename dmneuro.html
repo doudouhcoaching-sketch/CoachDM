@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>DM NEURO</title>
+<style>
+:root{--bg:#0B0B0C;--panel:#141416;--line:#26262A;--gold:#D4AF37;--neon:#00FFA3;
+--txt:#F2F2F0;--dim:#8A8A90;--rouge:#E1332D;--bleu:#1273E6;--vert:#17B85A;--jaune:#F2C218}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);
+font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,sans-serif;
+-webkit-user-select:none;user-select:none;touch-action:manipulation;overscroll-behavior:none}
+
+#console{min-height:100%;padding:calc(env(safe-area-inset-top) + 18px) 18px calc(env(safe-area-inset-bottom) + 30px);max-width:760px;margin:0 auto}
+header{display:flex;align-items:baseline;gap:10px;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:20px}
+header b{font-size:21px;letter-spacing:.16em;font-weight:800}
+header b i{font-style:normal;color:var(--gold)}
+header span{font-size:10px;letter-spacing:.22em;color:var(--dim);text-transform:uppercase;margin-left:auto}
+.block{margin-bottom:22px}
+.lab{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.lab em{font-style:normal;color:var(--gold);letter-spacing:.05em;font-size:13px;font-variant-numeric:tabular-nums}
+.grid{display:grid;gap:8px}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 6px;font-size:12.5px;font-weight:600;text-align:center;transition:.12s}
+.chip small{display:block;font-size:9.5px;font-weight:500;color:var(--dim);margin-top:3px;letter-spacing:.03em}
+.chip[aria-pressed="true"]{background:#1F1D14;border-color:var(--gold);color:var(--gold)}
+.chip[aria-pressed="true"] small{color:#9A8433}
+.chip:active{transform:scale(.97)}
+.stim[aria-pressed="true"]{background:#0F1F18;border-color:var(--neon);color:var(--neon)}
+.stim[aria-pressed="true"] small{color:#2E8C68}
+.mode{padding:16px 8px;font-size:14px;letter-spacing:.06em}
+input[type=range]{width:100%;accent-color:var(--gold);height:30px}
+.rowv{display:flex;align-items:center;gap:14px}
+.rowv span{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums;min-width:60px;text-align:right}
+.hint{font-size:11.5px;line-height:1.5;color:var(--dim);margin-top:8px}
+#go{width:100%;background:var(--gold);color:#0B0B0C;border-radius:14px;padding:20px;font-size:16px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-top:4px}
+#go:active{opacity:.85}
+.hide{display:none!important}
+
+#stage{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#fff;color:#0B0B0C;z-index:50;overflow:hidden}
+#stage.on{display:flex}
+#stage .num{font-size:min(56vw,56vh);font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+#stage .word{font-size:min(20vw,26vh);font-weight:800}
+#stage .arw{width:min(66vw,66vh);height:min(66vw,66vh)}
+.flank{display:flex;align-items:center;gap:min(2vw,2vh);width:100%;justify-content:center}
+.flank svg{width:min(17vw,26vh);height:min(17vw,26vh);flex:none}
+.nlWrap{position:absolute;inset:0}
+.nlHalf{position:absolute;left:0;right:0;height:50%;display:flex;align-items:center;justify-content:center}
+.nlTop{top:0}.nlBot{bottom:0}
+.nlPair{font-size:min(24vw,30vh);font-weight:800;letter-spacing:.08em;font-variant-numeric:tabular-nums}
+.nlLine{position:absolute;top:50%;left:6%;right:6%;height:2px;background:currentColor;opacity:.16}
+/* left/top:0 obligatoires : #stage est un conteneur flex centré, donc la position
+   « statique » d'un enfant absolu serait le CENTRE — les objets partaient tous
+   décalés d'un demi-écran vers le bas à droite et sortaient du cadre. */
+.dot{position:absolute;left:0;top:0;border-radius:50%;display:flex;align-items:center;justify-content:center;
+font-weight:800;color:transparent;will-change:transform}
+
+#hud{position:fixed;top:calc(env(safe-area-inset-top) + 10px);left:0;right:0;z-index:60;display:none;
+justify-content:space-between;padding:0 18px;font-size:12px;letter-spacing:.14em;font-variant-numeric:tabular-nums;mix-blend-mode:difference;color:#888}
+#hud.on{display:flex}
+#count,#banner{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;text-align:center;font-weight:800}
+#count{background:var(--bg);color:var(--gold);font-size:min(38vw,38vh)}
+#banner{background:#0B0B0C;color:var(--neon);font-size:min(11vw,15vh);letter-spacing:.08em;padding:0 6vw;line-height:1.25;z-index:65}
+#count.on,#banner.on{display:flex}
+
+#exit{position:fixed;z-index:80;display:none;
+right:calc(env(safe-area-inset-right) + 14px);bottom:calc(env(safe-area-inset-bottom) + 14px);
+width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,.32);color:#fff;
+font-size:19px;font-weight:700;line-height:48px;text-align:center;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#exit.on{display:block}
+#exit:active{background:rgba(0,0,0,.6)}
+
+#report{display:none;padding:calc(env(safe-area-inset-top) + 18px) 18px 40px;max-width:760px;margin:0 auto}
+#report.on{display:block}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.stat b{display:block;font-size:24px;color:var(--gold);font-variant-numeric:tabular-nums}
+.stat span{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+pre{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:12.5px;line-height:1.7;
+max-height:42vh;overflow:auto;-webkit-user-select:text;user-select:text;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.ghost{border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center;font-size:13px;font-weight:600}
+</style>
+</head>
+<body>
+
+<div id="console">
+  <header><b>DM<i>·</i>NEURO</b><span>Entraînement cognitif</span></header>
+
+  <div class="block">
+    <div class="grid g2" id="modes">
+      <button class="chip mode" data-m="react" aria-pressed="true">Réactif<small>stimuli / direction</small></button>
+      <button class="chip mode" data-m="mot" aria-pressed="false">Suivi MOT<small>multi-objets</small></button>
+    </div>
+  </div>
+
+  <!-- ============ RÉACTIF ============ -->
+  <div id="cfgReact">
+    <div class="block">
+      <div class="lab">Tâches actives</div>
+      <div class="grid g2" id="stims">
+        <button class="chip stim" data-k="arrow"  aria-pressed="true">Flèches<small>4 directions</small></button>
+        <button class="chip stim" data-k="color"  aria-pressed="true">Couleurs<small>écran plein</small></button>
+        <button class="chip stim" data-k="digit"  aria-pressed="false">Chiffres<small>1 · 2 · 3 · 4</small></button>
+        <button class="chip stim" data-k="stroop" aria-pressed="false">Stroop<small>mot ≠ encre</small></button>
+        <button class="chip stim" data-k="flanker" aria-pressed="false">Flanker<small>flèche centrale</small></button>
+        <button class="chip stim" data-k="switch" aria-pressed="false">Chiffre–Lettre<small>bascule de règle</small></button>
+      </div>
+      <div class="hint" id="poolNote"></div>
+    </div>
+
+    <div class="block">
+      <div class="lab">Consigne <em id="ruleTxt">Directe</em></div>
+      <div class="grid g3" id="rules">
+        <button class="chip" data-r="direct" aria-pressed="true">Directe<small>tel quel</small></button>
+        <button class="chip" data-r="inverse" aria-pressed="false">Inversée<small>opposé</small></button>
+        <button class="chip" data-r="switch" aria-pressed="false">Alternée<small>change en cours</small></button>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="lab">Durée séance <em id="durTxt">2:00</em></div>
+      <div class="grid g4" id="durs">
+        <button class="chip" data-d="30" aria-pressed="false">0:30</button>
+        <button class="chip" data-d="60" aria-pressed="false">1:00</button>
+        <button class="chip" data-d="120" aria-pressed="true">2:00</button>
+        <button class="chip" data-d="180" aria-pressed="false">3:00</button>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="lab">Intervalle entre stimuli <em id="isiTxt">1,2 – 3,0 s</em></div>
+      <div class="rowv"><input type="range" id="isiMin" min="4" max="30" value="12"><span id="isiMinV">min 1,2 s</span></div>
+      <div class="rowv"><input type="range" id="isiMax" min="6" max="60" value="30"><span id="isiMaxV">max 3,0 s</span></div>
+      <div class="hint">Intervalle aléatoire : empêche l'anticipation du rythme.</div>
+    </div>
+
+    <div class="block">
+      <div class="lab">Temps d'affichage <em id="showTxt">0,80 s</em></div>
+      <input type="range" id="showMs" min="15" max="200" value="80">
+      <div class="hint">Sous 0,40 s le joueur décide en vision périphérique.</div>
+    </div>
+
+    <div class="block">
+      <div class="lab">Signal STOP <em id="ngTxt">20 %</em></div>
+      <input type="range" id="nogo" min="0" max="40" value="20">
+      <div class="hint">Croix blanche = blocage d'appui, aucune course. Go / No-Go.</div>
+    </div>
+
+    <div class="block">
+      <div class="lab">Options</div>
+      <div class="grid g3">
+        <button class="chip" id="optBeep" aria-pressed="true">Bip<small>au stimulus</small></button>
+        <button class="chip" id="optScan" aria-pressed="false">Mode scan<small>bip d'appel</small></button>
+        <button class="chip" id="optDark" aria-pressed="false">Fond noir<small>salle claire</small></button>
+      </div>
+      <div class="hint">Mode scan : un bip 0,4 s avant l'affichage. Pose l'iPad <b>derrière ou à 90°</b> du joueur — il doit tourner la tête pour capter l'info. C'est le transfert le plus solide vers le match.<br>iPad : monte le volume et coupe le mode silencieux avant de démarrer, sinon les bips ne sortent pas.</div>
+    </div>
+  </div>
+
+  <!-- ============ MOT ============ -->
+  <div id="cfgMot" class="hide">
+    <div class="block">
+      <div class="lab">Objets à l'écran <em id="motNTxt">8</em></div>
+      <div class="grid g4" id="motN">
+        <button class="chip" data-n="6" aria-pressed="false">6</button>
+        <button class="chip" data-n="8" aria-pressed="true">8</button>
+        <button class="chip" data-n="10" aria-pressed="false">10</button>
+        <button class="chip" data-n="12" aria-pressed="false">12</button>
+      </div>
+    </div>
+    <div class="block">
+      <div class="lab">Cibles à suivre <em id="motTTxt">3</em></div>
+      <div class="grid g4" id="motT">
+        <button class="chip" data-t="2" aria-pressed="false">2</button>
+        <button class="chip" data-t="3" aria-pressed="true">3</button>
+        <button class="chip" data-t="4" aria-pressed="false">4</button>
+        <button class="chip" data-t="5" aria-pressed="false">5</button>
+      </div>
+    </div>
+    <div class="block">
+      <div class="lab">Vitesse <em id="motSTxt">4 / 8</em></div>
+      <input type="range" id="motS" min="1" max="8" value="4">
+      <div class="hint">Monte d'un cran quand l'équipe dépasse ~75 % de réussite.</div>
+    </div>
+    <div class="block">
+      <div class="lab">Durée de suivi <em id="motDTxt">8 s</em></div>
+      <input type="range" id="motD" min="4" max="20" value="8">
+    </div>
+    <div class="block">
+      <div class="lab">Nombre d'essais <em id="motRTxt">8</em></div>
+      <input type="range" id="motR" min="3" max="20" value="8">
+      <div class="hint">Déroulé : les cibles clignotent en or → tout devient identique et se déplace → arrêt, les objets sont numérotés. Les joueurs courent vers les plots correspondants. Touchez l'écran pour révéler la réponse.</div>
+    </div>
+  </div>
+
+  <button id="go">Démarrer</button>
+  <div class="hint" style="text-align:center">Réactif : touchez l'écran pour arrêter. MOT : touchez pour révéler, puis pour l'essai suivant.<br>Le bouton ✕ en bas à droite arrête la séance à tout moment.</div>
+</div>
+
+<div id="hud"><span id="hudTime">0:00</span><span id="hudN">0</span></div>
+<div id="stage"></div>
+<button id="exit" aria-label="Quitter la séance">✕</button>
+<div id="count"></div>
+<div id="banner"></div>
+
+<div id="report">
+  <header><b>DM<i>·</i>NEURO</b><span>Rapport</span></header>
+  <div class="stats">
+    <div class="stat"><b id="rN">0</b><span id="rNL">Stimuli</span></div>
+    <div class="stat"><b id="rStop">0</b><span id="rStopL">Stops</span></div>
+    <div class="stat"><b id="rDur">0:00</b><span>Durée</span></div>
+  </div>
+  <div class="lab">Chronologie — à recaler sur la vidéo</div>
+  <pre id="log"></pre>
+  <div class="two">
+    <button class="ghost" id="copy">Copier</button>
+    <button class="ghost" id="back" style="border-color:var(--gold);color:var(--gold)">Nouvelle séance</button>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+const COLORS={rouge:'#E1332D',bleu:'#1273E6',vert:'#17B85A',jaune:'#F2C218'};
+const CNAMES=Object.keys(COLORS);
+const DIRS=['droite','gauche','haut','bas'];
+const ROT={droite:0,gauche:180,haut:-90,bas:90};
+const VOY=['A','E','I','O','U'], CONS=['G','K','M','R','P','T'];
+const DIGITS=[2,3,4,6,7,8,9];
+
+const cfg={mode:'react',
+  pool:{arrow:true,color:true,digit:false,stroop:false,flanker:false,switch:false},
+  rule:'direct',dur:120,isiMin:1.2,isiMax:3.0,showMs:800,nogo:.20,
+  beep:true,scan:false,dark:false,
+  mot:{n:8,t:3,speed:4,track:8,trials:8}};
+
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const fmt=ms=>{const t=Math.max(0,Math.round(ms/1000));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
+const stamp=ms=>{const s=ms/1000;return String(Math.floor(s/60)).padStart(2,'0')+':'+(s%60).toFixed(1).padStart(4,'0')};
+const press=(el,v)=>el.setAttribute('aria-pressed',v?'true':'false');
+
+/* ---------------- réglages ---------------- */
+$$('#modes .mode').forEach(b=>b.onclick=()=>{
+  cfg.mode=b.dataset.m;
+  $$('#modes .mode').forEach(x=>press(x,x===b));
+  $('#cfgReact').classList.toggle('hide',cfg.mode!=='react');
+  $('#cfgMot').classList.toggle('hide',cfg.mode!=='mot');
+});
+$$('#stims .stim').forEach(b=>b.onclick=()=>{
+  const k=b.dataset.k,next=!cfg.pool[k];
+  if(!next&&Object.values(cfg.pool).filter(Boolean).length===1)return;
+  cfg.pool[k]=next;press(b,next);poolNote();
+});
+$$('#rules .chip').forEach(b=>b.onclick=()=>{
+  cfg.rule=b.dataset.r;$$('#rules .chip').forEach(x=>press(x,x===b));
+  $('#ruleTxt').textContent={direct:'Directe',inverse:'Inversée',switch:'Alternée'}[cfg.rule];poolNote();
+});
+$$('#durs .chip').forEach(b=>b.onclick=()=>{
+  cfg.dur=+b.dataset.d;$$('#durs .chip').forEach(x=>press(x,x===b));
+  $('#durTxt').textContent=fmt(cfg.dur*1000);
+});
+$('#optBeep').onclick=e=>{cfg.beep=!cfg.beep;press(e.currentTarget,cfg.beep);if(cfg.beep)audioInit()};
+$('#optScan').onclick=e=>{cfg.scan=!cfg.scan;press(e.currentTarget,cfg.scan)};
+$('#optDark').onclick=e=>{cfg.dark=!cfg.dark;press(e.currentTarget,cfg.dark)};
+
+const isiMin=$('#isiMin'),isiMax=$('#isiMax');
+function syncIsi(){
+  if(+isiMin.value>+isiMax.value-2)isiMax.value=+isiMin.value+2;
+  cfg.isiMin=+isiMin.value/10;cfg.isiMax=+isiMax.value/10;
+  const f=n=>n.toFixed(1).replace('.',',');
+  $('#isiMinV').textContent='min '+f(cfg.isiMin)+' s';
+  $('#isiMaxV').textContent='max '+f(cfg.isiMax)+' s';
+  $('#isiTxt').textContent=f(cfg.isiMin)+' – '+f(cfg.isiMax)+' s';
+}
+isiMin.oninput=isiMax.oninput=syncIsi;syncIsi();
+$('#showMs').oninput=e=>{cfg.showMs=+e.target.value*10;$('#showTxt').textContent=(cfg.showMs/1000).toFixed(2).replace('.',',')+' s'};
+$('#nogo').oninput=e=>{cfg.nogo=+e.target.value/100;$('#ngTxt').textContent=e.target.value+' %'};
+
+$$('#motN .chip').forEach(b=>b.onclick=()=>{
+  cfg.mot.n=+b.dataset.n;$$('#motN .chip').forEach(x=>press(x,x===b));
+  $('#motNTxt').textContent=cfg.mot.n;
+  if(cfg.mot.t>cfg.mot.n-2){cfg.mot.t=cfg.mot.n-2;$('#motTTxt').textContent=cfg.mot.t;
+    $$('#motT .chip').forEach(x=>press(x,+x.dataset.t===cfg.mot.t));}
+});
+$$('#motT .chip').forEach(b=>b.onclick=()=>{
+  const v=+b.dataset.t; if(v>cfg.mot.n-2)return;
+  cfg.mot.t=v;$$('#motT .chip').forEach(x=>press(x,x===b));$('#motTTxt').textContent=v;
+});
+$('#motS').oninput=e=>{cfg.mot.speed=+e.target.value;$('#motSTxt').textContent=e.target.value+' / 8'};
+$('#motD').oninput=e=>{cfg.mot.track=+e.target.value;$('#motDTxt').textContent=e.target.value+' s'};
+$('#motR').oninput=e=>{cfg.mot.trials=+e.target.value;$('#motRTxt').textContent=e.target.value};
+
+function poolNote(){
+  const n=[];
+  if(cfg.pool.arrow)n.push('flèche → direction');
+  if(cfg.pool.color)n.push('couleur → plot de la couleur');
+  if(cfg.pool.digit)n.push('chiffre → plot numéroté');
+  if(cfg.pool.stroop)n.push('Stroop → couleur de l\u2019encre');
+  if(cfg.pool.flanker)n.push('Flanker → flèche CENTRALE uniquement');
+  if(cfg.pool.switch)n.push('haut = chiffre (pair→D / impair→G) · bas = lettre (voyelle→D / consonne→G)');
+  $('#poolNote').textContent=n.join(' · ')+(cfg.rule==='inverse'?' — consigne inversée.':'');
+}
+poolNote();
+
+/* ---------------- son ---------------- */
+let ac=null;
+/* iOS/iPadOS : l'AudioContext doit être créé ET débloqué pendant le geste tactile,
+   sans aucun await avant, sinon il reste « suspended » et aucun bip ne sort. */
+function audioInit(){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return;
+    if(!ac)ac=new AC();
+    if(ac.state==='suspended')ac.resume();
+    const b=ac.createBuffer(1,1,22050),s=ac.createBufferSource();
+    s.buffer=b;s.connect(ac.destination);s.start(0);
+  }catch(e){}
+}
+function beep(f,dur){
+  if(!cfg.beep||!ac)return;
+  try{
+    if(ac.state==='suspended')ac.resume();
+    const o=ac.createOscillator(),g=ac.createGain();
+    o.type='square';o.frequency.value=f||1180;
+    g.gain.setValueAtTime(.0001,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(.35,ac.currentTime+.008);
+    g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+(dur||.10));
+    o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+(dur||.10)+.02);
+  }catch(e){}
+}
+
+/* ---------------- rendu réactif ---------------- */
+const stage=$('#stage');
+const bg=()=>cfg.dark?'#0B0B0C':'#FFFFFF';
+const fg=()=>cfg.dark?'#FFFFFF':'#0B0B0C';
+function svgArrow(dir,cls){
+  /* cls==='' est volontaire (flèches Flanker) : ne PAS retomber sur 'arw' = taille plein écran */
+  return '<svg class="'+(cls==null?'arw':cls)+'" viewBox="0 0 100 100" style="transform:rotate('+ROT[dir]+'deg)">'+
+    '<path d="M8 37 H54 V15 L94 50 L54 85 V63 H8 Z" fill="currentColor"/></svg>';
+}
+function paint(s){
+  if(s.type==='nogo'){
+    stage.style.background='#0B0B0C';stage.style.color='#FFF';
+    stage.innerHTML='<svg class="arw" viewBox="0 0 100 100"><path d="M18 12 L50 44 L82 12 L88 18 L56 50 L88 82 L82 88 L50 56 L18 88 L12 82 L44 50 L12 18 Z" fill="currentColor"/></svg>';
+    return;
+  }
+  if(s.type==='color'){stage.style.background=COLORS[s.v];stage.innerHTML='';return;}
+  stage.style.background=bg();stage.style.color=fg();
+  if(s.type==='arrow')  stage.innerHTML=svgArrow(s.v);
+  if(s.type==='digit')  stage.innerHTML='<div class="num">'+s.v+'</div>';
+  if(s.type==='stroop') stage.innerHTML='<div class="word" style="color:'+COLORS[s.ink]+'">'+s.v.toUpperCase()+'</div>';
+  if(s.type==='flanker'){
+    let h='<div class="flank">';
+    for(let i=0;i<5;i++) h+=svgArrow(i===2?s.v:s.flank,'');
+    stage.innerHTML=h+'</div>';
+  }
+  if(s.type==='switch'){
+    stage.innerHTML='<div class="nlWrap"><div class="nlLine"></div>'+
+      '<div class="nlHalf '+(s.half==='haut'?'nlTop':'nlBot')+'">'+
+      '<div class="nlPair">'+s.d+'&nbsp;'+s.l+'</div></div></div>';
+  }
+}
+function blank(){stage.style.background=bg();stage.innerHTML='';}
+
+/* ---------------- moteur réactif ---------------- */
+let run=false,t1=null,t2=null,t3=null,tick=null,wake=null;
+let log=[],nStop=0,t0=0,prev='',prevType='',sinceSwitch=0,nextSwitch=0,curInverse=false;
+
+function describe(s){
+  if(s.type==='arrow')  return 'Flèche '+s.v;
+  if(s.type==='color')  return 'Couleur '+s.v;
+  if(s.type==='digit')  return 'Chiffre '+s.v;
+  if(s.type==='stroop') return 'Stroop « '+s.v+' » en '+s.ink;
+  if(s.type==='flanker')return 'Flanker '+s.v+' ('+(s.v===s.flank?'congruent':'incongruent')+')';
+  if(s.type==='switch'){
+    const t=s.half==='haut'?('chiffre '+s.d+' → '+(s.d%2===0?'pair':'impair')):('lettre '+s.l+' → '+(VOY.indexOf(s.l)>=0?'voyelle':'consonne'));
+    return 'Bascule '+s.half+' : '+t;
+  }
+  return 'STOP';
+}
+function build(){
+  if(Math.random()<cfg.nogo&&prevType!=='nogo')return{type:'nogo',label:'STOP — blocage'};
+  const keys=Object.keys(cfg.pool).filter(k=>cfg.pool[k]);
+  for(let i=0;i<14;i++){
+    const t=pick(keys);let s;
+    if(t==='arrow')  s={type:'arrow',v:pick(DIRS)};
+    if(t==='color')  s={type:'color',v:pick(CNAMES)};
+    if(t==='digit')  s={type:'digit',v:1+Math.floor(Math.random()*4)};
+    if(t==='stroop'){const w=pick(CNAMES);let ink=pick(CNAMES);while(ink===w)ink=pick(CNAMES);s={type:'stroop',v:w,ink:ink};}
+    if(t==='flanker'){
+      const c=Math.random()<.4, v=pick(['droite','gauche']);
+      s={type:'flanker',v:v,flank:c?v:(v==='droite'?'gauche':'droite')};
+    }
+    if(t==='switch'){
+      s={type:'switch',half:Math.random()<.5?'haut':'bas',d:pick(DIGITS),l:pick(Math.random()<.5?VOY:CONS)};
+    }
+    s.label=describe(s);
+    if(s.label!==prev)return s;
+  }
+  return{type:'color',v:pick(CNAMES),label:'Couleur'};
+}
+function schedule(){
+  if(!run)return;
+  const wait=rnd(cfg.isiMin,cfg.isiMax)*1000;
+  if(cfg.scan) t3=setTimeout(()=>{if(run)beep(640,.06)},Math.max(0,wait-400));
+  t1=setTimeout(()=>{
+    if(!run)return;
+    if(cfg.rule==='switch'&&sinceSwitch>=nextSwitch)switchRule();else fire();
+  },wait);
+}
+function switchRule(){
+  sinceSwitch=0;nextSwitch=4+Math.floor(Math.random()*5);curInverse=!curInverse;
+  const b=$('#banner');
+  b.textContent=curInverse?'INVERSÉ':'NORMAL';
+  b.classList.add('on');beep(520,.2);
+  log.push({t:Date.now()-t0,label:'► CONSIGNE '+(curInverse?'INVERSÉE':'NORMALE')});
+  t2=setTimeout(()=>{b.classList.remove('on');schedule()},1600);
+}
+function fire(){
+  const s=build();prev=s.label;prevType=s.type;sinceSwitch++;
+  if(s.type==='nogo')nStop++;
+  log.push({t:Date.now()-t0,label:s.label});
+  $('#hudN').textContent=log.filter(l=>l.label[0]!=='►').length;
+  paint(s);beep(s.type==='nogo'?760:1180);
+  t2=setTimeout(()=>{if(!run)return;blank();schedule()},cfg.showMs);
+}
+
+/* ---------------- moteur MOT ---------------- */
+let motRaf=null,motDots=[],motTrial=0,motTargets=[],motW=0,motH=0;
+function motMeasure(){motW=stage.clientWidth||window.innerWidth;motH=stage.clientHeight||window.innerHeight}
+/* rotation de l'iPad en pleine séance : on remet les objets à l'échelle du nouvel écran */
+window.addEventListener('resize',()=>{
+  if(!run||cfg.mode!=='mot'||!motDots.length)return;
+  const oW=motW,oH=motH;motMeasure();
+  if(oW>0&&oH>0){
+    const sx=motW/oW,sy=motH/oH;
+    for(const d of motDots){
+      d.x=Math.min(motW-d.r,Math.max(d.r,d.x*sx));
+      d.y=Math.min(motH-d.r,Math.max(d.r,d.y*sy));
+    }
+    motDraw();
+  }
+});
+function motStart(){
+  motTrial=0;log=[];t0=Date.now();
+  stage.classList.add('on');stage.style.background='#0B0B0C';stage.style.color='#FFF';
+  motTrialRun();
+}
+function motTrialRun(){
+  if(!run)return;
+  motTrial++;
+  if(motTrial>cfg.mot.trials){stop();return;}
+  motMeasure();
+  const W=motW,H=motH;
+  const R=Math.min(W,H)*0.055;
+  const N=cfg.mot.n;
+  stage.innerHTML='';
+  motDots=[];
+  for(let i=0;i<N;i++){
+    let x,y,ok,tries=0;
+    do{ok=true;x=rnd(R,W-R);y=rnd(R,H-R);
+      for(const d of motDots){if(Math.hypot(d.x-x,d.y-y)<R*2.6){ok=false;break}}
+    }while(!ok&&++tries<400);
+    const ang=rnd(0,Math.PI*2),v=Math.min(W,H)*0.05*cfg.mot.speed;
+    const el=document.createElement('div');
+    el.className='dot';
+    el.style.width=el.style.height=(R*2)+'px';
+    el.style.background='#FFF';
+    el.style.fontSize=(R*1.1)+'px';
+    motDots.push({x,y,vx:Math.cos(ang)*v,vy:Math.sin(ang)*v,r:R,el,target:false});
+    stage.appendChild(el);
+  }
+  const idx=motDots.map((_,i)=>i).sort(()=>Math.random()-.5).slice(0,cfg.mot.t);
+  motTargets=idx;
+  idx.forEach(i=>motDots[i].target=true);
+  motDraw();
+
+  // phase 1 : clignotement des cibles
+  let flash=0;
+  const fl=setInterval(()=>{
+    flash++;
+    idx.forEach(i=>motDots[i].el.style.background=(flash%2?'#D4AF37':'#FFF'));
+    if(flash>=6){clearInterval(fl);idx.forEach(i=>motDots[i].el.style.background='#FFF');motMove()}
+  },320);
+  beep(880,.12);
+  log.push({t:Date.now()-t0,label:'— Essai '+motTrial+' : cibles '+idx.map(i=>i+1).join(', ')});
+}
+function motDraw(){
+  for(const d of motDots) d.el.style.transform='translate('+(d.x-d.r)+'px,'+(d.y-d.r)+'px)';
+}
+function motMove(){
+  const until=performance.now()+cfg.mot.track*1000;
+  let last=performance.now();
+  (function loop(now){
+    if(!run)return;
+    const W=motW,H=motH;
+    const dt=Math.min(.05,(now-last)/1000);last=now;
+    for(const d of motDots){
+      d.x+=d.vx*dt;d.y+=d.vy*dt;
+      if(d.x<d.r){d.x=d.r;d.vx=Math.abs(d.vx)}
+      if(d.x>W-d.r){d.x=W-d.r;d.vx=-Math.abs(d.vx)}
+      if(d.y<d.r){d.y=d.r;d.vy=Math.abs(d.vy)}
+      if(d.y>H-d.r){d.y=H-d.r;d.vy=-Math.abs(d.vy)}
+    }
+    for(let i=0;i<motDots.length;i++)for(let j=i+1;j<motDots.length;j++){
+      const a=motDots[i],b=motDots[j];
+      const dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy),min=a.r+b.r;
+      if(dist<min&&dist>0){
+        const nx=dx/dist,ny=dy/dist,ov=(min-dist)/2;
+        a.x-=nx*ov;a.y-=ny*ov;b.x+=nx*ov;b.y+=ny*ov;
+        const p=2*(a.vx*nx+a.vy*ny-b.vx*nx-b.vy*ny)/2;
+        a.vx-=p*nx;a.vy-=p*ny;b.vx+=p*nx;b.vy+=p*ny;
+      }
+    }
+    motDraw();
+    if(now<until){motRaf=requestAnimationFrame(loop)}else motStop();
+  })(performance.now());
+}
+function motStop(){
+  beep(560,.18);
+  motDots.forEach((d,i)=>{d.el.textContent=i+1;d.el.style.color='#0B0B0C'});
+  log.push({t:Date.now()-t0,label:'   arrêt → numéros affichés'});
+  stage.onclick=motReveal;
+}
+function motReveal(){
+  motDots.forEach((d,i)=>{
+    const hit=motTargets.indexOf(i)>=0;
+    d.el.style.background=hit?'#00FFA3':'#3A3A40';
+    d.el.style.color=hit?'#0B0B0C':'#6A6A72';
+  });
+  beep(1000,.12);
+  stage.onclick=()=>{stage.onclick=stopTap;motTrialRun()};
+}
+
+/* ---------------- plein écran (Safari iPadOS = préfixe webkit) ---------------- */
+function isFull(){return !!(document.fullscreenElement||document.webkitFullscreenElement)}
+function goFull(){
+  const el=document.documentElement;
+  const fn=el.requestFullscreen||el.webkitRequestFullscreen||el.webkitRequestFullScreen;
+  if(!fn||isFull())return;
+  try{const p=fn.call(el);if(p&&p.catch)p.catch(()=>{})}catch(e){}
+}
+function exitFull(){
+  try{
+    if(document.fullscreenElement&&document.exitFullscreen){const p=document.exitFullscreen();if(p&&p.catch)p.catch(()=>{})}
+    else if(document.webkitFullscreenElement&&document.webkitExitFullscreen)document.webkitExitFullscreen();
+  }catch(e){}
+}
+
+/* ---------------- cycle de vie ---------------- */
+let cd=null;
+function start(){
+  if(run||cd)return;
+  log=[];nStop=0;prev='';prevType='';sinceSwitch=0;
+  curInverse=(cfg.rule==='inverse');
+  nextSwitch=cfg.rule==='switch'?4+Math.floor(Math.random()*5):Infinity;
+  $('#console').style.display='none';$('#report').classList.remove('on');
+  $('#exit').classList.add('on');
+  beep(880);
+  const c=$('#count');c.classList.add('on');let n=3;c.textContent=n;
+  /* le verrou d'écran est asynchrone : on le demande sans bloquer le compte à rebours */
+  try{if(navigator.wakeLock&&navigator.wakeLock.request)
+    navigator.wakeLock.request('screen').then(w=>{wake=w}).catch(()=>{})}catch(e){}
+  cd=setInterval(()=>{
+    n--;beep(n>0?700:1000);
+    if(n>0){c.textContent=n;return}
+    clearInterval(cd);cd=null;c.classList.remove('on');
+    run=true;t0=Date.now();stage.onclick=stopTap;
+    if(cfg.mode==='mot'){motStart();return}
+    stage.classList.add('on');$('#hud').classList.add('on');blank();
+    tick=setInterval(()=>{
+      const left=cfg.dur*1000-(Date.now()-t0);
+      $('#hudTime').textContent=fmt(left);
+      if(left<=0)stop();
+    },200);
+    schedule();
+  },1000);
+}
+function stopTap(){if(run)stop()}
+function stop(){
+  if(!run&&!cd)return;
+  const el=run?Date.now()-t0:0;
+  run=false;
+  if(cd){clearInterval(cd);cd=null}
+  clearTimeout(t1);clearTimeout(t2);clearTimeout(t3);clearInterval(tick);
+  if(motRaf){cancelAnimationFrame(motRaf);motRaf=null}
+  stage.classList.remove('on');stage.onclick=null;stage.innerHTML='';
+  $('#hud').classList.remove('on');$('#banner').classList.remove('on');
+  $('#count').classList.remove('on');$('#exit').classList.remove('on');
+  exitFull();
+  try{if(wake){wake.release();wake=null}}catch(e){}
+  if(cfg.mode==='mot'){
+    $('#rNL').textContent='Essais';$('#rStopL').textContent='Cibles';
+    $('#rN').textContent=Math.max(0,Math.min(motTrial-1,cfg.mot.trials));
+    $('#rStop').textContent=cfg.mot.t+' / '+cfg.mot.n;
+  }else{
+    $('#rNL').textContent='Stimuli';$('#rStopL').textContent='Stops';
+    $('#rN').textContent=log.filter(l=>l.label[0]!=='►').length;
+    $('#rStop').textContent=nStop;
+  }
+  $('#rDur').textContent=fmt(cfg.mode==='mot'?el:Math.min(el,cfg.dur*1000));
+  $('#log').textContent=log.map(l=>stamp(l.t)+'   '+l.label).join('\n')||'—';
+  $('#report').classList.add('on');
+}
+/* le geste tactile doit rester « intact » : audio + plein écran d'abord, sans await */
+$('#go').onclick=()=>{audioInit();goFull();start()};
+$('#exit').onclick=e=>{e.stopPropagation();stop()};
+$('#back').onclick=()=>{$('#report').classList.remove('on');$('#console').style.display='block'};
+$('#copy').onclick=async e=>{
+  try{await navigator.clipboard.writeText($('#log').textContent);
+    e.target.textContent='Copié';setTimeout(()=>e.target.textContent='Copier',1400)}catch(err){}
+};
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&(run||cd))stop()});
+window.addEventListener('pagehide',()=>{if(run||cd)stop()});
+})();
+</script>
+</body>
+</html>
