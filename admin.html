@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, interactive-widget=resizes-content" />
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#050807" />
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#050807" />
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#070A08" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#070A08" />
 <title>Coach DM · Admin</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
@@ -14,22 +14,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#050807; --bg-2:#0A0F0C;
-    --surface:#0E1512; --surface-2:#17201C; --line:rgba(255,255,255,.10);
-    --text:#FFFFFF; --muted:#7FAE97;
-    --brand:#00FFA3; --brand-2:#00D98A; --brand-soft:rgba(0,255,160,.14);
-    --ok:#34D399; --warn:#FF5C5C; --amber:#D4AF37;
-    --gold-hi:#FBF3D0; --gold:#E9C767; --gold-mid:#D4A73C; --gold-deep:#9A6E1B;
-    --gold-soft:rgba(212,167,60,.14); --on-gold:#3a2b08;
+    --bg:#070A08; --bg-2:#0C110E;
+    --surface:#121814; --surface-2:#1A221D; --line:rgba(255,255,255,.10);
+    --text:#F2F0E9; --muted:#8FA398;
+    --brand:#00E896; --brand-2:#00B978; --brand-soft:rgba(0,232,150,.14);
+    --ok:#34D399; --warn:#FF5C5C; --amber:#D9B65C;
+    --gold-hi:#F3E3AE; --gold:#D9B65C; --gold-mid:#B8963F; --gold-deep:#8B6914;
+    --gold-soft:rgba(184,150,63,.14); --on-gold:#3a2b08;
     --shadow:0 16px 44px rgba(0,0,0,.5); --shadow-soft:0 8px 22px rgba(0,0,0,.4);
-    --radius:22px; --radius-sm:14px;
+    --radius:16px; --radius-sm:10px;
     --font-d:'Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%}
   body{font-family:'Outfit',-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
     background:
-      radial-gradient(120% 70% at 50% -10%, rgba(0,255,150,.16) 0%, transparent 60%),
+      radial-gradient(120% 70% at 50% -10%, rgba(0,232,150,.16) 0%, transparent 60%),
       linear-gradient(180deg,var(--bg-2),var(--bg) 30%);
     color:var(--text);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
   h1,h2,h3,.mark,.topbar h2{font-family:var(--font-d);letter-spacing:-.01em}
@@ -38,7 +38,7 @@
   .hidden{display:none!important}
   .screen{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:32px 22px;max-width:440px;margin:0 auto}
   .mark{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;margin:0 auto 14px;
-    background:linear-gradient(145deg,var(--brand),var(--brand-2));box-shadow:0 12px 30px rgba(0,255,160,.4);
+    background:linear-gradient(145deg,var(--brand),var(--brand-2));box-shadow:0 12px 30px rgba(0,232,150,.4);
     font-weight:800;font-size:26px;color:#04120a}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
   h1{font-size:22px;font-weight:800;margin:0 0 4px;text-align:center}
@@ -51,7 +51,7 @@
   .field select:focus,.field textarea:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
   .field textarea{min-height:72px;resize:vertical;font-size:15px;line-height:1.5}
   .btn{width:100%;padding:14px;border-radius:var(--radius-sm);font-weight:800;font-size:15px;font-family:var(--font-d);
-    background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#04120a;box-shadow:0 8px 22px rgba(0,255,160,.4)}
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#04120a;box-shadow:0 8px 22px rgba(0,232,150,.4)}
   .btn:active{transform:scale(.99)}
   .btn.subtle{background:var(--surface-2);color:var(--text);box-shadow:none;border:1px solid var(--line)}
   .btn.danger{background:transparent;color:var(--warn);box-shadow:none;border:1.5px solid var(--warn)}
@@ -66,7 +66,7 @@
   .topbar h2{margin:0;font-size:20px;font-weight:800}
   .tabs{display:flex;gap:8px;padding-bottom:12px;overflow-x:auto}
   .tabs button{flex:1;padding:11px 8px;border-radius:999px;font-weight:700;font-size:14px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);font-family:var(--font-d);white-space:nowrap}
-  .tabs button.on{color:#04120a;background:linear-gradient(135deg,var(--brand),var(--brand-2));border-color:transparent;box-shadow:0 6px 18px rgba(0,255,160,.3)}
+  .tabs button.on{color:#04120a;background:linear-gradient(135deg,var(--brand),var(--brand-2));border-color:transparent;box-shadow:0 6px 18px rgba(0,232,150,.3)}
   .tb-id{display:flex;align-items:center;gap:11px}
   .tb-id img{width:38px;height:38px;border-radius:11px;display:block}
   .tb-kick{font-size:10px;font-weight:800;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:1px;font-family:var(--font-d)}
@@ -81,9 +81,9 @@
   .pill.ok{background:rgba(16,185,129,.15);color:var(--ok)}
   .pill.no{background:rgba(239,68,68,.13);color:var(--warn)}
   .pill.role{background:var(--brand-soft);color:var(--brand)}
-  .pill.verif{background:rgba(212,175,55,.18);color:var(--amber)}
+  .pill.verif{background:rgba(217,182,92,.18);color:var(--amber)}
   .pill.vid{background:rgba(56,189,248,.16);color:#0ea5e9}
-  .pill.founder{background:rgba(212,175,55,.2);color:#D4AF37}
+  .pill.founder{background:rgba(217,182,92,.2);color:#D9B65C}
   .pill.paid{background:rgba(16,185,129,.22);color:var(--ok)}
   .pill.gift{background:rgba(148,163,184,.2);color:#94a3b8}
   .pill.dev{background:rgba(56,189,248,.14);color:#7dd3fc;text-transform:none;letter-spacing:0}
@@ -155,7 +155,7 @@
   /* Un apport en attente est bordé d'ambre : l'oeil va droit à ce qui reste
      à trancher, même dans la vue « Tout ». */
   .ap-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:11px}
-  .ap-card.pending{border-color:rgba(212,175,55,.55);background:linear-gradient(180deg,rgba(212,175,55,.05),transparent)}
+  .ap-card.pending{border-color:rgba(217,182,92,.55);background:linear-gradient(180deg,rgba(217,182,92,.05),transparent)}
   .ap-card .nm{font-weight:700;font-size:15px}
   .ap-card .who{font-size:12px;color:var(--muted);margin-top:3px}
   .ap-vals{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
@@ -185,7 +185,7 @@
   #pane-cours .btn.red, #cours-ov .btn.red{background:var(--warn)}
   #pane-cours .pill, #cours-ov .pill{display:inline-block;font-size:12px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap;text-transform:none;letter-spacing:0}
   #pane-cours .pill.ok, #cours-ov .pill.ok{background:rgba(16,185,129,.15);color:var(--ok)}
-  #pane-cours .pill.warn, #cours-ov .pill.warn{background:rgba(245,158,11,.16);color:#D4AF37}
+  #pane-cours .pill.warn, #cours-ov .pill.warn{background:rgba(245,158,11,.16);color:#D9B65C}
   #pane-cours .pill.full, #cours-ov .pill.full{background:rgba(239,68,68,.14);color:var(--warn)}
   #pane-cours .pill.cancel, #cours-ov .pill.cancel{background:var(--surface-2);color:var(--muted)}
   #pane-cours .pill.vio, #cours-ov .pill.vio{background:var(--brand-soft);color:var(--brand)}
@@ -224,6 +224,17 @@
     border:1px solid var(--line);border-radius:13px;color:var(--text);padding:10px 13px;font-size:15px;font-family:inherit}
   .chat-in textarea:focus{outline:none;border-color:var(--brand)}
 </style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+/* === Coach DM - typographie unifiee : titres condenses comme sur coachdm.be === */
+:root{ --font-display:'Barlow Condensed','Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+h1, h2,
+.hh-hello, .hero-name, .sp-name, .wod-name, .wod-num,
+.kcal, .plan-price, .rest-num, .qz-res-n, .se-d-title{
+  font-family: var(--font-display);
+  letter-spacing: .012em;
+}
+</style>
 </head>
 <body>
 
@@ -234,7 +245,7 @@
     <div class="mark"><img src="/logo-dm.png" alt="Coach DM" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block"></div>
     <h1>Console Coach</h1>
     <p class="sub">Réservé à l'administration Coach DM</p>
-    <div class="field"><label>Email</label><input id="au-email" type="email" inputmode="email" placeholder="doudouh.coaching@gmail.com" /></div>
+    <div class="field"><label>Email</label><input id="au-email" type="email" inputmode="email" placeholder="contact@coachdm.be" /></div>
     <div class="field"><label>Mot de passe</label><input id="au-pass" type="password" placeholder="••••••••" /></div>
     <button class="btn" id="au-login">Se connecter</button>
     <div class="msg" id="au-msg"></div>
@@ -1556,7 +1567,7 @@ $('#f-new').onclick = ()=>openEditor(null);
       const full=it.spots_left<=0, cancelled=it.status==='cancelled';
       const pc=cancelled?'cancel':full?'full':'ok';
       const ptxt=cancelled?'Annulé':`${it.booked_count}/${it.capacity}`;
-      const col=it.color||'#00FFA3';
+      const col=it.color||'#00E896';
       h+=`<div class="card inst row" data-id="${it.id}" style="gap:12px">
         <div class="accent" style="background:${esc(col)}"></div>
         <div style="flex:1">
@@ -1660,7 +1671,7 @@ $('#f-new').onclick = ()=>openEditor(null);
     if(!TEMPLATES.length)h+='<div class="center">Aucun cours modèle.</div>';
     TEMPLATES.forEach(t=>{
       h+=`<div class="card row" style="gap:12px">
-        <div class="accent" style="background:${esc(t.color||'#00FFA3')}"></div>
+        <div class="accent" style="background:${esc(t.color||'#00E896')}"></div>
         <div style="flex:1">
           <div class="title">${esc(t.name_fr)} ${t.kind==='personal_training'?'<span class="pill vio">PT</span>':''} ${t.is_active?'':'<span class="pill cancel">inactif</span>'}</div>
           <div class="sub">Cap. ${t.default_capacity} · ${t.default_duration_min} min${t.location?' · '+esc(t.location):''}</div>
@@ -1690,7 +1701,7 @@ $('#f-new').onclick = ()=>openEditor(null);
      <div class="grid2"><div><label>Capacité défaut</label><input id="t_cap" type="number" min="1" value="${e.default_capacity||12}"></div>
      <div><label>Durée (min)</label><input id="t_dur" type="number" min="5" value="${e.default_duration_min||60}"></div></div>
      <div class="grid2"><div><label>Lieu</label><input id="t_loc" value="${esc(e.location)}"></div>
-     <div><label>Couleur</label><input id="t_col" type="text" value="${esc(e.color||'#00FFA3')}"></div></div>
+     <div><label>Couleur</label><input id="t_col" type="text" value="${esc(e.color||'#00E896')}"></div></div>
      <label>Actif</label><select id="t_act"><option value="true" ${e.is_active!==false?'selected':''}>Oui</option><option value="false" ${e.is_active===false?'selected':''}>Non</option></select>
      <div class="row" style="margin-top:18px;gap:8px">
        ${t.id?'<button class="btn red sec sm" id="t_del">Supprimer</button>':''}
@@ -1712,7 +1723,7 @@ $('#f-new').onclick = ()=>openEditor(null);
         description_fr:$('#d_fr').value.trim()||null,description_en:$('#d_en').value.trim()||null,description_nl:$('#d_nl').value.trim()||null,
         cover_image_url:$('#t_img').value.trim()||null,default_capacity:+$('#t_cap').value||12,
         default_duration_min:+$('#t_dur').value||60,location:$('#t_loc').value.trim()||null,
-        color:$('#t_col').value.trim()||'#00FFA3',is_active:$('#t_act').value==='true'};
+        color:$('#t_col').value.trim()||'#00E896',is_active:$('#t_act').value==='true'};
       const q=t.id?sb.from('class_templates').update(p).eq('id',t.id):sb.from('class_templates').insert(p);
       const {error}=await q;
       if(error){toast('Échec enregistrement');return;}
@@ -1736,7 +1747,7 @@ $('#f-new').onclick = ()=>openEditor(null);
      <div class="grid2"><div><label>Durée (min)</label><input id="s_dur" type="number" min="5" value="${e.default_duration_min||60}"></div>
      <div><label>Capacité</label><input id="s_cap" type="number" min="1" value="${e.default_capacity||12}"></div></div>
      <div class="grid2"><div><label>Lieu</label><input id="s_loc" value="${esc(e.location)}"></div>
-     <div><label>Couleur</label><input id="s_col" value="${esc(e.color||'#00FFA3')}"></div></div>
+     <div><label>Couleur</label><input id="s_col" value="${esc(e.color||'#00E896')}"></div></div>
      <label>Répéter chaque (laisse vide = séance unique)</label>
      <div class="chips" id="s_days">${days.map(d=>`<button data-d="${d[0]}">${d[1]}</button>`).join('')}</div>
      <label>Pendant combien de semaines</label><input id="s_weeks" type="number" min="1" max="26" value="4">
@@ -1767,7 +1778,7 @@ $('#f-new').onclick = ()=>openEditor(null);
       const base={template_id:t.id||null,coach_id:ME,kind:$('#s_kind').value,name_fr:fr,
         name_en:$('#s_en').value.trim()||null,name_nl:$('#s_nl').value.trim()||null,
         description_fr:e.description_fr||null,description_en:e.description_en||null,description_nl:e.description_nl||null,
-        cover_image_url:e.cover_image_url||null,color:$('#s_col').value.trim()||'#00FFA3',
+        cover_image_url:e.cover_image_url||null,color:$('#s_col').value.trim()||'#00E896',
         location:$('#s_loc').value.trim()||null,capacity:+$('#s_cap').value||12,
         cancel_cutoff_min_before:+$('#s_cut').value||0,checkin_opens_min_before:+$('#s_chk').value||0};
       const payload=dates.map(d=>({...base,starts_at:d.toISOString(),ends_at:new Date(d.getTime()+dur*60000).toISOString()}));
@@ -1880,6 +1891,6 @@ $('#f-new').onclick = ()=>openEditor(null);
 
 boot();
 </script>
-<a id="cdm-backapp" href="app.html" style="position:fixed;left:14px;bottom:14px;z-index:9999;background:#0c1210;color:#00FFA3;border:1px solid #1e2a25;border-radius:999px;padding:10px 16px;font:600 14px/1 -apple-system,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.4)">&#8249; App</a>
+<a id="cdm-backapp" href="app.html" style="position:fixed;left:14px;bottom:14px;z-index:9999;background:#0c1210;color:#00E896;border:1px solid #1e2a25;border-radius:999px;padding:10px 16px;font:600 14px/1 -apple-system,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.4)">&#8249; App</a>
 </body>
 </html>

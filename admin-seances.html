@@ -13,15 +13,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#050807; --surface:#0E1512; --surface2:#17201C; --line:rgba(255,255,255,.10);
-    --text:#FFFFFF; --muted:#7FAE97; --brand:#00FFA3; --brand2:#00D98A;
-    --ok:#10B981; --warn:#EF4444; --info:#38BDF8; --tactic:#A78BFA; --gold:#E9C767;
+    --bg:#070A08; --surface:#121814; --surface2:#1A221D; --line:rgba(255,255,255,.10);
+    --text:#F2F0E9; --muted:#8FA398; --brand:#00E896; --brand2:#00B978;
+    --ok:#00E896; --warn:#EF4444; --info:#38BDF8; --tactic:#A78BFA; --gold:#D9B65C;
     --r:14px;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{background:
-      radial-gradient(120% 70% at 50% -10%, rgba(0,255,150,.16) 0%, transparent 60%),
+      radial-gradient(120% 70% at 50% -10%, rgba(0,232,150,.16) 0%, transparent 60%),
       var(--bg);
     color:var(--text);font:15px/1.5 'Outfit',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
   a{color:var(--brand2)}
@@ -94,6 +94,19 @@
   .small{font-size:12px;color:var(--muted)}
   .hide{display:none!important}
   hr{border:none;border-top:1px solid var(--line);margin:14px 0}
+  .wkgrp{margin-bottom:14px}
+  .wkgrp-h{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--brand2);font-weight:700;margin:0 2px 8px;padding-top:4px}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+/* === Coach DM - typographie unifiee : titres condenses comme sur coachdm.be === */
+:root{ --font-display:'Barlow Condensed','Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+h1, h2,
+.hh-hello, .hero-name, .sp-name, .wod-name, .wod-num,
+.kcal, .plan-price, .rest-num, .qz-res-n, .se-d-title{
+  font-family: var(--font-display);
+  letter-spacing: .012em;
+}
 </style>
 </head>
 <body>
@@ -133,6 +146,7 @@ async function rpc(fn,args){const{data,error}=await sb.rpc(fn,args);if(error)thr
 
 /* ---------- État ---------- */
 let SESSION=null, TAB='ex', EXERCISES=[], WORKOUTS=[], EXFILTER='', WKFILTER='';
+let PROGRAMS=[], PROG_CUR=null;
 
 /* ===================================================================== */
 /* AUTH                                                                  */
@@ -160,7 +174,7 @@ function renderLogin(msg){
         <p>Réservé au coach / administrateur</p>
       </div>
       ${msg?`<div class="badge warn" style="display:block;text-align:center;margin-bottom:10px">${esc(msg)}</div>`:''}
-      <label>Email</label><input id="li-email" type="email" autocomplete="username" placeholder="doudouh.coaching@gmail.com">
+      <label>Email</label><input id="li-email" type="email" autocomplete="username" placeholder="contact@coachdm.be">
       <label>Mot de passe</label><input id="li-pass" type="password" autocomplete="current-password">
       <button class="btn brand" id="li-go" style="width:100%;margin-top:16px">Se connecter</button>
       <p class="small" style="text-align:center;margin-top:14px">coachdm.be · accès admin</p>
@@ -198,11 +212,12 @@ function renderApp(){
     <div class="tabs">
       <div class="tab ${TAB==='ex'?'active':''}" data-tab="ex">Exercices</div>
       <div class="tab ${TAB==='wk'?'active':''}" data-tab="wk">Séances</div>
+      <div class="tab ${TAB==='prog'?'active':''}" data-tab="prog">Programmes</div>
     </div>
     <div id="view"></div>
   </div>`;
   $('#logout').onclick=async()=>{await sb.auth.signOut();boot();};
-  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{TAB=t.dataset.tab;renderApp();renderView();});
+  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{TAB=t.dataset.tab;PROG_CUR=null;renderApp();renderView();});
   renderView();
 }
 
@@ -211,7 +226,69 @@ async function loadAll(){
   renderView();
 }
 
-function renderView(){ TAB==='ex'?renderExList():renderWkList(); }
+function renderView(){ if(TAB==='ex')renderExList(); else if(TAB==='wk')renderWkList(); else renderProgView(); }
+
+/* ===================================================================== */
+/* PROGRAMMES — catalogue officiel (10 programmes)                       */
+/* ===================================================================== */
+async function renderProgView(){
+  if(PROG_CUR){ renderProgDetail(PROG_CUR); return; }
+  const v=$('#view'); if(!v)return;
+  v.innerHTML=`<div id="prog-list"><div class="empty">Chargement…</div></div>`;
+  try{ PROGRAMS=await rpc('admin_list_programs'); }catch(e){ $('#prog-list').innerHTML=`<div class="empty">Erreur : ${esc(e.message||e)}</div>`; return; }
+  if(!PROGRAMS.length){ $('#prog-list').innerHTML=`<div class="empty">Aucun programme.</div>`; return; }
+  $('#prog-list').innerHTML=PROGRAMS.map(p=>`<div class="card">
+    <div class="row1"><div style="flex:1">
+      <div class="title">${esc(p.source||p.program_slug)}</div>
+      <div class="meta">${esc(p.program_slug)}</div>
+      <div class="badges">
+        <span class="badge b">${p.workouts} séances</span>
+        <span class="badge">${p.weeks} semaines</span>
+        <span class="badge ${p.published===p.workouts?'ok':'warn'}">${p.published}/${p.workouts} publiées</span>
+        <span class="badge">${DIF[p.min_diff]||p.min_diff}${p.min_diff!==p.max_diff?'→'+(DIF[p.max_diff]||p.max_diff):''}</span>
+      </div>
+    </div></div>
+    <div class="actions"><button class="btn sm brand" data-prog="${esc(p.program_slug)}">Ouvrir</button></div>
+  </div>`).join('');
+  $('#prog-list').querySelectorAll('[data-prog]').forEach(b=>b.onclick=()=>{PROG_CUR=b.dataset.prog;renderProgDetail(PROG_CUR);});
+}
+async function renderProgDetail(slug){
+  const v=$('#view'); if(!v)return;
+  const meta=PROGRAMS.find(p=>p.program_slug===slug)||{};
+  v.innerHTML=`<div class="toolbar" style="align-items:center">
+      <button class="btn sm ghost" id="prog-back">‹ Programmes</button>
+      <div style="flex:1;font-weight:700;padding-left:4px">${esc(meta.source||slug)}</div>
+      <button class="btn brand sm" id="prog-newwk">＋ Séance</button>
+    </div>
+    <div id="prog-wk"><div class="empty">Chargement…</div></div>`;
+  $('#prog-back').onclick=()=>{PROG_CUR=null;renderProgView();};
+  $('#prog-newwk').onclick=()=>editWorkout(null,slug);
+  let items=[];
+  try{ items=await rpc('admin_program_workouts',{p_program:slug})||[]; }catch(e){ $('#prog-wk').innerHTML=`<div class="empty">Erreur : ${esc(e.message||e)}</div>`; return; }
+  if(!items.length){ $('#prog-wk').innerHTML=`<div class="empty">Aucune séance dans ce programme.</div>`; return; }
+  const byWeek={};
+  items.forEach(w=>{ const k=w.week_number||0; (byWeek[k]=byWeek[k]||[]).push(w); });
+  $('#prog-wk').innerHTML=Object.keys(byWeek).sort((a,b)=>a-b).map(wk=>`
+    <div class="wkgrp"><div class="wkgrp-h">${wk==='0'?'Sans semaine':'Semaine '+wk}</div>
+    ${byWeek[wk].map(w=>`<div class="card">
+      <div class="row1"><div style="flex:1">
+        <div class="title"><span class="dot" style="background:${w.is_published?'var(--ok)':'var(--muted)'}"></span>${esc(w.name_fr)}</div>
+        <div class="badges">
+          ${w.day_number?`<span class="badge b">Jour ${w.day_number}</span>`:''}
+          <span class="badge ${w.exercise_count?'':'warn'}">${w.exercise_count} exo</span>
+          ${w.is_free?'<span class="badge ok">Gratuite</span>':''}
+        </div>
+      </div></div>
+      <div class="actions">
+        <button class="btn sm brand" data-comp="${w.id}">Composer</button>
+        <button class="btn sm" data-edit="${w.id}">Éditer</button>
+        <button class="btn sm danger" data-del="${w.id}">Supprimer</button>
+      </div>
+    </div>`).join('')}</div>`).join('');
+  $('#prog-wk').querySelectorAll('[data-comp]').forEach(b=>b.onclick=()=>composeWorkout(b.dataset.comp));
+  $('#prog-wk').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editWorkout(b.dataset.edit,slug));
+  $('#prog-wk').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>delWorkout(b.dataset.del));
+}
 
 /* ===================================================================== */
 /* EXERCICES — liste                                                     */
@@ -412,14 +489,16 @@ async function delWorkout(id){
   try{
     const ok=await rpc('admin_delete_workout',{p_id:id});
     if(ok===false){toast('Impossible : séance liée à des données','err');return;}
-    toast('Supprimée','ok'); WORKOUTS=await rpc('admin_list_workouts'); paintWkList();
+    toast('Supprimée','ok'); WORKOUTS=await rpc('admin_list_workouts'); afterWkChange();
   }catch(e){ toast('Erreur : '+(e.message||e),'err'); }
 }
+function afterWkChange(){ if(TAB==='prog'&&PROG_CUR){renderProgDetail(PROG_CUR);} else {paintWkList();} }
 
 /* ----- Séance : éditeur méta ----- */
-async function editWorkout(id){
+async function editWorkout(id,presetProg){
   let d={};
   if(id){ try{ const r=await rpc('admin_get_workout',{p_id:id}); d=(r&&r[0])||{}; }catch(e){toast('Chargement KO','err');return;} }
+  if(!id && presetProg) d.program_slug=presetProg;
   const eq=Array.isArray(d.equipment_needed)?d.equipment_needed:[];
   openSheet(`
     <h2>${id?'Modifier la séance':'Nouvelle séance'}</h2>
@@ -449,6 +528,16 @@ async function editWorkout(id){
       <label>Équipement nécessaire</label>
       <div class="chips" id="w-eq">${Object.keys(EQP).map(k=>`<span class="chip ${eq.includes(k)?'on':''}" data-e="${k}">${EQP[k]}</span>`).join('')}</div>
     </div>
+    <div class="sect"><h3>Programme</h3>
+      <label>Slug programme <span style="color:var(--muted)">(ex. foundation-8w — vide = séance isolée)</span></label>
+      <input id="w-prog" value="${esc(d.program_slug)}" placeholder="foundation-8w" list="prog-slugs">
+      <datalist id="prog-slugs">${PROGRAMS.map(p=>`<option value="${esc(p.program_slug)}">${esc(p.source||'')}</option>`).join('')}</datalist>
+      <div class="grid2">
+        <div><label>Semaine</label><input id="w-week" type="number" inputmode="numeric" min="1" value="${esc(d.week_number)}"></div>
+        <div><label>Jour</label><input id="w-day" type="number" inputmode="numeric" min="1" value="${esc(d.day_number)}"></div>
+      </div>
+      <div class="ck"><input type="checkbox" id="w-free" ${d.is_free?'checked':''}><label style="margin:0">Séance gratuite (aperçu sans abonnement)</label></div>
+    </div>
     <div class="ck"><input type="checkbox" id="w-pub" ${d.is_published?'checked':''}><label style="margin:0">Publiée (visible dans l'app)</label></div>
     <div class="footbar">
       <button class="btn ghost" id="w-cancel">Annuler</button>
@@ -467,14 +556,18 @@ async function editWorkout(id){
       p_type:$('#w-type').value, p_difficulty:$('#w-dif').value,
       p_goal:$('#w-goal').value||null, p_focus_muscle:$('#w-focus').value||null,
       p_equipment:eqs, p_estimated_duration_min:intOrNull($('#w-dur').value),
-      p_cover_image_url:$('#w-cover').value.trim()||null, p_is_published:$('#w-pub').checked
+      p_cover_image_url:$('#w-cover').value.trim()||null, p_is_published:$('#w-pub').checked,
+      p_program_slug:$('#w-prog').value.trim()||null,
+      p_week_number:intOrNull($('#w-week').value), p_day_number:intOrNull($('#w-day').value),
+      p_is_free:$('#w-free').checked
     };
     $('#w-save').disabled=true;
     try{
       const newId=await rpc('admin_upsert_workout',args);
       toast('Séance enregistrée','ok');
       WORKOUTS=await rpc('admin_list_workouts');
-      if(!id){ closeSheet(); composeWorkout(newId); } else { closeSheet(); paintWkList(); }
+      if(!id){ closeSheet(); composeWorkout(newId); }
+      else { closeSheet(); if(TAB==='prog'&&PROG_CUR){renderProgDetail(PROG_CUR);} else {paintWkList();} }
     }catch(e){ $('#w-save').disabled=false; toast('Erreur : '+(e.message||e),'err'); }
   };
 }
@@ -504,7 +597,7 @@ async function composeWorkout(wid){
     </div>
   `);
   $('#c-pick').onchange=(e)=>{const id=e.target.value;if(!id)return;const ex=EXERCISES.find(x=>x.id===id);COMP.push({exercise_id:id,name:ex.name_fr,block:ex.category==='conditioning'?'conditioning':'strength',sets:ex.default_sets??'',reps:ex.default_reps??'',target_rpe:'',rest_sec:ex.default_rest_sec??'',tempo:'',superset_group:'',notes_fr:'',notes_en:'',notes_nl:''});e.target.value='';paintComp();};
-  $('#c-cancel').onclick=()=>{closeSheet();paintWkList();};
+  $('#c-cancel').onclick=()=>{closeSheet();afterWkChange();};
   $('#c-save').onclick=saveComp;
   paintComp();
 }
@@ -560,7 +653,7 @@ async function saveComp(){
     await rpc('admin_set_workout_exercises',{p_workout_id:COMP_WID,p_items:items});
     toast('Composition enregistrée','ok');
     WORKOUTS=await rpc('admin_list_workouts');
-    closeSheet(); paintWkList();
+    closeSheet(); afterWkChange();
   }catch(e){ $('#c-save').disabled=false; toast('Erreur : '+(e.message||e),'err'); }
 }
 

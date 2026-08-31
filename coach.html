@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, interactive-widget=resizes-content" />
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#050807" />
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#050807" />
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#070A08" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#070A08" />
 <title>Coach DM · Console Coach</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
@@ -14,23 +14,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#050807; --bg-2:#0A0F0C;
-    --surface:#0E1512; --surface-2:#17201C; --line:rgba(255,255,255,.10);
-    --text:#FFFFFF; --muted:#7FAE97;
-    --brand:#00FFA3; --brand-2:#00D98A; --brand-soft:rgba(0,255,160,.14);
-    --ok:#34D399; --warn:#FF5C5C; --amber:#D4AF37;
-    --gold-hi:#FBF3D0; --gold:#E9C767; --gold-mid:#D4A73C; --gold-deep:#9A6E1B;
-    --gold-soft:rgba(212,167,60,.14); --on-gold:#3a2b08;
+    --bg:#070A08; --bg-2:#0C110E;
+    --surface:#121814; --surface-2:#1A221D; --line:rgba(255,255,255,.10);
+    --text:#F2F0E9; --muted:#8FA398;
+    --brand:#00E896; --brand-2:#00B978; --brand-soft:rgba(0,232,150,.14);
+    --ok:#34D399; --warn:#FF5C5C; --amber:#D9B65C;
+    --gold-hi:#F3E3AE; --gold:#D9B65C; --gold-mid:#B8963F; --gold-deep:#8B6914;
+    --gold-soft:rgba(184,150,63,.14); --on-gold:#3a2b08;
     --shadow:0 16px 44px rgba(0,0,0,.5); --shadow-soft:0 8px 22px rgba(0,0,0,.4);
-    --glow:0 0 22px rgba(0,255,160,.45);
-    --radius:22px; --radius-sm:14px;
+    --glow:0 0 22px rgba(0,232,150,.45);
+    --radius:16px; --radius-sm:10px;
     --font-d:'Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;min-height:100%}
   body{font-family:'Outfit',-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
     background:
-      radial-gradient(120% 70% at 50% -10%, rgba(0,255,150,.16) 0%, transparent 60%),
+      radial-gradient(120% 70% at 50% -10%, rgba(0,232,150,.16) 0%, transparent 60%),
       linear-gradient(180deg,var(--bg-2),var(--bg) 30%);
     color:var(--text);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
   h1,h2,h3,.mark,.cd-name,.topbar h2{font-family:var(--font-d);letter-spacing:-.01em}
@@ -40,7 +40,7 @@
   .hidden{display:none!important}
   .screen{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:32px 22px;max-width:440px;margin:0 auto}
   .mark{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;margin:0 auto 14px;
-    background:linear-gradient(145deg,var(--brand),var(--brand-2));box-shadow:0 12px 30px rgba(0,255,160,.4);
+    background:linear-gradient(145deg,var(--brand),var(--brand-2));box-shadow:0 12px 30px rgba(0,232,150,.4);
     font-weight:800;font-size:26px;color:#04120a}
   .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px}
   /* Traductions repliees : presentes quand on en a besoin, invisibles sinon. */
@@ -59,7 +59,7 @@
   .field select:focus,.field textarea:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
   .field textarea{min-height:72px;resize:vertical;font-size:15px;line-height:1.5}
   .btn{width:100%;padding:14px;border-radius:var(--radius-sm);font-weight:800;font-size:15px;
-    background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#04120a;box-shadow:0 8px 22px rgba(0,255,160,.4)}
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#04120a;box-shadow:0 8px 22px rgba(0,232,150,.4)}
   .btn:active{transform:scale(.99)}
   .btn.subtle{background:var(--surface-2);color:var(--text);box-shadow:none;border:1px solid var(--line)}
   .btn.danger{background:transparent;color:var(--warn);box-shadow:none;border:1.5px solid var(--warn)}
@@ -74,7 +74,7 @@
   .topbar h2{margin:0;font-size:20px;font-weight:800}
   .tabs{display:flex;gap:8px;padding-bottom:12px}
   .tabs button{flex:1;padding:11px 8px;border-radius:999px;font-weight:700;font-size:14px;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);font-family:var(--font-d)}
-  .tabs button.on{color:#04120a;background:linear-gradient(135deg,var(--brand),var(--brand-2));border-color:transparent;box-shadow:0 6px 18px rgba(0,255,160,.3)}
+  .tabs button.on{color:#04120a;background:linear-gradient(135deg,var(--brand),var(--brand-2));border-color:transparent;box-shadow:0 6px 18px rgba(0,232,150,.3)}
   .tb-id{display:flex;align-items:center;gap:11px}
   .tb-id img{width:38px;height:38px;border-radius:11px;display:block}
   .tb-kick{font-size:10px;font-weight:800;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:1px;font-family:var(--font-d)}
@@ -93,7 +93,7 @@
   .pill.ok{background:rgba(16,185,129,.15);color:var(--ok)}
   .pill.no{background:rgba(239,68,68,.13);color:var(--warn)}
   .pill.role{background:var(--brand-soft);color:var(--brand)}
-  .pill.warnp{background:rgba(245,158,11,.16);color:#D4AF37}
+  .pill.warnp{background:rgba(245,158,11,.16);color:#D9B65C}
   .pill.vid{background:rgba(56,189,248,.16);color:#0ea5e9}
 
   .toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
@@ -189,6 +189,17 @@
 .cl-info b{display:block;font-size:14.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cl-info small{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
 </style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+/* === Coach DM - typographie unifiee : titres condenses comme sur coachdm.be === */
+:root{ --font-display:'Barlow Condensed','Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+h1, h2,
+.hh-hello, .hero-name, .sp-name, .wod-name, .wod-num,
+.kcal, .plan-price, .rest-num, .qz-res-n, .se-d-title{
+  font-family: var(--font-display);
+  letter-spacing: .012em;
+}
+</style>
 </head>
 <body>
 
@@ -216,7 +227,7 @@
       +'<div style="font-size:34px;margin-bottom:12px">\u26A0\uFE0F</div>'
       +'<div style="font-weight:800;font-size:18px;color:#fff;margin-bottom:9px">'+M[0]+'</div>'
       +'<div style="margin-bottom:22px">'+M[1]+'</div>'
-      +'<button type="button" onclick="location.reload()" style="background:#00FFA3;color:#04120c;border:0;border-radius:999px;padding:13px 28px;font-weight:800;font-size:15px;cursor:pointer">'+M[2]+'</button>'
+      +'<button type="button" onclick="location.reload()" style="background:#00E896;color:#04120c;border:0;border-radius:999px;padding:13px 28px;font-weight:800;font-size:15px;cursor:pointer">'+M[2]+'</button>'
       +'</div>';
   }, 15000);
   window.__cdmOK = function(){ if(window.__cdmWatch){ clearTimeout(window.__cdmWatch); window.__cdmWatch=null; } };
@@ -540,12 +551,12 @@
   /* Bandeau des places offertes : annonce l'offre gratuite sans parler d'argent,
      donc affichable aussi dans l'app iOS. */
   .freebar{display:flex;align-items:center;gap:10px;background:var(--brand-soft);
-    border:1px solid rgba(0,255,163,.25);border-radius:13px;padding:11px 13px;margin-bottom:12px}
+    border:1px solid rgba(0,232,150,.25);border-radius:13px;padding:11px 13px;margin-bottom:12px}
   .freebar .fb-t{flex:1;font-size:13px;color:var(--brand);font-weight:600}
   /* Pastille de conformite : vert a jour, orange decroche, rouge decroche depuis
      longtemps, gris invitation en attente. */
   .cdot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none;margin-right:7px;vertical-align:1px}
-  .cdot.g{background:var(--ok)} .cdot.o{background:#D4AF37}
+  .cdot.g{background:var(--ok)} .cdot.o{background:#D9B65C}
   .cdot.r{background:var(--warn)} .cdot.n{background:var(--muted);opacity:.55}
 
   /* Guide de démarrage. Un coach qui ouvre la console pour la première fois
@@ -609,7 +620,7 @@
   #pane-cours .btn.red, #cours-ov .btn.red{background:var(--warn)}
   #pane-cours .pill, #cours-ov .pill{display:inline-block;font-size:12px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap;text-transform:none;letter-spacing:0}
   #pane-cours .pill.ok, #cours-ov .pill.ok{background:rgba(16,185,129,.15);color:var(--ok)}
-  #pane-cours .pill.warn, #cours-ov .pill.warn{background:rgba(245,158,11,.16);color:#D4AF37}
+  #pane-cours .pill.warn, #cours-ov .pill.warn{background:rgba(245,158,11,.16);color:#D9B65C}
   #pane-cours .pill.full, #cours-ov .pill.full{background:rgba(239,68,68,.14);color:var(--warn)}
   #pane-cours .pill.cancel, #cours-ov .pill.cancel{background:var(--surface-2);color:var(--muted)}
   #pane-cours .pill.vio, #cours-ov .pill.vio{background:var(--brand-soft);color:var(--brand)}
@@ -639,7 +650,11 @@
 
 /* cdm-scroll-fix : Chromium bride le defilement quand le body est
    verrouille a 100% de hauteur. min-height + overflow-y explicite. */
-html,body{overflow-y:auto;overscroll-behavior-y:contain}
+/* overflow-y:auto sur <body> ferait de body le conteneur de defilement de
+   reference pour les descendants en position:sticky, et body ne defile pas :
+   la barre collante ne collerait jamais. On le garde sur <html> seul. */
+html{overflow-y:auto;overscroll-behavior-y:contain}
+body{overscroll-behavior-y:contain}
 </style>
 
 <script type="module">
@@ -842,6 +857,22 @@ const T = {
  b_video:{fr:'Vidéo',en:'Video',nl:'Video'},
  b_to_settle:{fr:'À régulariser',en:'To settle',nl:'Te regelen'},
  b_ok:{fr:'En ordre',en:'OK',nl:'In orde'},
+ d_clients:{fr:'Clients',en:'Clients',nl:'Klanten'},
+ d_checkins:{fr:'Check-ins',en:'Check-ins',nl:'Check-ins'},
+ d_messages:{fr:'Messages',en:'Messages',nl:'Berichten'},
+ d_programs:{fr:'Programmes',en:'Programs',nl:'Programma\u2019s'},
+ c_no_session:{fr:'Aucune séance',en:'No session yet',nl:'Nog geen sessie'},
+ c_uptodate:{fr:'À jour · {0}',en:'Up to date · {0}',nl:'Bijgewerkt · {0}'},
+ c_yesterday:{fr:'hier',en:'yesterday',nl:'gisteren'},
+ c_days:{fr:'{0} j',en:'{0} d',nl:'{0} d'},
+ c_slipping:{fr:'Décroche · {0} j sans séance',en:'Slipping · {0} d without a session',nl:'Zakt af · {0} d zonder sessie'},
+ c_nosess_days:{fr:'{0} j sans séance',en:'{0} d without a session',nl:'{0} d zonder sessie'},
+ c_class:{fr:'Cours',en:'Class',nl:'Les'},
+ b_sheet:{fr:'Fiche',en:'Profile',nl:'Fiche'},
+ b_messages:{fr:'Messages',en:'Messages',nl:'Berichten'},
+ b_archive:{fr:'Archiver',en:'Archive',nl:'Archiveren'},
+ p_invitation:{fr:'Invitation',en:'Invitation',nl:'Uitnodiging'},
+ p_paused:{fr:'En pause',en:'Paused',nl:'Gepauzeerd'},
  b_dup_7d:{fr:'⧉ Dupliquer en décalant de 7 jours',en:'⧉ Duplicate shifted by 7 days',nl:'⧉ Dupliceren met 7 dagen verschuiving'},
  b_schedule_wk:{fr:'＋ Programmer une séance',en:'＋ Schedule a session',nl:'＋ Sessie plannen'},
  b_autodate:{fr:'📅 Dater auto (1×/semaine depuis le début)',en:'📅 Auto-date (1×/week from the start)',nl:'📅 Auto-datum (1×/week vanaf het begin)'},
@@ -1103,7 +1134,8 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>switchTab(b.d
    CLIENTS — liste + fiche détaillée (RPCs partagées coach/admin)
 =================================================================== */
 let CLIST=[], CAP=null;
-const STATUS_PILL = { pending:'<span class="pill warnp">Invitation</span>', paused:'<span class="pill warnp">En pause</span>' };
+const STATUS_PILL_K = { pending:'p_invitation', paused:'p_paused' };
+const statusPill = (s)=> STATUS_PILL_K[s] ? `<span class="pill warnp">${tr(STATUS_PILL_K[s])}</span>` : '';
 
 let DASH=null;
 async function loadClientList(){
@@ -1132,10 +1164,10 @@ function renderDash(){
   if(!DASH){ box.innerHTML=''; return; }
   const cell=(v,l)=>`<div class="d${+v>0?' act':''}"><div class="dv">${+v||0}</div><div class="dl">${l}</div></div>`;
   box.innerHTML = `<div class="dash">
-    ${cell(DASH.active_clients,'Clients')}
-    ${cell(DASH.checkins_to_review,'Check-ins')}
-    ${cell(DASH.unread_messages,'Messages')}
-    ${cell(DASH.active_plans,'Programmes')}
+    ${cell(DASH.active_clients,tr('d_clients'))}
+    ${cell(DASH.checkins_to_review,tr('d_checkins'))}
+    ${cell(DASH.unread_messages,tr('d_messages'))}
+    ${cell(DASH.active_plans,tr('d_programs'))}
   </div>`;
 }
 const CAP_UNLIMITED = CAP => CAP && CAP.max >= 100000;
@@ -1189,11 +1221,11 @@ function complianceDot(c){
     const d = ref ? Math.floor((Date.now()-new Date(ref).getTime())/86400000) : 0;
     return {cls: d>14 ? 'r' : d>7 ? 'o' : 'n', label:invWaitLabel(c)};
   }
-  if(!c.last_session_at)        return {cls:'r', label:'Aucune séance'};
+  if(!c.last_session_at)        return {cls:'r', label:tr('c_no_session')};
   const days = Math.floor((Date.now()-new Date(c.last_session_at).getTime())/86400000);
-  if(days<=7)  return {cls:'g', label:`À jour · ${days<=1?'hier':days+' j'}`};
-  if(days<=14) return {cls:'o', label:`Décroche · ${days} j sans séance`};
-  return {cls:'r', label:`${days} j sans séance`};
+  if(days<=7)  return {cls:'g', label:trf('c_uptodate', days<=1?tr('c_yesterday'):trf('c_days',days))};
+  if(days<=14) return {cls:'o', label:trf('c_slipping', days)};
+  return {cls:'r', label:trf('c_nosess_days', days)};
 }
 function renderClientList(){
   /* Premier lancement : on montre le chemin complet plutôt qu'un écran vide.
@@ -1217,23 +1249,23 @@ function renderClientList(){
   }
   $('#cl-list').innerHTML = CLIST.map(c=>{
     const access = c.has_access ? '<span class="pill ok"><span data-i18n="b_ok">En ordre</span></span>' : '<span class="pill no"><span data-i18n="b_no_access">Sans accès</span></span>';
-    const st = STATUS_PILL[c.link_status]||'';
+    const st = statusPill(c.link_status);
     const dot = complianceDot(c);
     const bits=[];
     bits.push(dot.label);
     bits.push(trf('b_sessions_30d', c.sessions_30d||0));
     if(c.last_weight_kg!=null) bits.push(`${r1(c.last_weight_kg)} kg (${dFR(c.last_weight_date)})`);
-    if(c.next_class_at) bits.push(`Cours ${dhFR(c.next_class_at)}`);
+    if(c.next_class_at) bits.push(`${tr('c_class')} ${dhFR(c.next_class_at)}`);
     const th=THREADS[c.client_id];
     const unread = th && +th.unread>0 ? `<span class="pill msg">${th.unread} non lu${+th.unread>1?'s':''}</span>` : '';
     return `<div class="item" data-cid="${c.client_id}" data-name="${esc(c.full_name||c.email||'')}" style="cursor:pointer">
       <div class="nm"><span class="cdot ${dot.cls}" title="${esc(dot.label)}"></span>${esc(c.full_name||c.email||'—')} ${access} ${st} ${unread}</div>
       <div class="meta">${bits.map(esc).join(' · ')}</div>
       <div class="acts">
-        <button class="btn subtle sm" data-open="${c.client_id}">Fiche</button>
-        <button class="btn subtle sm" data-chat="${c.client_id}">Messages${isPaid()?'':' 🔒'}</button>
+        <button class="btn subtle sm" data-open="${c.client_id}">${tr('b_sheet')}</button>
+        <button class="btn subtle sm" data-chat="${c.client_id}">${tr('b_messages')}${isPaid()?'':' 🔒'}</button>
         ${c.link_status==='pending'?`<button class="btn subtle sm" data-resend="${c.client_id}">${tr('inv_resend')}</button>`:''}
-        ${ROLE==='coach'?`<button class="btn danger sm" data-arch="${c.client_id}">Archiver</button>`:''}
+        ${ROLE==='coach'?`<button class="btn danger sm" data-arch="${c.client_id}">${tr('b_archive')}</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -1371,7 +1403,7 @@ async function openClientDetail(cid){
   if(n7.length){
     const cible = nt ? +nt.daily_calories_kcal : 0;
     const moy = Math.round(n7.reduce((s,x)=>s+(+x.total_kcal||0),0)/n7.length);
-    h+=`<div class="cd-sec" style="--a:var(--carb,#E9C767)"><div class="mini">Nutrition — 7 derniers jours</div>
+    h+=`<div class="cd-sec" style="--a:var(--carb,#D9B65C)"><div class="mini">Nutrition — 7 derniers jours</div>
       ${sparkBars(n7.map(x=>+x.total_kcal||0), cible)}
       ${cible?`<div class="cd-row"><span class="l">Moyenne</span><span class="r"><b>${moy} kcal</b> · cible ${r0(cible)} ${deltaTxt(moy-cible,' kcal')}</span></div>`:''}
       ${n7.map(x=>{
@@ -2024,7 +2056,7 @@ function openClientForm(){
        <label><span data-i18n="g_client_lang">Langue du client</span></label>
        <select id="c_lang"><option value="fr" selected>Français</option><option value="en">English</option><option value="nl">Nederlands</option></select>
        <p class="muted"><span data-i18n="g_invite_qr">Le client reçoit une invitation par email + un QR à scanner pour créer son compte lui-même.</span></p>
-       <div id="c_qr_wrap" style="display:none;text-align:center;margin-top:16px;padding:16px;background:#0E1512;border:1px solid var(--line);border-radius:14px">
+       <div id="c_qr_wrap" style="display:none;text-align:center;margin-top:16px;padding:16px;background:#121814;border:1px solid var(--line);border-radius:14px">
          <div id="c_qr" style="display:inline-block;background:#fff;padding:12px;border-radius:12px"></div>
          <p class="muted" style="margin-top:10px"><span data-i18n="g_qr">Fais scanner ce QR au client en présentiel.</span></p>
        </div>`;
@@ -2207,7 +2239,7 @@ $('#fdn-save').onclick = async ()=>{
 
 /* Palette d'accents dérivée du nom (type/catégorie) : pas de table à
    entretenir manuellement, une couleur stable par valeur. */
-const ACCENTS=['#00FFA3','#E9C767','#7F77DD','#0ea5e9','#FF8A66','#5DCAA5','#D46FB0','#F2B84B'];
+const ACCENTS=['#00E896','#D9B65C','#7F77DD','#0ea5e9','#FF8A66','#5DCAA5','#D46FB0','#F2B84B'];
 function accentFor(key){ let h=0; const s=String(key||''); for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return ACCENTS[h%ACCENTS.length]; }
 
 /* ---- EXERCICES : bibliothèque commune (le coach peut y contribuer) ---- */
@@ -2833,7 +2865,7 @@ $('#comp-save').onclick = async ()=>{
       const full=it.spots_left<=0, cancelled=it.status==='cancelled';
       const pc=cancelled?'cancel':full?'full':'ok';
       const ptxt=cancelled?tr('b_cancelled2'):`${it.booked_count}/${it.capacity}`;
-      const col=it.color||'#00FFA3';
+      const col=it.color||'#00E896';
       h+=`<div class="card inst row" data-id="${it.id}" style="gap:12px">
         <div class="accent" style="background:${esc(col)}"></div>
         <div style="flex:1">
@@ -2937,7 +2969,7 @@ $('#comp-save').onclick = async ()=>{
     if(!TEMPLATES.length)h+='<div class="center"><span data-i18n="b_no_tpl_class">Aucun cours modèle.</span></div>';
     TEMPLATES.forEach(t=>{
       h+=`<div class="card row" style="gap:12px">
-        <div class="accent" style="background:${esc(t.color||'#00FFA3')}"></div>
+        <div class="accent" style="background:${esc(t.color||'#00E896')}"></div>
         <div style="flex:1">
           <div class="title">${esc(t.name_fr)} ${t.kind==='personal_training'?'<span class="pill vio">PT</span>':''} ${t.is_active?'':'<span class="pill cancel">inactif</span>'}</div>
           <div class="sub">Cap. ${t.default_capacity} · ${t.default_duration_min} min${t.location?' · '+esc(t.location):''}</div>
@@ -2967,7 +2999,7 @@ $('#comp-save').onclick = async ()=>{
      <div class="grid2"><div><label><span data-i18n="g_capacity_def">Capacité défaut</span></label><input id="t_cap" type="number" min="1" value="${e.default_capacity||12}"></div>
      <div><label><span data-i18n="g_duration_min">Durée (min)</span></label><input id="t_dur" type="number" min="5" value="${e.default_duration_min||60}"></div></div>
      <div class="grid2"><div><label>Lieu</label><input id="t_loc" value="${esc(e.location)}"></div>
-     <div><label>Couleur</label><input id="t_col" type="text" value="${esc(e.color||'#00FFA3')}"></div></div>
+     <div><label>Couleur</label><input id="t_col" type="text" value="${esc(e.color||'#00E896')}"></div></div>
      <label>Actif</label><select id="t_act"><option value="true" ${e.is_active!==false?'selected':''}>Oui</option><option value="false" ${e.is_active===false?'selected':''}>Non</option></select>
      <div class="row" style="margin-top:18px;gap:8px">
        ${t.id?'<button class="btn red sec sm" id="t_del"><span data-i18n="b_delete">Supprimer</span></button>':''}
@@ -2989,7 +3021,7 @@ $('#comp-save').onclick = async ()=>{
         description_fr:$('#d_fr').value.trim()||null,description_en:$('#d_en').value.trim()||null,description_nl:$('#d_nl').value.trim()||null,
         cover_image_url:$('#t_img').value.trim()||null,default_capacity:+$('#t_cap').value||12,
         default_duration_min:+$('#t_dur').value||60,location:$('#t_loc').value.trim()||null,
-        color:$('#t_col').value.trim()||'#00FFA3',is_active:$('#t_act').value==='true'};
+        color:$('#t_col').value.trim()||'#00E896',is_active:$('#t_act').value==='true'};
       const q=t.id?sb.from('class_templates').update(p).eq('id',t.id):sb.from('class_templates').insert(p);
       const {error}=await q;
       if(error){toast('Échec enregistrement');return;}
@@ -3019,7 +3051,7 @@ $('#comp-save').onclick = async ()=>{
      <div class="grid2"><div><label><span data-i18n="g_duration_min">Durée (min)</span></label><input id="s_dur" type="number" min="5" value="${e.default_duration_min||60}"></div>
      <div><label><span data-i18n="g_capacity">Capacité</span></label><input id="s_cap" type="number" min="1" value="${e.default_capacity||12}"></div></div>
      <div class="grid2"><div><label>Lieu</label><input id="s_loc" value="${esc(e.location)}"></div>
-     <div><label>Couleur</label><input id="s_col" value="${esc(e.color||'#00FFA3')}"></div></div>
+     <div><label>Couleur</label><input id="s_col" value="${esc(e.color||'#00E896')}"></div></div>
      <label><span data-i18n="g_repeat">Répéter chaque (laisse vide = séance unique)</span></label>
      <div class="chips" id="s_days">${days.map(d=>`<button data-d="${d[0]}">${d[1]}</button>`).join('')}</div>
      <label>Pendant combien de semaines</label><input id="s_weeks" type="number" min="1" max="26" value="4">
@@ -3064,7 +3096,7 @@ $('#comp-save').onclick = async ()=>{
       const base={template_id:t.id||null,coach_id:ME,kind:$('#s_kind').value,name_fr:fr,
         name_en:$('#s_en').value.trim()||null,name_nl:$('#s_nl').value.trim()||null,
         description_fr:e.description_fr||null,description_en:e.description_en||null,description_nl:e.description_nl||null,
-        cover_image_url:e.cover_image_url||null,color:$('#s_col').value.trim()||'#00FFA3',
+        cover_image_url:e.cover_image_url||null,color:$('#s_col').value.trim()||'#00E896',
         location:$('#s_loc').value.trim()||null,capacity:+$('#s_cap').value||12,
         visibility:$('#s_vis').value||'private',
         cancel_cutoff_min_before:+$('#s_cut').value||0,checkin_opens_min_before:+$('#s_chk').value||0};
@@ -3105,6 +3137,6 @@ document.querySelectorAll('#c-lang button').forEach(b=>{
 
 boot();
 </script>
-<a id="cdm-backapp" href="app.html" style="position:fixed;left:14px;bottom:14px;z-index:9999;background:#0c1210;color:#00FFA3;border:1px solid #1e2a25;border-radius:999px;padding:10px 16px;font:600 14px/1 -apple-system,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.4)">&#8249; App</a>
+<a id="cdm-backapp" href="app.html" style="position:fixed;left:14px;bottom:14px;z-index:9999;background:#0c1210;color:#00E896;border:1px solid #1e2a25;border-radius:999px;padding:10px 16px;font:600 14px/1 -apple-system,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.4)">&#8249; App</a>
 </body>
 </html>

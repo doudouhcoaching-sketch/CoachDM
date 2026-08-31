@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
 <style>
-:root{--bg:#0E0E12;--surf:#17171F;--surf2:#1F1F2A;--line:#2A2A38;--txt:#F4F4F7;--mut:#9A9AA8;--vio:#6D5EF6;--grn:#10B981;--red:#EF4444;--blu:#38BDF8;--amb:#F59E0B}
+:root{--bg:#070A08;--surf:#121814;--surf2:#1A221D;--line:#222B26;--txt:#F2F0E9;--mut:#8FA398;--vio:#D9B65C;--grn:#00E896;--red:#EF4444;--blu:#38BDF8;--amb:#F59E0B}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,system-ui,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
 a{color:var(--vio)}
@@ -36,7 +36,7 @@ header .sp{flex:1}
 .pill.warn{background:rgba(245,158,11,.15);color:var(--amb)}
 .pill.full{background:rgba(239,68,68,.15);color:var(--red)}
 .pill.cancel{background:rgba(154,154,168,.15);color:var(--mut)}
-.pill.vio{background:rgba(109,94,246,.18);color:#b6acff}
+.pill.vio{background:rgba(109,94,246,.18);color:#F3E3AE}
 label{display:block;font-size:12px;font-weight:700;color:var(--mut);margin:12px 0 5px}
 input,select,textarea{width:100%;background:var(--surf2);border:1px solid var(--line);border-radius:11px;color:var(--txt);padding:11px;font-size:15px;font-family:inherit}
 textarea{min-height:64px;resize:vertical}
@@ -62,6 +62,25 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
 .seg{display:flex;gap:6px;margin-bottom:6px}
 .seg button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:var(--surf2);color:var(--mut);font-weight:700;font-size:13px}
 .seg button.on{background:var(--vio);color:#fff;border-color:var(--vio)}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Outfit:wght@400;500;600;700&display=swap">
+<style>
+/* === Coach DM - systeme unifie : l'or porte l'identite, le vert porte l'action === */
+:root{
+  --mint:#00E896; --mint-2:#00B978; --on-mint:#04150E;
+  --font-display:'Barlow Condensed','Outfit',sans-serif;
+  --font-ui:'Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+body{ font-family:var(--font-ui); }
+h1, h2, h3{ font-family:var(--font-display); letter-spacing:.012em; }
+.cta, .btn{
+  background:var(--mint)!important; color:var(--on-mint)!important;
+  border-color:var(--mint)!important; border-radius:999px!important;
+}
+.cta:hover, .btn:hover{ background:var(--mint-2)!important; }
+.toggle .on, .lang-seg .on, .tabs .on, button.on, a.on{
+  background:var(--mint)!important; color:var(--on-mint)!important; border-color:var(--mint)!important;
+}
 </style>
 </head>
 <body>
@@ -154,7 +173,7 @@ function renderPlanning(){
     const full=it.spots_left<=0, cancelled=it.status==='cancelled';
     const pc=cancelled?'cancel':full?'full':'ok';
     const ptxt=cancelled?'Annulé':`${it.booked_count}/${it.capacity}`;
-    const col=it.color||'#6D5EF6';
+    const col=it.color||'#D9B65C';
     h+=`<div class="card inst row" data-id="${it.id}" style="gap:12px">
       <div class="accent" style="background:${esc(col)}"></div>
       <div style="flex:1">
@@ -258,7 +277,7 @@ function renderTemplates(){
   if(!TEMPLATES.length)h+='<div class="center">Aucun cours modèle.</div>';
   TEMPLATES.forEach(t=>{
     h+=`<div class="card row" style="gap:12px">
-      <div class="accent" style="background:${esc(t.color||'#6D5EF6')}"></div>
+      <div class="accent" style="background:${esc(t.color||'#D9B65C')}"></div>
       <div style="flex:1">
         <div class="title">${esc(t.name_fr)} ${t.kind==='personal_training'?'<span class="pill vio">PT</span>':''} ${t.is_active?'':'<span class="pill cancel">inactif</span>'}</div>
         <div class="sub">Cap. ${t.default_capacity} · ${t.default_duration_min} min${t.location?' · '+esc(t.location):''}</div>
@@ -288,7 +307,7 @@ function openTemplate(t={}){
    <div class="grid2"><div><label>Capacité défaut</label><input id="t_cap" type="number" min="1" value="${e.default_capacity||12}"></div>
    <div><label>Durée (min)</label><input id="t_dur" type="number" min="5" value="${e.default_duration_min||60}"></div></div>
    <div class="grid2"><div><label>Lieu</label><input id="t_loc" value="${esc(e.location)}"></div>
-   <div><label>Couleur</label><input id="t_col" type="text" value="${esc(e.color||'#6D5EF6')}"></div></div>
+   <div><label>Couleur</label><input id="t_col" type="text" value="${esc(e.color||'#D9B65C')}"></div></div>
    <label>Actif</label><select id="t_act"><option value="true" ${e.is_active!==false?'selected':''}>Oui</option><option value="false" ${e.is_active===false?'selected':''}>Non</option></select>
    <div class="row" style="margin-top:18px;gap:8px">
      ${t.id?'<button class="btn red sec sm" id="t_del">Supprimer</button>':''}
@@ -310,7 +329,7 @@ function openTemplate(t={}){
       description_fr:$('#d_fr').value.trim()||null,description_en:$('#d_en').value.trim()||null,description_nl:$('#d_nl').value.trim()||null,
       cover_image_url:$('#t_img').value.trim()||null,default_capacity:+$('#t_cap').value||12,
       default_duration_min:+$('#t_dur').value||60,location:$('#t_loc').value.trim()||null,
-      color:$('#t_col').value.trim()||'#6D5EF6',is_active:$('#t_act').value==='true'};
+      color:$('#t_col').value.trim()||'#D9B65C',is_active:$('#t_act').value==='true'};
     const q=t.id?sb.from('class_templates').update(p).eq('id',t.id):sb.from('class_templates').insert(p);
     const {error}=await q;
     if(error){toast('Échec enregistrement');return;}
@@ -334,7 +353,7 @@ function openSchedule(t={}){
    <div class="grid2"><div><label>Durée (min)</label><input id="s_dur" type="number" min="5" value="${e.default_duration_min||60}"></div>
    <div><label>Capacité</label><input id="s_cap" type="number" min="1" value="${e.default_capacity||12}"></div></div>
    <div class="grid2"><div><label>Lieu</label><input id="s_loc" value="${esc(e.location)}"></div>
-   <div><label>Couleur</label><input id="s_col" value="${esc(e.color||'#6D5EF6')}"></div></div>
+   <div><label>Couleur</label><input id="s_col" value="${esc(e.color||'#D9B65C')}"></div></div>
    <label>Répéter chaque (laisse vide = séance unique)</label>
    <div class="chips" id="s_days">${days.map(d=>`<button data-d="${d[0]}">${d[1]}</button>`).join('')}</div>
    <label>Pendant combien de semaines</label><input id="s_weeks" type="number" min="1" max="26" value="4">
@@ -365,7 +384,7 @@ function openSchedule(t={}){
     const base={template_id:t.id||null,coach_id:ME,kind:$('#s_kind').value,name_fr:fr,
       name_en:$('#s_en').value.trim()||null,name_nl:$('#s_nl').value.trim()||null,
       description_fr:e.description_fr||null,description_en:e.description_en||null,description_nl:e.description_nl||null,
-      cover_image_url:e.cover_image_url||null,color:$('#s_col').value.trim()||'#6D5EF6',
+      cover_image_url:e.cover_image_url||null,color:$('#s_col').value.trim()||'#D9B65C',
       location:$('#s_loc').value.trim()||null,capacity:+$('#s_cap').value||12,
       cancel_cutoff_min_before:+$('#s_cut').value||0,checkin_opens_min_before:+$('#s_chk').value||0};
     const payload=dates.map(d=>({...base,starts_at:d.toISOString(),ends_at:new Date(d.getTime()+dur*60000).toISOString()}));

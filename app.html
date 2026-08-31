@@ -7,9 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Coach DM" />
 <meta name="color-scheme" id="meta-cs" content="dark" />
-<meta name="theme-color" id="meta-tc" content="#050807" />
+<meta name="theme-color" id="meta-tc" content="#070A08" />
 <script>
-(function(){try{var m=localStorage.getItem('cdm_theme')||'auto';var d=m==='dark'||(m!=='light'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=d?'dark':'light';document.documentElement.setAttribute('data-theme',r);var tc=document.getElementById('meta-tc');if(tc)tc.setAttribute('content',d?'#050807':'#F4F7F5');var cs=document.getElementById('meta-cs');if(cs)cs.setAttribute('content',r);}catch(e){}})();
+(function(){try{var m=localStorage.getItem('cdm_theme')||'auto';var d=m==='dark'||(m!=='light'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);var r=d?'dark':'light';document.documentElement.setAttribute('data-theme',r);var tc=document.getElementById('meta-tc');if(tc)tc.setAttribute('content',d?'#070A08':'#F4F7F5');var cs=document.getElementById('meta-cs');if(cs)cs.setAttribute('content',r);}catch(e){}})();
 </script>
 <title>Coach DM</title>
 <link rel="manifest" href="/manifest.json">
@@ -22,21 +22,21 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"></noscript>
 <style>
   :root{
-    --bg:#050807; --bg-2:#0A0F0C;
-    --surface:#0E1512; --surface-2:#17201C; --line:rgba(255,255,255,.10);
-    --text:#FFFFFF; --muted:#7FAE97;
-    --brand:#00FFA3; --brand-2:#00D98A; --brand-soft:rgba(0,255,160,.14);
-    --brand-ink:#00FFA3;   /* en sombre le neon atteint deja 15:1 : rien a corriger */
+    --bg:#070A08; --bg-2:#0C110E;
+    --surface:#121814; --surface-2:#1A221D; --line:rgba(255,255,255,.10);
+    --text:#F2F0E9; --muted:#8FA398;
+    --brand:#00E896; --brand-2:#00B978; --brand-soft:rgba(0,232,150,.14);
+    --brand-ink:#00E896;   /* en sombre le neon atteint deja 15:1 : rien a corriger */
     /* Or bijou métallique — identité/prestige */
-    --gold-hi:#FBF3D0; --gold:#E9C767; --gold-mid:#D4A73C; --gold-deep:#9A6E1B; --bronze:#6E4E12;
-    --gold-soft:rgba(212,167,60,.14); --on-gold:#3a2b08; --gold-ink:var(--gold);
-    --gold-grad:linear-gradient(176deg,var(--gold-hi) 4%,var(--gold) 30%,#B98C2A 52%,var(--gold-deep) 68%,var(--gold-hi) 96%);
+    --gold-hi:#F3E3AE; --gold:#D9B65C; --gold-mid:#B8963F; --gold-deep:#8B6914; --bronze:#6E4E12;
+    --gold-soft:rgba(184,150,63,.14); --on-gold:#3a2b08; --gold-ink:var(--gold);
+    --gold-grad:linear-gradient(176deg,var(--gold-hi) 4%,var(--gold) 30%,#B8963F 52%,var(--gold-deep) 68%,var(--gold-hi) 96%);
     --prot:#FF5C5C; --carb:#46C8FF; --fat:#B89BFF; --fiber:#34D399;
     --ok:#34D399; --warn:#FF5C5C;
     --shadow:0 16px 44px rgba(0,0,0,.5);
     --shadow-soft:0 8px 22px rgba(0,0,0,.4);
-    --glow:0 0 22px rgba(0,255,160,.45);
-    --radius:22px; --radius-sm:14px;
+    --glow:0 0 22px rgba(0,232,150,.45);
+    --radius:16px; --radius-sm:10px;
     --font-d:'Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -44,7 +44,7 @@
   body{
     font-family:'Outfit',-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,Helvetica,Arial,sans-serif;
     background:
-      radial-gradient(120% 70% at 50% -10%, rgba(0,255,150,.16) 0%, transparent 60%),
+      radial-gradient(120% 70% at 50% -10%, rgba(0,232,150,.16) 0%, transparent 60%),
       linear-gradient(180deg,var(--bg-2),var(--bg) 30%);
     color:var(--text);
     -webkit-font-smoothing:antialiased;
@@ -57,7 +57,7 @@
   .mark{
     width:74px;height:74px;border-radius:20px;display:grid;place-items:center;
     background:radial-gradient(circle at 38% 32%,var(--gold-hi),var(--gold) 34%,var(--gold-deep) 74%,var(--bronze));
-    box-shadow:0 0 0 2px rgba(251,243,208,.35),0 12px 30px rgba(212,167,60,.4),inset 0 -3px 8px rgba(0,0,0,.35);
+    box-shadow:0 0 0 2px rgba(243,227,174,.35),0 12px 30px rgba(184,150,63,.4),inset 0 -3px 8px rgba(0,0,0,.35);
     font-weight:800;font-size:30px;letter-spacing:-.01em;color:var(--on-gold);
   }
   .coin-stage{display:flex;flex-direction:column;align-items:center;perspective:760px;margin-bottom:8px}
@@ -72,9 +72,9 @@
     object-fit:cover;border-radius:50%;display:block;
     filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
   .coin.noimg::after{content:"";position:absolute;inset:7px;border-radius:50%;
-    background:#0A0A0A url('/logo-dm.png') center/cover no-repeat}
+    background:#070A08 url('/logo-dm.png') center/cover no-repeat}
   .coin .rim{position:absolute;inset:0;border-radius:50%;pointer-events:none;
-    box-shadow:inset 0 0 0 3px rgba(212,175,55,.5), inset 0 0 20px rgba(0,0,0,.65),
+    box-shadow:inset 0 0 0 3px rgba(217,182,92,.5), inset 0 0 20px rgba(0,0,0,.65),
       inset 0 0 0 6px rgba(0,0,0,.4)}
   .coin .shine{position:absolute;inset:0;border-radius:50%;pointer-events:none;
     background:radial-gradient(130px 130px at var(--sx,42%) var(--sy,32%),
@@ -101,18 +101,18 @@
   .field input:focus,.field select:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
   .btn{width:100%;padding:15px;border-radius:var(--radius-sm);font-weight:800;font-size:15px;
     background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#04120a;
-    box-shadow:0 8px 22px rgba(0,255,160,.4);transition:transform .1s,filter .15s}
+    box-shadow:0 8px 22px rgba(0,232,150,.4);transition:transform .1s,filter .15s}
   .btn:active{transform:scale(.985);filter:brightness(.97)}
   .btn.ghost{background:transparent;color:var(--brand);box-shadow:none;
     border:1.5px solid var(--line);margin-top:10px}
   .btn.subtle{background:var(--surface-2);color:var(--text);box-shadow:none;border:1px solid var(--line)}
   .ai-photo{position:relative;overflow:hidden;width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-sm);cursor:pointer;text-align:left;
-    background:linear-gradient(180deg,#0d100e,#0a0d0b) padding-box,linear-gradient(135deg,rgba(233,199,103,.85),rgba(154,110,27,.5) 45%,rgba(233,199,103,.85)) border-box;
+    background:linear-gradient(180deg,#0d100e,#0a0d0b) padding-box,linear-gradient(135deg,rgba(217,182,92,.85),rgba(139,105,20,.5) 45%,rgba(217,182,92,.85)) border-box;
     border:1px solid transparent;color:var(--text);font-weight:800;font-size:15px;letter-spacing:-.02em;
-    box-shadow:0 6px 22px rgba(0,0,0,.35),0 0 16px rgba(233,199,103,.10),inset 0 1px 0 rgba(255,255,255,.05);transition:transform .1s,filter .15s}
+    box-shadow:0 6px 22px rgba(0,0,0,.35),0 0 16px rgba(217,182,92,.10),inset 0 1px 0 rgba(255,255,255,.05);transition:transform .1s,filter .15s}
   .ai-photo:active{transform:scale(.985);filter:brightness(1.05)}
-  .ai-photo .ap-ic{flex:0 0 42px;width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#E9C767;
-    background:linear-gradient(135deg,rgba(233,199,103,.16),rgba(154,110,27,.08));border:1px solid rgba(233,199,103,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+  .ai-photo .ap-ic{flex:0 0 42px;width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#D9B65C;
+    background:linear-gradient(135deg,rgba(217,182,92,.16),rgba(139,105,20,.08));border:1px solid rgba(217,182,92,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
   .ai-photo .ap-ic .ic{width:20px;height:20px}
   .ai-photo .ap-tx{flex:1;min-width:0;line-height:1.25;white-space:normal}
   /* Le badge disait « PRO ». Or « Pro » designe ailleurs les analyses reservees
@@ -120,9 +120,9 @@
      elle, s'ouvre avec l'abonnement membre. Deux sens pour un meme mot, dont un
      inaccessible : on aligne tout sur « Premium », le seul palier achetable. */
   .ai-photo .ap-pro{flex:0 0 auto;padding:4px 9px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.08em;color:#1a1405;text-transform:uppercase;
-    background:linear-gradient(135deg,#E9C767,#c49a3f 55%,#9A6E1B);box-shadow:0 2px 8px rgba(233,199,103,.35)}
+    background:linear-gradient(135deg,#D9B65C,#c49a3f 55%,#8B6914);box-shadow:0 2px 8px rgba(217,182,92,.35)}
   .ai-photo::after{content:'';position:absolute;top:0;left:-60%;width:45%;height:100%;pointer-events:none;
-    background:linear-gradient(105deg,transparent,rgba(233,199,103,.10) 45%,rgba(255,255,255,.14) 50%,rgba(233,199,103,.10) 55%,transparent);
+    background:linear-gradient(105deg,transparent,rgba(217,182,92,.10) 45%,rgba(255,255,255,.14) 50%,rgba(217,182,92,.10) 55%,transparent);
     animation:apShine 4.5s ease-in-out infinite}
   @keyframes apShine{0%,55%{left:-60%}85%,100%{left:130%}}
   @media (prefers-reduced-motion:reduce){.ai-photo::after{animation:none}}
@@ -137,7 +137,7 @@
     background:color-mix(in srgb,var(--bg) 78%,transparent);
     backdrop-filter:saturate(160%) blur(16px);-webkit-backdrop-filter:saturate(160%) blur(16px);
     padding:calc(14px + env(safe-area-inset-top)) 20px 12px;border-bottom:1px solid var(--line)}
-  .topbar h2{margin:0;font-size:21px;font-weight:800;letter-spacing:.3px;text-shadow:0 0 12px rgba(0,255,160,.22)}
+  .topbar h2{margin:0;font-size:21px;font-weight:800;letter-spacing:.3px;text-shadow:0 0 12px rgba(0,232,150,.22)}
   .topbar .sub{font-size:12px;color:var(--muted);margin-top:2px}
   .page{padding:18px 18px 8px;max-width:560px;margin:0 auto}
   .tabpane{display:none;animation:fade .38s cubic-bezier(.22,1,.36,1)}
@@ -150,8 +150,8 @@
   .tabpane.active>.block:nth-of-type(5){animation-delay:.2s}
   @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:reduce){.tabpane,.tabpane.active>.block,.tabpane.active .wod{animation:none}}
-  .block{background:var(--surface);border:1px solid rgba(0,255,160,.16);border-radius:var(--radius);
-    box-shadow:0 8px 22px rgba(0,0,0,.4), inset 0 0 0 1px rgba(0,255,160,.03);padding:18px;margin-bottom:16px}
+  .block{background:var(--surface);border:1px solid rgba(0,232,150,.16);border-radius:var(--radius);
+    box-shadow:0 8px 22px rgba(0,0,0,.4), inset 0 0 0 1px rgba(0,232,150,.03);padding:18px;margin-bottom:16px}
   .block h3{margin:0 0 14px;font-size:15px;font-weight:700}
   .empty{text-align:center;color:var(--muted);font-size:14px;line-height:1.55;padding:8px 6px}
   .empty b{color:var(--text)}
@@ -159,7 +159,7 @@
   .ring{position:relative;width:208px;height:208px}
   .ring svg{transform:rotate(-90deg);display:block}
   .ring .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-  .ring .kcal{font-size:46px;font-weight:800;line-height:1;letter-spacing:-1px;font-variant-numeric:tabular-nums;text-shadow:0 0 16px rgba(0,255,160,.35)}
+  .ring .kcal{font-size:46px;font-weight:800;line-height:1;letter-spacing:-1px;font-variant-numeric:tabular-nums;text-shadow:0 0 16px rgba(0,232,150,.35)}
   .ring .kcal small{font-size:18px;color:var(--muted);font-weight:600}
   .ring .lbl{font-size:12px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-top:7px}
   .ring .left{font-size:13px;color:var(--brand);font-weight:700;margin-top:8px}
@@ -188,7 +188,7 @@
     background:var(--brand-soft);color:var(--brand);font-size:20px;font-weight:700}
   .pchips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px}
   .pchip{font-size:12px;font-weight:600;padding:5px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:transparent;cursor:pointer;transition:.15s}
-  .pchip.on{border-color:var(--brand);color:var(--brand);background:rgba(0,255,163,.08)}
+  .pchip.on{border-color:var(--brand);color:var(--brand);background:rgba(0,232,150,.08)}
   .pverif{font-size:10px;font-weight:700;color:var(--brand);border:1px solid var(--brand);border-radius:999px;padding:1px 6px;margin-left:6px;vertical-align:middle}
   .logitem{display:flex;justify-content:space-between;align-items:center;padding:12px 4px;border-bottom:1px solid var(--line)}
   .logitem:last-child{border-bottom:none}
@@ -208,7 +208,7 @@
   .go-card.blocked{border-left-color:var(--prot)}
   .go-c-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
   .go-c-title{font-weight:700;font-size:15px}
-  .go-badge{background:rgba(0,255,163,.16);color:var(--go);font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;white-space:nowrap}
+  .go-badge{background:rgba(0,232,150,.16);color:var(--go);font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;white-space:nowrap}
   .go-badge.warn{background:rgba(255,92,92,.16);color:var(--prot)}
   .go-prog{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin:10px 0 4px}
   .go-bar{height:7px;background:var(--line);border-radius:4px;overflow:hidden}
@@ -241,14 +241,14 @@
   .cyc-day{display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 14px;width:100%;margin-bottom:7px;text-align:left;color:var(--text)}
   .cyc-day span{font-weight:700;font-size:14px}
   .cyc-day small{color:var(--muted);font-size:12px}
-  :root{--go:#00FFA3;}
+  :root{--go:#00E896;}
     .overlay{position:fixed;inset:0;z-index:60;background:rgba(8,8,20,.5);
     backdrop-filter:blur(3px);display:none;align-items:flex-end;justify-content:center}
   .overlay.show{display:flex}
   .se-card.locked{opacity:.6}
   .an-h{display:flex;align-items:center;gap:8px;margin:4px 0 2px}
   .an-h h3{font-size:16px;font-weight:800;letter-spacing:-.02em;margin:0}
-  .an-live{font-size:9.5px;font-weight:800;letter-spacing:.06em;color:var(--bg,#0A0A0A);background:#00FFA3;border-radius:6px;padding:2px 6px}
+  .an-live{font-size:9.5px;font-weight:800;letter-spacing:.06em;color:var(--bg,#070A08);background:#00E896;border-radius:6px;padding:2px 6px}
   .an-sub{font-size:12px;color:var(--muted);margin:0 0 10px;line-height:1.45}
   /* Cartes d'analyse : elles portent maintenant 4 niveaux d'information, la
      mise en page passe donc en colonne. Le degrade et le liftage au contact
@@ -256,7 +256,7 @@
   .an-card{display:block;border:1px solid var(--line);border-radius:18px;padding:14px 15px 12px;margin-bottom:12px;cursor:pointer;
     background:linear-gradient(158deg,var(--surface) 0%,color-mix(in srgb,var(--surface) 82%,var(--brand) 18%) 190%);
     box-shadow:0 6px 20px rgba(0,0,0,.16);transition:transform .14s ease,border-color .14s ease}
-  .an-card:active{transform:scale(.985);border-color:rgba(0,255,163,.4)}
+  .an-card:active{transform:scale(.985);border-color:rgba(0,232,150,.4)}
   :root[data-theme="light"] .an-card{box-shadow:0 5px 16px rgba(18,44,32,.07)}
   .an-top{display:flex;align-items:flex-start;gap:12px}
   .an-hd{flex:1;min-width:0}
@@ -270,14 +270,14 @@
   .an-go{margin-top:11px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--brand-ink)}
   .an-go span{opacity:.6}
   .an-card:active{transform:scale(.985)}
-  .an-ic{flex:0 0 auto;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:#00FFA3;background:rgba(0,255,163,.09);border:1px solid rgba(0,255,163,.25)}
+  .an-ic{flex:0 0 auto;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;color:#00E896;background:rgba(0,232,150,.09);border:1px solid rgba(0,232,150,.25)}
   .an-body{flex:1;min-width:0}
   .an-t{font-weight:800;font-size:14.5px;letter-spacing:-.02em}
   .an-d{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.35}
   .an-end-unused{color:var(--muted);display:grid;place-items:center;font-size:20px}
-  .an-card.locked .an-ic{color:#D4AF37;background:rgba(212,175,55,.09);border-color:rgba(212,175,55,.28)}
-  .an-card.locked .an-end{color:#D4AF37}
-  .an-lock-note{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;color:#D4AF37;margin:2px 2px 14px}
+  .an-card.locked .an-ic{color:#D9B65C;background:rgba(217,182,92,.09);border-color:rgba(217,182,92,.28)}
+  .an-card.locked .an-end{color:#D9B65C}
+  .an-lock-note{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;color:#D9B65C;margin:2px 2px 14px}
   .an-lock-note svg{flex:0 0 auto}
   .pf-card{position:relative;display:flex;align-items:center;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--surface);margin-bottom:14px;cursor:pointer}
   .pf-cover{flex:0 0 88px;align-self:stretch;min-height:88px;background:linear-gradient(135deg,color-mix(in srgb,var(--c) 60%,#000),color-mix(in srgb,var(--c) 22%,#000))}
@@ -287,14 +287,14 @@
   .pf-badges{display:flex;gap:7px;flex-wrap:wrap}
   .pf-arrow{flex:0 0 auto;padding:0 16px;font-size:26px;color:var(--muted)}
   .pf-h{font-size:17px;font-weight:800;margin:6px 4px 16px}
-  .pf-week{font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--gold-ink,#9A6E1B);margin:20px 4px 11px}
+  .pf-week{font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--gold-ink,#8B6914);margin:20px 4px 11px}
   .se-card.locked .se-cover{filter:grayscale(.45)}
   .se-lock{position:absolute;top:10px;right:10px;z-index:2;width:30px;height:30px;border-radius:50%;
     background:rgba(0,0,0,.62);display:grid;place-items:center;font-size:15px;backdrop-filter:blur(2px)}
-  .up-price{color:var(--gold-ink,#9A6E1B);font-weight:700;font-size:13px;margin-bottom:2px}
+  .up-price{color:var(--gold-ink,#8B6914);font-weight:700;font-size:13px;margin-bottom:2px}
   .up-feats{list-style:none;padding:0;margin:14px 0 18px;display:flex;flex-direction:column;gap:10px;text-align:left}
   .up-feats li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.4}
-  .up-feats li .ck{color:var(--gold-ink,#9A6E1B);flex:0 0 auto;font-weight:800}
+  .up-feats li .ck{color:var(--gold-ink,#8B6914);flex:0 0 auto;font-weight:800}
   .ia-lock{margin:auto;text-align:center;padding:34px 22px;max-width:340px}
   .ia-lock .lk{font-size:44px;margin-bottom:12px}
   .ia-lock h3{margin:0 0 8px;font-size:18px}
@@ -312,13 +312,13 @@
   .sub-toggle button.on{background:var(--brand);color:#04120a;font-weight:700}
   .plan-card{border:1px solid color-mix(in srgb,var(--brand) 45%, var(--line));border-radius:18px;padding:18px;background:color-mix(in srgb,var(--brand) 7%, var(--surface))}
   .plan-badge{display:inline-block;background:var(--brand);color:#04120a;font-size:11.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;border-radius:999px;padding:4px 10px;margin-bottom:10px}
-  .founder-card{border:1px solid rgba(212,167,60,.45);background:linear-gradient(160deg,rgba(233,199,103,.12),rgba(154,110,27,.04));box-shadow:0 0 24px rgba(212,167,60,.12)}
-  .founder-badge{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(180deg,var(--gold-hi),var(--gold-mid) 60%,var(--gold-deep));color:var(--on-gold);font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.01em;text-transform:uppercase;border-radius:999px;padding:6px 14px;box-shadow:0 2px 10px rgba(212,167,60,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+  .founder-card{border:1px solid rgba(184,150,63,.45);background:linear-gradient(160deg,rgba(217,182,92,.12),rgba(139,105,20,.04));box-shadow:0 0 24px rgba(184,150,63,.12)}
+  .founder-badge{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(180deg,var(--gold-hi),var(--gold-mid) 60%,var(--gold-deep));color:var(--on-gold);font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.01em;text-transform:uppercase;border-radius:999px;padding:6px 14px;box-shadow:0 2px 10px rgba(184,150,63,.35),inset 0 1px 0 rgba(255,255,255,.5)}
   .founder-badge svg{flex:none}
   .founder-since{margin-top:9px;font-size:12.5px;color:var(--muted,#9fb3aa)}
   /* Badge Coach : même traitement que le badge fondateur, teinte brand au
      lieu de l'or, pour distinguer un rôle (coach) d'un statut (fondateur). */
-  .coach-badge{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#04120a;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.01em;text-transform:uppercase;border-radius:999px;padding:6px 14px;box-shadow:0 2px 10px rgba(0,255,160,.35)}
+  .coach-badge{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#04120a;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:700;letter-spacing:.01em;text-transform:uppercase;border-radius:999px;padding:6px 14px;box-shadow:0 2px 10px rgba(0,232,150,.35)}
   .coach-badge svg{flex:none}
   .plan-price{font-family:'Outfit',sans-serif;font-size:34px;font-weight:700;margin-bottom:4px}
   .plan-per{font-size:14px;color:var(--muted);font-weight:400;margin-left:4px}
@@ -368,19 +368,19 @@
   .co-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px}
   .co-pill{font-size:11px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap}
   .co-pill.ok{background:rgba(16,185,129,.15);color:var(--fiber)}
-  .co-pill.warn{background:rgba(245,158,11,.16);color:#D4AF37}
+  .co-pill.warn{background:rgba(245,158,11,.16);color:#D9B65C}
   .co-pill.full{background:rgba(239,68,68,.14);color:var(--warn)}
   .co-pill.mine{background:var(--brand-soft);color:var(--brand)}
   .co-pill.off{background:var(--surface-2);color:var(--muted)}
   .co-act{margin-top:11px;width:100%;padding:11px;border-radius:12px;font-weight:800;font-size:14px;color:#04120a;
-    background:linear-gradient(135deg,var(--brand),var(--brand-2));box-shadow:0 0 16px rgba(0,255,160,.28)}
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));box-shadow:0 0 16px rgba(0,232,150,.28)}
   .co-act.cancel{background:transparent;color:var(--warn);border:1.5px solid var(--warn)}
   .co-act[disabled]{opacity:.5;pointer-events:none}
   .co-ics{margin-top:9px;width:100%;padding:10px;border-radius:12px;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:7px;background:transparent;border:1px solid var(--line);color:var(--muted)}
   .co-ics .ic{width:16px;height:16px}
   .lang-seg{display:flex;gap:8px}
   .lang-seg button{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);font-weight:700;font-size:13px}
-  .lang-seg button.on{background:var(--brand);color:#04120a;border-color:var(--brand);box-shadow:0 0 14px rgba(0,255,160,.3)}
+  .lang-seg button.on{background:var(--brand);color:#04120a;border-color:var(--brand);box-shadow:0 0 14px rgba(0,232,150,.3)}
   /* Selecteur de l'ecran de connexion : volontairement discret, il ne doit pas
      concurrencer visuellement le formulaire. */
   .auth-lang{display:flex;gap:6px;justify-content:center;margin-top:18px}
@@ -415,7 +415,7 @@
   .hh-hello{font-size:22px;font-weight:700;letter-spacing:-.02em;text-shadow:none}
   .hh-date{font-size:12px;color:var(--muted);margin-top:2px;text-transform:capitalize}
   .hh-logo{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-weight:900;font-size:15px;
-    color:#04120a;background:linear-gradient(145deg,#00FFA3,#00D98A);box-shadow:0 0 16px rgba(0,255,160,.45)}
+    color:#04120a;background:linear-gradient(145deg,#00E896,#00B978);box-shadow:0 0 16px rgba(0,232,150,.45)}
   .macros{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
   .mcard{background:color-mix(in srgb,var(--mc) 14%,var(--surface));
     border:1px solid color-mix(in srgb,var(--mc) 34%,transparent);border-radius:14px;padding:11px 12px}
@@ -430,18 +430,18 @@
   .wod-top{display:flex;justify-content:space-between;align-items:center}
   .wod-k{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--c)}
   .wod-dur{font-size:12px;color:var(--muted)}
-  .wod-name{font-size:18px;font-weight:800;margin:8px 0 3px;text-shadow:0 0 12px rgba(0,255,160,.25)}
+  .wod-name{font-size:18px;font-weight:800;margin:8px 0 3px;text-shadow:0 0 12px rgba(0,232,150,.25)}
   .wod-sub{font-size:13px;color:var(--muted)}
   .wod-btn{margin-top:13px;width:100%;padding:12px;border-radius:13px;font-weight:800;font-size:14px;color:#04120a;
-    background:linear-gradient(135deg,var(--brand),var(--brand-2));display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 0 18px rgba(0,255,160,.3)}
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 0 18px rgba(0,232,150,.3)}
   .mplan{background:color-mix(in srgb,var(--brand) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--brand) 36%,transparent);
     border-radius:var(--radius);padding:16px 17px;margin-bottom:16px}
   .mp-bar{height:7px;border-radius:5px;background:var(--surface-2);overflow:hidden;margin:11px 0 4px}
-  .mp-bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--brand),var(--brand-2));box-shadow:0 0 10px rgba(0,255,160,.5)}
+  .mp-bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--brand),var(--brand-2));box-shadow:0 0 10px rgba(0,232,150,.5)}
   .mp-cnt{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
   .mp-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer}
   .mp-row:last-of-type{border-bottom:0}
-  .mp-dot{width:9px;height:9px;border-radius:50%;background:var(--brand);box-shadow:0 0 8px rgba(0,255,160,.6);flex-shrink:0}
+  .mp-dot{width:9px;height:9px;border-radius:50%;background:var(--brand);box-shadow:0 0 8px rgba(0,232,150,.6);flex-shrink:0}
   .mp-row.dn .mp-dot{background:var(--muted);box-shadow:none}
   .mp-row.dn .mp-n{color:var(--muted);text-decoration:line-through}
   .mp-n{font-weight:700;font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -536,7 +536,7 @@
   .pill.done{border-color:var(--fiber);background:color-mix(in srgb,var(--fiber) 18%,transparent);color:var(--fiber)}
   .pill[data-on="0"]{opacity:.55}
   .se-action{position:sticky;bottom:calc(94px + env(safe-area-inset-bottom));z-index:30;margin:20px 0 4px}
-  .se-action .btn{box-shadow:0 10px 26px rgba(0,255,160,.4)}
+  .se-action .btn{box-shadow:0 10px 26px rgba(0,232,150,.4)}
   .se-action .btn.fin{background:linear-gradient(135deg,var(--fiber),#0c8f64)}
   /* ---- Workout player : HUD progression + timer de repos ---- */
   .wo-hud{display:none;align-items:center;gap:10px;padding:11px 14px;margin-bottom:8px;border-radius:16px;
@@ -547,14 +547,14 @@
   .wo-track i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--brand),#00d488);transition:width .45s cubic-bezier(.22,1,.36,1)}
   .wo-count{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.4px;white-space:nowrap;font-variant-numeric:tabular-nums}
   .rest-bar{display:none;align-items:center;gap:14px;padding:16px 16px;margin-bottom:8px;border-radius:16px;
-    background:color-mix(in srgb,#D4AF37 13%,var(--surface));border:1px solid color-mix(in srgb,#D4AF37 42%,transparent);
+    background:color-mix(in srgb,#D9B65C 13%,var(--surface));border:1px solid color-mix(in srgb,#D9B65C 42%,transparent);
     backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
   .rest-bar.on{display:flex}
   /* E#29 — « lisible a 2 m ». A 24px, un chrono pose au sol pendant qu'on
      souffle entre deux series est illisible : on se penche, ou on ne le
      regarde pas. 46px le rend lisible sans se baisser. Les chiffres sont en
      tabular-nums pour que la largeur ne saute pas a chaque seconde. */
-  .rest-num{font-variant-numeric:tabular-nums;font-size:46px;font-weight:900;color:#E9C767;min-width:112px;
+  .rest-num{font-variant-numeric:tabular-nums;font-size:46px;font-weight:900;color:#D9B65C;min-width:112px;
     line-height:1;letter-spacing:-.02em;transition:color .2s,transform .2s}
   /* Les trois dernieres secondes changent de couleur et grossissent : on doit
      pouvoir anticiper la reprise du coin de l'oeil, sans compter. */
@@ -562,7 +562,7 @@
   @media (max-width:360px){ .rest-num{font-size:38px;min-width:94px} }
   .rest-lbl{font-size:11px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
   .rest-track{height:5px;border-radius:99px;background:var(--surface-2);overflow:hidden}
-  .rest-track i{display:block;height:100%;width:100%;background:#E9C767;border-radius:99px;transition:width 1s linear}
+  .rest-track i{display:block;height:100%;width:100%;background:#D9B65C;border-radius:99px;transition:width 1s linear}
   .rest-btn{height:38px;min-width:44px;padding:0 12px;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12px;font-weight:800}
   .rest-btn:active{transform:scale(.95)}
   .wod-bar{display:none;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px;border-radius:16px;
@@ -604,38 +604,38 @@
   .block:active,.cyc-day:active{transform:scale(.988)}
   .exrow:active{transform:scale(.99)}
   .skel{border-radius:var(--radius);background:var(--surface);border:1px solid var(--line);position:relative;overflow:hidden;margin-bottom:14px}
-  .skel::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(0,255,160,.07) 50%,transparent 70%);animation:shimmer 1.4s infinite}
+  .skel::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(0,232,150,.07) 50%,transparent 70%);animation:shimmer 1.4s infinite}
   @keyframes shimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
   /* ===== Coach IA futuriste ===== */
-  .bubble.ai{box-shadow:0 0 0 1px rgba(0,255,160,.08), 0 8px 24px rgba(0,0,0,.35)}
+  .bubble.ai{box-shadow:0 0 0 1px rgba(0,232,150,.08), 0 8px 24px rgba(0,0,0,.35)}
   .bubble.ai b{color:var(--brand)}
   .bubble.ai ul{margin:6px 0;padding-left:18px}
   .bubble.ai li{margin:3px 0}
   .bubble.ai .cur{display:inline-block;width:8px;height:15px;background:var(--brand);border-radius:2px;vertical-align:-2px;animation:blink 1s infinite;margin-left:2px}
-  .chat-bar button{box-shadow:0 0 16px rgba(0,255,160,.45)}
+  .chat-bar button{box-shadow:0 0 16px rgba(0,232,150,.45)}
   .ia-chips{display:flex;gap:8px;overflow-x:auto;padding:10px 14px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .ia-chips::-webkit-scrollbar{display:none}
-  .ia-chips button{flex:0 0 auto;font-size:12.5px;font-weight:600;color:var(--brand);background:var(--brand-soft);border:1px solid rgba(0,255,160,.25);border-radius:999px;padding:8px 13px;white-space:nowrap;transition:transform .12s}
+  .ia-chips button{flex:0 0 auto;font-size:12.5px;font-weight:600;color:var(--brand);background:var(--brand-soft);border:1px solid rgba(0,232,150,.25);border-radius:999px;padding:8px 13px;white-space:nowrap;transition:transform .12s}
   .ia-chips button:active{transform:scale(.94)}
   /* ===== Prescription premium ===== */
-  .chip.pct{background:var(--brand-soft);color:var(--brand);border:1px solid rgba(0,255,160,.28);font-weight:700}
+  .chip.pct{background:var(--brand-soft);color:var(--brand);border:1px solid rgba(0,232,150,.28);font-weight:700}
   .chip.pct.miss{background:transparent;color:var(--muted);border:1px dashed var(--line)}
-  .chip.pct.day{background:rgba(233,199,103,.12);color:var(--gold);border:1px solid rgba(233,199,103,.42)}
-  .day-bn{margin-top:14px;padding:13px 14px;border-radius:14px;border:1px solid rgba(233,199,103,.42);background:linear-gradient(180deg,rgba(233,199,103,.10),rgba(233,199,103,.03))}
+  .chip.pct.day{background:rgba(217,182,92,.12);color:var(--gold);border:1px solid rgba(217,182,92,.42)}
+  .day-bn{margin-top:14px;padding:13px 14px;border-radius:14px;border:1px solid rgba(217,182,92,.42);background:linear-gradient(180deg,rgba(217,182,92,.10),rgba(217,182,92,.03))}
   .day-bn .t{font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--gold)}
   .day-bn .v{font-size:26px;font-weight:800;margin-top:3px;color:var(--txt)}
   .day-bn .v small{font-size:14px;color:var(--muted);font-weight:700}
   .day-bn .d{font-size:13px;font-weight:800;margin-top:2px}
   .day-bn .d.up{color:var(--brand)} .day-bn .d.dn{color:var(--gold)} .day-bn .d.flat{color:var(--muted)}
   .day-bn .p{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:8px}
-  .day-bn .stale{margin-top:11px;padding:10px 12px;border-radius:11px;border:1px solid rgba(233,199,103,.45);background:rgba(233,199,103,.09)}
+  .day-bn .stale{margin-top:11px;padding:10px 12px;border-radius:11px;border:1px solid rgba(217,182,92,.45);background:rgba(217,182,92,.09)}
   .day-bn .stale p{font-size:12.5px;line-height:1.45;color:var(--txt);margin:0 0 9px}
   .day-bn .stale b{color:var(--gold)}
   .day-bn .stale button{width:100%;padding:10px;border-radius:10px;border:0;background:var(--gold);color:#1a1405;font-weight:800;font-size:13px}
   .chip.tempo{color:var(--carb)}
   .chip.rpe{color:var(--fat)}
   .chip.ss{color:var(--fiber)}
-  .ex-note{margin-top:7px;font-size:12.5px;color:var(--muted);line-height:1.5;border-left:2px solid rgba(0,255,160,.35);padding-left:9px}
+  .ex-note{margin-top:7px;font-size:12.5px;color:var(--muted);line-height:1.5;border-left:2px solid rgba(0,232,150,.35);padding-left:9px}
   details.tech{margin-top:8px}
   details.tech summary{list-style:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--brand);letter-spacing:.3px}
   details.tech summary::-webkit-details-marker{display:none}
@@ -649,7 +649,7 @@
   .pr-val small{font-size:11px;color:var(--muted);font-weight:600}
   .pr-edit{background:var(--surface-2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:7px 11px;font-size:12.5px;font-weight:700}
   /* ---- Lisibilité & accessibilité (couche finale, priorité cascade) ---- */
-  :root{--muted:#9CC2AF}
+  :root{--muted:#8FA398}
   html{-webkit-text-size-adjust:100%}
   .chip{font-size:12.5px;padding:5px 10px}
   .badge{font-size:12.5px;padding:6px 10px}
@@ -674,17 +674,17 @@
   /* ===== Lot C — Design v2 ===== */
   .splash{min-height:78vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0}
   .sp-mark{width:68px;height:68px;border-radius:20px;display:grid;place-items:center;font-family:var(--font-d);font-weight:900;font-size:26px;
-    color:var(--on-gold);background:radial-gradient(circle at 38% 32%,var(--gold-hi),var(--gold) 34%,var(--gold-deep) 74%,var(--bronze));box-shadow:0 0 0 2px rgba(251,243,208,.35),0 0 34px rgba(212,167,60,.5),inset 0 -3px 8px rgba(0,0,0,.35);animation:spMark .7s cubic-bezier(.22,1,.36,1) both}
+    color:var(--on-gold);background:radial-gradient(circle at 38% 32%,var(--gold-hi),var(--gold) 34%,var(--gold-deep) 74%,var(--bronze));box-shadow:0 0 0 2px rgba(243,227,174,.35),0 0 34px rgba(184,150,63,.5),inset 0 -3px 8px rgba(0,0,0,.35);animation:spMark .7s cubic-bezier(.22,1,.36,1) both}
   .sp-name{margin-top:18px;font-family:var(--font-d);font-weight:700;font-size:30px;letter-spacing:-.02em;
-    color:var(--gold);background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 2px 10px rgba(212,167,60,.3));animation:spName .9s .15s cubic-bezier(.22,1,.36,1) both}
+    color:var(--gold);background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 2px 10px rgba(184,150,63,.3));animation:spName .9s .15s cubic-bezier(.22,1,.36,1) both}
   .sp-tag{margin-top:9px;font-size:12px;letter-spacing:.14em;text-indent:.14em;color:var(--muted);animation:spFade .8s .55s both}
   .sp-bar{margin-top:26px;width:118px;height:3px;border-radius:3px;background:var(--surface-2);overflow:hidden;animation:spFade .6s .5s both}
-  .sp-bar i{display:block;width:44%;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--brand),var(--brand-2));box-shadow:0 0 10px rgba(0,255,160,.6);animation:spTrack 1.1s ease-in-out infinite alternate}
+  .sp-bar i{display:block;width:44%;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--brand),var(--brand-2));box-shadow:0 0 10px rgba(0,232,150,.6);animation:spTrack 1.1s ease-in-out infinite alternate}
   @keyframes spMark{from{opacity:0;transform:scale(.72) rotate(-6deg)}to{opacity:1;transform:none}}
   @keyframes spName{from{opacity:0;letter-spacing:.24em;filter:blur(4px)}to{opacity:1;letter-spacing:-.02em;filter:none}}
   @keyframes spFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   @keyframes spTrack{from{transform:translateX(-40%)}to{transform:translateX(190%)}}
-  .hh-hello{color:var(--gold);background:linear-gradient(180deg,var(--gold-hi),var(--gold) 42%,#B98C2A 72%,var(--gold-deep));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none;filter:drop-shadow(0 1px 6px rgba(212,167,60,.35))}
+  .hh-hello{color:var(--gold);background:linear-gradient(180deg,var(--gold-hi),var(--gold) 42%,#B8963F 72%,var(--gold-deep));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none;filter:drop-shadow(0 1px 6px rgba(184,150,63,.35))}
   .pf-cover,.se-cover{background-repeat:no-repeat}
   .pf-cover.m-str,.pf-cover.m-rings,.pf-cover.m-pulse,.pf-cover.m-flame,.pf-cover.m-found{background-position:center;background-size:74px}
   .pf-cover.m-str{background-image:url("data:image/svg+xml,%3Csvg xmlns%3D'http://www.w3.org/2000/svg' viewBox%3D'0 0 120 120' fill%3D'none' stroke%3D'rgba(255,255,255,.28)' stroke-width%3D'3.5' stroke-linecap%3D'round' stroke-linejoin%3D'round'%3E%3Cpath d%3D'M18 60h84'/%3E%3Crect x%3D'28' y%3D'36' width%3D'11' height%3D'48' rx%3D'4'/%3E%3Crect x%3D'43' y%3D'45' width%3D'9' height%3D'30' rx%3D'4'/%3E%3Crect x%3D'81' y%3D'36' width%3D'11' height%3D'48' rx%3D'4'/%3E%3Crect x%3D'68' y%3D'45' width%3D'9' height%3D'30' rx%3D'4'/%3E%3C/svg%3E"),linear-gradient(135deg,color-mix(in srgb,var(--c) 60%,#000),color-mix(in srgb,var(--c) 22%,#000))}
@@ -704,15 +704,15 @@
   .pf-prog-bar i{display:block;height:100%;background:var(--ok)}
   .pf-arrow{transition:transform .15s ease}
   .pf-card:active .pf-arrow{transform:translateX(3px)}
-  @keyframes glowP{0%,100%{box-shadow:0 0 18px rgba(0,255,160,.3)}50%{box-shadow:0 0 27px rgba(0,255,160,.52)}}
+  @keyframes glowP{0%,100%{box-shadow:0 0 18px rgba(0,232,150,.3)}50%{box-shadow:0 0 27px rgba(0,232,150,.52)}}
   .wod-btn{animation:glowP 2.8s ease-in-out infinite}
   .wod-gold{color:var(--on-gold)!important;
     background:linear-gradient(180deg,var(--gold-hi),var(--gold) 42%,var(--gold-mid) 60%,var(--gold-deep))!important;
-    box-shadow:0 4px 20px rgba(212,167,60,.45),inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 6px rgba(110,78,18,.5)!important;
+    box-shadow:0 4px 20px rgba(184,150,63,.45),inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 6px rgba(110,78,18,.5)!important;
     animation:goldGlow 3s ease-in-out infinite}
-  @keyframes goldGlow{0%,100%{box-shadow:0 4px 20px rgba(212,167,60,.4),inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 6px rgba(110,78,18,.5)}50%{box-shadow:0 4px 28px rgba(212,167,60,.62),inset 0 1px 0 rgba(255,255,255,.6),inset 0 -2px 6px rgba(110,78,18,.5)}}
+  @keyframes goldGlow{0%,100%{box-shadow:0 4px 20px rgba(184,150,63,.4),inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 6px rgba(110,78,18,.5)}50%{box-shadow:0 4px 28px rgba(184,150,63,.62),inset 0 1px 0 rgba(255,255,255,.6),inset 0 -2px 6px rgba(110,78,18,.5)}}
   .empty-illus{text-align:center;padding:26px 14px 22px}
-  .empty-illus .ei-ic{width:54px;height:54px;border-radius:50%;display:inline-grid;place-items:center;background:var(--brand-soft);border:1px solid rgba(0,255,160,.22);margin-bottom:11px}
+  .empty-illus .ei-ic{width:54px;height:54px;border-radius:50%;display:inline-grid;place-items:center;background:var(--brand-soft);border:1px solid rgba(0,232,150,.22);margin-bottom:11px}
   .empty-illus .ei-ic .ic{width:24px;height:24px;color:var(--brand)}
   .empty-illus p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.5}
   @media (prefers-reduced-motion:reduce){.sp-mark,.sp-name,.sp-tag,.sp-bar,.sp-bar i,.wod-btn,.wod-gold{animation:none}.sp-mark,.sp-name,.sp-tag,.sp-bar{opacity:1}}
@@ -741,7 +741,7 @@
        icones, ou le seuil est de 3:1 et ou l'identite visuelle compte. */
     --brand-ink:#00794F;
     --go:#00A870;
-    --gold-ink:#9A6E1B; --gold-soft:rgba(212,167,60,.18);
+    --gold-ink:#8B6914; --gold-soft:rgba(184,150,63,.18);
     --shadow:0 14px 34px rgba(18,44,32,.10);
     --shadow-soft:0 8px 22px rgba(18,44,32,.07);
     --glow:0 8px 22px rgba(0,168,112,.18);
@@ -754,7 +754,7 @@
   /* Or degrade en texte : version profonde lisible sur blanc */
   :root[data-theme="light"] .hh-hello,
   :root[data-theme="light"] .sp-name{
-    background:linear-gradient(176deg,#C9992E,#9A6E1B 55%,#6E4E12);
+    background:linear-gradient(176deg,#C9992E,#8B6914 55%,#6E4E12);
     -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
     filter:none;
   }
@@ -770,7 +770,7 @@
   /* Selecteur theme = meme style que le selecteur langue */
   .theme-seg{display:flex;gap:8px;margin-top:4px}
   .theme-seg button{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);font-weight:700;font-size:13px}
-  .theme-seg button.on{background:var(--brand);color:#04120a;border-color:var(--brand);box-shadow:0 0 14px rgba(0,255,160,.3)}
+  .theme-seg button.on{background:var(--brand);color:#04120a;border-color:var(--brand);box-shadow:0 0 14px rgba(0,232,150,.3)}
   :root[data-theme="light"] .theme-seg button.on{box-shadow:0 4px 12px rgba(0,168,112,.28)}
 
   /* ===== HOME redesign (setup type apercu) ===== */
@@ -806,7 +806,7 @@
   .wod2-name{font-size:15px;font-weight:700;letter-spacing:-.01em;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .wod2-sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .wod2-chip{align-self:center;flex:0 0 auto;font-size:12px;font-weight:700;padding:9px 13px;border-radius:12px;color:var(--brand);background:color-mix(in srgb,var(--brand) 15%,transparent);border:1px solid color-mix(in srgb,var(--brand) 40%,transparent);cursor:pointer}
-  .wod2-chip.gold{color:var(--on-gold);background:var(--gold-grad);border:none;box-shadow:0 2px 10px rgba(212,167,60,.35)}
+  .wod2-chip.gold{color:var(--on-gold);background:var(--gold-grad);border:none;box-shadow:0 2px 10px rgba(184,150,63,.35)}
   .ia-home{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--brand);border-radius:var(--radius);box-shadow:var(--shadow-soft);padding:14px;margin-bottom:16px;cursor:pointer}
   .ia-home-ic{width:40px;height:40px;border-radius:12px;flex:0 0 auto;display:grid;place-items:center;background:color-mix(in srgb,var(--brand) 16%,transparent);color:var(--brand)}
   .ia-home-ic svg{width:20px;height:20px}
@@ -817,7 +817,7 @@
   .ia-home.gold{border-left-color:var(--gold);box-shadow:none}
   .ia-home.gold .ia-home-ic{background:color-mix(in srgb,var(--gold) 14%,transparent);color:var(--gold)}
   .ld-offer{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:10px}
-  .ld-offer.hi{border-color:rgba(0,255,163,.32);background:linear-gradient(135deg,rgba(0,255,163,.07),transparent)}
+  .ld-offer.hi{border-color:rgba(0,232,150,.32);background:linear-gradient(135deg,rgba(0,232,150,.07),transparent)}
   .ld-offer .o-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:5px}
   .ld-offer .o-n{font-size:14px;font-weight:800;color:var(--text)}
   .ld-offer.hi .o-n{color:var(--brand)}
@@ -865,44 +865,44 @@
   .hero-w{position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);
     aspect-ratio:16/10.5;background:#000;box-shadow:0 16px 40px rgba(0,0,0,.45);margin-bottom:14px}
   .hero-bg{position:absolute;inset:0;background-size:cover;background-position:center}
-  .hero-bg.none{background:linear-gradient(150deg,color-mix(in srgb,var(--c) 30%,#0A0F0C),#0A0F0C)}
-  .hero-veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,8,7,.05) 30%,rgba(5,8,7,.78) 78%,rgba(5,8,7,.92) 100%)}
+  .hero-bg.none{background:linear-gradient(150deg,color-mix(in srgb,var(--c) 30%,#0C110E),#0C110E)}
+  .hero-veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,10,8,.05) 30%,rgba(7,10,8,.78) 78%,rgba(7,10,8,.92) 100%)}
   .hero-in{position:absolute;inset:0;padding:15px;display:flex;flex-direction:column;justify-content:space-between}
   .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
   .hero-prog{font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#04120a;
     background:var(--brand);border-radius:999px;padding:5px 11px;max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .hero-prog.gold{background:linear-gradient(135deg,#E9C767,#C9A24B)}
-  .hero-lock{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#E9C767;
-    background:rgba(5,8,7,.55);backdrop-filter:blur(8px);border:1px solid rgba(233,199,103,.35);border-radius:999px;padding:5px 10px}
+  .hero-prog.gold{background:linear-gradient(135deg,#D9B65C,#C9A24B)}
+  .hero-lock{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#D9B65C;
+    background:rgba(7,10,8,.55);backdrop-filter:blur(8px);border:1px solid rgba(217,182,92,.35);border-radius:999px;padding:5px 10px}
   .hero-lock svg{width:12px;height:12px}
   .hero-wd{font-size:11.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--brand);margin-bottom:3px}
-  .hero-wd.gold{color:#E9C767}
+  .hero-wd.gold{color:#D9B65C}
   .hero-name{font-size:21px;font-weight:800;line-height:1.12;letter-spacing:-0.03em;color:#F2F7F4;margin-bottom:3px}
   .hero-meta{font-size:12.5px;color:rgba(242,247,244,.75);font-weight:600;margin-bottom:11px}
   .hero-cta{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:800;color:#04120a;
     background:linear-gradient(135deg,var(--brand),var(--brand-2));border:none;border-radius:999px;padding:10px 17px;cursor:pointer}
-  .hero-cta.gold{background:linear-gradient(135deg,#E9C767,#C9A24B)}
+  .hero-cta.gold{background:linear-gradient(135deg,#D9B65C,#C9A24B)}
   .hero-cta svg{width:14px;height:14px}
   /* --- accueil v2 : hub coach --- */
-  .coach-hub.on{background:var(--surface);border:1px solid var(--line);border-left:3px solid #E9C767;
+  .coach-hub.on{background:var(--surface);border:1px solid var(--line);border-left:3px solid #D9B65C;
     border-radius:var(--radius);padding:14px;margin-bottom:14px}
   .ch-hd{display:flex;align-items:center;gap:11px;cursor:pointer;margin-bottom:10px}
-  .ch-ic{width:42px;height:42px;border-radius:12px;background:rgba(233,199,103,.13);display:grid;place-items:center;color:#E9C767;flex:0 0 auto}
+  .ch-ic{width:42px;height:42px;border-radius:12px;background:rgba(217,182,92,.13);display:grid;place-items:center;color:#D9B65C;flex:0 0 auto}
   .ch-hd b{font-size:15px;display:block}
   .ch-sub{display:block;font-size:12.5px;color:var(--muted);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .ch-ar{width:17px;height:17px;color:var(--muted);flex:0 0 auto}
   .ch-row{display:flex;align-items:center;gap:10px;background:var(--surface-2);border:1px solid var(--line);
     border-radius:13px;padding:11px 12px;font-size:13.5px;font-weight:600;cursor:pointer;margin-bottom:8px}
-  .ch-row svg{width:17px;height:17px;flex:0 0 auto;color:#E9C767}
+  .ch-row svg{width:17px;height:17px;flex:0 0 auto;color:#D9B65C}
   .ch-badge{margin-left:auto;font-size:11px;font-weight:800;color:#04120a;background:var(--brand);border-radius:999px;padding:3px 9px;white-space:nowrap}
   .ch-when{margin-left:auto;font-size:12px;color:var(--muted);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:45%}
   .coach-hub.on .call-row{background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:11px 12px;margin-bottom:8px}
-  .ch-call-lbl{font-size:12px;font-weight:800;color:#E9C767;letter-spacing:.3px;margin-bottom:4px}
+  .ch-call-lbl{font-size:12px;font-weight:800;color:#D9B65C;letter-spacing:.3px;margin-bottom:4px}
   /* --- accueil v2 : boutique discrète --- */
   .shop-line{display:flex;align-items:center;gap:9px;justify-content:center;width:100%;margin-top:4px;
     font-family:inherit;font-size:13px;font-weight:700;color:var(--muted);padding:11px;border-radius:14px;
     border:1px dashed var(--line);background:none;cursor:pointer}
-  .shop-line svg{width:15px;height:15px;color:#E9C767}
+  .shop-line svg{width:15px;height:15px;color:#D9B65C}
   .ct-head{margin-bottom:8px}
   .ct-badge{display:inline-flex;align-items:center;gap:6px;background:var(--brand-soft);color:var(--brand);font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;border-radius:999px;padding:5px 11px}
   .ct-line{font-size:14.5px;line-height:1.5;font-weight:600;margin:0 0 12px}
@@ -923,7 +923,7 @@
   .tr-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
 
   /* --- Carte Activité (Apple Santé) --- */
-  .act-badge{flex:0 0 auto;background:var(--brand-soft);color:var(--brand);border:1px solid rgba(0,255,160,.22);
+  .act-badge{flex:0 0 auto;background:var(--brand-soft);color:var(--brand);border:1px solid rgba(0,232,150,.22);
     border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
   .act-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:14px}
   .act-tile{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;
@@ -970,10 +970,10 @@
   .pl-side{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
   .pl-chip{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:30px;padding:0 9px;
     border-radius:8px;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;
-    background:var(--brand-soft);color:var(--brand);border:1px solid rgba(0,255,160,.25)}
-  .pl-chip.x2{background:rgba(233,199,103,.14);color:#E9C767;border-color:rgba(233,199,103,.30)}
+    background:var(--brand-soft);color:var(--brand);border:1px solid rgba(0,232,150,.25)}
+  .pl-chip.x2{background:rgba(217,182,92,.14);color:#D9B65C;border-color:rgba(217,182,92,.30)}
   .pl-none{font-size:13px;color:var(--muted);font-weight:600}
-  .pl-warn{margin-top:8px;font-size:12.5px;line-height:1.45;color:#E9C767}
+  .pl-warn{margin-top:8px;font-size:12.5px;line-height:1.45;color:#D9B65C}
   .pl-warn:empty{display:none}
 
   @media (max-width:360px){ .act-tile b{font-size:17px} .act-tile span{font-size:10.5px} }
@@ -982,7 +982,7 @@
   .tr-chart{width:100%;height:auto;display:block}
   .tr-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;font-size:11.5px;color:var(--muted);font-weight:600}
   .tr-legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:-1px}
-  .tr-legend .dash{width:14px;height:0;border-top:2px dashed var(--amber,#D4AF37);border-radius:0;vertical-align:2px}
+  .tr-legend .dash{width:14px;height:0;border-top:2px dashed var(--amber,#D9B65C);border-radius:0;vertical-align:2px}
   .tr-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px;margin-top:12px}
   .tr-stat{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center}
   .tr-stat b{display:block;font-size:17px;font-weight:800}
@@ -1018,6 +1018,17 @@
   .rc-srv button{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-size:20px;font-weight:700;cursor:pointer}
   .rc-srv b{min-width:40px;text-align:center;font-size:16px}
   #pane-profile:not([data-view="hub"]) #pf-back{display:flex}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+/* === Coach DM - typographie unifiee : titres condenses comme sur coachdm.be === */
+:root{ --font-display:'Barlow Condensed','Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+h1, h2,
+.hh-hello, .hero-name, .sp-name, .wod-name, .wod-num,
+.kcal, .plan-price, .rest-num, .qz-res-n, .se-d-title{
+  font-family: var(--font-display);
+  letter-spacing: .012em;
+}
 </style>
 </head>
 <body>
@@ -1073,7 +1084,7 @@
       +'<div style="font-size:34px;margin-bottom:12px">\u26A0\uFE0F</div>'
       +'<div style="font-weight:800;font-size:18px;color:#fff;margin-bottom:9px">'+M[0]+'</div>'
       +'<div style="margin-bottom:22px">'+M[1]+'</div>'
-      +'<button type="button" onclick="location.reload()" style="background:#00FFA3;color:#04120c;border:0;border-radius:999px;padding:13px 28px;font-weight:800;font-size:15px;cursor:pointer">'+M[2]+'</button>'
+      +'<button type="button" onclick="location.reload()" style="background:#00E896;color:#04120c;border:0;border-radius:999px;padding:13px 28px;font-weight:800;font-size:15px;cursor:pointer">'+M[2]+'</button>'
       +'</div>';
   }, 15000);
   window.__cdmOK = function(){ if(window.__cdmWatch){ clearTimeout(window.__cdmWatch); window.__cdmWatch=null; } };
@@ -1915,9 +1926,9 @@
 <div class="overlay" id="loop-ov">
   <div class="sheet" style="text-align:center">
     <div class="grab"></div>
-    <div style="line-height:1;margin:6px 0 10px"><svg class="ic ic-xl" style="color:#D4AF37"><use href="#i-trophy"/></svg></div>
+    <div style="line-height:1;margin:6px 0 10px"><svg class="ic ic-xl" style="color:#D9B65C"><use href="#i-trophy"/></svg></div>
     <h3 id="loop-title" style="margin:0 0 4px">Cycle terminé</h3>
-    <div class="fk" id="loop-cycle" style="color:var(--gold-ink,#9A6E1B);font-weight:700;margin-bottom:10px">—</div>
+    <div class="fk" id="loop-cycle" style="color:var(--gold-ink,#8B6914);font-weight:700;margin-bottom:10px">—</div>
     <p id="loop-body" style="color:var(--muted);font-size:13px;line-height:1.6;margin:0 0 16px"></p>
     <div id="loop-next" style="font-size:12px;color:var(--muted);margin-bottom:14px"></div>
     <button class="btn" id="loop-restart" data-i18n="loop_restart">Recommencer le cycle</button>
@@ -2056,14 +2067,14 @@
   .call-pill{display:inline-block;background:var(--brand);color:#04120a;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:700;margin-right:6px}
 
   /* ===================== PREMIUM 2026 — couche finale ===================== */
-  ::selection{background:rgba(0,255,163,.28);color:var(--text)}
+  ::selection{background:rgba(0,232,150,.28);color:var(--text)}
 
   /* --- Cartes : profondeur + liseré lumineux haut --- */
   .block{position:relative;border-color:rgba(255,255,255,.07);
     background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 92%,#fff 3%),var(--surface) 40%);
     box-shadow:0 14px 34px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.05)}
   .block::before{content:'';position:absolute;top:0;left:18px;right:18px;height:1px;pointer-events:none;
-    background:linear-gradient(90deg,transparent,rgba(0,255,163,.28),transparent)}
+    background:linear-gradient(90deg,transparent,rgba(0,232,150,.28),transparent)}
   .block h3{font-size:16px;letter-spacing:-.02em;font-weight:800}
   :root[data-theme="light"] .block{background:var(--surface);box-shadow:var(--shadow-soft)}
   :root[data-theme="light"] .block::before{background:linear-gradient(90deg,transparent,rgba(0,168,112,.22),transparent)}
@@ -2078,9 +2089,9 @@
   .search-row input{border-radius:16px;background:color-mix(in srgb,var(--surface-2) 82%,transparent);
     -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-color:rgba(255,255,255,.12);
     transition:border-color .15s,box-shadow .15s}
-  .search-row input:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft),0 0 18px rgba(0,255,163,.14)}
+  .search-row input:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft),0 0 18px rgba(0,232,150,.14)}
   .search-row button{color:#04120a;border-radius:16px;letter-spacing:-.01em;font-weight:800;
-    box-shadow:0 6px 18px rgba(0,255,160,.32),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .1s,filter .15s}
+    box-shadow:0 6px 18px rgba(0,232,150,.32),inset 0 1px 0 rgba(255,255,255,.35);transition:transform .1s,filter .15s}
   .search-row button:active{transform:scale(.96);filter:brightness(.95)}
   :root[data-theme="light"] .search-row button{color:#fff}
   :root[data-theme="light"] .search-row input{background:var(--surface-2);border-color:var(--line)}
@@ -2088,7 +2099,7 @@
   /* --- Résultats aliments : bouton + en dégradé --- */
   .food{border-radius:16px}
   .food .add{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#04120a;
-    box-shadow:0 4px 14px rgba(0,255,160,.3),inset 0 1px 0 rgba(255,255,255,.3);transition:transform .1s}
+    box-shadow:0 4px 14px rgba(0,232,150,.3),inset 0 1px 0 rgba(255,255,255,.3);transition:transform .1s}
   .food .add:active{transform:scale(.9)}
   :root[data-theme="light"] .food .add{color:#fff}
 
@@ -2103,12 +2114,12 @@
   .tr-stats>.tr-stat:nth-child(2){--tsc:var(--prot)}
   .tr-stats>.tr-stat:nth-child(3){--tsc:var(--gold)}
   :root[data-theme="light"] .tr-stats>.tr-stat:nth-child(1){--tsc:#00A870}
-  :root[data-theme="light"] .tr-stats>.tr-stat:nth-child(3){--tsc:#9A6E1B}
+  :root[data-theme="light"] .tr-stats>.tr-stat:nth-child(3){--tsc:#8B6914}
 
   /* --- Toggle 7j/30j --- */
   .tr-toggle .rc-chip{font-weight:700;padding:7px 14px}
   .tr-toggle .rc-chip.on{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#04120a;border-color:transparent;
-    box-shadow:0 4px 14px rgba(0,255,160,.3)}
+    box-shadow:0 4px 14px rgba(0,232,150,.3)}
   :root[data-theme="light"] .tr-toggle .rc-chip.on{color:#fff}
 
   /* --- Nav : dock premium (géométrie inchangée) --- */
@@ -2116,11 +2127,11 @@
     background:color-mix(in srgb,var(--surface) 78%,transparent);
     box-shadow:0 -12px 34px rgba(0,0,0,.38)}
   .nav::before{content:'';position:absolute;top:0;left:8%;right:8%;height:1px;pointer-events:none;
-    background:linear-gradient(90deg,transparent,rgba(0,255,163,.30),transparent)}
+    background:linear-gradient(90deg,transparent,rgba(0,232,150,.30),transparent)}
   .nav{position:fixed}
   /* ---- D#23 : quiz « Trouve-moi un programme » ---- */
   .quiz-btn{display:flex;align-items:center;gap:8px;width:100%;margin:0 0 14px;padding:12px 14px;
-    border-radius:13px;border:1px dashed rgba(0,255,163,.42);background:rgba(0,255,163,.06);
+    border-radius:13px;border:1px dashed rgba(0,232,150,.42);background:rgba(0,232,150,.06);
     color:var(--brand-ink);font-family:'Outfit',sans-serif;font-size:13.5px;font-weight:700;cursor:pointer}
   .quiz-btn svg{width:17px;height:17px;flex:none}
   :root[data-theme="light"] .quiz-btn{background:rgba(0,168,112,.06);border-color:rgba(0,168,112,.4)}
@@ -2135,7 +2146,7 @@
   .qz-res-n{font-family:'Outfit',sans-serif;font-size:21px;font-weight:800;line-height:1.2;margin-bottom:8px}
   .qz-res-d{font-size:13.5px;line-height:1.55;opacity:.88;margin:0 0 10px}
   .qz-res-w{font-size:12.5px;line-height:1.5;padding:11px 13px;border-radius:12px;
-    background:rgba(0,255,163,.09);border:1px solid rgba(0,255,163,.26);margin-bottom:14px}
+    background:rgba(0,232,150,.09);border:1px solid rgba(0,232,150,.26);margin-bottom:14px}
   .qz-res-w b{color:var(--brand-ink)}
   .qz-res-free{font-size:12.5px;line-height:1.5;opacity:.72;margin:-6px 0 14px}
   /* ---- Explications des moteurs dans l'assistant ---- */
@@ -2147,7 +2158,7 @@
   .pf-for b{color:var(--brand-ink);font-weight:700}
   /* ---- D#24 : carte hero analyse ---- */
   .act-hero{margin-top:12px;border-radius:18px;padding:17px 17px 15px;cursor:pointer;
-    background:linear-gradient(145deg,#141a17,#0c1210);border:1px solid rgba(0,255,163,.4);
+    background:linear-gradient(145deg,#141a17,#0c1210);border:1px solid rgba(0,232,150,.4);
     box-shadow:0 10px 34px rgba(0,0,0,.32)}
   :root[data-theme="light"] .act-hero{background:linear-gradient(145deg,#F2FBF7,#E8F6F0);border-color:rgba(0,168,112,.35);box-shadow:0 8px 26px rgba(0,0,0,.07)}
   .ah-badge{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
@@ -2158,14 +2169,14 @@
     font-size:14px;font-weight:700;color:var(--brand-ink)}
   /* ---- D#25 : filmer une serie depuis le player ---- */
   .film-set{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:7px 12px;border-radius:10px;
-    border:1px solid rgba(0,255,163,.32);background:rgba(0,255,163,.09);color:var(--brand);
+    border:1px solid rgba(0,232,150,.32);background:rgba(0,232,150,.09);color:var(--brand);
     font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
   .film-set{color:var(--brand-ink)}
   .film-set svg{width:13px;height:13px}
   :root[data-theme="light"] .film-set{background:rgba(0,168,112,.08);border-color:rgba(0,168,112,.3)}
   /* ---- Plan nutrition du coach ---- */
-  .mp-notes{margin-bottom:12px;padding:10px 12px;border-radius:12px;background:rgba(212,175,55,.10);
-    border-left:3px solid #D4AF37;color:#E8D9A0;font-size:13px;font-weight:600;line-height:1.5;white-space:pre-wrap}
+  .mp-notes{margin-bottom:12px;padding:10px 12px;border-radius:12px;background:rgba(217,182,92,.10);
+    border-left:3px solid #D9B65C;color:#E8D9A0;font-size:13px;font-weight:600;line-height:1.5;white-space:pre-wrap}
   .mp-day{margin-bottom:14px}
   .mp-day > h4{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
     color:var(--muted);margin:0 0 8px}
@@ -2177,30 +2188,30 @@
   .mp-mac{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
   .mp-mac span{font-size:11px;font-weight:800;padding:3px 8px;border-radius:7px;
     background:rgba(255,255,255,.05);border:1px solid var(--line);font-variant-numeric:tabular-nums}
-  .mp-tot{margin-top:4px;padding:11px 12px;border-radius:12px;background:rgba(0,255,163,.08);
-    border:1px solid rgba(0,255,163,.28);font-size:13px;font-weight:800;color:var(--brand-ink);
+  .mp-tot{margin-top:4px;padding:11px 12px;border-radius:12px;background:rgba(0,232,150,.08);
+    border:1px solid rgba(0,232,150,.28);font-size:13px;font-weight:800;color:var(--brand-ink);
     font-variant-numeric:tabular-nums;text-align:center}
   /* ---- H#37 : substitutions ---- */
   .swap-btn{display:inline-flex;align-items:center;gap:6px;margin-top:8px;margin-left:8px;padding:7px 12px;
-    border-radius:10px;border:1px solid rgba(212,175,55,.34);background:rgba(212,175,55,.10);color:#D4AF37;
+    border-radius:10px;border:1px solid rgba(217,182,92,.34);background:rgba(217,182,92,.10);color:#D9B65C;
     font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
   .swap-btn svg{width:13px;height:13px}
   .swap-tag{display:inline-flex;align-items:center;gap:6px;margin-bottom:6px;padding:4px 9px;border-radius:8px;
-    background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.4);color:#D4AF37;font-size:11.5px;font-weight:800}
+    background:rgba(217,182,92,.12);border:1px solid rgba(217,182,92,.4);color:#D9B65C;font-size:11.5px;font-weight:800}
   .swap-tag button{background:none;border:0;color:inherit;font-weight:800;text-decoration:underline;cursor:pointer;font-size:11.5px}
-  .swap-warn{margin-top:6px;padding:8px 10px;border-radius:10px;background:rgba(212,175,55,.10);
-    border:1px solid rgba(212,175,55,.36);color:#D4AF37;font-size:12px;font-weight:700;line-height:1.45}
+  .swap-warn{margin-top:6px;padding:8px 10px;border-radius:10px;background:rgba(217,182,92,.10);
+    border:1px solid rgba(217,182,92,.36);color:#D9B65C;font-size:12px;font-weight:700;line-height:1.45}
   .swap-opt{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:12px;margin-bottom:8px;
     border-radius:14px;border:1px solid var(--line);background:var(--surface-2);color:inherit;cursor:pointer}
-  .swap-opt.on{border-color:rgba(212,175,55,.6);background:rgba(212,175,55,.10)}
+  .swap-opt.on{border-color:rgba(217,182,92,.6);background:rgba(217,182,92,.10)}
   .swap-opt .nm{font-size:14.5px;font-weight:700;line-height:1.25}
   .swap-opt .eq{font-size:11.5px;font-weight:700;color:var(--muted);margin-top:2px}
   .swap-opt .rk{flex:0 0 24px;height:24px;border-radius:8px;display:grid;place-items:center;
-    background:rgba(212,175,55,.16);color:#D4AF37;font-size:11.5px;font-weight:800}
+    background:rgba(217,182,92,.16);color:#D9B65C;font-size:11.5px;font-weight:800}
   /* ---- D#21 : checklist d'activation ---- */
   .act{margin-top:12px;border-radius:18px;padding:16px 16px 13px;
-    background:linear-gradient(160deg,rgba(0,255,163,.10),rgba(0,255,163,.03));
-    border:1px solid rgba(0,255,163,.28)}
+    background:linear-gradient(160deg,rgba(0,232,150,.10),rgba(0,232,150,.03));
+    border:1px solid rgba(0,232,150,.28)}
   :root[data-theme="light"] .act{background:linear-gradient(160deg,rgba(0,168,112,.09),rgba(0,168,112,.03));border-color:rgba(0,168,112,.26)}
   .act-h{display:flex;align-items:baseline;gap:8px;margin-bottom:3px}
   .act-h b{flex:1;font-family:'Outfit',sans-serif;font-size:15.5px}
@@ -2251,7 +2262,7 @@
   .hc-dot{width:8px;height:8px;border-radius:50%;flex:none}
   .hc-nm{flex:1;min-width:0;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .hc-when{font-size:12px;opacity:.7;white-space:nowrap}
-  .hc-wait{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:#D4AF37}
+  .hc-wait{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:#D9B65C}
   /* ---- B#13 : premiere seance guidee ---- */
   .tour-ov{position:fixed;inset:0;z-index:120;display:none}
   .tour-ov.on{display:block}
@@ -2260,7 +2271,7 @@
      mise en avant reste parfaitement nette. */
   .tour-sc{position:fixed;background:rgba(3,6,5,.74);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
   .tour-ring{position:fixed;border:2px solid var(--brand);border-radius:12px;
-    box-shadow:0 0 0 3px rgba(0,255,163,.22);pointer-events:none;transition:all .22s ease}
+    box-shadow:0 0 0 3px rgba(0,232,150,.22);pointer-events:none;transition:all .22s ease}
   .tour-bub{position:fixed;left:14px;right:14px;max-width:460px;margin:0 auto;
     background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px 17px;
     box-shadow:0 18px 50px rgba(0,0,0,.45)}
@@ -2299,7 +2310,7 @@
   /* ---- B#11 : nom en clair + « c'est pour toi si… » ---- */
   .sk-plain{font-size:13.5px;line-height:1.45;opacity:.82;margin:-4px 0 12px}
   .sk-foryou{margin:0 0 10px;padding:11px 13px;border-radius:12px;font-size:13px;line-height:1.5;
-    background:rgba(0,255,163,.09);border:1px solid rgba(0,255,163,.26)}
+    background:rgba(0,232,150,.09);border:1px solid rgba(0,232,150,.26)}
   :root[data-theme="light"] .sk-foryou{background:rgba(0,168,112,.08);border-color:rgba(0,168,112,.24)}
   .sk-foryou b{color:var(--brand-ink);font-weight:700}
   /* ---- B#10 : carte « Ton objectif en clair » ---- */
@@ -2317,8 +2328,8 @@
   .gp-done{margin-top:10px;font-size:12.5px;opacity:.7}
   /* ---- Banniere d'invitation coach ---- */
   .inv-bar{margin:10px 14px 0;border-radius:16px;padding:14px 15px;
-    background:linear-gradient(135deg,rgba(0,255,163,.14),rgba(0,255,163,.05));
-    border:1px solid rgba(0,255,163,.34);box-shadow:0 6px 20px rgba(0,0,0,.18)}
+    background:linear-gradient(135deg,rgba(0,232,150,.14),rgba(0,232,150,.05));
+    border:1px solid rgba(0,232,150,.34);box-shadow:0 6px 20px rgba(0,0,0,.18)}
   :root[data-theme="light"] .inv-bar{background:linear-gradient(135deg,rgba(0,168,112,.11),rgba(0,168,112,.04));border-color:rgba(0,168,112,.3)}
   .inv-bar+.inv-bar{margin-top:8px}
   .inv-bar b{display:block;font-family:'Outfit',sans-serif;font-size:15px;margin-bottom:2px}
@@ -2337,10 +2348,10 @@
   .nav-dot[hidden]{display:none}
   .nav button{position:relative;transition:color .18s,background .18s,transform .12s}
   .nav button:active{transform:scale(.94)}
-  .nav button.on{background:linear-gradient(180deg,rgba(0,255,163,.16),rgba(0,255,163,.07));
-    box-shadow:inset 0 0 0 1px rgba(0,255,163,.22),0 0 18px rgba(0,255,163,.10)}
+  .nav button.on{background:linear-gradient(180deg,rgba(0,232,150,.16),rgba(0,232,150,.07));
+    box-shadow:inset 0 0 0 1px rgba(0,232,150,.22),0 0 18px rgba(0,232,150,.10)}
   .nav button.on::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);
-    width:4px;height:4px;border-radius:50%;background:var(--brand);box-shadow:0 0 8px rgba(0,255,163,.8)}
+    width:4px;height:4px;border-radius:50%;background:var(--brand);box-shadow:0 0 8px rgba(0,232,150,.8)}
   :root[data-theme="light"] .nav{box-shadow:0 -10px 30px rgba(18,44,32,.10)}
   :root[data-theme="light"] .nav::before{background:linear-gradient(90deg,transparent,rgba(0,168,112,.25),transparent)}
   :root[data-theme="light"] .nav button.on{background:rgba(0,168,112,.10);box-shadow:inset 0 0 0 1px rgba(0,168,112,.22)}
@@ -2361,37 +2372,46 @@
 
   /* --- Bulles Coach IA --- */
   .bubble{border-radius:20px}
-  .bubble.me{box-shadow:0 6px 18px rgba(0,255,160,.22)}
+  .bubble.me{box-shadow:0 6px 18px rgba(0,232,150,.22)}
   .bubble.ai{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 92%,#fff 3%),var(--surface) 45%)}
   .chat-bar button{color:#04120a}
   :root[data-theme="light"] .chat-bar button{color:#fff}
 
   /* --- Boutons primaires : relief --- */
-  .btn:not(.ghost):not(.subtle){box-shadow:0 8px 22px rgba(0,255,160,.34),inset 0 1px 0 rgba(255,255,255,.35)}
-  .wod-btn,.co-act:not(.cancel){box-shadow:0 6px 18px rgba(0,255,160,.28),inset 0 1px 0 rgba(255,255,255,.3)}
-  .prod-buy{color:#04120a;box-shadow:0 5px 16px rgba(0,255,160,.28),inset 0 1px 0 rgba(255,255,255,.3)}
+  .btn:not(.ghost):not(.subtle){box-shadow:0 8px 22px rgba(0,232,150,.34),inset 0 1px 0 rgba(255,255,255,.35)}
+  .wod-btn,.co-act:not(.cancel){box-shadow:0 6px 18px rgba(0,232,150,.28),inset 0 1px 0 rgba(255,255,255,.3)}
+  .prod-buy{color:#04120a;box-shadow:0 5px 16px rgba(0,232,150,.28),inset 0 1px 0 rgba(255,255,255,.3)}
   :root[data-theme="light"] .prod-buy{color:#fff}
 
   /* --- Photo IA : adaptation thème clair --- */
   :root[data-theme="light"] .ai-photo{
-    background:linear-gradient(180deg,#FFFDF6,#FBF5E4) padding-box,linear-gradient(135deg,rgba(201,153,46,.8),rgba(154,110,27,.5) 45%,rgba(201,153,46,.8)) border-box;
-    color:var(--text);box-shadow:0 6px 18px rgba(154,110,27,.14),inset 0 1px 0 rgba(255,255,255,.6)}
-  :root[data-theme="light"] .ai-photo .ap-ic{color:#9A6E1B;background:rgba(201,153,46,.14);border-color:rgba(154,110,27,.35)}
+    background:linear-gradient(180deg,#FFFDF6,#FBF5E4) padding-box,linear-gradient(135deg,rgba(201,153,46,.8),rgba(139,105,20,.5) 45%,rgba(201,153,46,.8)) border-box;
+    color:var(--text);box-shadow:0 6px 18px rgba(139,105,20,.14),inset 0 1px 0 rgba(255,255,255,.6)}
+  :root[data-theme="light"] .ai-photo .ap-ic{color:#8B6914;background:rgba(201,153,46,.14);border-color:rgba(139,105,20,.35)}
 
   /* --- Divers --- */
   .toast{border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.45)}
-  .field input:focus,.field select:focus,#ld-msg-in:focus{box-shadow:0 0 0 4px var(--brand-soft),0 0 16px rgba(0,255,163,.12)}
+  .field input:focus,.field select:focus,#ld-msg-in:focus{box-shadow:0 0 0 4px var(--brand-soft),0 0 16px rgba(0,232,150,.12)}
   .qtile{box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
   .mcard{box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
   @media (prefers-reduced-motion:reduce){.nav button,.search-row button{transition:none}}
 
 /* cdm-scroll-fix : Chromium bride le defilement quand le body est
-   verrouille a 100% de hauteur. min-height + overflow-y explicite. */
-html,body{overflow-y:auto;overscroll-behavior-y:contain}
+   verrouille a 100% de hauteur. min-height + overflow-y explicite.
+   overflow-y:auto reste sur <html>, JAMAIS sur <body> : declare sur body, il
+   fait de body le conteneur de defilement de reference pour tout descendant
+   en position:sticky. Or body ne defile pas — c'est le document qui defile.
+   Resultat : plage de collage nulle, et .se-action (chrono de repos, barre de
+   progression, bouton Terminer) restait plante en bas d'une seance de 50
+   exercices au lieu de se coller au-dessus de la barre d'onglets. Mesure :
+   avec overflow-y:auto sur body, .se-action est a 5396 px du haut de la fenetre
+   quand on est en haut de la liste ; sans, a 727 px, soit visible. */
+html{overflow-y:auto;overscroll-behavior-y:contain}
+body{overscroll-behavior-y:contain}
 </style>
 <div class="overlay" id="up-ov"><div class="sheet" style="text-align:center">
   <div class="grab"></div>
-  <div style="line-height:1;margin:6px 0 10px"><svg class="ic ic-xl" style="color:#D4AF37"><use href="#i-lock"/></svg></div>
+  <div style="line-height:1;margin:6px 0 10px"><svg class="ic ic-xl" style="color:#D9B65C"><use href="#i-lock"/></svg></div>
   <h3 data-i18n="up_title">Passe en Premium</h3>
   <p class="fk" id="up-sub" style="margin-bottom:14px">—</p>
   <div data-i18n="sub_name" style="font-size:11.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px">Coach DM Premium</div>
@@ -2603,7 +2623,7 @@ const T = {
  ld_err_name:{fr:'Indique ton nom.',en:'Enter your name.',nl:'Vul je naam in.'},
  ld_err_email:{fr:'Indique un email valide.',en:'Enter a valid email.',nl:'Vul een geldig e-mailadres in.'},
  ld_err_rate:{fr:'Tu as d\u00e9j\u00e0 envoy\u00e9 plusieurs demandes. Laisse-moi le temps de te r\u00e9pondre.',en:'You already sent several requests. Give me time to reply.',nl:'Je stuurde al meerdere aanvragen. Geef me tijd om te antwoorden.'},
- ld_err_coach:{fr:'Tu es suivi par un coach : passe par lui dans la messagerie.',en:'You are followed by a coach: reach out to them in the chat.',nl:'Je wordt door een coach begeleid: neem contact op via de chat.'},
+ ld_err_coach:{fr:'Tu es suivi par un coach : passe par lui dans la messagerie.',en:'You already have a coach: reach out to them in the chat.',nl:'Je wordt door een coach begeleid: neem contact op via de chat.'},
  ld_err:{fr:'Envoi impossible. R\u00e9essaie dans un instant.',en:'Could not send. Try again shortly.',nl:'Verzenden mislukt. Probeer straks opnieuw.'},
  go_title:{fr:'Mes objectifs',en:'My goals',nl:'Mijn doelen'},
  go_new:{fr:'Objectif',en:'Goal',nl:'Doel'},
@@ -2726,7 +2746,7 @@ const T = {
  co_place:{fr:'place',en:'spot',nl:'plaats'},
  co_places:{fr:'places',en:'spots',nl:'plaatsen'},
  co_none_up:{fr:'Aucun cours programmé pour le moment.',en:'No classes scheduled yet.',nl:'Nog geen lessen gepland.'},
- co_none_mine:{fr:'Aucune réservation. Ouvre « À venir » juste au-dessus pour prendre ta place.',en:'No bookings. Open “Upcoming” just above to grab your spot.',nl:'Geen reservaties. Open “Binnenkort” hierboven om je plaats te nemen.'},
+ co_none_mine:{fr:'Aucune réservation. Ouvre « À venir » juste au-dessus pour prendre ta place.',en:'No bookings. Open “Upcoming” just above to grab your spot.',nl:'Geen reservaties. Open “Komend” hierboven om je plaats te nemen.'},
  co_cancel_closed:{fr:'Annulation fermée (trop proche du début).',en:'Cancellation closed (too close to start).',nl:'Annuleren gesloten (te dicht bij de start).'},
  co_booked_ok:{fr:'Réservé ✓',en:'Booked ✓',nl:'Gereserveerd ✓'},
  co_wl_ok:{fr:"Ajouté à la liste d'attente",en:'Added to the waitlist',nl:'Op de wachtlijst gezet'},
@@ -2758,7 +2778,7 @@ const T = {
  day_p_i:{fr:'Mesuré ce matin dans l\u2019Analyse Squat, sur ton profil charge-vitesse personnel. Seuls le squat et ses variantes sont ajustés — les autres mouvements gardent ton record habituel.',en:'Measured today in Squat Analysis, from your personal load-velocity profile. Only the squat and its variations are adjusted — other lifts keep your usual record.',nl:'Vandaag gemeten in Squat-analyse, op je persoonlijke belasting-snelheidsprofiel. Alleen de squat en varianten worden aangepast — andere oefeningen behouden je gewone record.'},
  day_p_g:{fr:'Mesuré ce matin dans l\u2019Analyse Squat, sur le profil charge-vitesse générique (Sánchez-Medina 2010). Mesure 3 séries à des charges différentes pour passer sur ton profil personnel.',en:'Measured today in Squat Analysis, from the generic load-velocity profile (Sánchez-Medina 2010). Measure 3 sets at different loads to switch to your personal profile.',nl:'Vandaag gemeten in Squat-analyse, op het generieke belasting-snelheidsprofiel (Sánchez-Medina 2010). Meet 3 sets met verschillende belastingen om over te schakelen op je persoonlijke profiel.'},
  day_chip:{fr:'jour',en:'today',nl:'vandaag'},
- day_stale_p:{fr:'Ton profil vitesse estime ton 1RM de squat à <b>{p} kg</b>. Ton record enregistré est de <b>{r} kg</b>. Si c\u2019est cohérent avec ce que tu ressens à la barre, enregistre-le — sinon tu t\u2019entraînes trop léger.',en:'Your velocity profile estimates your squat 1RM at <b>{p} kg</b>. Your saved record is <b>{r} kg</b>. If that matches what you feel under the bar, save it — otherwise you are training too light.',nl:'Je snelheidsprofiel schat je squat-1RM op <b>{p} kg</b>. Je opgeslagen record is <b>{r} kg</b>. Als dat klopt met wat je onder de bar voelt, sla het op — anders train je te licht.'},
+ day_stale_p:{fr:'Ton profil vitesse estime ton 1RM de squat à <b>{p} kg</b>. Ton record enregistré est de <b>{r} kg</b>. Si c\u2019est cohérent avec ce que tu ressens à la barre, enregistre-le — sinon tu t\u2019entraînes trop léger.',en:'Your velocity profile estimates your squat 1RM at <b>{p} kg</b>. Your saved record is <b>{r} kg</b>. If that matches what you feel under the bar, save it — otherwise you are training too light.',nl:'Je snelheidsprofiel schat je squat-1RM op <b>{p} kg</b>. Je opgeslagen record is <b>{r} kg</b>. Als dat klopt met wat je onder de stang voelt, sla het op — anders train je te licht.'},
  day_stale_b:{fr:'Enregistrer {p} kg comme nouveau record',en:'Save {p} kg as my new record',nl:'{p} kg opslaan als nieuw record'},
  day_stale_ok:{fr:'Record mis à jour',en:'Record updated',nl:'Record bijgewerkt'},
  pr_lift:{fr:'Mouvement',en:'Movement',nl:'Beweging'},
@@ -2962,7 +2982,7 @@ const T = {
  btn_cancel:{fr:'Annuler',en:'Cancel',nl:'Annuleren'},
  pf_sources:{fr:'Sources scientifiques',en:'Scientific sources',nl:'Wetenschappelijke bronnen'},
  src_sub:{fr:'Les recommandations de l\u2019app s\u2019appuient sur ces r\u00e9f\u00e9rences publiques.',en:'The app\u2019s recommendations are based on these public references.',nl:'De aanbevelingen van de app zijn gebaseerd op deze publieke referenties.'},
- src_mifflin:{fr:'D\u00e9pense \u00e9nerg\u00e9tique de repos \u2014 base du calcul des calories et macros. Am J Clin Nutr.',en:'Resting energy expenditure \u2014 basis of calorie and macro calculations. Am J Clin Nutr.',nl:'Rustmetabolisme \u2014 basis van de calorie\u00eb n- en macroberekeningen. Am J Clin Nutr.'},
+ src_mifflin:{fr:'D\u00e9pense \u00e9nerg\u00e9tique de repos \u2014 base du calcul des calories et macros. Am J Clin Nutr.',en:'Resting energy expenditure \u2014 basis of calorie and macro calculations. Am J Clin Nutr.',nl:'Rustmetabolisme \u2014 basis van de calorie\u00ebn- en macroberekeningen. Am J Clin Nutr.'},
  src_schoenfeld:{fr:'Cin\u00e9matique et cin\u00e9tique du squat \u2014 standards de profondeur. J Strength Cond Res.',en:'Squat kinematics and kinetics \u2014 depth standards. J Strength Cond Res.',nl:'Kinematica en kinetiek van de squat \u2014 dieptestandaarden. J Strength Cond Res.'},
  src_vbt:{fr:'Vitesse d\u2019ex\u00e9cution comme mesure d\u2019intensit\u00e9 \u2014 base des analyses VBT. Int J Sports Med.',en:'Movement velocity as a measure of intensity \u2014 basis of the VBT analyses. Int J Sports Med.',nl:'Uitvoeringssnelheid als intensiteitsmaat \u2014 basis van de VBT-analyses. Int J Sports Med.'},
  src_samozino:{fr:'Profil force-vitesse et performance balistique \u2014 base de l\u2019analyse de saut. Scand J Med Sci Sports.',en:'Force-velocity profile and ballistic performance \u2014 basis of the jump analysis. Scand J Med Sci Sports.',nl:'Kracht-snelheidsprofiel en ballistische prestatie \u2014 basis van de spronganalyse. Scand J Med Sci Sports.'},
@@ -2995,7 +3015,7 @@ const T = {
  an_squat:{fr:'Analyse Squat',en:'Squat Analysis',nl:'Squatanalyse'},
  an_squat_sub:{fr:'Gratuit : reps + parall\u00e8le \u00b7 Pro : dos, valgus, vitesse (VBT)',en:'Free: reps + parallel \u00b7 Pro: torso, valgus, speed (VBT)',nl:'Gratis: reps + parallel \u00b7 Pro: romp, valgus, snelheid (VBT)'},
  an_jump:{fr:'Test de Saut',en:'Jump Test',nl:'Sprongtest'},
- an_jump_sub:{fr:'Gratuit : hauteur en cm \u00b7 Pro : Profil Force-Vitesse',en:'Free: height in cm \u00b7 Pro: Force-Velocity profile',nl:'Gratis: hoogte in cm \u00b7 Pro: Kracht-Snelheid profiel'},
+ an_jump_sub:{fr:'Gratuit : hauteur en cm \u00b7 Pro : Profil Force-Vitesse',en:'Free: height in cm \u00b7 Pro: Force-Velocity profile',nl:'Gratis: hoogte in cm \u00b7 Pro: Kracht-Snelheidsprofiel'},
  an_bar:{fr:'Analyse Barre',en:'Barbell Analysis',nl:'Barbell-analyse'},
  an_bar_sub:{fr:'Gratuit : reps + bar path live \u00b7 Pro : vitesse pic & d\u00e9viation',en:'Free: reps + live bar path \u00b7 Pro: peak velocity & deviation',nl:'Gratis: reps + live bar path \u00b7 Pro: pieksnelheid & afwijking'},
  an_run:{fr:'Analyse Course',en:'Running Analysis',nl:'Loopanalyse'},
@@ -3012,7 +3032,7 @@ const T = {
     fonction payante introuvable dans l'App Store. */
  an_squat_sub_n:{fr:'Reps, profondeur et parall\u00e8le en direct',en:'Reps, depth and parallel, live',nl:'Reps, diepte en parallel, live'},
  an_jump_sub_n:{fr:'Hauteur de saut en centim\u00e8tres',en:'Jump height in centimetres',nl:'Spronghoogte in centimeter'},
- an_bar_sub_n:{fr:'Reps et trajectoire de barre en direct',en:'Reps and live bar path',nl:'Reps en live barpad'},
+ an_bar_sub_n:{fr:'Reps et trajectoire de barre en direct',en:'Reps and live bar path',nl:'Reps en live stangbaan'},
  an_run_sub_n:{fr:'Cadence et nombre de pas',en:'Cadence and step count',nl:'Cadans en aantal stappen'},
  an_hyrox_sub_n:{fr:'Reps, no-reps et cadence',en:'Reps, no-reps and cadence',nl:'Reps, no-reps en cadans'},
  pf_week:{fr:'Semaine',en:'Week',nl:'Week'},
@@ -3143,7 +3163,7 @@ const T = {
  f_cal:{fr:'Calories',en:'Calories',nl:'Calorieën'},
  err_pwd_min:{fr:'Mot de passe : 6 caractères minimum.',en:'Password: 6 characters minimum.',nl:'Wachtwoord: minimaal 6 tekens.'},
  signup_confirm:{fr:'Compte créé. Vérifie ta boîte mail pour confirmer, puis connecte-toi.',en:'Account created. Check your email to confirm, then log in.',nl:'Account aangemaakt. Bevestig via je e-mail en log dan in.'},
- auth_invalid:{fr:'Email ou mot de passe incorrect.',en:'Wrong email or password.',nl:'Verkeerd e-mail of wachtwoord.'},
+ auth_invalid:{fr:'Email ou mot de passe incorrect.',en:'Wrong email or password.',nl:'Verkeerd e-mailadres of wachtwoord.'},
  auth_exists:{fr:'Cette adresse a déjà un compte. Connecte-toi — ou touche « Mot de passe oublié ».',en:'This address already has an account. Log in — or tap “Forgot password”.',nl:'Dit adres heeft al een account. Log in — of tik op “Wachtwoord vergeten”.'},
  auth_unconfirmed:{fr:'Confirme ton email avant de te connecter.',en:'Confirm your email before logging in.',nl:'Bevestig je e-mail voor je inlogt.'},
  pw_forgot:{fr:'Mot de passe oublié ?',en:'Forgot your password?',nl:'Wachtwoord vergeten?'},
@@ -3358,7 +3378,18 @@ function applyI18n(){
 function renderLangBtns(){ document.querySelectorAll('#lang-seg button, #auth-lang button').forEach(b=>b.classList.toggle('on', b.dataset.lang===LANG)); }
 function setLang(l){
   if(!['fr','en','nl'].includes(l)) return;
+  const changed = (LANG !== l);
   LANG=l; localStorage.setItem('cdm_lang',l);
+  /* La langue ne vivait QUE dans le localStorage de l'appareil. profiles.locale
+     restait donc figé sur sa valeur d'inscription : au 18/08/2026, les 28
+     membres étaient tous marqués 'fr', y compris ceux qui utilisent l'app en
+     néerlandais. Impossible dans ces conditions d'écrire à quelqu'un dans sa
+     langue — ni un e-mail, ni une notification, ni un plan macros.
+     On persiste le choix. Silencieux et sans await : si la requête échoue,
+     l'app garde le comportement d'avant, elle ne casse rien. */
+  if(changed && typeof USER!=='undefined' && USER && USER.id){
+    try{ sb.from('profiles').update({ locale:l }).eq('id',USER.id).then(()=>{},()=>{}); }catch(_){}
+  }
   applyI18n(); renderLangBtns();
   try{ if(typeof loadToday==='function' && USER) loadToday(); }catch(e){}
   const active=document.querySelector('.nav button.on')?.dataset.tab;
@@ -3374,7 +3405,7 @@ function applyTheme(){
   const dark = resolvedDark();
   const r = dark ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', r);
-  const tc=document.getElementById('meta-tc'); if(tc) tc.setAttribute('content', dark?'#050807':'#F4F7F5');
+  const tc=document.getElementById('meta-tc'); if(tc) tc.setAttribute('content', dark?'#070A08':'#F4F7F5');
   const cs=document.getElementById('meta-cs'); if(cs) cs.setAttribute('content', r);
   renderThemeBtns();
 }
@@ -5218,7 +5249,10 @@ async function wnMaybeShow(){
 
   const b=document.getElementById('wn-body'); if(!b) return;
   let keys=wnKeys();
-  if(T['wn_subs_t'] && await wnHasSubs()) keys=keys.concat(['subs']);
+  /* 'subs_' et non 'subs' : les entrees du dictionnaire sont wn_subs_t et
+     wn_subs_d. Avec 'subs' on demandait wn_subst / wn_subsd, absents, et
+     t() renvoie alors la cle elle-meme — le point 8 affichait « wn_subst ». */
+  if(T['wn_subs_t'] && await wnHasSubs()) keys=keys.concat(['subs_']);
   const items=keys.map((k,idx)=>`<div class="wn-i">
     <div class="wn-n">${idx+1}</div>
     <div><div class="wn-t">${t('wn_'+k+'t')}</div><div class="wn-d">${t('wn_'+k+'d')}</div></div>
@@ -5743,7 +5777,7 @@ async function loadHomeCours(){
       <b>${t('hc_title')}</b><span>${t('hc_all')}</span>
     </div>
     ${rows.map(c=>`<div class="hc-row">
-      <i class="hc-dot" style="background:${esc(c.color||'#00FFA3')}"></i>
+      <i class="hc-dot" style="background:${esc(c.color||'#00E896')}"></i>
       <span class="hc-nm">${esc(pick(c,'name')||'Cours')}</span>
       ${c.my_status==='waitlist'?`<span class="hc-wait">${t('hc_waitlist')}</span>`:''}
       <span class="hc-when">${esc(fmtCallAt(c.starts_at))}</span>
@@ -7067,7 +7101,7 @@ function renderTrends(){
   let target='';
   if(tgtK && tgtK<maxY){
     const ty=PT+ih-ih*tgtK/maxY;
-    target=`<line x1="${PL}" y1="${ty.toFixed(1)}" x2="${W-PR}" y2="${ty.toFixed(1)}" stroke="var(--amber,#D4AF37)" stroke-width="1.6" stroke-dasharray="5 4"/>`;
+    target=`<line x1="${PL}" y1="${ty.toFixed(1)}" x2="${W-PR}" y2="${ty.toFixed(1)}" stroke="var(--amber,#D9B65C)" stroke-width="1.6" stroke-dasharray="5 4"/>`;
   }
   body.innerHTML=`
     <svg class="tr-chart" viewBox="0 0 ${W} ${H}" role="img">${bars}${target}${labels}</svg>
@@ -7250,12 +7284,12 @@ async function loadMyPlan(){
 
 const TYPE_L={strength:{fr:'Force',en:'Strength',nl:'Kracht'},hypertrophy:{fr:'Hypertrophie',en:'Hypertrophy',nl:'Hypertrofie'},hiit:{fr:'HIIT',en:'HIIT',nl:'HIIT'},hyrox:{fr:'Hyrox',en:'Hyrox',nl:'Hyrox'},conditioning:{fr:'Conditionnement',en:'Conditioning',nl:'Conditie'},mobility:{fr:'Mobilité',en:'Mobility',nl:'Mobiliteit'},football:{fr:'Football',en:'Football',nl:'Voetbal'},full_body:{fr:'Full body',en:'Full body',nl:'Full body'},emom:{fr:'EMOM',en:'EMOM',nl:'EMOM'},amrap:{fr:'AMRAP',en:'AMRAP',nl:'AMRAP'},for_time:{fr:'For time',en:'For time',nl:'For time'},circuit:{fr:'Circuit',en:'Circuit',nl:'Circuit'}};
 const typeL=(x)=>{const o=TYPE_L[x];return o?(o[LANG]||o.fr):(x||'');};
-const TYPE_COLOR={strength:'#00FFA3',hypertrophy:'#00FFA3',hiit:'#EF4444',hyrox:'#38BDF8',conditioning:'#F59E0B',mobility:'#10B981',football:'#10B981',full_body:'#00FFA3'};
+const TYPE_COLOR={strength:'#00E896',hypertrophy:'#00E896',hiit:'#EF4444',hyrox:'#38BDF8',conditioning:'#F59E0B',mobility:'#00E896',football:'#00E896',full_body:'#00E896'};
 const DIFF_L={beginner:{fr:'Débutant',en:'Beginner',nl:'Beginner'},intermediate:{fr:'Intermédiaire',en:'Intermediate',nl:'Gemiddeld'},advanced:{fr:'Avancé',en:'Advanced',nl:'Gevorderd'}};
 const diffL=(x)=>{const o=DIFF_L[x];return o?(o[LANG]||o.fr):'';};
 const BLOCK_L={activation:{fr:'Activation',en:'Activation',nl:'Activatie'},sprint_plyo:{fr:'Sprint / Plyo',en:'Sprint / Plyo',nl:'Sprint / Plyo'},strength:{fr:'Force',en:'Strength',nl:'Kracht'},accessory:{fr:'Accessoire',en:'Accessory',nl:'Accessoire'},conditioning:{fr:'Conditionnement',en:'Conditioning',nl:'Conditie'},recovery:{fr:'Récupération',en:'Recovery',nl:'Herstel'}};
 const blockL=(x)=>{const o=BLOCK_L[x];return o?(o[LANG]||o.fr):(x||'');};
-const BLOCK_COLOR={activation:'#38BDF8',sprint_plyo:'#A78BFA',strength:'#E9C767',accessory:'#10B981',conditioning:'#EF4444',recovery:'#10B981'};
+const BLOCK_COLOR={activation:'#38BDF8',sprint_plyo:'#A78BFA',strength:'#D9B65C',accessory:'#00E896',conditioning:'#EF4444',recovery:'#00E896'};
 const MUSCLE_L={chest:{fr:'Pectoraux',en:'Chest',nl:'Borst'},back:{fr:'Dos',en:'Back',nl:'Rug'},lats:{fr:'Dorsaux',en:'Lats',nl:'Lats'},traps:{fr:'Trapèzes',en:'Traps',nl:'Trapezius'},shoulders:{fr:'Épaules',en:'Shoulders',nl:'Schouders'},biceps:{fr:'Biceps',en:'Biceps',nl:'Biceps'},triceps:{fr:'Triceps',en:'Triceps',nl:'Triceps'},forearms:{fr:'Avant-bras',en:'Forearms',nl:'Onderarmen'},quads:{fr:'Quadriceps',en:'Quads',nl:'Quadriceps'},hamstrings:{fr:'Ischios',en:'Hamstrings',nl:'Hamstrings'},glutes:{fr:'Fessiers',en:'Glutes',nl:'Bilspieren'},calves:{fr:'Mollets',en:'Calves',nl:'Kuiten'},adductors:{fr:'Adducteurs',en:'Adductors',nl:'Adductoren'},abductors:{fr:'Abducteurs',en:'Abductors',nl:'Abductoren'},core:{fr:'Gainage',en:'Core',nl:'Core'},full_body:{fr:'Full body',en:'Full body',nl:'Full body'},cardio:{fr:'Cardio',en:'Cardio',nl:'Cardio'}};
 const muscleL=(x)=>{const o=MUSCLE_L[x];return o?(o[LANG]||o.fr):(x||'');};
 /* H#37 — le materiel doit etre lisible : c'est LA raison pour laquelle on
@@ -7263,7 +7297,7 @@ const muscleL=(x)=>{const o=MUSCLE_L[x];return o?(o[LANG]||o.fr):(x||'');};
 const EQUIP_L={bodyweight:{fr:'Poids du corps',en:'Bodyweight',nl:'Lichaamsgewicht'},none:{fr:'Sans matériel',en:'No equipment',nl:'Zonder materiaal'},barbell:{fr:'Barre',en:'Barbell',nl:'Barbell'},dumbbell:{fr:'Haltères',en:'Dumbbells',nl:'Dumbbells'},kettlebell:{fr:'Kettlebell',en:'Kettlebell',nl:'Kettlebell'},bands:{fr:'Élastiques',en:'Bands',nl:'Elastieken'},machine:{fr:'Machine',en:'Machine',nl:'Machine'},cable:{fr:'Poulie',en:'Cable',nl:'Kabel'},pullup_bar:{fr:'Barre de traction',en:'Pull-up bar',nl:'Optrekstang'},box:{fr:'Box',en:'Box',nl:'Box'},bench:{fr:'Banc',en:'Bench',nl:'Bank'},rower:{fr:'Rameur',en:'Rower',nl:'Roeimachine'},skierg:{fr:'SkiErg',en:'SkiErg',nl:'SkiErg'},sled:{fr:'Traîneau',en:'Sled',nl:'Slee'},sandbag:{fr:'Sandbag',en:'Sandbag',nl:'Sandbag'},medicine_ball:{fr:'Medicine ball',en:'Medicine ball',nl:'Medicijnbal'},jump_rope:{fr:'Corde à sauter',en:'Jump rope',nl:'Springtouw'},trap_bar:{fr:'Trap bar',en:'Trap bar',nl:'Trap bar'}};
 const equipL=(x)=>{const o=EQUIP_L[x];return o?(o[LANG]||o.fr):(x||'');};
 const SEV={success:{c:'--fiber',i:'✓'},warning:{c:'--prot',i:'✗'},info:{c:'--carb',i:'ⓘ'},tactic:{c:'--fat',i:'⚑'}};
-const typeColor=(t)=>TYPE_COLOR[t]||'#00FFA3';
+const typeColor=(t)=>TYPE_COLOR[t]||'#00E896';
 function ytId(u){ if(!u) return null; const m=String(u).match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/); return m?m[1]:null; }
 const MUSCLE_ICON={chest:'i-m-push',shoulders:'i-m-push',triceps:'i-m-push',back:'i-m-pull',lats:'i-m-pull',traps:'i-m-pull',biceps:'i-m-pull',forearms:'i-m-pull',quads:'i-m-legs',hamstrings:'i-m-legs',glutes:'i-m-legs',calves:'i-m-legs',adductors:'i-m-legs',abductors:'i-m-legs',core:'i-m-core',cardio:'i-m-cardio',full_body:'i-m-full'};
 const TYPE_MOTIF={strength:'t-str',hypertrophy:'t-str',hiit:'t-bolt',hyrox:'t-pulse',conditioning:'t-timer',mobility:'t-wave',football:'t-bolt',full_body:'t-str'};
@@ -7527,10 +7561,10 @@ const PROG_INFO={
    d:{fr:'Préparation Hyrox. Les 8 stations et les 8 km de course, à l’intensité de la compétition.',en:'Hyrox prep. The 8 stations and the 8 km of running, at race intensity.',nl:'Hyrox-voorbereiding. De 8 stations en 8 km lopen, op wedstrijdintensiteit.'},
    f:{fr:'tu as une Hyrox à l’agenda, ou tu veux ce type d’endurance.',en:'you have a Hyrox booked, or want that kind of endurance.',nl:'je hebt een Hyrox gepland, of wil dat soort uithouding.'}},
  'engine-amrap-10w':{
-   d:{fr:'Capacité de travail en AMRAP. Apprendre à tenir un rythme long sans exploser à la troisième minute.',en:'Work capacity through AMRAPs. Learning to hold a pace without blowing up at minute three.',nl:'Werkcapaciteit via AMRAPs. Leren een tempo vasthouden zonder te ontploffen.'},
+   d:{fr:'Capacité de travail en AMRAP. Apprendre à tenir un rythme long sans exploser à la troisième minute.',en:'Work capacity through AMRAPs. Learning to hold a pace without blowing up at minute three.',nl:'Werkcapaciteit via AMRAP\'s. Leren een tempo vasthouden zonder te ontploffen.'},
    f:{fr:'tu t’écroules au bout de quelques minutes et tu veux durer.',en:'you fall apart after a few minutes and want to last.',nl:'je zakt na enkele minuten in elkaar en wil langer doorgaan.'}},
  'metcon-emom-8w':{
-   d:{fr:'Conditionnement en EMOM. Séances courtes et denses : plus tu vas vite, plus tu récupères.',en:'Conditioning through EMOMs. Short, dense sessions: the faster you go, the more you rest.',nl:'Conditie via EMOMs. Korte, dichte sessies: hoe sneller je bent, hoe meer rust.'},
+   d:{fr:'Conditionnement en EMOM. Séances courtes et denses : plus tu vas vite, plus tu récupères.',en:'Conditioning through EMOMs. Short, dense sessions: the faster you go, the more you rest.',nl:'Conditie via EMOM\'s. Korte, dichte sessies: hoe sneller je bent, hoe meer rust.'},
    f:{fr:'tu as peu de temps et tu veux quand même de l’intensité.',en:'you are short on time but still want intensity.',nl:'je hebt weinig tijd maar wil toch intensiteit.'}},
  'fat-burner-10w':{
    d:{fr:'Perte de gras. Circuits, HIIT et force alternés pour dépenser sans fondre le muscle.',en:'Fat loss. Circuits, HIIT and strength alternated to burn without melting muscle.',nl:'Vetverlies. Circuits, HIIT en kracht afgewisseld om te verbranden zonder spierverlies.'},
@@ -7589,15 +7623,15 @@ const AN_INFO={
    h:{fr:'À 2-3 m, corps entier dans l’image. De côté pour la profondeur et le dos, de face pour les genoux. 3 répétitions suffisent.',en:'2-3 m away, whole body in frame. Side-on for depth and back, front-on for knees. 3 reps is enough.',nl:'Op 2-3 m, volledig lichaam in beeld. Zijwaarts voor diepte en rug, frontaal voor de knieën. 3 herhalingen volstaan.'},
    g:{fr:'Répétitions et parallèle dans les deux vues. De côté : profondeur, dos arrondi, inclinaison du buste, vitesse. De face : valgus des genoux.',en:'Reps and parallel in both views. Side-on: depth, back rounding, torso lean, speed. Front-on: knee valgus.',nl:'Herhalingen en parallel in beide standen. Zijwaarts: diepte, ronde rug, romphelling, snelheid. Frontaal: knievalgus.'}},
  'saut.html':{ sec:20, lex:['fv_profile'],
-   d:{fr:'La hauteur réelle de ton saut, au centimètre, et ce qui te limite.',en:'Your true jump height, to the centimetre, and what limits it.',nl:'Je echte sprunghoogte, tot op de centimeter.'},
+   d:{fr:'La hauteur réelle de ton saut, au centimètre, et ce qui te limite.',en:'Your true jump height, to the centimetre, and what limits it.',nl:'Je echte spronghoogte, tot op de centimeter.'},
    h:{fr:'Téléphone de face, à 3 m, bien stable. Deux sauts maximum, sans élan.',en:'Phone facing you, 3 m away, held steady. Two max jumps, no run-up.',nl:'Telefoon frontaal, 3 m, stabiel. Twee maximale sprongen, zonder aanloop.'},
    g:{fr:'Hauteur en cm, temps de contact au sol, et ton profil force-vitesse.',en:'Height in cm, ground contact time, and your force-velocity profile.',nl:'Hoogte in cm, contacttijd, en je kracht-snelheidsprofiel.'}},
  'barre.html':{ sec:30, lex:['bar_path','vbt'],
    d:{fr:'La trajectoire de ta barre et la vitesse de chaque répétition.',en:'Your bar path and the speed of every rep.',nl:'Je stangbaan en de snelheid van elke herhaling.'},
    h:{fr:'Téléphone de côté, perpendiculaire à la barre, à 2-3 m. Filme la série entière.',en:'Phone side-on, perpendicular to the bar, 2-3 m away. Film the whole set.',nl:'Telefoon opzij, loodrecht op de stang, 2-3 m. Film de hele set.'},
-   g:{fr:'La ligne de la barre tracée en direct, la déviation en cm, la vitesse pic.',en:'The bar line drawn live, drift in cm, and peak velocity.',nl:'De stanglijn live getekend, afwijking in cm, piek­snelheid.'}},
+   g:{fr:'La ligne de la barre tracée en direct, la déviation en cm, la vitesse pic.',en:'The bar line drawn live, drift in cm, and peak velocity.',nl:'De stanglijn live getekend, afwijking in cm, pieksnelheid.'}},
  'course.html':{ sec:20, lex:['overstride'],
-   d:{fr:'Ta cadence, la longueur de tes foulées et la façon dont tu poses le pied.',en:'Your cadence, stride length and how your foot lands.',nl:'Je cadans, pasl engte en hoe je voet landt.'},
+   d:{fr:'Ta cadence, la longueur de tes foulées et la façon dont tu poses le pied.',en:'Your cadence, stride length and how your foot lands.',nl:'Je cadans, paslengte en hoe je voet landt.'},
    h:{fr:'Sur tapis, téléphone de côté à 2-3 m. Ou fais-toi filmer 20 s en courant de profil.',en:'On a treadmill, phone side-on 2-3 m away. Or have someone film you 20 s from the side.',nl:'Op een loopband, telefoon opzij op 2-3 m. Of laat je 20 s van opzij filmen.'},
    g:{fr:'Pas par minute, oscillation verticale, et si tu poses le pied trop loin devant.',en:'Steps per minute, vertical oscillation, and whether you land too far ahead.',nl:'Stappen per minuut, verticale oscillatie, en of je te ver voor je landt.'}},
  'hyrox.html':{ sec:60, lex:[],
@@ -8668,7 +8702,7 @@ const SHOP=[
    {n:'Summer Body Burn 8W',d:'Définition + tonus. MetCon + hypertrophie.',p:'29,99 €',u:'https://payhip.com/b/UtnrG'},
    {n:'Shred 6W',d:'Perte rapide. Max 45 min. EMOM + Tabata.',p:'24,99 €',u:'https://payhip.com/b/R0Fgt'}
  ]},
- {cat:'Force',color:'#00FFA3',items:[
+ {cat:'Force',color:'#00E896',items:[
    {n:'Strength Cycle 8W',d:'Force pure. Squat · Bench · Deadlift. PR semaine 8.',p:'29,99 €',u:'https://payhip.com/b/8neIR'},
    {n:'Core Master 6W',d:'Gainage 360°. Force spinale, stabilité.',p:'22,99 €',u:'https://payhip.com/b/mUZMk'},
    {n:'Mind & Body 8W',d:'Fitness + bien-être. Mobilité + santé durable.',p:'24,99 €',u:'https://payhip.com/b/KxkEy'},
@@ -8683,18 +8717,18 @@ const SHOP=[
    {n:'Functional Performance 12W',d:'Force + puissance + endurance. 4 phases.',p:'34,99 €',u:'https://payhip.com/b/CA2jG'},
    {n:'Compete Ready 16W',d:'Prépa compétition. Peaking + Taper.',p:'44,99 €',u:'https://payhip.com/b/U8nek'}
  ]},
- {cat:'Sport',color:'#10B981',items:[
+ {cat:'Sport',color:'#00E896',items:[
    {n:'Football Performance 16W',d:'Pré-saison + en saison. Sprint · COD · LCA.',p:'39,99 €',u:'https://payhip.com/b/5Oo2i'},
    {n:'Endurance Athlete 8W',d:'Zone 2 + VO2max + seuil. Moteur cardio.',p:'27,99 €',u:'https://payhip.com/b/eRJxv'},
    {n:'Athlete Mind 12W',d:'Performance athlétique complète. Tous sports.',p:'34,99 €',u:'https://payhip.com/b/Z9gHi'},
    {n:'Explosive Power 6W',d:'Plyométrie + sprint. Plus haut, plus vite.',p:'27,99 €',u:'https://payhip.com/b/v5x2N'}
  ]},
- {cat:'Voyage / Maison',color:'#D4AF37',items:[
+ {cat:'Voyage / Maison',color:'#D9B65C',items:[
    {n:'Bodyweight Warrior 8W',d:'Zéro équipement. Hôtel · plage · partout.',p:'24,99 €',u:'https://payhip.com/b/i2byn'},
    {n:'Holiday Fit 4W',d:'Hôtel ou extérieur. 16 séances · 24 pages.',p:'19,99 €',u:'https://payhip.com/b/0s3JV'}
  ]}
 ];
-const SHOP_PERSO={n:'Programme personnalisé',d:'100% sur mesure. Consultation 30-60 min, PDF premium sous 3-5 jours.',p:'150-280 €',u:'mailto:doudouh.coaching@gmail.com?subject=Programme%20Personnalis%C3%A9%20-%20Coach%20DM'};
+const SHOP_PERSO={n:'Programme personnalisé',d:'100% sur mesure. Consultation 30-60 min, PDF premium sous 3-5 jours.',p:'150-280 €',u:'mailto:contact@coachdm.be?subject=Programme%20Personnalis%C3%A9%20-%20Coach%20DM'};
 let SHOP_DONE=false;
 function loadBoutique(){
   if(SHOP_DONE) return;
@@ -8780,7 +8814,7 @@ function renderCours(){
   rows.forEach(c=>{
     const day=coDay(c.starts_at);
     if(day!==lastDay){ h+=`<div class="co-day">${esc(day)}</div>`; lastDay=day; }
-    const col=c.color||'#00FFA3';
+    const col=c.color||'#00E896';
     const cancelled=c.status==='cancelled';
     const booked=c.my_status==='booked'||c.my_status==='waitlist';
     const invitedOnly=c.my_invited && !booked;
@@ -9280,7 +9314,7 @@ const LEX = {
   emom:{
     n:{fr:'EMOM',en:'EMOM',nl:'EMOM'},
     s:{fr:'chaque minute, une nouvelle série',en:'every minute on the minute',nl:'elke minuut op de minuut'},
-    d:{fr:'Tu démarres le travail au top de chaque minute. Ce que tu finis en avance devient ton repos — plus tu es rapide, plus tu souffles.',en:'You start the work at the top of every minute. Whatever time you save becomes your rest — the faster you are, the more you breathe.',nl:'Je start het werk bij elke minuut. Wat je vroeger klaar bent, is je rust — hoe sneller, hoe meer adem.'},
+    d:{fr:'Tu démarres le travail au top de chaque minute. Ce que tu finis en avance devient ton repos — plus tu es rapide, plus tu souffles.',en:'You start the work at the top of every minute. Whatever time you save becomes your rest — the faster you are, the more you breathe.',nl:'Je start het werk bij elke minuut. De tijd die je overhoudt, is je rust — hoe sneller, hoe meer adem.'},
     e:{fr:'EMOM 10 × 5 burpees : 5 burpees en 40 s → 20 s de repos, puis ça recommence.',en:'EMOM 10 × 5 burpees: 5 burpees in 40 s → 20 s rest, then it starts again.',nl:'EMOM 10 × 5 burpees: 5 burpees in 40 s → 20 s rust, dan opnieuw.'} },
   amrap:{
     n:{fr:'AMRAP',en:'AMRAP',nl:'AMRAP'},
@@ -9324,10 +9358,10 @@ const LEX = {
   bar_path:{
     n:{fr:'Trajectoire de barre',en:'Bar path',nl:'Stangbaan'},
     s:{fr:'le chemin que dessine la barre',en:'the line the bar draws',nl:'de lijn die de stang tekent'},
-    d:{fr:'Une barre efficace monte presque droit. Si elle part vers l’avant, tu dépenses de la force à la ramener au lieu de la monter — et ton dos encaisse la différence.',en:'An efficient bar goes up almost vertically. Drift forward and you spend force pulling it back instead of up — and your back pays the difference.',nl:'Een efficiënte stang gaat bijna recht omhoog. Drift naar voren kost kracht en belast je rug.'},
+    d:{fr:'Une barre efficace monte presque droit. Si elle part vers l’avant, tu dépenses de la force à la ramener au lieu de la monter — et ton dos encaisse la différence.',en:'An efficient bar goes up almost vertically. Drift forward and you spend force pulling it back instead of up — and your back pays the difference.',nl:'Een efficiënte stang gaat bijna recht omhoog. Afwijking naar voren kost kracht en belast je rug.'},
     e:{fr:'L’app trace la ligne en direct par-dessus la vidéo : tu vois la déviation en centimètres.',en:'The app draws the line live over the video: you see the drift in centimetres.',nl:'De app tekent de lijn live over de video.'} },
   overstride:{
-    n:{fr:'Overstride',en:'Overstriding',nl:'Overstriden'},
+    n:{fr:'Overstride',en:'Overstriding',nl:'Overstride'},
     s:{fr:'poser le pied trop loin devant',en:'landing too far in front',nl:'te ver voor je landen'},
     d:{fr:'Le pied se pose devant le bassin, talon en premier. Chaque foulée freine au lieu de propulser, et le choc remonte dans le genou. C’est la cause la plus fréquente de douleurs chez le coureur.',en:'The foot lands ahead of the hips, heel first. Every stride brakes instead of propelling, and the shock travels up the knee. The most common source of runner’s pain.',nl:'De voet landt voor de heupen, hiel eerst. Elke pas remt in plaats van voort te stuwen.'},
     e:{fr:'Le remède tient souvent en un seul réglage : augmenter la cadence de 5 %.',en:'The fix is often one adjustment: raise your cadence by 5 %.',nl:'De oplossing is vaak één aanpassing: verhoog je cadans met 5 %.'} },

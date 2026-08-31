@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#050807" />
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#050807" />
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#070A08" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#070A08" />
 <title>Coach DM · Console Coach</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
@@ -14,12 +14,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#050807; --bg-2:#0A0F0C;
+    --bg:#070A08; --bg-2:#0A0F0C;
     --surface:#0E1512; --surface-2:#17201C; --line:rgba(255,255,255,.10);
     --text:#FFFFFF; --muted:#7FAE97;
-    --brand:#00FFA3; --brand-2:#00D98A; --brand-soft:rgba(0,255,160,.14);
-    --ok:#34D399; --warn:#FF5C5C; --amber:#D4AF37;
-    --gold-hi:#FBF3D0; --gold:#E9C767; --gold-mid:#D4A73C; --gold-deep:#9A6E1B;
+    --brand:#00E896; --brand-2:#00D98A; --brand-soft:rgba(0,255,160,.14);
+    --ok:#34D399; --warn:#FF5C5C; --amber:#D9B65C;
+    --gold-hi:#FBF3D0; --gold:#D9B65C; --gold-mid:#D4A73C; --gold-deep:#9A6E1B;
     --gold-soft:rgba(212,167,60,.14); --on-gold:#3a2b08;
     --shadow:0 16px 44px rgba(0,0,0,.5); --shadow-soft:0 8px 22px rgba(0,0,0,.4);
     --glow:0 0 22px rgba(0,255,160,.45);
@@ -87,7 +87,7 @@
   .pill.ok{background:rgba(16,185,129,.15);color:var(--ok)}
   .pill.no{background:rgba(239,68,68,.13);color:var(--warn)}
   .pill.role{background:var(--brand-soft);color:var(--brand)}
-  .pill.warnp{background:rgba(245,158,11,.16);color:#D4AF37}
+  .pill.warnp{background:rgba(245,158,11,.16);color:#D9B65C}
   .pill.vid{background:rgba(56,189,248,.16);color:#0ea5e9}
 
   .toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
@@ -211,7 +211,7 @@
       +'<div style="font-size:34px;margin-bottom:12px">\u26A0\uFE0F</div>'
       +'<div style="font-weight:800;font-size:18px;color:#fff;margin-bottom:9px">'+M[0]+'</div>'
       +'<div style="margin-bottom:22px">'+M[1]+'</div>'
-      +'<button type="button" onclick="location.reload()" style="background:#00FFA3;color:#04120c;border:0;border-radius:999px;padding:13px 28px;font-weight:800;font-size:15px;cursor:pointer">'+M[2]+'</button>'
+      +'<button type="button" onclick="location.reload()" style="background:#00E896;color:#04120c;border:0;border-radius:999px;padding:13px 28px;font-weight:800;font-size:15px;cursor:pointer">'+M[2]+'</button>'
       +'</div>';
   }, 15000);
   window.__cdmOK = function(){ if(window.__cdmWatch){ clearTimeout(window.__cdmWatch); window.__cdmWatch=null; } };
@@ -539,7 +539,7 @@
   /* Pastille de conformite : vert a jour, orange decroche, rouge decroche depuis
      longtemps, gris invitation en attente. */
   .cdot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none;margin-right:7px;vertical-align:1px}
-  .cdot.g{background:var(--ok)} .cdot.o{background:#D4AF37}
+  .cdot.g{background:var(--ok)} .cdot.o{background:#D9B65C}
   .cdot.r{background:var(--warn)} .cdot.n{background:var(--muted);opacity:.55}
 
   /* Guide de démarrage. Un coach qui ouvre la console pour la première fois
@@ -603,7 +603,7 @@
   #pane-cours .btn.red, #cours-ov .btn.red{background:var(--warn)}
   #pane-cours .pill, #cours-ov .pill{display:inline-block;font-size:12px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap;text-transform:none;letter-spacing:0}
   #pane-cours .pill.ok, #cours-ov .pill.ok{background:rgba(16,185,129,.15);color:var(--ok)}
-  #pane-cours .pill.warn, #cours-ov .pill.warn{background:rgba(245,158,11,.16);color:#D4AF37}
+  #pane-cours .pill.warn, #cours-ov .pill.warn{background:rgba(245,158,11,.16);color:#D9B65C}
   #pane-cours .pill.full, #cours-ov .pill.full{background:rgba(239,68,68,.14);color:var(--warn)}
   #pane-cours .pill.cancel, #cours-ov .pill.cancel{background:var(--surface-2);color:var(--muted)}
   #pane-cours .pill.vio, #cours-ov .pill.vio{background:var(--brand-soft);color:var(--brand)}
@@ -1294,7 +1294,7 @@ async function openClientDetail(cid){
   if(n7.length){
     const cible = nt ? +nt.daily_calories_kcal : 0;
     const moy = Math.round(n7.reduce((s,x)=>s+(+x.total_kcal||0),0)/n7.length);
-    h+=`<div class="cd-sec" style="--a:var(--carb,#E9C767)"><div class="mini">Nutrition — 7 derniers jours</div>
+    h+=`<div class="cd-sec" style="--a:var(--carb,#D9B65C)"><div class="mini">Nutrition — 7 derniers jours</div>
       ${sparkBars(n7.map(x=>+x.total_kcal||0), cible)}
       ${cible?`<div class="cd-row"><span class="l">Moyenne</span><span class="r"><b>${moy} kcal</b> · cible ${r0(cible)} ${deltaTxt(moy-cible,' kcal')}</span></div>`:''}
       ${n7.map(x=>{
@@ -2076,7 +2076,7 @@ $('#fdn-save').onclick = async ()=>{
 
 /* Palette d'accents dérivée du nom (type/catégorie) : pas de table à
    entretenir manuellement, une couleur stable par valeur. */
-const ACCENTS=['#00FFA3','#E9C767','#7F77DD','#0ea5e9','#FF8A66','#5DCAA5','#D46FB0','#F2B84B'];
+const ACCENTS=['#00E896','#D9B65C','#7F77DD','#0ea5e9','#FF8A66','#5DCAA5','#D46FB0','#F2B84B'];
 function accentFor(key){ let h=0; const s=String(key||''); for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return ACCENTS[h%ACCENTS.length]; }
 
 /* ---- EXERCICES : bibliothèque commune (le coach peut y contribuer) ---- */
@@ -2702,7 +2702,7 @@ $('#comp-save').onclick = async ()=>{
       const full=it.spots_left<=0, cancelled=it.status==='cancelled';
       const pc=cancelled?'cancel':full?'full':'ok';
       const ptxt=cancelled?tr('b_cancelled2'):`${it.booked_count}/${it.capacity}`;
-      const col=it.color||'#00FFA3';
+      const col=it.color||'#00E896';
       h+=`<div class="card inst row" data-id="${it.id}" style="gap:12px">
         <div class="accent" style="background:${esc(col)}"></div>
         <div style="flex:1">
@@ -2806,7 +2806,7 @@ $('#comp-save').onclick = async ()=>{
     if(!TEMPLATES.length)h+='<div class="center"><span data-i18n="b_no_tpl_class">Aucun cours modèle.</span></div>';
     TEMPLATES.forEach(t=>{
       h+=`<div class="card row" style="gap:12px">
-        <div class="accent" style="background:${esc(t.color||'#00FFA3')}"></div>
+        <div class="accent" style="background:${esc(t.color||'#00E896')}"></div>
         <div style="flex:1">
           <div class="title">${esc(t.name_fr)} ${t.kind==='personal_training'?'<span class="pill vio">PT</span>':''} ${t.is_active?'':'<span class="pill cancel">inactif</span>'}</div>
           <div class="sub">Cap. ${t.default_capacity} · ${t.default_duration_min} min${t.location?' · '+esc(t.location):''}</div>
@@ -2836,7 +2836,7 @@ $('#comp-save').onclick = async ()=>{
      <div class="grid2"><div><label><span data-i18n="g_capacity_def">Capacité défaut</span></label><input id="t_cap" type="number" min="1" value="${e.default_capacity||12}"></div>
      <div><label><span data-i18n="g_duration_min">Durée (min)</span></label><input id="t_dur" type="number" min="5" value="${e.default_duration_min||60}"></div></div>
      <div class="grid2"><div><label>Lieu</label><input id="t_loc" value="${esc(e.location)}"></div>
-     <div><label>Couleur</label><input id="t_col" type="text" value="${esc(e.color||'#00FFA3')}"></div></div>
+     <div><label>Couleur</label><input id="t_col" type="text" value="${esc(e.color||'#00E896')}"></div></div>
      <label>Actif</label><select id="t_act"><option value="true" ${e.is_active!==false?'selected':''}>Oui</option><option value="false" ${e.is_active===false?'selected':''}>Non</option></select>
      <div class="row" style="margin-top:18px;gap:8px">
        ${t.id?'<button class="btn red sec sm" id="t_del"><span data-i18n="b_delete">Supprimer</span></button>':''}
@@ -2858,7 +2858,7 @@ $('#comp-save').onclick = async ()=>{
         description_fr:$('#d_fr').value.trim()||null,description_en:$('#d_en').value.trim()||null,description_nl:$('#d_nl').value.trim()||null,
         cover_image_url:$('#t_img').value.trim()||null,default_capacity:+$('#t_cap').value||12,
         default_duration_min:+$('#t_dur').value||60,location:$('#t_loc').value.trim()||null,
-        color:$('#t_col').value.trim()||'#00FFA3',is_active:$('#t_act').value==='true'};
+        color:$('#t_col').value.trim()||'#00E896',is_active:$('#t_act').value==='true'};
       const q=t.id?sb.from('class_templates').update(p).eq('id',t.id):sb.from('class_templates').insert(p);
       const {error}=await q;
       if(error){toast('Échec enregistrement');return;}
@@ -2888,7 +2888,7 @@ $('#comp-save').onclick = async ()=>{
      <div class="grid2"><div><label><span data-i18n="g_duration_min">Durée (min)</span></label><input id="s_dur" type="number" min="5" value="${e.default_duration_min||60}"></div>
      <div><label><span data-i18n="g_capacity">Capacité</span></label><input id="s_cap" type="number" min="1" value="${e.default_capacity||12}"></div></div>
      <div class="grid2"><div><label>Lieu</label><input id="s_loc" value="${esc(e.location)}"></div>
-     <div><label>Couleur</label><input id="s_col" value="${esc(e.color||'#00FFA3')}"></div></div>
+     <div><label>Couleur</label><input id="s_col" value="${esc(e.color||'#00E896')}"></div></div>
      <label><span data-i18n="g_repeat">Répéter chaque (laisse vide = séance unique)</span></label>
      <div class="chips" id="s_days">${days.map(d=>`<button data-d="${d[0]}">${d[1]}</button>`).join('')}</div>
      <label>Pendant combien de semaines</label><input id="s_weeks" type="number" min="1" max="26" value="4">
@@ -2933,7 +2933,7 @@ $('#comp-save').onclick = async ()=>{
       const base={template_id:t.id||null,coach_id:ME,kind:$('#s_kind').value,name_fr:fr,
         name_en:$('#s_en').value.trim()||null,name_nl:$('#s_nl').value.trim()||null,
         description_fr:e.description_fr||null,description_en:e.description_en||null,description_nl:e.description_nl||null,
-        cover_image_url:e.cover_image_url||null,color:$('#s_col').value.trim()||'#00FFA3',
+        cover_image_url:e.cover_image_url||null,color:$('#s_col').value.trim()||'#00E896',
         location:$('#s_loc').value.trim()||null,capacity:+$('#s_cap').value||12,
         visibility:$('#s_vis').value||'private',
         cancel_cutoff_min_before:+$('#s_cut').value||0,checkin_opens_min_before:+$('#s_chk').value||0};
@@ -2974,6 +2974,6 @@ document.querySelectorAll('#c-lang button').forEach(b=>{
 
 boot();
 </script>
-<a id="cdm-backapp" href="app.html" style="position:fixed;left:14px;bottom:14px;z-index:9999;background:#0c1210;color:#00FFA3;border:1px solid #1e2a25;border-radius:999px;padding:10px 16px;font:600 14px/1 -apple-system,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.4)">&#8249; App</a>
+<a id="cdm-backapp" href="app.html" style="position:fixed;left:14px;bottom:14px;z-index:9999;background:#0c1210;color:#00E896;border:1px solid #1e2a25;border-radius:999px;padding:10px 16px;font:600 14px/1 -apple-system,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.4)">&#8249; App</a>
 </body>
 </html>
