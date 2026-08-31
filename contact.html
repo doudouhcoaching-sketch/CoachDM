@@ -467,7 +467,8 @@ body, p, li, td, th, input, textarea, select, label, small{ font-family:var(--fo
         <option>Question / Information</option>
       </select>
       <textarea id="fm" placeholder="Décris tes objectifs... / Describe your goals... / Beschrijf je doelen..."></textarea>
-      <button type="submit" class="csb t" data-fr="📧 Envoyer le Message →" data-en="📧 Send Message →" data-nl="📧 Stuur Bericht →">📧 Envoyer le Message →</button>
+      <input type="text" id="fhp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+      <button type="submit" class="csb t" data-fr="Envoyer le message →" data-en="Send message →" data-nl="Bericht versturen →">Envoyer le message →</button>
       <p id="fmsg" style="margin-top:9px;font-size:12px;color:var(--g);display:none"></p>
     </form>
     <div class="ci">
@@ -602,21 +603,76 @@ function filt(cat) {
   }
 }
 
+var SB_URL = 'https://kkcmhviyvttwpaclrjmv.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtrY21odml5dnR0d3BhY2xyam12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0NDU5MTcsImV4cCI6MjA5NDAyMTkxN30.mwCdcfhWwkbKh6IqtTRwmPHFLLhnOai-lqRyI06OCoY';
+
 function hForm(e) {
   e.preventDefault();
-  var n = document.getElementById('fn').value;
-  var em = document.getElementById('fe').value;
-  var t = document.getElementById('ft').value;
-  var s = document.getElementById('fs').value;
-  var m = document.getElementById('fm').value;
-  var sub = encodeURIComponent('Contact Coach DM — ' + s);
-  var body = encodeURIComponent('Nom: ' + n + '\nEmail: ' + em + '\nTél: ' + t + '\nDemande: ' + s + '\n\nMessage:\n' + m);
-  window.location.href = 'mailto:contact@coachdm.be?subject=' + sub + '&body=' + body;
-  var msg = document.getElementById('fmsg');
-  msg.style.display = 'block';
-  msg.textContent = '✓ Email ouvert. Envoie le message depuis ton application mail.';
-  setTimeout(function() { msg.style.display = 'none'; }, 6000);
+  var form = e.target;
+  var msg  = document.getElementById('fmsg');
+  var btn  = form.querySelector('button[type="submit"]');
+  var hp   = document.getElementById('fhp');
+  var L    = (typeof lang !== 'undefined' && lang) ? lang : 'fr';
+
+  var TXT = {
+    fr: { sending:'Envoi en cours…',
+          ok:'\u2713 Message bien reçu. Je te réponds sous 24 h.',
+          rate:'Tu as déjà envoyé plusieurs messages. Réessaie dans une heure.',
+          mail:'Cette adresse e-mail ne semble pas valide.',
+          err:'Envoi impossible pour le moment. Écris-moi à contact@coachdm.be.' },
+    en: { sending:'Sending…',
+          ok:'\u2713 Message received. I reply within 24 hours.',
+          rate:'You have already sent several messages. Try again in an hour.',
+          mail:'That email address does not look valid.',
+          err:'Could not send right now. Email me at contact@coachdm.be.' },
+    nl: { sending:'Bezig met verzenden…',
+          ok:'\u2713 Bericht ontvangen. Ik antwoord binnen 24 uur.',
+          rate:'Je hebt al meerdere berichten gestuurd. Probeer het over een uur opnieuw.',
+          mail:'Dit e-mailadres lijkt niet geldig.',
+          err:'Verzenden lukt nu niet. Mail me op contact@coachdm.be.' }
+  };
+  var M = TXT[L] || TXT.fr;
+
+  if (hp && hp.value) { return; }
+
+  function show(t, c) { msg.style.display = 'block'; msg.style.color = c; msg.textContent = t; }
+  show(M.sending, '#8FA398');
+  if (btn) { btn.disabled = true; btn.style.opacity = '.6'; }
+
+  fetch(SB_URL + '/rest/v1/rpc/submit_website_lead', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({
+      p_name:    document.getElementById('fn').value,
+      p_email:   document.getElementById('fe').value,
+      p_phone:   document.getElementById('ft').value,
+      p_goal:    document.getElementById('fs').value,
+      p_message: document.getElementById('fm').value,
+      p_lang:    L
+    })
+  })
+  .then(function (r) {
+    if (r.ok) {
+      show(M.ok, '#00E896');
+      form.reset();
+      if (window.gtag) { gtag('event', 'generate_lead', { method: 'formulaire_site' }); }
+      return null;
+    }
+    return r.text().then(function (t) {
+      if (t.indexOf('rate_limited') > -1)      { show(M.rate, '#F5A524'); }
+      else if (t.indexOf('invalid_email') > -1) { show(M.mail, '#F5A524'); }
+      else                                      { show(M.err,  '#FF5C5C'); }
+    });
+  })
+  .catch(function () { show(M.err, '#FF5C5C'); })
+  .then(function () { if (btn) { btn.disabled = false; btn.style.opacity = '1'; } });
 }
+
 
 // Scroll animations
 function revealOnScroll() {
