@@ -1025,10 +1025,15 @@
 :root{ --font-display:'Barlow Condensed','Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
 h1, h2,
 .hh-hello, .hero-name, .sp-name, .wod-name, .wod-num,
-.kcal, .plan-price, .rest-num, .qz-res-n, .se-d-title{
+.kcal, .plan-price, .rest-num, .qz-res-n, .se-d-title,
+.mrow-val{
   font-family: var(--font-display);
   letter-spacing: .012em;
 }
+/* Les grammes des macros passent en condensee comme le reste des chiffres,
+   et en chasse fixe pour que les colonnes s'alignent d'une ligne a l'autre. */
+.mrow-val{font-variant-numeric:tabular-nums;font-size:15px}
+.mrow-val b{font-weight:600;font-size:17px}
 </style>
 </head>
 <body>
@@ -1676,16 +1681,16 @@ h1, h2,
 
   <!-- NAV -->
   <div class="nav">
-    <button class="on" data-tab="home"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg></span><span data-i18n="nav_home">Accueil</span><span class="nav-dot" id="nav-unread" hidden></span></button>
+    <button class="on" data-tab="home"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="6"><g class="tr"><path d="M.5 8.6h2.3M.5 12h3.3M.5 15.4h2.3"/></g><g transform="translate(3.2 0) skewX(-10)"><path d="M3.3 11.5 10.5 4.4h3l7.2 7.1M5.7 12.7v7.9h12.6v-7.9M9.9 20.6v-5.5h4.2v5.5"/></g></svg></span><span data-i18n="nav_home">Accueil</span><span class="nav-dot" id="nav-unread" hidden></span></button>
     <!-- B#8 : l'icone suivait le mot « Journal » (un carnet). Avec « Repas »,
          des couverts disent la meme chose que le libelle, en un coup d'oeil. -->
-    <button data-tab="journal"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v8a2 2 0 0 0 4 0V3"/><path d="M8 11v10"/><path d="M17 3c-1.7 1-2.5 2.8-2.5 5s.8 3.3 2.5 3.5V21"/></svg></span><span data-i18n="nav_journal">Repas</span></button>
-    <button data-tab="seances"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg></span><span data-i18n="nav_seances">Séances</span></button>
+    <button data-tab="journal"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="6"><g class="tr"><path d="M.5 8.6h2.3M.5 12h3.3M.5 15.4h2.3"/></g><g transform="translate(3.2 0) skewX(-10)"><path d="M5 4.1v3.7M7.2 4.1v3.7M9.4 4.1v3.7M5 7.8h4.4v1.5l-1.3 1.3v9.4H6.3V10.6L5 9.3zM15.3 4.1 17.8 6.6v4.4l-1.3 1.3v7.8h-1.2z"/></g></svg></span><span data-i18n="nav_journal">Repas</span></button>
+    <button data-tab="seances"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="6"><g class="tr"><path d="M.5 8.6h2.3M.5 12h3.3M.5 15.4h2.3"/></g><g transform="translate(3.2 0) skewX(-10)"><path d="M2.1 11.1h1.8v1.8H2.1zM20.1 11.1h1.8v1.8h-1.8M4.7 8.5 6 7.2h1.9l1.3 1.3v7l-1.3 1.3H6l-1.3-1.3zM14.8 8.5l1.3-1.3H18l1.3 1.3v7L18 16.8h-1.9l-1.3-1.3zM9.2 12h5.6"/></g></svg></span><span data-i18n="nav_seances">Séances</span></button>
     <!-- C#15 : l'analyse video, sortie de sa cachette. -->
-    <button data-tab="analyse"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l4.5-5 3 3L15 9l6 7"/><circle cx="8" cy="6.5" r="1.6"/><rect x="2.5" y="3.5" width="19" height="17" rx="2.5"/></svg></span><span data-i18n="nav_analyse">Analyse</span></button>
-    <button data-tab="cours"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg></span><span data-i18n="nav_cours">Cours</span></button>
-    <button data-tab="ia"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg></span><span data-i18n="nav_ia">Coach IA</span></button>
-    <button data-tab="profile"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></span><span data-i18n="nav_profile">Profil</span></button>
+    <button data-tab="analyse"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="6"><g class="tr"><path d="M.5 8.6h2.3M.5 12h3.3M.5 15.4h2.3"/></g><g transform="translate(3.2 0) skewX(-10)"><path d="M4 9.2V4h5.2M14.8 4H20v5.2M20 14.8V20h-5.2M9.2 20H4v-5.2M12 7.6l1.5 1.5L12 10.6l-1.5-1.5zM12 11.2v3.3M9.5 12.5 12 11.6l2.5.9M9.9 17.9 12 14.4l2.1 3.5"/></g></svg></span><span data-i18n="nav_analyse">Analyse</span></button>
+    <button data-tab="cours"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="6"><g class="tr"><path d="M.5 8.6h2.3M.5 12h3.3M.5 15.4h2.3"/></g><g transform="translate(3.2 0) skewX(-10)"><path d="M4.3 5.9h13.5l1.9 1.9v12H4.3zM4.3 10.3h15.4M8.6 3.4v3.8M15.4 3.4v3.8M10.6 13.3h2.8v2.8h-2.8z"/></g></svg></span><span data-i18n="nav_cours">Cours</span></button>
+    <button data-tab="ia"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="6"><g class="tr"><path d="M.5 8.6h2.3M.5 12h3.3M.5 15.4h2.3"/></g><g transform="translate(3.2 0) skewX(-10)"><path d="M3.7 5h16.6v10.8H9.6l-4.3 3.7v-3.7H3.7zM12 7.7l1.35 2.5 2.5 1.35-2.5 1.35L12 15.4l-1.35-2.5-2.5-1.35 2.5-1.35z"/></g></svg></span><span data-i18n="nav_ia">Coach IA</span></button>
+    <button data-tab="profile"><span class="ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="6"><g class="tr"><path d="M.5 8.6h2.3M.5 12h3.3M.5 15.4h2.3"/></g><g transform="translate(3.2 0) skewX(-10)"><path d="M10.3 4.9h3.4l1.9 1.9v3.3l-1.9 1.9h-3.4L8.4 10.1V6.8zM4.8 20.5v-2.3l3.5-2.7h7.4l3.5 2.7v2.3"/></g></svg></span><span data-i18n="nav_profile">Profil</span></button>
   </div>
 </div>
 
@@ -2408,6 +2413,18 @@ h1, h2,
    quand on est en haut de la liste ; sans, a 727 px, soit visible. */
 html{overflow-y:auto;overscroll-behavior-y:contain}
 body{overscroll-behavior-y:contain}
+
+/* ===== Onglets « Vitesse » ===== -------------------------------------------
+   Icones rectilignes inclinees a 10 degres, tirees du monogramme DM.
+   Le sillage n'apparait que sur l'onglet actif : il EST le marqueur d'etat.
+   Il remplace donc l'ancien cadre vert et l'ancien point, qui faisaient
+   double emploi. L'or signale l'identite, le menthe reste pour l'action. */
+.nav button.on{color:var(--gold);background:transparent;box-shadow:none}
+:root[data-theme="light"] .nav button.on{color:var(--gold-deep);background:transparent;box-shadow:none}
+.nav button.on::after{display:none}
+.nav button .ic svg .tr{opacity:0;transform:translateX(3px);transition:opacity .2s ease,transform .2s ease}
+.nav button.on .ic svg .tr{opacity:.6;transform:none}
+@media (prefers-reduced-motion:reduce){.nav button .ic svg .tr{transition:none}}
 </style>
 <div class="overlay" id="up-ov"><div class="sheet" style="text-align:center">
   <div class="grab"></div>
