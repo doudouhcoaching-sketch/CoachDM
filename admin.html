@@ -866,8 +866,18 @@ async function loadNotifs(){
     if(n.kind==='new_subscription') txt='Nouvel abonnement '+esc(p.tier||'')+(p.amount_cents?(' — '+(p.amount_cents/100).toFixed(2).replace('.',',')+' €'):'');
     else if(n.kind==='coach_promoted') txt='Nouveau coach : '+esc(p.full_name||p.email||'')+' ('+esc(p.tier||'')+')';
     else if(n.kind==='coach_plan_canceled') txt='Plan coach annulé';
+    /* Les demandes venant du site et de l'app tombaient dans le cas par defaut
+       et s'affichaient en clair technique (« website_lead »). Elles portent
+       pourtant tout ce qu'il faut pour agir : qui, quoi, et son adresse. */
+    else if(n.kind==='website_lead' || n.kind==='coach_lead'){
+      const src = n.kind==='website_lead' ? 'Message du site' : 'Demande de coaching';
+      txt = '<b>'+src+'</b> — '+esc(p.name||'sans nom')
+          + (p.goal ? ' · '+esc(p.goal) : '')
+          + (p.email ? '<br><a href="mailto:'+esc(p.email)+'" style="color:var(--brand)">'+esc(p.email)+'</a>' : '')
+          + (p.message ? '<br><span style="color:var(--muted)">« '+esc(String(p.message).slice(0,140))+' »</span>' : '');
+    }
     else txt=esc(n.kind);
-    return '<div style="padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px;display:flex;justify-content:space-between;gap:10px"><span>'+txt+'</span><span style="color:var(--muted);font-size:12px;white-space:nowrap">'+when+'</span></div>';
+    return '<div style="padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start;line-height:1.5"><span>'+txt+'</span><span style="color:var(--muted);font-size:12px;white-space:nowrap">'+when+'</span></div>';
   }).join('');
   const cl=$('#notif-clear');
   if(cl) cl.onclick = async ()=>{ try{ await sb.from('admin_notifications').update({read:true}).eq('read',false); }catch(e){} loadNotifs(); };
