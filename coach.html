@@ -693,6 +693,16 @@ h1, h2,
   .thr .pv{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
   .thr.unread .pv{color:var(--text);font-weight:500}
   .thr .wh{font-size:11px;color:var(--muted);flex:0 0 auto;padding-top:4px;white-space:nowrap}
+/* Les clients sans aucun echange restent accessibles mais sous une barre :
+   sinon dix lignes « pas encore de message » enterrent les deux vraies
+   conversations, et l'onglet devient un annuaire au lieu d'une boite. */
+  .msg-sep{display:flex;align-items:center;gap:10px;margin:20px 2px 11px;
+    font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .msg-sep::after{content:"";flex:1;height:1px;background:var(--line)}
+  .thr.cold{background:transparent;box-shadow:none;padding:11px 14px}
+  .thr.cold .av{opacity:.65}
+  .thr.cold .nm{font-weight:600;color:var(--muted)}
+  .thr.cold .pv{display:none}
   .chat-sub{font-size:11.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 html{overflow-y:auto;overscroll-behavior-y:contain}
@@ -734,6 +744,7 @@ const T = {
  c_msg_photo:{fr:'Photo',en:'Photo',nl:'Foto'},
  c_msg_video:{fr:'Vidéo',en:'Video',nl:'Video'},
  c_msg_start:{fr:'Pas encore de message — lance la discussion.',en:'No message yet — start the conversation.',nl:'Nog geen bericht — begin het gesprek.'},
+ c_msg_sep:{fr:'Démarrer une conversation',en:'Start a conversation',nl:'Een gesprek starten'},
  c_msg_none_t:{fr:'Aucune conversation',en:'No conversation',nl:'Geen gesprek'},
  c_msg_none_d:{fr:'Ajoute un client dans l\'onglet Clients : la messagerie s\'ouvre dès qu\'il est lié à ton compte.',en:'Add a client in the Clients tab: messaging opens as soon as they are linked to your account.',nl:'Voeg een klant toe in het tabblad Klanten: de berichten openen zodra hij aan je account is gekoppeld.'},
  t_now:{fr:'à l\'instant',en:'just now',nl:'zonet'},
@@ -1928,24 +1939,31 @@ function renderThreadList(){
      premiere ligne est toujours celle qui attend une reponse. */
   const rows = CLIST.map(c=>{
     const th = THREADS[c.client_id] || null;
-    return { c:c, th:th, unread:(th ? +th.unread||0 : 0), at:(th && th.last_at ? new Date(th.last_at).getTime() : 0),
+    const at = (th && th.last_at ? new Date(th.last_at).getTime() : 0);
+    const unread = th ? +th.unread||0 : 0;
+    return { c:c, th:th, unread:unread, at:at, live:(at>0 || unread>0),
              name:(c.full_name || c.email || '') };
   }).sort((a,b)=>{
     if((a.unread>0) !== (b.unread>0)) return a.unread>0 ? -1 : 1;
     if(b.at !== a.at) return b.at - a.at;
     return a.name.localeCompare(b.name);
   });
-  box.innerHTML = rows.map(r=>{
+  const row = (r)=>{
     const nm = r.name || '—';
     const ini = (nm.trim()[0] || '?').toUpperCase();
+    const cold = !r.live;
     const badge = r.unread > 0 ? '<span class="ct">'+(r.unread>99?'99+':r.unread)+'</span>' : '';
     const when = r.th && r.th.last_at ? '<div class="wh">'+esc(relTime(r.th.last_at))+'</div>' : '';
-    return '<div class="thr'+(r.unread>0?' unread':'')+'" data-cid="'+r.c.client_id+'" data-name="'+esc(nm)+'">'
+    return '<div class="thr'+(r.unread>0?' unread':'')+(cold?' cold':'')+'" data-cid="'+r.c.client_id+'" data-name="'+esc(nm)+'">'
       + '<div class="av">'+esc(ini)+'</div>'
       + '<div class="thb"><div class="nm"><span class="n">'+esc(nm)+'</span>'+badge+'</div>'
       + '<div class="pv">'+esc(threadPreview(r.th))+'</div></div>'
       + when + '</div>';
-  }).join('');
+  };
+  const live = rows.filter(r=>r.live);
+  const cold = rows.filter(r=>!r.live).sort((a,b)=>a.name.localeCompare(b.name));
+  box.innerHTML = live.map(row).join('')
+    + (cold.length ? '<div class="msg-sep">'+esc(tr('c_msg_sep'))+'</div>'+cold.map(row).join('') : '');
   box.querySelectorAll('.thr').forEach(el=>{
     el.onclick = ()=> openChatGated(el.dataset.cid, el.dataset.name);
   });
