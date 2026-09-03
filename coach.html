@@ -264,6 +264,7 @@ h1, h2,
     </div>
     <div class="tabs">
       <button class="on" data-tab="clients" data-i18n="c_tab_clients">Clients</button>
+      <button data-tab="messages"><span data-i18n="c_tab_msgs">Messages</span><i class="tcnt" id="tab-msg-cnt" hidden></i></button>
       <button data-tab="workouts" data-i18n="c_tab_workouts">Séances</button>
       <button data-tab="cours" data-i18n="c_tab_classes">Cours</button>
     </div>
@@ -276,6 +277,12 @@ h1, h2,
       <div id="cl-cap"></div>
       <button class="btn" style="margin-bottom:14px" id="cl-new" data-i18n="c_add_client">＋ Ajouter un client</button>
       <div id="cl-list"><div class="spin"></div></div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div class="pane" id="pane-messages">
+      <p id="msg-hint" data-i18n="c_msg_hint">Toutes tes conversations, les non lues en premier. Touche une ligne pour lire et répondre.</p>
+      <div id="msg-list"><div class="spin"></div></div>
     </div>
 
     <!-- SÉANCES -->
@@ -510,7 +517,10 @@ h1, h2,
   <div class="sheet" style="display:flex;flex-direction:column">
     <div class="grab"></div>
     <div class="chat-head">
-      <h3 id="ch-name" style="margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></h3>
+      <div style="flex:1;min-width:0">
+        <h3 id="ch-name" style="margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></h3>
+        <div class="chat-sub" id="ch-sub"></div>
+      </div>
       <button class="btn subtle sm" id="ch-close" style="width:auto" data-i18n="c_close">Fermer</button>
     </div>
     <div class="chat-body" id="ch-body"></div>
@@ -653,6 +663,38 @@ h1, h2,
 /* overflow-y:auto sur <body> ferait de body le conteneur de defilement de
    reference pour les descendants en position:sticky, et body ne defile pas :
    la barre collante ne collerait jamais. On le garde sur <html> seul. */
+
+/* ===== Onglet Messages =====================================================
+   Le chat existait deja, mais il fallait quatre gestes pour l'atteindre :
+   Clients -> fiche -> descendre -> Messages. Cet onglet est le raccourci :
+   toutes les conversations au meme endroit, les non lues en tete. */
+  .tabs button{position:relative;font-size:13.5px;padding:11px 6px;white-space:nowrap}
+/* Le compteur deborde du bouton, comme une pastille iOS : il ne prend pas de
+   place dans le libelle et ne peut donc jamais le pousser sur deux lignes. */
+  .tcnt{position:absolute;top:0;right:3px;transform:translate(35%,-38%);
+    display:grid;place-items:center;min-width:18px;height:18px;padding:0 5px;
+    border-radius:99px;background:var(--warn);color:#fff;font-size:10.5px;font-weight:800;font-style:normal;
+    line-height:1;box-shadow:0 0 0 2px var(--bg)}
+  .tcnt[hidden]{display:none}
+  @media (max-width:370px){ .tabs{gap:6px} .tabs button{font-size:12.5px;padding:11px 4px} }
+  #msg-hint{font-size:12.5px;color:var(--muted);margin:0 2px 13px;line-height:1.5}
+  .thr{display:flex;align-items:flex-start;gap:11px;background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius-sm);box-shadow:var(--shadow-soft);padding:13px 14px;margin-bottom:9px;cursor:pointer}
+/* Le non-lu se voit au bord et au fond, pas seulement a la pastille : on doit
+   pouvoir compter les conversations en attente sans lire une seule ligne. */
+  .thr.unread{border-color:rgba(0,232,150,.45);background:linear-gradient(180deg,rgba(0,232,150,.07),rgba(0,232,150,.02))}
+  .thr .av{width:38px;height:38px;border-radius:11px;background:var(--surface-2);display:grid;place-items:center;
+    font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--gold);flex:0 0 auto}
+  .thr .thb{flex:1;min-width:0}
+  .thr .nm{display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:700;color:var(--text);min-width:0}
+  .thr .nm .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .thr .ct{flex:0 0 auto;display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 6px;
+    border-radius:99px;background:var(--warn);color:#fff;font-size:11px;font-weight:800;line-height:1}
+  .thr .pv{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+  .thr.unread .pv{color:var(--text);font-weight:500}
+  .thr .wh{font-size:11px;color:var(--muted);flex:0 0 auto;padding-top:4px;white-space:nowrap}
+  .chat-sub{font-size:11.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
 html{overflow-y:auto;overscroll-behavior-y:contain}
 body{overscroll-behavior-y:contain}
 </style>
@@ -686,6 +728,15 @@ const T = {
  c_signout:{fr:'Se déconnecter',en:'Sign out',nl:'Uitloggen'},
  c_logout:{fr:'Déconnexion',en:'Sign out',nl:'Uitloggen'},
  c_tab_clients:{fr:'Clients',en:'Clients',nl:'Klanten'},
+ c_tab_msgs:{fr:'Messages',en:'Messages',nl:'Berichten'},
+ c_msg_hint:{fr:'Toutes tes conversations, les non lues en premier. Touche une ligne pour lire et répondre.',en:'All your conversations, unread first. Tap a row to read and reply.',nl:'Al je gesprekken, ongelezen eerst. Tik op een regel om te lezen en te antwoorden.'},
+ c_msg_you:{fr:'Toi :',en:'You:',nl:'Jij:'},
+ c_msg_photo:{fr:'Photo',en:'Photo',nl:'Foto'},
+ c_msg_video:{fr:'Vidéo',en:'Video',nl:'Video'},
+ c_msg_start:{fr:'Pas encore de message — lance la discussion.',en:'No message yet — start the conversation.',nl:'Nog geen bericht — begin het gesprek.'},
+ c_msg_none_t:{fr:'Aucune conversation',en:'No conversation',nl:'Geen gesprek'},
+ c_msg_none_d:{fr:'Ajoute un client dans l\'onglet Clients : la messagerie s\'ouvre dès qu\'il est lié à ton compte.',en:'Add a client in the Clients tab: messaging opens as soon as they are linked to your account.',nl:'Voeg een klant toe in het tabblad Klanten: de berichten openen zodra hij aan je account is gekoppeld.'},
+ t_now:{fr:'à l\'instant',en:'just now',nl:'zonet'},
  c_tab_workouts:{fr:'Séances',en:'Workouts',nl:'Trainingen'},
  c_tab_classes:{fr:'Cours',en:'Classes',nl:'Lessen'},
  c_add_client:{fr:'＋ Ajouter un client',en:'＋ Add a client',nl:'＋ Klant toevoegen'},
@@ -1125,6 +1176,7 @@ function switchTab(t){
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
   $('#pane-'+t).classList.add('active');
   document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  if(t==='messages'){ renderMsgAll(); loadThreads().then(renderMsgAll); }
   if(t==='workouts' && !window.__wkLoaded){ window.__wkLoaded=true; loadExercises(); loadWorkouts(); }
   if(t==='cours' && window.__coursOpen){ window.__coursOpen(); }
 }
@@ -1154,6 +1206,7 @@ async function loadClientList(){
   renderDash();
   renderCap();
   renderClientList();
+  renderMsgAll();
 }
 
 /* Les quatre chiffres qui repondent a "qu'est-ce qui m'attend ce matin ?".
@@ -1813,6 +1866,92 @@ async function loadThreads(){
     THREADS={}; (data||[]).forEach(t=>{ THREADS[t.peer_id]=t; });
   }catch(e){}
 }
+
+/* ===================================================================
+   MESSAGES — l'onglet qui rassemble les conversations
+   Rien de neuf cote donnees : meme RPC msg_threads, meme openChat.
+   Ce qui manquait, c'etait un endroit ou les voir toutes.
+=================================================================== */
+function relTime(d){
+  if(!d) return '';
+  const sec = (Date.now() - new Date(d).getTime())/1000;
+  if(sec < 60) return tr('t_now');
+  if(sec < 3600) return Math.floor(sec/60)+' min';
+  if(sec < 86400) return Math.floor(sec/3600)+' h';
+  const j = Math.floor(sec/86400);
+  if(j < 7) return j+' j';
+  return dFR(d);
+}
+/* Un apercu doit dire QUI parle en dernier : sans le prefixe, le coach relit
+   ses propres mots en croyant qu'on lui a repondu. */
+function threadPreview(th){
+  if(!th || !th.last_at) return tr('c_msg_start');
+  let b = '';
+  if(th.last_kind === 'image') b = tr('c_msg_photo');
+  else if(th.last_kind === 'video') b = tr('c_msg_video');
+  else if(th.last_kind === 'system'){
+    const c = /^call:(proposed|confirmed):(.+)$/.exec(th.last_body||'');
+    b = c ? (c[1]==='proposed' ? tr('m_call_proposed') : tr('m_call_confirmed')) : (th.last_body||'');
+  }
+  else b = (th.last_body||'').replace(/\s+/g,' ').trim();
+  return (th.last_sender === ME ? tr('c_msg_you')+' ' : '') + b;
+}
+/* Rappel du client dans l'en-tete de la conversation : on repond a « combien
+   de seances ce mois-ci ? » sans fermer le chat pour aller voir sa fiche. */
+function chatSubline(cid){
+  const c = (CLIST||[]).find(x=>x.client_id===cid);
+  if(!c) return '';
+  const bits = [];
+  if(c.has_access === false) bits.push(tr('b_no_access'));
+  bits.push(trf('b_sessions_30d', c.sessions_30d||0));
+  if(c.last_weight_kg != null) bits.push(r1(c.last_weight_kg)+' kg · '+dFR(c.last_weight_date));
+  if(c.next_class_at) bits.push(tr('c_class')+' '+dhFR(c.next_class_at));
+  return bits.join(' · ');
+}
+function renderMsgBadge(){
+  const el = document.getElementById('tab-msg-cnt');
+  if(!el) return;
+  let n = 0;
+  Object.keys(THREADS||{}).forEach(k=>{ n += (+THREADS[k].unread || 0); });
+  if(n > 0){ el.textContent = n > 99 ? '99+' : String(n); el.hidden = false; }
+  else { el.textContent = ''; el.hidden = true; }
+}
+function renderThreadList(){
+  const box = document.getElementById('msg-list');
+  if(!box) return;
+  if(!CLIST || !CLIST.length){
+    box.innerHTML = '<div class="item"><div class="nm">'+esc(tr('c_msg_none_t'))+'</div>'
+      + '<div class="meta">'+esc(tr('c_msg_none_d'))+'</div></div>';
+    return;
+  }
+  /* Non lues d'abord, puis le plus recent, puis l'ordre alphabetique : la
+     premiere ligne est toujours celle qui attend une reponse. */
+  const rows = CLIST.map(c=>{
+    const th = THREADS[c.client_id] || null;
+    return { c:c, th:th, unread:(th ? +th.unread||0 : 0), at:(th && th.last_at ? new Date(th.last_at).getTime() : 0),
+             name:(c.full_name || c.email || '') };
+  }).sort((a,b)=>{
+    if((a.unread>0) !== (b.unread>0)) return a.unread>0 ? -1 : 1;
+    if(b.at !== a.at) return b.at - a.at;
+    return a.name.localeCompare(b.name);
+  });
+  box.innerHTML = rows.map(r=>{
+    const nm = r.name || '—';
+    const ini = (nm.trim()[0] || '?').toUpperCase();
+    const badge = r.unread > 0 ? '<span class="ct">'+(r.unread>99?'99+':r.unread)+'</span>' : '';
+    const when = r.th && r.th.last_at ? '<div class="wh">'+esc(relTime(r.th.last_at))+'</div>' : '';
+    return '<div class="thr'+(r.unread>0?' unread':'')+'" data-cid="'+r.c.client_id+'" data-name="'+esc(nm)+'">'
+      + '<div class="av">'+esc(ini)+'</div>'
+      + '<div class="thb"><div class="nm"><span class="n">'+esc(nm)+'</span>'+badge+'</div>'
+      + '<div class="pv">'+esc(threadPreview(r.th))+'</div></div>'
+      + when + '</div>';
+  }).join('');
+  box.querySelectorAll('.thr').forEach(el=>{
+    el.onclick = ()=> openChatGated(el.dataset.cid, el.dataset.name);
+  });
+}
+function renderMsgAll(){ renderThreadList(); renderMsgBadge(); }
+
 function msgBub(m){
   if(m.kind==='system'){
     const c=/^call:(proposed|confirmed):(.+)$/.exec(m.body||'');
@@ -1881,6 +2020,7 @@ function openMsgUpsell(){
 async function openChat(cid,name){
   CHAT_PEER=cid;
   $('#ch-name').textContent=name||'Messages';
+  const _sub=$('#ch-sub'); if(_sub) _sub.textContent=chatSubline(cid);
   $('#ch-body').innerHTML='<div class="spin"></div>';
   $('#ov-chat').classList.add('show');
   const { data, error } = await sb.rpc('msg_list',{ p_peer:cid });
@@ -1889,7 +2029,7 @@ async function openChat(cid,name){
   await signMedia(list);
   $('#ch-body').innerHTML = list.length ? list.map(msgBub).join('') : '<p class="empty">Pas encore de messages. Lance la discussion.</p>';
   $('#ch-body').scrollTop=$('#ch-body').scrollHeight;
-  sb.rpc('msg_mark_read',{ p_peer:cid }).then(loadThreads).then(renderClientList);
+  sb.rpc('msg_mark_read',{ p_peer:cid }).then(loadThreads).then(()=>{ renderClientList(); renderMsgAll(); });
   fitChatToKeyboard();
   setTimeout(()=>$('#ch-in').focus(),150);
 }
@@ -1899,6 +2039,7 @@ function closeChat(){
   ov.style.height=''; ov.style.top='';
   if(sheet){ sheet.style.height=''; sheet.style.maxHeight=''; }
   CHAT_PEER=null;
+  loadThreads().then(()=>{ if(CLIST.length) renderClientList(); renderMsgAll(); });
 }
 $('#ch-close').onclick=closeChat;
 $('#ov-chat').onclick=ev=>{ if(ev.target.id==='ov-chat') closeChat(); };
@@ -1988,7 +2129,7 @@ function initChatLive(){
         body.scrollTop=body.scrollHeight;
         sb.rpc('msg_mark_read',{ p_peer:CHAT_PEER });
       } else {
-        loadThreads().then(()=>{ if(CLIST.length) renderClientList(); });
+        loadThreads().then(()=>{ if(CLIST.length) renderClientList(); renderMsgAll(); });
       }
     })
     .subscribe();

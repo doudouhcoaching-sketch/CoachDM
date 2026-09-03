@@ -816,6 +816,43 @@
   .ia-home-ar{width:18px;height:18px;color:var(--muted);flex:0 0 auto}
   .ia-home.gold{border-left-color:var(--gold);box-shadow:none}
   .ia-home.gold .ia-home-ic{background:color-mix(in srgb,var(--gold) 14%,transparent);color:var(--gold)}
+  /* ---- Signal messagerie sur l'accueil du coach ----------------------------
+     Un bloc qui ne montre rien du contenu : qui a ecrit et combien. L'apercu
+     inviterait a repondre depuis l'accueil, et l'accueil n'est pas fait pour
+     ca. Il disparait entierement des que tout est lu. */
+  .sig{background:linear-gradient(180deg,color-mix(in srgb,var(--gold) 11%,transparent),transparent);
+    border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);border-radius:var(--radius);
+    padding:13px 14px;margin-bottom:16px}
+  .sig-top{display:flex;align-items:center;gap:9px;margin-bottom:4px}
+  .sig-lab{font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-hi)}
+  .sig-cnt{display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 6px;border-radius:999px;
+    background:#ff4d4d;color:#fff;font-size:11px;font-weight:800;line-height:1}
+  .sig-sub{font-size:12.5px;color:var(--muted);margin-bottom:10px}
+  .sig-who{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px}
+  .sig-chip{display:flex;align-items:center;gap:7px;background:var(--surface-2);
+    border:1px solid var(--line);border-radius:999px;padding:4px 11px 4px 5px;font-size:12.5px;font-weight:600}
+  .sig-chip .av{width:22px;height:22px;border-radius:7px;background:var(--surface);display:grid;place-items:center;
+    font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--gold)}
+  .sig-chip .n{color:#ff8a8a;font-weight:800}
+  .sig-go{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;border:0;cursor:pointer;
+    border-radius:999px;padding:11px;font-weight:800;font-size:14px;background:var(--gold);color:#3a2b08;
+    font-family:inherit;text-decoration:none}
+  .csl{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);
+    border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:var(--radius);
+    box-shadow:var(--shadow-soft);padding:14px;margin-bottom:16px;cursor:pointer;text-decoration:none}
+  .csl .ic{width:40px;height:40px;border-radius:12px;flex:0 0 auto;display:grid;place-items:center;
+    background:color-mix(in srgb,var(--gold) 14%,transparent);color:var(--gold)}
+  .csl .ic svg{width:20px;height:20px}
+  .csl .tx{flex:1;min-width:0}
+  .csl .tx b{display:block;font-size:14px;font-weight:700;color:var(--text)}
+  .csl .tx span{font-size:12px;color:var(--muted)}
+  .csl .ar{width:18px;height:18px;color:var(--muted);flex:0 0 auto}
+  :root[data-theme="light"] .sig{background:linear-gradient(180deg,color-mix(in srgb,var(--gold) 18%,transparent),transparent)}
+  :root[data-theme="light"] .sig-lab{color:var(--gold-deep)}
+  :root[data-theme="light"] .sig-chip{background:#fff}
+  :root[data-theme="light"] .sig-chip .av{color:var(--gold-deep);background:color-mix(in srgb,var(--gold) 18%,transparent)}
+  :root[data-theme="light"] .sig-chip .n{color:#D92C2C}
+
   .ld-offer{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:10px}
   .ld-offer.hi{border-color:rgba(0,232,150,.32);background:linear-gradient(135deg,rgba(0,232,150,.07),transparent)}
   .ld-offer .o-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:5px}
@@ -894,7 +931,7 @@
   .ch-row{display:flex;align-items:center;gap:10px;background:var(--surface-2);border:1px solid var(--line);
     border-radius:13px;padding:11px 12px;font-size:13.5px;font-weight:600;cursor:pointer;margin-bottom:8px}
   .ch-row svg{width:17px;height:17px;flex:0 0 auto;color:#D9B65C}
-  .ch-badge{margin-left:auto;font-size:11px;font-weight:800;color:#04120a;background:var(--brand);border-radius:999px;padding:3px 9px;white-space:nowrap}
+  .ch-badge{margin-left:auto;font-size:11px;font-weight:800;color:#fff;background:#ff4d4d;border-radius:999px;padding:3px 9px;white-space:nowrap}
   .ch-when{margin-left:auto;font-size:12px;color:var(--muted);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:45%}
   .coach-hub.on .call-row{background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:11px 12px;margin-bottom:8px}
   .ch-call-lbl{font-size:12px;font-weight:800;color:#D9B65C;letter-spacing:.3px;margin-bottom:4px}
@@ -1216,6 +1253,10 @@ h1, h2,
     </div>
     <div id="home-founder"></div>
     <div id="home-coach-badge"></div>
+    <!-- Cote coach : signal seulement. Qui a ecrit, combien, une porte vers la
+         console. Pas d'apercu, pas de zone de reponse : lire et repondre est
+         le travail de la console, pas de l'accueil. Vide quand rien n'attend. -->
+    <div id="coach-sig"></div>
     <!-- B#9 : l'anneau affichait les calories du jour sans qu'on puisse rien
          en faire. C'est pourtant l'element le plus regarde de l'accueil, et la
          reaction naturelle devant « 480 / 2100 kcal » est de vouloir completer.
@@ -1293,6 +1334,9 @@ h1, h2,
       <svg class="ia-home-ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
     </button>
 
+    <!-- Quand rien n'attend, la console redescend ici : accessible d'un geste
+         depuis l'accueil, sans occuper la place d'une alerte. -->
+    <div id="coach-console-line"></div>
     <div id="home-insight"></div>
     <button class="shop-line" id="home-shop" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1.2 12.5H4.8z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
@@ -3103,6 +3147,12 @@ const T = {
  hub_title:{fr:'Mon coach',en:'My coach',nl:'Mijn coach'},
  hub_msgs:{fr:'Messages',en:'Messages',nl:'Berichten'},
  hub_unread:{fr:'non lus',en:'unread',nl:'ongelezen'},
+ sig_lab:{fr:'Messages de tes clients',en:'Messages from your clients',nl:'Berichten van je klanten'},
+ sig_go:{fr:'Ouvrir la messagerie',en:'Open messaging',nl:'Berichten openen'},
+ sig_wait_1:{fr:'1 personne attend ta r\u00e9ponse',en:'1 person is waiting for your reply',nl:'1 persoon wacht op je antwoord'},
+ sig_wait_n:{fr:'{n} personnes attendent ta r\u00e9ponse',en:'{n} people are waiting for your reply',nl:'{n} personen wachten op je antwoord'},
+ csl_t:{fr:'Console coach',en:'Coach console',nl:'Coach-console'},
+ csl_sub:{fr:'Clients, s\u00e9ances, programmes et messages',en:'Clients, workouts, programs and messages',nl:'Klanten, trainingen, programma\u2019s en berichten'},
  hub_call:{fr:'Appel vid\u00e9o \u00b7 Zoom/Meet',en:'Video call \u00b7 Zoom/Meet',nl:'Videogesprek \u00b7 Zoom/Meet'},
  wod_premium:{fr:'Premium',en:'Premium',nl:'Premium'},
  shop_line:{fr:'Programmes PDF \u00b7 Boutique',en:'PDF programs \u00b7 Shop',nl:'PDF-programma\u2019s \u00b7 Shop'},
@@ -5155,16 +5205,108 @@ function applyCoachIsolation(){
   const cf=$('#p-coach-free');    if(cf && hide) cf.style.display='none';
   const hcf=$('#home-coach-free');if(hcf && hide) hcf.style.display='none';
 }
+
+/* ==========================================================================
+   ACCUEIL — LA MESSAGERIE SE SIGNALE ELLE-MEME
+   --------------------------------------------------------------------------
+   Deux situations, deux traitements.
+   Cote membre : la carte du coach etait le douzieme bloc de l'accueil, sous
+   la nutrition, l'objectif, la seance, le plan et les cours. Un message non
+   lu remonte desormais la carte tout en haut ; une fois lu, elle redescend a
+   sa place, sans rien dire. La position EST l'alerte.
+   Cote coach : un bloc qui signale sans montrer. Noms, compteurs, et une
+   porte vers la console. Repondre reste le travail de la console.
+   ========================================================================== */
+let ALL_THREADS = [];
+let HUB_ANCHOR = null;
+
+function placeCoachHub(unread){
+  const hub = document.getElementById('coach-hub');
+  const pane = document.getElementById('pane-home');
+  if(!hub || !pane) return;
+  /* On memorise l'emplacement d'origine au premier passage : sans lui, la
+     carte remontee ne saurait plus ou redescendre une fois le message lu. */
+  if(!HUB_ANCHOR){
+    HUB_ANCHOR = document.createElement('div');
+    HUB_ANCHOR.id = 'coach-hub-anchor';
+    HUB_ANCHOR.style.display = 'none';
+    hub.parentNode.insertBefore(HUB_ANCHOR, hub);
+  }
+  const sig = document.getElementById('coach-sig');
+  if(+unread > 0){
+    if(sig && sig.nextSibling !== hub) sig.parentNode.insertBefore(hub, sig.nextSibling);
+  }else{
+    if(HUB_ANCHOR.nextSibling !== hub) HUB_ANCHOR.parentNode.insertBefore(hub, HUB_ANCHOR.nextSibling);
+  }
+}
+
+function openCoachConsole(){ location.href = 'coach.html'; }
+
+function renderCoachSignal(){
+  const box = document.getElementById('coach-sig');
+  const line = document.getElementById('coach-console-line');
+  if(!box) return;
+  if(!IS_COACH){ box.innerHTML=''; if(line) line.innerHTML=''; return; }
+
+  /* Les fils ou le pair n'est pas coach : ce sont ses clients. */
+  const mine = (ALL_THREADS||[]).filter(th=>!th.peer_is_coach);
+  const waiting = mine.filter(th=>+th.unread>0)
+                      .sort((a,b)=> new Date(b.last_at||0) - new Date(a.last_at||0));
+  const total = waiting.reduce((n,th)=>n+(+th.unread||0),0);
+
+  if(!total){
+    box.innerHTML='';
+    if(line) line.innerHTML = '<a class="csl" href="coach.html">'
+      + '<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20v-1.5a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3V20"/><circle cx="9.5" cy="7.5" r="3"/><path d="M18 8.5h4M20 6.5v4"/></svg></span>'
+      + '<span class="tx"><b>'+esc(t('csl_t'))+'</b><span>'+esc(t('csl_sub'))+'</span></span>'
+      + '<svg class="ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></a>';
+    return;
+  }
+  if(line) line.innerHTML='';
+
+  /* Au-dela de quatre noms la liste devient un mur : on nomme les quatre plus
+     recents et on compte le reste. */
+  const shown = waiting.slice(0,4);
+  const rest  = waiting.length - shown.length;
+  const chips = shown.map(th=>{
+    const nm = th.peer_name || th.peer_email || '—';
+    const ini = (String(nm).trim()[0]||'?').toUpperCase();
+    return '<span class="sig-chip"><span class="av">'+esc(ini)+'</span>'+esc(nm)
+         + '<span class="n">'+(+th.unread>99?'99+':+th.unread)+'</span></span>';
+  }).join('');
+  const more = rest>0 ? '<span class="sig-chip">+'+rest+'</span>' : '';
+  const sub = waiting.length===1 ? t('sig_wait_1') : t('sig_wait_n').replace('{n}', waiting.length);
+
+  box.innerHTML = '<div class="sig">'
+    + '<div class="sig-top"><span class="sig-lab">'+esc(t('sig_lab'))+'</span>'
+    + '<span class="sig-cnt">'+(total>99?'99+':total)+'</span></div>'
+    + '<div class="sig-sub">'+esc(sub)+'</div>'
+    + '<div class="sig-who">'+chips+more+'</div>'
+    + '<button type="button" class="sig-go" id="sig-go">'+esc(t('sig_go'))
+    + '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>'
+    + '</div>';
+  const go = document.getElementById('sig-go');
+  if(go) go.onclick = openCoachConsole;
+}
 async function loadCoachCard(){
   const box=$('#coach-card'); if(!box) return;
   try{
     const { data } = await sb.rpc('msg_threads');
-    COACH_THREAD = (data||[]).find(t=>t.peer_is_coach) || null;
-  }catch(e){ COACH_THREAD=null; }
+    ALL_THREADS = data||[];
+    COACH_THREAD = ALL_THREADS.find(t=>t.peer_is_coach) || null;
+  }catch(e){ ALL_THREADS=[]; COACH_THREAD=null; }
+  /* Rendus avant les sorties anticipees plus bas : un coach sans coach a lui
+     n'a pas de COACH_THREAD, et son signal doit quand meme s'afficher. */
+  try{ renderCoachSignal(); }catch(_){}
+  try{ placeCoachHub(COACH_THREAD ? COACH_THREAD.unread : 0); }catch(_){}
   HAS_COACH = !!COACH_THREAD || ACCESS==='coach_client';
   /* La pastille de l'onglet Accueil suit le meme compteur que la carte du hub :
      une seule source de verite, msg_threads().unread. */
-  try{ renderUnreadDot(COACH_THREAD ? COACH_THREAD.unread : 0); }catch(_){}
+  try{
+    let _u = COACH_THREAD ? (+COACH_THREAD.unread||0) : 0;
+    if(IS_COACH) (ALL_THREADS||[]).forEach(th=>{ if(!th.peer_is_coach) _u += (+th.unread||0); });
+    renderUnreadDot(_u);
+  }catch(_){}
   applyCoachIsolation();
   const hub=$('#coach-hub');
   if(!COACH_THREAD){
