@@ -163,6 +163,11 @@
   .ring .kcal small{font-size:18px;color:var(--muted);font-weight:600}
   .ring .lbl{font-size:12px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-top:7px}
   .ring .left{font-size:13px;color:var(--brand);font-weight:700;margin-top:8px}
+  .ring .rsub{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:3px}
+  #ring-p{filter:drop-shadow(0 0 5px rgba(255,92,92,.5));transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1)}
+  #ring-fg{transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1)}
+  /* Depassement : l'anneau ne peut pas dire « plus que plein », le chiffre si. */
+  .ring .kcal.over{color:var(--prot);text-shadow:none}
   #ring-fg{filter:drop-shadow(0 0 6px var(--brand))}
   .macros{display:flex;flex-direction:column;gap:14px;margin-top:20px}
   .macro .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
@@ -788,7 +793,8 @@
   .today-card .ring{width:112px;height:112px}
   .today-card .ring .kcal{font-size:23px;letter-spacing:-.02em;text-shadow:none}
   .today-card .ring .kcal small{font-size:12px}
-  .today-card .ring .lbl{font-size:10px;margin-top:2px}
+  .today-card .ring .lbl{font-size:10px;margin-top:2px;letter-spacing:.08em}
+  .today-card .ring .rsub{font-size:9.5px;margin-top:2px}
   .today-card .ring .left{display:none}
   .today-card .macros{flex:1;display:flex;flex-direction:column;gap:12px;margin-top:0;grid-template-columns:none}
   .mrow-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
@@ -1269,13 +1275,21 @@ h1, h2,
               <stop offset="0" stop-color="var(--brand)"/><stop offset="1" stop-color="var(--brand-2)"/>
             </linearGradient>
           </defs>
-          <circle cx="104" cy="104" r="92" fill="none" stroke="var(--surface-2)" stroke-width="16"/>
-          <circle id="ring-fg" cx="104" cy="104" r="92" fill="none" stroke="url(#grad)" stroke-width="16"
+          <circle cx="104" cy="104" r="92" fill="none" stroke="var(--surface-2)" stroke-width="15"/>
+          <circle id="ring-fg" cx="104" cy="104" r="92" fill="none" stroke="url(#grad)" stroke-width="15"
                   stroke-linecap="round" stroke-dasharray="578" stroke-dashoffset="578"/>
+          <!-- Anneau interieur : les proteines. C'est le second chiffre que
+               l'app met en avant partout ailleurs (« dont au moins 186 g de
+               proteines »), et il reprend le rouge du code couleur des macros,
+               pour qu'on relie l'arc a sa ligne sans avoir a l'apprendre. -->
+          <circle cx="104" cy="104" r="70" fill="none" stroke="var(--surface-2)" stroke-width="13"/>
+          <circle id="ring-p" cx="104" cy="104" r="70" fill="none" stroke="var(--prot)" stroke-width="13"
+                  stroke-linecap="round" stroke-dasharray="440" stroke-dashoffset="440"/>
         </svg>
         <div class="center">
-          <div class="kcal"><span id="r-kcal">0</span><small id="r-target"> / —</small></div>
-          <div class="lbl">kcal</div>
+          <div class="kcal"><span id="r-kcal">0</span></div>
+          <div class="lbl" id="r-lbl">restant</div>
+          <div class="rsub" id="r-target">0 / —</div>
           <div class="left" id="r-left" hidden></div>
         </div>
       </div>
@@ -3200,6 +3214,8 @@ const T = {
  hi_afternoon:{fr:'Bon après-midi',en:'Good afternoon',nl:'Goedemiddag'},
  hi_evening:{fr:'Bonsoir',en:'Good evening',nl:'Goedenavond'},
  kcal:{fr:'kcal',en:'kcal',nl:'kcal'},
+ r_left:{fr:'restantes',en:'left',nl:'over'},
+ r_over:{fr:'au-dessus',en:'over',nl:'te veel'},
  left_under:{fr:'kcal restantes',en:'kcal left',nl:'kcal over'},
  left_over:{fr:'kcal au-dessus',en:'kcal over',nl:'kcal te veel'},
  macro_protein:{fr:'Protéines',en:'Protein',nl:'Eiwitten'},
@@ -6635,12 +6651,26 @@ async function loadToday(){
   $('#today-empty').classList.add('hidden');
 
   const tgt = TARGETS.daily_calories_kcal||0;
-  countUp($('#r-kcal'), r0(sum.kcal));
-  $('#r-target').textContent = ' / '+r0(tgt);
+  const left = r0(tgt - sum.kcal);
+
+  /* Au centre : ce qu'il RESTE, pas ce qui est consomme. Un arc a moitie plein
+     ne dit pas s'il faut manger encore 300 ou 1500 kcal ; le chiffre le dit.
+     Le consomme / cible reste dessous, pour qui compte precisement. */
+  const kc = $('#r-kcal');
+  countUp(kc, Math.abs(left));
+  kc.classList.toggle('over', left < 0);
+  $('#r-lbl').textContent = left>=0 ? t('r_left') : t('r_over');
+  $('#r-target').textContent = r0(sum.kcal)+' / '+r0(tgt);
+
   const pct = tgt>0 ? Math.min(sum.kcal/tgt,1) : 0;
   $('#ring-fg').style.strokeDashoffset = String(578*(1-pct));
-  const left = r0(tgt - sum.kcal);
-  $('#r-left').textContent = left>=0 ? left+' '+t('left_under') : Math.abs(left)+' '+t('left_over');
+
+  /* Anneau interieur : proteines. */
+  const ptgt = TARGETS.protein_g||0;
+  const ppct = ptgt>0 ? Math.min(sum.p/ptgt,1) : 0;
+  { const rp=$('#ring-p'); if(rp) rp.style.strokeDashoffset = String(440*(1-ppct)); }
+
+  { const rl=$('#r-left'); if(rl) rl.textContent = left>=0 ? left+' '+t('left_under') : Math.abs(left)+' '+t('left_over'); }
 
   const macros=[
     {n:t('macro_protein'),c:'--prot',v:sum.p,t:TARGETS.protein_g},
