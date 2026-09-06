@@ -164,7 +164,7 @@
   .ring .lbl{font-size:12px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-top:7px}
   .ring .left{font-size:13px;color:var(--brand);font-weight:700;margin-top:8px}
   .ring .rsub{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:3px}
-  #ring-p{filter:drop-shadow(0 0 5px rgba(255,92,92,.5));transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1)}
+  #seg-p,#seg-c,#seg-f{transition:stroke-dasharray .6s cubic-bezier(.4,0,.2,1),stroke-dashoffset .6s cubic-bezier(.4,0,.2,1)}
   #ring-fg{transition:stroke-dashoffset .6s cubic-bezier(.4,0,.2,1)}
   /* Depassement : l'anneau ne peut pas dire « plus que plein », le chiffre si. */
   .ring .kcal.over{color:var(--prot);text-shadow:none}
@@ -1278,13 +1278,19 @@ h1, h2,
           <circle cx="104" cy="104" r="92" fill="none" stroke="var(--surface-2)" stroke-width="15"/>
           <circle id="ring-fg" cx="104" cy="104" r="92" fill="none" stroke="url(#grad)" stroke-width="15"
                   stroke-linecap="round" stroke-dasharray="578" stroke-dashoffset="578"/>
-          <!-- Anneau interieur : les proteines. C'est le second chiffre que
-               l'app met en avant partout ailleurs (« dont au moins 186 g de
-               proteines »), et il reprend le rouge du code couleur des macros,
-               pour qu'on relie l'arc a sa ligne sans avoir a l'apprendre. -->
+          <!-- Anneau interieur : les MEMES calories, decoupees par categorie.
+               Les deux arcs s'arretent donc au meme angle ; l'interieur dit
+               d'ou vient ce qu'on a mange. Chaque segment porte la couleur de
+               sa macro, la meme que sa barre juste a cote : on relie l'arc a
+               sa ligne sans avoir rien a apprendre. Bout carre (butt) pour que
+               les segments se touchent sans se chevaucher. -->
           <circle cx="104" cy="104" r="70" fill="none" stroke="var(--surface-2)" stroke-width="13"/>
-          <circle id="ring-p" cx="104" cy="104" r="70" fill="none" stroke="var(--prot)" stroke-width="13"
-                  stroke-linecap="round" stroke-dasharray="440" stroke-dashoffset="440"/>
+          <circle id="seg-p" cx="104" cy="104" r="70" fill="none" stroke="var(--prot)" stroke-width="13"
+                  stroke-linecap="butt" stroke-dasharray="0 440"/>
+          <circle id="seg-c" cx="104" cy="104" r="70" fill="none" stroke="var(--carb)" stroke-width="13"
+                  stroke-linecap="butt" stroke-dasharray="0 440"/>
+          <circle id="seg-f" cx="104" cy="104" r="70" fill="none" stroke="var(--fat)" stroke-width="13"
+                  stroke-linecap="butt" stroke-dasharray="0 440"/>
         </svg>
         <div class="center">
           <div class="kcal"><span id="r-kcal">0</span></div>
@@ -6665,10 +6671,28 @@ async function loadToday(){
   const pct = tgt>0 ? Math.min(sum.kcal/tgt,1) : 0;
   $('#ring-fg').style.strokeDashoffset = String(578*(1-pct));
 
-  /* Anneau interieur : proteines. */
-  const ptgt = TARGETS.protein_g||0;
-  const ppct = ptgt>0 ? Math.min(sum.p/ptgt,1) : 0;
-  { const rp=$('#ring-p'); if(rp) rp.style.strokeDashoffset = String(440*(1-ppct)); }
+  /* Anneau interieur : la meme quantite de calories, decoupee par categorie.
+     Les parts sont calculees sur l'apport energetique reel de chaque macro
+     (4 kcal/g pour proteines et glucides, 9 pour les lipides) et non sur
+     l'avancement de chaque cible : l'anneau montre la COMPOSITION de ce qui
+     a ete mange, pas quatre progressions superposees.
+     Les fibres n'y figurent pas — elles ne sont pas une source de calories
+     dans le calcul des cibles, les compter fausserait la somme. */
+  const C2 = 440;
+  const kP = (sum.p||0)*4, kC = (sum.c||0)*4, kF = (sum.f||0)*9;
+  const kTot = kP + kC + kF;
+  let acc = 0;
+  [['#seg-p',kP],['#seg-c',kC],['#seg-f',kF]].forEach(([sel,kv])=>{
+    const el=$(sel); if(!el) return;
+    /* part de cette macro, ramenee a la longueur deja parcourue par l'anneau
+       exterieur : les deux arcs finissent au meme endroit. */
+    const part = kTot>0 ? (kv/kTot)*pct*C2 : 0;
+    /* 2 unites de respiration entre segments, jamais plus que le segment. */
+    const trait = Math.max(0, part - (part>4 ? 2 : 0));
+    el.style.strokeDasharray = trait+' '+C2;
+    el.style.strokeDashoffset = String(-acc);
+    acc += part;
+  });
 
   { const rl=$('#r-left'); if(rl) rl.textContent = left>=0 ? left+' '+t('left_under') : Math.abs(left)+' '+t('left_over'); }
 
