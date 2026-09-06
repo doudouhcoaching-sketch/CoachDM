@@ -318,6 +318,13 @@ h1, h2,
     </div>
 
     <!-- COURS -->
+    <!-- Colonne de droite au repos. Elle ne sert qu'au-dela de 1040 px : en
+         dessous, la fiche et la conversation restent des feuilles modales. -->
+    <div class="detail-void" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><path d="M9 4.5v15"/></svg>
+      <p data-i18n="c_pick">Choisis un client ou une conversation à gauche.</p>
+    </div>
+
     <div class="pane" id="pane-cours">
       <div class="subswitch">
         <button class="on" data-cv="planning" data-i18n="c_cv_planning">Planning</button>
@@ -715,6 +722,107 @@ h1, h2,
   .thr.cold .pv{display:none}
   .chat-sub{font-size:11.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
+
+/* ==========================================================================
+   GRAND ECRAN — la console cesse d'etre un telephone au milieu du vide
+   --------------------------------------------------------------------------
+   Mesure avant travaux : le contenu occupait 680 px quelle que soit la
+   fenetre. Sur un iPad en paysage, 43 % de l'ecran ne servait a rien ; sur un
+   PC de 1512 px, 55 %. Un coach qui gere 27 clients faisait defiler une
+   colonne etroite pour retrouver une fiche.
+
+   Deux paliers, parce que 834 px et 1512 px n'appellent pas la meme reponse.
+
+   760-1039 px (iPad portrait) : on garde les onglets en haut et les feuilles
+   modales — il n'y a pas la place pour trois colonnes — mais on cesse de
+   brider le contenu a 680 px et les feuilles deviennent des cartes centrees
+   plutot que des tiroirs colles en bas, qui n'ont de sens qu'au pouce.
+
+   1040 px et plus (iPad paysage, PC) : vraie console. Navigation en rail a
+   gauche, liste au centre, detail a droite. La liste NE DISPARAIT PAS quand
+   on ouvre une fiche : c'est tout l'interet du grand ecran, et c'est ce qui
+   fait la difference entre lire ses messages et travailler.
+   ========================================================================== */
+@media (min-width:760px) and (max-width:1039.98px){
+  .page{max-width:920px;padding:22px 26px 60px}
+  .overlay{align-items:center;padding:24px}
+  .sheet{max-width:700px;max-height:88vh;border-radius:20px}
+  #ov-chat .sheet{height:86dvh;max-height:86dvh}
+  .grab{display:none}
+  .tabs button{font-size:14.5px;padding:12px 10px}
+}
+
+@media (min-width:1040px){
+  :root{ --rail:236px; --listw:470px; --colgap:34px; }
+
+  /* --- coquille : rail de navigation + zone de travail --- */
+  #app{display:grid;grid-template-columns:var(--rail) 1fr;align-items:start;min-height:100dvh}
+  .detail-void{grid-column:2}
+  .topbar{grid-column:1;height:100dvh;padding:22px 15px;gap:20px;border-bottom:0;
+    border-right:1px solid var(--line);display:flex;flex-direction:column;
+    background:var(--bg-2);backdrop-filter:none}
+  /* display:contents dissout la rangee du haut : ses trois enfants deviennent
+     des enfants directs du rail, ce qui permet de les ordonner librement.
+     Sinon le logo restait collé au bloc langue/deconnexion. */
+  .topbar .row{display:contents}
+  .tb-id{order:1;gap:10px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+  .topbar h2{font-size:17px}
+  .tabs{order:2;flex-direction:column;gap:5px;padding:0}
+  /* Retour vers l'app membre : dans le rail, plus en pastille flottante qui
+     recouvrait la navigation. */
+  /* Langue et deconnexion en bas : ce sont des reglages, pas des destinations. */
+  #c-lang{order:3;margin:auto 0 0!important}
+  #logout{order:4;width:100%;margin-top:8px}
+  /* Le lien retour reste fixed (voir plus haut) mais s'aligne sur le rail au
+     lieu de flotter par-dessus la navigation. */
+  #cdm-backapp{left:15px!important;bottom:15px!important;
+    width:calc(var(--rail) - 30px);box-sizing:border-box;text-align:center;
+    box-shadow:none!important}
+  .topbar{padding-bottom:66px}
+  .tabs button{flex:none;width:100%;text-align:left;padding:11px 13px;border-radius:11px;
+    font-size:14.5px;white-space:nowrap;position:relative}
+  .tcnt{position:static;transform:none;margin-left:auto;box-shadow:none}
+  .tabs button{display:flex;align-items:center;gap:8px}
+
+  /* --- zone de travail : liste a gauche, detail a droite --- */
+  .page{grid-column:2;max-width:none;margin:0;padding:26px var(--colgap) 60px;
+    display:grid;grid-template-columns:minmax(340px,var(--listw)) 1fr;gap:var(--colgap);
+    align-items:start;min-height:100dvh}
+  .pane{grid-column:1}
+  /* Le constructeur de seances et les cours prennent toute la largeur : leurs
+     tableaux sont ce qui gagne le plus a respirer. */
+  #pane-workouts, #pane-cours{grid-column:1 / -1}
+
+  .detail-void{display:none;grid-column:2;position:sticky;top:26px;height:calc(100dvh - 90px);
+    flex-direction:column;align-items:center;justify-content:center;gap:14px;
+    color:var(--muted);text-align:center;border:1px dashed var(--line);border-radius:var(--radius);
+    padding:30px}
+  .detail-void svg{width:44px;height:44px;opacity:.35}
+  .detail-void p{margin:0;font-size:13.5px;max-width:24ch;line-height:1.5}
+  .page:has(#pane-clients.active) .detail-void,
+  .page:has(#pane-messages.active) .detail-void{display:flex}
+
+  /* --- fiche client et conversation : tiroir de droite, pas modale ---
+     pointer-events sur le conteneur laisse la liste cliquable derriere : on
+     passe d'un client a l'autre sans fermer quoi que ce soit. */
+  #ov-cd, #ov-chat{background:transparent;backdrop-filter:none;padding:0;
+    left:calc(var(--rail) + var(--listw) + var(--colgap)*2);pointer-events:none;
+    align-items:stretch;justify-content:stretch}
+  #ov-cd .sheet, #ov-chat .sheet{pointer-events:auto;width:100%;max-width:none;
+    height:100dvh;max-height:100dvh;border-radius:0;border-left:1px solid var(--line);
+    padding:24px 26px calc(24px + env(safe-area-inset-bottom));animation:none;overflow-y:auto}
+  #ov-chat .sheet{overflow:hidden}
+
+  /* --- les formulaires restent des modales, mais centrees --- */
+  .overlay:not(#ov-cd):not(#ov-chat){align-items:center;justify-content:center;padding:26px}
+  .overlay:not(#ov-cd):not(#ov-chat) .sheet{max-width:640px;max-height:86vh;border-radius:20px}
+  .grab{display:none}
+
+  /* --- la ligne ouverte reste marquee : on sait ce qu'on regarde --- */
+  .item.sel, .thr.sel{border-color:var(--brand);
+    box-shadow:0 0 0 1px var(--brand) inset, var(--shadow-soft)}
+}
+
 html{overflow-y:auto;overscroll-behavior-y:contain}
 body{overscroll-behavior-y:contain}
 </style>
@@ -1089,6 +1197,7 @@ const T = {
  c_msg_photo:{fr:'Photo',en:'Photo',nl:'Foto'},
  c_msg_video:{fr:'Vidéo',en:'Video',nl:'Video'},
  c_msg_start:{fr:'Pas encore de message — lance la discussion.',en:'No message yet — start the conversation.',nl:'Nog geen bericht — begin het gesprek.'},
+ c_pick:{fr:'Choisis un client ou une conversation à gauche.',en:'Pick a client or a conversation on the left.',nl:'Kies links een klant of een gesprek.'},
  c_msg_sep:{fr:'Démarrer une conversation',en:'Start a conversation',nl:'Een gesprek starten'},
  c_msg_none_t:{fr:'Aucune conversation',en:'No conversation',nl:'Geen gesprek'},
  c_msg_none_d:{fr:'Ajoute un client dans l\'onglet Clients : la messagerie s\'ouvre dès qu\'il est lié à ton compte.',en:'Add a client in the Clients tab: messaging opens as soon as they are linked to your account.',nl:'Voeg een klant toe in het tabblad Klanten: de berichten openen zodra hij aan je account is gekoppeld.'},
@@ -1687,6 +1796,7 @@ function renderClientList(){
   document.querySelectorAll('#cl-list .item').forEach(el=>{
     el.onclick=ev=>{ if(ev.target.closest('[data-arch]')||ev.target.closest('[data-chat]')||ev.target.closest('[data-resend]')) return; openClientDetail(el.dataset.cid); };
   });
+  markSel(SEL_CID);
   document.querySelectorAll('#cl-list [data-resend]').forEach(b=>b.onclick=ev=>{
     ev.stopPropagation();
     resendInvite(b.dataset.resend, b);
@@ -1773,7 +1883,20 @@ function deltaTxt(v, unit, seuil){
   return `<span class="${cls}">${sign}${Math.abs(Math.round(v))}${unit||''}</span>`;
 }
 
+/* Sur grand ecran la liste reste visible pendant qu'on lit une fiche : sans
+   marque, on ne sait plus laquelle est ouverte. */
+/* La selection survit aux redessins : ouvrir une conversation declenche
+   msg_mark_read, donc un rechargement des fils, donc un innerHTML complet.
+   Sans memoriser le choix, la ligne ouverte perdait sa marque une seconde
+   apres l'avoir cliquee. */
+let SEL_CID = null;
+function markSel(cid){
+  SEL_CID = cid || null;
+  document.querySelectorAll('#cl-list .item, #msg-list .thr').forEach(el=>
+    el.classList.toggle('sel', !!SEL_CID && el.dataset.cid===SEL_CID));
+}
 async function openClientDetail(cid){
+  markSel(cid);
   $('#cd-body').innerHTML='<div class="spin"></div>';
   $('#ov-cd').classList.add('show');
   const { data:d, error } = await sb.rpc('coach_client_detail',{ p_client:cid });
@@ -2015,7 +2138,7 @@ async function renderCdCalls(cid){
     toast(tr('m_proposal_sent')); renderCdCalls(cid);
   };
 }
-function closeCd(){ $('#ov-cd').classList.remove('show'); }
+function closeCd(){ $('#ov-cd').classList.remove('show'); markSel(null); }
 $('#ov-cd').onclick = ev=>{ if(ev.target.id==='ov-cd') closeCd(); };
 
 /* ================= MACROS CLIENT ================= */
@@ -2319,6 +2442,7 @@ function renderThreadList(){
   box.querySelectorAll('.thr').forEach(el=>{
     el.onclick = ()=> openChatGated(el.dataset.cid, el.dataset.name);
   });
+  markSel(SEL_CID);
 }
 function renderMsgAll(){ renderThreadList(); renderMsgBadge(); paintLockBtn(); }
 function paintLockBtn(){
@@ -2397,6 +2521,7 @@ function openMsgUpsell(){
 }
 async function openChat(cid,name){
   CHAT_PEER=cid;
+  markSel(cid);
   $('#ch-name').textContent=name||'Messages';
   const _sub=$('#ch-sub'); if(_sub) _sub.textContent=chatSubline(cid);
   $('#ch-body').innerHTML='<div class="spin"></div>';
@@ -2417,6 +2542,7 @@ function closeChat(){
   ov.style.height=''; ov.style.top='';
   if(sheet){ sheet.style.height=''; sheet.style.maxHeight=''; }
   CHAT_PEER=null;
+  markSel(null);
   loadThreads().then(()=>{ if(CLIST.length) renderClientList(); renderMsgAll(); });
 }
 $('#ch-close').onclick=closeChat;
