@@ -2456,6 +2456,62 @@ h1, h2,
    exercices au lieu de se coller au-dessus de la barre d'onglets. Mesure :
    avec overflow-y:auto sur body, .se-action est a 5396 px du haut de la fenetre
    quand on est en haut de la liste ; sans, a 727 px, soit visible. */
+
+/* ==========================================================================
+   GRAND ECRAN — iPad et navigateur de bureau
+   --------------------------------------------------------------------------
+   L'app etait bridee a 560 px quelle que soit la fenetre : sur un iPad en
+   paysage, une colonne etroite au milieu du vide. Apple regarde precisement
+   ca quand on declare le support iPad.
+
+   On NE passe PAS l'accueil en deux colonnes : ses blocs sont des div vides
+   remplies plus tard par du JS, et une div vide occupe quand meme une cellule
+   de grille — on obtiendrait des trous mouvants selon ce que le membre a
+   rempli dans sa journee. On elargit, on agrandit, et au-dela de 1040 px la
+   barre du bas devient un rail lateral : c'est la ou l'espace se gagne.
+
+   #app recoit un display:block en style inline depuis show('app'), donc aucune
+   regle CSS ne peut le passer en grid. D'ou le rail construit avec la barre
+   .nav en position:fixed et un simple padding-left sur #app.
+   ========================================================================== */
+@media (min-width:760px) and (max-width:1039.98px){
+  .page{max-width:min(88vw,840px);padding:24px 26px 10px}
+  .nav{max-width:min(88vw,840px)}
+  .overlay{align-items:center;padding:28px}
+  .sheet{max-width:640px;max-height:86vh;border-radius:24px}
+  #chat-ov .sheet{height:84dvh;max-height:84dvh}
+  .grab{display:none}
+}
+
+@media (min-width:1040px){
+  :root{ --rail:238px; }
+  #app{padding-bottom:24px;padding-left:var(--rail)}
+  .nav{top:0;bottom:0;left:0;right:auto;width:var(--rail);max-width:none;margin:0;
+    flex-direction:column;justify-content:flex-start;gap:5px;
+    padding:calc(22px + env(safe-area-inset-top)) 12px 22px;
+    border-top:0;border-right:1px solid var(--line);
+    background:color-mix(in srgb,var(--surface) 92%,transparent)}
+  .nav button{flex:none;width:100%;flex-direction:row;justify-content:flex-start;
+    align-items:center;gap:11px;padding:11px 13px;border-radius:12px;font-size:14px}
+  /* Le libelle, PAS span:last-child : quand la pastille non-lu est presente,
+     c'est elle le dernier enfant — elle heritait du flex:1 et s'etirait en
+     barre rouge sur toute la largeur du rail. On vise le libelle par son
+     attribut de traduction, qu'il est seul a porter. */
+  .nav button > span[data-i18n]{max-width:none;flex:1;text-align:left}
+  /* Le point sous l'onglet marquait l'onglet actif dans une barre horizontale.
+     Dans un rail, le fond colore le dit deja — le point devient du bruit. */
+  .nav button.on::after{display:none}
+  /* Dans un rail, le bouton est une rangee flex : sans flex:none la pastille
+     s'etirait sur toute la place restante et devenait une barre rouge. */
+  .nav-dot{position:static;left:auto;top:auto;margin-left:auto;box-shadow:none;
+    flex:0 0 auto;width:auto;padding:0 6px}
+  .page{max-width:900px;padding:30px 34px 40px}
+  .overlay{align-items:center;padding:32px}
+  .sheet{max-width:660px;max-height:86vh;border-radius:24px}
+  #chat-ov .sheet{height:84dvh;max-height:84dvh}
+  .grab{display:none}
+}
+
 html{overflow-y:auto;overscroll-behavior-y:contain}
 body{overscroll-behavior-y:contain}
 
@@ -2542,6 +2598,7 @@ if(!['fr','en','nl'].includes(LANG)) LANG='fr';
    ========================================================================== */
 const CDMLock = (function(){
   var K_ON='cdm_lock_on', K_SALT='cdm_lock_salt', K_HASH='cdm_lock_hash', K_BIO='cdm_lock_bio';
+  var K_ASK='cdm_lock_asked';
   var GRACE = 60000;        /* arriere-plan tolere avant de reverrouiller */
   var ITER  = 210000;       /* recommandation OWASP 2023 pour PBKDF2-SHA256 */
   var unlocked = false;     /* etat en memoire uniquement : jamais persiste */
@@ -2576,6 +2633,12 @@ const CDMLock = (function(){
     bio_sub:  {fr:'Un regard au lieu du code. Le code reste ton secours.',
                en:'A glance instead of the code. The code stays your fallback.',
                nl:'Een blik in plaats van de code. De code blijft je noodoplossing.'},
+    off_ttl:  {fr:'Protéger tes messages',           en:'Protect your messages',        nl:'Je berichten beschermen'},
+    off_sub:  {fr:'Sur cet appareil, quelqu’un qui prend ton téléphone déverrouillé peut ouvrir tes conversations. Un code à 6 chiffres — et Face ID s’il est disponible — ferme cette porte. Le reste de l’app ne change pas.',
+               en:'On this device, anyone holding your unlocked phone can open your conversations. A 6-digit code — and Face ID where available — closes that door. The rest of the app is unchanged.',
+               nl:'Op dit toestel kan iemand met je ontgrendelde telefoon je gesprekken openen. Een 6-cijferige code — en Face ID indien beschikbaar — sluit die deur. De rest van de app blijft gelijk.'},
+    off_go:   {fr:'Activer le verrou',                en:'Turn the lock on',             nl:'Slot inschakelen'},
+    off_later:{fr:'Plus tard',                        en:'Later',                        nl:'Later'},
     st_on:    {fr:'Activé',                          en:'On',                           nl:'Aan'},
     st_off:   {fr:'Désactivé',                       en:'Off',                          nl:'Uit'},
     close:    {fr:'Fermer',                          en:'Close',                        nl:'Sluiten'},
@@ -2593,6 +2656,7 @@ const CDMLock = (function(){
   function ls(fn,d){ try{ return fn(); }catch(e){ return d; } }
   var on     = function(){ return ls(function(){ return localStorage.getItem(K_ON)==='1'; }, false); };
   var bioOn  = function(){ return ls(function(){ return localStorage.getItem(K_BIO)==='1'; }, false); };
+  var asked  = function(){ return ls(function(){ return localStorage.getItem(K_ASK)==='1'; }, false); };
 
   function b64(u8){ var s=''; for(var i=0;i<u8.length;i++) s+=String.fromCharCode(u8[i]); return btoa(s); }
   function unb64(s){ var b=atob(s), u=new Uint8Array(b.length); for(var i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; }
@@ -2810,10 +2874,42 @@ const CDMLock = (function(){
     setTimeout(function(){ try{ c1.focus(); }catch(e){} }, 120);
   }
 
+  /* ---- proposition, une seule fois --------------------------------------
+     Un verrou range dans les reglages ne protege personne : il faut aller le
+     chercher, et on ne va chercher que ce qu'on sait exister. Il se propose
+     donc au premier passage par les messages — l'instant ou la question a un
+     sens — puis plus jamais, quelle que soit la reponse. */
+  function showOffer(after){
+    mount();
+    ov.innerHTML = ''
+      + '<div class="cdmk-box">'
+      +   '<div class="cdmk-ic">'+LOCK_SVG+'</div>'
+      +   '<p class="cdmk-ttl">'+esc(T('off_ttl'))+'</p>'
+      +   '<p class="cdmk-sub">'+esc(T('off_sub'))+'</p>'
+      +   '<button class="cdmk-b gold" id="cdmk-yes">'+esc(T('off_go'))+'</button>'
+      +   '<button class="cdmk-b ghost" id="cdmk-no">'+esc(T('off_later'))+'</button>'
+      + '</div>';
+    ov.classList.add('show');
+    function seen(){ try{ localStorage.setItem(K_ASK,'1'); }catch(e){} }
+    ov.querySelector('#cdmk-no').onclick = function(){
+      seen(); ov.classList.remove('show'); ov.innerHTML=''; if(after) after();
+    };
+    ov.querySelector('#cdmk-yes').onclick = function(){
+      seen(); showSetup(after);
+    };
+  }
+
   /* ---- garde ------------------------------------------------------------ */
   function guard(onOk, onCancel){
-    if(!on() || unlocked){ if(onOk) onOk(); return; }
-    showUnlock(onOk, onCancel);
+    if(on()){
+      if(unlocked){ if(onOk) onOk(); return; }
+      showUnlock(onOk, onCancel); return;
+    }
+    /* Verrou eteint : on propose une fois, puis on laisse passer. La reponse
+       donnee, on repasse par guard — si le verrou vient d'etre pose, il est
+       deja deverrouille et l'ouverture suit sans second ecran. */
+    if(!asked()){ showOffer(function(){ guard(onOk, onCancel); }); return; }
+    if(onOk) onOk();
   }
 
   /* ---- cycle de vie ----------------------------------------------------- */
@@ -2847,7 +2943,7 @@ const CDMLock = (function(){
     enabled: on,
     open: function(){ return !on() || unlocked; },
     guard: guard,
-    setup: showSetup,
+    setup: function(after){ try{ localStorage.setItem(K_ASK,'1'); }catch(e){} showSetup(after); },
     label: function(){ return on() ? T('st_on') : T('st_off'); },
     lockedLabel: function(){ return T('locked'); }
   };

@@ -109,6 +109,12 @@
   .comp-item .ci-top .sp{flex:1}
   .iconbtn{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:6px 10px;font-size:14px;font-weight:700;line-height:1}
   .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+  .comp-item input, .comp-item select{width:100%;box-sizing:border-box;
+    padding:10px 11px;border-radius:10px;border:1.5px solid var(--line);
+    background:var(--surface);color:var(--text);outline:none;
+    font-size:15px;font-family:inherit;height:40px}
+  .comp-item input:focus, .comp-item select:focus{border-color:var(--brand)}
+  .comp-item .mini{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
 
   .overlay{position:fixed;inset:0;z-index:60;background:rgba(8,8,20,.5);backdrop-filter:blur(3px);display:none;align-items:flex-end;justify-content:center}
@@ -336,7 +342,7 @@ h1, h2,
 </div>
 
 <!-- FICHE CLIENT -->
-<div class="overlay" id="ov-cd">
+<div class="overlay side" id="ov-cd">
   <div class="sheet">
     <div class="grab"></div>
     <div id="cd-body"><div class="spin"></div></div>
@@ -523,7 +529,7 @@ h1, h2,
 </div>
 
 <!-- CHAT COACH <-> CLIENT -->
-<div class="overlay" id="ov-chat">
+<div class="overlay side" id="ov-chat">
   <div class="sheet" style="display:flex;flex-direction:column">
     <div class="grab"></div>
     <div class="chat-head">
@@ -744,7 +750,7 @@ h1, h2,
    fait la difference entre lire ses messages et travailler.
    ========================================================================== */
 @media (min-width:760px) and (max-width:1039.98px){
-  .page{max-width:920px;padding:22px 26px 60px}
+  .page{max-width:min(92vw,980px);padding:22px 26px 60px}
   .overlay{align-items:center;padding:24px}
   .sheet{max-width:700px;max-height:88vh;border-radius:20px}
   #ov-chat .sheet{height:86dvh;max-height:86dvh}
@@ -805,18 +811,58 @@ h1, h2,
   /* --- fiche client et conversation : tiroir de droite, pas modale ---
      pointer-events sur le conteneur laisse la liste cliquable derriere : on
      passe d'un client a l'autre sans fermer quoi que ce soit. */
-  #ov-cd, #ov-chat{background:transparent;backdrop-filter:none;padding:0;
+  .overlay.side{background:transparent;backdrop-filter:none;padding:0;
     left:calc(var(--rail) + var(--listw) + var(--colgap)*2);pointer-events:none;
     align-items:stretch;justify-content:stretch}
-  #ov-cd .sheet, #ov-chat .sheet{pointer-events:auto;width:100%;max-width:none;
+  .overlay.side .sheet{pointer-events:auto;width:100%;max-width:none;
     height:100dvh;max-height:100dvh;border-radius:0;border-left:1px solid var(--line);
     padding:24px 26px calc(24px + env(safe-area-inset-bottom));animation:none;overflow-y:auto}
   #ov-chat .sheet{overflow:hidden}
 
   /* --- les formulaires restent des modales, mais centrees --- */
-  .overlay:not(#ov-cd):not(#ov-chat){align-items:center;justify-content:center;padding:26px}
-  .overlay:not(#ov-cd):not(#ov-chat) .sheet{max-width:640px;max-height:86vh;border-radius:20px}
+  .overlay:not(.side){align-items:center;justify-content:center;padding:26px}
+  .overlay:not(.side) .sheet{max-width:640px;max-height:86vh;border-radius:20px}
   .grab{display:none}
+
+
+  /* --- Constructeur de seances : une ligne par exercice ------------------
+     Au pouce, un exercice occupe quatre rangees empilees (nom, bloc, puis
+     sets/reps/repos, puis RPE/note) : c'est la seule facon de tenir sur 390 px.
+     Consequence sur un PC : une seance de dix exercices demandait de faire
+     defiler quatre ecrans pour verifier une progression de charge.
+     display:contents dissout les conteneurs intermediaires et fait remonter
+     chaque champ dans une seule grille — l'ordre visuel est ensuite fixe par
+     `order`, puisque les boutons arrivent en 3e position dans le DOM alors
+     qu'ils doivent finir la ligne. */
+  #ov-comp .sheet, #ov-tp .sheet{max-width:1180px}
+  #ov-comp .comp-item, #ov-tp .comp-item{
+    display:grid;align-items:end;gap:9px;padding:11px 12px;
+    grid-template-columns:24px minmax(130px,1.5fr) 132px 62px 78px 76px 66px minmax(110px,1.1fr) repeat(4,32px)}
+  #ov-comp .comp-item .ci-top, #ov-comp .comp-item .row3, #ov-comp .comp-item .row2,
+  #ov-tp .comp-item .ci-top, #ov-tp .comp-item .row3, #ov-tp .comp-item .row2{display:contents}
+  #ov-comp .comp-item .ord{order:1;margin-bottom:10px}
+  #ov-comp .comp-item .sp{order:2;margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #ov-comp .comp-item > .field{order:3;margin:0!important}
+  #ov-comp .comp-item .row3 > div:nth-child(1){order:4}
+  #ov-comp .comp-item .row3 > div:nth-child(2){order:5}
+  #ov-comp .comp-item .row3 > div:nth-child(3){order:6}
+  #ov-comp .comp-item .row2 > div:nth-child(1){order:7}
+  #ov-comp .comp-item .row2 > div:nth-child(2){order:8}
+  #ov-comp .comp-item [data-swap]{order:9}
+  #ov-comp .comp-item [data-up]{order:10}
+  #ov-comp .comp-item [data-down]{order:11}
+  #ov-comp .comp-item [data-rm]{order:12}
+  #ov-comp .comp-item .iconbtn{margin-bottom:10px;padding:0;height:40px;text-align:center}
+  /* Les intitules ne servent qu'une fois : repetes dix fois ils font du bruit,
+     absents on ne sait plus quelle colonne est quoi. On garde la premiere
+     ligne comme en-tete. */
+  #ov-comp .comp-item:not(:first-child) .mini{display:none}
+
+  /* --- Bibliotheques : une grille, pas une colonne de 1400 px ------------ */
+  #wk-list, #ex-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));
+    gap:12px;align-items:start}
+  #wk-list .item, #ex-list .item{margin-bottom:0}
+  #sub-wk > .field, #sub-ex > .field{max-width:420px}
 
   /* --- la ligne ouverte reste marquee : on sait ce qu'on regarde --- */
   .item.sel, .thr.sel{border-color:var(--brand);
@@ -867,6 +913,7 @@ if(!['fr','en','nl'].includes(LANG)) LANG='fr';
    ========================================================================== */
 const CDMLock = (function(){
   var K_ON='cdm_lock_on', K_SALT='cdm_lock_salt', K_HASH='cdm_lock_hash', K_BIO='cdm_lock_bio';
+  var K_ASK='cdm_lock_asked';
   var GRACE = 60000;        /* arriere-plan tolere avant de reverrouiller */
   var ITER  = 210000;       /* recommandation OWASP 2023 pour PBKDF2-SHA256 */
   var unlocked = false;     /* etat en memoire uniquement : jamais persiste */
@@ -901,6 +948,12 @@ const CDMLock = (function(){
     bio_sub:  {fr:'Un regard au lieu du code. Le code reste ton secours.',
                en:'A glance instead of the code. The code stays your fallback.',
                nl:'Een blik in plaats van de code. De code blijft je noodoplossing.'},
+    off_ttl:  {fr:'Protéger tes messages',           en:'Protect your messages',        nl:'Je berichten beschermen'},
+    off_sub:  {fr:'Sur cet appareil, quelqu’un qui prend ton téléphone déverrouillé peut ouvrir tes conversations. Un code à 6 chiffres — et Face ID s’il est disponible — ferme cette porte. Le reste de l’app ne change pas.',
+               en:'On this device, anyone holding your unlocked phone can open your conversations. A 6-digit code — and Face ID where available — closes that door. The rest of the app is unchanged.',
+               nl:'Op dit toestel kan iemand met je ontgrendelde telefoon je gesprekken openen. Een 6-cijferige code — en Face ID indien beschikbaar — sluit die deur. De rest van de app blijft gelijk.'},
+    off_go:   {fr:'Activer le verrou',                en:'Turn the lock on',             nl:'Slot inschakelen'},
+    off_later:{fr:'Plus tard',                        en:'Later',                        nl:'Later'},
     st_on:    {fr:'Activé',                          en:'On',                           nl:'Aan'},
     st_off:   {fr:'Désactivé',                       en:'Off',                          nl:'Uit'},
     close:    {fr:'Fermer',                          en:'Close',                        nl:'Sluiten'},
@@ -918,6 +971,7 @@ const CDMLock = (function(){
   function ls(fn,d){ try{ return fn(); }catch(e){ return d; } }
   var on     = function(){ return ls(function(){ return localStorage.getItem(K_ON)==='1'; }, false); };
   var bioOn  = function(){ return ls(function(){ return localStorage.getItem(K_BIO)==='1'; }, false); };
+  var asked  = function(){ return ls(function(){ return localStorage.getItem(K_ASK)==='1'; }, false); };
 
   function b64(u8){ var s=''; for(var i=0;i<u8.length;i++) s+=String.fromCharCode(u8[i]); return btoa(s); }
   function unb64(s){ var b=atob(s), u=new Uint8Array(b.length); for(var i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; }
@@ -1135,10 +1189,42 @@ const CDMLock = (function(){
     setTimeout(function(){ try{ c1.focus(); }catch(e){} }, 120);
   }
 
+  /* ---- proposition, une seule fois --------------------------------------
+     Un verrou range dans les reglages ne protege personne : il faut aller le
+     chercher, et on ne va chercher que ce qu'on sait exister. Il se propose
+     donc au premier passage par les messages — l'instant ou la question a un
+     sens — puis plus jamais, quelle que soit la reponse. */
+  function showOffer(after){
+    mount();
+    ov.innerHTML = ''
+      + '<div class="cdmk-box">'
+      +   '<div class="cdmk-ic">'+LOCK_SVG+'</div>'
+      +   '<p class="cdmk-ttl">'+esc(T('off_ttl'))+'</p>'
+      +   '<p class="cdmk-sub">'+esc(T('off_sub'))+'</p>'
+      +   '<button class="cdmk-b gold" id="cdmk-yes">'+esc(T('off_go'))+'</button>'
+      +   '<button class="cdmk-b ghost" id="cdmk-no">'+esc(T('off_later'))+'</button>'
+      + '</div>';
+    ov.classList.add('show');
+    function seen(){ try{ localStorage.setItem(K_ASK,'1'); }catch(e){} }
+    ov.querySelector('#cdmk-no').onclick = function(){
+      seen(); ov.classList.remove('show'); ov.innerHTML=''; if(after) after();
+    };
+    ov.querySelector('#cdmk-yes').onclick = function(){
+      seen(); showSetup(after);
+    };
+  }
+
   /* ---- garde ------------------------------------------------------------ */
   function guard(onOk, onCancel){
-    if(!on() || unlocked){ if(onOk) onOk(); return; }
-    showUnlock(onOk, onCancel);
+    if(on()){
+      if(unlocked){ if(onOk) onOk(); return; }
+      showUnlock(onOk, onCancel); return;
+    }
+    /* Verrou eteint : on propose une fois, puis on laisse passer. La reponse
+       donnee, on repasse par guard — si le verrou vient d'etre pose, il est
+       deja deverrouille et l'ouverture suit sans second ecran. */
+    if(!asked()){ showOffer(function(){ guard(onOk, onCancel); }); return; }
+    if(onOk) onOk();
   }
 
   /* ---- cycle de vie ----------------------------------------------------- */
@@ -1172,7 +1258,7 @@ const CDMLock = (function(){
     enabled: on,
     open: function(){ return !on() || unlocked; },
     guard: guard,
-    setup: showSetup,
+    setup: function(after){ try{ localStorage.setItem(K_ASK,'1'); }catch(e){} showSetup(after); },
     label: function(){ return on() ? T('st_on') : T('st_off'); },
     lockedLabel: function(){ return T('locked'); }
   };
