@@ -281,7 +281,10 @@ h1, h2,
 
     <!-- MESSAGES -->
     <div class="pane" id="pane-messages">
-      <p id="msg-hint" data-i18n="c_msg_hint">Toutes tes conversations, les non lues en premier. Touche une ligne pour lire et répondre.</p>
+      <div class="msg-head">
+        <p id="msg-hint" data-i18n="c_msg_hint">Toutes tes conversations, les non lues en premier. Touche une ligne pour lire et répondre.</p>
+        <button type="button" class="msg-lock" id="msg-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="10.5" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg><span id="msg-lock-lb"></span></button>
+      </div>
       <div id="msg-list"><div class="spin"></div></div>
     </div>
 
@@ -677,7 +680,14 @@ h1, h2,
     line-height:1;box-shadow:0 0 0 2px var(--bg)}
   .tcnt[hidden]{display:none}
   @media (max-width:370px){ .tabs{gap:6px} .tabs button{font-size:12.5px;padding:11px 4px} }
-  #msg-hint{font-size:12.5px;color:var(--muted);margin:0 2px 13px;line-height:1.5}
+  #msg-hint{font-size:12.5px;color:var(--muted);margin:0;line-height:1.5;flex:1;min-width:0}
+  .msg-head{display:flex;align-items:flex-start;gap:12px;margin:0 2px 13px}
+  .msg-lock{flex:0 0 auto;display:flex;align-items:center;gap:6px;background:var(--surface-2);
+    border:1px solid var(--line);border-radius:999px;padding:7px 12px;color:var(--muted);
+    font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+  .msg-lock svg{width:14px;height:14px}
+  .msg-lock.on{color:var(--gold-hi);border-color:color-mix(in srgb,var(--gold) 45%,transparent);
+    background:color-mix(in srgb,var(--gold) 12%,transparent)}
   .thr{display:flex;align-items:flex-start;gap:11px;background:var(--surface);border:1px solid var(--line);
     border-radius:var(--radius-sm);box-shadow:var(--shadow-soft);padding:13px 14px;margin-bottom:9px;cursor:pointer}
 /* Le non-lu se voit au bord et au fond, pas seulement a la pastille : on doit
@@ -726,6 +736,341 @@ let LANG = localStorage.getItem('cdm_lang') || (function(){
   return 'en';
 })();
 if(!['fr','en','nl'].includes(LANG)) LANG='fr';
+
+/* ==========================================================================
+   VERROU MESSAGES — Face ID, code de secours
+   --------------------------------------------------------------------------
+   Le scenario n'est pas le vol. Un telephone vole est verrouille par iOS et
+   personne n'entre. Le vrai risque est le telephone DEVERROUILLE : celui qu'on
+   tend a quelqu'un pour montrer une photo, celui qu'on laisse sur un banc a la
+   salle. Trente secondes suffisent pour ouvrir l'app et lire une conversation.
+
+   Ce que ce verrou est : une porte fermee a cle devant les messages, qui se
+   referme seule des que l'app passe en arriere-plan plus d'une minute.
+   Ce qu'il n'est pas : un coffre-fort. Quelqu'un de techniquement outille, qui
+   aurait le telephone deverrouille et du temps devant lui, contournerait un
+   verrou d'interface. Contre celui-la, la seule defense reste le code de
+   l'iPhone. On protege contre le curieux, ce qui est exactement la demande.
+
+   Le code n'est JAMAIS envoye au serveur. Seul un derive PBKDF2 (210 000
+   iterations, SHA-256, sel aleatoire de 16 octets) est ecrit sur l'appareil.
+   Personne chez Coach DM ne peut le lire ni le retrouver : d'ou l'issue de
+   secours par deconnexion, qui exige le mot de passe du compte.
+   ========================================================================== */
+const CDMLock = (function(){
+  var K_ON='cdm_lock_on', K_SALT='cdm_lock_salt', K_HASH='cdm_lock_hash', K_BIO='cdm_lock_bio';
+  var GRACE = 60000;        /* arriere-plan tolere avant de reverrouiller */
+  var ITER  = 210000;       /* recommandation OWASP 2023 pour PBKDF2-SHA256 */
+  var unlocked = false;     /* etat en memoire uniquement : jamais persiste */
+  var bgAt = 0;
+  var pending = null;
+
+  var L = {
+    ttl:      {fr:'Messages verrouillés',            en:'Messages locked',              nl:'Berichten vergrendeld'},
+    sub:      {fr:'Déverrouille pour lire et répondre.', en:'Unlock to read and reply.', nl:'Ontgrendel om te lezen en te antwoorden.'},
+    face:     {fr:'Déverrouiller avec Face ID',      en:'Unlock with Face ID',          nl:'Ontgrendelen met Face ID'},
+    code_ph:  {fr:'Code à 6 chiffres',               en:'6-digit code',                 nl:'6-cijferige code'},
+    bad:      {fr:'Code incorrect.',                 en:'Wrong code.',                  nl:'Verkeerde code.'},
+    cancel:   {fr:'Annuler',                         en:'Cancel',                       nl:'Annuleren'},
+    forgot:   {fr:'J’ai oublié mon code',            en:'I forgot my code',             nl:'Ik ben mijn code vergeten'},
+    forgot_q: {fr:'Se déconnecter enlève le verrou. Tu devras te reconnecter avec ton mot de passe, puis choisir un nouveau code. Continuer ?',
+               en:'Signing out removes the lock. You will sign back in with your password, then pick a new code. Continue?',
+               nl:'Uitloggen verwijdert het slot. Je logt opnieuw in met je wachtwoord en kiest daarna een nieuwe code. Doorgaan?'},
+    /* configuration */
+    set_ttl:  {fr:'Verrouiller mes messages',        en:'Lock my messages',             nl:'Mijn berichten vergrendelen'},
+    set_sub:  {fr:'Le reste de l’app reste libre. Seules les conversations demandent Face ID ou ton code — et se referment dès que l’app passe en arrière-plan une minute.',
+               en:'The rest of the app stays open. Only conversations ask for Face ID or your code — and re-lock once the app has been in the background for a minute.',
+               nl:'De rest van de app blijft vrij. Alleen gesprekken vragen Face ID of je code — en vergrendelen weer zodra de app een minuut op de achtergrond staat.'},
+    set_new:  {fr:'Choisis un code à 6 chiffres',    en:'Choose a 6-digit code',        nl:'Kies een 6-cijferige code'},
+    set_rep:  {fr:'Répète le code',                  en:'Repeat the code',              nl:'Herhaal de code'},
+    set_ne:   {fr:'Les deux codes ne correspondent pas.', en:'The two codes do not match.', nl:'De twee codes komen niet overeen.'},
+    set_6:    {fr:'Il faut exactement 6 chiffres.',  en:'Exactly 6 digits are required.', nl:'Precies 6 cijfers vereist.'},
+    set_weak: {fr:'Évite 123456 ou six fois le même chiffre.', en:'Avoid 123456 or the same digit six times.', nl:'Vermijd 123456 of zes keer hetzelfde cijfer.'},
+    set_on:   {fr:'Activer le verrou',               en:'Turn the lock on',             nl:'Slot inschakelen'},
+    set_off:  {fr:'Désactiver le verrou',            en:'Turn the lock off',            nl:'Slot uitschakelen'},
+    set_done: {fr:'Verrou activé.',                  en:'Lock enabled.',                nl:'Slot ingeschakeld.'},
+    bio_ttl:  {fr:'Utiliser Face ID',                en:'Use Face ID',                  nl:'Face ID gebruiken'},
+    bio_sub:  {fr:'Un regard au lieu du code. Le code reste ton secours.',
+               en:'A glance instead of the code. The code stays your fallback.',
+               nl:'Een blik in plaats van de code. De code blijft je noodoplossing.'},
+    st_on:    {fr:'Activé',                          en:'On',                           nl:'Aan'},
+    st_off:   {fr:'Désactivé',                       en:'Off',                          nl:'Uit'},
+    close:    {fr:'Fermer',                          en:'Close',                        nl:'Sluiten'},
+    locked:   {fr:'Verrouillé',                      en:'Locked',                       nl:'Vergrendeld'},
+    nocrypto: {fr:'Ce navigateur ne permet pas de chiffrer ton code ici. Ouvre l’app ou coachdm.be en https.',
+               en:'This browser cannot hash your code here. Open the app, or coachdm.be over https.',
+               nl:'Deze browser kan je code hier niet versleutelen. Open de app of coachdm.be via https.'},
+    warn:     {fr:'Ce verrou arrête quelqu’un qui prend ton téléphone. Il ne remplace pas le code de l’iPhone lui-même.',
+               en:'This lock stops someone who picks up your phone. It does not replace the iPhone passcode itself.',
+               nl:'Dit slot stopt iemand die je telefoon pakt. Het vervangt de toegangscode van de iPhone niet.'}
+  };
+  function T(k){ var l=(typeof LANG!=='undefined'&&(LANG==='en'||LANG==='nl'))?LANG:'fr'; return (L[k]&&L[k][l])||L[k].fr; }
+
+  /* ---- stockage --------------------------------------------------------- */
+  function ls(fn,d){ try{ return fn(); }catch(e){ return d; } }
+  var on     = function(){ return ls(function(){ return localStorage.getItem(K_ON)==='1'; }, false); };
+  var bioOn  = function(){ return ls(function(){ return localStorage.getItem(K_BIO)==='1'; }, false); };
+
+  function b64(u8){ var s=''; for(var i=0;i<u8.length;i++) s+=String.fromCharCode(u8[i]); return btoa(s); }
+  function unb64(s){ var b=atob(s), u=new Uint8Array(b.length); for(var i=0;i<b.length;i++) u[i]=b.charCodeAt(i); return u; }
+
+  async function derive(code, saltB64){
+    var key = await crypto.subtle.importKey('raw', new TextEncoder().encode(code), 'PBKDF2', false, ['deriveBits']);
+    var bits = await crypto.subtle.deriveBits(
+      { name:'PBKDF2', salt:unb64(saltB64), iterations:ITER, hash:'SHA-256' }, key, 256);
+    return b64(new Uint8Array(bits));
+  }
+  async function setCode(code){
+    var salt = new Uint8Array(16); crypto.getRandomValues(salt);
+    var s = b64(salt);
+    var h = await derive(code, s);
+    localStorage.setItem(K_SALT, s);
+    localStorage.setItem(K_HASH, h);
+    localStorage.setItem(K_ON, '1');
+  }
+  async function checkCode(code){
+    var s = localStorage.getItem(K_SALT), h = localStorage.getItem(K_HASH);
+    if(!s || !h) return false;
+    return (await derive(code, s)) === h;
+  }
+  function disable(){
+    [K_ON,K_SALT,K_HASH,K_BIO].forEach(function(k){ try{ localStorage.removeItem(k); }catch(e){} });
+    unlocked = false;
+  }
+
+  /* ---- biometrie -------------------------------------------------------- */
+  function bioPlugin(){ var P = window.Capacitor && window.Capacitor.Plugins; return (P && P.NativeBiometric) || null; }
+  async function bioAvailable(){
+    var B = bioPlugin(); if(!B) return false;
+    try{ var r = await B.isAvailable(); return !!(r && r.isAvailable); }catch(e){ return false; }
+  }
+  async function bioVerify(){
+    var B = bioPlugin(); if(!B) return false;
+    try{ await B.verifyIdentity({ reason:T('sub'), title:T('ttl'), subtitle:'', description:'' }); return true; }
+    catch(e){ return false; }
+  }
+
+  /* ---- ce qui est sensible a l'ecran ------------------------------------ */
+  var CHATS = ['#chat-ov', '#ov-chat'];
+  function chatOpen(){
+    return CHATS.some(function(s){ var e=document.querySelector(s); return e && e.classList.contains('show'); });
+  }
+  function closeChats(){
+    CHATS.forEach(function(s){ var e=document.querySelector(s); if(e) e.classList.remove('show'); });
+    try{ if(typeof closeChat==='function') closeChat(); }catch(e){}
+  }
+  function msgPaneOpen(){ return !!document.querySelector('#pane-messages.active'); }
+  function sensitiveOnScreen(){ return chatOpen() || msgPaneOpen(); }
+
+  /* ---- styles injectes une seule fois ----------------------------------- */
+  var CSS = ''
+   + '.cdmk-ov{position:fixed;inset:0;z-index:99998;display:none;align-items:center;justify-content:center;'
+   +   'padding:22px;background:rgba(4,8,6,.86);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}'
+   + '.cdmk-ov.show{display:flex}'
+   + '.cdmk-box{width:100%;max-width:330px;text-align:center;color:#F2F0E9;font-family:inherit}'
+   + '.cdmk-ic{width:56px;height:56px;margin:0 auto 16px;border-radius:18px;display:grid;place-items:center;'
+   +   'background:rgba(217,182,92,.16);color:#D9B65C}'
+   + '.cdmk-ic svg{width:26px;height:26px}'
+   + '.cdmk-ttl{font-size:20px;font-weight:800;margin:0 0 6px}'
+   + '.cdmk-sub{font-size:13px;line-height:1.5;color:#8FA398;margin:0 0 20px}'
+   + '.cdmk-in{width:100%;box-sizing:border-box;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);'
+   +   'border-radius:14px;color:#F2F0E9;font-family:inherit;font-size:22px;font-weight:700;letter-spacing:.42em;'
+   +   'text-align:center;padding:14px 10px 14px 18px;outline:none;-webkit-text-security:disc}'
+   + '.cdmk-in:focus{border-color:#D9B65C}'
+   + '.cdmk-in.plain{-webkit-text-security:none;letter-spacing:0;font-size:16px;font-weight:600;padding-left:10px}'
+   + '.cdmk-err{min-height:18px;font-size:12.5px;color:#FF6B6B;margin:9px 0 0}'
+   + '.cdmk-b{width:100%;box-sizing:border-box;border:0;cursor:pointer;font-family:inherit;font-weight:800;'
+   +   'font-size:14.5px;border-radius:999px;padding:13px;margin-top:12px;display:flex;align-items:center;'
+   +   'justify-content:center;gap:8px}'
+   + '.cdmk-b.gold{background:#D9B65C;color:#3a2b08}'
+   + '.cdmk-b.ghost{background:transparent;color:#8FA398;border:1px solid rgba(255,255,255,.14)}'
+   + '.cdmk-b.link{background:transparent;color:#8FA398;font-weight:600;font-size:12.5px;padding:10px;'
+   +   'text-decoration:underline;margin-top:4px}'
+   + '.cdmk-b svg{width:17px;height:17px}'
+   + '.cdmk-note{font-size:11.5px;line-height:1.5;color:#6E7C76;margin:16px 0 0}'
+   /* Le voile masque l'app AVANT qu'iOS ne photographie l'ecran pour le
+      multitache : sans lui, la derniere conversation reste visible d'un
+      double-clic, verrou actif ou non. */
+   + '.cdmk-veil{position:fixed;inset:0;z-index:99999;display:none;background:#070A08;'
+   +   'align-items:center;justify-content:center;color:#D9B65C}'
+   + '.cdmk-veil.show{display:flex}'
+   + '.cdmk-veil svg{width:44px;height:44px;opacity:.55}';
+
+  var LOCK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" '
+    + 'stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="10.5" rx="2.5"/>'
+    + '<path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>';
+  var FACE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" '
+    + 'stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5V6a2 2 0 0 1 2-2h2.5M15.5 4H18a2 2 0 0 1 2 2v2.5'
+    + 'M20 15.5V18a2 2 0 0 1-2 2h-2.5M8.5 20H6a2 2 0 0 1-2-2v-2.5"/><path d="M9 10v1.5M15 10v1.5"/>'
+    + '<path d="M12 10v3.2h-1"/><path d="M9.4 16.2a4 4 0 0 0 5.2 0"/></svg>';
+
+  /* WebCrypto n'existe qu'en contexte securise (https, ou le localhost servi
+     par Capacitor). Sans lui on ne peut pas deriver le code : mieux vaut le
+     dire que d'activer un verrou qui ne verrouillerait rien. */
+  function cryptoOk(){ return !!(window.crypto && window.crypto.subtle && window.crypto.subtle.deriveBits); }
+
+  var ov = null, veil = null;
+  function mount(){
+    if(ov) return;
+    var st = document.createElement('style'); st.textContent = CSS; document.head.appendChild(st);
+    ov = document.createElement('div'); ov.className='cdmk-ov'; ov.id='cdmk-ov';
+    document.body.appendChild(ov);
+    veil = document.createElement('div'); veil.className='cdmk-veil'; veil.innerHTML = LOCK_SVG;
+    document.body.appendChild(veil);
+  }
+
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+
+  /* ---- ecran de deverrouillage ------------------------------------------ */
+  function showUnlock(onOk, onCancel){
+    mount();
+    ov.innerHTML = ''
+      + '<div class="cdmk-box">'
+      +   '<div class="cdmk-ic">'+LOCK_SVG+'</div>'
+      +   '<p class="cdmk-ttl">'+esc(T('ttl'))+'</p>'
+      +   '<p class="cdmk-sub">'+esc(T('sub'))+'</p>'
+      +   '<input class="cdmk-in" id="cdmk-code" type="text" inputmode="numeric" autocomplete="off" '
+      +     'maxlength="6" placeholder="••••••" aria-label="'+esc(T('code_ph'))+'">'
+      +   '<p class="cdmk-err" id="cdmk-err"></p>'
+      +   '<button class="cdmk-b gold" id="cdmk-face" style="display:none">'+FACE_SVG+esc(T('face'))+'</button>'
+      +   '<button class="cdmk-b ghost" id="cdmk-cancel">'+esc(T('cancel'))+'</button>'
+      +   '<button class="cdmk-b link" id="cdmk-forgot">'+esc(T('forgot'))+'</button>'
+      + '</div>';
+    ov.classList.add('show');
+    var inp = ov.querySelector('#cdmk-code'), err = ov.querySelector('#cdmk-err');
+    var face = ov.querySelector('#cdmk-face');
+
+    function done(){ ov.classList.remove('show'); ov.innerHTML=''; unlocked = true; if(onOk) onOk(); }
+    function bail(){ ov.classList.remove('show'); ov.innerHTML=''; if(onCancel) onCancel(); }
+
+    inp.addEventListener('input', async function(){
+      inp.value = inp.value.replace(/\D/g,'').slice(0,6);
+      err.textContent = '';
+      if(inp.value.length === 6){
+        var v = inp.value;
+        inp.blur();
+        if(await checkCode(v)) done();
+        else { err.textContent = T('bad'); inp.value=''; setTimeout(function(){ inp.focus(); }, 60); }
+      }
+    });
+    ov.querySelector('#cdmk-cancel').onclick = bail;
+    ov.querySelector('#cdmk-forgot').onclick = function(){
+      if(!confirm(T('forgot_q'))) return;
+      disable();
+      try{ if(typeof sb!=='undefined' && sb.auth) sb.auth.signOut(); }catch(e){}
+      setTimeout(function(){ location.reload(); }, 300);
+    };
+
+    /* Face ID d'abord, sans que l'utilisateur ait a le demander : c'est le
+       geste attendu. Le champ code reste sous la main si ca echoue. */
+    bioAvailable().then(function(av){
+      if(!av || !bioOn()){ setTimeout(function(){ try{ inp.focus(); }catch(e){} }, 120); return; }
+      face.style.display = 'flex';
+      face.onclick = function(){ bioVerify().then(function(k){ if(k) done(); else { try{ inp.focus(); }catch(e){} } }); };
+      bioVerify().then(function(k){ if(k) done(); else { try{ inp.focus(); }catch(e){} } });
+    });
+  }
+
+  /* ---- ecran de configuration ------------------------------------------- */
+  function showSetup(after){
+    mount();
+    var isOn = on();
+    ov.innerHTML = ''
+      + '<div class="cdmk-box">'
+      +   '<div class="cdmk-ic">'+LOCK_SVG+'</div>'
+      +   '<p class="cdmk-ttl">'+esc(T('set_ttl'))+'</p>'
+      +   '<p class="cdmk-sub">'+esc(T('set_sub'))+'</p>'
+      +   (isOn
+          ? '<input class="cdmk-in" id="cdmk-c1" type="text" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="••••••">'
+          + '<p class="cdmk-err" id="cdmk-err"></p>'
+          + '<button class="cdmk-b ghost" id="cdmk-go">'+esc(T('set_off'))+'</button>'
+          : '<input class="cdmk-in" id="cdmk-c1" type="text" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="'+esc(T('set_new'))+'">'
+          + '<input class="cdmk-in" id="cdmk-c2" type="text" inputmode="numeric" maxlength="6" autocomplete="off" style="margin-top:10px" placeholder="'+esc(T('set_rep'))+'">'
+          + '<p class="cdmk-err" id="cdmk-err"></p>'
+          + '<button class="cdmk-b gold" id="cdmk-go">'+esc(T('set_on'))+'</button>')
+      +   '<button class="cdmk-b ghost" id="cdmk-cancel">'+esc(T('close'))+'</button>'
+      +   '<p class="cdmk-note">'+esc(T('warn'))+'</p>'
+      + '</div>';
+    ov.classList.add('show');
+    var c1 = ov.querySelector('#cdmk-c1'), c2 = ov.querySelector('#cdmk-c2');
+    var err = ov.querySelector('#cdmk-err');
+    [c1,c2].forEach(function(el){ if(el) el.addEventListener('input', function(){
+      el.value = el.value.replace(/\D/g,'').slice(0,6); err.textContent=''; }); });
+
+    function close(){ ov.classList.remove('show'); ov.innerHTML=''; if(after) after(); }
+    ov.querySelector('#cdmk-cancel').onclick = close;
+
+    ov.querySelector('#cdmk-go').onclick = async function(){
+      if(!cryptoOk()){ err.textContent = T('nocrypto'); return; }
+      try{
+      if(isOn){
+        if(!(await checkCode(c1.value))){ err.textContent = T('bad'); c1.value=''; return; }
+        disable(); close(); return;
+      }
+      var a = c1.value, b = c2.value;
+      if(a.length !== 6){ err.textContent = T('set_6'); return; }
+      /* Un code devinable ne protege de personne : c'est le premier essai de
+         quiconque tient le telephone. */
+      if(/^(\d)\1{5}$/.test(a) || a==='123456' || a==='654321'){ err.textContent = T('set_weak'); return; }
+      if(a !== b){ err.textContent = T('set_ne'); c2.value=''; return; }
+      await setCode(a);
+      unlocked = true;
+      if(await bioAvailable()){
+        if(confirm(T('bio_ttl') + ' — ' + T('bio_sub'))){
+          if(await bioVerify()) localStorage.setItem(K_BIO,'1');
+        }
+      }
+      close();
+      }catch(e){ err.textContent = T('nocrypto'); }
+    };
+    setTimeout(function(){ try{ c1.focus(); }catch(e){} }, 120);
+  }
+
+  /* ---- garde ------------------------------------------------------------ */
+  function guard(onOk, onCancel){
+    if(!on() || unlocked){ if(onOk) onOk(); return; }
+    showUnlock(onOk, onCancel);
+  }
+
+  /* ---- cycle de vie ----------------------------------------------------- */
+  function toBackground(){
+    bgAt = Date.now();
+    if(on() && sensitiveOnScreen()){ mount(); veil.classList.add('show'); }
+  }
+  function toForeground(){
+    if(veil) veil.classList.remove('show');
+    if(!on()) return;
+    if(bgAt && (Date.now() - bgAt) > GRACE){
+      unlocked = false;
+      closeChats();
+      try{ if(typeof renderMsgAll === 'function') renderMsgAll(); }catch(e){}
+      try{ if(typeof loadCoachCard === 'function') loadCoachCard(); }catch(e){}
+    }
+    bgAt = 0;
+  }
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden) toBackground(); else toForeground();
+  });
+  window.addEventListener('pagehide', toBackground);
+  try{
+    var AP = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+    if(AP && AP.addListener) AP.addListener('appStateChange', function(s){
+      if(s && s.isActive) toForeground(); else toBackground();
+    });
+  }catch(e){}
+
+  return {
+    enabled: on,
+    open: function(){ return !on() || unlocked; },
+    guard: guard,
+    setup: showSetup,
+    label: function(){ return on() ? T('st_on') : T('st_off'); },
+    lockedLabel: function(){ return T('locked'); }
+  };
+})();
+window.CDMLock = CDMLock;
+
 const T = {
  c_title:{fr:'Console Coach',en:'Coach console',nl:'Coach-console'},
  c_sub:{fr:'Espace coach — Coach DM',en:'Coach area — Coach DM',nl:'Coachruimte — Coach DM'},
@@ -1187,7 +1532,13 @@ function switchTab(t){
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
   $('#pane-'+t).classList.add('active');
   document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
-  if(t==='messages'){ renderMsgAll(); loadThreads().then(renderMsgAll); }
+  /* La liste elle-meme est sensible : noms et apercus. On verrouille l'onglet,
+     pas seulement la conversation. Refus = retour sur Clients. */
+  if(t==='messages'){
+    CDMLock.guard(
+      ()=>{ renderMsgAll(); loadThreads().then(renderMsgAll); },
+      ()=>switchTab('clients'));
+  }
   if(t==='workouts' && !window.__wkLoaded){ window.__wkLoaded=true; loadExercises(); loadWorkouts(); }
   if(t==='cours' && window.__coursOpen){ window.__coursOpen(); }
 }
@@ -1930,6 +2281,7 @@ function renderMsgBadge(){
 function renderThreadList(){
   const box = document.getElementById('msg-list');
   if(!box) return;
+  if(!CDMLock.open()){ box.innerHTML = ''; return; }
   if(!CLIST || !CLIST.length){
     box.innerHTML = '<div class="item"><div class="nm">'+esc(tr('c_msg_none_t'))+'</div>'
       + '<div class="meta">'+esc(tr('c_msg_none_d'))+'</div></div>';
@@ -1968,7 +2320,15 @@ function renderThreadList(){
     el.onclick = ()=> openChatGated(el.dataset.cid, el.dataset.name);
   });
 }
-function renderMsgAll(){ renderThreadList(); renderMsgBadge(); }
+function renderMsgAll(){ renderThreadList(); renderMsgBadge(); paintLockBtn(); }
+function paintLockBtn(){
+  const b = document.getElementById('msg-lock');
+  if(!b) return;
+  const lb = document.getElementById('msg-lock-lb');
+  if(lb) lb.textContent = CDMLock.label();
+  b.classList.toggle('on', CDMLock.enabled());
+  b.onclick = ()=> CDMLock.setup(()=>{ paintLockBtn(); renderThreadList(); });
+}
 
 function msgBub(m){
   if(m.kind==='system'){
@@ -2001,8 +2361,8 @@ async function signMedia(list){
    Web : on présente l'offre. Natif : constat neutre, sans prix ni lien —
    la vente se fait par email (Apple 3.1.1). */
 function openChatGated(cid,name){
-  if(isPaid()){ openChat(cid,name); return; }
-  openMsgUpsell();
+  if(!isPaid()){ openMsgUpsell(); return; }
+  CDMLock.guard(()=>openChat(cid,name));
 }
 function openMsgUpsell(){
   let h = `<h3 style="margin:0 0 4px">Messagerie</h3>
