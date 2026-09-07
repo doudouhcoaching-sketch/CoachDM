@@ -307,6 +307,7 @@ h1, h2,
           <button class="btn sm" id="wk-new" data-i18n="c_wk_new">＋ Séance</button></div>
         <div class="field" style="margin-bottom:11px"><input id="wk-q" type="search" autocomplete="off" placeholder="Rechercher : nom, type…" data-i18n-ph="c_wk_q" /></div>
         <div id="wk-list"><div class="spin"></div></div>
+        <div id="wk-more" class="listmore"></div>
       </div>
 
       <div class="subpane" id="sub-ex">
@@ -314,6 +315,7 @@ h1, h2,
           <button class="btn sm" id="ex-new" data-i18n="c_ex_new">＋ Exercice</button></div>
         <div class="field" style="margin-bottom:11px"><input id="ex-q" type="search" autocomplete="off" placeholder="Rechercher : nom, muscle, catégorie…" data-i18n-ph="c_ex_q" /></div>
         <div id="ex-list"><div class="spin"></div></div>
+        <div id="ex-more" class="listmore"></div>
       </div>
 
       <div class="subpane" id="sub-my">
@@ -699,6 +701,17 @@ h1, h2,
     border:1px solid var(--line);border-radius:999px;padding:7px 12px;color:var(--muted);
     font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
   .msg-lock svg{width:14px;height:14px}
+/* Pied de bibliotheque : mesure faite sur le compte de Mohamed, 1000 seances
+   rendues d'un coup faisaient 30 401 px de liste — trente metres de defilement
+   pour retrouver une seance. On en montre 60, on annonce le total, et on pousse
+   vers la recherche, qui filtre deja la collection entiere. */
+  .listmore{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    margin:14px 2px 4px;font-size:12.5px;color:var(--muted)}
+  .listmore:empty{display:none}
+  .listmore b{color:var(--text);font-weight:700}
+  .listmore button{background:var(--surface-2);border:1px solid var(--line);border-radius:999px;
+    padding:9px 15px;color:var(--text);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+  .listmore button:hover{border-color:var(--brand)}
   .msg-lock.on{color:var(--gold-hi);border-color:color-mix(in srgb,var(--gold) 45%,transparent);
     background:color-mix(in srgb,var(--gold) 12%,transparent)}
   .thr{display:flex;align-items:flex-start;gap:11px;background:var(--surface);border:1px solid var(--line);
@@ -1283,6 +1296,10 @@ const T = {
  c_msg_photo:{fr:'Photo',en:'Photo',nl:'Foto'},
  c_msg_video:{fr:'Vidéo',en:'Video',nl:'Video'},
  c_msg_start:{fr:'Pas encore de message — lance la discussion.',en:'No message yet — start the conversation.',nl:'Nog geen bericht — begin het gesprek.'},
+ c_shown_of:{fr:'{0} affichées sur {1}',en:'showing {0} of {1}',nl:'{0} van {1} getoond'},
+ c_shown_of_ex:{fr:'{0} affichés sur {1}',en:'showing {0} of {1}',nl:'{0} van {1} getoond'},
+ c_show_more:{fr:'Afficher {0} de plus',en:'Show {0} more',nl:'Toon {0} meer'},
+ c_refine:{fr:'Utilise la recherche pour aller plus vite.',en:'Use the search to get there faster.',nl:'Gebruik de zoekbalk om sneller te vinden.'},
  c_pick:{fr:'Choisis un client ou une conversation à gauche.',en:'Pick a client or a conversation on the left.',nl:'Kies links een klant of een gesprek.'},
  c_msg_sep:{fr:'Démarrer une conversation',en:'Start a conversation',nl:'Een gesprek starten'},
  c_msg_none_t:{fr:'Aucune conversation',en:'No conversation',nl:'Geen gesprek'},
@@ -2990,6 +3007,7 @@ async function loadExercises(){
   renderExList();
 }
 function renderExList(){
+  const more = document.getElementById('ex-more'); if(more) more.innerHTML='';
   if(!EXS.length){ $('#ex-list').innerHTML='<p class="empty"><span data-i18n="b_no_ex">Aucun exercice.</span></p>'; return; }
   const q=EX_Q.trim().toLowerCase();
   const list = q ? EXS.filter(e=>{
@@ -2997,7 +3015,8 @@ function renderExList(){
     return (e.name_fr||'').toLowerCase().includes(q) || cat.toLowerCase().includes(q) || mus.toLowerCase().includes(q);
   }) : EXS;
   if(!list.length){ $('#ex-list').innerHTML=`<p class="empty">${trf('b_no_ex_for', esc(EX_Q))}</p>`; return; }
-  $('#ex-list').innerHTML = list.map(e=>{
+  const shown = list.slice(0, EX_MAX);
+  $('#ex-list').innerHTML = shown.map(e=>{
     const vid = e.video_url?'<span class="pill vid"><span data-i18n="b_video">Vidéo</span></span>':'';
     const cat = L_CAT[e.category]||e.category, mus = L_MUS[e.primary_muscle]||e.primary_muscle, eq = L_EQUIP[e.equipment]||e.equipment;
     return `<div class="item acc" style="--a:${accentFor(e.category)}">
@@ -3005,8 +3024,15 @@ function renderExList(){
       <div class="meta">${esc(cat)} · ${esc(mus)} · ${esc(eq)}</div>
     </div>`;
   }).join('');
+  if(more && list.length > shown.length){
+    const reste = list.length - shown.length;
+    more.innerHTML = '<span>'+esc(trf('c_shown_of_ex', shown.length, list.length))+'</span>'
+      + '<button type="button" id="ex-more-b">'+esc(trf('c_show_more', Math.min(PAGE_BIB, reste)))+'</button>'
+      + '<span>'+esc(tr('c_refine'))+'</span>';
+    document.getElementById('ex-more-b').onclick = ()=>{ EX_MAX += PAGE_BIB; renderExList(); };
+  }
 }
-$('#ex-q').oninput = e=>{ EX_Q=e.target.value; renderExList(); };
+$('#ex-q').oninput = e=>{ EX_Q=e.target.value; EX_MAX=PAGE_BIB; renderExList(); };
 /* Entrée directe depuis l'onglet Bibliothèque : même sheet de création que
    celle ouverte depuis le composeur de séance, sans callback à invoquer. */
 $('#ex-new').onclick = ()=>{
@@ -3030,7 +3056,13 @@ async function loadWorkouts(){
   WKS = data||[];
   renderWkList();
 }
+/* Nombre de cartes rendues d'un coup. Remonte de 60 en 60 a la demande, et
+   redescend des qu'on tape une recherche : filtrer, c'est deja reduire. */
+const PAGE_BIB = 60;
+let WK_MAX = PAGE_BIB, EX_MAX = PAGE_BIB;
+
 function renderWkList(){
+  const more = document.getElementById('wk-more'); if(more) more.innerHTML='';
   if(!WKS.length){ $('#wk-list').innerHTML='<p class="empty"><span data-i18n="b_no_wk_first">Aucune séance. Crée ta première séance.</span></p>'; return; }
   const q=WK_Q.trim().toLowerCase();
   const list = q ? WKS.filter(w=>{
@@ -3038,7 +3070,8 @@ function renderWkList(){
     return (w.name_fr||'').toLowerCase().includes(q) || t.toLowerCase().includes(q);
   }) : WKS;
   if(!list.length){ $('#wk-list').innerHTML=`<p class="empty">${trf('b_no_wk_for', esc(WK_Q))}</p>`; return; }
-  $('#wk-list').innerHTML = list.map(w=>{
+  const shown = list.slice(0, WK_MAX);
+  $('#wk-list').innerHTML = shown.map(w=>{
     const pub = w.is_published?'<span class="pill ok"><span data-i18n="b_published">Publiée</span></span>':'<span class="pill no">Brouillon</span>';
     const t=L_TYPE[w.type]||w.type, d=L_DIFF[w.difficulty]||w.difficulty;
     return `<div class="item acc" data-wk="${w.id}" style="--a:${accentFor(w.type)};cursor:pointer">
@@ -3047,8 +3080,15 @@ function renderWkList(){
     </div>`;
   }).join('');
   document.querySelectorAll('#wk-list .item').forEach(el=>el.onclick=()=>openWkEditor(el.dataset.wk));
+  if(more && list.length > shown.length){
+    const reste = list.length - shown.length;
+    more.innerHTML = '<span>'+esc(trf('c_shown_of', shown.length, list.length))+'</span>'
+      + '<button type="button" id="wk-more-b">'+esc(trf('c_show_more', Math.min(PAGE_BIB, reste)))+'</button>'
+      + '<span>'+esc(tr('c_refine'))+'</span>';
+    document.getElementById('wk-more-b').onclick = ()=>{ WK_MAX += PAGE_BIB; renderWkList(); };
+  }
 }
-$('#wk-q').oninput = e=>{ WK_Q=e.target.value; renderWkList(); };
+$('#wk-q').oninput = e=>{ WK_Q=e.target.value; WK_MAX=PAGE_BIB; renderWkList(); };
 $('#wk-new').onclick = ()=>openWkEditor(null);
 
 let WKEDIT=null;
