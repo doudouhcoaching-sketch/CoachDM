@@ -2534,6 +2534,13 @@ function renderMsgAll(){ renderThreadList(); renderMsgBadge(); paintLockBtn(); }
 function paintLockBtn(){
   const b = document.getElementById('msg-lock');
   if(!b) return;
+  /* Meme regle que dans l'app : le verrou ne se propose qu'a qui a des
+     messages. Un coach dont aucun client n'a jamais ecrit n'a rien a
+     verrouiller — le bouton apparaitra au premier echange. */
+  const aDesMessages = Object.keys(THREADS||{}).some(k=>{
+    const t=THREADS[k]; return !!(t && (t.last_at || +t.unread>0));
+  });
+  b.style.display = (CDMLock.enabled() || aDesMessages) ? '' : 'none';
   const lb = document.getElementById('msg-lock-lb');
   if(lb) lb.textContent = CDMLock.label();
   b.classList.toggle('on', CDMLock.enabled());

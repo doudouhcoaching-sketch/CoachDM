@@ -5761,13 +5761,30 @@ function renderCoachSignal(){
 }
 /* L'etat du verrou s'affiche a droite de la ligne : on doit pouvoir verifier
    qu'il est actif sans l'ouvrir. */
+/* La messagerie n'existe qu'entre un coach et un client LIES. Proposer un
+   reglage « verrouiller mes messages » a quelqu'un qui n'aura peut-etre jamais
+   de messages, c'est encombrer tout le monde pour servir une minorite. La ligne
+   n'apparait donc que pour ceux qui ont une conversation.
+   Exception : si le verrou est deja actif, la ligne reste, meme si le lien avec
+   le coach a disparu — sinon on ne pourrait plus le desactiver. */
+function lockRowVisible(){
+  if(CDMLock.enabled()) return true;
+  return !!(ALL_THREADS && ALL_THREADS.length);
+}
+function paintLockRow(){
+  const b = document.getElementById('pf-lock');
+  if(!b) return;
+  b.style.display = lockRowVisible() ? '' : 'none';
+  const h = document.getElementById('pf-lock-hint');
+  if(h) h.textContent = CDMLock.label();
+}
 (function(){
   const b = document.getElementById('pf-lock');
   if(!b) return;
-  const h = document.getElementById('pf-lock-hint');
-  const paint = ()=>{ if(h) h.textContent = CDMLock.label(); };
-  paint();
-  b.onclick = ()=> CDMLock.setup(()=>{ paint(); try{ loadCoachCard(); }catch(e){} });
+  /* Cachee tant que les fils ne sont pas charges : mieux vaut une ligne qui
+     apparait qu'une ligne qui disparait sous les yeux. */
+  b.style.display = 'none';
+  b.onclick = ()=> CDMLock.setup(()=>{ paintLockRow(); try{ loadCoachCard(); }catch(e){} });
 })();
 
 async function loadCoachCard(){
@@ -5780,6 +5797,7 @@ async function loadCoachCard(){
   /* Rendus avant les sorties anticipees plus bas : un coach sans coach a lui
      n'a pas de COACH_THREAD, et son signal doit quand meme s'afficher. */
   try{ renderCoachSignal(); }catch(_){}
+  try{ paintLockRow(); }catch(_){}
   try{ placeCoachHub(COACH_THREAD ? COACH_THREAD.unread : 0); }catch(_){}
   HAS_COACH = !!COACH_THREAD || ACCESS==='coach_client';
   /* La pastille de l'onglet Accueil suit le meme compteur que la carte du hub :
