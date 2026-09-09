@@ -290,6 +290,7 @@ h1, h2,
       <div class="msg-head">
         <p id="msg-hint" data-i18n="c_msg_hint">Toutes tes conversations, les non lues en premier. Touche une ligne pour lire et répondre.</p>
         <button type="button" class="msg-lock" id="msg-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10.5" width="16" height="10.5" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg><span id="msg-lock-lb"></span></button>
+        <button type="button" class="msg-lock" id="kb-open" title="Mémoire du coach"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v18H6.5A2.5 2.5 0 0 1 4 18.5z"/><path d="M8 7.5h7M8 11h7"/></svg><span>Mémoire</span></button>
       </div>
       <div id="msg-list"><div class="spin"></div></div>
     </div>
@@ -531,6 +532,37 @@ h1, h2,
 </div>
 
 <!-- CHAT COACH <-> CLIENT -->
+<!-- MEMOIRE DU COACH -----------------------------------------------------
+     Le Coach IA cherche dans ai_knowledge. Ce que Coach DM ecrit ici devient
+     une fiche cherchable : c'est le mecanisme qui fait grossir son double a
+     mesure qu'il travaille, au lieu de le figer a ce qui existait au depart.
+     L'enregistrement declenche aussi le calcul du vecteur, sinon la fiche
+     resterait invisible a la recherche. -->
+<div class="overlay" id="ov-kb">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 style="margin:0 0 4px">Mémoire du coach</h3>
+    <p class="empty" style="text-align:left;padding:0 0 12px">Ce que tu écris ici, le Coach IA pourra le ressortir à ta place, avec tes mots. Une idée par fiche, courte et concrète.</p>
+    <div class="field"><label>Titre</label>
+      <input id="kb-title" type="text" placeholder="Ex. Reprise après 40 ans" /></div>
+    <div class="field"><label>Ce que tu veux qu'il retienne</label>
+      <textarea id="kb-body" rows="6" placeholder="Écris comme tu parles à un client, pas comme un manuel."></textarea></div>
+    <div class="field"><label>Rayon</label>
+      <select id="kb-src">
+        <option value="Coach DM · Méthode">Méthode</option>
+        <option value="Coach DM · Nutrition">Nutrition</option>
+        <option value="Coach DM · Programmation">Programmation</option>
+        <option value="Coach DM · Blessure et prévention">Blessure et prévention</option>
+      </select></div>
+    <div class="msg" id="kb-msg"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn" id="kb-save" style="flex:1">Enregistrer</button>
+      <button class="btn subtle" id="kb-close" style="flex:0 0 auto;width:auto">Fermer</button>
+    </div>
+    <div class="chat-sub" id="kb-stat" style="margin-top:10px;text-align:center"></div>
+  </div>
+</div>
+
 <div class="overlay side" id="ov-chat">
   <div class="sheet" style="display:flex;flex-direction:column">
     <div class="grab"></div>
@@ -539,6 +571,7 @@ h1, h2,
         <h3 id="ch-name" style="margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></h3>
         <div class="chat-sub" id="ch-sub"></div>
       </div>
+      <button class="btn subtle sm" id="kb-from-chat" style="width:auto;margin-right:6px" title="Transformer ta dernière réponse en fiche">Mémoire</button>
       <button class="btn subtle sm" id="ch-close" style="width:auto" data-i18n="c_close">Fermer</button>
     </div>
     <div class="chat-body" id="ch-body"></div>
@@ -2580,6 +2613,66 @@ function msgBub(m){
   if(isMedia && m.body) inner+=`<div class="cap">${esc(m.body)}</div>`;
   return `<div class="bub ${m.sender_id===ME?'me':'them'}${isMedia?' media':''}">${inner}<time>${at}</time></div>`;
 }
+/* ---------- Memoire du coach ----------
+   kb_add_note ecrit dans ai_knowledge (RLS : seule la lecture est ouverte,
+   l'ecriture passe par la fonction, reservee coach/admin). On enchaine sur
+   kb-embed : sans vecteur, une fiche est invisible a la recherche du Coach IA.
+   Le meme appel rattrape au passage toutes les fiches en attente. */
+function kbOpen(prefill){
+  const ov = document.getElementById('ov-kb'); if(!ov) return;
+  document.getElementById('kb-title').value = '';
+  document.getElementById('kb-body').value  = prefill || '';
+  document.getElementById('kb-msg').textContent = '';
+  ov.classList.add('show');
+  kbRefresh();
+  setTimeout(()=>{ try{ document.getElementById('kb-title').focus(); }catch(_){} }, 60);
+}
+function kbClose(){ const ov=document.getElementById('ov-kb'); if(ov) ov.classList.remove('show'); }
+async function kbRefresh(){
+  try{
+    const { data } = await sb.rpc('kb_status');
+    const el = document.getElementById('kb-stat'); if(!el || !data) return;
+    el.textContent = data.coach_dm + ' fiches à toi'
+      + (data.sans_vecteur ? ' · ' + data.sans_vecteur + ' en attente d\u2019activation' : ' · toutes actives');
+  }catch(_){}
+}
+async function kbSave(){
+  const t = document.getElementById('kb-title').value.trim();
+  const b = document.getElementById('kb-body').value.trim();
+  const src = document.getElementById('kb-src').value;
+  const msg = document.getElementById('kb-msg');
+  const btn = document.getElementById('kb-save');
+  if(!t || !b){ msg.textContent = 'Il faut un titre et un texte.'; return; }
+  btn.disabled = true; msg.textContent = 'Enregistrement\u2026';
+  const { data, error } = await sb.rpc('kb_add_note', { p_title:t, p_body:b, p_source:src, p_locale:LANG });
+  if(error || (data && data.error)){
+    msg.textContent = '\u00c9chec : ' + ((data && data.error) || error.message);
+    btn.disabled = false; return;
+  }
+  msg.textContent = 'Fiche enregistr\u00e9e. Activation\u2026';
+  try{ await sb.functions.invoke('kb-embed', { body:{ limit:60 } }); }catch(_){}
+  await kbRefresh();
+  msg.textContent = 'Fiche enregistr\u00e9e et active.';
+  btn.disabled = false;
+  setTimeout(kbClose, 900);
+}
+document.getElementById('kb-open')?.addEventListener('click', ()=> kbOpen(''));
+document.getElementById('kb-close')?.addEventListener('click', kbClose);
+document.getElementById('kb-save')?.addEventListener('click', kbSave);
+document.getElementById('ov-kb')?.addEventListener('click', ev=>{ if(ev.target.id==='ov-kb') kbClose(); });
+/* Depuis une conversation : on pre-remplit avec la derniere reponse ecrite par
+   le coach. C'est la matiere la plus precieuse, et elle est deja tapee. */
+document.getElementById('kb-from-chat')?.addEventListener('click', ()=>{
+  const bubs = document.querySelectorAll('#ch-body .bub.me');
+  let txt = '';
+  if(bubs.length){
+    const c = bubs[bubs.length-1].cloneNode(true);
+    const tm = c.querySelector('time'); if(tm) tm.remove();
+    txt = (c.textContent || '').trim();
+  }
+  kbOpen(txt);
+});
+
 async function signMedia(list){
   const paths=list.filter(m=>m.attachment_url).map(m=>m.attachment_url);
   if(!paths.length) return;
