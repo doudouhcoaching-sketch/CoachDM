@@ -157,8 +157,8 @@ async function load(){
     .select(`id,rank,approved,reason,
              src:exercises!exercise_substitutions_exercise_id_fkey(id,name_fr,equipment),
              dst:exercises!exercise_substitutions_substitute_id_fkey(id,name_fr,equipment)`)
-    .eq('reason','equipment')
-    .order('rank',{ascending:true});
+    .in('reason',['equipment','regression'])
+    .order('reason',{ascending:true}).order('rank',{ascending:true});
   if(error){ fail('Lecture impossible : '+esc(error.message)); return; }
   ROWS=(data||[]).filter(r=>r.src&&r.dst);
   DIRTY.clear();
@@ -175,7 +175,8 @@ function render(){
     groups.get(k).rows.push(r);
   });
   const total=ROWS.length, ok=ROWS.filter(want).length;
-  $('#c-total').textContent=total+' substitutions';
+  const nScale=ROWS.filter(r=>r.reason==='regression').length;
+  $('#c-total').textContent=total+' substitutions ('+nScale+' scaling)';
   $('#c-ok').textContent=ok+' approuvées';
   $('#c-no').textContent=(total-ok)+' éteintes';
   $('#b-save').disabled = DIRTY.size===0;
@@ -193,7 +194,7 @@ function render(){
         const on=want(r);
         html+=`<div class="row${on?' ok':''}">
           <span class="rk">${r.rank}</span>
-          <span class="nm">${esc(r.dst.name_fr)}<small>${esc(eqL(r.dst.equipment))}</small></span>
+          <span class="nm">${esc(r.dst.name_fr)}<small>${esc(eqL(r.dst.equipment))}${r.reason==='regression'?' · scaling (version plus simple)':' · matériel'}</small></span>
           <button class="tg${on?' on':''}" data-id="${esc(r.id)}">${on?'Approuvé':'Éteint'}</button>
         </div>`;
       });
