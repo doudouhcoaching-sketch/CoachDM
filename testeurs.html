@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Testeurs — Coach DM</title>
+<style>
+  :root{
+    --bg:#050807; --card:#0E1512; --line:rgba(255,255,255,.10);
+    --txt:#C9DCD3; --dim:#7d8f86; --white:#fff;
+    --brand:#00FFA3; --gold:#E9C767; --red:#EF4444;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--sans);
+       -webkit-font-smoothing:antialiased;padding:22px 16px 60px}
+  .wrap{max-width:980px;margin:0 auto}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  header img{width:40px;height:40px;border-radius:11px;display:block}
+  h1{font-size:21px;margin:0;color:var(--white);letter-spacing:-.02em}
+  .sub{font-size:12.5px;color:var(--dim);margin:2px 0 20px 52px}
+
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+  .tile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+  .tile b{display:block;font-size:26px;color:var(--white);font-weight:800;line-height:1.1}
+  .tile span{font-size:11.5px;color:var(--dim);letter-spacing:.3px}
+  .tile.warn b{color:var(--gold)}
+  .tile.bad b{color:var(--red)}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{font-size:10.5px;text-transform:uppercase;letter-spacing:1.1px;color:var(--dim);
+     text-align:left;padding:13px 14px;font-weight:800;white-space:nowrap}
+  td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:middle}
+  tr.off td{opacity:.5}
+  .nom{color:var(--white);font-weight:700}
+  .mail{font-size:11.5px;color:var(--dim);word-break:break-all}
+  .pill{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.6px;
+        padding:3px 8px;border-radius:999px;border:1px solid var(--line);color:var(--dim);
+        text-transform:uppercase;white-space:nowrap}
+  .pill.fam{border-color:rgba(233,199,103,.5);color:var(--gold)}
+  .pill.and{border-color:rgba(0,255,163,.45);color:var(--brand)}
+  .pill.web{border-color:rgba(239,68,68,.5);color:var(--red)}
+
+  .bars{display:flex;gap:3px;align-items:flex-end;height:30px}
+  .bars i{width:11px;background:rgba(255,255,255,.09);border-radius:2px;display:block;
+          min-height:3px;position:relative}
+  .bars i.on{background:var(--brand)}
+  .bars i.today{outline:1px solid rgba(233,199,103,.6);outline-offset:1px}
+  .days{display:flex;gap:3px;margin-top:5px}
+  .days u{width:11px;font-size:8.5px;color:var(--dim);text-align:center;
+          text-decoration:none;display:block;letter-spacing:-.4px}
+
+  .tot{color:var(--white);font-weight:800;font-size:16px}
+  .vu{font-size:12px;color:var(--dim);white-space:nowrap}
+  .vu.today{color:var(--brand)}
+
+  .note{margin-top:18px;background:var(--card);border:1px solid var(--line);
+        border-left:3px solid var(--gold);border-radius:14px;padding:16px 18px;
+        font-size:13.5px;line-height:1.65}
+  .note b{color:var(--white)}
+  .note a{color:var(--brand)}
+
+  .bar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+  button{font-family:inherit;font-size:13px;font-weight:700;color:#04110A;
+         background:var(--brand);border:none;border-radius:11px;padding:10px 16px;cursor:pointer}
+  button.ghost{background:transparent;color:var(--dim);border:1px solid var(--line)}
+  .stamp{font-size:11.5px;color:var(--dim)}
+  .msg{background:var(--card);border:1px solid var(--line);border-radius:16px;
+       padding:26px;text-align:center;font-size:14.5px;line-height:1.6}
+  .msg a{color:var(--brand)}
+  @media(max-width:720px){
+    .tiles{grid-template-columns:repeat(2,1fr)}
+    .hide-s{display:none}
+    td,th{padding:10px 9px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <img src="logo-dm.png" alt="">
+    <div>
+      <h1>Testeurs — bêta Android</h1>
+    </div>
+  </header>
+  <p class="sub">Qui a installé, qui s'en sert, et depuis quand.</p>
+
+  <div class="bar">
+    <button id="reload">Actualiser</button>
+    <button class="ghost" id="range">14 jours</button>
+    <span class="stamp" id="stamp"></span>
+  </div>
+
+  <div id="out"><div class="msg">Chargement…</div></div>
+
+  <div class="note">
+    <b>Le seul chiffre qui décide de ta sortie n'est pas sur cette page.</b>
+    Google ne compte ni les séances ni les ouvertures : il compte les testeurs
+    <b>inscrits au test sans interruption pendant 14 jours</b>. Ce compteur se lit
+    dans la Play Console → ton app → <b>Tableau de bord</b>, section Production.
+    <br><br>
+    Ici tu vois autre chose, tout aussi utile : qui se sert vraiment de l'app.
+    Un testeur inscrit qui n'ouvre jamais rien fait passer le test, mais ne te
+    donne aucun retour.
+    <br><br>
+    <b>Une limite à connaître :</b> la base ne garde qu'<i>une seule</i> date de
+    connexion, écrasée à chaque ouverture. Impossible donc de savoir qui a ouvert
+    l'app chaque jour. Les barres comptent les <b>actions datées</b> — repas,
+    séances, messages au Coach IA, analyses filmées, records.
+  </div>
+
+</div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const sb = createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
+
+const $ = s => document.querySelector(s);
+const out = $('#out');
+let JOURS = 14;
+
+const esc = s => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function jour(iso){
+  if(!iso) return '—';
+  const d = new Date(iso), n = new Date();
+  const jm = d.toLocaleDateString('fr-BE',{day:'2-digit',month:'2-digit'});
+  const hm = d.toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'});
+  const meme = d.toDateString() === n.toDateString();
+  return meme ? `aujourd'hui ${hm}` : `${jm} ${hm}`;
+}
+const estAujourdhui = iso => iso && new Date(iso).toDateString() === new Date().toDateString();
+
+function plateforme(p){
+  if(!p) return '';
+  if(p==='android') return '<span class="pill and">Android</span>';
+  if(p==='ios')     return '<span class="pill">iPhone</span>';
+  return '<span class="pill web">Web</span>';
+}
+
+function rendu(d){
+  const jours = d.jours || [];
+  const t = d.testeurs || [];
+  const max = Math.max(1, ...t.flatMap(x => x.serie || [0]));
+
+  const comptes   = t.filter(x => x.compte).length;
+  const vusAuj    = t.filter(x => estAujourdhui(x.vu_le)).length;
+  const actifs    = t.filter(x => (x.jours_actifs||0) > 0).length;
+  const sansCompte= t.length - comptes;
+
+  const tuile = (n, lib, cls='') =>
+    `<div class="tile ${cls}"><b>${n}</b><span>${lib}</span></div>`;
+
+  const tiles = `<div class="tiles">
+    ${tuile(comptes + ' / ' + t.length, 'comptes créés')}
+    ${tuile(vusAuj, "vus aujourd'hui", vusAuj < comptes ? 'warn' : '')}
+    ${tuile(actifs, 'ont fait quelque chose')}
+    ${tuile(sansCompte, 'sans compte', sansCompte ? 'bad' : '')}
+  </div>`;
+
+  const lignes = t.map(x => {
+    const serie = x.serie || jours.map(()=>0);
+    const bars = serie.map((n,i) => {
+      const h = n ? Math.max(6, Math.round(30 * n / max)) : 3;
+      const dernier = i === serie.length - 1;
+      return `<i class="${n?'on':''}${dernier?' today':''}" style="height:${h}px" title="${jours[i]||''} : ${n}"></i>`;
+    }).join('');
+    const labels = jours.map(j => `<u>${esc(j).slice(0,2)}</u>`).join('');
+
+    const fin = x.fin_acces
+      ? new Date(x.fin_acces).toLocaleDateString('fr-BE',{day:'2-digit',month:'short',year:'2-digit'})
+      : (x.premium ? 'à vie' : '—');
+
+    return `<tr class="${x.compte?'':'off'}">
+      <td>
+        <div class="nom">${esc(x.nom)} ${x.famille?'<span class="pill fam">Famille</span>':''}</div>
+        <div class="mail">${esc(x.email)}</div>
+      </td>
+      <td class="hide-s">${x.compte ? plateforme(x.plateforme) : '<span class="pill">Pas de compte</span>'}</td>
+      <td><span class="vu ${estAujourdhui(x.vu_le)?'today':''}">${jour(x.vu_le)}</span></td>
+      <td class="hide-s"><span class="vu">${esc(fin)}</span></td>
+      <td><div class="bars">${bars}</div><div class="days">${labels}</div></td>
+      <td><span class="tot">${x.total||0}</span></td>
+    </tr>`;
+  }).join('');
+
+  out.innerHTML = tiles + `<div class="card"><table>
+    <thead><tr>
+      <th>Testeur</th><th class="hide-s">Canal</th><th>Dernière ouverture</th>
+      <th class="hide-s">Accès jusqu'au</th><th>Activité par jour</th><th>Total</th>
+    </tr></thead><tbody>${lignes}</tbody></table></div>`;
+
+  $('#stamp').textContent = 'mis à jour ' + new Date(d.genere_le).toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'});
+}
+
+async function charger(){
+  out.innerHTML = '<div class="msg">Chargement…</div>';
+  const { data: { session } } = await sb.auth.getSession();
+  if(!session){
+    out.innerHTML = `<div class="msg">Tu n'es pas connecté.<br><br>
+      Ouvre d'abord <a href="admin.html">la console Admin</a>, connecte-toi,
+      puis reviens sur cette page.</div>`;
+    return;
+  }
+  const { data, error } = await sb.rpc('admin_testeurs', { p_jours: JOURS });
+  if(error){
+    const interdit = /forbidden/i.test(error.message||'');
+    out.innerHTML = `<div class="msg">${interdit
+      ? 'Ce tableau est réservé au compte administrateur.'
+      : 'Erreur : ' + esc(error.message)}</div>`;
+    return;
+  }
+  rendu(data);
+}
+
+$('#reload').onclick = charger;
+$('#range').onclick = () => {
+  JOURS = JOURS === 14 ? 7 : 14;
+  $('#range').textContent = JOURS + ' jours';
+  charger();
+};
+
+charger();
+</script>
+</body>
+</html>
