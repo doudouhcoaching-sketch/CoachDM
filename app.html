@@ -1436,7 +1436,11 @@ h1, h2,
       <div class="rc-grid" id="rc-grid"><div class="spin"></div></div>
     </div>
     <div class="block">
-      <h3 data-i18n="jo_today">Aujourd'hui</h3>
+      <div style="display:flex;align-items:center;gap:8px;margin:0 0 12px">
+        <button type="button" id="jo-prev" aria-label="Jour precedent" style="width:36px;height:36px;flex:0 0 36px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--brand);font-size:18px;font-weight:800;line-height:1;cursor:pointer">&lsaquo;</button>
+        <h3 id="jo-daylabel" style="flex:1 1 auto;margin:0;text-align:center;text-transform:capitalize">Aujourd'hui</h3>
+        <button type="button" id="jo-next" aria-label="Jour suivant" style="width:36px;height:36px;flex:0 0 36px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--brand);font-size:18px;font-weight:800;line-height:1;cursor:pointer;opacity:.25">&rsaquo;</button>
+      </div>
       <div id="jo-logs"><p class="empty" data-i18n="jo_none">Aucun aliment enregistré.</p></div>
     </div>
     <p class="empty" style="padding:2px 0 10px"><a href="#" id="jo-src-link" style="color:var(--muted);text-decoration:underline;font-size:12px" data-i18n="src_link">Voir les sources scientifiques</a></p>
@@ -3244,6 +3248,9 @@ const T = {
  jo_ph:{fr:'Riz, poulet, banane…',en:'Rice, chicken, banana…',nl:'Rijst, kip, banaan…'},
  jo_search:{fr:'Chercher',en:'Search',nl:'Zoeken'},
  jo_today:{fr:"Aujourd'hui",en:'Today',nl:'Vandaag'},
+ jo_yesterday:{fr:'Hier',en:'Yesterday',nl:'Gisteren'},
+ jo_none_day:{fr:'Rien de noté ce jour-là.',en:'Nothing logged that day.',nl:'Die dag niets genoteerd.'},
+ jo_back_today:{fr:"Revenir à aujourd'hui",en:'Back to today',nl:'Terug naar vandaag'},
  jo_none:{fr:'Aucun aliment enregistré.',en:'No food logged.',nl:'Nog niets geregistreerd.'},
  jo_added:{fr:'Ajouté à tes repas ✓',en:'Added to your meals ✓',nl:'Toegevoegd ✓'},
  jo_removed:{fr:'Supprimé',en:'Removed',nl:'Verwijderd'},
@@ -3954,6 +3961,48 @@ const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.C
 const NATIVE_PLATFORM=(window.Capacitor&&window.Capacitor.getPlatform)?window.Capacitor.getPlatform():'web';
 
 const todayStr = ()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+  /* ------------------------------------------------------------------
+     JOURNAL : la date consultee.
+     Avant, chaque lecture du journal demandait todayStr() en dur. Les repas
+     restaient en base avec leur logged_date, mais l'ecran ne savait demander
+     qu'aujourd'hui : a minuit la veille devenait introuvable. Un testeur de la
+     beta Android l'a signale le 24/09/2026. On garde une date courante et on
+     la fait suivre par les trois lectures et par l'ajout.
+     ------------------------------------------------------------------ */
+  const dStr = (d)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  let JO_DATE = todayStr();
+  const JO_MAX_BACK = 60;
+  const joIsToday = ()=> JO_DATE === todayStr();
+  function joDaysAgo(){
+    const a=new Date(JO_DATE+'T00:00:00'), b=new Date(todayStr()+'T00:00:00');
+    return Math.round((b-a)/86400000);
+  }
+  function joLabel(){
+    const n = joDaysAgo();
+    if(n===0) return t('jo_today');
+    if(n===1) return t('jo_yesterday');
+    const loc = (LANG==='nl'?'nl-BE':LANG==='en'?'en-GB':'fr-BE');
+    return new Date(JO_DATE+'T00:00:00').toLocaleDateString(loc,{weekday:'long',day:'numeric',month:'long'});
+  }
+  function joPaint(){
+    const lab=document.getElementById('jo-daylabel');
+    if(lab) lab.textContent = joLabel();
+    const nx=document.getElementById('jo-next');
+    if(nx){ nx.disabled = joIsToday(); nx.style.opacity = joIsToday() ? '.25' : '1'; }
+    const pv=document.getElementById('jo-prev');
+    const far = joDaysAgo() >= JO_MAX_BACK;
+    if(pv){ pv.disabled = far; pv.style.opacity = far ? '.25' : '1'; }
+  }
+  function joShift(n){
+    const d=new Date(JO_DATE+'T00:00:00'); d.setDate(d.getDate()+n);
+    const next=dStr(d);
+    if(next > todayStr()) return;
+    const back=new Date(todayStr()+'T00:00:00'); back.setDate(back.getDate()-JO_MAX_BACK);
+    if(next < dStr(back)) return;
+    JO_DATE = next;
+    joPaint(); loadLogs(); loadToday();
+  }
+  function joToday(){ if(joIsToday()) return; JO_DATE = todayStr(); joPaint(); loadLogs(); loadToday(); }
 const r0=(n)=>Math.round(n||0);
 const r1=(n)=>Math.round((n||0)*10)/10;
 
@@ -5537,7 +5586,10 @@ async function hkConnect(){
 }
 
 function hkInit(){
-  if(!IS_NATIVE || !hkPlugin()) return;          /* web ou plugin absent : tout reste cache */
+  /* Apple Sante est une fonctionnalite iOS. Sur Android la carte reste masquee :
+     les libelles parlent d'Apple, et surtout Google exige qu'une permission
+     Health Connect corresponde a une fonctionnalite visible. */
+  if(!IS_NATIVE || NATIVE_PLATFORM==='android' || !hkPlugin()) return;
   const card=$('#p-health'); if(card) card.style.display='';
   const act=$('#act-card');  if(act) act.style.display='';   /* carte Activite du Journal */
 
@@ -6659,7 +6711,7 @@ async function loadToday(){
   else {
     const r = await sb.from('food_logs')
       .select('kcal,protein_g,carbs_g,fat_g,fiber_g')
-      .eq('user_id',USER.id).eq('logged_date',todayStr());
+      .eq('user_id',USER.id).eq('logged_date',JO_DATE);
     logs = r.data;
   }
   const sum = (logs||[]).reduce((a,l)=>({
@@ -7011,7 +7063,7 @@ $('#sh-add').onclick = async ()=>{
     foodId=fid;
   }
   const row={
-    user_id:USER.id, food_id:foodId, logged_date:todayStr(),
+    user_id:USER.id, food_id:foodId, logged_date:JO_DATE,
     logged_at:new Date().toISOString(), meal_type:$('#sh-meal').value, quantity_g:q,
     kcal:r0(SELECTED.kcal_per_100g*k), protein_g:r1(SELECTED.protein_per_100g*k),
     carbs_g:r1(SELECTED.carbs_per_100g*k), fat_g:r1(SELECTED.fat_per_100g*k),
@@ -7028,9 +7080,10 @@ async function loadLogs(){
   loadTrends();
   const { data } = await sb.from('food_logs')
     .select('id,food_id,meal_type,quantity_g,kcal')
-    .eq('user_id',USER.id).eq('logged_date',todayStr())
+    .eq('user_id',USER.id).eq('logged_date',JO_DATE)
     .order('logged_at',{ascending:true});
-  if(!data||!data.length){ $('#jo-logs').innerHTML=emptyIllus('i-bowl',t('jo_none_today')); return; }
+  joPaint();
+  if(!data||!data.length){ $('#jo-logs').innerHTML=emptyIllus('i-bowl',joIsToday()?t('jo_none_today'):t('jo_none_day')); return; }
   const ids=[...new Set(data.map(d=>d.food_id))];
   let names={};
   if(ids.length){
@@ -9579,7 +9632,16 @@ document.addEventListener('click',e=>{
   const t=e.target.closest('[data-open]'); if(t) openWorkout(t.getAttribute('data-open'));
 });
 
-/* ---- language selector + profile name ---- */
+/* ---- journal : navigation par jour ---- */
+  (function(){
+    const pv=document.getElementById('jo-prev'), nx=document.getElementById('jo-next'), lab=document.getElementById('jo-daylabel');
+    if(pv) pv.onclick=()=>joShift(-1);
+    if(nx) nx.onclick=()=>joShift(1);
+    if(lab){ lab.style.cursor='pointer'; lab.title=t('jo_back_today'); lab.onclick=()=>joToday(); }
+    joPaint(); /* le libelle part dans la langue du membre, pas en francais en dur */
+  })();
+
+  /* ---- language selector + profile name ---- */
 document.querySelectorAll('#lang-seg button, #auth-lang button').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
 document.querySelectorAll('#theme-seg button').forEach(b=>b.onclick=()=>setTheme(b.dataset.themeSet));
 applyTheme();
