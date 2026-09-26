@@ -1379,6 +1379,18 @@ h1, h2,
       <div class="mp-tot" id="mp-tot"></div>
     </div>
 
+    <!-- Ce que le membre est venu voir : ce qu'il a mangé, le jour qu'il
+         consulte. Le 27/09/2026 ce bloc etait en bas de l'onglet, apres la
+         grille des recettes : il fallait scroller longtemps. Il passe en tete. -->
+    <div class="block">
+      <div style="display:flex;align-items:center;gap:8px;margin:0 0 12px">
+        <button type="button" id="jo-prev" aria-label="Jour precedent" style="width:36px;height:36px;flex:0 0 36px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--brand);font-size:18px;font-weight:800;line-height:1;cursor:pointer">&lsaquo;</button>
+        <h3 id="jo-daylabel" style="flex:1 1 auto;margin:0;text-align:center;text-transform:capitalize">Aujourd'hui</h3>
+        <button type="button" id="jo-next" aria-label="Jour suivant" style="width:36px;height:36px;flex:0 0 36px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--brand);font-size:18px;font-weight:800;line-height:1;cursor:pointer;opacity:.25">&rsaquo;</button>
+      </div>
+      <div id="jo-logs"><p class="empty" data-i18n="jo_none">Aucun aliment enregistré.</p></div>
+    </div>
+
     <div class="block">
       <h3 data-i18n="jo_add">Ajouter un aliment</h3>
       <div class="search-row">
@@ -1421,8 +1433,14 @@ h1, h2,
       <div id="tr-body"><p class="empty" data-i18n="tr_empty">Logge tes repas 2 jours ou plus pour voir tes tendances.</p></div>
     </div>
     <div class="block">
-      <div class="rc-head"><h3 data-i18n="rc_title">Recettes Coach DM</h3></div>
-      <p class="empty" style="text-align:left;padding:0 0 10px" data-i18n="rc_sub">Des repas prêts à logger, calés sur tes objectifs.</p>
+      <!-- Repliee par defaut : la grille des recettes poussait tout le reste
+           de l'onglet hors de l'ecran. Elle ne se charge qu'a l'ouverture. -->
+      <button type="button" id="rc-toggle" style="width:100%;display:flex;align-items:center;gap:10px;background:transparent;border:0;padding:0;cursor:pointer;text-align:left">
+        <h3 data-i18n="rc_title" style="margin:0;flex:1 1 auto">Recettes Coach DM</h3>
+        <span id="rc-chev" style="color:var(--brand);font-size:22px;font-weight:800;line-height:1;display:inline-block;transition:transform .18s">&rsaquo;</span>
+      </button>
+      <div id="rc-body" style="display:none">
+      <p class="empty" style="text-align:left;padding:10px 0" data-i18n="rc_sub">Des repas prêts à logger, calés sur tes objectifs.</p>
       <div class="rc-filters" id="rc-filters">
         <button class="rc-chip on" data-rf="all" data-i18n="rc_all">Tout</button>
         <button class="rc-chip" data-rf="hp" data-i18n="rc_hp">Haute protéine</button>
@@ -1434,14 +1452,7 @@ h1, h2,
         <button class="rc-chip" data-rf="snack" data-i18n="meal_snack">Collation</button>
       </div>
       <div class="rc-grid" id="rc-grid"><div class="spin"></div></div>
-    </div>
-    <div class="block">
-      <div style="display:flex;align-items:center;gap:8px;margin:0 0 12px">
-        <button type="button" id="jo-prev" aria-label="Jour precedent" style="width:36px;height:36px;flex:0 0 36px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--brand);font-size:18px;font-weight:800;line-height:1;cursor:pointer">&lsaquo;</button>
-        <h3 id="jo-daylabel" style="flex:1 1 auto;margin:0;text-align:center;text-transform:capitalize">Aujourd'hui</h3>
-        <button type="button" id="jo-next" aria-label="Jour suivant" style="width:36px;height:36px;flex:0 0 36px;border-radius:11px;border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--brand);font-size:18px;font-weight:800;line-height:1;cursor:pointer;opacity:.25">&rsaquo;</button>
       </div>
-      <div id="jo-logs"><p class="empty" data-i18n="jo_none">Aucun aliment enregistré.</p></div>
     </div>
     <p class="empty" style="padding:2px 0 10px"><a href="#" id="jo-src-link" style="color:var(--muted);text-decoration:underline;font-size:12px" data-i18n="src_link">Voir les sources scientifiques</a></p>
   </div>
@@ -6872,7 +6883,7 @@ function ctPick(mealPref, needProtein){
 }
 async function buildCoachToday(sum){
   const card=$('#coach-today'); if(!card||!TARGETS) return;
-  try{ await loadRecipes(); }catch(_){}
+  try{ if(rcIsOpen()) await loadRecipes(); }catch(_){}
   const remP = Math.round((TARGETS.protein_g||0) - (sum.p||0));
   const showP = Math.max(remP,0);
   const h = new Date().getHours();
@@ -7108,6 +7119,19 @@ async function loadLogs(){
 
 /* ---------------- PHOTO IA (plat → calories) ---------------- */
 /* ---------------- RECETTES ---------------- */
+function rcIsOpen(){ const b=document.getElementById('rc-body'); return !!b && b.style.display!=='none'; }
+(function(){
+  const bt=document.getElementById('rc-toggle');
+  if(!bt) return;
+  bt.onclick=()=>{
+    const bd=document.getElementById('rc-body'), ch=document.getElementById('rc-chev');
+    if(!bd) return;
+    const open = bd.style.display==='none';
+    bd.style.display = open ? 'block' : 'none';
+    if(ch) ch.style.transform = open ? 'rotate(90deg)' : 'none';
+    if(open && !RECIPES) loadRecipes();
+  };
+})();
 let RECIPES=null, RC_FILTER='all', RC_CUR=null, RC_SRV=1;
 const RC_HUES={breakfast:38,lunch:150,dinner:262,snack:12,pre_workout:190,post_workout:330};
 function rcHue(r){ return (r.meal_type in RC_HUES) ? RC_HUES[r.meal_type] : 150; }
@@ -7238,7 +7262,7 @@ function rcClose(){ const ov=$('#rc-ov'); if(ov) ov.classList.remove('show'); RC
 async function rcAdd(){
   if(!RC_CUR||!USER) return;
   const btn=$('#rc-add'); if(btn) btn.disabled=true;
-  const { data, error } = await sb.rpc('log_recipe',{ p_recipe_id:RC_CUR.id, p_meal:$('#rc-meal').value, p_servings:RC_SRV, p_date:todayStr() });
+  const { data, error } = await sb.rpc('log_recipe',{ p_recipe_id:RC_CUR.id, p_meal:$('#rc-meal').value, p_servings:RC_SRV, p_date:JO_DATE });
   if(btn) btn.disabled=false;
   if(error || !data || data.ok===false){ toast(t('ph_fail')); return; }
   rcClose(); toast(t('rc_added'));
@@ -7889,7 +7913,7 @@ function switchTab(tab, quiet){
   $('#tb-sub').textContent = SUBS[tab] ? t(SUBS[tab]) : '';
   $('.topbar').style.display = (tab==='ia'||tab==='home') ? 'none' : 'block';
   if(tab==='home') loadHome();
-  if(tab==='journal'){ loadLogs(); loadRecipes(); mpLoad(); }
+  if(tab==='journal'){ loadLogs(); if(rcIsOpen()) loadRecipes(); mpLoad(); }
   if(tab==='seances' && !quiet) loadWorkouts();
   /* C#19 : la seance du jour est calculee par loadWod(), appele depuis
      l'accueil. Si le membre arrive sur Seances sans etre passe par l'accueil
