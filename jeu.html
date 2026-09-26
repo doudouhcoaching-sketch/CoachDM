@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="robots" content="noindex,nofollow">
+<title>Coach DM — Mode jeu (prototype)</title>
+<style>
+  :root{ --brand:#00FFA3; --gold:#E9C767; --red:#EF4444; --bg:#050807; --ink:#C9DCD3; --dim:#7d8f86; }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;overflow:hidden;overscroll-behavior:none}
+  button{font-family:inherit;cursor:pointer}
+  #stage{position:fixed;inset:0;overflow:hidden}
+  video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+  canvas{position:absolute;inset:0;width:100%;height:100%}
+  .panel{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+    padding:26px 22px;background:rgba(5,8,7,.93);backdrop-filter:blur(6px);gap:14px;overflow:auto}
+  .kicker{font-size:10px;letter-spacing:2.2px;color:var(--gold);font-weight:800}
+  h1{margin:6px 0 0;font-size:27px;color:#fff;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+  p{margin:0;font-size:14px;line-height:1.55;color:var(--ink)}
+  .muted{color:var(--dim);font-size:12.5px;line-height:1.5}
+  .card{width:100%;text-align:left;background:#0E1512;border:1.5px solid rgba(255,255,255,.12);
+    border-radius:16px;padding:14px 15px;display:flex;align-items:center;gap:13px;color:var(--ink)}
+  .card.on{border-color:var(--brand);background:rgba(0,255,163,.08)}
+  .card b{display:block;font-size:15.5px;color:#fff;font-weight:800}
+  .card span{display:block;font-size:11.5px;color:var(--dim);margin-top:2px}
+  .num{font-size:24px;font-weight:900;color:var(--brand);min-width:34px;text-align:center}
+  .cta{width:100%;border:none;border-radius:15px;background:var(--brand);color:#04110A;
+    font-size:16px;font-weight:800;padding:16px 0}
+  .cta.ghost{background:transparent;border:1.5px solid rgba(255,255,255,.18);color:var(--ink)}
+  .hud{position:absolute;left:14px;right:14px;top:14px;display:flex;justify-content:space-between;
+    align-items:flex-start;pointer-events:none}
+  .pill{background:rgba(0,0,0,.46);border-radius:999px;padding:7px 12px;font-size:11px;
+    font-weight:800;letter-spacing:1.2px;color:#fff}
+  .order{position:absolute;left:0;right:0;top:78px;text-align:center;pointer-events:none}
+  .order i{display:inline-block;font-style:normal;font-size:30px;font-weight:900;letter-spacing:5px;
+    padding:10px 22px;border-radius:15px;background:rgba(233,199,103,.94);color:#0A0A0A;opacity:0;
+    transition:opacity .12s}
+  .order i.show{opacity:1}
+  .order i.good{background:rgba(0,255,163,.94);color:#04110A}
+  .order i.bad{background:rgba(239,68,68,.94);color:#fff}
+  .foot{position:absolute;left:14px;right:14px;bottom:16px;background:rgba(0,0,0,.5);
+    border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:12px 14px;
+    display:flex;align-items:center;gap:12px;pointer-events:none}
+  .foot .big{font-size:26px;font-weight:900;color:var(--brand);line-height:1}
+  .err{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);border-radius:12px;
+    padding:12px 13px;font-size:13px;color:#ffb4b4;line-height:1.5}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+<div id="stage">
+  <video id="vid" playsinline muted autoplay></video>
+  <canvas id="cv"></canvas>
+
+  <div class="hud hide" id="hud">
+    <div class="pill" id="hudLeft">● EN DIRECT</div>
+    <div class="pill" id="hudRight" style="color:var(--gold)">OBSTACLE 0</div>
+  </div>
+  <div class="order hide" id="orderWrap"><i id="order">PRÊT</i></div>
+  <div class="foot hide" id="foot">
+    <div style="flex-grow:1">
+      <div style="font-size:10.5px;letter-spacing:1.2px;color:var(--dim);font-weight:800" id="footTitle">SAUTS</div>
+      <div style="font-size:14.5px;color:#fff;font-weight:800;margin-top:2px" id="footScore">0 franchis · 0 touchés</div>
+    </div>
+    <div style="text-align:right">
+      <div class="big" id="footTime">60</div>
+      <div style="font-size:10px;color:var(--dim);font-weight:700">secondes</div>
+    </div>
+  </div>
+
+  <!-- 1. choix du jeu -->
+  <div class="panel" id="pMenu">
+    <div class="kicker">COACH DM · MODE JEU</div>
+    <h1>Choisis ton jeu</h1>
+    <p class="muted">Prototype. Le téléphone te filme, les obstacles arrivent, tu les franchis pour de vrai. Rien n'est envoyé nulle part : tout se calcule sur ton téléphone.</p>
+    <button class="card" data-mode="saut"><span class="num">1</span><span style="flex-grow:1"><b>SAUTS</b><span>Les barres arrivent au sol. Tu sautes par-dessus.</span></span></button>
+    <button class="card" data-mode="squat"><span class="num">2</span><span style="flex-grow:1"><b>SQUATS</b><span>La ligne descend. Tu passes ton bassin dessous.</span></span></button>
+    <button class="card" data-mode="pompe"><span class="num">3</span><span style="flex-grow:1"><b>PUSH-UPS</b><span>Les barres passent au-dessus. Tu descends la poitrine.</span></span></button>
+    <p class="muted">Il te faut 2 à 3 mètres de recul pour que tout ton corps tienne dans l'image. Pose le téléphone contre un mur, à la verticale.</p>
+    <button class="cta" id="btnGo">Activer la caméra</button>
+    <div id="menuErr"></div>
+  </div>
+
+  <!-- 2. calibration -->
+  <div class="panel hide" id="pCal" style="background:rgba(5,8,7,.55)">
+    <div class="kicker">CALIBRAGE</div>
+    <h1 id="calTitle">Mets-toi en place</h1>
+    <p id="calText">Recule jusqu'à voir tout ton corps dans l'image, puis ne bouge plus.</p>
+    <div style="height:8px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden">
+      <div id="calBar" style="width:0%;height:100%;background:var(--brand);transition:width .18s"></div>
+    </div>
+    <p class="muted" id="calHint">Recherche du corps…</p>
+    <button class="cta ghost" id="btnQuit1">Revenir au menu</button>
+  </div>
+
+  <!-- 3. resultat -->
+  <div class="panel hide" id="pEnd">
+    <div class="kicker">TERMINÉ</div>
+    <h1 id="endTitle">Belle série</h1>
+    <div style="display:flex;gap:12px">
+      <div style="flex:1;background:#0E1512;border:1px solid rgba(0,255,163,.3);border-radius:16px;padding:14px">
+        <div style="font-size:34px;font-weight:900;color:var(--brand);line-height:1" id="endOk">0</div>
+        <div style="font-size:11px;color:var(--dim);font-weight:700;margin-top:3px">FRANCHIS</div>
+      </div>
+      <div style="flex:1;background:#0E1512;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px">
+        <div style="font-size:34px;font-weight:900;color:var(--dim);line-height:1" id="endKo">0</div>
+        <div style="font-size:11px;color:var(--dim);font-weight:700;margin-top:3px">TOUCHÉS</div>
+      </div>
+    </div>
+    <p id="endText">Chaque obstacle franchi est une répétition au standard.</p>
+    <button class="cta" id="btnAgain">Rejouer</button>
+    <button class="cta ghost" id="btnMenu">Changer de jeu</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
+<script>
+/* ------------------------------------------------------------------
+   Coach DM — mode jeu, prototype.
+   Le suivi du corps tourne SUR LE TELEPHONE (MoveNet Lightning).
+   Aucune image ne quitte l'appareil.
+   ------------------------------------------------------------------ */
+(function () {
+  'use strict';
+
+  var vid = document.getElementById('vid');
+  var cv = document.getElementById('cv');
+  var ctx = cv.getContext('2d');
+
+  var MODE = 'saut';
+  var detector = null, stream = null, running = false;
+  var DUREE = 60;                      // secondes de jeu
+  var ECART = 2400;                    // ms entre deux obstacles
+  var VOL = 2400;                      // ms de trajet d'un obstacle
+
+  var base = null;                     // reperes de calibrage
+  var obstacles = [], nOk = 0, nKo = 0, tStart = 0, lastSpawn = 0, nSpawn = 0;
+  var flash = { txt: '', cls: '', until: 0 };
+
+  var LIB = {
+    saut:  { titre: 'SAUTS',     ordre: 'SAUTE',     seuil: 0.10, sens: 'haut',
+             aide: "Saute à pieds joints quand la barre arrive." },
+    squat: { titre: 'SQUATS',    ordre: 'DESCENDS',  seuil: 0.17, sens: 'bas',
+             aide: "Descends le bassin sous la ligne quand elle arrive." },
+    pompe: { titre: 'PUSH-UPS',  ordre: 'DESCENDS',  seuil: 0.09, sens: 'bas',
+             aide: "Poitrine vers le sol quand la barre passe au-dessus." }
+  };
+
+  /* ---------- utilitaires ---------- */
+  function $(id) { return document.getElementById(id); }
+  function show(el, on) { el.classList.toggle('hide', !on); }
+  function kp(pose, name) {
+    for (var i = 0; i < pose.keypoints.length; i++) {
+      if (pose.keypoints[i].name === name) return pose.keypoints[i];
+    }
+    return null;
+  }
+  function mid(a, b) {
+    if (!a || !b) return null;
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, score: Math.min(a.score, b.score) };
+  }
+
+  /* ---------- camera ---------- */
+  function demarrerCamera() {
+    return navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+    }).then(function (s) {
+      stream = s;
+      vid.srcObject = s;
+      return vid.play();
+    });
+  }
+
+  function chargerModele() {
+    if (detector) return Promise.resolve(detector);
+    return poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, {
+      modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING
+    }).then(function (d) { detector = d; return d; });
+  }
+
+  function taille() {
+    var r = window.devicePixelRatio || 1;
+    cv.width = Math.round(cv.clientWidth * r);
+    cv.height = Math.round(cv.clientHeight * r);
+    ctx.setTransform(r, 0, 0, r, 0, 0);
+  }
+  window.addEventListener('resize', taille);
+
+  /* ---------- projection video -> ecran (object-fit: cover + miroir) ---------- */
+  function proj() {
+    var vw = vid.videoWidth || 640, vh = vid.videoHeight || 480;
+    var cw = cv.clientWidth, ch = cv.clientHeight;
+    var s = Math.max(cw / vw, ch / vh);
+    var dx = (cw - vw * s) / 2, dy = (ch - vh * s) / 2;
+    return function (p) { return { x: cw - (p.x * s + dx), y: p.y * s + dy }; };
+  }
+
+  /* ---------- squelette ---------- */
+  var OS = [['left_shoulder','right_shoulder'],['left_shoulder','left_elbow'],['left_elbow','left_wrist'],
+            ['right_shoulder','right_elbow'],['right_elbow','right_wrist'],['left_shoulder','left_hip'],
+            ['right_shoulder','right_hip'],['left_hip','right_hip'],['left_hip','left_knee'],
+            ['left_knee','left_ankle'],['right_hip','right_knee'],['right_knee','right_ankle']];
+
+  function dessinerSquelette(pose, P, col) {
+    ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = col;
+    for (var i = 0; i < OS.length; i++) {
+      var a = kp(pose, OS[i][0]), b = kp(pose, OS[i][1]);
+      if (!a || !b || a.score < 0.35 || b.score < 0.35) continue;
+      var pa = P(a), pb = P(b);
+      ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y); ctx.stroke();
+    }
+    ctx.fillStyle = col;
+    for (var j = 0; j < pose.keypoints.length; j++) {
+      var k = pose.keypoints[j];
+      if (k.score < 0.35) continue;
+      var p = P(k);
+      ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, 6.2832); ctx.fill();
+    }
+    var nez = kp(pose, 'nose');
+    if (nez && nez.score > 0.35) {
+      var pn = P(nez);
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(pn.x, pn.y - 6, 22, 0, 6.2832); ctx.stroke();
+    }
+  }
+
+  /* ---------- mesures ---------- */
+  function mesure(pose) {
+    var sh = mid(kp(pose, 'left_shoulder'), kp(pose, 'right_shoulder'));
+    var hp = mid(kp(pose, 'left_hip'), kp(pose, 'right_hip'));
+    var an = mid(kp(pose, 'left_ankle'), kp(pose, 'right_ankle'));
+    if (!sh || !hp || sh.score < 0.35 || hp.score < 0.35) return null;
+    var h = an && an.score > 0.3 ? Math.abs(an.y - sh.y) : Math.abs(hp.y - sh.y) * 2.4;
+    if (h < 40) return null;
+    return { sh: sh, hp: hp, an: an, h: h };
+  }
+
+  function ecart(m) {
+    if (!base) return 0;
+    var ref = (MODE === 'pompe') ? m.sh.y : m.hp.y;
+    var ref0 = (MODE === 'pompe') ? base.sh : base.hp;
+    var d = (ref0 - ref) / base.h;            // positif = plus haut a l'ecran
+    return (LIB[MODE].sens === 'haut') ? d : -d;
+  }
+
+  /* ---------- calibrage ---------- */
+  var cal = { ok: 0, t0: 0 };
+  function calibrer(m) {
+    var bar = $('calBar'), hint = $('calHint');
+    if (!m) { cal.ok = 0; bar.style.width = '0%'; hint.textContent = 'Recherche du corps…'; return false; }
+    if (!cal.ok) { cal.t0 = performance.now(); cal.acc = []; }
+    cal.ok = 1;
+    cal.acc.push(m);
+    var dt = performance.now() - cal.t0;
+    bar.style.width = Math.min(100, dt / 22) + '%';
+    hint.textContent = 'Ne bouge plus… ' + Math.max(0, Math.ceil((2200 - dt) / 1000)) + ' s';
+    if (dt < 2200) return false;
+    var n = cal.acc.length, sh = 0, hp = 0, h = 0;
+    for (var i = 0; i < n; i++) { sh += cal.acc[i].sh.y; hp += cal.acc[i].hp.y; h += cal.acc[i].h; }
+    base = { sh: sh / n, hp: hp / n, h: h / n };
+    return true;
+  }
+
+  /* ---------- obstacles ---------- */
+  function dessinerObstacles(now) {
+    var cw = cv.clientWidth, ch = cv.clientHeight;
+    var basY = (MODE === 'pompe') ? ch * 0.30 : ch * 0.86;
+    var hautY = (MODE === 'pompe') ? ch * 0.62 : ch * 0.52;
+    for (var i = 0; i < obstacles.length; i++) {
+      var o = obstacles[i];
+      var pr = (now - o.t) / VOL;
+      if (pr < 0 || pr > 1.35) continue;
+      var y = hautY + (basY - hautY) * Math.min(1, pr);
+      var rx = (cw * 0.10) + (cw * 0.44 - cw * 0.10) * Math.min(1, pr);
+      var col = o.juge === 1 ? '#00FFA3' : (o.juge === -1 ? '#EF4444' : '#E9C767');
+      ctx.globalAlpha = pr > 1 ? Math.max(0, 1 - (pr - 1) / 0.35) : (0.35 + 0.65 * pr);
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 5 + 5 * Math.min(1, pr);
+      ctx.beginPath();
+      ctx.ellipse(cw / 2, y, rx, Math.max(5, rx * 0.11), 0, 0, 6.2832);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  /* ---------- boucle ---------- */
+  var etat = 'menu';   // menu | cal | jeu | fin
+  var franchiEnCours = false;
+
+  var busy = false;
+
+  function boucle() {
+    if (!running) return;
+    requestAnimationFrame(boucle);
+    if (vid.readyState < 2 || busy) return;
+    busy = true;
+
+    detector.estimatePoses(vid, { maxPoses: 1, flipHorizontal: false }).then(function (poses) {
+      busy = false;
+      var now = performance.now();
+      var cw = cv.clientWidth, ch = cv.clientHeight;
+      ctx.clearRect(0, 0, cw, ch);
+
+      var pose = poses && poses[0] ? poses[0] : null;
+      var m = pose ? mesure(pose) : null;
+      var P = proj();
+
+      if (etat === 'cal') {
+        if (pose) dessinerSquelette(pose, P, 'rgba(0,255,163,.85)');
+        if (calibrer(m)) lancerPartie();
+        return;
+      }
+
+      if (etat !== 'jeu') return;
+
+      /* etat du corps */
+      var d = m ? ecart(m) : 0;
+      var franchi = d > LIB[MODE].seuil;
+
+      /* spawn */
+      if (now - lastSpawn > ECART && (now - tStart) < DUREE * 1000 - VOL) {
+        lastSpawn = now;
+        nSpawn++;
+        obstacles.push({ t: now, juge: 0 });
+      }
+
+      /* jugement */
+      for (var i = 0; i < obstacles.length; i++) {
+        var o = obstacles[i];
+        var pr = (now - o.t) / VOL;
+        if (o.juge === 0) {
+          if (pr > 0.86 && pr < 1.14 && franchi) { o.juge = 1; nOk++; flash = { txt: 'FRANCHI', cls: 'good', until: now + 700 }; }
+          else if (pr >= 1.14) { o.juge = -1; nKo++; flash = { txt: 'TOUCHÉ', cls: 'bad', until: now + 700 }; }
+        }
+      }
+
+      dessinerObstacles(now);
+      if (pose) dessinerSquelette(pose, P, franchi ? '#00FFA3' : 'rgba(255,255,255,.75)');
+
+      /* hud */
+      var reste = Math.max(0, DUREE - (now - tStart) / 1000);
+      $('footTime').textContent = Math.ceil(reste);
+      $('footScore').textContent = nOk + ' franchis · ' + nKo + ' touchés';
+      $('hudRight').textContent = 'OBSTACLE ' + nSpawn;
+      var o2 = $('order');
+      if (now < flash.until) { o2.textContent = flash.txt; o2.className = 'show ' + flash.cls; }
+      else if (!m) { o2.textContent = 'RECULE'; o2.className = 'show'; }
+      else { o2.textContent = LIB[MODE].ordre; o2.className = ''; }
+
+      if (reste <= 0) terminer();
+    }).catch(function () { busy = false; /* une frame ratee n'arrete pas le jeu */ });
+  }
+
+  /* ---------- transitions ---------- */
+  function lancerPartie() {
+    etat = 'jeu';
+    obstacles = []; nOk = 0; nKo = 0; nSpawn = 0;
+    tStart = performance.now(); lastSpawn = tStart - ECART + 1200;
+    show($('pCal'), false); show($('hud'), true); show($('foot'), true); show($('orderWrap'), true);
+    $('footTitle').textContent = LIB[MODE].titre;
+  }
+
+  function terminer() {
+    etat = 'fin';
+    show($('hud'), false); show($('foot'), false); show($('orderWrap'), false);
+    $('endOk').textContent = nOk;
+    $('endKo').textContent = nKo;
+    $('endTitle').textContent = nOk >= 12 ? 'Grosse série' : (nOk >= 6 ? 'Belle série' : 'On recommence');
+    $('endText').textContent = nOk + ' répétitions au standard, sans les compter. ' +
+      (nKo > nOk ? "Recule un peu et refais un calibrage : la moitié des touchés vient du cadrage." :
+                   "Chaque obstacle franchi est une répétition que Coach DM aurait validée à l'œil.");
+    show($('pEnd'), true);
+  }
+
+  function versCalibrage() {
+    etat = 'cal';
+    base = null; cal.ok = 0;
+    show($('pMenu'), false); show($('pEnd'), false); show($('pCal'), true);
+    $('calTitle').textContent = LIB[MODE].titre;
+    $('calText').textContent = LIB[MODE].aide + ' Place-toi, puis ne bouge plus deux secondes.';
+    $('calBar').style.width = '0%';
+  }
+
+  /* ---------- evenements ---------- */
+  var cards = document.querySelectorAll('.card');
+  for (var i = 0; i < cards.length; i++) {
+    (function (c) {
+      c.onclick = function () {
+        for (var j = 0; j < cards.length; j++) cards[j].classList.remove('on');
+        c.classList.add('on');
+        MODE = c.getAttribute('data-mode');
+      };
+    })(cards[i]);
+  }
+  cards[0].classList.add('on');
+
+  $('btnGo').onclick = function () {
+    var b = $('btnGo');
+    b.disabled = true; b.textContent = 'Chargement du suivi…';
+    taille();
+    demarrerCamera()
+      .then(chargerModele)
+      .then(function () {
+        b.disabled = false; b.textContent = 'Activer la caméra';
+        running = true;
+        taille();
+        versCalibrage();
+        boucle();
+      })
+      .catch(function (e) {
+        b.disabled = false; b.textContent = 'Réessayer';
+        $('menuErr').innerHTML = '<div class="err">Impossible de démarrer : ' +
+          (e && e.message ? e.message : e) +
+          '<br><br>Sur iPhone il faut Safari, et autoriser la caméra. Sur Android, Chrome. La page doit être en https.</div>';
+      });
+  };
+
+  $('btnAgain').onclick = function () { show($('pEnd'), false); versCalibrage(); };
+  $('btnMenu').onclick = function () { show($('pEnd'), false); show($('pMenu'), true); etat = 'menu'; };
+  $('btnQuit1').onclick = function () { show($('pCal'), false); show($('pMenu'), true); etat = 'menu'; };
+
+  taille();
+})();
+</script>
+</body>
+</html>
