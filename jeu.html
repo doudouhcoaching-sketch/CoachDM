@@ -4,185 +4,293 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="robots" content="noindex,nofollow">
-<title>Coach DM — Mode jeu (prototype)</title>
+<meta name="theme-color" content="#050807">
+<title>Coach DM — Mode jeu</title>
 <style>
-  :root{ --brand:#00FFA3; --gold:#E9C767; --red:#EF4444; --bg:#050807; --ink:#C9DCD3; --dim:#7d8f86; }
-  *{box-sizing:border-box}
+  :root{--brand:#00FFA3;--gold:#E9C767;--red:#EF4444;--bg:#050807;--ink:#C9DCD3;--dim:#7d8f86;--card:#0E1512}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
     -webkit-font-smoothing:antialiased;overflow:hidden;overscroll-behavior:none}
-  button{font-family:inherit;cursor:pointer}
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
   #stage{position:fixed;inset:0;overflow:hidden}
+  #shake{position:absolute;inset:0;transition:transform .05s}
   video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
   canvas{position:absolute;inset:0;width:100%;height:100%}
-  .panel{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
-    padding:26px 22px;background:rgba(5,8,7,.93);backdrop-filter:blur(6px);gap:14px;overflow:auto}
-  .kicker{font-size:10px;letter-spacing:2.2px;color:var(--gold);font-weight:800}
-  h1{margin:6px 0 0;font-size:27px;color:#fff;font-weight:800;letter-spacing:-.02em;line-height:1.15}
-  p{margin:0;font-size:14px;line-height:1.55;color:var(--ink)}
+  .panel{position:absolute;inset:0;display:flex;flex-direction:column;padding:24px 20px calc(24px + env(safe-area-inset-bottom));
+    gap:13px;overflow:auto;background:
+      radial-gradient(120% 70% at 50% -10%, rgba(0,255,163,.10) 0%, rgba(5,8,7,0) 60%),
+      rgba(5,8,7,.95)}
+  .kicker{font-size:10px;letter-spacing:2.4px;color:var(--gold);font-weight:800}
+  h1{margin:4px 0 0;font-size:28px;color:#fff;font-weight:900;letter-spacing:-.025em;line-height:1.1}
+  p{margin:0;font-size:14px;line-height:1.55}
   .muted{color:var(--dim);font-size:12.5px;line-height:1.5}
-  .card{width:100%;text-align:left;background:#0E1512;border:1.5px solid rgba(255,255,255,.12);
-    border-radius:16px;padding:14px 15px;display:flex;align-items:center;gap:13px;color:var(--ink)}
-  .card.on{border-color:var(--brand);background:rgba(0,255,163,.08)}
-  .card b{display:block;font-size:15.5px;color:#fff;font-weight:800}
-  .card span{display:block;font-size:11.5px;color:var(--dim);margin-top:2px}
-  .num{font-size:24px;font-weight:900;color:var(--brand);min-width:34px;text-align:center}
-  .cta{width:100%;border:none;border-radius:15px;background:var(--brand);color:#04110A;
-    font-size:16px;font-weight:800;padding:16px 0}
-  .cta.ghost{background:transparent;border:1.5px solid rgba(255,255,255,.18);color:var(--ink)}
-  .hud{position:absolute;left:14px;right:14px;top:14px;display:flex;justify-content:space-between;
-    align-items:flex-start;pointer-events:none}
-  .pill{background:rgba(0,0,0,.46);border-radius:999px;padding:7px 12px;font-size:11px;
-    font-weight:800;letter-spacing:1.2px;color:#fff}
-  .order{position:absolute;left:0;right:0;top:78px;text-align:center;pointer-events:none}
-  .order i{display:inline-block;font-style:normal;font-size:30px;font-weight:900;letter-spacing:5px;
-    padding:10px 22px;border-radius:15px;background:rgba(233,199,103,.94);color:#0A0A0A;opacity:0;
-    transition:opacity .12s}
-  .order i.show{opacity:1}
-  .order i.good{background:rgba(0,255,163,.94);color:#04110A}
-  .order i.bad{background:rgba(239,68,68,.94);color:#fff}
-  .foot{position:absolute;left:14px;right:14px;bottom:16px;background:rgba(0,0,0,.5);
-    border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:12px 14px;
+  .row{display:flex;gap:10px;align-items:center}
+  .card{width:100%;text-align:left;background:var(--card);border:1.5px solid rgba(255,255,255,.10);
+    border-radius:18px;padding:14px 15px;display:flex;align-items:center;gap:13px;color:var(--ink)}
+  .card.on{border-color:var(--brand);background:linear-gradient(120deg,rgba(0,255,163,.14),rgba(0,255,163,.04))}
+  .card b{display:block;font-size:16px;color:#fff;font-weight:900;letter-spacing:.3px}
+  .card em{display:block;font-style:normal;font-size:11.5px;color:var(--dim);margin-top:2px;line-height:1.35}
+  .ico{width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.05);display:flex;
+    align-items:center;justify-content:center;flex-shrink:0}
+  .cta{width:100%;border-radius:16px;background:var(--brand);color:#04110A;font-size:16px;font-weight:900;padding:16px 0;letter-spacing:.3px}
+  .cta.ghost{background:transparent;border:1.5px solid rgba(255,255,255,.18);color:var(--ink);font-weight:800}
+  .cta[disabled]{opacity:.5}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .st{position:relative;background:var(--card);border:1.5px solid rgba(255,255,255,.10);border-radius:16px;
+    padding:12px;text-align:left;display:flex;flex-direction:column;gap:5px;min-height:86px}
+  .st.lock{opacity:.42}
+  .st.done{border-color:rgba(0,255,163,.45)}
+  .st .n{font-size:20px;font-weight:900;color:#fff;line-height:1}
+  .st .d{font-size:10.5px;color:var(--dim);line-height:1.3}
+  .st .b{font-size:11px;color:var(--brand);font-weight:800}
+  .med{position:absolute;top:10px;right:10px;width:22px;height:22px}
+  .hud{position:absolute;left:14px;right:14px;top:calc(12px + env(safe-area-inset-top));display:flex;
+    justify-content:space-between;align-items:flex-start;pointer-events:none}
+  .pill{background:rgba(0,0,0,.5);border-radius:999px;padding:7px 12px;font-size:11px;font-weight:800;letter-spacing:1.2px;color:#fff}
+  .order{position:absolute;left:0;right:0;top:calc(76px + env(safe-area-inset-top));text-align:center;pointer-events:none}
+  .order i{display:inline-block;font-style:normal;font-size:32px;font-weight:900;letter-spacing:5px;
+    padding:10px 22px;border-radius:16px;background:rgba(233,199,103,.95);color:#0A0A0A;opacity:0;transform:scale(.9);
+    transition:opacity .1s,transform .1s}
+  .order i.show{opacity:1;transform:scale(1)}
+  .order i.good{background:rgba(0,255,163,.95);color:#04110A}
+  .order i.bad{background:rgba(239,68,68,.95);color:#fff}
+  .combo{position:absolute;left:0;right:0;top:calc(136px + env(safe-area-inset-top));text-align:center;
+    font-size:15px;font-weight:900;letter-spacing:2px;color:var(--gold);opacity:0;transition:opacity .15s;pointer-events:none}
+  .combo.show{opacity:1}
+  .foot{position:absolute;left:14px;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));
+    background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:12px 14px;
     display:flex;align-items:center;gap:12px;pointer-events:none}
-  .foot .big{font-size:26px;font-weight:900;color:var(--brand);line-height:1}
-  .err{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);border-radius:12px;
-    padding:12px 13px;font-size:13px;color:#ffb4b4;line-height:1.5}
+  .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:7px}
+  .bar>i{display:block;height:100%;background:var(--brand);width:0%;transition:width .2s}
+  .err{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);border-radius:14px;padding:12px 13px;font-size:13px;color:#ffb4b4;line-height:1.5}
+  .lb{background:var(--card);border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:12px 14px}
+  .lb div.l{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}
+  input{background:#0B100E;border:1.5px solid rgba(255,255,255,.12);border-radius:13px;padding:12px 13px;
+    color:var(--ink);font-size:15px;width:100%;outline:none;font-family:inherit}
   .hide{display:none!important}
+  .spacer{flex:1 1 auto}
 </style>
 </head>
 <body>
-<div id="stage">
+<div id="stage"><div id="shake">
   <video id="vid" playsinline muted autoplay></video>
   <canvas id="cv"></canvas>
 
   <div class="hud hide" id="hud">
-    <div class="pill" id="hudLeft">● EN DIRECT</div>
-    <div class="pill" id="hudRight" style="color:var(--gold)">OBSTACLE 0</div>
+    <div class="pill" id="hudLeft">STAGE 1</div>
+    <div class="pill" id="hudRight" style="color:var(--gold)">0 / 9</div>
   </div>
   <div class="order hide" id="orderWrap"><i id="order">PRÊT</i></div>
+  <div class="combo" id="combo"></div>
   <div class="foot hide" id="foot">
     <div style="flex-grow:1">
-      <div style="font-size:10.5px;letter-spacing:1.2px;color:var(--dim);font-weight:800" id="footTitle">SAUTS</div>
-      <div style="font-size:14.5px;color:#fff;font-weight:800;margin-top:2px" id="footScore">0 franchis · 0 touchés</div>
+      <div style="font-size:10.5px;letter-spacing:1.3px;color:var(--dim);font-weight:800" id="footTitle">SAUTS</div>
+      <div style="font-size:15px;color:#fff;font-weight:900;margin-top:2px" id="footScore">0 franchis</div>
+      <div class="bar"><i id="footBar"></i></div>
     </div>
     <div style="text-align:right">
-      <div class="big" id="footTime">60</div>
-      <div style="font-size:10px;color:var(--dim);font-weight:700">secondes</div>
+      <div style="font-size:27px;font-weight:900;color:var(--brand);line-height:1" id="footPts">0</div>
+      <div style="font-size:10px;color:var(--dim);font-weight:700">points</div>
     </div>
   </div>
 
-  <!-- 1. choix du jeu -->
+  <!-- MENU -->
   <div class="panel" id="pMenu">
     <div class="kicker">COACH DM · MODE JEU</div>
-    <h1>Choisis ton jeu</h1>
-    <p class="muted">Prototype. Le téléphone te filme, les obstacles arrivent, tu les franchis pour de vrai. Rien n'est envoyé nulle part : tout se calcule sur ton téléphone.</p>
-    <button class="card" data-mode="saut"><span class="num">1</span><span style="flex-grow:1"><b>SAUTS</b><span>Les barres arrivent au sol. Tu sautes par-dessus.</span></span></button>
-    <button class="card" data-mode="squat"><span class="num">2</span><span style="flex-grow:1"><b>SQUATS</b><span>La ligne descend. Tu passes ton bassin dessous.</span></span></button>
-    <button class="card" data-mode="pompe"><span class="num">3</span><span style="flex-grow:1"><b>PUSH-UPS</b><span>Les barres passent au-dessus. Tu descends la poitrine.</span></span></button>
-    <p class="muted">Il te faut 2 à 3 mètres de recul pour que tout ton corps tienne dans l'image. Pose le téléphone contre un mur, à la verticale.</p>
-    <button class="cta" id="btnGo">Activer la caméra</button>
+    <h1>Travailler en jouant</h1>
+    <p class="muted">Tout se calcule sur ton téléphone. Aucune image ne part, rien n'est enregistré ailleurs que chez toi.</p>
+    <div id="menuCards"></div>
+    <div class="row" style="margin-top:2px">
+      <input id="pseudo" maxlength="18" placeholder="Ton prénom, pour le classement" />
+    </div>
+    <p class="muted">Il te faut 2 à 3 m de recul. Téléphone à la verticale contre un mur, à hauteur de hanche. Pour les push-ups, pose-le au sol sur le côté.</p>
+    <div class="spacer"></div>
+    <button class="cta" id="btnGo">Continuer</button>
     <div id="menuErr"></div>
   </div>
 
-  <!-- 2. calibration -->
-  <div class="panel hide" id="pCal" style="background:rgba(5,8,7,.55)">
-    <div class="kicker">CALIBRAGE</div>
-    <h1 id="calTitle">Mets-toi en place</h1>
-    <p id="calText">Recule jusqu'à voir tout ton corps dans l'image, puis ne bouge plus.</p>
-    <div style="height:8px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden">
-      <div id="calBar" style="width:0%;height:100%;background:var(--brand);transition:width .18s"></div>
-    </div>
-    <p class="muted" id="calHint">Recherche du corps…</p>
-    <button class="cta ghost" id="btnQuit1">Revenir au menu</button>
+  <!-- STAGES -->
+  <div class="panel hide" id="pStages">
+    <div class="kicker" id="stKicker">SAUTS</div>
+    <h1>Choisis ton niveau</h1>
+    <p class="muted" id="stSub">Chaque niveau monte la barre. Il faut au moins le bronze pour ouvrir le suivant — et tu peux revenir sur n'importe quel niveau déjà ouvert.</p>
+    <div class="grid" id="stGrid"></div>
+    <div class="spacer"></div>
+    <button class="cta ghost" id="btnBackMenu">Changer de jeu</button>
   </div>
 
-  <!-- 3. resultat -->
+  <!-- CALIBRAGE -->
+  <div class="panel hide" id="pCal" style="background:linear-gradient(180deg,rgba(5,8,7,.86),rgba(5,8,7,.42))">
+    <div class="kicker" id="calKicker">CALIBRAGE</div>
+    <h1 id="calTitle">Mets-toi en place</h1>
+    <p id="calText">Recule jusqu'à voir tout ton corps, puis ne bouge plus.</p>
+    <div class="bar" style="height:8px"><i id="calBar"></i></div>
+    <p class="muted" id="calHint">Recherche du corps…</p>
+    <div class="spacer"></div>
+    <button class="cta ghost" id="btnQuitCal">Retour aux niveaux</button>
+  </div>
+
+  <!-- FIN -->
   <div class="panel hide" id="pEnd">
-    <div class="kicker">TERMINÉ</div>
-    <h1 id="endTitle">Belle série</h1>
-    <div style="display:flex;gap:12px">
-      <div style="flex:1;background:#0E1512;border:1px solid rgba(0,255,163,.3);border-radius:16px;padding:14px">
-        <div style="font-size:34px;font-weight:900;color:var(--brand);line-height:1" id="endOk">0</div>
+    <div class="kicker" id="endKicker">NIVEAU 1 · SAUTS</div>
+    <h1 id="endTitle">Bronze</h1>
+    <div class="row">
+      <div style="flex:1;background:var(--card);border:1px solid rgba(0,255,163,.3);border-radius:18px;padding:14px">
+        <div style="font-size:32px;font-weight:900;color:var(--brand);line-height:1" id="endOk">0</div>
         <div style="font-size:11px;color:var(--dim);font-weight:700;margin-top:3px">FRANCHIS</div>
       </div>
-      <div style="flex:1;background:#0E1512;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px">
-        <div style="font-size:34px;font-weight:900;color:var(--dim);line-height:1" id="endKo">0</div>
-        <div style="font-size:11px;color:var(--dim);font-weight:700;margin-top:3px">TOUCHÉS</div>
+      <div style="flex:1;background:var(--card);border:1px solid rgba(233,199,103,.3);border-radius:18px;padding:14px">
+        <div style="font-size:32px;font-weight:900;color:var(--gold);line-height:1" id="endPts">0</div>
+        <div style="font-size:11px;color:var(--dim);font-weight:700;margin-top:3px">POINTS</div>
       </div>
+      <div id="endMedal" style="width:64px;display:flex;align-items:center;justify-content:center"></div>
     </div>
-    <p id="endText">Chaque obstacle franchi est une répétition au standard.</p>
-    <button class="cta" id="btnAgain">Rejouer</button>
-    <button class="cta ghost" id="btnMenu">Changer de jeu</button>
+    <p id="endText" class="muted"></p>
+    <div class="lb" id="lbBox"><div class="muted">Classement…</div></div>
+    <div class="spacer"></div>
+    <button class="cta" id="btnNext">Niveau suivant</button>
+    <button class="cta ghost" id="btnAgain">Refaire ce niveau</button>
+    <button class="cta ghost" id="btnStages">Tous les niveaux</button>
   </div>
-</div>
+</div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
 <script>
-/* ------------------------------------------------------------------
-   Coach DM — mode jeu, prototype.
-   Le suivi du corps tourne SUR LE TELEPHONE (MoveNet Lightning).
-   Aucune image ne quitte l'appareil.
-   ------------------------------------------------------------------ */
+/* ==================================================================
+   Coach DM — mode jeu (prototype 2).
+   Suivi du corps SUR LE TELEPHONE (MoveNet Lightning). Aucune image
+   ne quitte l'appareil : seuls le prenom et le score partent, et
+   seulement si un prenom est saisi.
+   ================================================================== */
 (function () {
   'use strict';
+
+  var SB_URL = 'https://kkcmhviyvttwpaclrjmv.supabase.co';
+  var SB_KEY = 'sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b';
+  var STORE = 'cdm_jeu_v2';
 
   var vid = document.getElementById('vid');
   var cv = document.getElementById('cv');
   var ctx = cv.getContext('2d');
-
-  var MODE = 'saut';
-  var detector = null, stream = null, running = false;
-  var DUREE = 60;                      // secondes de jeu
-  var ECART = 2400;                    // ms entre deux obstacles
-  var VOL = 2400;                      // ms de trajet d'un obstacle
-
-  var base = null;                     // reperes de calibrage
-  var obstacles = [], nOk = 0, nKo = 0, tStart = 0, lastSpawn = 0, nSpawn = 0;
-  var flash = { txt: '', cls: '', until: 0 };
-
-  var LIB = {
-    saut:  { titre: 'SAUTS',     ordre: 'SAUTE',     seuil: 0.10, sens: 'haut',
-             aide: "Saute à pieds joints quand la barre arrive." },
-    squat: { titre: 'SQUATS',    ordre: 'DESCENDS',  seuil: 0.17, sens: 'bas',
-             aide: "Descends le bassin sous la ligne quand elle arrive." },
-    pompe: { titre: 'PUSH-UPS',  ordre: 'DESCENDS',  seuil: 0.09, sens: 'bas',
-             aide: "Poitrine vers le sol quand la barre passe au-dessus." }
-  };
-
-  /* ---------- utilitaires ---------- */
-  function $(id) { return document.getElementById(id); }
+  function $(i) { return document.getElementById(i); }
   function show(el, on) { el.classList.toggle('hide', !on); }
-  function kp(pose, name) {
-    for (var i = 0; i < pose.keypoints.length; i++) {
-      if (pose.keypoints[i].name === name) return pose.keypoints[i];
-    }
+
+  /* ---------------- jeux et niveaux ---------------- */
+  var JEUX = {
+    saut:   { nom: 'SAUTS',        sous: 'Les barres arrivent au sol. Tu sautes par-dessus.',
+              ordre: 'SAUTE', aide: 'Saute à pieds joints quand la barre arrive.', haut: false,
+              seuils: [0.040,0.055,0.070,0.085,0.100,0.115,0.130,0.145,0.160,0.180],
+              unite: 'hauteur de saut' },
+    squat:  { nom: 'SQUATS',       sous: 'La ligne descend. Ton bassin doit passer dessous.',
+              ordre: 'DESCENDS', aide: 'Descends jusqu’à ce que le pli de hanche passe sous le genou.', haut: false,
+              seuils: [-0.050,-0.040,-0.030,-0.020,-0.010,0.000,0.010,0.020,0.030,0.040],
+              unite: 'profondeur' },
+    pompe:  { nom: 'PUSH-UPS',     sous: 'Les barres passent au-dessus. Tu descends la poitrine.',
+              ordre: 'DESCENDS', aide: 'Poitrine vers le sol, coudes vers l’arrière.', haut: true,
+              seuils: [115,110,105,100,95,90,85,80,75,70], unite: 'angle du coude' },
+    burpee: { nom: 'BURPEES',      sous: 'Poitrine au sol, puis saut. Le tout avant la barre.',
+              ordre: 'BURPEE', aide: 'Poitrine au sol puis saut, sans t’arrêter.', haut: false,
+              seuils: [0.030,0.035,0.040,0.045,0.050,0.055,0.060,0.065,0.070,0.080],
+              unite: 'saut final' },
+    genoux: { nom: 'MONTÉES DE GENOUX', sous: 'Genou au-dessus de la ligne, en alternant.',
+              ordre: 'GENOUX', aide: 'Monte le genou haut, alterne à chaque barre.', haut: false,
+              seuils: [0.060,0.075,0.090,0.105,0.120,0.135,0.150,0.160,0.170,0.180],
+              unite: 'hauteur de genou' }
+    };
+  var CLES = ['saut', 'squat', 'pompe', 'burpee', 'genoux'];
+
+  function paramsStage(i) {
+    return { ecart: 2600 - (i - 1) * 130, vol: 2400 - (i - 1) * 110, nb: 8 + i };
+  }
+  function medaille(ok, nb) {
+    var p = ok / nb;
+    if (p >= 0.95) return 'or';
+    if (p >= 0.80) return 'argent';
+    if (p >= 0.60) return 'bronze';
     return null;
   }
-  function mid(a, b) {
-    if (!a || !b) return null;
-    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, score: Math.min(a.score, b.score) };
+  function pointsDe(ok, i, med) {
+    return ok * (10 + i * 2) + (med === 'or' ? 150 : med === 'argent' ? 80 : med === 'bronze' ? 30 : 0);
+  }
+  var COUL = { or: '#E9C767', argent: '#C8D3CE', bronze: '#C08457' };
+  function svgMedaille(m, t) {
+    if (!m) return '';
+    t = t || 22;
+    return '<svg width="' + t + '" height="' + t + '" viewBox="0 0 24 24" aria-hidden="true">' +
+      '<circle cx="12" cy="14" r="7.4" fill="none" stroke="' + COUL[m] + '" stroke-width="2.4"/>' +
+      '<path d="M8 2l2 5M16 2l-2 5" stroke="' + COUL[m] + '" stroke-width="2.2" stroke-linecap="round" fill="none"/>' +
+      '<circle cx="12" cy="14" r="2.6" fill="' + COUL[m] + '"/></svg>';
   }
 
-  /* ---------- camera ---------- */
+  /* ---------------- sauvegarde locale ---------------- */
+  var SAVE = { pseudo: '', jeux: {} };
+  try {
+    var raw = localStorage.getItem(STORE);
+    if (raw) SAVE = JSON.parse(raw);
+  } catch (e) { /* navigation privee : on joue sans memoire */ }
+  if (!SAVE.jeux) SAVE.jeux = {};
+  function sauver() { try { localStorage.setItem(STORE, JSON.stringify(SAVE)); } catch (e) {} }
+  function fiche(j, i) {
+    if (!SAVE.jeux[j]) SAVE.jeux[j] = {};
+    if (!SAVE.jeux[j][i]) SAVE.jeux[j][i] = { best: 0, med: null };
+    return SAVE.jeux[j][i];
+  }
+  function ouvert(j, i) { return i === 1 || !!fiche(j, i - 1).med; }
+  function totalPoints(j) {
+    var t = 0, o = SAVE.jeux[j] || {};
+    for (var k in o) if (o.hasOwnProperty(k)) t += o[k].best || 0;
+    return t;
+  }
+
+  /* ---------------- son ---------------- */
+  var AC = null;
+  function audio() {
+    if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } }
+    if (AC && AC.state === 'suspended') AC.resume();
+    return AC;
+  }
+  function bip(freq, dur, type, vol, delai) {
+    var a = audio(); if (!a) return;
+    var t0 = a.currentTime + (delai || 0);
+    var o = a.createOscillator(), g = a.createGain();
+    o.type = type || 'sine'; o.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol || 0.22, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(a.destination);
+    o.start(t0); o.stop(t0 + dur + 0.02);
+  }
+  function sonOk(combo) {
+    var base = 620 + Math.min(6, combo) * 40;
+    bip(base, 0.09, 'sine', 0.20, 0);
+    bip(base * 1.5, 0.12, 'sine', 0.18, 0.07);
+  }
+  function sonKo() {
+    bip(150, 0.22, 'sawtooth', 0.20, 0);
+    bip(104, 0.26, 'sawtooth', 0.16, 0.05);
+  }
+  function sonFin(med) {
+    if (!med) { bip(220, 0.3, 'triangle', 0.18, 0); return; }
+    var n = [523, 659, 784, 1047];
+    for (var i = 0; i < n.length; i++) bip(n[i], 0.16, 'triangle', 0.2, i * 0.10);
+  }
+  function sonTick() { bip(880, 0.05, 'square', 0.10, 0); }
+
+  /* ---------------- camera + modele ---------------- */
+  var detector = null, running = false;
   function demarrerCamera() {
     return navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
-    }).then(function (s) {
-      stream = s;
-      vid.srcObject = s;
-      return vid.play();
-    });
+      audio: false, video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+    }).then(function (s) { vid.srcObject = s; return vid.play(); });
   }
-
   function chargerModele() {
     if (detector) return Promise.resolve(detector);
     return poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, {
       modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING
     }).then(function (d) { detector = d; return d; });
   }
-
   function taille() {
     var r = window.devicePixelRatio || 1;
     cv.width = Math.round(cv.clientWidth * r);
@@ -191,7 +299,6 @@
   }
   window.addEventListener('resize', taille);
 
-  /* ---------- projection video -> ecran (object-fit: cover + miroir) ---------- */
   function proj() {
     var vw = vid.videoWidth || 640, vh = vid.videoHeight || 480;
     var cw = cv.clientWidth, ch = cv.clientHeight;
@@ -200,87 +307,161 @@
     return function (p) { return { x: cw - (p.x * s + dx), y: p.y * s + dy }; };
   }
 
-  /* ---------- squelette ---------- */
+  function kp(pose, n) {
+    for (var i = 0; i < pose.keypoints.length; i++) if (pose.keypoints[i].name === n) return pose.keypoints[i];
+    return null;
+  }
+  function mid(a, b) {
+    if (!a || !b) return null;
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, score: Math.min(a.score, b.score) };
+  }
+  function angle(a, b, c) {
+    if (!a || !b || !c) return 180;
+    var v1x = a.x - b.x, v1y = a.y - b.y, v2x = c.x - b.x, v2y = c.y - b.y;
+    var d = (v1x * v2x + v1y * v2y) / (Math.hypot(v1x, v1y) * Math.hypot(v2x, v2y) || 1);
+    return Math.acos(Math.max(-1, Math.min(1, d))) * 180 / Math.PI;
+  }
+
   var OS = [['left_shoulder','right_shoulder'],['left_shoulder','left_elbow'],['left_elbow','left_wrist'],
             ['right_shoulder','right_elbow'],['right_elbow','right_wrist'],['left_shoulder','left_hip'],
             ['right_shoulder','right_hip'],['left_hip','right_hip'],['left_hip','left_knee'],
             ['left_knee','left_ankle'],['right_hip','right_knee'],['right_knee','right_ankle']];
-
-  function dessinerSquelette(pose, P, col) {
+  function squelette(pose, P, col) {
     ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = col;
     for (var i = 0; i < OS.length; i++) {
       var a = kp(pose, OS[i][0]), b = kp(pose, OS[i][1]);
-      if (!a || !b || a.score < 0.35 || b.score < 0.35) continue;
+      if (!a || !b || a.score < 0.32 || b.score < 0.32) continue;
       var pa = P(a), pb = P(b);
       ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y); ctx.stroke();
     }
     ctx.fillStyle = col;
     for (var j = 0; j < pose.keypoints.length; j++) {
       var k = pose.keypoints[j];
-      if (k.score < 0.35) continue;
+      if (k.score < 0.32) continue;
       var p = P(k);
-      ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, 6.2832); ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x, p.y, 4.5, 0, 6.2832); ctx.fill();
     }
     var nez = kp(pose, 'nose');
-    if (nez && nez.score > 0.35) {
-      var pn = P(nez);
-      ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(pn.x, pn.y - 6, 22, 0, 6.2832); ctx.stroke();
-    }
+    if (nez && nez.score > 0.32) { var pn = P(nez); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(pn.x, pn.y - 6, 21, 0, 6.2832); ctx.stroke(); }
   }
 
-  /* ---------- mesures ---------- */
+  /* ---------------- mesures ---------------- */
   function mesure(pose) {
-    var sh = mid(kp(pose, 'left_shoulder'), kp(pose, 'right_shoulder'));
-    var hp = mid(kp(pose, 'left_hip'), kp(pose, 'right_hip'));
-    var an = mid(kp(pose, 'left_ankle'), kp(pose, 'right_ankle'));
-    if (!sh || !hp || sh.score < 0.35 || hp.score < 0.35) return null;
-    var h = an && an.score > 0.3 ? Math.abs(an.y - sh.y) : Math.abs(hp.y - sh.y) * 2.4;
+    var shL = kp(pose, 'left_shoulder'), shR = kp(pose, 'right_shoulder');
+    var hpL = kp(pose, 'left_hip'), hpR = kp(pose, 'right_hip');
+    var knL = kp(pose, 'left_knee'), knR = kp(pose, 'right_knee');
+    var anL = kp(pose, 'left_ankle'), anR = kp(pose, 'right_ankle');
+    var sh = mid(shL, shR), hp = mid(hpL, hpR), kn = mid(knL, knR), an = mid(anL, anR);
+    if (!sh || !hp || sh.score < 0.32 || hp.score < 0.32) return null;
+    var h = (an && an.score > 0.28) ? Math.abs(an.y - sh.y) : Math.abs(hp.y - sh.y) * 2.4;
     if (h < 40) return null;
-    return { sh: sh, hp: hp, an: an, h: h };
+    var ang = Math.min(
+      angle(shL, kp(pose, 'left_elbow'), kp(pose, 'left_wrist')),
+      angle(shR, kp(pose, 'right_elbow'), kp(pose, 'right_wrist')));
+    return { sh: sh, hp: hp, kn: kn, an: an, knL: knL, knR: knR, h: h, coude: ang };
   }
 
-  function ecart(m) {
-    if (!base) return 0;
-    var ref = (MODE === 'pompe') ? m.sh.y : m.hp.y;
-    var ref0 = (MODE === 'pompe') ? base.sh : base.hp;
-    var d = (ref0 - ref) / base.h;            // positif = plus haut a l'ecran
-    return (LIB[MODE].sens === 'haut') ? d : -d;
+  var bur = { bas: false, jusqu: 0 };
+  var gen = { cote: 0 };
+
+  function valide(m, jeu, seuil) {
+    if (!m || !base) return false;
+    if (jeu === 'saut') {
+      if (!m.an || m.an.score < 0.28) return false;
+      return (base.an - m.an.y) / base.h > seuil;
+    }
+    if (jeu === 'squat') {
+      if (!m.kn || m.kn.score < 0.28) return false;
+      return (m.hp.y - m.kn.y) / base.h > seuil;
+    }
+    if (jeu === 'pompe') {
+      return m.coude < seuil;
+    }
+    if (jeu === 'burpee') {
+      var now = performance.now();
+      if (m.sh.y > base.hp - base.h * 0.05) { bur.bas = true; bur.jusqu = now + 4000; }
+      if (bur.bas && now < bur.jusqu && m.an && m.an.score > 0.28 &&
+          (base.an - m.an.y) / base.h > seuil) { bur.bas = false; bur.valideJusqu = now + 900; }
+      return now < (bur.valideJusqu || 0);
+    }
+    if (jeu === 'genoux') {
+      var gauche = m.knL && m.knL.score > 0.3 ? (base.knL - m.knL.y) / base.h : 0;
+      var droite = m.knR && m.knR.score > 0.3 ? (base.knR - m.knR.y) / base.h : 0;
+      if (gauche > seuil && gen.cote !== 1) { gen.cote = 1; return true; }
+      if (droite > seuil && gen.cote !== 2) { gen.cote = 2; return true; }
+      return false;
+    }
+    return false;
   }
 
-  /* ---------- calibrage ---------- */
-  var cal = { ok: 0, t0: 0 };
+  /* ---------------- calibrage ---------------- */
+  var base = null, cal = { on: 0, t0: 0, acc: [] };
   function calibrer(m) {
     var bar = $('calBar'), hint = $('calHint');
-    if (!m) { cal.ok = 0; bar.style.width = '0%'; hint.textContent = 'Recherche du corps…'; return false; }
-    if (!cal.ok) { cal.t0 = performance.now(); cal.acc = []; }
-    cal.ok = 1;
+    if (!m) { cal.on = 0; bar.style.width = '0%'; hint.textContent = 'Recherche du corps…'; return false; }
+    if (!cal.on) { cal.on = 1; cal.t0 = performance.now(); cal.acc = []; }
     cal.acc.push(m);
     var dt = performance.now() - cal.t0;
     bar.style.width = Math.min(100, dt / 22) + '%';
-    hint.textContent = 'Ne bouge plus… ' + Math.max(0, Math.ceil((2200 - dt) / 1000)) + ' s';
+    var r = Math.max(0, Math.ceil((2200 - dt) / 1000));
+    hint.textContent = r ? ('Ne bouge plus… ' + r + ' s') : 'C’est parti !';
     if (dt < 2200) return false;
-    var n = cal.acc.length, sh = 0, hp = 0, h = 0;
-    for (var i = 0; i < n; i++) { sh += cal.acc[i].sh.y; hp += cal.acc[i].hp.y; h += cal.acc[i].h; }
-    base = { sh: sh / n, hp: hp / n, h: h / n };
+    var n = cal.acc.length, s = 0, hp = 0, h = 0, an = 0, kl = 0, kr = 0, ca = 0;
+    for (var i = 0; i < n; i++) {
+      var a = cal.acc[i];
+      s += a.sh.y; hp += a.hp.y; h += a.h; ca += a.coude;
+      an += (a.an ? a.an.y : a.hp.y);
+      kl += (a.knL ? a.knL.y : a.hp.y); kr += (a.knR ? a.knR.y : a.hp.y);
+    }
+    base = { sh: s / n, hp: hp / n, h: h / n, an: an / n, knL: kl / n, knR: kr / n, coude: ca / n };
     return true;
   }
 
-  /* ---------- obstacles ---------- */
+  /* ---------------- partie ---------------- */
+  var JEU = 'saut', STAGE = 1, PAR = null, SEUIL = 0;
+  var etat = 'menu', obstacles = [], nOk = 0, nKo = 0, nSpawn = 0, combo = 0, comboMax = 0;
+  var tStart = 0, lastSpawn = 0, pts = 0, parts = [], flash = { t: '', c: '', jusqu: 0 };
+
+  function secouer() {
+    var s = $('shake');
+    s.style.transform = 'translate(4px,-3px)';
+    setTimeout(function () { s.style.transform = 'translate(-3px,2px)'; }, 55);
+    setTimeout(function () { s.style.transform = 'none'; }, 115);
+  }
+  function eclat(x, y, col) {
+    for (var i = 0; i < 14; i++) {
+      var a = Math.random() * 6.2832, v = 2 + Math.random() * 4.5;
+      parts.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1, vie: 1, col: col });
+    }
+  }
+  function dessinerParticules() {
+    for (var i = parts.length - 1; i >= 0; i--) {
+      var p = parts[i];
+      p.x += p.vx; p.y += p.vy; p.vy += 0.22; p.vie -= 0.028;
+      if (p.vie <= 0) { parts.splice(i, 1); continue; }
+      ctx.globalAlpha = Math.max(0, p.vie);
+      ctx.fillStyle = p.col;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 3.4, 0, 6.2832); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+  function ligneY(pr) {
+    var ch = cv.clientHeight;
+    var hautY = JEUX[JEU].haut ? ch * 0.60 : ch * 0.50;
+    var basY = JEUX[JEU].haut ? ch * 0.26 : ch * 0.86;
+    return hautY + (basY - hautY) * Math.min(1, pr);
+  }
   function dessinerObstacles(now) {
-    var cw = cv.clientWidth, ch = cv.clientHeight;
-    var basY = (MODE === 'pompe') ? ch * 0.30 : ch * 0.86;
-    var hautY = (MODE === 'pompe') ? ch * 0.62 : ch * 0.52;
+    var cw = cv.clientWidth;
     for (var i = 0; i < obstacles.length; i++) {
-      var o = obstacles[i];
-      var pr = (now - o.t) / VOL;
+      var o = obstacles[i], pr = (now - o.t) / PAR.vol;
       if (pr < 0 || pr > 1.35) continue;
-      var y = hautY + (basY - hautY) * Math.min(1, pr);
-      var rx = (cw * 0.10) + (cw * 0.44 - cw * 0.10) * Math.min(1, pr);
+      var y = ligneY(pr);
+      var rx = cw * (0.10 + 0.34 * Math.min(1, pr));
       var col = o.juge === 1 ? '#00FFA3' : (o.juge === -1 ? '#EF4444' : '#E9C767');
-      ctx.globalAlpha = pr > 1 ? Math.max(0, 1 - (pr - 1) / 0.35) : (0.35 + 0.65 * pr);
+      ctx.globalAlpha = pr > 1 ? Math.max(0, 1 - (pr - 1) / 0.35) : (0.30 + 0.70 * pr);
       ctx.strokeStyle = col;
-      ctx.lineWidth = 5 + 5 * Math.min(1, pr);
+      ctx.lineWidth = 4 + 6 * Math.min(1, pr);
       ctx.beginPath();
       ctx.ellipse(cw / 2, y, rx, Math.max(5, rx * 0.11), 0, 0, 6.2832);
       ctx.stroke();
@@ -288,142 +469,227 @@
     }
   }
 
-  /* ---------- boucle ---------- */
-  var etat = 'menu';   // menu | cal | jeu | fin
-  var franchiEnCours = false;
-
   var busy = false;
-
   function boucle() {
     if (!running) return;
     requestAnimationFrame(boucle);
     if (vid.readyState < 2 || busy) return;
     busy = true;
-
     detector.estimatePoses(vid, { maxPoses: 1, flipHorizontal: false }).then(function (poses) {
       busy = false;
-      var now = performance.now();
-      var cw = cv.clientWidth, ch = cv.clientHeight;
+      var now = performance.now(), cw = cv.clientWidth, ch = cv.clientHeight;
       ctx.clearRect(0, 0, cw, ch);
-
-      var pose = poses && poses[0] ? poses[0] : null;
+      var pose = (poses && poses[0]) ? poses[0] : null;
       var m = pose ? mesure(pose) : null;
       var P = proj();
 
       if (etat === 'cal') {
-        if (pose) dessinerSquelette(pose, P, 'rgba(0,255,163,.85)');
-        if (calibrer(m)) lancerPartie();
+        if (pose) squelette(pose, P, 'rgba(0,255,163,.85)');
+        if (calibrer(m)) lancer();
         return;
       }
-
       if (etat !== 'jeu') return;
 
-      /* etat du corps */
-      var d = m ? ecart(m) : 0;
-      var franchi = d > LIB[MODE].seuil;
+      var franchi = valide(m, JEU, SEUIL);
 
-      /* spawn */
-      if (now - lastSpawn > ECART && (now - tStart) < DUREE * 1000 - VOL) {
-        lastSpawn = now;
-        nSpawn++;
+      if (now - lastSpawn > PAR.ecart && nSpawn < PAR.nb) {
+        lastSpawn = now; nSpawn++;
         obstacles.push({ t: now, juge: 0 });
+        sonTick();
       }
 
-      /* jugement */
       for (var i = 0; i < obstacles.length; i++) {
-        var o = obstacles[i];
-        var pr = (now - o.t) / VOL;
-        if (o.juge === 0) {
-          if (pr > 0.86 && pr < 1.14 && franchi) { o.juge = 1; nOk++; flash = { txt: 'FRANCHI', cls: 'good', until: now + 700 }; }
-          else if (pr >= 1.14) { o.juge = -1; nKo++; flash = { txt: 'TOUCHÉ', cls: 'bad', until: now + 700 }; }
+        var o = obstacles[i], pr = (now - o.t) / PAR.vol;
+        if (o.juge !== 0) continue;
+        if (pr > 0.84 && pr < 1.16 && franchi) {
+          o.juge = 1; nOk++; combo++; comboMax = Math.max(comboMax, combo);
+          pts += (10 + STAGE * 2) * (combo >= 5 ? 2 : 1);
+          flash = { t: 'FRANCHI', c: 'good', jusqu: now + 650 };
+          eclat(cw / 2, ligneY(1), '#00FFA3');
+          sonOk(combo);
+        } else if (pr >= 1.16) {
+          o.juge = -1; nKo++; combo = 0;
+          flash = { t: 'TOUCHÉ', c: 'bad', jusqu: now + 650 };
+          sonKo(); secouer();
         }
       }
 
       dessinerObstacles(now);
-      if (pose) dessinerSquelette(pose, P, franchi ? '#00FFA3' : 'rgba(255,255,255,.75)');
+      if (pose) squelette(pose, P, franchi ? '#00FFA3' : 'rgba(255,255,255,.72)');
+      dessinerParticules();
 
-      /* hud */
-      var reste = Math.max(0, DUREE - (now - tStart) / 1000);
-      $('footTime').textContent = Math.ceil(reste);
+      $('hudLeft').textContent = 'NIVEAU ' + STAGE;
+      $('hudRight').textContent = nSpawn + ' / ' + PAR.nb;
       $('footScore').textContent = nOk + ' franchis · ' + nKo + ' touchés';
-      $('hudRight').textContent = 'OBSTACLE ' + nSpawn;
+      $('footPts').textContent = pts;
+      $('footBar').style.width = Math.round(100 * (nOk + nKo) / PAR.nb) + '%';
+      var c = $('combo');
+      if (combo >= 3) { c.textContent = 'SÉRIE ×' + combo + (combo >= 5 ? '  ·  POINTS DOUBLES' : ''); c.classList.add('show'); }
+      else c.classList.remove('show');
       var o2 = $('order');
-      if (now < flash.until) { o2.textContent = flash.txt; o2.className = 'show ' + flash.cls; }
-      else if (!m) { o2.textContent = 'RECULE'; o2.className = 'show'; }
-      else { o2.textContent = LIB[MODE].ordre; o2.className = ''; }
+      if (now < flash.jusqu) { o2.textContent = flash.t; o2.className = 'show ' + flash.c; }
+      else if (!m) { o2.textContent = 'RECULE'; o2.className = 'show bad'; }
+      else { o2.textContent = JEUX[JEU].ordre; o2.className = ''; }
 
-      if (reste <= 0) terminer();
-    }).catch(function () { busy = false; /* une frame ratee n'arrete pas le jeu */ });
+      if (nOk + nKo >= PAR.nb) terminer();
+    }).catch(function () { busy = false; });
   }
 
-  /* ---------- transitions ---------- */
-  function lancerPartie() {
+  function lancer() {
     etat = 'jeu';
-    obstacles = []; nOk = 0; nKo = 0; nSpawn = 0;
-    tStart = performance.now(); lastSpawn = tStart - ECART + 1200;
+    obstacles = []; nOk = 0; nKo = 0; nSpawn = 0; pts = 0; combo = 0; comboMax = 0; parts = [];
+    bur = { bas: false, jusqu: 0, valideJusqu: 0 }; gen = { cote: 0 };
+    tStart = performance.now(); lastSpawn = tStart - PAR.ecart + 1600;
     show($('pCal'), false); show($('hud'), true); show($('foot'), true); show($('orderWrap'), true);
-    $('footTitle').textContent = LIB[MODE].titre;
+    $('footTitle').textContent = JEUX[JEU].nom + ' · NIVEAU ' + STAGE;
   }
 
   function terminer() {
     etat = 'fin';
     show($('hud'), false); show($('foot'), false); show($('orderWrap'), false);
-    $('endOk').textContent = nOk;
-    $('endKo').textContent = nKo;
-    $('endTitle').textContent = nOk >= 12 ? 'Grosse série' : (nOk >= 6 ? 'Belle série' : 'On recommence');
-    $('endText').textContent = nOk + ' répétitions au standard, sans les compter. ' +
-      (nKo > nOk ? "Recule un peu et refais un calibrage : la moitié des touchés vient du cadrage." :
-                   "Chaque obstacle franchi est une répétition que Coach DM aurait validée à l'œil.");
+    $('combo').classList.remove('show');
+    var med = medaille(nOk, PAR.nb);
+    var total = pointsDe(nOk, STAGE, med);
+    var f = fiche(JEU, STAGE);
+    var record = total > (f.best || 0);
+    if (record) f.best = total;
+    var ordre = { bronze: 1, argent: 2, or: 3 };
+    if (med && (!f.med || ordre[med] > ordre[f.med])) f.med = med;
+    sauver();
+    sonFin(med);
+
+    $('endKicker').textContent = 'NIVEAU ' + STAGE + ' · ' + JEUX[JEU].nom;
+    $('endTitle').textContent = med ? (med === 'or' ? 'Médaille d’or' : med === 'argent' ? 'Médaille d’argent' : 'Médaille de bronze') : 'Pas encore';
+    $('endOk').textContent = nOk + '/' + PAR.nb;
+    $('endPts').textContent = total;
+    $('endMedal').innerHTML = svgMedaille(med, 56);
+    $('endText').textContent =
+      (record ? 'Nouveau record sur ce niveau. ' : '') +
+      (med ? 'Le niveau ' + (STAGE + 1) + ' est ouvert. ' : 'Il faut 60 % pour ouvrir le niveau suivant. ') +
+      (comboMax >= 3 ? 'Meilleure série : ' + comboMax + ' d’affilée. ' : '') +
+      (nKo > nOk ? 'La moitié des touchés vient du cadrage : recule et refais le calibrage.' : '');
+    show($('btnNext'), !!med && STAGE < 10);
     show($('pEnd'), true);
+    classement(total);
+  }
+
+  /* ---------------- classement ---------------- */
+  function classement(total) {
+    var box = $('lbBox');
+    var p = (SAVE.pseudo || '').trim();
+    box.innerHTML = '<div class="muted">Classement…</div>';
+    var envoi = Promise.resolve();
+    if (p && total > 0) {
+      envoi = fetch(SB_URL + '/rest/v1/jeu_scores', {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY,
+                   'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ jeu: JEU, stage: STAGE, pseudo: p.slice(0, 18), points: total, franchis: nOk, total: PAR.nb })
+      });
+    }
+    envoi.catch(function () {}).then(function () {
+      return fetch(SB_URL + '/rest/v1/jeu_scores?jeu=eq.' + JEU + '&stage=eq.' + STAGE +
+        '&select=pseudo,points,franchis&order=points.desc&limit=5',
+        { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } });
+    }).then(function (r) { return r.json(); }).then(function (rows) {
+      if (!rows || !rows.length) { box.innerHTML = '<div class="muted">Personne n’a encore joué ce niveau. Tu es le premier.</div>'; return; }
+      var h = '<div style="font-size:10px;letter-spacing:1.5px;color:var(--gold);font-weight:800;margin-bottom:6px">LES MEILLEURS · NIVEAU ' + STAGE + '</div>';
+      for (var i = 0; i < rows.length; i++) {
+        var mine = (rows[i].pseudo || '').trim().toLowerCase() === p.toLowerCase();
+        h += '<div class="l"><span style="color:' + (mine ? 'var(--brand)' : 'var(--ink)') + ';font-weight:' + (mine ? 800 : 600) + '">' +
+             (i + 1) + '. ' + String(rows[i].pseudo).replace(/[<>&]/g, '') + '</span>' +
+             '<span style="color:var(--dim)">' + rows[i].franchis + ' franchis · <b style="color:var(--gold)">' + rows[i].points + '</b></span></div>';
+      }
+      box.innerHTML = h;
+    }).catch(function () {
+      box.innerHTML = '<div class="muted">Classement indisponible (pas de réseau). Ton score est gardé sur ton téléphone.</div>';
+    });
+  }
+
+  /* ---------------- ecrans ---------------- */
+  function rendreMenu() {
+    var h = '';
+    for (var i = 0; i < CLES.length; i++) {
+      var k = CLES[i], J = JEUX[k], tp = totalPoints(k);
+      var nm = 0, o = SAVE.jeux[k] || {};
+      for (var s in o) if (o.hasOwnProperty(s) && o[s].med) nm++;
+      h += '<button class="card' + (k === JEU ? ' on' : '') + '" data-jeu="' + k + '" style="margin-bottom:10px">' +
+           '<span class="ico" style="font-size:19px;font-weight:900;color:var(--brand)">' + (i + 1) + '</span>' +
+           '<span style="flex-grow:1"><b>' + J.nom + '</b><em>' + J.sous + '</em></span>' +
+           '<span style="text-align:right"><span style="display:block;font-size:17px;font-weight:900;color:var(--gold)">' + tp + '</span>' +
+           '<span style="display:block;font-size:10px;color:var(--dim);font-weight:700">' + nm + '/10 médailles</span></span></button>';
+    }
+    $('menuCards').innerHTML = h;
+    var cs = $('menuCards').querySelectorAll('.card');
+    for (var j = 0; j < cs.length; j++) {
+      (function (c) { c.onclick = function () { JEU = c.getAttribute('data-jeu'); rendreMenu(); }; })(cs[j]);
+    }
+  }
+
+  function rendreStages() {
+    $('stKicker').textContent = JEUX[JEU].nom;
+    var h = '';
+    for (var i = 1; i <= 10; i++) {
+      var f = fiche(JEU, i), ok = ouvert(JEU, i), P = paramsStage(i);
+      h += '<button class="st' + (ok ? '' : ' lock') + (f.med ? ' done' : '') + '" data-st="' + i + '"' + (ok ? '' : ' disabled') + '>' +
+           '<span class="med">' + svgMedaille(f.med) + '</span>' +
+           '<span class="n">' + i + '</span>' +
+           '<span class="d">' + P.nb + ' obstacles · ' + (P.ecart / 1000).toFixed(1) + ' s</span>' +
+           (f.best ? '<span class="b">record ' + f.best + '</span>' : (ok ? '<span class="d">jamais joué</span>' : '<span class="d">verrouillé</span>')) +
+           '</button>';
+    }
+    $('stGrid').innerHTML = h;
+    var bs = $('stGrid').querySelectorAll('.st');
+    for (var j = 0; j < bs.length; j++) {
+      (function (b) {
+        b.onclick = function () {
+          var n = parseInt(b.getAttribute('data-st'), 10);
+          if (!ouvert(JEU, n)) return;
+          STAGE = n; versCalibrage();
+        };
+      })(bs[j]);
+    }
   }
 
   function versCalibrage() {
-    etat = 'cal';
-    base = null; cal.ok = 0;
-    show($('pMenu'), false); show($('pEnd'), false); show($('pCal'), true);
-    $('calTitle').textContent = LIB[MODE].titre;
-    $('calText').textContent = LIB[MODE].aide + ' Place-toi, puis ne bouge plus deux secondes.';
+    PAR = paramsStage(STAGE);
+    SEUIL = JEUX[JEU].seuils[STAGE - 1];
+    base = null; cal.on = 0; etat = 'cal';
+    show($('pMenu'), false); show($('pStages'), false); show($('pEnd'), false); show($('pCal'), true);
+    $('calKicker').textContent = JEUX[JEU].nom + ' · NIVEAU ' + STAGE;
+    $('calTitle').textContent = 'Mets-toi en place';
+    $('calText').textContent = JEUX[JEU].aide + ' Puis ne bouge plus deux secondes.';
     $('calBar').style.width = '0%';
+    audio();
   }
 
-  /* ---------- evenements ---------- */
-  var cards = document.querySelectorAll('.card');
-  for (var i = 0; i < cards.length; i++) {
-    (function (c) {
-      c.onclick = function () {
-        for (var j = 0; j < cards.length; j++) cards[j].classList.remove('on');
-        c.classList.add('on');
-        MODE = c.getAttribute('data-mode');
-      };
-    })(cards[i]);
-  }
-  cards[0].classList.add('on');
+  /* ---------------- evenements ---------------- */
+  $('pseudo').value = SAVE.pseudo || '';
+  $('pseudo').oninput = function () { SAVE.pseudo = this.value.slice(0, 18); sauver(); };
 
   $('btnGo').onclick = function () {
     var b = $('btnGo');
     b.disabled = true; b.textContent = 'Chargement du suivi…';
-    taille();
-    demarrerCamera()
-      .then(chargerModele)
-      .then(function () {
-        b.disabled = false; b.textContent = 'Activer la caméra';
-        running = true;
-        taille();
-        versCalibrage();
-        boucle();
-      })
-      .catch(function (e) {
-        b.disabled = false; b.textContent = 'Réessayer';
-        $('menuErr').innerHTML = '<div class="err">Impossible de démarrer : ' +
-          (e && e.message ? e.message : e) +
-          '<br><br>Sur iPhone il faut Safari, et autoriser la caméra. Sur Android, Chrome. La page doit être en https.</div>';
-      });
+    audio(); taille();
+    demarrerCamera().then(chargerModele).then(function () {
+      b.disabled = false; b.textContent = 'Continuer';
+      running = true; taille();
+      show($('pMenu'), false); show($('pStages'), true);
+      rendreStages();
+      boucle();
+    }).catch(function (e) {
+      b.disabled = false; b.textContent = 'Réessayer';
+      $('menuErr').innerHTML = '<div class="err">Impossible de démarrer : ' + (e && e.message ? e.message : e) +
+        '<br><br>iPhone : Safari, et autoriser la caméra. Android : Chrome. La page doit être en https.</div>';
+    });
   };
-
+  $('btnBackMenu').onclick = function () { show($('pStages'), false); show($('pMenu'), true); etat = 'menu'; rendreMenu(); };
+  $('btnQuitCal').onclick = function () { etat = 'menu'; show($('pCal'), false); show($('pStages'), true); rendreStages(); };
   $('btnAgain').onclick = function () { show($('pEnd'), false); versCalibrage(); };
-  $('btnMenu').onclick = function () { show($('pEnd'), false); show($('pMenu'), true); etat = 'menu'; };
-  $('btnQuit1').onclick = function () { show($('pCal'), false); show($('pMenu'), true); etat = 'menu'; };
+  $('btnStages').onclick = function () { show($('pEnd'), false); show($('pStages'), true); etat = 'menu'; rendreStages(); };
+  $('btnNext').onclick = function () { if (STAGE < 10) STAGE++; show($('pEnd'), false); versCalibrage(); };
 
+  rendreMenu();
   taille();
 })();
 </script>
