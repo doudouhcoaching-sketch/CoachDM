@@ -179,30 +179,49 @@
 
   /* ---------------- jeux et niveaux ---------------- */
   var JEUX = {
-    saut:   { nom: 'SAUTS',        sous: 'Les barres arrivent au sol. Tu sautes par-dessus.',
-              ordre: 'SAUTE', aide: 'Saute à pieds joints quand la barre arrive.', haut: false,
-              seuils: [0.040,0.055,0.070,0.085,0.100,0.115,0.130,0.145,0.160,0.180],
-              unite: 'hauteur de saut' },
-    squat:  { nom: 'SQUATS',       sous: 'La ligne descend. Ton bassin doit passer dessous.',
-              ordre: 'DESCENDS', aide: 'Descends jusqu’à ce que le pli de hanche passe sous le genou.', haut: false,
-              seuils: [-0.050,-0.040,-0.030,-0.020,-0.010,0.000,0.010,0.020,0.030,0.040],
-              unite: 'profondeur' },
-    pompe:  { nom: 'PUSH-UPS',     sous: 'Les barres passent au-dessus. Tu descends la poitrine.',
-              ordre: 'DESCENDS', aide: 'Poitrine vers le sol, coudes vers l’arrière.', haut: true,
-              seuils: [115,110,105,100,95,90,85,80,75,70], unite: 'angle du coude' },
-    burpee: { nom: 'BURPEES',      sous: 'Poitrine au sol, puis saut. Le tout avant la barre.',
-              ordre: 'BURPEE', aide: 'Poitrine au sol puis saut, sans t’arrêter.', haut: false,
-              seuils: [0.030,0.035,0.040,0.045,0.050,0.055,0.060,0.065,0.070,0.080],
-              unite: 'saut final' },
-    genoux: { nom: 'MONTÉES DE GENOUX', sous: 'Genou au-dessus de la ligne, en alternant.',
-              ordre: 'GENOUX', aide: 'Monte le genou haut, alterne à chaque barre.', haut: false,
-              seuils: [0.060,0.075,0.090,0.105,0.120,0.135,0.150,0.160,0.170,0.180],
-              unite: 'hauteur de genou' }
-    };
-  var CLES = ['saut', 'squat', 'pompe', 'burpee', 'genoux'];
+    saut: {
+      nom: 'SAUTS', fam: 'obstacle', forme: 'haie',
+      sous: 'Des haies arrivent. Tes deux pieds passent au-dessus.',
+      ordre: 'SAUTE', aide: 'Saute à pieds joints quand la haie arrive.',
+      seuils: [0.040,0.055,0.070,0.085,0.100,0.115,0.130,0.145,0.160,0.180],
+      cible: 'La ligne dorée est la hauteur à dépasser. Elle est calculée sur TA taille.'
+    },
+    squat: {
+      nom: 'SQUATS', fam: 'obstacle', forme: 'plafond',
+      sous: 'Un plafond descend. Ton bassin passe dessous.',
+      ordre: 'DESCENDS', aide: 'Descends jusqu\u2019à ce que le pli de hanche passe sous le genou.',
+      seuils: [-0.050,-0.040,-0.030,-0.020,-0.010,0.000,0.010,0.020,0.030,0.040],
+      cible: 'La ligne suit tes genoux : ton bassin doit passer dessous.'
+    },
+    genoux: {
+      nom: 'MONTÉES DE GENOUX', fam: 'couloirs', forme: 'couloirs',
+      sous: 'Deux couloirs. Le genou du bon côté monte sur la cible.',
+      ordre: 'GENOUX', aide: 'Monte le genou du côté qui s\u2019allume.',
+      seuils: [0.060,0.075,0.090,0.105,0.120,0.135,0.150,0.160,0.170,0.180],
+      cible: 'Une cible à gauche, une à droite. Tu alternes.'
+    },
+    pompe: {
+      nom: 'PUSH-UPS', fam: 'reps', forme: 'jauge',
+      sous: 'Pas d\u2019obstacle. Un compteur de répétitions propres, en temps limité.',
+      ordre: 'DESCENDS', aide: 'Téléphone au sol sur le côté, tout le corps dans l\u2019image.',
+      seuils: [115,110,105,100,95,90,85,80,75,70],
+      cible: 'La jauge à droite suit ton angle de coude. Vert = assez bas.'
+    },
+    burpee: {
+      nom: 'BURPEES', fam: 'reps', forme: 'etapes',
+      sous: 'Pas d\u2019obstacle. Trois étapes à valider : sol, debout, saut.',
+      ordre: 'AU SOL', aide: 'Poitrine au sol, tu te relèves, tu sautes. Sans te presser.',
+      seuils: [0.030,0.035,0.040,0.045,0.050,0.055,0.060,0.065,0.070,0.080],
+      cible: 'Les trois voyants en bas s\u2019allument dans l\u2019ordre. Un tour complet = 1 point.'
+    }
+  };
+  var CLES = ['saut', 'squat', 'genoux', 'pompe', 'burpee'];
 
-  function paramsStage(i) {
-    return { ecart: 2600 - (i - 1) * 130, vol: 2400 - (i - 1) * 110, nb: 8 + i };
+  function paramsStage(i, jeu) {
+    if (JEUX[jeu] && JEUX[jeu].fam === 'reps') {
+      return { fam: 'reps', duree: 40000 + (i - 1) * 2000, nb: 4 + i, ecart: 0, vol: 0 };
+    }
+    return { fam: 'obstacle', ecart: 2600 - (i - 1) * 130, vol: 2400 - (i - 1) * 110, nb: 8 + i, duree: 0 };
   }
   function medaille(ok, nb) {
     var p = ok / nb;
@@ -355,45 +374,79 @@
     if (!sh || !hp || sh.score < 0.32 || hp.score < 0.32) return null;
     var h = (an && an.score > 0.28) ? Math.abs(an.y - sh.y) : Math.abs(hp.y - sh.y) * 2.4;
     if (h < 40) return null;
-    var ang = Math.min(
-      angle(shL, kp(pose, 'left_elbow'), kp(pose, 'left_wrist')),
-      angle(shR, kp(pose, 'right_elbow'), kp(pose, 'right_wrist')));
+    /* angle du coude : seulement si les trois points sont surs, sinon on
+       ne juge pas (une main mal vue donnait un faux "descendu"). */
+    var ang = null;
+    var elL = kp(pose, 'left_elbow'), wrL = kp(pose, 'left_wrist');
+    var elR = kp(pose, 'right_elbow'), wrR = kp(pose, 'right_wrist');
+    var sL = (shL && elL && wrL && shL.score > 0.4 && elL.score > 0.4 && wrL.score > 0.4) ? angle(shL, elL, wrL) : null;
+    var sR = (shR && elR && wrR && shR.score > 0.4 && elR.score > 0.4 && wrR.score > 0.4) ? angle(shR, elR, wrR) : null;
+    if (sL !== null && sR !== null) ang = (sL + sR) / 2;
+    else if (sL !== null) ang = sL;
+    else if (sR !== null) ang = sR;
     return { sh: sh, hp: hp, kn: kn, an: an, knL: knL, knR: knR, h: h, coude: ang };
   }
 
-  var bur = { bas: false, jusqu: 0 };
-  var gen = { cote: 0 };
+  /* --- machines d'etat : une par jeu, aucune ne partage la meme regle --- */
+  var mSaut = { }, mSquat = { }, mGen = { cote: 0 }, mPompe = { bas: false }, mBur = { pas: 0, t: 0, perdu: 0 };
 
-  function valide(m, jeu, seuil) {
+  function hauteurSaut(m) {
+    if (!m || !base || !m.an || m.an.score < 0.3) return null;
+    return (base.an - m.an.y) / base.h;
+  }
+  function profondeurSquat(m) {
+    if (!m || !base || !m.kn || m.kn.score < 0.3) return null;
+    return (m.hp.y - m.kn.y) / base.h;
+  }
+  /* etat instantane : le corps est-il dans la position demandee ? */
+  function enPosition(m) {
     if (!m || !base) return false;
-    if (jeu === 'saut') {
-      if (!m.an || m.an.score < 0.28) return false;
-      return (base.an - m.an.y) / base.h > seuil;
+    if (JEU === 'saut') { var hj = hauteurSaut(m); return hj !== null && hj > SEUIL; }
+    if (JEU === 'squat') { var pf = profondeurSquat(m); return pf !== null && pf > SEUIL; }
+    if (JEU === 'pompe') { return m.coude !== null && m.coude < SEUIL; }
+    return false;
+  }
+  /* genou monte d'un cote donne (1 = gauche ecran, 2 = droite ecran) */
+  function genouMonte(m, cote) {
+    if (!m || !base) return false;
+    var k = cote === 1 ? m.knL : m.knR;
+    var b = cote === 1 ? base.knL : base.knR;
+    if (!k || k.score < 0.32) return false;
+    return (b - k.y) / base.h > SEUIL;
+  }
+  /* PUSH-UPS : une repetition = descendre sous l'angle, puis re-verrouiller */
+  function repPompe(m) {
+    if (!m || m.coude === null) return false;
+    if (!mPompe.bas && m.coude < SEUIL) { mPompe.bas = true; return false; }
+    if (mPompe.bas && m.coude > 150) { mPompe.bas = false; return true; }
+    return false;
+  }
+  /* BURPEES : sol -> debout -> saut. Si le telephone perd le corps plus
+     d'une demi-seconde, on considere qu'il est descendu au sol : sur un
+     telephone pose bas, le corps sort souvent du cadre en bas. */
+  function repBurpee(m, now) {
+    if (!base) return false;
+    if (!m) { if (!mBur.perdu) mBur.perdu = now; }
+    else mBur.perdu = 0;
+    var auSol = (!!m && m.sh.y > base.hp) || (mBur.perdu && now - mBur.perdu > 500);
+    if (mBur.pas === 0) {
+      if (auSol) { mBur.pas = 1; mBur.t = now; }
+      return false;
     }
-    if (jeu === 'squat') {
-      if (!m.kn || m.kn.score < 0.28) return false;
-      return (m.hp.y - m.kn.y) / base.h > seuil;
+    if (mBur.pas === 1) {
+      if (m && m.sh.y < base.sh + base.h * 0.12) { mBur.pas = 2; mBur.t = now; }
+      else if (now - mBur.t > 12000) mBur.pas = 0;
+      return false;
     }
-    if (jeu === 'pompe') {
-      return m.coude < seuil;
-    }
-    if (jeu === 'burpee') {
-      var now = performance.now();
-      if (m.sh.y > base.hp - base.h * 0.05) { bur.bas = true; bur.jusqu = now + 4000; }
-      if (bur.bas && now < bur.jusqu && m.an && m.an.score > 0.28 &&
-          (base.an - m.an.y) / base.h > seuil) { bur.bas = false; bur.valideJusqu = now + 900; }
-      return now < (bur.valideJusqu || 0);
-    }
-    if (jeu === 'genoux') {
-      var gauche = m.knL && m.knL.score > 0.3 ? (base.knL - m.knL.y) / base.h : 0;
-      var droite = m.knR && m.knR.score > 0.3 ? (base.knR - m.knR.y) / base.h : 0;
-      if (gauche > seuil && gen.cote !== 1) { gen.cote = 1; return true; }
-      if (droite > seuil && gen.cote !== 2) { gen.cote = 2; return true; }
+    if (mBur.pas === 2) {
+      var hj = hauteurSaut(m);
+      var hanche = (m && base) ? (base.hp - m.hp.y) / base.h : 0;
+      if ((hj !== null && hj > SEUIL) || hanche > SEUIL) { mBur.pas = 0; return true; }
+      if (now - mBur.t > 6000) mBur.pas = 0;
       return false;
     }
     return false;
   }
-
   /* ---------------- calibrage ---------------- */
   var base = null, cal = { on: 0, t0: 0, acc: [] };
   function calibrer(m) {
@@ -445,30 +498,147 @@
       ctx.globalAlpha = 1;
     }
   }
-  function ligneY(pr) {
-    var ch = cv.clientHeight;
-    var hautY = JEUX[JEU].haut ? ch * 0.60 : ch * 0.50;
-    var basY = JEUX[JEU].haut ? ch * 0.26 : ch * 0.86;
-    return hautY + (basY - hautY) * Math.min(1, pr);
+  /* --------- dessins : une forme par jeu, jamais la meme --------- */
+  function yCible(m) {
+    var ch = cv.clientHeight, P = proj();
+    if (!base) return ch * 0.5;
+    if (JEU === 'saut') return P({ x: 0, y: base.an - SEUIL * base.h }).y;
+    if (JEU === 'squat') {
+      var kY = (m && m.kn && m.kn.score > 0.3) ? m.kn.y : base.hp + base.h * 0.22;
+      return P({ x: 0, y: kY + SEUIL * base.h }).y;
+    }
+    return ch * 0.5;
   }
-  function dessinerObstacles(now) {
+  function yCibleGenou(cote) {
+    var P = proj();
+    if (!base) return cv.clientHeight * 0.5;
+    var b = cote === 1 ? base.knL : base.knR;
+    return P({ x: 0, y: b - SEUIL * base.h }).y;
+  }
+  function ligneCible(y, col, txt) {
     var cw = cv.clientWidth;
-    for (var i = 0; i < obstacles.length; i++) {
-      var o = obstacles[i], pr = (now - o.t) / PAR.vol;
-      if (pr < 0 || pr > 1.35) continue;
-      var y = ligneY(pr);
-      var rx = cw * (0.10 + 0.34 * Math.min(1, pr));
-      var col = o.juge === 1 ? '#00FFA3' : (o.juge === -1 ? '#EF4444' : '#E9C767');
-      ctx.globalAlpha = pr > 1 ? Math.max(0, 1 - (pr - 1) / 0.35) : (0.30 + 0.70 * pr);
-      ctx.strokeStyle = col;
-      ctx.lineWidth = 4 + 6 * Math.min(1, pr);
-      ctx.beginPath();
-      ctx.ellipse(cw / 2, y, rx, Math.max(5, rx * 0.11), 0, 0, 6.2832);
-      ctx.stroke();
-      ctx.globalAlpha = 1;
+    ctx.save();
+    ctx.setLineDash([9, 9]); ctx.strokeStyle = col; ctx.lineWidth = 2.5; ctx.globalAlpha = .8;
+    ctx.beginPath(); ctx.moveTo(10, y); ctx.lineTo(cw - 10, y); ctx.stroke();
+    ctx.restore();
+    if (txt) {
+      ctx.save();
+      ctx.font = '800 11px -apple-system,Arial'; ctx.fillStyle = col; ctx.globalAlpha = .9;
+      ctx.fillText(txt, 12, y - 8);
+      ctx.restore();
     }
   }
+  function haie(x, y, col, a) {
+    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineCap = 'round';
+    ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(x - 46, y); ctx.lineTo(x + 46, y); ctx.stroke();
+    ctx.lineWidth = 4; ctx.globalAlpha = a * .7;
+    ctx.beginPath(); ctx.moveTo(x - 36, y); ctx.lineTo(x - 36, y + 34); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x + 36, y); ctx.lineTo(x + 36, y + 34); ctx.stroke();
+    ctx.restore();
+  }
+  function plafond(x, y, col, a) {
+    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineCap = 'round';
+    ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(x - 78, y); ctx.lineTo(x + 78, y); ctx.stroke();
+    ctx.lineWidth = 3; ctx.globalAlpha = a * .55;
+    for (var i = -66; i <= 66; i += 22) {
+      ctx.beginPath(); ctx.moveTo(x + i, y - 3); ctx.lineTo(x + i - 9, y - 22); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function cible(x, y, col, a, r) {
+    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.stroke();
+    ctx.globalAlpha = a * .5; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(x, y, r * .45, 0, 6.2832); ctx.stroke();
+    ctx.restore();
+  }
 
+  function dessinerObstacles(now, m) {
+    var cw = cv.clientWidth;
+    var fam = JEUX[JEU].fam;
+    if (fam === 'obstacle') {
+      var y = yCible(m);
+      ligneCible(y, 'rgba(233,199,103,.85)', JEU === 'saut' ? 'PASSE AU-DESSUS' : 'PASSE DESSOUS');
+      for (var i = 0; i < obstacles.length; i++) {
+        var o = obstacles[i], pr = (now - o.t) / PAR.vol;
+        if (pr < 0 || pr > 1.6) continue;
+        var x = cw * (1.30 - 0.80 * pr);
+        var col = o.juge === 1 ? '#00FFA3' : (o.juge === -1 ? '#EF4444' : '#E9C767');
+        var a = pr > 1.2 ? Math.max(0, 1 - (pr - 1.2) / 0.4) : Math.min(1, 0.35 + pr);
+        if (JEUX[JEU].forme === 'haie') haie(x, y, col, a); else plafond(x, y, col, a);
+      }
+      return;
+    }
+    if (fam === 'couloirs') {
+      var xg = cw * 0.27, xd = cw * 0.73;
+      var yg = yCibleGenou(1), yd = yCibleGenou(2);
+      ctx.save(); ctx.globalAlpha = .18; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(cw * 0.5, 0); ctx.lineTo(cw * 0.5, cv.clientHeight); ctx.stroke();
+      ctx.restore();
+      cible(xg, yg, 'rgba(255,255,255,.22)', 1, 26);
+      cible(xd, yd, 'rgba(255,255,255,.22)', 1, 26);
+      for (var j = 0; j < obstacles.length; j++) {
+        var q = obstacles[j], pq = (now - q.t) / PAR.vol;
+        if (pq < 0 || pq > 1.6) continue;
+        var cx = q.cote === 1 ? xg : xd, cyF = q.cote === 1 ? yg : yd;
+        var cy = -40 + (cyF + 40) * Math.min(1, pq);
+        var cc = q.juge === 1 ? '#00FFA3' : (q.juge === -1 ? '#EF4444' : '#E9C767');
+        var aa = pq > 1.2 ? Math.max(0, 1 - (pq - 1.2) / 0.4) : Math.min(1, 0.4 + pq);
+        cible(cx, cy, cc, aa, 26);
+      }
+      return;
+    }
+    if (JEUX[JEU].forme === 'jauge') {
+      /* PUSH-UPS : jauge d'angle de coude, a droite */
+      var ch = cv.clientHeight, gx = cw - 34, gh = ch * 0.44, gy = ch * 0.28;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 14; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(gx, gy + gh); ctx.stroke();
+      var ang = (m && m.coude !== null) ? m.coude : 180;
+      var f = Math.max(0, Math.min(1, (175 - ang) / (175 - 55)));
+      var bas = (m && m.coude !== null && m.coude < SEUIL);
+      ctx.strokeStyle = bas ? '#00FFA3' : '#E9C767'; ctx.lineWidth = 14;
+      ctx.beginPath(); ctx.moveTo(gx, gy + gh); ctx.lineTo(gx, gy + gh - gh * f); ctx.stroke();
+      var ys = gy + gh - gh * Math.max(0, Math.min(1, (175 - SEUIL) / (175 - 55)));
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(gx - 13, ys); ctx.lineTo(gx + 13, ys); ctx.stroke();
+      ctx.font = '800 10px -apple-system,Arial'; ctx.fillStyle = '#fff'; ctx.textAlign = 'right';
+      ctx.fillText(SEUIL + '\u00b0', gx - 18, ys + 4);
+      ctx.textAlign = 'left';
+      ctx.restore();
+      /* blocs de repetitions en bas */
+      var n = PAR.nb, bw = Math.min(26, (cw - 60) / n - 6);
+      for (var k = 0; k < n; k++) {
+        var bx = 30 + k * (bw + 6), by = ch - 150;
+        ctx.fillStyle = k < nOk ? '#00FFA3' : 'rgba(255,255,255,.16)';
+        ctx.fillRect(bx, by, bw, 9);
+      }
+      return;
+    }
+    if (JEUX[JEU].forme === 'etapes') {
+      /* BURPEES : trois voyants */
+      var ch2 = cv.clientHeight, lab = ['SOL', 'DEBOUT', 'SAUT'];
+      var w = Math.min(96, (cw - 70) / 3), y0 = ch2 - 178;
+      for (var e = 0; e < 3; e++) {
+        var ex = 28 + e * (w + 12);
+        var actif = mBur.pas > e || (mBur.pas === 0 && e === 0);
+        var fait = mBur.pas > e;
+        ctx.save();
+        ctx.globalAlpha = fait ? 1 : (actif ? .95 : .3);
+        ctx.strokeStyle = fait ? '#00FFA3' : '#E9C767'; ctx.lineWidth = 3;
+        ctx.beginPath();
+        if (ctx.roundRect) { ctx.roundRect(ex, y0, w, 34, 12); } else { ctx.rect(ex, y0, w, 34); }
+        ctx.stroke();
+        ctx.font = '800 12px -apple-system,Arial';
+        ctx.fillStyle = fait ? '#00FFA3' : '#E9C767';
+        ctx.textAlign = 'center';
+        ctx.fillText(lab[e], ex + w / 2, y0 + 22);
+        ctx.restore();
+      }
+      ctx.textAlign = 'left';
+      return;
+    }
+  }
   var busy = false;
   function boucle() {
     if (!running) return;
@@ -490,56 +660,84 @@
       }
       if (etat !== 'jeu') return;
 
-      var franchi = valide(m, JEU, SEUIL);
+      var fam = JEUX[JEU].fam;
+      var enPos = enPosition(m);
+      var fini = false;
 
-      if (now - lastSpawn > PAR.ecart && nSpawn < PAR.nb) {
-        lastSpawn = now; nSpawn++;
-        obstacles.push({ t: now, juge: 0 });
-        sonTick();
-      }
-
-      for (var i = 0; i < obstacles.length; i++) {
-        var o = obstacles[i], pr = (now - o.t) / PAR.vol;
-        if (o.juge !== 0) continue;
-        if (pr > 0.84 && pr < 1.16 && franchi) {
-          o.juge = 1; nOk++; combo++; comboMax = Math.max(comboMax, combo);
+      if (fam === 'reps') {
+        /* ---- jeux de repetitions : aucun obstacle, aucune fenetre de tir ---- */
+        var fait = (JEU === 'pompe') ? repPompe(m) : repBurpee(m, now);
+        if (fait) {
+          nOk++; combo++; comboMax = Math.max(comboMax, combo);
           pts += (10 + STAGE * 2) * (combo >= 5 ? 2 : 1);
-          flash = { t: 'FRANCHI', c: 'good', jusqu: now + 650 };
-          eclat(cw / 2, ligneY(1), '#00FFA3');
+          flash = { t: 'COMPTÉE', c: 'good', jusqu: now + 650 };
+          eclat(cw / 2, ch * 0.5, '#00FFA3');
           sonOk(combo);
-        } else if (pr >= 1.16) {
-          o.juge = -1; nKo++; combo = 0;
-          flash = { t: 'TOUCHÉ', c: 'bad', jusqu: now + 650 };
-          sonKo(); secouer();
         }
+        var reste = Math.max(0, PAR.duree - (now - tStart));
+        dessinerObstacles(now, m);
+        if (pose) squelette(pose, P, (JEU === 'pompe' && enPos) || (JEU === 'burpee' && mBur.pas > 0) ? '#00FFA3' : 'rgba(255,255,255,.72)');
+        dessinerParticules();
+        $('hudLeft').textContent = 'NIVEAU ' + STAGE + ' · ' + Math.ceil(reste / 1000) + ' s';
+        $('hudRight').textContent = nOk + ' / ' + PAR.nb;
+        $('footScore').textContent = nOk + (nOk > 1 ? ' répétitions propres' : ' répétition propre');
+        $('footBar').style.width = Math.round(100 * Math.min(1, nOk / PAR.nb)) + '%';
+        fini = (reste <= 0) || (nOk >= PAR.nb);
+      } else {
+        /* ---- jeux d'obstacles ---- */
+        if (now - lastSpawn > PAR.ecart && nSpawn < PAR.nb) {
+          lastSpawn = now; nSpawn++;
+          obstacles.push({ t: now, juge: 0, cote: (nSpawn % 2 === 1 ? 1 : 2) });
+          sonTick();
+        }
+        for (var i = 0; i < obstacles.length; i++) {
+          var o = obstacles[i], pr = (now - o.t) / PAR.vol;
+          if (o.juge !== 0) continue;
+          var bon = (fam === 'couloirs') ? genouMonte(m, o.cote) : enPos;
+          if (pr > 0.84 && pr < 1.18 && bon) {
+            o.juge = 1; nOk++; combo++; comboMax = Math.max(comboMax, combo);
+            pts += (10 + STAGE * 2) * (combo >= 5 ? 2 : 1);
+            flash = { t: 'PASSÉ', c: 'good', jusqu: now + 600 };
+            eclat(cw / 2, fam === 'couloirs' ? yCibleGenou(o.cote) : yCible(m), '#00FFA3');
+            sonOk(combo);
+          } else if (pr >= 1.18) {
+            o.juge = -1; nKo++; combo = 0;
+            flash = { t: 'RATÉ', c: 'bad', jusqu: now + 600 };
+            sonKo(); secouer();
+          }
+        }
+        dessinerObstacles(now, m);
+        if (pose) squelette(pose, P, enPos ? '#00FFA3' : 'rgba(255,255,255,.72)');
+        dessinerParticules();
+        $('hudLeft').textContent = 'NIVEAU ' + STAGE;
+        $('hudRight').textContent = nSpawn + ' / ' + PAR.nb;
+        $('footScore').textContent = nOk + ' passés · ' + nKo + ' ratés';
+        $('footBar').style.width = Math.round(100 * (nOk + nKo) / PAR.nb) + '%';
+        fini = (nOk + nKo >= PAR.nb);
       }
 
-      dessinerObstacles(now);
-      if (pose) squelette(pose, P, franchi ? '#00FFA3' : 'rgba(255,255,255,.72)');
-      dessinerParticules();
-
-      $('hudLeft').textContent = 'NIVEAU ' + STAGE;
-      $('hudRight').textContent = nSpawn + ' / ' + PAR.nb;
-      $('footScore').textContent = nOk + ' franchis · ' + nKo + ' touchés';
       $('footPts').textContent = pts;
-      $('footBar').style.width = Math.round(100 * (nOk + nKo) / PAR.nb) + '%';
       var c = $('combo');
       if (combo >= 3) { c.textContent = 'SÉRIE ×' + combo + (combo >= 5 ? '  ·  POINTS DOUBLES' : ''); c.classList.add('show'); }
       else c.classList.remove('show');
       var o2 = $('order');
+      var consigne = JEUX[JEU].ordre;
+      if (JEU === 'burpee') consigne = ['AU SOL', 'RELÈVE-TOI', 'SAUTE'][mBur.pas] || 'AU SOL';
+      if (JEU === 'pompe') consigne = mPompe.bas ? 'REMONTE' : 'DESCENDS';
       if (now < flash.jusqu) { o2.textContent = flash.t; o2.className = 'show ' + flash.c; }
-      else if (!m) { o2.textContent = 'RECULE'; o2.className = 'show bad'; }
-      else { o2.textContent = JEUX[JEU].ordre; o2.className = ''; }
+      else if (!m && JEU !== 'burpee') { o2.textContent = 'RECULE'; o2.className = 'show bad'; }
+      else { o2.textContent = consigne; o2.className = 'show'; o2.style.opacity = '.55'; }
+      if (now < flash.jusqu) o2.style.opacity = '1';
 
-      if (nOk + nKo >= PAR.nb) terminer();
+      if (fini) terminer();
     }).catch(function () { busy = false; });
   }
 
   function lancer() {
     etat = 'jeu';
     obstacles = []; nOk = 0; nKo = 0; nSpawn = 0; pts = 0; combo = 0; comboMax = 0; parts = [];
-    bur = { bas: false, jusqu: 0, valideJusqu: 0 }; gen = { cote: 0 };
-    tStart = performance.now(); lastSpawn = tStart - PAR.ecart + 1600;
+    mPompe = { bas: false }; mBur = { pas: 0, t: performance.now(), perdu: 0 }; mGen = { cote: 0 };
+    tStart = performance.now(); lastSpawn = tStart - (PAR.ecart || 0) + 1800;
     show($('pCal'), false); show($('hud'), true); show($('foot'), true); show($('orderWrap'), true);
     $('footTitle').textContent = JEUX[JEU].nom + ' · NIVEAU ' + STAGE;
   }
@@ -561,13 +759,14 @@
     $('endKicker').textContent = 'NIVEAU ' + STAGE + ' · ' + JEUX[JEU].nom;
     $('endTitle').textContent = med ? (med === 'or' ? 'Médaille d’or' : med === 'argent' ? 'Médaille d’argent' : 'Médaille de bronze') : 'Pas encore';
     $('endOk').textContent = nOk + '/' + PAR.nb;
+    $('endOk').nextElementSibling.textContent = (JEUX[JEU].fam === 'reps') ? 'RÉPÉTITIONS' : 'PASSÉS';
     $('endPts').textContent = total;
     $('endMedal').innerHTML = svgMedaille(med, 56);
     $('endText').textContent =
       (record ? 'Nouveau record sur ce niveau. ' : '') +
       (med ? 'Le niveau ' + (STAGE + 1) + ' est ouvert. ' : 'Il faut 60 % pour ouvrir le niveau suivant. ') +
       (comboMax >= 3 ? 'Meilleure série : ' + comboMax + ' d’affilée. ' : '') +
-      (nKo > nOk ? 'La moitié des touchés vient du cadrage : recule et refais le calibrage.' : '');
+      ((JEUX[JEU].fam !== 'reps' && nKo > nOk) ? 'La moitié des ratés vient du cadrage : recule et refais le calibrage.' : '');
     show($('btnNext'), !!med && STAGE < 10);
     show($('pEnd'), true);
     classement(total);
@@ -630,11 +829,11 @@
     $('stKicker').textContent = JEUX[JEU].nom;
     var h = '';
     for (var i = 1; i <= 10; i++) {
-      var f = fiche(JEU, i), ok = ouvert(JEU, i), P = paramsStage(i);
+      var f = fiche(JEU, i), ok = ouvert(JEU, i), P = paramsStage(i, JEU);
       h += '<button class="st' + (ok ? '' : ' lock') + (f.med ? ' done' : '') + '" data-st="' + i + '"' + (ok ? '' : ' disabled') + '>' +
            '<span class="med">' + svgMedaille(f.med) + '</span>' +
            '<span class="n">' + i + '</span>' +
-           '<span class="d">' + P.nb + ' obstacles · ' + (P.ecart / 1000).toFixed(1) + ' s</span>' +
+           '<span class="d">' + (P.fam === 'reps' ? (P.nb + ' reps · ' + Math.round(P.duree / 1000) + ' s') : (P.nb + ' obstacles · ' + (P.ecart / 1000).toFixed(1) + ' s')) + '</span>' +
            (f.best ? '<span class="b">record ' + f.best + '</span>' : (ok ? '<span class="d">jamais joué</span>' : '<span class="d">verrouillé</span>')) +
            '</button>';
     }
@@ -652,13 +851,13 @@
   }
 
   function versCalibrage() {
-    PAR = paramsStage(STAGE);
+    PAR = paramsStage(STAGE, JEU);
     SEUIL = JEUX[JEU].seuils[STAGE - 1];
     base = null; cal.on = 0; etat = 'cal';
     show($('pMenu'), false); show($('pStages'), false); show($('pEnd'), false); show($('pCal'), true);
     $('calKicker').textContent = JEUX[JEU].nom + ' · NIVEAU ' + STAGE;
     $('calTitle').textContent = 'Mets-toi en place';
-    $('calText').textContent = JEUX[JEU].aide + ' Puis ne bouge plus deux secondes.';
+    $('calText').textContent = JEUX[JEU].aide + ' Puis ne bouge plus deux secondes. ' + JEUX[JEU].cible;
     $('calBar').style.width = '0%';
     audio();
   }
