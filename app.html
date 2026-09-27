@@ -1031,6 +1031,33 @@
   .tr-stat b{display:block;font-size:17px;font-weight:800}
   .tr-stat small{font-size:10.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
   .rc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .jeu-card{width:100%;display:flex;align-items:center;gap:12px;text-align:left;margin:0 0 14px;
+    padding:14px 15px;border-radius:18px;border:1.5px solid var(--brand);
+    background:linear-gradient(125deg,rgba(0,232,150,.16),rgba(233,199,103,.08));
+    color:var(--text);font-family:inherit;cursor:pointer}
+  .jeu-ic{width:42px;height:42px;border-radius:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    background:rgba(0,232,150,.16);color:var(--brand)}
+  .jeu-ic svg{width:21px;height:21px}
+  .jeu-tx{flex:1 1 auto;min-width:0}
+  .jeu-tx b{display:block;font-size:15.5px;font-weight:800}
+  .jeu-tx em{display:block;font-style:normal;font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.35}
+  .jeu-go{flex-shrink:0;font-size:12.5px;font-weight:800;color:var(--brand)}
+  .bib-item{width:100%;display:flex;align-items:center;gap:10px;text-align:left;padding:11px 12px;margin-bottom:8px;
+    border-radius:13px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-family:inherit;cursor:pointer}
+  .bib-item b{display:block;font-size:14px;font-weight:700}
+  .bib-item span{display:block;font-size:11px;color:var(--muted);margin-top:1px}
+  .bib-step{display:flex;gap:9px;align-items:flex-start;margin-bottom:8px}
+  .bib-step i{flex-shrink:0;width:19px;height:19px;border-radius:50%;background:rgba(0,232,150,.14);color:var(--brand);
+    font-style:normal;font-size:10px;font-weight:800;line-height:19px;text-align:center}
+  .bib-step p{margin:0;font-size:13px;line-height:1.45}
+  .rc-now{font-size:10px;font-weight:800;letter-spacing:1.1px;padding:5px 10px;border-radius:999px;
+    background:linear-gradient(120deg,rgba(0,232,150,.18),rgba(233,199,103,.18));
+    border:1px solid rgba(233,199,103,.45);color:var(--gold,#E9C767);white-space:nowrap}
+  .rc-more{width:100%;margin-top:12px;padding:12px 0;border-radius:14px;border:1.5px solid var(--brand);
+    background:linear-gradient(120deg,rgba(0,232,150,.14),rgba(0,232,150,.04));color:var(--brand);
+    font-size:14px;font-weight:800;font-family:inherit;cursor:pointer}
+  .rc-chip.on[data-rf="now"]{background:linear-gradient(120deg,rgba(0,232,150,.22),rgba(233,199,103,.22));
+    border-color:rgba(233,199,103,.6)}
   .rc-card{position:relative;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--surface-2);cursor:pointer;transition:transform .12s,border-color .12s}
   .rc-card:active{transform:scale(.975);border-color:color-mix(in srgb,var(--brand) 40%,var(--line))}
   .rc-thumb{position:relative;aspect-ratio:16/11;display:flex;align-items:flex-end;padding:10px;background-size:cover;background-position:center}
@@ -1433,16 +1460,17 @@ h1, h2,
       <div id="tr-body"><p class="empty" data-i18n="tr_empty">Logge tes repas 2 jours ou plus pour voir tes tendances.</p></div>
     </div>
     <div class="block">
-      <!-- Repliee par defaut : la grille des recettes poussait tout le reste
-           de l'onglet hors de l'ecran. Elle ne se charge qu'a l'ouverture. -->
-      <button type="button" id="rc-toggle" style="width:100%;display:flex;align-items:center;gap:10px;background:transparent;border:0;padding:0;cursor:pointer;text-align:left">
-        <h3 data-i18n="rc_title" style="margin:0;flex:1 1 auto">Recettes Coach DM</h3>
-        <span id="rc-chev" style="color:var(--brand);font-size:22px;font-weight:800;line-height:1;display:inline-block;transition:transform .18s">&rsaquo;</span>
-      </button>
-      <div id="rc-body" style="display:none">
-      <p class="empty" style="text-align:left;padding:10px 0" data-i18n="rc_sub">Des repas prêts à logger, calés sur tes objectifs.</p>
+      <!-- Les recettes ne sont plus repliees : on en montre quatre, choisies
+           selon l'heure qu'il est, et un bouton ouvre le reste. -->
+      <div class="rc-head">
+        <h3 data-i18n="rc_title" style="margin:0">Recettes Coach DM</h3>
+        <span id="rc-now-badge" class="rc-now"></span>
+      </div>
+      <div id="rc-body">
+      <p class="empty" style="text-align:left;padding:8px 0 2px" id="rc-sub-line">Des repas prêts à logger, calés sur tes objectifs.</p>
       <div class="rc-filters" id="rc-filters">
-        <button class="rc-chip on" data-rf="all" data-i18n="rc_all">Tout</button>
+        <button class="rc-chip on" data-rf="now" data-i18n="rc_now">Pour maintenant</button>
+        <button class="rc-chip" data-rf="all" data-i18n="rc_all">Tout</button>
         <button class="rc-chip" data-rf="hp" data-i18n="rc_hp">Haute protéine</button>
         <button class="rc-chip" data-rf="pre_workout" data-i18n="meal_pre_workout">Pré-training</button>
         <button class="rc-chip" data-rf="post_workout" data-i18n="meal_post_workout">Post-training</button>
@@ -1452,6 +1480,7 @@ h1, h2,
         <button class="rc-chip" data-rf="snack" data-i18n="meal_snack">Collation</button>
       </div>
       <div class="rc-grid" id="rc-grid"><div class="spin"></div></div>
+      <button type="button" id="rc-more" class="rc-more" style="display:none"></button>
       </div>
     </div>
     <p class="empty" style="padding:2px 0 10px"><a href="#" id="jo-src-link" style="color:var(--muted);text-decoration:underline;font-size:12px" data-i18n="src_link">Voir les sources scientifiques</a></p>
@@ -1466,6 +1495,10 @@ h1, h2,
       <button type="button" class="lex-open" id="lex-open-btn" data-lex="">
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M9.6 9.2a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.8-.9 1.4v.5"/><path d="M12 17h.01"/></svg>
         <span data-i18n="lex_open">Comment lire ta séance</span>
+      </button>
+      <button type="button" class="lex-open" id="bib-open-btn" style="margin-left:6px">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/></svg>
+        <span data-i18n="bib_open">Bibliothèque des mouvements</span>
       </button>
       <!-- C#19 : l'onglet melangeait objectifs et catalogue sans hierarchie.
            Trois blocs nommes, dans l'ordre ou on s'en sert : ce que je fais
@@ -1496,6 +1529,17 @@ h1, h2,
        est simplement deplace ici : une seule source de rendu, aucune
        duplication de la liste des cinq analyses. -->
   <div class="page tabpane" id="pane-analyse">
+    <!-- Mode jeu : meme camera, meme suivi du corps, mais on joue. -->
+    <button type="button" class="jeu-card" id="jeu-open">
+      <span class="jeu-ic">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 12h3"/><path d="M8.5 10.5v3"/><circle cx="16" cy="11.5" r="1.1" fill="currentColor"/><circle cx="18.5" cy="14" r="1.1" fill="currentColor"/></svg>
+      </span>
+      <span class="jeu-tx">
+        <b data-i18n="jeu_title">Mode jeu</b>
+        <em data-i18n="jeu_sub">La caméra te filme, les cibles arrivent, tu bouges pour de vrai.</em>
+      </span>
+      <span class="jeu-go" data-i18n="jeu_cta">Jouer</span>
+    </button>
     <div id="analyse-section"></div>
   </div>
 
@@ -1929,6 +1973,17 @@ h1, h2,
     <h3 id="swap-title">Remplacer</h3>
     <div class="fk"><b id="swap-orig"></b> — <span id="swap-sub"></span></div>
     <div id="swap-body"></div>
+  </div>
+</div>
+
+<div class="overlay" id="bib-ov">
+  <div class="sheet">
+    <div class="grab"></div>
+    <h3 id="bib-title" data-i18n="bib_title">Bibliothèque des mouvements</h3>
+    <div class="search-row" id="bib-search" style="margin-bottom:10px">
+      <input id="bib-q" type="text" placeholder="Chercher un mouvement…" data-i18n-ph="bib_ph" />
+    </div>
+    <div id="bib-body"></div>
   </div>
 </div>
 
@@ -2994,6 +3049,24 @@ const T = {
     casserait l'historique de navigation et les liens internes pour rien. */
  nav_journal:{fr:'Repas',en:'Meals',nl:'Maaltijden'},
  rc_title:{fr:'Recettes Coach DM',en:'Coach DM recipes',nl:'Coach DM recepten'},
+ rc_now:{fr:'Pour maintenant',en:'Right now',nl:'Voor nu'},
+ rc_more:{fr:'Voir les {n} autres recettes',en:'See the other {n} recipes',nl:'Bekijk de {n} andere recepten'},
+ rc_less:{fr:'Voir moins',en:'Show less',nl:'Toon minder'},
+ rc_h_breakfast:{fr:'Petit-déjeuner',en:'Breakfast',nl:'Ontbijt'},
+ rc_h_snack:{fr:'Collation',en:'Snack',nl:'Tussendoortje'},
+ rc_h_lunch:{fr:'Déjeuner',en:'Lunch',nl:'Lunch'},
+ rc_h_dinner:{fr:'Dîner',en:'Dinner',nl:'Avondeten'},
+ rc_now_line:{fr:'Il est {h} — voici de quoi manger maintenant.',en:'It is {h} — here is what to eat now.',nl:'Het is {h} — dit eet je nu.'},
+ bib_open:{fr:'Bibliothèque des mouvements',en:'Movement library',nl:'Bewegingsbibliotheek'},
+ bib_title:{fr:'Bibliothèque des mouvements',en:'Movement library',nl:'Bewegingsbibliotheek'},
+ bib_ph:{fr:'Chercher un mouvement…',en:'Search a movement…',nl:'Zoek een beweging…'},
+ bib_none:{fr:'Aucun mouvement trouvé.',en:'No movement found.',nl:'Geen beweging gevonden.'},
+ bib_points:{fr:'Points de performance',en:'Points of performance',nl:'Uitvoeringspunten'},
+ bib_cue:{fr:'La consigne de Coach DM',en:'Coach DM\u2019s cue',nl:'De cue van Coach DM'},
+ bib_video:{fr:'Voir la vidéo',en:'Watch the video',nl:'Bekijk de video'},
+ jeu_title:{fr:'Mode jeu',en:'Game mode',nl:'Spelmodus'},
+ jeu_sub:{fr:'La caméra te filme, les cibles arrivent, tu bouges pour de vrai.',en:'The camera films you, targets come at you, you really move.',nl:'De camera filmt je, doelen komen op je af, je beweegt echt.'},
+ jeu_cta:{fr:'Jouer',en:'Play',nl:'Spelen'},
  rc_sub:{fr:'Des repas prêts à logger, calés sur tes objectifs.',en:'Ready-to-log meals, built around your goals.',nl:'Kant-en-klare maaltijden, afgestemd op je doelen.'},
  rc_all:{fr:'Tout',en:'All',nl:'Alles'},
  rc_hp:{fr:'Haute protéine',en:'High protein',nl:'Eiwitrijk'},
@@ -6883,7 +6956,7 @@ function ctPick(mealPref, needProtein){
 }
 async function buildCoachToday(sum){
   const card=$('#coach-today'); if(!card||!TARGETS) return;
-  try{ if(rcIsOpen()) await loadRecipes(); }catch(_){}
+  try{ await loadRecipes(); }catch(_){}
   const remP = Math.round((TARGETS.protein_g||0) - (sum.p||0));
   const showP = Math.max(remP,0);
   const h = new Date().getHours();
@@ -7119,20 +7192,31 @@ async function loadLogs(){
 
 /* ---------------- PHOTO IA (plat → calories) ---------------- */
 /* ---------------- RECETTES ---------------- */
-function rcIsOpen(){ const b=document.getElementById('rc-body'); return !!b && b.style.display!=='none'; }
-(function(){
-  const bt=document.getElementById('rc-toggle');
-  if(!bt) return;
-  bt.onclick=()=>{
-    const bd=document.getElementById('rc-body'), ch=document.getElementById('rc-chev');
-    if(!bd) return;
-    const open = bd.style.display==='none';
-    bd.style.display = open ? 'block' : 'none';
-    if(ch) ch.style.transform = open ? 'rotate(90deg)' : 'none';
-    if(open && !RECIPES) loadRecipes();
-  };
-})();
-let RECIPES=null, RC_FILTER='all', RC_CUR=null, RC_SRV=1;
+let RECIPES=null, RC_FILTER='now', RC_CUR=null, RC_SRV=1, RC_TOUT=false;
+const RC_APERCU=4;
+/* Le repas qu'on propose depend de l'heure : personne ne cherche un diner a 7h. */
+function rcMomentDuJour(){
+  const h=new Date().getHours();
+  if(h>=5 && h<10) return 'breakfast';
+  if(h>=10 && h<12) return 'snack';
+  if(h>=12 && h<15) return 'lunch';
+  if(h>=15 && h<18) return 'snack';
+  if(h>=18 && h<22) return 'dinner';
+  return 'snack';
+}
+function rcHeureTexte(){
+  const d=new Date(), h=d.getHours(), m=d.getMinutes();
+  const loc=(LANG==='nl'?'nl-BE':LANG==='en'?'en-GB':'fr-BE');
+  try{ return d.toLocaleTimeString(loc,{hour:'2-digit',minute:'2-digit'}); }
+  catch(e){ return h+'h'+(m<10?'0':'')+m; }
+}
+function rcMajBandeau(){
+  const mo=rcMomentDuJour();
+  const b=document.getElementById('rc-now-badge');
+  if(b) b.textContent=t('rc_h_'+mo);
+  const l=document.getElementById('rc-sub-line');
+  if(l) l.textContent=t('rc_now_line').replace('{h}',rcHeureTexte());
+}
 const RC_HUES={breakfast:38,lunch:150,dinner:262,snack:12,pre_workout:190,post_workout:330};
 function rcHue(r){ return (r.meal_type in RC_HUES) ? RC_HUES[r.meal_type] : 150; }
 function rcBg(r,dark){
@@ -7168,12 +7252,27 @@ function rcCard(r,i){
 }
 function rcApplyFilter(){
   const grid=$('#rc-grid'); if(!grid||!RECIPES) return;
+  rcMajBandeau();
   let list=RECIPES.slice();
   if(RC_FILTER==='hp') list=list.filter(r=>+r.protein_per_serving>=30);
+  else if(RC_FILTER==='now'){
+    const mo=rcMomentDuJour();
+    const dedans=list.filter(r=>r.meal_type===mo);
+    /* s'il n'y a pas assez de recettes pour ce moment, on complete avec le reste */
+    list = dedans.length>=RC_APERCU ? dedans : dedans.concat(list.filter(r=>r.meal_type!==mo));
+  }
   else if(RC_FILTER!=='all') list=list.filter(r=>r.meal_type===RC_FILTER);
-  if(!list.length){ grid.innerHTML=emptyIllus('i-bowl',t('rc_none')); return; }
-  grid.innerHTML=list.map(r=>rcCard(r,RECIPES.indexOf(r))).join('');
+  const more=document.getElementById('rc-more');
+  if(!list.length){ grid.innerHTML=emptyIllus('i-bowl',t('rc_none')); if(more) more.style.display='none'; return; }
+  const vue = RC_TOUT ? list : list.slice(0,RC_APERCU);
+  grid.innerHTML=vue.map(r=>rcCard(r,RECIPES.indexOf(r))).join('');
   grid.querySelectorAll('.rc-card').forEach(el=>el.onclick=()=>rcOpen(RECIPES[+el.dataset.i]));
+  if(more){
+    const reste=list.length-vue.length;
+    if(RC_TOUT && list.length>RC_APERCU){ more.style.display='block'; more.textContent=t('rc_less'); }
+    else if(reste>0){ more.style.display='block'; more.textContent=t('rc_more').replace('{n}',reste); }
+    else more.style.display='none';
+  }
 }
 async function loadRecipes(){
   if(RECIPES){ rcApplyFilter(); return; }
@@ -7185,8 +7284,13 @@ async function loadRecipes(){
   if(error||!data){ if(grid) grid.innerHTML=emptyIllus('i-bowl',t('rc_none')); return; }
   RECIPES=data; rcApplyFilter();
 }
+(function(){
+  const mb=document.getElementById('rc-more');
+  if(mb) mb.onclick=()=>{ RC_TOUT=!RC_TOUT; rcApplyFilter(); };
+  try{ rcMajBandeau(); }catch(e){}   /* le bandeau d'heure est juste des l'ouverture */
+})();
 document.querySelectorAll('#rc-filters .rc-chip').forEach(b=>b.onclick=()=>{
-  RC_FILTER=b.dataset.rf;
+  RC_FILTER=b.dataset.rf; RC_TOUT=false;
   document.querySelectorAll('#rc-filters .rc-chip').forEach(x=>x.classList.toggle('on',x===b));
   rcApplyFilter();
 });
@@ -7913,7 +8017,7 @@ function switchTab(tab, quiet){
   $('#tb-sub').textContent = SUBS[tab] ? t(SUBS[tab]) : '';
   $('.topbar').style.display = (tab==='ia'||tab==='home') ? 'none' : 'block';
   if(tab==='home') loadHome();
-  if(tab==='journal'){ loadLogs(); if(rcIsOpen()) loadRecipes(); mpLoad(); }
+  if(tab==='journal'){ rcMajBandeau(); loadLogs(); loadRecipes(); mpLoad(); }
   if(tab==='seances' && !quiet) loadWorkouts();
   /* C#19 : la seance du jour est calculee par loadWod(), appele depuis
      l'accueil. Si le membre arrive sur Seances sans etre passe par l'accueil
@@ -10205,6 +10309,73 @@ function lexOpen(key){
   ov.classList.add('show');
 }
 function lexClose(){ const ov=document.getElementById('lex-ov'); if(ov) ov.classList.remove('show'); }
+
+/* ------------------------------------------------------------------
+   BIBLIOTHEQUE DES MOUVEMENTS
+   Les fiches vivent deja en base (points de performance en 3 langues,
+   consigne de Coach DM, video). Il manquait juste la porte d'entree.
+   ------------------------------------------------------------------ */
+let BIB=null, BIB_Q='';
+function bibClose(){ const ov=document.getElementById('bib-ov'); if(ov) ov.classList.remove('show'); }
+async function bibOpen(){
+  const ov=document.getElementById('bib-ov'); if(!ov) return;
+  ov.classList.add('show');
+  const q=document.getElementById('bib-q'); if(q){ q.value=''; BIB_Q=''; }
+  const body=document.getElementById('bib-body');
+  const sr=document.getElementById('bib-search'); if(sr) sr.style.display='';
+  if(body) body.innerHTML='<div class="spin"></div>';
+  if(!BIB){
+    const { data, error } = await sb.from('exercises')
+      .select('id,slug,name_fr,name_en,name_nl,primary_muscle,equipment,video_url,youtube_query,cue_fr,cue_en,cue_nl,instructions_fr,instructions_en,instructions_nl')
+      .eq('is_published',true).order('name_fr',{ascending:true}).limit(500);
+    if(error||!data){ if(body) body.innerHTML='<p class="empty">'+t('bib_none')+'</p>'; return; }
+    BIB=data;
+  }
+  bibListe();
+}
+function bibListe(){
+  const body=document.getElementById('bib-body'); if(!body||!BIB) return;
+  const sr=document.getElementById('bib-search'); if(sr) sr.style.display='';
+  const qq=(BIB_Q||'').trim().toLowerCase();
+  const list=BIB.filter(e=>{
+    if(!qq) return true;
+    const n=(pick(e,'name')||'')+' '+(e.slug||'');
+    return n.toLowerCase().indexOf(qq)>=0;
+  });
+  if(!list.length){ body.innerHTML='<p class="empty">'+t('bib_none')+'</p>'; return; }
+  body.innerHTML=list.map((e,i)=>`<button type="button" class="bib-item" data-b="${BIB.indexOf(e)}">
+      <span style="flex:1 1 auto;min-width:0"><b>${esc(pick(e,'name'))}</b><span>${esc(e.primary_muscle||'')}${e.equipment?(' · '+esc(e.equipment)):''}</span></span>
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)"><path d="M9 18l6-6-6-6"/></svg>
+    </button>`).join('');
+  body.querySelectorAll('.bib-item').forEach(el=>el.onclick=()=>bibFiche(BIB[+el.dataset.b]));
+}
+function bibFiche(e){
+  const body=document.getElementById('bib-body'); if(!body||!e) return;
+  const sr=document.getElementById('bib-search'); if(sr) sr.style.display='none';
+  const steps=(e['instructions_'+LANG]||e.instructions_fr||[]);
+  const cue=pick(e,'cue');
+  const vid=e.video_url || (e.youtube_query?('https://www.youtube.com/results?search_query='+encodeURIComponent(e.youtube_query)):'');
+  body.innerHTML=`
+    <button type="button" class="btn subtle" id="bib-back" style="margin-bottom:12px">&lsaquo; ${esc(t('bib_title'))}</button>
+    <h3 style="margin:0 0 2px">${esc(pick(e,'name'))}</h3>
+    <div class="fk" style="margin-bottom:12px">${esc(e.primary_muscle||'')}${e.equipment?(' · '+esc(e.equipment)):''}</div>
+    ${cue?`<div class="block" style="margin:0 0 14px;border-left:3px solid var(--brand)">
+        <div style="font-size:10px;letter-spacing:1.4px;color:var(--brand);font-weight:800;margin-bottom:6px">${esc(t('bib_cue')).toUpperCase()}</div>
+        <p style="margin:0;font-size:13.5px;line-height:1.55">${esc(cue)}</p></div>`:''}
+    ${steps.length?`<div style="font-size:10px;letter-spacing:1.4px;color:var(--muted);font-weight:800;margin:0 0 9px">${esc(t('bib_points')).toUpperCase()}</div>
+      ${steps.map((x,i)=>`<div class="bib-step"><i>${i+1}</i><p>${esc(x)}</p></div>`).join('')}`:''}
+    ${vid?`<a class="btn subtle" href="${esc(vid)}" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:14px">${esc(t('bib_video'))}</a>`:''}
+  `;
+  const bk=document.getElementById('bib-back'); if(bk) bk.onclick=()=>bibListe();
+}
+(function(){
+  const ov=document.getElementById('bib-ov');
+  if(ov) ov.onclick=(ev)=>{ if(ev.target.id==='bib-ov') bibClose(); };
+  const bt=document.getElementById('bib-open-btn'); if(bt) bt.onclick=()=>bibOpen();
+  const q=document.getElementById('bib-q'); if(q) q.oninput=()=>{ BIB_Q=q.value; bibListe(); };
+  const jb=document.getElementById('jeu-open');
+  if(jb) jb.onclick=()=>{ location.href='jeu.html'; };
+})();
 {
   const ov=document.getElementById('lex-ov');
   if(ov) ov.onclick=(ev)=>{ if(ev.target.id==='lex-ov') lexClose(); };
