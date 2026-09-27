@@ -15,138 +15,171 @@
   button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
   #stage{position:fixed;inset:0;overflow:hidden}
   #shake{position:absolute;inset:0;transition:transform .05s}
+  #zoom{position:absolute;inset:0;transform-origin:50% 50%;transition:transform .2s}
   video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
-  canvas{position:absolute;inset:0;width:100%;height:100%}
-  .panel{position:absolute;inset:0;display:flex;flex-direction:column;padding:24px 20px calc(24px + env(safe-area-inset-bottom));
-    gap:13px;overflow:auto;background:
-      radial-gradient(120% 70% at 50% -10%, rgba(0,255,163,.10) 0%, rgba(5,8,7,0) 60%),
-      rgba(5,8,7,.95)}
+  #cv{position:absolute;inset:0;width:100%;height:100%}
+  #rec{display:none}
+  .panel{position:absolute;inset:0;display:flex;flex-direction:column;padding:22px 20px calc(22px + env(safe-area-inset-bottom));
+    gap:12px;overflow:auto;background:radial-gradient(130% 70% at 50% -10%, rgba(0,255,163,.12) 0%, rgba(5,8,7,0) 62%), rgba(5,8,7,.95)}
   .kicker{font-size:10px;letter-spacing:2.4px;color:var(--gold);font-weight:800}
-  h1{margin:4px 0 0;font-size:28px;color:#fff;font-weight:900;letter-spacing:-.025em;line-height:1.1}
-  p{margin:0;font-size:14px;line-height:1.55}
+  h1{margin:4px 0 0;font-size:26px;color:#fff;font-weight:900;letter-spacing:-.025em;line-height:1.12}
+  p{margin:0;font-size:13.5px;line-height:1.5}
   .muted{color:var(--dim);font-size:12.5px;line-height:1.5}
   .row{display:flex;gap:10px;align-items:center}
   .card{width:100%;text-align:left;background:var(--card);border:1.5px solid rgba(255,255,255,.10);
-    border-radius:18px;padding:14px 15px;display:flex;align-items:center;gap:13px;color:var(--ink)}
-  .card.on{border-color:var(--brand);background:linear-gradient(120deg,rgba(0,255,163,.14),rgba(0,255,163,.04))}
-  .card b{display:block;font-size:16px;color:#fff;font-weight:900;letter-spacing:.3px}
-  .card em{display:block;font-style:normal;font-size:11.5px;color:var(--dim);margin-top:2px;line-height:1.35}
-  .ico{width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.05);display:flex;
-    align-items:center;justify-content:center;flex-shrink:0}
-  .cta{width:100%;border-radius:16px;background:var(--brand);color:#04110A;font-size:16px;font-weight:900;padding:16px 0;letter-spacing:.3px}
+    border-radius:18px;padding:13px 14px;display:flex;align-items:center;gap:12px;color:var(--ink);margin-bottom:9px}
+  .card.on{border-color:var(--brand);background:linear-gradient(120deg,rgba(0,255,163,.15),rgba(0,255,163,.04))}
+  .card b{display:block;font-size:15px;color:#fff;font-weight:900;letter-spacing:.3px}
+  .card em{display:block;font-style:normal;font-size:11px;color:var(--dim);margin-top:2px;line-height:1.35}
+  .ico{width:42px;height:42px;border-radius:14px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .cta{width:100%;border-radius:16px;background:var(--brand);color:#04110A;font-size:16px;font-weight:900;padding:15px 0;letter-spacing:.3px}
   .cta.ghost{background:transparent;border:1.5px solid rgba(255,255,255,.18);color:var(--ink);font-weight:800}
   .cta[disabled]{opacity:.5}
-  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
   .st{position:relative;background:var(--card);border:1.5px solid rgba(255,255,255,.10);border-radius:16px;
-    padding:12px;text-align:left;display:flex;flex-direction:column;gap:5px;min-height:86px}
-  .st.lock{opacity:.42}
-  .st.done{border-color:rgba(0,255,163,.45)}
-  .st .n{font-size:20px;font-weight:900;color:#fff;line-height:1}
-  .st .d{font-size:10.5px;color:var(--dim);line-height:1.3}
-  .st .b{font-size:11px;color:var(--brand);font-weight:800}
-  .med{position:absolute;top:10px;right:10px;width:22px;height:22px}
-  .hud{position:absolute;left:14px;right:14px;top:calc(12px + env(safe-area-inset-top));display:flex;
-    justify-content:space-between;align-items:flex-start;pointer-events:none}
+    padding:11px;text-align:left;display:flex;flex-direction:column;gap:4px;min-height:80px}
+  .st.lock{opacity:.42}.st.done{border-color:rgba(0,255,163,.45)}
+  .st .n{font-size:19px;font-weight:900;color:#fff;line-height:1}
+  .st .d{font-size:10px;color:var(--dim);line-height:1.3}
+  .st .b{font-size:10.5px;color:var(--brand);font-weight:800}
+  .med{position:absolute;top:9px;right:9px;width:21px;height:21px}
+  .hud{position:absolute;left:14px;right:14px;top:calc(12px + env(safe-area-inset-top));display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
   .pill{background:rgba(0,0,0,.5);border-radius:999px;padding:7px 12px;font-size:11px;font-weight:800;letter-spacing:1.2px;color:#fff}
-  .order{position:absolute;left:0;right:0;top:calc(76px + env(safe-area-inset-top));text-align:center;pointer-events:none}
-  .order i{display:inline-block;font-style:normal;font-size:32px;font-weight:900;letter-spacing:5px;
-    padding:10px 22px;border-radius:16px;background:rgba(233,199,103,.95);color:#0A0A0A;opacity:0;transform:scale(.9);
-    transition:opacity .1s,transform .1s}
+  .pill.rec{color:#fff;background:rgba(239,68,68,.75)}
+  .order{position:absolute;left:0;right:0;top:calc(74px + env(safe-area-inset-top));text-align:center;pointer-events:none}
+  .order i{display:inline-block;font-style:normal;font-size:30px;font-weight:900;letter-spacing:4px;padding:9px 20px;border-radius:15px;
+    background:rgba(233,199,103,.95);color:#0A0A0A;opacity:0;transform:scale(.92);transition:opacity .1s,transform .1s}
   .order i.show{opacity:1;transform:scale(1)}
   .order i.good{background:rgba(0,255,163,.95);color:#04110A}
   .order i.bad{background:rgba(239,68,68,.95);color:#fff}
-  .combo{position:absolute;left:0;right:0;top:calc(136px + env(safe-area-inset-top));text-align:center;
-    font-size:15px;font-weight:900;letter-spacing:2px;color:var(--gold);opacity:0;transition:opacity .15s;pointer-events:none}
+  .combo{position:absolute;left:0;right:0;top:calc(132px + env(safe-area-inset-top));text-align:center;font-size:14px;font-weight:900;
+    letter-spacing:2px;color:var(--gold);opacity:0;transition:opacity .15s;pointer-events:none}
   .combo.show{opacity:1}
-  .foot{position:absolute;left:14px;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));
-    background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:12px 14px;
-    display:flex;align-items:center;gap:12px;pointer-events:none}
-  .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:7px}
+  .foot{position:absolute;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));background:rgba(0,0,0,.55);
+    border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:11px 13px;display:flex;align-items:center;gap:12px;pointer-events:none}
+  .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:6px}
   .bar>i{display:block;height:100%;background:var(--brand);width:0%;transition:width .2s}
   .err{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);border-radius:14px;padding:12px 13px;font-size:13px;color:#ffb4b4;line-height:1.5}
-  .lb{background:var(--card);border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:12px 14px}
-  .lb div.l{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}
-  input{background:#0B100E;border:1.5px solid rgba(255,255,255,.12);border-radius:13px;padding:12px 13px;
-    color:var(--ink);font-size:15px;width:100%;outline:none;font-family:inherit}
+  .lb{background:var(--card);border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:11px 13px}
+  .lb div.l{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
+  input{background:#0B100E;border:1.5px solid rgba(255,255,255,.12);border-radius:13px;padding:11px 12px;color:var(--ink);font-size:15px;width:100%;outline:none;font-family:inherit}
+  .sw{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1.5px solid rgba(255,255,255,.10);
+    border-radius:14px;padding:11px 13px;font-size:13.5px;font-weight:700;color:#fff}
+  .sw i{width:44px;height:26px;border-radius:99px;background:rgba(255,255,255,.14);position:relative;transition:background .15s;flex-shrink:0}
+  .sw i:after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s}
+  .sw.on i{background:var(--brand)}
+  .sw.on i:after{transform:translateX(18px)}
+  .steps{display:flex;flex-direction:column;gap:8px}
+  .step{display:flex;gap:10px;align-items:flex-start}
+  .step span.k{width:20px;height:20px;border-radius:50%;background:rgba(0,255,163,.14);color:var(--brand);font-size:10.5px;
+    font-weight:900;line-height:20px;text-align:center;flex-shrink:0}
+  .step span.t{font-size:13px;line-height:1.45;color:var(--ink)}
   .hide{display:none!important}
   .spacer{flex:1 1 auto}
+  a.dl{display:block;text-align:center;text-decoration:none;color:#04110A;background:var(--gold);border-radius:16px;font-weight:900;padding:15px 0;font-size:15.5px}
 </style>
 </head>
 <body>
-<div id="stage"><div id="shake">
+<div id="stage"><div id="shake"><div id="zoom">
   <video id="vid" playsinline muted autoplay></video>
   <canvas id="cv"></canvas>
+  </div>
+  <canvas id="rec"></canvas>
 
   <div class="hud hide" id="hud">
-    <div class="pill" id="hudLeft">STAGE 1</div>
-    <div class="pill" id="hudRight" style="color:var(--gold)">0 / 9</div>
+    <div class="pill" id="hudLeft">NIVEAU 1</div>
+    <div class="row" style="gap:6px">
+      <div class="pill rec hide" id="hudRec">● REC</div>
+      <div class="pill" id="hudRight" style="color:var(--gold)">0 / 9</div>
+    </div>
   </div>
   <div class="order hide" id="orderWrap"><i id="order">PRÊT</i></div>
   <div class="combo" id="combo"></div>
   <div class="foot hide" id="foot">
     <div style="flex-grow:1">
       <div style="font-size:10.5px;letter-spacing:1.3px;color:var(--dim);font-weight:800" id="footTitle">SAUTS</div>
-      <div style="font-size:15px;color:#fff;font-weight:900;margin-top:2px" id="footScore">0 franchis</div>
+      <div style="font-size:15px;color:#fff;font-weight:900;margin-top:2px" id="footScore">0 touchées</div>
       <div class="bar"><i id="footBar"></i></div>
     </div>
     <div style="text-align:right">
-      <div style="font-size:27px;font-weight:900;color:var(--brand);line-height:1" id="footPts">0</div>
+      <div style="font-size:26px;font-weight:900;color:var(--brand);line-height:1" id="footPts">0</div>
       <div style="font-size:10px;color:var(--dim);font-weight:700">points</div>
     </div>
   </div>
 
-  <!-- MENU -->
   <div class="panel" id="pMenu">
     <div class="kicker">COACH DM · MODE JEU</div>
     <h1>Travailler en jouant</h1>
-    <p class="muted">Tout se calcule sur ton téléphone. Aucune image ne part, rien n'est enregistré ailleurs que chez toi.</p>
+    <p class="muted">Tout se calcule sur ton téléphone. Aucune image ne part : la vidéo que tu enregistres reste chez toi.</p>
     <div id="menuCards"></div>
-    <div class="row" style="margin-top:2px">
-      <input id="pseudo" maxlength="18" placeholder="Ton prénom, pour le classement" />
+    <input id="pseudo" maxlength="18" placeholder="Ton prénom, pour le classement" />
+    <button class="sw" id="swRec"><span>Enregistrer ma partie (avec le filigrane)</span><i></i></button>
+    <div class="sw" style="display:block">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span>Zoom de l'image</span><span id="zoomVal" style="color:var(--brand);font-weight:900">1,0×</span>
+      </div>
+      <div class="row" style="margin-top:9px">
+        <button class="zb cta ghost" data-z="1" style="padding:9px 0;font-size:13px">1,0×</button>
+        <button class="zb cta ghost" data-z="1.3" style="padding:9px 0;font-size:13px">1,3×</button>
+        <button class="zb cta ghost" data-z="1.6" style="padding:9px 0;font-size:13px">1,6×</button>
+        <button class="zb cta ghost" data-z="2" style="padding:9px 0;font-size:13px">2,0×</button>
+      </div>
+      <p class="muted" style="margin-top:8px">Le zoom agrandit seulement l'affichage : le suivi continue de voir tout ton corps. À 3 m, mets 1,6×.</p>
     </div>
-    <p class="muted">Il te faut 2 à 3 m de recul. Téléphone à la verticale contre un mur, à hauteur de hanche. Pour les push-ups, pose-le au sol sur le côté.</p>
     <div class="spacer"></div>
     <button class="cta" id="btnGo">Continuer</button>
     <div id="menuErr"></div>
   </div>
 
-  <!-- STAGES -->
   <div class="panel hide" id="pStages">
     <div class="kicker" id="stKicker">SAUTS</div>
     <h1>Choisis ton niveau</h1>
-    <p class="muted" id="stSub">Chaque niveau monte la barre. Il faut au moins le bronze pour ouvrir le suivant — et tu peux revenir sur n'importe quel niveau déjà ouvert.</p>
+    <p class="muted">Il faut le bronze pour ouvrir le suivant. Tu reviens sur n'importe quel niveau déjà ouvert.</p>
     <div class="grid" id="stGrid"></div>
     <div class="spacer"></div>
     <button class="cta ghost" id="btnBackMenu">Changer de jeu</button>
   </div>
 
-  <!-- CALIBRAGE -->
-  <div class="panel hide" id="pCal" style="background:linear-gradient(180deg,rgba(5,8,7,.86),rgba(5,8,7,.42))">
+  <div class="panel hide" id="pRegles">
+    <div class="kicker" id="regKicker">SAUTS · NIVEAU 1</div>
+    <h1 id="regTitre">Comment on joue</h1>
+    <div class="steps" id="regSteps"></div>
+    <div style="background:var(--card);border:1px solid rgba(233,199,103,.35);border-radius:16px;padding:12px 13px">
+      <div class="kicker" style="margin-bottom:5px">LE PLACEMENT</div>
+      <p class="muted" id="regPlace"></p>
+    </div>
+    <div class="spacer"></div>
+    <button class="cta" id="btnEssai">Essai libre — sans score</button>
+    <button class="cta ghost" id="btnDirect">Aller direct au niveau</button>
+    <button class="cta ghost" id="btnRegRetour">Retour</button>
+  </div>
+
+  <div class="panel hide" id="pCal" style="background:linear-gradient(180deg,rgba(5,8,7,.88),rgba(5,8,7,.42))">
     <div class="kicker" id="calKicker">CALIBRAGE</div>
     <h1 id="calTitle">Mets-toi en place</h1>
     <p id="calText">Recule jusqu'à voir tout ton corps, puis ne bouge plus.</p>
     <div class="bar" style="height:8px"><i id="calBar"></i></div>
     <p class="muted" id="calHint">Recherche du corps…</p>
     <div class="spacer"></div>
-    <button class="cta ghost" id="btnQuitCal">Retour aux niveaux</button>
+    <button class="cta ghost" id="btnQuitCal">Retour</button>
   </div>
 
-  <!-- FIN -->
   <div class="panel hide" id="pEnd">
     <div class="kicker" id="endKicker">NIVEAU 1 · SAUTS</div>
     <h1 id="endTitle">Bronze</h1>
     <div class="row">
-      <div style="flex:1;background:var(--card);border:1px solid rgba(0,255,163,.3);border-radius:18px;padding:14px">
-        <div style="font-size:32px;font-weight:900;color:var(--brand);line-height:1" id="endOk">0</div>
-        <div style="font-size:11px;color:var(--dim);font-weight:700;margin-top:3px">FRANCHIS</div>
+      <div style="flex:1;background:var(--card);border:1px solid rgba(0,255,163,.3);border-radius:18px;padding:13px">
+        <div style="font-size:30px;font-weight:900;color:var(--brand);line-height:1" id="endOk">0</div>
+        <div style="font-size:11px;color:var(--dim);font-weight:700;margin-top:3px" id="endOkLab">TOUCHÉES</div>
       </div>
-      <div style="flex:1;background:var(--card);border:1px solid rgba(233,199,103,.3);border-radius:18px;padding:14px">
-        <div style="font-size:32px;font-weight:900;color:var(--gold);line-height:1" id="endPts">0</div>
+      <div style="flex:1;background:var(--card);border:1px solid rgba(233,199,103,.3);border-radius:18px;padding:13px">
+        <div style="font-size:30px;font-weight:900;color:var(--gold);line-height:1" id="endPts">0</div>
         <div style="font-size:11px;color:var(--dim);font-weight:700;margin-top:3px">POINTS</div>
       </div>
-      <div id="endMedal" style="width:64px;display:flex;align-items:center;justify-content:center"></div>
+      <div id="endMedal" style="width:60px;display:flex;align-items:center;justify-content:center"></div>
     </div>
     <p id="endText" class="muted"></p>
+    <a class="dl hide" id="dlVideo" download="coachdm-jeu.webm">Enregistrer ma vidéo</a>
     <div class="lb" id="lbBox"><div class="muted">Classement…</div></div>
     <div class="spacer"></div>
     <button class="cta" id="btnNext">Niveau suivant</button>
@@ -159,96 +192,129 @@
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
 <script>
 /* ==================================================================
-   Coach DM — mode jeu (prototype 2).
-   Suivi du corps SUR LE TELEPHONE (MoveNet Lightning). Aucune image
-   ne quitte l'appareil : seuls le prenom et le score partent, et
-   seulement si un prenom est saisi.
+   Coach DM — mode jeu. Catalogue de jeux batis sur un seul principe :
+   ATTRAPER UNE CIBLE AVEC LA BONNE PARTIE DU CORPS.
+   Le suivi tourne sur le telephone (MoveNet). Rien ne sort de l'appareil,
+   sauf le prenom et le score si un prenom est saisi.
    ================================================================== */
 (function () {
   'use strict';
 
   var SB_URL = 'https://kkcmhviyvttwpaclrjmv.supabase.co';
   var SB_KEY = 'sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b';
-  var STORE = 'cdm_jeu_v2';
+  var STORE = 'cdm_jeu_v4';
 
   var vid = document.getElementById('vid');
   var cv = document.getElementById('cv');
   var ctx = cv.getContext('2d');
+  var rec = document.getElementById('rec');
+  var rctx = rec.getContext('2d');
   function $(i) { return document.getElementById(i); }
   function show(el, on) { el.classList.toggle('hide', !on); }
 
-  /* ---------------- jeux et niveaux ---------------- */
+  /* =============== CATALOGUE =============== */
+  /* type 'franchir' : une barre arrive, le corps doit etre en position.
+     type 'toucher'  : une cible arrive, une partie du corps doit entrer dedans. */
   var JEUX = {
     saut: {
-      nom: 'SAUTS', fam: 'obstacle', forme: 'haie',
+      nom: 'SAUTS', type: 'franchir', forme: 'haie', bas: false,
       sous: 'Des haies arrivent. Tes deux pieds passent au-dessus.',
-      ordre: 'SAUTE', aide: 'Saute à pieds joints quand la haie arrive.',
-      seuils: [0.040,0.055,0.070,0.085,0.100,0.115,0.130,0.145,0.160,0.180],
-      cible: 'La ligne dorée est la hauteur à dépasser. Elle est calculée sur TA taille.'
+      ordre: 'SAUTE',
+      regles: ['Une haie arrive de la droite, à la hauteur de la ligne dorée.',
+               'Quand elle est sur toi, tes deux chevilles doivent être au-dessus de la ligne.',
+               'La ligne est calculée sur TA taille au calibrage. Plus le niveau monte, plus elle monte.'],
+      place: 'Téléphone à la verticale contre un mur, à hauteur de hanche. Recule de 2 à 3 m, tout le corps dans l’image.',
+      seuils: [0.040,0.055,0.070,0.085,0.100,0.115,0.130,0.145,0.160,0.180]
     },
     squat: {
-      nom: 'SQUATS', fam: 'obstacle', forme: 'plafond',
-      sous: 'Un plafond descend. Ton bassin passe dessous.',
-      ordre: 'DESCENDS', aide: 'Descends jusqu\u2019à ce que le pli de hanche passe sous le genou.',
-      seuils: [-0.050,-0.040,-0.030,-0.020,-0.010,0.000,0.010,0.020,0.030,0.040],
-      cible: 'La ligne suit tes genoux : ton bassin doit passer dessous.'
+      nom: 'SQUATS', type: 'franchir', forme: 'plafond', bas: true,
+      sous: 'Un plafond arrive. Ton bassin passe dessous.',
+      ordre: 'DESCENDS',
+      regles: ['Un plafond arrive, posé sur la ligne de tes genoux.',
+               'Ton bassin doit passer SOUS la ligne au moment où il te traverse.',
+               'La ligne suit tes genoux en direct : c’est le vrai standard, pas une estimation.'],
+      place: 'Téléphone à la verticale, à hauteur de hanche, 2 à 3 m de recul, de profil ou de face.',
+      seuils: [-0.050,-0.040,-0.030,-0.020,-0.010,0.000,0.010,0.020,0.030,0.040]
     },
     genoux: {
-      nom: 'MONTÉES DE GENOUX', fam: 'couloirs', forme: 'couloirs',
-      sous: 'Deux couloirs. Le genou du bon côté monte sur la cible.',
-      ordre: 'GENOUX', aide: 'Monte le genou du côté qui s\u2019allume.',
-      seuils: [0.060,0.075,0.090,0.105,0.120,0.135,0.150,0.160,0.170,0.180],
-      cible: 'Une cible à gauche, une à droite. Tu alternes.'
+      nom: 'MONTÉES DE GENOUX', type: 'toucher', forme: 'couloirs',
+      sous: 'Des cibles tombent à gauche et à droite. Tu les touches avec le genou.',
+      ordre: 'GENOUX',
+      corps: { 1: ['left_knee'], 2: ['right_knee'] },
+      regles: ['Une cible tombe dans le couloir gauche ou droit.',
+               'Tu la touches avec le genou de ce côté-là. Elle explose.',
+               'Ça tombe de plus en plus vite et les cibles montent de plus en plus haut.'],
+      place: 'Téléphone à la verticale, à hauteur de hanche, 2 à 3 m de recul, face à la caméra.',
+      seuils: [0.10,0.13,0.16,0.19,0.22,0.25,0.28,0.31,0.34,0.38]
     },
     pompe: {
-      nom: 'PUSH-UPS', fam: 'reps', forme: 'jauge',
-      sous: 'Pas d\u2019obstacle. Un compteur de répétitions propres, en temps limité.',
-      ordre: 'DESCENDS', aide: 'Téléphone au sol sur le côté, tout le corps dans l\u2019image.',
-      seuils: [115,110,105,100,95,90,85,80,75,70],
-      cible: 'La jauge à droite suit ton angle de coude. Vert = assez bas.'
+      nom: 'PUSH-UPS', type: 'franchir', forme: 'plafond', pivot: true, bas: true,
+      sous: 'Une barre passe. Ton épaule doit être descendue quand elle arrive.',
+      ordre: 'DESCENDS',
+      regles: ['Une barre arrive, posée à la profondeur demandée sous ton épaule.',
+               'Ton épaule doit être SOUS la barre au moment où elle te traverse.',
+               'Entre deux barres, tu dois remonter bras tendus — sinon la suivante ne compte pas.'],
+      place: 'Téléphone POSÉ AU SOL sur le côté, à 1,5 m de toi, tout ton corps dans l’image. L’image est redressée automatiquement.',
+      calPose: 'Mets-toi en position de pompe, bras tendus, et ne bouge plus.',
+      seuils: [0.26,0.30,0.34,0.38,0.42,0.46,0.50,0.54,0.58,0.62]
     },
     burpee: {
-      nom: 'BURPEES', fam: 'reps', forme: 'etapes',
-      sous: 'Pas d\u2019obstacle. Trois étapes à valider : sol, debout, saut.',
-      ordre: 'AU SOL', aide: 'Poitrine au sol, tu te relèves, tu sautes. Sans te presser.',
-      seuils: [0.030,0.035,0.040,0.045,0.050,0.055,0.060,0.065,0.070,0.080],
-      cible: 'Les trois voyants en bas s\u2019allument dans l\u2019ordre. Un tour complet = 1 point.'
+      nom: 'BURPEES', type: 'toucher', forme: 'haut-bas',
+      sous: 'Une cible au sol, puis une cible en l’air. Tu alternes.',
+      ordre: 'AU SOL',
+      corps: { 1: ['left_wrist', 'right_wrist'], 2: ['left_wrist', 'right_wrist'] },
+      regles: ['Cible BASSE au sol : tu poses les mains dedans, poitrine au sol.',
+               'Cible HAUTE au-dessus de ta tête : tu sautes et tu vas la chercher avec les mains.',
+               'Basse, haute, basse, haute. C’est un burpee, mais tu ne le comptes pas.'],
+      place: 'Téléphone à la verticale contre un mur, posé au sol ou très bas. Recule de 2,5 à 3 m.',
+      seuils: [0.30,0.34,0.38,0.42,0.46,0.50,0.54,0.58,0.62,0.66]
+    },
+    kb: {
+      nom: 'KB SWING', type: 'toucher', forme: 'haut-bas',
+      sous: 'Cible poitrine, cible entre les jambes. Le rythme du swing.',
+      ordre: 'SWING',
+      corps: { 1: ['left_wrist', 'right_wrist'], 2: ['left_wrist', 'right_wrist'] },
+      regles: ['Cible HAUTE à hauteur de poitrine : la cloche monte, les mains la touchent.',
+               'Cible BASSE entre les jambes : la cloche recharge la hanche.',
+               'Pieds cloués au sol. Ce sont les hanches qui envoient, pas les bras.'],
+      place: 'Téléphone à la verticale, à hauteur de hanche, 2,5 m de recul, DE PROFIL pour bien voir la charnière.',
+      seuils: [0.28,0.30,0.32,0.34,0.36,0.38,0.40,0.42,0.44,0.46]
+    },
+    overhead: {
+      nom: 'OVERHEAD', type: 'toucher', forme: 'solo',
+      sous: 'Cible au-dessus de la tête. Snatch, thruster, press.',
+      ordre: 'AU-DESSUS',
+      corps: { 0: ['left_wrist', 'right_wrist'] },
+      regles: ['Une cible apparaît au-dessus de ta tête, bras tendus.',
+               'Tu vas la chercher avec les deux mains, coudes verrouillés.',
+               'Charge ou pas charge : le geste est le même, le verrouillage aussi.'],
+      place: 'Téléphone à la verticale, à hauteur de hanche, 2,5 à 3 m de recul, assez de hauteur de plafond.',
+      seuils: [0.30,0.34,0.38,0.42,0.46,0.50,0.54,0.58,0.62,0.66]
     }
   };
-  var CLES = ['saut', 'squat', 'genoux', 'pompe', 'burpee'];
+  var CLES = ['saut', 'squat', 'genoux', 'pompe', 'burpee', 'kb', 'overhead'];
 
   function paramsStage(i, jeu) {
-    if (JEUX[jeu] && JEUX[jeu].fam === 'reps') {
-      return { fam: 'reps', duree: 40000 + (i - 1) * 2000, nb: 4 + i, ecart: 0, vol: 0 };
-    }
-    return { fam: 'obstacle', ecart: 2600 - (i - 1) * 130, vol: 2400 - (i - 1) * 110, nb: 8 + i, duree: 0 };
+    var J = JEUX[jeu];
+    if (jeu === 'genoux') return { ecart: 1500 - (i - 1) * 95, vol: 1700 - (i - 1) * 110, nb: 14 + i * 2 };
+    if (J && J.type === 'toucher') return { ecart: 2500 - (i - 1) * 120, vol: 2200 - (i - 1) * 100, nb: 8 + i };
+    return { ecart: 2600 - (i - 1) * 130, vol: 2400 - (i - 1) * 110, nb: 8 + i };
   }
-  function medaille(ok, nb) {
-    var p = ok / nb;
-    if (p >= 0.95) return 'or';
-    if (p >= 0.80) return 'argent';
-    if (p >= 0.60) return 'bronze';
-    return null;
-  }
-  function pointsDe(ok, i, med) {
-    return ok * (10 + i * 2) + (med === 'or' ? 150 : med === 'argent' ? 80 : med === 'bronze' ? 30 : 0);
-  }
+  function medaille(ok, nb) { var p = ok / nb; return p >= 0.95 ? 'or' : p >= 0.80 ? 'argent' : p >= 0.60 ? 'bronze' : null; }
+  function pointsDe(ok, i, med) { return ok * (10 + i * 2) + (med === 'or' ? 150 : med === 'argent' ? 80 : med === 'bronze' ? 30 : 0); }
   var COUL = { or: '#E9C767', argent: '#C8D3CE', bronze: '#C08457' };
   function svgMedaille(m, t) {
     if (!m) return '';
-    t = t || 22;
+    t = t || 21;
     return '<svg width="' + t + '" height="' + t + '" viewBox="0 0 24 24" aria-hidden="true">' +
       '<circle cx="12" cy="14" r="7.4" fill="none" stroke="' + COUL[m] + '" stroke-width="2.4"/>' +
       '<path d="M8 2l2 5M16 2l-2 5" stroke="' + COUL[m] + '" stroke-width="2.2" stroke-linecap="round" fill="none"/>' +
       '<circle cx="12" cy="14" r="2.6" fill="' + COUL[m] + '"/></svg>';
   }
 
-  /* ---------------- sauvegarde locale ---------------- */
-  var SAVE = { pseudo: '', jeux: {} };
-  try {
-    var raw = localStorage.getItem(STORE);
-    if (raw) SAVE = JSON.parse(raw);
-  } catch (e) { /* navigation privee : on joue sans memoire */ }
+  /* =============== sauvegarde locale =============== */
+  var SAVE = { pseudo: '', video: false, jeux: {} };
+  try { var raw = localStorage.getItem(STORE); if (raw) SAVE = JSON.parse(raw); } catch (e) {}
   if (!SAVE.jeux) SAVE.jeux = {};
   function sauver() { try { localStorage.setItem(STORE, JSON.stringify(SAVE)); } catch (e) {} }
   function fiche(j, i) {
@@ -257,48 +323,40 @@
     return SAVE.jeux[j][i];
   }
   function ouvert(j, i) { return i === 1 || !!fiche(j, i - 1).med; }
-  function totalPoints(j) {
-    var t = 0, o = SAVE.jeux[j] || {};
-    for (var k in o) if (o.hasOwnProperty(k)) t += o[k].best || 0;
-    return t;
-  }
+  function totalPoints(j) { var t = 0, o = SAVE.jeux[j] || {}; for (var k in o) if (o.hasOwnProperty(k)) t += o[k].best || 0; return t; }
 
-  /* ---------------- son ---------------- */
+  /* =============== son =============== */
   var AC = null;
   function audio() {
     if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } }
     if (AC && AC.state === 'suspended') AC.resume();
     return AC;
   }
-  function bip(freq, dur, type, vol, delai) {
+  function bip(f, d, t, v, delai) {
     var a = audio(); if (!a) return;
-    var t0 = a.currentTime + (delai || 0);
-    var o = a.createOscillator(), g = a.createGain();
-    o.type = type || 'sine'; o.frequency.setValueAtTime(freq, t0);
+    var t0 = a.currentTime + (delai || 0), o = a.createOscillator(), g = a.createGain();
+    o.type = t || 'sine'; o.frequency.setValueAtTime(f, t0);
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(vol || 0.22, t0 + 0.012);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    o.connect(g); g.connect(a.destination);
-    o.start(t0); o.stop(t0 + dur + 0.02);
+    g.gain.exponentialRampToValueAtTime(v || 0.22, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    o.connect(g); g.connect(a.destination); o.start(t0); o.stop(t0 + d + 0.02);
   }
-  function sonOk(combo) {
-    var base = 620 + Math.min(6, combo) * 40;
-    bip(base, 0.09, 'sine', 0.20, 0);
-    bip(base * 1.5, 0.12, 'sine', 0.18, 0.07);
+  function sonOk(c) { var b = 620 + Math.min(6, c) * 40; bip(b, 0.09, 'sine', 0.20, 0); bip(b * 1.5, 0.12, 'sine', 0.18, 0.07); }
+  function sonKo() { bip(150, 0.22, 'sawtooth', 0.20, 0); bip(104, 0.26, 'sawtooth', 0.16, 0.05); }
+  function sonFin(m) { if (!m) { bip(220, 0.3, 'triangle', 0.18, 0); return; } var n = [523, 659, 784, 1047]; for (var i = 0; i < n.length; i++) bip(n[i], 0.16, 'triangle', 0.2, i * 0.10); }
+  function sonTick() { bip(880, 0.05, 'square', 0.09, 0); }
+  /* chaque type de cible a son propre son : on peut jouer sans fixer l'ecran */
+  function sonCible(lane) {
+    if (JEU === 'genoux') { bip(lane === 1 ? 420 : 700, 0.10, 'triangle', 0.16, 0); return; }
+    if (JEUX[JEU] && JEUX[JEU].forme === 'haut-bas') { bip(lane === 1 ? 300 : 820, 0.13, 'triangle', 0.17, 0); return; }
+    bip(560, 0.09, 'triangle', 0.14, 0);
   }
-  function sonKo() {
-    bip(150, 0.22, 'sawtooth', 0.20, 0);
-    bip(104, 0.26, 'sawtooth', 0.16, 0.05);
-  }
-  function sonFin(med) {
-    if (!med) { bip(220, 0.3, 'triangle', 0.18, 0); return; }
-    var n = [523, 659, 784, 1047];
-    for (var i = 0; i < n.length; i++) bip(n[i], 0.16, 'triangle', 0.2, i * 0.10);
-  }
-  function sonTick() { bip(880, 0.05, 'square', 0.10, 0); }
+  function sonAppro(pr) { bip(300 + 500 * pr, 0.035, 'square', 0.06, 0); }
 
-  /* ---------------- camera + modele ---------------- */
+  /* =============== camera, modele, image pivotee =============== */
   var detector = null, running = false;
+  var rot = document.createElement('canvas'), rotx = rot.getContext('2d');
+
   function demarrerCamera() {
     return navigator.mediaDevices.getUserMedia({
       audio: false, video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
@@ -312,34 +370,46 @@
   }
   function taille() {
     var r = window.devicePixelRatio || 1;
-    cv.width = Math.round(cv.clientWidth * r);
-    cv.height = Math.round(cv.clientHeight * r);
+    cv.width = Math.round(cv.clientWidth * r); cv.height = Math.round(cv.clientHeight * r);
     ctx.setTransform(r, 0, 0, r, 0, 0);
   }
   window.addEventListener('resize', taille);
 
+  /* le corps allonge est mal reconnu : pour les pompes on pivote l'image
+     de 90 degres avant l'analyse, puis on remet les points a l'endroit. */
+  function sourceAnalyse() {
+    var vw = vid.videoWidth || 640, vh = vid.videoHeight || 480;
+    if (!(JEUX[JEU] && JEUX[JEU].pivot)) return vid;
+    if (rot.width !== vh) { rot.width = vh; rot.height = vw; }
+    rotx.save();
+    rotx.translate(vh / 2, vw / 2); rotx.rotate(-Math.PI / 2);
+    rotx.drawImage(vid, -vw / 2, -vh / 2, vw, vh);
+    rotx.restore();
+    return rot;
+  }
+  function dePivot(pose) {
+    if (!(JEUX[JEU] && JEUX[JEU].pivot) || !pose) return pose;
+    var vw = vid.videoWidth || 640, vh = vid.videoHeight || 480;
+    var cVx = vw / 2, cVy = vh / 2, cRx = vh / 2, cRy = vw / 2;
+    for (var i = 0; i < pose.keypoints.length; i++) {
+      var k = pose.keypoints[i], x = k.x, y = k.y;
+      k.y = x - cRx + cVy;
+      k.x = cVx - (y - cRy);
+    }
+    return pose;
+  }
+
+  var SCL = 1;
   function proj() {
     var vw = vid.videoWidth || 640, vh = vid.videoHeight || 480;
     var cw = cv.clientWidth, ch = cv.clientHeight;
-    var s = Math.max(cw / vw, ch / vh);
+    var s = Math.max(cw / vw, ch / vh); SCL = s;
     var dx = (cw - vw * s) / 2, dy = (ch - vh * s) / 2;
     return function (p) { return { x: cw - (p.x * s + dx), y: p.y * s + dy }; };
   }
 
-  function kp(pose, n) {
-    for (var i = 0; i < pose.keypoints.length; i++) if (pose.keypoints[i].name === n) return pose.keypoints[i];
-    return null;
-  }
-  function mid(a, b) {
-    if (!a || !b) return null;
-    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, score: Math.min(a.score, b.score) };
-  }
-  function angle(a, b, c) {
-    if (!a || !b || !c) return 180;
-    var v1x = a.x - b.x, v1y = a.y - b.y, v2x = c.x - b.x, v2y = c.y - b.y;
-    var d = (v1x * v2x + v1y * v2y) / (Math.hypot(v1x, v1y) * Math.hypot(v2x, v2y) || 1);
-    return Math.acos(Math.max(-1, Math.min(1, d))) * 180 / Math.PI;
-  }
+  function kp(pose, n) { for (var i = 0; i < pose.keypoints.length; i++) if (pose.keypoints[i].name === n) return pose.keypoints[i]; return null; }
+  function mid(a, b) { if (!a || !b) return null; return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, score: Math.min(a.score, b.score) }; }
 
   var OS = [['left_shoulder','right_shoulder'],['left_shoulder','left_elbow'],['left_elbow','left_wrist'],
             ['right_shoulder','right_elbow'],['right_elbow','right_wrist'],['left_shoulder','left_hip'],
@@ -355,99 +425,32 @@
     }
     ctx.fillStyle = col;
     for (var j = 0; j < pose.keypoints.length; j++) {
-      var k = pose.keypoints[j];
-      if (k.score < 0.32) continue;
-      var p = P(k);
-      ctx.beginPath(); ctx.arc(p.x, p.y, 4.5, 0, 6.2832); ctx.fill();
+      var k = pose.keypoints[j]; if (k.score < 0.32) continue;
+      var p = P(k); ctx.beginPath(); ctx.arc(p.x, p.y, 4.5, 0, 6.2832); ctx.fill();
     }
     var nez = kp(pose, 'nose');
     if (nez && nez.score > 0.32) { var pn = P(nez); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(pn.x, pn.y - 6, 21, 0, 6.2832); ctx.stroke(); }
   }
 
-  /* ---------------- mesures ---------------- */
   function mesure(pose) {
     var shL = kp(pose, 'left_shoulder'), shR = kp(pose, 'right_shoulder');
     var hpL = kp(pose, 'left_hip'), hpR = kp(pose, 'right_hip');
     var knL = kp(pose, 'left_knee'), knR = kp(pose, 'right_knee');
     var anL = kp(pose, 'left_ankle'), anR = kp(pose, 'right_ankle');
+    var wrL = kp(pose, 'left_wrist'), wrR = kp(pose, 'right_wrist');
     var sh = mid(shL, shR), hp = mid(hpL, hpR), kn = mid(knL, knR), an = mid(anL, anR);
-    if (!sh || !hp || sh.score < 0.32 || hp.score < 0.32) return null;
-    var h = (an && an.score > 0.28) ? Math.abs(an.y - sh.y) : Math.abs(hp.y - sh.y) * 2.4;
+    if (!sh || !hp || sh.score < 0.3 || hp.score < 0.3) return null;
+    /* taille de reference : on prend la plus grande distance fiable du corps,
+       comme ca elle reste valable meme allonge (apres redressement de l'image) */
+    var h = 0;
+    if (an && an.score > 0.28) h = Math.hypot(an.x - sh.x, an.y - sh.y);
+    else if (kn && kn.score > 0.28) h = Math.hypot(kn.x - sh.x, kn.y - sh.y) * 1.55;
+    else h = Math.hypot(hp.x - sh.x, hp.y - sh.y) * 2.4;
     if (h < 40) return null;
-    /* angle du coude : seulement si les trois points sont surs, sinon on
-       ne juge pas (une main mal vue donnait un faux "descendu"). */
-    var ang = null;
-    var elL = kp(pose, 'left_elbow'), wrL = kp(pose, 'left_wrist');
-    var elR = kp(pose, 'right_elbow'), wrR = kp(pose, 'right_wrist');
-    var sL = (shL && elL && wrL && shL.score > 0.4 && elL.score > 0.4 && wrL.score > 0.4) ? angle(shL, elL, wrL) : null;
-    var sR = (shR && elR && wrR && shR.score > 0.4 && elR.score > 0.4 && wrR.score > 0.4) ? angle(shR, elR, wrR) : null;
-    if (sL !== null && sR !== null) ang = (sL + sR) / 2;
-    else if (sL !== null) ang = sL;
-    else if (sR !== null) ang = sR;
-    return { sh: sh, hp: hp, kn: kn, an: an, knL: knL, knR: knR, h: h, coude: ang };
+    return { sh: sh, hp: hp, kn: kn, an: an, knL: knL, knR: knR, wrL: wrL, wrR: wrR, h: h };
   }
 
-  /* --- machines d'etat : une par jeu, aucune ne partage la meme regle --- */
-  var mSaut = { }, mSquat = { }, mGen = { cote: 0 }, mPompe = { bas: false }, mBur = { pas: 0, t: 0, perdu: 0 };
-
-  function hauteurSaut(m) {
-    if (!m || !base || !m.an || m.an.score < 0.3) return null;
-    return (base.an - m.an.y) / base.h;
-  }
-  function profondeurSquat(m) {
-    if (!m || !base || !m.kn || m.kn.score < 0.3) return null;
-    return (m.hp.y - m.kn.y) / base.h;
-  }
-  /* etat instantane : le corps est-il dans la position demandee ? */
-  function enPosition(m) {
-    if (!m || !base) return false;
-    if (JEU === 'saut') { var hj = hauteurSaut(m); return hj !== null && hj > SEUIL; }
-    if (JEU === 'squat') { var pf = profondeurSquat(m); return pf !== null && pf > SEUIL; }
-    if (JEU === 'pompe') { return m.coude !== null && m.coude < SEUIL; }
-    return false;
-  }
-  /* genou monte d'un cote donne (1 = gauche ecran, 2 = droite ecran) */
-  function genouMonte(m, cote) {
-    if (!m || !base) return false;
-    var k = cote === 1 ? m.knL : m.knR;
-    var b = cote === 1 ? base.knL : base.knR;
-    if (!k || k.score < 0.32) return false;
-    return (b - k.y) / base.h > SEUIL;
-  }
-  /* PUSH-UPS : une repetition = descendre sous l'angle, puis re-verrouiller */
-  function repPompe(m) {
-    if (!m || m.coude === null) return false;
-    if (!mPompe.bas && m.coude < SEUIL) { mPompe.bas = true; return false; }
-    if (mPompe.bas && m.coude > 150) { mPompe.bas = false; return true; }
-    return false;
-  }
-  /* BURPEES : sol -> debout -> saut. Si le telephone perd le corps plus
-     d'une demi-seconde, on considere qu'il est descendu au sol : sur un
-     telephone pose bas, le corps sort souvent du cadre en bas. */
-  function repBurpee(m, now) {
-    if (!base) return false;
-    if (!m) { if (!mBur.perdu) mBur.perdu = now; }
-    else mBur.perdu = 0;
-    var auSol = (!!m && m.sh.y > base.hp) || (mBur.perdu && now - mBur.perdu > 500);
-    if (mBur.pas === 0) {
-      if (auSol) { mBur.pas = 1; mBur.t = now; }
-      return false;
-    }
-    if (mBur.pas === 1) {
-      if (m && m.sh.y < base.sh + base.h * 0.12) { mBur.pas = 2; mBur.t = now; }
-      else if (now - mBur.t > 12000) mBur.pas = 0;
-      return false;
-    }
-    if (mBur.pas === 2) {
-      var hj = hauteurSaut(m);
-      var hanche = (m && base) ? (base.hp - m.hp.y) / base.h : 0;
-      if ((hj !== null && hj > SEUIL) || hanche > SEUIL) { mBur.pas = 0; return true; }
-      if (now - mBur.t > 6000) mBur.pas = 0;
-      return false;
-    }
-    return false;
-  }
-  /* ---------------- calibrage ---------------- */
+  /* =============== calibrage =============== */
   var base = null, cal = { on: 0, t0: 0, acc: [] };
   function calibrer(m) {
     var bar = $('calBar'), hint = $('calHint');
@@ -459,19 +462,143 @@
     var r = Math.max(0, Math.ceil((2200 - dt) / 1000));
     hint.textContent = r ? ('Ne bouge plus… ' + r + ' s') : 'C’est parti !';
     if (dt < 2200) return false;
-    var n = cal.acc.length, s = 0, hp = 0, h = 0, an = 0, kl = 0, kr = 0, ca = 0;
+    var n = cal.acc.length, o = { shx: 0, shy: 0, hpx: 0, hpy: 0, h: 0, anx: 0, any: 0, klx: 0, kly: 0, krx: 0, kry: 0 };
     for (var i = 0; i < n; i++) {
       var a = cal.acc[i];
-      s += a.sh.y; hp += a.hp.y; h += a.h; ca += a.coude;
-      an += (a.an ? a.an.y : a.hp.y);
-      kl += (a.knL ? a.knL.y : a.hp.y); kr += (a.knR ? a.knR.y : a.hp.y);
+      o.shx += a.sh.x; o.shy += a.sh.y; o.hpx += a.hp.x; o.hpy += a.hp.y; o.h += a.h;
+      o.anx += (a.an ? a.an.x : a.hp.x); o.any += (a.an ? a.an.y : a.hp.y);
+      o.klx += (a.knL ? a.knL.x : a.hp.x); o.kly += (a.knL ? a.knL.y : a.hp.y);
+      o.krx += (a.knR ? a.knR.x : a.hp.x); o.kry += (a.knR ? a.knR.y : a.hp.y);
     }
-    base = { sh: s / n, hp: hp / n, h: h / n, an: an / n, knL: kl / n, knR: kr / n, coude: ca / n };
+    base = { shx: o.shx/n, shy: o.shy/n, hpx: o.hpx/n, hpy: o.hpy/n, h: o.h/n,
+             anx: o.anx/n, any: o.any/n, klx: o.klx/n, kly: o.kly/n, krx: o.krx/n, kry: o.kry/n };
     return true;
   }
 
-  /* ---------------- partie ---------------- */
-  var JEU = 'saut', STAGE = 1, PAR = null, SEUIL = 0;
+  /* =============== la cible : ou elle se pose, qui doit la toucher =============== */
+  function placeCible(lane) {
+    var S = SEUIL, b = base;
+    if (!b) return { x: 320, y: 240 };
+    if (JEU === 'genoux') {
+      return lane === 1 ? { x: b.klx, y: b.kly - S * b.h } : { x: b.krx, y: b.kry - S * b.h };
+    }
+    if (JEU === 'pompe') {
+      /* image redressee : le corps est vertical, l'epaule descend vers le sol */
+      return { x: b.shx, y: b.shy + S * b.h * 0.42 };
+    }
+    if (JEU === 'burpee') {
+      return lane === 1 ? { x: b.hpx, y: b.any } : { x: b.shx, y: b.shy - S * b.h };
+    }
+    if (JEU === 'kb') {
+      return lane === 1 ? { x: b.hpx, y: b.shy + S * b.h * 0.9 } : { x: b.hpx, y: b.shy + S * b.h * 0.1 };
+    }
+    if (JEU === 'overhead') {
+      return { x: b.shx, y: b.shy - S * b.h };
+    }
+    return { x: b.hpx, y: b.hpy };
+  }
+  function rayonCible() { return base ? Math.max(34, base.h * 0.17) : 52; }
+  function partiesCible(lane) {
+    var c = JEUX[JEU].corps;
+    if (!c) return [];
+    return c[lane] || c[0] || [];
+  }
+  function toucheCible(pose, o) {
+    if (!pose || !base) return false;
+    var noms = partiesCible(o.lane), r = rayonCible() * 1.35;
+    var c = placeCible(o.lane), pts2 = [];
+    for (var i = 0; i < noms.length; i++) {
+      var k = kp(pose, noms[i]);
+      if (k && k.score >= 0.33) pts2.push(k);
+    }
+    /* deux mains : on accepte aussi le point entre les deux, c'est ce
+       qu'on vise vraiment quand on va chercher une cible a deux mains */
+    if (pts2.length === 2) pts2.push({ x: (pts2[0].x + pts2[1].x) / 2, y: (pts2[0].y + pts2[1].y) / 2 });
+    for (var j = 0; j < pts2.length; j++) {
+      if (Math.hypot(pts2[j].x - c.x, pts2[j].y - c.y) < r) return true;
+    }
+    return false;
+  }
+  /* jeux "franchir" : position du corps */
+  var pompeArme = true;
+  function profPompe() { return SEUIL * 0.42; }
+  function enPosition(m) {
+    if (!m || !base) return false;
+    if (JEU === 'saut') { if (!m.an || m.an.score < 0.3) return false; return (base.any - m.an.y) / base.h > SEUIL; }
+    if (JEU === 'squat') { if (!m.kn || m.kn.score < 0.3) return false; return (m.hp.y - m.kn.y) / base.h > SEUIL; }
+    if (JEU === 'pompe') {
+      var d = (m.sh.y - base.shy) / base.h;
+      if (d < profPompe() * 0.35) pompeArme = true;   /* bras tendus : la prochaine compte */
+      return pompeArme && d > profPompe();
+    }
+    return false;
+  }
+
+  /* =============== enregistrement video + filigrane =============== */
+  var MR = null, chunks = [], videoURL = null, recActif = false;
+  function recSupporte() { return !!(window.MediaRecorder && HTMLCanvasElement.prototype.captureStream); }
+  function demarrerRec() {
+    if (!recActif || !recSupporte()) return;
+    try {
+      var vw = vid.videoWidth || 640, vh = vid.videoHeight || 480;
+      rec.width = vw; rec.height = vh;
+      var st = rec.captureStream(30);
+      var types = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
+      var mime = '';
+      for (var i = 0; i < types.length; i++) { if (MediaRecorder.isTypeSupported(types[i])) { mime = types[i]; break; } }
+      chunks = [];
+      MR = new MediaRecorder(st, mime ? { mimeType: mime } : undefined);
+      MR.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+      MR.start(500);
+      show($('hudRec'), true);
+    } catch (e) { MR = null; }
+  }
+  function arreterRec() {
+    show($('hudRec'), false);
+    if (!MR) { show($('dlVideo'), false); return; }
+    var fini = MR;
+    MR = null;
+    fini.onstop = function () {
+      if (!chunks.length) { show($('dlVideo'), false); return; }
+      var type = chunks[0].type || 'video/webm';
+      var blob = new Blob(chunks, { type: type });
+      if (videoURL) URL.revokeObjectURL(videoURL);
+      videoURL = URL.createObjectURL(blob);
+      var a = $('dlVideo');
+      a.href = videoURL;
+      a.download = 'coachdm-' + JEU + '-niveau' + STAGE + (type.indexOf('mp4') >= 0 ? '.mp4' : '.webm');
+      show(a, true);
+    };
+    try { fini.stop(); } catch (e) { show($('dlVideo'), false); }
+  }
+  function composerRec() {
+    if (!MR) return;
+    var vw = rec.width, vh = rec.height;
+    rctx.save();
+    rctx.translate(vw, 0); rctx.scale(-1, 1);
+    rctx.drawImage(vid, 0, 0, vw, vh);
+    rctx.restore();
+    rctx.drawImage(cv, 0, 0, vw, vh);
+    /* filigrane */
+    rctx.save();
+    rctx.globalAlpha = 0.9;
+    rctx.fillStyle = '#00FFA3';
+    rctx.font = '900 ' + Math.round(vh * 0.045) + 'px -apple-system,Arial';
+    rctx.fillText('COACH DM', vw * 0.04, vh * 0.94);
+    rctx.globalAlpha = 0.65;
+    rctx.fillStyle = '#ffffff';
+    rctx.font = '700 ' + Math.round(vh * 0.028) + 'px -apple-system,Arial';
+    rctx.fillText('coachdm.be', vw * 0.04, vh * 0.975);
+    rctx.textAlign = 'right';
+    rctx.fillStyle = '#E9C767';
+    rctx.font = '900 ' + Math.round(vh * 0.032) + 'px -apple-system,Arial';
+    rctx.fillText(JEUX[JEU].nom + ' · NIVEAU ' + STAGE + ' · ' + nOk + ' pts', vw * 0.96, vh * 0.94);
+    rctx.textAlign = 'left';
+    rctx.restore();
+  }
+
+  /* =============== partie =============== */
+  var JEU = 'saut', STAGE = 1, PAR = null, SEUIL = 0, ESSAI = false;
   var etat = 'menu', obstacles = [], nOk = 0, nKo = 0, nSpawn = 0, combo = 0, comboMax = 0;
   var tStart = 0, lastSpawn = 0, pts = 0, parts = [], flash = { t: '', c: '', jusqu: 0 };
 
@@ -482,8 +609,8 @@
     setTimeout(function () { s.style.transform = 'none'; }, 115);
   }
   function eclat(x, y, col) {
-    for (var i = 0; i < 14; i++) {
-      var a = Math.random() * 6.2832, v = 2 + Math.random() * 4.5;
+    for (var i = 0; i < 16; i++) {
+      var a = Math.random() * 6.2832, v = 2 + Math.random() * 5;
       parts.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1, vie: 1, col: col });
     }
   }
@@ -492,45 +619,20 @@
       var p = parts[i];
       p.x += p.vx; p.y += p.vy; p.vy += 0.22; p.vie -= 0.028;
       if (p.vie <= 0) { parts.splice(i, 1); continue; }
-      ctx.globalAlpha = Math.max(0, p.vie);
-      ctx.fillStyle = p.col;
-      ctx.beginPath(); ctx.arc(p.x, p.y, 3.4, 0, 6.2832); ctx.fill();
-      ctx.globalAlpha = 1;
+      ctx.globalAlpha = Math.max(0, p.vie); ctx.fillStyle = p.col;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 3.4, 0, 6.2832); ctx.fill(); ctx.globalAlpha = 1;
     }
-  }
-  /* --------- dessins : une forme par jeu, jamais la meme --------- */
-  function yCible(m) {
-    var ch = cv.clientHeight, P = proj();
-    if (!base) return ch * 0.5;
-    if (JEU === 'saut') return P({ x: 0, y: base.an - SEUIL * base.h }).y;
-    if (JEU === 'squat') {
-      var kY = (m && m.kn && m.kn.score > 0.3) ? m.kn.y : base.hp + base.h * 0.22;
-      return P({ x: 0, y: kY + SEUIL * base.h }).y;
-    }
-    return ch * 0.5;
-  }
-  function yCibleGenou(cote) {
-    var P = proj();
-    if (!base) return cv.clientHeight * 0.5;
-    var b = cote === 1 ? base.knL : base.knR;
-    return P({ x: 0, y: b - SEUIL * base.h }).y;
   }
   function ligneCible(y, col, txt) {
     var cw = cv.clientWidth;
-    ctx.save();
-    ctx.setLineDash([9, 9]); ctx.strokeStyle = col; ctx.lineWidth = 2.5; ctx.globalAlpha = .8;
-    ctx.beginPath(); ctx.moveTo(10, y); ctx.lineTo(cw - 10, y); ctx.stroke();
-    ctx.restore();
-    if (txt) {
-      ctx.save();
-      ctx.font = '800 11px -apple-system,Arial'; ctx.fillStyle = col; ctx.globalAlpha = .9;
-      ctx.fillText(txt, 12, y - 8);
-      ctx.restore();
-    }
+    ctx.save(); ctx.setLineDash([9, 9]); ctx.strokeStyle = col; ctx.lineWidth = 2.5; ctx.globalAlpha = .8;
+    ctx.beginPath(); ctx.moveTo(10, y); ctx.lineTo(cw - 10, y); ctx.stroke(); ctx.restore();
+    if (txt) { ctx.save(); ctx.font = '800 11px -apple-system,Arial'; ctx.fillStyle = col; ctx.globalAlpha = .9; ctx.fillText(txt, 12, y - 8); ctx.restore(); }
   }
   function haie(x, y, col, a) {
     ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineCap = 'round';
-    ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(x - 46, y); ctx.lineTo(x + 46, y); ctx.stroke();
+    ctx.shadowColor = col; ctx.shadowBlur = 20;
+    ctx.lineWidth = 10; ctx.beginPath(); ctx.moveTo(x - 46, y); ctx.lineTo(x + 46, y); ctx.stroke();
     ctx.lineWidth = 4; ctx.globalAlpha = a * .7;
     ctx.beginPath(); ctx.moveTo(x - 36, y); ctx.lineTo(x - 36, y + 34); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(x + 36, y); ctx.lineTo(x + 36, y + 34); ctx.stroke();
@@ -538,118 +640,93 @@
   }
   function plafond(x, y, col, a) {
     ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineCap = 'round';
-    ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(x - 78, y); ctx.lineTo(x + 78, y); ctx.stroke();
+    ctx.shadowColor = col; ctx.shadowBlur = 20;
+    ctx.lineWidth = 13; ctx.beginPath(); ctx.moveTo(x - 78, y); ctx.lineTo(x + 78, y); ctx.stroke();
     ctx.lineWidth = 3; ctx.globalAlpha = a * .55;
-    for (var i = -66; i <= 66; i += 22) {
-      ctx.beginPath(); ctx.moveTo(x + i, y - 3); ctx.lineTo(x + i - 9, y - 22); ctx.stroke();
+    for (var i = -66; i <= 66; i += 22) { ctx.beginPath(); ctx.moveTo(x + i, y - 3); ctx.lineTo(x + i - 9, y - 22); ctx.stroke(); }
+    ctx.restore();
+  }
+  function dessinCible(x, y, r, col, a, pr) {
+    ctx.save();
+    /* halo : c'est ce qui permet de voir la cible a trois metres */
+    ctx.globalAlpha = a * .22; ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(x, y, r * 1.5, 0, 6.2832); ctx.fill();
+    ctx.globalAlpha = a;
+    ctx.shadowColor = col; ctx.shadowBlur = 26;
+    ctx.strokeStyle = col; ctx.lineWidth = 9;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = a * .8; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.arc(x, y, r * .45, 0, 6.2832); ctx.stroke();
+    ctx.globalAlpha = a * .85; ctx.lineWidth = 6; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x - r * .22, y); ctx.lineTo(x + r * .22, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, y - r * .22); ctx.lineTo(x, y + r * .22); ctx.stroke();
+    if (pr < 1) {
+      ctx.globalAlpha = a * .55; ctx.lineWidth = 5; ctx.setLineDash([10, 12]);
+      ctx.beginPath(); ctx.arc(x, y, r + (1 - pr) * r * 2.4, 0, 6.2832); ctx.stroke(); ctx.setLineDash([]);
     }
     ctx.restore();
   }
-  function cible(x, y, col, a, r) {
-    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineWidth = 5;
-    ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.stroke();
-    ctx.globalAlpha = a * .5; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(x, y, r * .45, 0, 6.2832); ctx.stroke();
+  /* bandeau lumineux sur le bord de l'ecran : visible meme de loin */
+  function bordLumineux(col, force) {
+    var cw = cv.clientWidth, ch = cv.clientHeight, e = 22;
+    ctx.save(); ctx.globalAlpha = 0.30 * force; ctx.strokeStyle = col; ctx.lineWidth = e;
+    ctx.strokeRect(e / 2, e / 2, cw - e, ch - e);
     ctx.restore();
   }
 
-  function dessinerObstacles(now, m) {
-    var cw = cv.clientWidth;
-    var fam = JEUX[JEU].fam;
-    if (fam === 'obstacle') {
-      var y = yCible(m);
-      ligneCible(y, 'rgba(233,199,103,.85)', JEU === 'saut' ? 'PASSE AU-DESSUS' : 'PASSE DESSOUS');
+  function dessiner(now, m, pose) {
+    var cw = cv.clientWidth, P = proj(), J = JEUX[JEU];
+    if (J.type === 'franchir') {
+      var yc;
+      if (JEU === 'saut') yc = P({ x: 0, y: base.any - SEUIL * base.h }).y;
+      else if (JEU === 'pompe') yc = P({ x: 0, y: base.shy + profPompe() * base.h }).y;
+      else {
+        var kY = (m && m.kn && m.kn.score > 0.3) ? m.kn.y : base.hpy + base.h * 0.22;
+        yc = P({ x: 0, y: kY + SEUIL * base.h }).y;
+      }
+      ligneCible(yc, 'rgba(233,199,103,.85)', JEU === 'saut' ? 'PASSE AU-DESSUS' : (JEU === 'pompe' ? 'ÉPAULE SOUS LA LIGNE' : 'PASSE DESSOUS'));
       for (var i = 0; i < obstacles.length; i++) {
         var o = obstacles[i], pr = (now - o.t) / PAR.vol;
         if (pr < 0 || pr > 1.6) continue;
         var x = cw * (1.30 - 0.80 * pr);
         var col = o.juge === 1 ? '#00FFA3' : (o.juge === -1 ? '#EF4444' : '#E9C767');
         var a = pr > 1.2 ? Math.max(0, 1 - (pr - 1.2) / 0.4) : Math.min(1, 0.35 + pr);
-        if (JEUX[JEU].forme === 'haie') haie(x, y, col, a); else plafond(x, y, col, a);
+        if (J.forme === 'haie') haie(x, yc, col, a); else plafond(x, yc, col, a);
       }
       return;
     }
-    if (fam === 'couloirs') {
-      var xg = cw * 0.27, xd = cw * 0.73;
-      var yg = yCibleGenou(1), yd = yCibleGenou(2);
-      ctx.save(); ctx.globalAlpha = .18; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(cw * 0.5, 0); ctx.lineTo(cw * 0.5, cv.clientHeight); ctx.stroke();
-      ctx.restore();
-      cible(xg, yg, 'rgba(255,255,255,.22)', 1, 26);
-      cible(xd, yd, 'rgba(255,255,255,.22)', 1, 26);
-      for (var j = 0; j < obstacles.length; j++) {
-        var q = obstacles[j], pq = (now - q.t) / PAR.vol;
-        if (pq < 0 || pq > 1.6) continue;
-        var cx = q.cote === 1 ? xg : xd, cyF = q.cote === 1 ? yg : yd;
-        var cy = -40 + (cyF + 40) * Math.min(1, pq);
-        var cc = q.juge === 1 ? '#00FFA3' : (q.juge === -1 ? '#EF4444' : '#E9C767');
-        var aa = pq > 1.2 ? Math.max(0, 1 - (pq - 1.2) / 0.4) : Math.min(1, 0.4 + pq);
-        cible(cx, cy, cc, aa, 26);
-      }
-      return;
+    /* jeux "toucher" */
+    for (var j = 0; j < obstacles.length; j++) {
+      var q = obstacles[j], pq = (now - q.t) / PAR.vol;
+      if (pq < 0 || pq > 1.7) continue;
+      var c = placeCible(q.lane), pc = P(c), r = rayonCible() * SCL;
+      var av = Math.min(1, pq);
+      var y = pc.y - (1 - av) * cv.clientHeight * 0.55;
+      var cc = q.juge === 1 ? '#00FFA3' : (q.juge === -1 ? '#EF4444' : '#E9C767');
+      var aa = pq > 1.3 ? Math.max(0, 1 - (pq - 1.3) / 0.4) : Math.min(1, 0.35 + pq);
+      dessinCible(pc.x, y, r, cc, aa, av);
     }
-    if (JEUX[JEU].forme === 'jauge') {
-      /* PUSH-UPS : jauge d'angle de coude, a droite */
-      var ch = cv.clientHeight, gx = cw - 34, gh = ch * 0.44, gy = ch * 0.28;
-      ctx.save();
-      ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 14; ctx.lineCap = 'round';
-      ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(gx, gy + gh); ctx.stroke();
-      var ang = (m && m.coude !== null) ? m.coude : 180;
-      var f = Math.max(0, Math.min(1, (175 - ang) / (175 - 55)));
-      var bas = (m && m.coude !== null && m.coude < SEUIL);
-      ctx.strokeStyle = bas ? '#00FFA3' : '#E9C767'; ctx.lineWidth = 14;
-      ctx.beginPath(); ctx.moveTo(gx, gy + gh); ctx.lineTo(gx, gy + gh - gh * f); ctx.stroke();
-      var ys = gy + gh - gh * Math.max(0, Math.min(1, (175 - SEUIL) / (175 - 55)));
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(gx - 13, ys); ctx.lineTo(gx + 13, ys); ctx.stroke();
-      ctx.font = '800 10px -apple-system,Arial'; ctx.fillStyle = '#fff'; ctx.textAlign = 'right';
-      ctx.fillText(SEUIL + '\u00b0', gx - 18, ys + 4);
-      ctx.textAlign = 'left';
-      ctx.restore();
-      /* blocs de repetitions en bas */
-      var n = PAR.nb, bw = Math.min(26, (cw - 60) / n - 6);
-      for (var k = 0; k < n; k++) {
-        var bx = 30 + k * (bw + 6), by = ch - 150;
-        ctx.fillStyle = k < nOk ? '#00FFA3' : 'rgba(255,255,255,.16)';
-        ctx.fillRect(bx, by, bw, 9);
-      }
-      return;
-    }
-    if (JEUX[JEU].forme === 'etapes') {
-      /* BURPEES : trois voyants */
-      var ch2 = cv.clientHeight, lab = ['SOL', 'DEBOUT', 'SAUT'];
-      var w = Math.min(96, (cw - 70) / 3), y0 = ch2 - 178;
-      for (var e = 0; e < 3; e++) {
-        var ex = 28 + e * (w + 12);
-        var actif = mBur.pas > e || (mBur.pas === 0 && e === 0);
-        var fait = mBur.pas > e;
-        ctx.save();
-        ctx.globalAlpha = fait ? 1 : (actif ? .95 : .3);
-        ctx.strokeStyle = fait ? '#00FFA3' : '#E9C767'; ctx.lineWidth = 3;
-        ctx.beginPath();
-        if (ctx.roundRect) { ctx.roundRect(ex, y0, w, 34, 12); } else { ctx.rect(ex, y0, w, 34); }
-        ctx.stroke();
-        ctx.font = '800 12px -apple-system,Arial';
-        ctx.fillStyle = fait ? '#00FFA3' : '#E9C767';
-        ctx.textAlign = 'center';
-        ctx.fillText(lab[e], ex + w / 2, y0 + 22);
-        ctx.restore();
-      }
-      ctx.textAlign = 'left';
-      return;
+    if (JEU === 'genoux') {
+      ctx.save(); ctx.globalAlpha = .14; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+      var xm = P({ x: base.hpx, y: 0 }).x;
+      ctx.beginPath(); ctx.moveTo(xm, 0); ctx.lineTo(xm, cv.clientHeight); ctx.stroke(); ctx.restore();
     }
   }
+
   var busy = false;
   function boucle() {
     if (!running) return;
     requestAnimationFrame(boucle);
     if (vid.readyState < 2 || busy) return;
     busy = true;
-    detector.estimatePoses(vid, { maxPoses: 1, flipHorizontal: false }).then(function (poses) {
+    var src;
+    try { src = sourceAnalyse(); } catch (e) { src = vid; }
+    detector.estimatePoses(src, { maxPoses: 1, flipHorizontal: false }).then(function (poses) {
       busy = false;
       var now = performance.now(), cw = cv.clientWidth, ch = cv.clientHeight;
       ctx.clearRect(0, 0, cw, ch);
-      var pose = (poses && poses[0]) ? poses[0] : null;
+      var pose = (poses && poses[0]) ? dePivot(poses[0]) : null;
       var m = pose ? mesure(pose) : null;
       var P = proj();
 
@@ -660,129 +737,116 @@
       }
       if (etat !== 'jeu') return;
 
-      var fam = JEUX[JEU].fam;
-      var enPos = enPosition(m);
-      var fini = false;
+      var J = JEUX[JEU];
+      var actif = (J.type === 'franchir') ? enPosition(m) : false;
 
-      if (fam === 'reps') {
-        /* ---- jeux de repetitions : aucun obstacle, aucune fenetre de tir ---- */
-        var fait = (JEU === 'pompe') ? repPompe(m) : repBurpee(m, now);
-        if (fait) {
-          nOk++; combo++; comboMax = Math.max(comboMax, combo);
-          pts += (10 + STAGE * 2) * (combo >= 5 ? 2 : 1);
-          flash = { t: 'COMPTÉE', c: 'good', jusqu: now + 650 };
-          eclat(cw / 2, ch * 0.5, '#00FFA3');
-          sonOk(combo);
-        }
-        var reste = Math.max(0, PAR.duree - (now - tStart));
-        dessinerObstacles(now, m);
-        if (pose) squelette(pose, P, (JEU === 'pompe' && enPos) || (JEU === 'burpee' && mBur.pas > 0) ? '#00FFA3' : 'rgba(255,255,255,.72)');
-        dessinerParticules();
-        $('hudLeft').textContent = 'NIVEAU ' + STAGE + ' · ' + Math.ceil(reste / 1000) + ' s';
-        $('hudRight').textContent = nOk + ' / ' + PAR.nb;
-        $('footScore').textContent = nOk + (nOk > 1 ? ' répétitions propres' : ' répétition propre');
-        $('footBar').style.width = Math.round(100 * Math.min(1, nOk / PAR.nb)) + '%';
-        fini = (reste <= 0) || (nOk >= PAR.nb);
-      } else {
-        /* ---- jeux d'obstacles ---- */
-        if (now - lastSpawn > PAR.ecart && nSpawn < PAR.nb) {
-          lastSpawn = now; nSpawn++;
-          obstacles.push({ t: now, juge: 0, cote: (nSpawn % 2 === 1 ? 1 : 2) });
-          sonTick();
-        }
-        for (var i = 0; i < obstacles.length; i++) {
-          var o = obstacles[i], pr = (now - o.t) / PAR.vol;
-          if (o.juge !== 0) continue;
-          var bon = (fam === 'couloirs') ? genouMonte(m, o.cote) : enPos;
-          if (pr > 0.84 && pr < 1.18 && bon) {
-            o.juge = 1; nOk++; combo++; comboMax = Math.max(comboMax, combo);
-            pts += (10 + STAGE * 2) * (combo >= 5 ? 2 : 1);
-            flash = { t: 'PASSÉ', c: 'good', jusqu: now + 600 };
-            eclat(cw / 2, fam === 'couloirs' ? yCibleGenou(o.cote) : yCible(m), '#00FFA3');
-            sonOk(combo);
-          } else if (pr >= 1.18) {
-            o.juge = -1; nKo++; combo = 0;
-            flash = { t: 'RATÉ', c: 'bad', jusqu: now + 600 };
-            sonKo(); secouer();
-          }
-        }
-        dessinerObstacles(now, m);
-        if (pose) squelette(pose, P, enPos ? '#00FFA3' : 'rgba(255,255,255,.72)');
-        dessinerParticules();
-        $('hudLeft').textContent = 'NIVEAU ' + STAGE;
-        $('hudRight').textContent = nSpawn + ' / ' + PAR.nb;
-        $('footScore').textContent = nOk + ' passés · ' + nKo + ' ratés';
-        $('footBar').style.width = Math.round(100 * (nOk + nKo) / PAR.nb) + '%';
-        fini = (nOk + nKo >= PAR.nb);
+      if (now - lastSpawn > PAR.ecart && nSpawn < PAR.nb) {
+        lastSpawn = now; nSpawn++;
+        var lane = 0;
+        if (JEU === 'genoux') lane = (Math.random() < 0.5 ? 1 : 2);
+        else if (J.forme === 'haut-bas') lane = (nSpawn % 2 === 1 ? 1 : 2);
+        obstacles.push({ t: now, juge: 0, lane: lane });
+        sonCible(lane);
       }
 
-      $('footPts').textContent = pts;
-      var c = $('combo');
-      if (combo >= 3) { c.textContent = 'SÉRIE ×' + combo + (combo >= 5 ? '  ·  POINTS DOUBLES' : ''); c.classList.add('show'); }
-      else c.classList.remove('show');
-      var o2 = $('order');
-      var consigne = JEUX[JEU].ordre;
-      if (JEU === 'burpee') consigne = ['AU SOL', 'RELÈVE-TOI', 'SAUTE'][mBur.pas] || 'AU SOL';
-      if (JEU === 'pompe') consigne = mPompe.bas ? 'REMONTE' : 'DESCENDS';
-      if (now < flash.jusqu) { o2.textContent = flash.t; o2.className = 'show ' + flash.c; }
-      else if (!m && JEU !== 'burpee') { o2.textContent = 'RECULE'; o2.className = 'show bad'; }
-      else { o2.textContent = consigne; o2.className = 'show'; o2.style.opacity = '.55'; }
-      if (now < flash.jusqu) o2.style.opacity = '1';
+      for (var i = 0; i < obstacles.length; i++) {
+        var o = obstacles[i], pr = (now - o.t) / PAR.vol;
+        if (o.juge !== 0) continue;
+        var bon = (J.type === 'franchir') ? (pr > 0.84 && pr < 1.18 && actif)
+                                          : (pr > 0.62 && pr < 1.30 && toucheCible(pose, o));
+        var fin = (J.type === 'franchir') ? (pr >= 1.18) : (pr >= 1.30);
+        if (bon) {
+          o.juge = 1; nOk++; combo++; comboMax = Math.max(comboMax, combo);
+          pts += (10 + STAGE * 2) * (combo >= 5 ? 2 : 1);
+          flash = { t: J.type === 'franchir' ? 'PASSÉ' : 'TOUCHÉ', c: 'good', jusqu: now + 600 };
+          if (JEU === 'pompe') pompeArme = false;
+          var cc = placeCible(o.lane), pc = P(cc);
+          eclat(pc.x, pc.y, '#00FFA3');
+          sonOk(combo);
+        } else if (fin) {
+          o.juge = -1; nKo++; combo = 0;
+          flash = { t: 'RATÉ', c: 'bad', jusqu: now + 600 };
+          sonKo(); secouer();
+        }
+      }
 
-      if (fini) terminer();
+      /* bord lumineux quand une cible est dans sa fenetre : visible de loin */
+      var proche = 0, coulProche = '#E9C767';
+      for (var z = 0; z < obstacles.length; z++) {
+        var oz = obstacles[z], pz = (now - oz.t) / PAR.vol;
+        if (oz.juge === 0 && pz > 0.55 && pz < 1.3) { proche = Math.max(proche, Math.min(1, (pz - 0.55) / 0.35)); }
+      }
+      if (now < flash.jusqu) { proche = 1; coulProche = flash.c === 'good' ? '#00FFA3' : '#EF4444'; }
+      if (proche > 0) bordLumineux(coulProche, proche);
+
+      dessiner(now, m, pose);
+      if (pose) squelette(pose, P, (actif || (now < flash.jusqu && flash.c === 'good')) ? '#00FFA3' : 'rgba(255,255,255,.72)');
+      dessinerParticules();
+      composerRec();
+
+      $('hudLeft').textContent = ESSAI ? 'ESSAI LIBRE' : ('NIVEAU ' + STAGE);
+      $('hudRight').textContent = nSpawn + ' / ' + PAR.nb;
+      $('footScore').textContent = nOk + (J.type === 'franchir' ? ' passés · ' : ' touchées · ') + nKo + ' ratés';
+      $('footBar').style.width = Math.round(100 * (nOk + nKo) / PAR.nb) + '%';
+      $('footPts').textContent = ESSAI ? '—' : pts;
+      var c2 = $('combo');
+      if (combo >= 3) { c2.textContent = 'SÉRIE ×' + combo + (combo >= 5 ? '  ·  POINTS DOUBLES' : ''); c2.classList.add('show'); }
+      else c2.classList.remove('show');
+      var o2 = $('order');
+      if (now < flash.jusqu) { o2.textContent = flash.t; o2.className = 'show ' + flash.c; o2.style.opacity = '1'; }
+      else if (!m) { o2.textContent = 'RECULE'; o2.className = 'show bad'; o2.style.opacity = '1'; }
+      else { o2.textContent = J.ordre; o2.className = 'show'; o2.style.opacity = '.5'; }
+
+      if (nOk + nKo >= PAR.nb) terminer();
     }).catch(function () { busy = false; });
   }
 
   function lancer() {
     etat = 'jeu';
-    obstacles = []; nOk = 0; nKo = 0; nSpawn = 0; pts = 0; combo = 0; comboMax = 0; parts = [];
-    mPompe = { bas: false }; mBur = { pas: 0, t: performance.now(), perdu: 0 }; mGen = { cote: 0 };
-    tStart = performance.now(); lastSpawn = tStart - (PAR.ecart || 0) + 1800;
+    obstacles = []; nOk = 0; nKo = 0; nSpawn = 0; pts = 0; combo = 0; comboMax = 0; parts = []; pompeArme = true;
+    tStart = performance.now(); lastSpawn = tStart - PAR.ecart + 1800;
     show($('pCal'), false); show($('hud'), true); show($('foot'), true); show($('orderWrap'), true);
-    $('footTitle').textContent = JEUX[JEU].nom + ' · NIVEAU ' + STAGE;
+    $('footTitle').textContent = JEUX[JEU].nom + (ESSAI ? ' · ESSAI' : ' · NIVEAU ' + STAGE);
+    if (!ESSAI) demarrerRec();
   }
 
   function terminer() {
     etat = 'fin';
     show($('hud'), false); show($('foot'), false); show($('orderWrap'), false);
     $('combo').classList.remove('show');
+    if (ESSAI) { ESSAI = false; show($('pRegles'), true); return; }
+    arreterRec();
     var med = medaille(nOk, PAR.nb);
     var total = pointsDe(nOk, STAGE, med);
     var f = fiche(JEU, STAGE);
     var record = total > (f.best || 0);
     if (record) f.best = total;
-    var ordre = { bronze: 1, argent: 2, or: 3 };
-    if (med && (!f.med || ordre[med] > ordre[f.med])) f.med = med;
-    sauver();
-    sonFin(med);
-
+    var ord = { bronze: 1, argent: 2, or: 3 };
+    if (med && (!f.med || ord[med] > ord[f.med])) f.med = med;
+    sauver(); sonFin(med);
     $('endKicker').textContent = 'NIVEAU ' + STAGE + ' · ' + JEUX[JEU].nom;
     $('endTitle').textContent = med ? (med === 'or' ? 'Médaille d’or' : med === 'argent' ? 'Médaille d’argent' : 'Médaille de bronze') : 'Pas encore';
     $('endOk').textContent = nOk + '/' + PAR.nb;
-    $('endOk').nextElementSibling.textContent = (JEUX[JEU].fam === 'reps') ? 'RÉPÉTITIONS' : 'PASSÉS';
+    $('endOkLab').textContent = JEUX[JEU].type === 'franchir' ? 'PASSÉS' : 'TOUCHÉES';
     $('endPts').textContent = total;
-    $('endMedal').innerHTML = svgMedaille(med, 56);
-    $('endText').textContent =
-      (record ? 'Nouveau record sur ce niveau. ' : '') +
+    $('endMedal').innerHTML = svgMedaille(med, 52);
+    $('endText').textContent = (record ? 'Nouveau record sur ce niveau. ' : '') +
       (med ? 'Le niveau ' + (STAGE + 1) + ' est ouvert. ' : 'Il faut 60 % pour ouvrir le niveau suivant. ') +
-      (comboMax >= 3 ? 'Meilleure série : ' + comboMax + ' d’affilée. ' : '') +
-      ((JEUX[JEU].fam !== 'reps' && nKo > nOk) ? 'La moitié des ratés vient du cadrage : recule et refais le calibrage.' : '');
+      (comboMax >= 3 ? 'Meilleure série : ' + comboMax + '. ' : '') +
+      (nKo > nOk ? 'Beaucoup de ratés : recule, ou baisse d’un niveau.' : '');
     show($('btnNext'), !!med && STAGE < 10);
     show($('pEnd'), true);
     classement(total);
   }
 
-  /* ---------------- classement ---------------- */
   function classement(total) {
-    var box = $('lbBox');
-    var p = (SAVE.pseudo || '').trim();
+    var box = $('lbBox'), p = (SAVE.pseudo || '').trim();
     box.innerHTML = '<div class="muted">Classement…</div>';
     var envoi = Promise.resolve();
     if (p && total > 0) {
       envoi = fetch(SB_URL + '/rest/v1/jeu_scores', {
         method: 'POST',
-        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY,
-                   'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
         body: JSON.stringify({ jeu: JEU, stage: STAGE, pseudo: p.slice(0, 18), points: total, franchis: nOk, total: PAR.nb })
       });
     }
@@ -792,79 +856,113 @@
         { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } });
     }).then(function (r) { return r.json(); }).then(function (rows) {
       if (!rows || !rows.length) { box.innerHTML = '<div class="muted">Personne n’a encore joué ce niveau. Tu es le premier.</div>'; return; }
-      var h = '<div style="font-size:10px;letter-spacing:1.5px;color:var(--gold);font-weight:800;margin-bottom:6px">LES MEILLEURS · NIVEAU ' + STAGE + '</div>';
+      var h = '<div style="font-size:10px;letter-spacing:1.5px;color:var(--gold);font-weight:800;margin-bottom:5px">LES MEILLEURS · NIVEAU ' + STAGE + '</div>';
       for (var i = 0; i < rows.length; i++) {
         var mine = (rows[i].pseudo || '').trim().toLowerCase() === p.toLowerCase();
         h += '<div class="l"><span style="color:' + (mine ? 'var(--brand)' : 'var(--ink)') + ';font-weight:' + (mine ? 800 : 600) + '">' +
              (i + 1) + '. ' + String(rows[i].pseudo).replace(/[<>&]/g, '') + '</span>' +
-             '<span style="color:var(--dim)">' + rows[i].franchis + ' franchis · <b style="color:var(--gold)">' + rows[i].points + '</b></span></div>';
+             '<span style="color:var(--dim)">' + rows[i].franchis + ' · <b style="color:var(--gold)">' + rows[i].points + '</b></span></div>';
       }
       box.innerHTML = h;
     }).catch(function () {
-      box.innerHTML = '<div class="muted">Classement indisponible (pas de réseau). Ton score est gardé sur ton téléphone.</div>';
+      box.innerHTML = '<div class="muted">Classement indisponible. Ton score est gardé sur ton téléphone.</div>';
     });
   }
 
-  /* ---------------- ecrans ---------------- */
+  /* =============== ecrans =============== */
   function rendreMenu() {
     var h = '';
     for (var i = 0; i < CLES.length; i++) {
-      var k = CLES[i], J = JEUX[k], tp = totalPoints(k);
-      var nm = 0, o = SAVE.jeux[k] || {};
+      var k = CLES[i], J = JEUX[k], tp = totalPoints(k), nm = 0, o = SAVE.jeux[k] || {};
       for (var s in o) if (o.hasOwnProperty(s) && o[s].med) nm++;
-      h += '<button class="card' + (k === JEU ? ' on' : '') + '" data-jeu="' + k + '" style="margin-bottom:10px">' +
-           '<span class="ico" style="font-size:19px;font-weight:900;color:var(--brand)">' + (i + 1) + '</span>' +
+      h += '<button class="card' + (k === JEU ? ' on' : '') + '" data-jeu="' + k + '">' +
+           '<span class="ico" style="font-size:18px;font-weight:900;color:var(--brand)">' + (i + 1) + '</span>' +
            '<span style="flex-grow:1"><b>' + J.nom + '</b><em>' + J.sous + '</em></span>' +
-           '<span style="text-align:right"><span style="display:block;font-size:17px;font-weight:900;color:var(--gold)">' + tp + '</span>' +
-           '<span style="display:block;font-size:10px;color:var(--dim);font-weight:700">' + nm + '/10 médailles</span></span></button>';
+           '<span style="text-align:right"><span style="display:block;font-size:16px;font-weight:900;color:var(--gold)">' + tp + '</span>' +
+           '<span style="display:block;font-size:10px;color:var(--dim);font-weight:700">' + nm + '/10</span></span></button>';
     }
     $('menuCards').innerHTML = h;
     var cs = $('menuCards').querySelectorAll('.card');
-    for (var j = 0; j < cs.length; j++) {
-      (function (c) { c.onclick = function () { JEU = c.getAttribute('data-jeu'); rendreMenu(); }; })(cs[j]);
-    }
+    for (var j = 0; j < cs.length; j++) (function (c) { c.onclick = function () { JEU = c.getAttribute('data-jeu'); rendreMenu(); }; })(cs[j]);
+    $('swRec').classList.toggle('on', !!SAVE.video);
   }
-
   function rendreStages() {
     $('stKicker').textContent = JEUX[JEU].nom;
     var h = '';
     for (var i = 1; i <= 10; i++) {
       var f = fiche(JEU, i), ok = ouvert(JEU, i), P = paramsStage(i, JEU);
       h += '<button class="st' + (ok ? '' : ' lock') + (f.med ? ' done' : '') + '" data-st="' + i + '"' + (ok ? '' : ' disabled') + '>' +
-           '<span class="med">' + svgMedaille(f.med) + '</span>' +
-           '<span class="n">' + i + '</span>' +
-           '<span class="d">' + (P.fam === 'reps' ? (P.nb + ' reps · ' + Math.round(P.duree / 1000) + ' s') : (P.nb + ' obstacles · ' + (P.ecart / 1000).toFixed(1) + ' s')) + '</span>' +
+           '<span class="med">' + svgMedaille(f.med) + '</span><span class="n">' + i + '</span>' +
+           '<span class="d">' + P.nb + ' cibles · ' + (P.ecart / 1000).toFixed(1) + ' s</span>' +
            (f.best ? '<span class="b">record ' + f.best + '</span>' : (ok ? '<span class="d">jamais joué</span>' : '<span class="d">verrouillé</span>')) +
            '</button>';
     }
     $('stGrid').innerHTML = h;
     var bs = $('stGrid').querySelectorAll('.st');
-    for (var j = 0; j < bs.length; j++) {
-      (function (b) {
-        b.onclick = function () {
-          var n = parseInt(b.getAttribute('data-st'), 10);
-          if (!ouvert(JEU, n)) return;
-          STAGE = n; versCalibrage();
-        };
-      })(bs[j]);
-    }
+    for (var j = 0; j < bs.length; j++) (function (b) {
+      b.onclick = function () {
+        var n = parseInt(b.getAttribute('data-st'), 10);
+        if (!ouvert(JEU, n)) return;
+        STAGE = n; versRegles();
+      };
+    })(bs[j]);
   }
-
-  function versCalibrage() {
+  function versRegles() {
+    etat = 'menu';
+    var J = JEUX[JEU];
+    $('regKicker').textContent = J.nom + ' · NIVEAU ' + STAGE;
+    var h = '';
+    for (var i = 0; i < J.regles.length; i++) h += '<div class="step"><span class="k">' + (i + 1) + '</span><span class="t">' + J.regles[i] + '</span></div>';
+    $('regSteps').innerHTML = h;
+    $('regPlace').textContent = J.place;
+    show($('pMenu'), false); show($('pStages'), false); show($('pEnd'), false); show($('pCal'), false);
+    show($('pRegles'), true);
+  }
+  function versCalibrage(essai) {
+    ESSAI = !!essai;
     PAR = paramsStage(STAGE, JEU);
+    if (ESSAI) PAR = { ecart: PAR.ecart, vol: PAR.vol, nb: 4 };
     SEUIL = JEUX[JEU].seuils[STAGE - 1];
     base = null; cal.on = 0; etat = 'cal';
-    show($('pMenu'), false); show($('pStages'), false); show($('pEnd'), false); show($('pCal'), true);
-    $('calKicker').textContent = JEUX[JEU].nom + ' · NIVEAU ' + STAGE;
-    $('calTitle').textContent = 'Mets-toi en place';
-    $('calText').textContent = JEUX[JEU].aide + ' Puis ne bouge plus deux secondes. ' + JEUX[JEU].cible;
+    show($('pMenu'), false); show($('pStages'), false); show($('pEnd'), false); show($('pRegles'), false);
+    show($('pCal'), true);
+    $('calKicker').textContent = JEUX[JEU].nom + (ESSAI ? ' · ESSAI' : ' · NIVEAU ' + STAGE);
+    $('calText').textContent = (JEUX[JEU].calPose || 'Place-toi comme sur l’écran précédent, puis ne bouge plus deux secondes.');
     $('calBar').style.width = '0%';
     audio();
   }
 
-  /* ---------------- evenements ---------------- */
+  /* =============== evenements =============== */
   $('pseudo').value = SAVE.pseudo || '';
   $('pseudo').oninput = function () { SAVE.pseudo = this.value.slice(0, 18); sauver(); };
+  $('swRec').onclick = function () {
+    SAVE.video = !SAVE.video; sauver();
+    this.classList.toggle('on', !!SAVE.video);
+    if (SAVE.video && !recSupporte()) {
+      $('menuErr').innerHTML = '<div class="err">Ce navigateur ne sait pas enregistrer la vidéo. Sur iPhone il faut Safari récent ; sur Android, Chrome. Le jeu marche quand même.</div>';
+    } else $('menuErr').innerHTML = '';
+    recActif = !!SAVE.video && recSupporte();
+  };
+  recActif = !!SAVE.video && recSupporte();
+
+  function appliquerZoom() {
+    var z = SAVE.zoom || 1;
+    $('zoom').style.transform = 'scale(' + z + ')';
+    $('zoomVal').textContent = String(z).replace('.', ',') + '×';
+    var zs = document.querySelectorAll('.zb');
+    for (var i = 0; i < zs.length; i++) {
+      var on = parseFloat(zs[i].getAttribute('data-z')) === z;
+      zs[i].style.borderColor = on ? 'var(--brand)' : 'rgba(255,255,255,.18)';
+      zs[i].style.color = on ? 'var(--brand)' : 'var(--ink)';
+    }
+  }
+  (function () {
+    var zs = document.querySelectorAll('.zb');
+    for (var i = 0; i < zs.length; i++) (function (b) {
+      b.onclick = function () { SAVE.zoom = parseFloat(b.getAttribute('data-z')); sauver(); appliquerZoom(); };
+    })(zs[i]);
+    appliquerZoom();
+  })();
 
   $('btnGo').onclick = function () {
     var b = $('btnGo');
@@ -874,8 +972,7 @@
       b.disabled = false; b.textContent = 'Continuer';
       running = true; taille();
       show($('pMenu'), false); show($('pStages'), true);
-      rendreStages();
-      boucle();
+      rendreStages(); boucle();
     }).catch(function (e) {
       b.disabled = false; b.textContent = 'Réessayer';
       $('menuErr').innerHTML = '<div class="err">Impossible de démarrer : ' + (e && e.message ? e.message : e) +
@@ -883,10 +980,13 @@
     });
   };
   $('btnBackMenu').onclick = function () { show($('pStages'), false); show($('pMenu'), true); etat = 'menu'; rendreMenu(); };
-  $('btnQuitCal').onclick = function () { etat = 'menu'; show($('pCal'), false); show($('pStages'), true); rendreStages(); };
-  $('btnAgain').onclick = function () { show($('pEnd'), false); versCalibrage(); };
-  $('btnStages').onclick = function () { show($('pEnd'), false); show($('pStages'), true); etat = 'menu'; rendreStages(); };
-  $('btnNext').onclick = function () { if (STAGE < 10) STAGE++; show($('pEnd'), false); versCalibrage(); };
+  $('btnRegRetour').onclick = function () { show($('pRegles'), false); show($('pStages'), true); rendreStages(); };
+  $('btnEssai').onclick = function () { versCalibrage(true); };
+  $('btnDirect').onclick = function () { versCalibrage(false); };
+  $('btnQuitCal').onclick = function () { etat = 'menu'; show($('pCal'), false); show($('pRegles'), true); };
+  $('btnAgain').onclick = function () { show($('pEnd'), false); show($('dlVideo'), false); versCalibrage(false); };
+  $('btnStages').onclick = function () { show($('pEnd'), false); show($('dlVideo'), false); show($('pStages'), true); etat = 'menu'; rendreStages(); };
+  $('btnNext').onclick = function () { if (STAGE < 10) STAGE++; show($('pEnd'), false); show($('dlVideo'), false); versRegles(); };
 
   rendreMenu();
   taille();
