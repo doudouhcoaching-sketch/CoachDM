@@ -1074,6 +1074,40 @@
     padding:13px 14px;margin-bottom:10px;background:linear-gradient(120deg,rgba(0,232,150,.10),rgba(0,232,150,.02));
     width:100%;text-align:left;color:var(--text);font-family:inherit;cursor:pointer}
   .hub-last .v{font-size:26px;font-weight:900;color:var(--brand);line-height:1}
+  /* le bonhomme anime */
+  .anim-box{position:relative;height:252px;border-radius:18px;border:1px solid rgba(255,255,255,.10);
+    background:radial-gradient(120% 80% at 50% 8%, rgba(0,255,163,.10), rgba(0,0,0,0) 66%),#0B100E;
+    overflow:hidden;margin-bottom:10px}
+  .anim-svg{width:100%;height:100%;display:block}
+  .anim-tag{position:absolute;top:11px;left:11px;color:#0A0A0A;font-size:9px;font-weight:800;
+    letter-spacing:1.3px;padding:5px 10px;border-radius:999px}
+  .anim-sw{display:flex;gap:8px}
+  .anim-sw .btn{flex:1;font-size:13px;padding:10px 0}
+  .anim-sw .btn.on{border-color:var(--brand);color:var(--brand);background:rgba(0,232,150,.10)}
+  .anim-sw .btn.on.ko{border-color:#EF4444;color:#EF4444;background:rgba(239,68,68,.10)}
+  .bib-step i.ko{background:rgba(239,68,68,.14);color:#EF4444}
+  .rig .f1,.rig .f2,.rig .f3{animation-duration:3.6s;animation-timing-function:ease-in-out;
+    animation-iteration-count:infinite;animation-direction:alternate}
+  .rig .f1{animation-name:phA}.rig .f2{animation-name:phB}.rig .f3{animation-name:phC}
+  @keyframes phA{0%,18%{opacity:1}30%,100%{opacity:0}}
+  @keyframes phB{0%,18%{opacity:0}30%,52%{opacity:1}64%,100%{opacity:0}}
+  @keyframes phC{0%,52%{opacity:0}64%,100%{opacity:1}}
+  @media (prefers-reduced-motion: reduce){ .rig .f1,.rig .f2,.rig .f3{animation:none} .rig .f1,.rig .f2{opacity:0} }
+  /* accueil : des tuiles qui vivent */
+  .hub-t{position:relative;overflow:hidden;transition:transform .12s,border-color .2s}
+  .hub-t:before{content:'';position:absolute;inset:0;opacity:.55;pointer-events:none;
+    background:radial-gradient(90% 70% at 100% 0%, var(--hc,rgba(0,232,150,.16)), rgba(0,0,0,0) 62%)}
+  .hub-t>*{position:relative;z-index:1}
+  .hub-t .hi{background:var(--hb,rgba(0,232,150,.14));color:var(--hf,var(--brand));
+    box-shadow:0 0 0 0 var(--hb,rgba(0,232,150,.14))}
+  .hub-t.live .hi{animation:hubPulse 2.6s ease-in-out infinite}
+  @keyframes hubPulse{0%,100%{box-shadow:0 0 0 0 var(--hb)}50%{box-shadow:0 0 0 7px transparent}}
+  .hub-t .go{position:absolute;right:11px;bottom:11px;font-size:11px;font-weight:800;color:var(--hf,var(--brand));opacity:.9}
+  .hub-sh{position:absolute;top:0;bottom:0;width:60px;pointer-events:none;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.07),transparent);
+    animation:hubSh 4.5s linear infinite}
+  @keyframes hubSh{0%{transform:translateX(-120%)}55%,100%{transform:translateX(320%)}}
+  @media (prefers-reduced-motion: reduce){ .hub-t.live .hi{animation:none} .hub-sh{display:none} }
   .rc-now{font-size:10px;font-weight:800;letter-spacing:1.1px;padding:5px 10px;border-radius:999px;
     background:linear-gradient(120deg,rgba(0,232,150,.18),rgba(233,199,103,.18));
     border:1px solid rgba(233,199,103,.45);color:var(--gold,#E9C767);white-space:nowrap}
@@ -3118,6 +3152,13 @@ const T = {
  hub_last:{fr:'Ta dernière détente',en:'Your last jump',nl:'Je laatste sprong'},
  hub_last_go:{fr:'Refaire le test',en:'Test again',nl:'Opnieuw testen'},
  hub_rec:{fr:'record {n} cm',en:'record {n} cm',nl:'record {n} cm'},
+ bib_err:{fr:'L\u2019erreur fréquente',en:'The common mistake',nl:'De veelgemaakte fout'},
+ bib_ok_btn:{fr:'Le bon geste',en:'The right move',nl:'De juiste beweging'},
+ bib_ko_btn:{fr:'L\u2019erreur fréquente',en:'Common mistake',nl:'Veelgemaakte fout'},
+ bib_ok_tag:{fr:'POINTS DE PERFORMANCE',en:'POINTS OF PERFORMANCE',nl:'UITVOERINGSPUNTEN'},
+ bib_err_tag:{fr:'CE QUI SE PASSE',en:'WHAT HAPPENS',nl:'WAT ER GEBEURT'},
+ bib_ligne:{fr:'Le trait doré est la verticale du milieu du pied. C\u2019est la seule ligne qui juge le geste.',en:'The gold line is the vertical through the midfoot. It is the only line that judges the movement.',nl:'De gouden lijn is de verticaal door het midden van de voet. Dat is de enige lijn die de beweging beoordeelt.'},
+ bib_nopoints:{fr:'Points de performance à venir pour ce mouvement.',en:'Points of performance coming for this movement.',nl:'Uitvoeringspunten volgen voor deze beweging.'},
  rc_sub:{fr:'Des repas prêts à logger, calés sur tes objectifs.',en:'Ready-to-log meals, built around your goals.',nl:'Kant-en-klare maaltijden, afgestemd op je doelen.'},
  rc_all:{fr:'Tout',en:'All',nl:'Alles'},
  rc_hp:{fr:'Haute protéine',en:'High protein',nl:'Eiwitrijk'},
@@ -10367,7 +10408,57 @@ function lexClose(){ const ov=document.getElementById('lex-ov'); if(ov) ov.class
    Les fiches vivent deja en base (points de performance en 3 langues,
    consigne de Coach DM, video). Il manquait juste la porte d'entree.
    ------------------------------------------------------------------ */
-let BIB=null, BIB_Q='', BIB_M='all';
+let BIB=null, BIB_Q='', BIB_M='all', BIB_MODE='ok';
+/* Le bonhomme anime vit dans son propre fichier (~170 ko) : on ne le charge
+   qu'a la premiere fiche ouverte, pas au demarrage de l'app. */
+let ANIM_ETAT=0;
+function animCharger(){
+  if(ANIM_ETAT===2) return Promise.resolve(true);
+  if(ANIM_ETAT===1) return new Promise(r=>{ const i=setInterval(()=>{ if(ANIM_ETAT!==1){ clearInterval(i); r(ANIM_ETAT===2);} },80); });
+  ANIM_ETAT=1;
+  return new Promise(r=>{
+    const sc=document.createElement('script');
+    sc.src='anim.js?v=1';
+    sc.onload=()=>{ ANIM_ETAT=2; r(true); };
+    sc.onerror=()=>{ ANIM_ETAT=3; r(false); };
+    document.head.appendChild(sc);
+  });
+}
+function animSVG(slug,mode){
+  const A=window.MOUV_ANIM&&window.MOUV_ANIM[slug]; if(!A) return '';
+  const frames=A[mode]||A.ok;
+  const sol = A.ng ? '' : '<line x1="18" y1="290" x2="282" y2="290" stroke="rgba(255,255,255,.16)" stroke-width="2"/>';
+  const mid = A.nm ? '' : '<line x1="150" y1="16" x2="150" y2="290" stroke="#E9C767" stroke-width="1.4" stroke-dasharray="6 7" opacity=".7"/>';
+  return '<svg class="anim-svg" viewBox="0 0 300 '+A.vh+'" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+
+    sol+mid+(A.dc||'')+frames.map((f,i)=>'<g class="f'+(i+1)+'">'+f+'</g>').join('')+'</svg>';
+}
+/* Coach DM range par materiel et par discipline, pas par muscle : c'est
+   comme ca qu'on cherche un mouvement quand on prepare une seance. */
+const BIB_EQUIP=['barbell','dumbbell','kettlebell','bodyweight','pullup_bar','box','machine','cable','bands','medicine_ball','rower','skierg','assault_bike','sled','sandbag','jump_rope','trap_bar','bench','none'];
+const EQ_LAB={barbell:{fr:'Barre',en:'Barbell',nl:'Stang'},dumbbell:{fr:'Haltères',en:'Dumbbells',nl:'Dumbbells'},
+ kettlebell:{fr:'Kettlebell',en:'Kettlebell',nl:'Kettlebell'},bodyweight:{fr:'Poids du corps',en:'Bodyweight',nl:'Lichaamsgewicht'},
+ pullup_bar:{fr:'Barre de traction',en:'Pull-up bar',nl:'Optrekstang'},box:{fr:'Box',en:'Box',nl:'Box'},
+ machine:{fr:'Machine',en:'Machine',nl:'Machine'},cable:{fr:'Poulie',en:'Cable',nl:'Kabel'},
+ bands:{fr:'Élastiques',en:'Bands',nl:'Elastieken'},medicine_ball:{fr:'Médecine-ball',en:'Med ball',nl:'Medicijnbal'},
+ rower:{fr:'Rameur',en:'Rower',nl:'Roeimachine'},skierg:{fr:'SkiErg',en:'SkiErg',nl:'SkiErg'},
+ assault_bike:{fr:'Assault Bike',en:'Assault Bike',nl:'Assault Bike'},sled:{fr:'Traîneau',en:'Sled',nl:'Slee'},
+ sandbag:{fr:'Sandbag',en:'Sandbag',nl:'Sandbag'},jump_rope:{fr:'Corde à sauter',en:'Jump rope',nl:'Springtouw'},
+ trap_bar:{fr:'Trap bar',en:'Trap bar',nl:'Trap bar'},bench:{fr:'Banc',en:'Bench',nl:'Bank'},none:{fr:'Sans matériel',en:'No kit',nl:'Zonder materiaal'}};
+function equipLab(x){ const o=EQ_LAB[x]; return o?(o[LANG]||o.fr):(x||''); }
+/* Les disciplines : on reconnait un mouvement a son materiel et a son nom. */
+const BIB_SPORTS=[
+ {k:'crossfit',lab:{fr:'CrossFit',en:'CrossFit',nl:'CrossFit'},
+  test:e=>/snatch|clean|jerk|muscle-up|toes-to-bar|thruster|wall-ball|kipping|handstand|burpee|box-jump|double-under|kettlebell|pistol|hspu|overhead-squat|rope-climb/.test(e.slug||'')},
+ {k:'hyrox',lab:{fr:'Hyrox',en:'Hyrox',nl:'Hyrox'},
+  test:e=>/sled|burpee|farmers|row-erg|skierg|wall-ball|lunge|sandbag|ski|run/.test(e.slug||'')},
+ {k:'muscu',lab:{fr:'Musculation',en:'Strength',nl:'Krachttraining'},
+  test:e=>['barbell','dumbbell','machine','cable','trap_bar','bench'].indexOf(e.equipment)>=0},
+ {k:'gym',lab:{fr:'Gymnastique',en:'Gymnastics',nl:'Gymnastiek'},
+  test:e=>['bodyweight','pullup_bar'].indexOf(e.equipment)>=0},
+ {k:'cardio',lab:{fr:'Cardio',en:'Cardio',nl:'Cardio'},
+  test:e=>['rower','skierg','assault_bike','jump_rope'].indexOf(e.equipment)>=0 || e.primary_muscle==='cardio'}
+];
+function sportLab(k){ const o=BIB_SPORTS.filter(x=>x.k===k)[0]; return o?(o.lab[LANG]||o.lab.fr):k; }
 const BIB_MUSCLES=['full_body','quads','hamstrings','glutes','core','chest','back','lats','shoulders','triceps','biceps','calves','cardio'];
 const BIB_LAB={full_body:{fr:'Corps entier',en:'Full body',nl:'Hele lichaam'},quads:{fr:'Quadriceps',en:'Quads',nl:'Quadriceps'},
  hamstrings:{fr:'Ischios',en:'Hamstrings',nl:'Hamstrings'},glutes:{fr:'Fessiers',en:'Glutes',nl:'Bilspieren'},
@@ -10392,7 +10483,7 @@ async function bibOpen(){
     let tout=[], de=0;
     for(let page=0; page<5; page++){
       const { data, error } = await sb.from('exercises')
-        .select('id,slug,name_fr,name_en,name_nl,primary_muscle,equipment,video_url,cue_fr,cue_en,cue_nl,instructions_fr,instructions_en,instructions_nl')
+        .select('id,slug,name_fr,name_en,name_nl,primary_muscle,equipment,pattern,video_url,cue_fr,cue_en,cue_nl,instructions_fr,instructions_en,instructions_nl')
         .eq('is_published',true).order('name_fr',{ascending:true}).range(de, de+199);
       if(error){ break; }
       if(!data || !data.length) break;
@@ -10416,9 +10507,12 @@ async function bibOpen(){
 }
 function bibFiltres(){
   const box=document.getElementById('bib-filters'); if(!box||!BIB) return;
-  const presents=BIB_MUSCLES.filter(m=>BIB.some(e=>e.primary_muscle===m));
-  box.innerHTML='<button class="rc-chip'+(BIB_M==='all'?' on':'')+'" data-bm="all">'+t('rc_all')+'</button>'+
-    presents.map(m=>'<button class="rc-chip'+(BIB_M===m?' on':'')+'" data-bm="'+m+'">'+esc(bibLab(m))+'</button>').join('');
+  const sports=BIB_SPORTS.filter(sp=>BIB.some(e=>sp.test(e)));
+  const equips=BIB_EQUIP.filter(m=>BIB.some(e=>e.equipment===m));
+  let h='<button class="rc-chip'+(BIB_M==='all'?' on':'')+'" data-bm="all">'+t('rc_all')+'</button>';
+  h+=sports.map(sp=>'<button class="rc-chip sp'+(BIB_M==='s:'+sp.k?' on':'')+'" data-bm="s:'+sp.k+'">'+esc(sportLab(sp.k))+'</button>').join('');
+  h+=equips.map(m=>'<button class="rc-chip'+(BIB_M==='e:'+m?' on':'')+'" data-bm="e:'+m+'">'+esc(equipLab(m))+'</button>').join('');
+  box.innerHTML=h;
   box.querySelectorAll('.rc-chip').forEach(b=>b.onclick=()=>{
     BIB_M=b.dataset.bm;
     box.querySelectorAll('.rc-chip').forEach(x=>x.classList.toggle('on',x===b));
@@ -10430,7 +10524,14 @@ function bibListe(){
   const fx=document.querySelector('.bib-fixe'); if(fx) fx.style.display='';
   const qq=(BIB_Q||'').trim().toLowerCase();
   const list=BIB.filter(e=>{
-    if(BIB_M!=='all' && e.primary_muscle!==BIB_M) return false;
+    if(BIB_M!=='all'){
+      if(BIB_M.indexOf('e:')===0){ if(e.equipment!==BIB_M.slice(2)) return false; }
+      else if(BIB_M.indexOf('s:')===0){
+        const sp=BIB_SPORTS.filter(x=>x.k===BIB_M.slice(2))[0];
+        if(!sp || !sp.test(e)) return false;
+      }
+      else if(e.primary_muscle!==BIB_M) return false;
+    }
     if(!qq) return true;
     const n=(pick(e,'name')||'')+' '+(e.slug||'');
     return n.toLowerCase().indexOf(qq)>=0;
@@ -10441,32 +10542,54 @@ function bibListe(){
   body.innerHTML=list.map(e=>{
     const fiche=((e['instructions_'+LANG]||e.instructions_fr||[]).length)?'<i class="bib-dot"></i>':'';
     return `<button type="button" class="bib-item" data-b="${BIB.indexOf(e)}">
-      <span style="flex:1 1 auto;min-width:0"><b>${fiche}${esc(pick(e,'name'))}</b><span>${esc(bibLab(e.primary_muscle))}${e.equipment?(' · '+esc(e.equipment)):''}</span></span>
+      <span style="flex:1 1 auto;min-width:0"><b>${fiche}${esc(pick(e,'name'))}</b><span>${esc(equipLab(e.equipment))} · ${esc(bibLab(e.primary_muscle))}</span></span>
       <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)"><path d="M9 18l6-6-6-6"/></svg>
     </button>`;}).join('');
   body.querySelectorAll('.bib-item').forEach(el=>el.onclick=()=>bibFiche(BIB[+el.dataset.b]));
 }
-function bibFiche(e){
+async function bibFiche(e){
   const body=document.getElementById('bib-body'); if(!body||!e) return;
+  BIB_CUR=e; BIB_MODE='ok';
   const fx=document.querySelector('.bib-fixe'); if(fx) fx.style.display='none';
+  body.innerHTML='<div class="spin"></div>';
+  await animCharger();
+  bibFicheRender();
+}
+let BIB_CUR=null;
+function bibFicheRender(){
+  const e=BIB_CUR, body=document.getElementById('bib-body'); if(!body||!e) return;
   const steps=(e['instructions_'+LANG]||e.instructions_fr||[]);
   const cue=pick(e,'cue');
   /* On ne propose la video que si on a une vraie URL YouTube : le lecteur
      interne la prend en charge et on ne sort jamais de l'app. Une simple
      recherche YouTube ouvrirait le navigateur, donc on s'en passe. */
   const vid = (e.video_url && ytId(e.video_url)) ? e.video_url : '';
+  const A=window.MOUV_ANIM&&window.MOUV_ANIM[e.slug];
+  const erreurs=(A&&A.ko_t)||[];
+  const mode=BIB_MODE;
+  const listeAff = mode==='ko' ? erreurs : steps;
+  const titreAff = mode==='ko' ? t('bib_err') : t('bib_points');
   body.innerHTML=`
     <button type="button" class="btn subtle" id="bib-back" style="margin-bottom:12px">&lsaquo; ${esc(t('bib_title'))}</button>
     <h3 style="margin:0 0 2px">${esc(pick(e,'name'))}</h3>
-    <div class="fk" style="margin-bottom:12px">${esc(e.primary_muscle||'')}${e.equipment?(' · '+esc(e.equipment)):''}</div>
-    ${cue?`<div class="block" style="margin:0 0 14px;border-left:3px solid var(--brand)">
+    <div class="fk" style="margin-bottom:12px">${esc(bibLab(e.primary_muscle))} · ${esc(equipLab(e.equipment))}${e.pattern?(' · '+esc(e.pattern)):''}</div>
+    ${A?`<div class="anim-box rig ${mode}">${animSVG(e.slug,mode)}
+        <span class="anim-tag" style="background:${mode==='ko'?'#EF4444':'#E9C767'}">${mode==='ko'?esc(t('bib_err_tag')):esc(t('bib_ok_tag'))}</span></div>
+      <div class="anim-sw">
+        <button type="button" class="btn subtle${mode==='ok'?' on':''}" data-bmode="ok">${esc(t('bib_ok_btn'))}</button>
+        <button type="button" class="btn subtle${mode==='ko'?' on ko':''}" data-bmode="ko"${erreurs.length?'':' disabled'}>${esc(t('bib_ko_btn'))}</button>
+      </div>`:''}
+    ${(mode==='ok'&&cue)?`<div class="block" style="margin:14px 0;border-left:3px solid var(--brand)">
         <div style="font-size:10px;letter-spacing:1.4px;color:var(--brand);font-weight:800;margin-bottom:6px">${esc(t('bib_cue')).toUpperCase()}</div>
         <p style="margin:0;font-size:13.5px;line-height:1.55">${esc(cue)}</p></div>`:''}
-    ${steps.length?`<div style="font-size:10px;letter-spacing:1.4px;color:var(--muted);font-weight:800;margin:0 0 9px">${esc(t('bib_points')).toUpperCase()}</div>
-      ${steps.map((x,i)=>`<div class="bib-step"><i>${i+1}</i><p>${esc(x)}</p></div>`).join('')}`:''}
+    ${listeAff.length?`<div style="font-size:10px;letter-spacing:1.4px;color:${mode==='ko'?'#EF4444':'var(--muted)'};font-weight:800;margin:14px 0 9px">${esc(titreAff).toUpperCase()}</div>
+      ${listeAff.map((x,i)=>`<div class="bib-step"><i${mode==='ko'?' class="ko"':''}>${i+1}</i><p>${esc(x)}</p></div>`).join('')}`
+      :`<p class="empty" style="margin-top:14px">${esc(t('bib_nopoints'))}</p>`}
+    ${A?`<p class="fk" style="margin-top:12px;font-size:11px">${esc(t('bib_ligne'))}</p>`:''}
     ${vid?`<a class="btn subtle ex-demo" href="${esc(vid)}" style="display:block;text-align:center;margin-top:14px">${esc(t('bib_video'))}</a>`:''}
   `;
   const bk=document.getElementById('bib-back'); if(bk) bk.onclick=()=>bibListe();
+  body.querySelectorAll('[data-bmode]').forEach(b=>b.onclick=()=>{ BIB_MODE=b.dataset.bmode; bibFicheRender(); });
 }
 /* ------------------------------------------------------------------
    ACCUEIL : le sommaire de l'app.
@@ -10483,9 +10606,21 @@ const HUB_IC={
   ia:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 5.6L19 9l-5.3 1.4L12 16l-1.7-5.6L5 9l5.3-1.4z"/></svg>',
   co:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>'
 };
-function hubTuile(cle,ic,titre,sous,or){
-  return `<button type="button" class="hub-t${or?' gold':''}" data-hub="${cle}">
-    <span class="hi">${ic}</span><b>${esc(titre)}</b><em>${esc(sous)}</em></button>`;
+/* chaque tuile a sa couleur : l'accueil doit se lire d'un coup d'oeil */
+const HUB_COUL={
+  an:{c:'rgba(0,232,150,.20)',b:'rgba(0,232,150,.16)',f:'var(--brand)'},
+  jeu:{c:'rgba(233,199,103,.24)',b:'rgba(233,199,103,.18)',f:'#E9C767'},
+  bib:{c:'rgba(120,170,255,.20)',b:'rgba(120,170,255,.16)',f:'#8FB6FF'},
+  se:{c:'rgba(255,140,90,.20)',b:'rgba(255,140,90,.16)',f:'#FF9E6E'},
+  rc:{c:'rgba(190,130,255,.20)',b:'rgba(190,130,255,.16)',f:'#C79BFF'}
+};
+function hubTuile(cle,ic,titre,sous,live){
+  const c=HUB_COUL[cle]||HUB_COUL.an;
+  return `<button type="button" class="hub-t${live?' live':''}" data-hub="${cle}"
+    style="--hc:${c.c};--hb:${c.b};--hf:${c.f}">
+    ${live?'<span class="hub-sh"></span>':''}
+    <span class="hi">${ic}</span><b>${esc(titre)}</b><em>${esc(sous)}</em>
+    <span class="go">›</span></button>`;
 }
 async function renderHomeHub(){
   const host=document.getElementById('home-hub'); if(!host) return;
@@ -10511,13 +10646,11 @@ async function renderHomeHub(){
     }
   }catch(e){}
   const tuiles=[
-    hubTuile('an',HUB_IC.an,t('hub_an'),t('hub_an_s')),
+    hubTuile('an',HUB_IC.an,t('hub_an'),t('hub_an_s'),true),
     hubTuile('jeu',HUB_IC.jeu,t('jeu_title'),t('hub_jeu_s'),true),
     hubTuile('bib',HUB_IC.bib,t('bib_open'),t('hub_bib_s')),
     hubTuile('se',HUB_IC.se,t('hub_se'),t('hub_se_s')),
-    hubTuile('rc',HUB_IC.rc,t('hub_rc'),t('hub_rc_s')),
-    hubTuile('ia',HUB_IC.ia,t('hub_ia'),t('hub_ia_s')),
-    hubTuile('co',HUB_IC.co,t('hub_co'),t('hub_co_s'))
+    hubTuile('rc',HUB_IC.rc,t('hub_rc'),t('hub_rc_s'))
   ].join('');
   host.innerHTML=`<div class="hub-h"><h3>${esc(t('hub_t'))}</h3><span>${esc(t('hub_sub'))}</span></div>
     ${dernier}<div class="hub-grid">${tuiles}</div>`;
