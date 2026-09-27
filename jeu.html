@@ -126,6 +126,17 @@
       </div>
       <p class="muted" style="margin-top:8px">Le zoom agrandit seulement l'affichage : le suivi continue de voir tout ton corps. À 3 m, mets 1,6×.</p>
     </div>
+    <div class="sw" style="display:block">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span>Ce qu'on voit sur toi</span><span id="affVal" style="color:var(--brand);font-weight:900">Squelette</span>
+      </div>
+      <div class="row" style="margin-top:9px">
+        <button class="ab cta ghost" data-a="complet" style="padding:9px 0;font-size:12.5px">Squelette</button>
+        <button class="ab cta ghost" data-a="actif" style="padding:9px 0;font-size:12.5px">Points actifs</button>
+        <button class="ab cta ghost" data-a="cibles" style="padding:9px 0;font-size:12.5px">Cercles seuls</button>
+      </div>
+      <p class="muted" style="margin-top:8px">« Cercles seuls » efface tout le squelette : il ne reste que toi et les cibles. « Points actifs » ne garde que la partie du corps qui doit toucher.</p>
+    </div>
     <div class="spacer"></div>
     <button class="cta" id="btnGo">Continuer</button>
     <div id="menuErr"></div>
@@ -415,7 +426,26 @@
             ['right_shoulder','right_elbow'],['right_elbow','right_wrist'],['left_shoulder','left_hip'],
             ['right_shoulder','right_hip'],['left_hip','right_hip'],['left_hip','left_knee'],
             ['left_knee','left_ankle'],['right_hip','right_knee'],['right_knee','right_ankle']];
-  function squelette(pose, P, col) {
+  /* trois façons de montrer le corps :
+     complet = squelette entier, actif = seulement ce qui compte, cibles = rien */
+  function squelette(pose, P, col, mode) {
+    if (mode === 'cibles') return;
+    if (mode === 'actif') {
+      var noms = partiesActives();
+      for (var a2 = 0; a2 < noms.length; a2++) {
+        var k2 = kp(pose, noms[a2]);
+        if (!k2 || k2.score < 0.32) continue;
+        var q = P(k2);
+        ctx.save();
+        ctx.globalAlpha = .25; ctx.fillStyle = col;
+        ctx.beginPath(); ctx.arc(q.x, q.y, 22, 0, 6.2832); ctx.fill();
+        ctx.globalAlpha = 1; ctx.strokeStyle = col; ctx.lineWidth = 4;
+        ctx.shadowColor = col; ctx.shadowBlur = 16;
+        ctx.beginPath(); ctx.arc(q.x, q.y, 12, 0, 6.2832); ctx.stroke();
+        ctx.restore();
+      }
+      return;
+    }
     ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = col;
     for (var i = 0; i < OS.length; i++) {
       var a = kp(pose, OS[i][0]), b = kp(pose, OS[i][1]);
@@ -519,6 +549,15 @@
     }
     return false;
   }
+  /* quelles articulations comptent pour le jeu en cours */
+  function partiesActives() {
+    if (JEU === 'saut') return ['left_ankle', 'right_ankle'];
+    if (JEU === 'squat') return ['left_hip', 'right_hip', 'left_knee', 'right_knee'];
+    if (JEU === 'pompe') return ['left_shoulder', 'right_shoulder'];
+    if (JEU === 'genoux') return ['left_knee', 'right_knee'];
+    return ['left_wrist', 'right_wrist'];
+  }
+
   /* jeux "franchir" : position du corps */
   var pompeArme = true;
   function profPompe() { return SEUIL * 0.42; }
@@ -731,7 +770,7 @@
       var P = proj();
 
       if (etat === 'cal') {
-        if (pose) squelette(pose, P, 'rgba(0,255,163,.85)');
+        if (pose) squelette(pose, P, 'rgba(0,255,163,.85)', 'complet');  /* au calibrage on montre tout */
         if (calibrer(m)) lancer();
         return;
       }
@@ -780,7 +819,7 @@
       if (proche > 0) bordLumineux(coulProche, proche);
 
       dessiner(now, m, pose);
-      if (pose) squelette(pose, P, (actif || (now < flash.jusqu && flash.c === 'good')) ? '#00FFA3' : 'rgba(255,255,255,.72)');
+      if (pose) squelette(pose, P, (actif || (now < flash.jusqu && flash.c === 'good')) ? '#00FFA3' : 'rgba(255,255,255,.72)', SAVE.aff || 'complet');
       dessinerParticules();
       composerRec();
 
@@ -956,6 +995,23 @@
       zs[i].style.color = on ? 'var(--brand)' : 'var(--ink)';
     }
   }
+  function appliquerAff() {
+    var a = SAVE.aff || 'complet';
+    $('affVal').textContent = a === 'complet' ? 'Squelette' : (a === 'actif' ? 'Points actifs' : 'Cercles seuls');
+    var bs = document.querySelectorAll('.ab');
+    for (var i = 0; i < bs.length; i++) {
+      var on = bs[i].getAttribute('data-a') === a;
+      bs[i].style.borderColor = on ? 'var(--brand)' : 'rgba(255,255,255,.18)';
+      bs[i].style.color = on ? 'var(--brand)' : 'var(--ink)';
+    }
+  }
+  (function () {
+    var as = document.querySelectorAll('.ab');
+    for (var i = 0; i < as.length; i++) (function (b) {
+      b.onclick = function () { SAVE.aff = b.getAttribute('data-a'); sauver(); appliquerAff(); };
+    })(as[i]);
+    appliquerAff();
+  })();
   (function () {
     var zs = document.querySelectorAll('.zb');
     for (var i = 0; i < zs.length; i++) (function (b) {
