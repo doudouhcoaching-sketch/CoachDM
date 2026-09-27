@@ -1050,6 +1050,11 @@
   .bib-step i{flex-shrink:0;width:19px;height:19px;border-radius:50%;background:rgba(0,232,150,.14);color:var(--brand);
     font-style:normal;font-size:10px;font-weight:800;line-height:19px;text-align:center}
   .bib-step p{margin:0;font-size:13px;line-height:1.45}
+  .bib-sheet{display:flex;flex-direction:column;height:86vh;max-height:86vh;overflow:hidden}
+  .bib-fixe{flex:0 0 auto}
+  .bib-scroll{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:4px}
+  .bib-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--brand);
+    margin-right:6px;vertical-align:middle;box-shadow:0 0 6px rgba(0,232,150,.6)}
   .rc-now{font-size:10px;font-weight:800;letter-spacing:1.1px;padding:5px 10px;border-radius:999px;
     background:linear-gradient(120deg,rgba(0,232,150,.18),rgba(233,199,103,.18));
     border:1px solid rgba(233,199,103,.45);color:var(--gold,#E9C767);white-space:nowrap}
@@ -1977,13 +1982,19 @@ h1, h2,
 </div>
 
 <div class="overlay" id="bib-ov">
-  <div class="sheet">
+  <div class="sheet bib-sheet">
     <div class="grab"></div>
-    <h3 id="bib-title" data-i18n="bib_title">Bibliothèque des mouvements</h3>
-    <div class="search-row" id="bib-search" style="margin-bottom:10px">
-      <input id="bib-q" type="text" placeholder="Chercher un mouvement…" data-i18n-ph="bib_ph" />
+    <div class="bib-fixe">
+      <div class="tr-head" style="margin-bottom:8px">
+        <h3 id="bib-title" style="margin:0" data-i18n="bib_title">Bibliothèque des mouvements</h3>
+        <span class="act-badge" id="bib-count"></span>
+      </div>
+      <div class="search-row" id="bib-search" style="margin-bottom:8px">
+        <input id="bib-q" type="text" placeholder="Chercher un mouvement…" data-i18n-ph="bib_ph" />
+      </div>
+      <div class="rc-filters" id="bib-filters"></div>
     </div>
-    <div id="bib-body"></div>
+    <div id="bib-body" class="bib-scroll"></div>
   </div>
 </div>
 
@@ -10315,46 +10326,94 @@ function lexClose(){ const ov=document.getElementById('lex-ov'); if(ov) ov.class
    Les fiches vivent deja en base (points de performance en 3 langues,
    consigne de Coach DM, video). Il manquait juste la porte d'entree.
    ------------------------------------------------------------------ */
-let BIB=null, BIB_Q='';
+let BIB=null, BIB_Q='', BIB_M='all';
+const BIB_MUSCLES=['full_body','quads','hamstrings','glutes','core','chest','back','lats','shoulders','triceps','biceps','calves','cardio'];
+const BIB_LAB={full_body:{fr:'Corps entier',en:'Full body',nl:'Hele lichaam'},quads:{fr:'Quadriceps',en:'Quads',nl:'Quadriceps'},
+ hamstrings:{fr:'Ischios',en:'Hamstrings',nl:'Hamstrings'},glutes:{fr:'Fessiers',en:'Glutes',nl:'Bilspieren'},
+ core:{fr:'Gainage',en:'Core',nl:'Core'},chest:{fr:'Pectoraux',en:'Chest',nl:'Borst'},back:{fr:'Dos',en:'Back',nl:'Rug'},
+ lats:{fr:'Dorsaux',en:'Lats',nl:'Lats'},shoulders:{fr:'Épaules',en:'Shoulders',nl:'Schouders'},
+ triceps:{fr:'Triceps',en:'Triceps',nl:'Triceps'},biceps:{fr:'Biceps',en:'Biceps',nl:'Biceps'},
+ calves:{fr:'Mollets',en:'Calves',nl:'Kuiten'},cardio:{fr:'Cardio',en:'Cardio',nl:'Cardio'},
+ traps:{fr:'Trapèzes',en:'Traps',nl:'Trapezius'},forearms:{fr:'Avant-bras',en:'Forearms',nl:'Onderarmen'},
+ abductors:{fr:'Abducteurs',en:'Abductors',nl:'Abductoren'},adductors:{fr:'Adducteurs',en:'Adductors',nl:'Adductoren'}};
+function bibLab(m){ const o=BIB_LAB[m]; return o?(o[LANG]||o.fr):(m||''); }
 function bibClose(){ const ov=document.getElementById('bib-ov'); if(ov) ov.classList.remove('show'); }
 async function bibOpen(){
   const ov=document.getElementById('bib-ov'); if(!ov) return;
   ov.classList.add('show');
-  const q=document.getElementById('bib-q'); if(q){ q.value=''; BIB_Q=''; }
+  const q=document.getElementById('bib-q'); if(q){ q.value=''; BIB_Q=''; } BIB_M='all';
   const body=document.getElementById('bib-body');
-  const sr=document.getElementById('bib-search'); if(sr) sr.style.display='';
+  const fx0=document.querySelector('.bib-fixe'); if(fx0) fx0.style.display='';
   if(body) body.innerHTML='<div class="spin"></div>';
   if(!BIB){
-    const { data, error } = await sb.from('exercises')
-      .select('id,slug,name_fr,name_en,name_nl,primary_muscle,equipment,video_url,youtube_query,cue_fr,cue_en,cue_nl,instructions_fr,instructions_en,instructions_nl')
-      .eq('is_published',true).order('name_fr',{ascending:true}).limit(500);
-    if(error||!data){ if(body) body.innerHTML='<p class="empty">'+t('bib_none')+'</p>'; return; }
-    BIB=data;
+    /* 391 mouvements publies : on charge par pages de 200, sinon PostgREST
+       coupe la liste et on ne voit jamais la fin. */
+    let tout=[], de=0;
+    for(let page=0; page<5; page++){
+      const { data, error } = await sb.from('exercises')
+        .select('id,slug,name_fr,name_en,name_nl,primary_muscle,equipment,video_url,cue_fr,cue_en,cue_nl,instructions_fr,instructions_en,instructions_nl')
+        .eq('is_published',true).order('name_fr',{ascending:true}).range(de, de+199);
+      if(error){ break; }
+      if(!data || !data.length) break;
+      tout=tout.concat(data);
+      if(data.length<200) break;
+      de+=200;
+    }
+    if(!tout.length){ if(body) body.innerHTML='<p class="empty">'+t('bib_none')+'</p>'; return; }
+    /* les fiches completes d'abord : ce sont celles qui portent les points
+       de performance et la consigne de Coach DM */
+    tout.sort((a,b)=>{
+      const ca=((a['instructions_'+LANG]||a.instructions_fr||[]).length?1:0);
+      const cb=((b['instructions_'+LANG]||b.instructions_fr||[]).length?1:0);
+      if(ca!==cb) return cb-ca;
+      return String(pick(a,'name')||'').localeCompare(String(pick(b,'name')||''));
+    });
+    BIB=tout;
   }
+  bibFiltres();
   bibListe();
+}
+function bibFiltres(){
+  const box=document.getElementById('bib-filters'); if(!box||!BIB) return;
+  const presents=BIB_MUSCLES.filter(m=>BIB.some(e=>e.primary_muscle===m));
+  box.innerHTML='<button class="rc-chip'+(BIB_M==='all'?' on':'')+'" data-bm="all">'+t('rc_all')+'</button>'+
+    presents.map(m=>'<button class="rc-chip'+(BIB_M===m?' on':'')+'" data-bm="'+m+'">'+esc(bibLab(m))+'</button>').join('');
+  box.querySelectorAll('.rc-chip').forEach(b=>b.onclick=()=>{
+    BIB_M=b.dataset.bm;
+    box.querySelectorAll('.rc-chip').forEach(x=>x.classList.toggle('on',x===b));
+    bibListe();
+  });
 }
 function bibListe(){
   const body=document.getElementById('bib-body'); if(!body||!BIB) return;
-  const sr=document.getElementById('bib-search'); if(sr) sr.style.display='';
+  const fx=document.querySelector('.bib-fixe'); if(fx) fx.style.display='';
   const qq=(BIB_Q||'').trim().toLowerCase();
   const list=BIB.filter(e=>{
+    if(BIB_M!=='all' && e.primary_muscle!==BIB_M) return false;
     if(!qq) return true;
     const n=(pick(e,'name')||'')+' '+(e.slug||'');
     return n.toLowerCase().indexOf(qq)>=0;
   });
+  const cnt=document.getElementById('bib-count');
+  if(cnt) cnt.textContent=list.length+' / '+BIB.length;
   if(!list.length){ body.innerHTML='<p class="empty">'+t('bib_none')+'</p>'; return; }
-  body.innerHTML=list.map((e,i)=>`<button type="button" class="bib-item" data-b="${BIB.indexOf(e)}">
-      <span style="flex:1 1 auto;min-width:0"><b>${esc(pick(e,'name'))}</b><span>${esc(e.primary_muscle||'')}${e.equipment?(' · '+esc(e.equipment)):''}</span></span>
+  body.innerHTML=list.map(e=>{
+    const fiche=((e['instructions_'+LANG]||e.instructions_fr||[]).length)?'<i class="bib-dot"></i>':'';
+    return `<button type="button" class="bib-item" data-b="${BIB.indexOf(e)}">
+      <span style="flex:1 1 auto;min-width:0"><b>${fiche}${esc(pick(e,'name'))}</b><span>${esc(bibLab(e.primary_muscle))}${e.equipment?(' · '+esc(e.equipment)):''}</span></span>
       <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)"><path d="M9 18l6-6-6-6"/></svg>
-    </button>`).join('');
+    </button>`;}).join('');
   body.querySelectorAll('.bib-item').forEach(el=>el.onclick=()=>bibFiche(BIB[+el.dataset.b]));
 }
 function bibFiche(e){
   const body=document.getElementById('bib-body'); if(!body||!e) return;
-  const sr=document.getElementById('bib-search'); if(sr) sr.style.display='none';
+  const fx=document.querySelector('.bib-fixe'); if(fx) fx.style.display='none';
   const steps=(e['instructions_'+LANG]||e.instructions_fr||[]);
   const cue=pick(e,'cue');
-  const vid=e.video_url || (e.youtube_query?('https://www.youtube.com/results?search_query='+encodeURIComponent(e.youtube_query)):'');
+  /* On ne propose la video que si on a une vraie URL YouTube : le lecteur
+     interne la prend en charge et on ne sort jamais de l'app. Une simple
+     recherche YouTube ouvrirait le navigateur, donc on s'en passe. */
+  const vid = (e.video_url && ytId(e.video_url)) ? e.video_url : '';
   body.innerHTML=`
     <button type="button" class="btn subtle" id="bib-back" style="margin-bottom:12px">&lsaquo; ${esc(t('bib_title'))}</button>
     <h3 style="margin:0 0 2px">${esc(pick(e,'name'))}</h3>
@@ -10364,7 +10423,7 @@ function bibFiche(e){
         <p style="margin:0;font-size:13.5px;line-height:1.55">${esc(cue)}</p></div>`:''}
     ${steps.length?`<div style="font-size:10px;letter-spacing:1.4px;color:var(--muted);font-weight:800;margin:0 0 9px">${esc(t('bib_points')).toUpperCase()}</div>
       ${steps.map((x,i)=>`<div class="bib-step"><i>${i+1}</i><p>${esc(x)}</p></div>`).join('')}`:''}
-    ${vid?`<a class="btn subtle" href="${esc(vid)}" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:14px">${esc(t('bib_video'))}</a>`:''}
+    ${vid?`<a class="btn subtle ex-demo" href="${esc(vid)}" style="display:block;text-align:center;margin-top:14px">${esc(t('bib_video'))}</a>`:''}
   `;
   const bk=document.getElementById('bib-back'); if(bk) bk.onclick=()=>bibListe();
 }
