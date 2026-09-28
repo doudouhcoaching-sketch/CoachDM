@@ -10644,7 +10644,7 @@ async function bibOpen(){
     let tout=[], de=0;
     for(let page=0; page<5; page++){
       const { data, error } = await sb.from('exercises')
-        .select('id,slug,name_fr,name_en,name_nl,primary_muscle,equipment,pattern,video_url,cue_fr,cue_en,cue_nl,instructions_fr,instructions_en,instructions_nl')
+        .select('id,slug,name_fr,name_en,name_nl,primary_muscle,equipment,pattern,video_url,cue_fr,cue_en,cue_nl,instructions_fr,instructions_en,instructions_nl,mistakes_fr,mistakes_en,mistakes_nl')
         .eq('is_published',true).order('name_fr',{ascending:true}).range(de, de+199);
       if(error){ break; }
       if(!data || !data.length) break;
@@ -10726,7 +10726,11 @@ function bibFicheRender(){
      recherche YouTube ouvrirait le navigateur, donc on s'en passe. */
   const vid = (e.video_url && ytId(e.video_url)) ? e.video_url : '';
   const A=window.MOUV_ANIM&&window.MOUV_ANIM[e.slug];
-  const erreurs=(A&&A.ko_t)||[];
+  /* Les erreurs sont desormais en base, pour TOUTES les fiches. Avant, elles
+     vivaient dans anim.js — donc seuls les 28 mouvements dessines pouvaient en
+     avoir, et les 361 autres n'avaient nulle part ou les mettre. anim.js reste
+     en repli le temps que la base rattrape, puis ne sert plus qu'a dessiner. */
+  const erreurs=(e['mistakes_'+LANG]||e.mistakes_fr||(A&&A.ko_t)||[]);
   const mode=BIB_MODE;
   const listeAff = mode==='ko' ? erreurs : steps;
   const titreAff = mode==='ko' ? t('bib_err') : t('bib_points');
@@ -10735,8 +10739,8 @@ function bibFicheRender(){
     <h3 style="margin:0 0 2px">${esc(pick(e,'name'))}</h3>
     <div class="fk" style="margin-bottom:12px">${esc(bibLab(e.primary_muscle))} · ${esc(equipLab(e.equipment))}${e.pattern?(' · '+esc(e.pattern)):''}</div>
     ${A?`<div class="anim-box rig ${mode}">${animSVG(e.slug,mode)}
-        <span class="anim-tag" style="background:${mode==='ko'?'#EF4444':'#E9C767'}">${mode==='ko'?esc(t('bib_err_tag')):esc(t('bib_ok_tag'))}</span></div>
-      <div class="anim-sw">
+        <span class="anim-tag" style="background:${mode==='ko'?'#EF4444':'#E9C767'}">${mode==='ko'?esc(t('bib_err_tag')):esc(t('bib_ok_tag'))}</span></div>`:''}
+    ${(A||erreurs.length)?`<div class="anim-sw"${A?'':' style="margin-top:4px"'}>
         <button type="button" class="btn subtle${mode==='ok'?' on':''}" data-bmode="ok">${esc(t('bib_ok_btn'))}</button>
         <button type="button" class="btn subtle${mode==='ko'?' on ko':''}" data-bmode="ko"${erreurs.length?'':' disabled'}>${esc(t('bib_ko_btn'))}</button>
       </div>`:''}
