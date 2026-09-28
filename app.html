@@ -287,6 +287,9 @@
   .pf-card{position:relative;display:flex;align-items:center;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--surface);margin-bottom:14px;cursor:pointer}
   .pf-cover{flex:0 0 88px;align-self:stretch;min-height:88px;background:linear-gradient(135deg,color-mix(in srgb,var(--c) 60%,#000),color-mix(in srgb,var(--c) 22%,#000))}
   .pf-cover.img{background-size:cover;background-position:center}
+  /* La photo arrive apres coup : on la fait apparaitre au lieu de la faire claquer. */
+  .pf-cover.img,.se-cover.img,.rc-thumb,.rc-hero{transition:background-image .2s linear}
+  [data-bg]{background-size:cover;background-position:center}
   .pf-body{flex:1;padding:14px 6px 14px 16px}
   .pf-title{font-weight:800;font-size:15.5px;margin-bottom:9px;line-height:1.25}
   .pf-badges{display:flex;gap:7px;flex-wrap:wrap}
@@ -1211,15 +1214,26 @@ h1, h2,
     en:['Cannot connect','Coach DM cannot reach the network. Check your connection, then try again.','Try again'],
     nl:['Verbinden mislukt','Coach DM kan het netwerk niet bereiken. Controleer je verbinding en probeer opnieuw.','Opnieuw proberen']
   }[L];
-  window.__cdmWatch = setTimeout(function(){
+  /* Le panneau de secours est desormais une fonction nommee : le chronometre
+     l'appelle au bout de 10 s, et le module l'appelle AUSSI des qu'une etape du
+     demarrage echoue. Avant, un seul appel reseau rate apres show('app')
+     laissait la coquille vide, sans message ni bouton — c'est exactement le
+     « l'app a bugge avant de se charger » remonte le 28 septembre. */
+  window.__cdmPanne = function(){
+    if(window.__cdmWatch){ clearTimeout(window.__cdmWatch); window.__cdmWatch=null; }
     var b=document.getElementById('boot'); if(!b) return;
+    ['auth','gate','app'].forEach(function(id){ var e=document.getElementById(id); if(e){ e.classList.add('hidden'); if(id==='app') e.style.display='none'; } });
+    b.classList.remove('hidden');
     b.innerHTML='<div style="max-width:330px;margin:auto;padding:30px;text-align:center;font:400 15px/1.55 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;color:#b9c6c0">'
       +'<div style="font-size:34px;margin-bottom:12px">\u26A0\uFE0F</div>'
       +'<div style="font-weight:800;font-size:18px;color:#fff;margin-bottom:9px">'+M[0]+'</div>'
       +'<div style="margin-bottom:22px">'+M[1]+'</div>'
       +'<button type="button" onclick="location.reload()" style="background:#00E896;color:#04120c;border:0;border-radius:999px;padding:13px 28px;font-weight:800;font-size:15px;cursor:pointer">'+M[2]+'</button>'
       +'</div>';
-  }, 15000);
+  };
+  /* 15 s etait trop long : sur un reseau qui traine, on fixait un spinner muet
+     pendant un quart de minute. 10 s suffit pour distinguer lent de mort. */
+  window.__cdmWatch = setTimeout(window.__cdmPanne, 10000);
   window.__cdmOK = function(){ if(window.__cdmWatch){ clearTimeout(window.__cdmWatch); window.__cdmWatch=null; } };
 })();
 </script>
@@ -3777,6 +3791,7 @@ const T = {
  meal_pre_workout:{fr:'Pré-training',en:'Pre-workout',nl:'Pre-workout'},
  meal_post_workout:{fr:'Post-training',en:'Post-workout',nl:'Post-workout'},
  err_credentials:{fr:'Email et mot de passe requis.',en:'Email and password required.',nl:'E-mail en wachtwoord vereist.'},
+ boot_partiel:{fr:'Réseau instable : une partie des données n\'a pas pu être chargée. Tire vers le bas pour rafraîchir.',en:'Unstable network: some data could not load. Pull down to refresh.',nl:'Instabiel netwerk: sommige gegevens konden niet laden. Trek naar beneden om te vernieuwen.'},
  insight_title:{fr:'Insight du jour',en:'Daily insight',nl:'Inzicht van de dag'},
  see_all_workouts:{fr:'‹ Toutes les séances',en:'‹ All workouts',nl:'‹ Alle trainingen'},
  exercises:{fr:'exercices',en:'exercises',nl:'oefeningen'},
@@ -4220,9 +4235,35 @@ async function resumePendingPlan(){
   if(await hasAccess(USER.id)) { toast(t('plan_already')); return; }
   startCheckout(lk);
 }
+/* Une etape de demarrage qui echoue ne doit plus emporter tout le reste :
+   on note l'echec et on continue. C'est la difference entre une app un peu
+   incomplete — rechargeable — et un ecran vide sans issue. */
+let BOOT_KO = 0;
+async function etape(nom, fn){
+  try{ await fn(); return true; }
+  catch(e){ BOOT_KO++; console.warn('[boot] '+nom+' : '+(e&&e.message||e)); return false; }
+}
 async function boot(){
-  const { data:{ session } } = await sb.auth.getSession();
-  if(session?.user){ await enter(session.user); } else { show('auth'); }
+  let session=null;
+  /* getSession() lit le jeton stocke ET peut partir le rafraichir sur le
+     reseau. Sur une connexion qui saute, il LEVE — et sans ce try, boot()
+     etait rejete sans que personne n'attrape : ni ecran de connexion, ni
+     message, juste le spinner. */
+  try{
+    const r = await sb.auth.getSession();
+    session = r && r.data ? r.data.session : null;
+  }catch(e){
+    console.warn('[boot] getSession : '+(e&&e.message||e));
+  }
+  if(session && session.user){
+    try{ await enter(session.user); }
+    catch(e){
+      console.warn('[boot] enter : '+(e&&e.message||e));
+      if(window.__cdmPanne) window.__cdmPanne(); else show('auth');
+    }
+  } else {
+    show('auth');
+  }
 }
 sb.auth.onAuthStateChange((_e,session)=>{ if(!session) show('auth'); });
 
@@ -4417,15 +4458,40 @@ async function enter(user){
      mais on declenche bien l'envoi, et on avale l'echec. */
   try{ sb.rpc('touch_platform',{ p_platform: NATIVE_PLATFORM }).then(()=>{},()=>{}); }catch(_){}
   iapInit(user.id);          /* non bloquant : StoreKit s'initialise pendant le boot */
-  const [access] = await Promise.all([ hasAccess(user.id), prefetchBoot(user.id) ]);
+  /* Ces deux appels decident de l'acces premium et pre-chargent l'accueil.
+     Un seul essai suffisait a tuer le demarrage quand le reseau hesitait : on
+     reessaie une fois apres une demi-seconde, et en dernier recours on entre
+     quand meme, sans premium, plutot que de rester sur le spinner. */
+  let access=false, boot_degrade=false;
+  for(let essai=0; essai<2; essai++){
+    try{
+      const [a] = await Promise.all([ hasAccess(user.id), prefetchBoot(user.id) ]);
+      access=a; boot_degrade=false; break;
+    }catch(e){
+      boot_degrade=true; _PRE=null;
+      console.warn('[boot] acces/prefetch essai '+(essai+1)+' : '+(e&&e.message||e));
+      if(essai===0) await new Promise(r=>setTimeout(r,550));
+    }
+  }
   PREMIUM = access;
   show('app');
   $('#p-email').textContent = user.email || '';
-  await loadProfileInfo(user);
-  await loadTargets();
-  await loadToday();
+  /* Chaque chargement est isole. Avant, loadTargets() ou loadToday() qui
+     echouait empechait switchTab('home') de s'executer : l'app etait affichee
+     mais AUCUN onglet n'etait actif — ecran vide, watchdog deja annule, aucun
+     bouton pour s'en sortir. */
+  await etape('profil', ()=>loadProfileInfo(user));
+  await etape('objectifs', ()=>loadTargets());
+  await etape('aujourdhui', ()=>loadToday());
   _PRE=null;
-  switchTab('home');
+  /* L'accueil s'affiche dans tous les cas : c'est le dernier filet. */
+  if(!await etape('accueil', async ()=>switchTab('home'))){
+    if(window.__cdmPanne){ window.__cdmPanne(); return; }
+  }
+  if(boot_degrade || BOOT_KO){
+    /* On le dit, au lieu de laisser croire que des cartes vides sont normales. */
+    try{ toast(t('boot_partiel')); }catch(_){}
+  }
   loadCoachCard(); loadCalls(); initChatLive();
   /* Les invitations en attente sont chargees des l'entree : c'est la premiere
      chose que doit voir un membre invite, avant meme sa seance du jour. */
@@ -7093,6 +7159,71 @@ $('#go-profile').onclick = ()=>switchTab('profile');
 $('#jo-search').onclick = doSearch;
 $('#jo-q').addEventListener('keydown',e=>{ if(e.key==='Enter') doSearch(); });
 
+/* ---------------- IMAGES : POIDS ET MOMENT DU CHARGEMENT ---------------------
+   Deux defauts se cumulaient et rendaient les vignettes de programmes lentes
+   a s'afficher :
+
+   1) On demandait la pleine resolution. Les couvertures Unsplash etaient
+      appelees en w=1200 pour etre peintes dans 88 a 430 px de large, et les
+      couvertures de programme stockees chez nous pesent 230 a 320 Ko chacune.
+   2) Une image de fond CSS IGNORE loading="lazy". Ce garde-fou ne marche que
+      sur une balise <img>. Resultat : la liste des programmes lancait les dix
+      couvertures EN MEME TEMPS, soit pres de 3 Mo, et le telephone les servait
+      dans l'ordre d'arrivee — d'ou des cadres qui restaient vides plusieurs
+      secondes sur une connexion mobile.
+
+   On corrige les deux : imgCover() demande la largeur reellement affichee,
+   bgLazy() ne declenche le telechargement que lorsque le cadre approche de
+   l'ecran. Une carte hors ecran ne coute plus rien. */
+function imgCover(u,w){
+  if(!u) return u;
+  w = w || 640;
+  try{
+    /* Unsplash redimensionne a la demande : c'est gratuit et immediat.
+       Passer de w=1200 a w=640 divise le poids par cinq environ. */
+    if(u.indexOf('images.unsplash.com')>=0){
+      let v = u.replace(/([?&])w=\d+/, '$1w='+w).replace(/([?&])q=\d+/, '$1q=62');
+      if(!/[?&]w=/.test(v)) v += (v.indexOf('?')<0?'?':'&')+'w='+w;
+      return v;
+    }
+  }catch(_){}
+  return u;
+}
+/* data-bg porte la valeur COMPLETE de background-image (degrade compris), pas
+   seulement une URL : les cartes recette superposent un voile sombre au-dessus
+   de la photo, et cet ordre doit etre conserve. */
+function bgDiff(cssValue){ return ' data-bg="'+esc(cssValue)+'"'; }
+let IO_BG=null;
+function bgLazy(root){
+  const zone = root || document;
+  let els;
+  try{ els = zone.querySelectorAll('[data-bg]'); }catch(_){ return; }
+  if(!els.length) return;
+  if(!('IntersectionObserver' in window)){
+    els.forEach(el=>{ el.style.backgroundImage=el.getAttribute('data-bg'); el.removeAttribute('data-bg'); });
+    return;
+  }
+  if(!IO_BG){
+    IO_BG = new IntersectionObserver(entries=>{
+      entries.forEach(e=>{
+        if(!e.isIntersecting) return;
+        const el=e.target, v=el.getAttribute('data-bg');
+        IO_BG.unobserve(el);
+        if(!v) return;
+        el.removeAttribute('data-bg');
+        /* On precharge dans un objet Image pour n'appliquer le fond qu'une fois
+           l'octet arrive : sinon le cadre clignote du degrade a la photo. */
+        const m = v.match(/url\('([^']+)'\)/);
+        if(!m){ el.style.backgroundImage=v; return; }
+        const im=new Image();
+        im.onload = ()=>{ el.style.backgroundImage=v; el.classList.add('bg-on'); };
+        im.onerror= ()=>{ el.classList.add('bg-ko'); };
+        im.src=m[1];
+      });
+    }, { rootMargin:'320px 0px' });   /* une carte et demie d'avance : la photo est la avant qu'il n'y arrive */
+  }
+  els.forEach(el=>IO_BG.observe(el));
+}
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 async function searchLocal(q){
@@ -7311,11 +7442,31 @@ function rcMajBandeau(){
 }
 const RC_HUES={breakfast:38,lunch:150,dinner:262,snack:12,pre_workout:190,post_workout:330};
 function rcHue(r){ return (r.meal_type in RC_HUES) ? RC_HUES[r.meal_type] : 150; }
+/* rcBgVal ne rend que la VALEUR de background-image : elle part soit dans un
+   style inline (le degrade seul, sans poids), soit dans data-bg pour differer
+   la photo. rcBg garde sa signature pour les appels qui n'ont pas besoin du
+   chargement differe. */
+function rcBgVal(r,dark,larg){
+  if(r.image_url){
+    const u = esc(imgCover(r.image_url, larg||560));
+    const d = parseFloat(dark)||0;
+    if(!d) return `url('${u}')`;
+    return `linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(0,0,0,${d})),url('${u}')`;
+  }
+  const h=rcHue(r);
+  return `linear-gradient(150deg,hsl(${h} 55% 22%),hsl(${(h+40)%360} 50% 13%))`;
+}
+function rcFond(r,dark,larg){
+  /* Photo distante : on la differe. Degrade calcule : aucun octet, on l'applique tout de suite. */
+  return r.image_url
+    ? ` style="background-image:linear-gradient(150deg,hsl(${rcHue(r)} 55% 22%),hsl(${(rcHue(r)+40)%360} 50% 13%))"`+bgDiff(rcBgVal(r,dark,larg))
+    : ` style="background-image:${rcBgVal(r,dark,larg)}"`;
+}
 function rcBg(r,dark){
   if(r.image_url){
     const d=parseFloat(dark)||0;
-    if(!d) return `background-image:url('${esc(r.image_url)}')`;
-    return `background-image:linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(0,0,0,${d})),url('${esc(r.image_url)}')`;
+    if(!d) return `background-image:url('${esc(imgCover(r.image_url,560))}')`;
+    return `background-image:linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(0,0,0,${d})),url('${esc(imgCover(r.image_url,560))}')`;
   }
   const h=rcHue(r);
   return `background-image:linear-gradient(150deg,hsl(${h} 55% 22%),hsl(${(h+40)%360} 50% 13%))`;
@@ -7326,7 +7477,7 @@ function rcCard(r,i){
   const diff = r.difficulty ? `<span>${esc(t('rc_diff_'+r.difficulty))}</span>` : '';
   const time = (+r.prep_time_min||0)+(+r.cook_time_min||0);
   return `<div class="rc-card" data-i="${i}">
-    <div class="rc-thumb" style="${rcBg(r,'.45')}">
+    <div class="rc-thumb"${rcFond(r,'.45',420)}>
       ${hp}
       <span class="rc-ic"><svg viewBox="0 0 24 24"><path d="M4 3v6a3 3 0 0 0 6 0V3M7 3v18M20 3c-1.8 0-3 2-3 5s1.2 4 3 4v9"/></svg></span>
       <span class="rc-kcal">${r0(r.kcal_per_serving)} kcal</span>
@@ -7358,6 +7509,7 @@ function rcApplyFilter(){
   if(!list.length){ grid.innerHTML=emptyIllus('i-bowl',t('rc_none')); if(more) more.style.display='none'; return; }
   const vue = RC_TOUT ? list : list.slice(0,RC_APERCU);
   grid.innerHTML=vue.map(r=>rcCard(r,RECIPES.indexOf(r))).join('');
+  bgLazy(grid);
   grid.querySelectorAll('.rc-card').forEach(el=>el.onclick=()=>rcOpen(RECIPES[+el.dataset.i]));
   if(more){
     const reste=list.length-vue.length;
@@ -7392,7 +7544,7 @@ async function rcOpen(r){
   const desc=pick(r,'description');
   const steps=(r['instructions_'+LANG]||r.instructions_fr||[]);
   box.innerHTML=`
-    <div class="rc-hero" style="${rcBg(r,'.2')}"></div>
+    <div class="rc-hero"${rcFond(r,'.2',760)}></div>
     <h3>${esc(pick(r,'name'))}</h3>
     ${desc?`<div class="rc-sub">${esc(desc)}</div>`:'<div style="height:4px"></div>'}
     <div class="rc-stats">
@@ -7425,6 +7577,7 @@ async function rcOpen(r){
       </select></div>
     <button class="btn" id="rc-add" data-i18n="rc_add">Ajouter \u00e0 mon journal</button>
     <button class="btn subtle" id="rc-cancel" style="margin-top:10px" data-i18n="btn_cancel">Annuler</button>`;
+  bgLazy(box);
   applyI18n();
   if(r.meal_type){ const m=$('#rc-meal'); if(m) m.value=r.meal_type; }
   rcSrvUpdate();
@@ -8685,7 +8838,7 @@ function renderProgramFolders(CAT){
     const col=typeColor(first.type);
     const cov=(items.find(w=>w.cover_image_url)||{}).cover_image_url||'';
     const cover=cov
-      ? `<div class="pf-cover img" style="--c:${col};background-image:url('${esc(cov)}')"></div>`
+      ? `<div class="pf-cover img" style="--c:${col}"${bgDiff(`url('${esc(imgCover(cov,320))}')`)}></div>`
       : `<div class="pf-cover ${PROG_MOTIF[slug]||''}" style="--c:${col}"></div>`;
     html+=`<div class="pf-card" data-prog="${esc(slug)}">${cover}
       <div class="pf-body">
@@ -8701,6 +8854,7 @@ function renderProgramFolders(CAT){
       <div class="pf-arrow">›</div></div>`;
   });
   $('#se-cards').innerHTML=html;
+  bgLazy($('#se-cards'));
 }
 function renderProgramDays(CAT, slug){
   const items=CAT.filter(w=>w.program_slug===slug)
@@ -8725,7 +8879,7 @@ function renderProgramDays(CAT, slug){
     const done = SE_DONE.has(w.id);
     const isNext = nextW && w.id===nextW.id;
     const cover = w.cover_image_url
-      ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${typeL(w.type)}</span></div>`
+      ? `<div class="se-cover img" style="--c:${col}"${bgDiff(`url('${esc(imgCover(w.cover_image_url,640))}')`)}><span class="se-type">${typeL(w.type)}</span></div>`
       : `<div class="se-cover ${TYPE_MOTIF[w.type]||''}" style="--c:${col}"><span class="se-type">${typeL(w.type)}</span></div>`;
     html+=`<div class="se-card${locked?' locked':''}${done?' se-done':''}${isNext?' se-next':''}"
       data-open="${w.id}"${isNext?' id="se-next-anchor"':''}>${cover}${locked?'<span class="se-lock"><svg class="ic"><use href="#i-lock"/></svg></span>':''}
@@ -8740,6 +8894,7 @@ function renderProgramDays(CAT, slug){
       </div></div>`;
   });
   $('#se-cards').innerHTML=html;
+  bgLazy($('#se-cards'));
   /* On amène la prochaine séance sous les yeux plutôt que de faire défiler. */
   const anchor=$('#se-next-anchor');
   if(anchor && doneN>0){
@@ -9174,7 +9329,7 @@ async function openWorkout(id){
 function renderDetail(w,items,tips){
   const col=typeColor(w.type);
   const cover = w.cover_image_url
-    ? `<div class="se-cover img" style="--c:${col};background-image:url('${esc(w.cover_image_url)}')"><span class="se-type">${typeL(w.type)}</span></div>`
+    ? `<div class="se-cover img" style="--c:${col}"${bgDiff(`url('${esc(imgCover(w.cover_image_url,720))}')`)}><span class="se-type">${typeL(w.type)}</span></div>`
     : `<div class="se-cover ${TYPE_MOTIF[w.type]||''}" style="--c:${col}"><span class="se-type">${typeL(w.type)}</span></div>`;
   let html=`<button class="se-back" id="se-back">${t('see_all_workouts')}</button>
     <div class="se-hero">${cover}</div>

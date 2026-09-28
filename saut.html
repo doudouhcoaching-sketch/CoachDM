@@ -872,6 +872,10 @@ function renderJumps(){
 /* ───────── Drawing ───────── */
 function draw(res){
   ctx.clearRect(0,0,canvas.width,canvas.height);
+  /* « Rien » : l'image reste nue. On sort AVANT de tracer quoi que ce soit —
+     squelette comme reperes. La mesure, elle, a deja eu lieu ailleurs : ce
+     reglage ne touche que ce qui est peint par-dessus la camera. */
+  if(window.CDM_AFF==='rien') return;
   if(S.base!=null){
     const yp=S.base*canvas.height;
     ctx.save();
@@ -881,8 +885,8 @@ function draw(res){
   }
   const lm=res&&res.landmarks&&res.landmarks[0];
   if(lm&&du){
-    du.drawConnectors(lm,PoseLandmarker.POSE_CONNECTIONS,{color:'rgba(0,232,150,.55)',lineWidth:3});
-    du.drawLandmarks(lm,{color:'#00E896',fillColor:'#00E896',radius:2.5});
+    if(window.cdmAffSquelette&&window.cdmAffSquelette()){ du.drawConnectors(lm,PoseLandmarker.POSE_CONNECTIONS,{color:'rgba(0,232,150,.55)',lineWidth:3}); }
+    if(window.cdmAffSquelette&&window.cdmAffSquelette()){ du.drawLandmarks(lm,{color:'#00E896',fillColor:'#00E896',radius:2.5}); }
   }
 }
 
@@ -1670,5 +1674,54 @@ try{document.fonts.load('800 300px Outfit');document.fonts.load('700 44px Outfit
   </div>
 </div>
 
+
+<!-- ─────────── CE QU'ON VOIT SUR SOI ───────────────────────────────────────
+   Le squelette vert rassure au debut : on voit que la machine suit. Passe ce
+   moment, il gene — on regarde les points au lieu de regarder son geste, et
+   certains le trouvent simplement laid sur leur video. D'autres ne veulent que
+   le chiffre a la fin.
+   Trois niveaux, memorises dans le navigateur et PARTAGES avec le Mode jeu
+   (meme cle cdm_aff) : ce qu'il choisit une fois vaut partout.
+     complet  le squelette entier, comme avant
+     repere   plus de squelette, on garde seulement le repere de mesure
+              (la ligne doree, le point de hanche) : ce qui sert a comprendre
+     rien     rien du tout sur l'image, il ne reste que le resultat
+   Le calcul ne change pas d'un iota : c'est de l'affichage, pas de la mesure.
+─────────────────────────────────────────────────────────────────────────── -->
+<style>
+  #cdm-aff{position:fixed;right:10px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:60;display:flex;gap:6px;
+    background:rgba(0,0,0,.62);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px;backdrop-filter:blur(8px)}
+  #cdm-aff button{appearance:none;border:0;background:transparent;color:#cfd8d4;font:800 11px/1 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;
+    letter-spacing:.7px;padding:8px 11px;border-radius:999px;cursor:pointer}
+  #cdm-aff button.on{background:#00E896;color:#04120c}
+  @media print{#cdm-aff{display:none}}
+</style>
+<div id="cdm-aff" role="group" aria-label="Ce qu'on voit sur soi">
+  <button type="button" data-aff="complet">Squelette</button>
+  <button type="button" data-aff="repere">Repères</button>
+  <button type="button" data-aff="rien">Rien</button>
+</div>
+<script>
+(function(){
+  var K='cdm_aff';
+  function lu(){ try{ var v=localStorage.getItem(K); return (v==='repere'||v==='rien')?v:'complet'; }catch(e){ return 'complet'; } }
+  window.CDM_AFF = lu();
+  window.cdmAffSquelette = function(){ return window.CDM_AFF === 'complet'; };
+  window.cdmAffReperes   = function(){ return window.CDM_AFF !== 'rien'; };
+  function peindre(){
+    var bs=document.querySelectorAll('#cdm-aff button');
+    for(var i=0;i<bs.length;i++) bs[i].classList.toggle('on', bs[i].getAttribute('data-aff')===window.CDM_AFF);
+  }
+  var bs=document.querySelectorAll('#cdm-aff button');
+  for(var i=0;i<bs.length;i++)(function(b){
+    b.onclick=function(){
+      window.CDM_AFF=b.getAttribute('data-aff');
+      try{ localStorage.setItem(K, window.CDM_AFF); }catch(e){}
+      peindre();
+    };
+  })(bs[i]);
+  peindre();
+})();
+</script>
 </body>
 </html>
