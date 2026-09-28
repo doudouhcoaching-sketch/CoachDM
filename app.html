@@ -3791,6 +3791,8 @@ const T = {
  meal_pre_workout:{fr:'Pré-training',en:'Pre-workout',nl:'Pre-workout'},
  meal_post_workout:{fr:'Post-training',en:'Post-workout',nl:'Post-workout'},
  err_credentials:{fr:'Email et mot de passe requis.',en:'Email and password required.',nl:'E-mail en wachtwoord vereist.'},
+ jeu_load:{fr:'Mode jeu — chargement du suivi de mouvement…',en:'Game mode — loading motion tracking…',nl:'Spelmodus — bewegingsherkenning laden…'},
+ jeu_load_ko:{fr:'Le suivi de mouvement n\'a pas pu se charger. V\u00e9rifie ta connexion et r\u00e9essaie.',en:'Motion tracking could not load. Check your connection and try again.',nl:'Bewegingsherkenning kon niet laden. Controleer je verbinding en probeer opnieuw.'},
  boot_partiel:{fr:'Réseau instable : une partie des données n\'a pas pu être chargée. Tire vers le bas pour rafraîchir.',en:'Unstable network: some data could not load. Pull down to refresh.',nl:'Instabiel netwerk: sommige gegevens konden niet laden. Trek naar beneden om te vernieuwen.'},
  insight_title:{fr:'Insight du jour',en:'Daily insight',nl:'Inzicht van de dag'},
  see_all_workouts:{fr:'‹ Toutes les séances',en:'‹ All workouts',nl:'‹ Alle trainingen'},
@@ -10073,6 +10075,10 @@ pfShow = function(view){
 
 /* "Retour" ferme d'abord la popup ouverte (paiement, fiche recette, chat...) */
 function navCloseTopOverlay(){
+  /* Le mode jeu est l'ecran le plus haut. Sans cette ligne, le bouton retour
+     d'Android quitterait l'app au lieu de sortir du jeu. */
+  const jx=document.getElementById('jeu-app');
+  if(jx && !jx.hidden){ try{ fermerJeu(); }catch(_){ jx.hidden=true; } return true; }
   const pairs=[
     ['ck-ov',   ()=>{ try{ closeCheckout(); }catch(_){ $('#ck-ov')?.classList.remove('show'); } }],
     ['yt-ov',   ()=>{ try{ closeDemo(); }catch(_){ $('#yt-ov')?.classList.remove('show'); } }],
@@ -10777,14 +10783,67 @@ function hubTuile(cle,ic,titre,sous,live){
     <span class="hi">${ic}</span><b>${esc(titre)}</b><em>${esc(sous)}</em>
     <span class="go">›</span></button>`;
 }
-/* jeu.html est une page a part : elle n'a ni la session Supabase ni PREMIUM.
-   On lui passe l'etat de l'abonnement par le stockage local, horodate — elle
-   l'ignore au-dela de douze heures, pour qu'un telephone prete ne reste pas
-   ouvert. Verrou de confort cote client, assume : le contenu qui a de la
-   valeur est protege cote serveur par les regles de la base. */
-function ouvrirJeu(){
-  try{ localStorage.setItem('cdm_jeu_acces', JSON.stringify({ p: PREMIUM ? 1 : 0, t: Date.now() })); }catch(_){}
-  location.href='jeu.html';
+/* ---------------- MODE JEU : MONTAGE ----------------------------------------
+   Le jeu ne change plus de page. Il se monte dans une racine fantome, dans la
+   session en cours, et recoit de l'app :
+     sb       le client Supabase AUTHENTIFIE — les scores partent donc avec une
+              identite, et la regle RLS exige user_id = auth.uid()
+     user()   l'utilisateur connecte
+     premium()PREMIUM, que l'app tient de la fonction serveur access_level()
+     fermer() le retour a l'app
+   Consequence voulue : plus aucun drapeau modifiable cote client, et plus de
+   page a ouvrir directement sans session. Meme porte que les programmes. */
+let JEU_API=null, JEU_CHARGE=false;
+function jeuScript(src){
+  return new Promise((ok,ko)=>{
+    const t=document.createElement('script'); t.src=src; t.async=true;
+    t.onload=()=>ok(); t.onerror=()=>ko(new Error(src));
+    document.head.appendChild(t);
+  });
+}
+/* Le modele pese plus d'un megaoctet : il ne se charge qu'au premier jeu
+   ouvert, jamais au demarrage de l'app. */
+async function jeuModele(){
+  if(window.poseDetection) return;
+  await jeuScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js');
+  await jeuScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js');
+}
+function fermerJeu(){
+  const h=document.getElementById('jeu-app');
+  if(h) h.hidden=true;
+  document.body.style.overflow='';
+}
+async function ouvrirJeu(){
+  const hote=document.getElementById('jeu-app');
+  if(!hote || !USER) return;
+  hote.hidden=false;
+  document.body.style.overflow='hidden';
+  if(JEU_API){ try{ JEU_API.ouvrir(); }catch(_){} return; }
+  if(JEU_CHARGE) return;                     /* chargement deja en cours */
+  JEU_CHARGE=true;
+  hote.insertAdjacentHTML('beforeend',
+    '<div id="jeu-load" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;'
+    +'color:#C9DCD3;font:600 14px/1.5 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;text-align:center;padding:24px">'
+    +t('jeu_load')+'</div>');
+  try{
+    await jeuModele();
+    if(typeof window.__jeuDemarrer!=='function') throw new Error('moteur absent');
+    const racine=hote.attachShadow({mode:'open'});
+    const st=document.createElement('style');
+    st.textContent=document.getElementById('jeu-css').textContent;
+    racine.appendChild(st);
+    racine.appendChild(document.getElementById('jeu-mk').content.cloneNode(true));
+    JEU_API=window.__jeuDemarrer({
+      JR: racine, sb, user: ()=>USER, premium: ()=>PREMIUM, fermer: fermerJeu
+    });
+    const l=document.getElementById('jeu-load'); if(l) l.remove();
+  }catch(e){
+    JEU_CHARGE=false;
+    const l=document.getElementById('jeu-load');
+    if(l) l.innerHTML=esc(t('jeu_load_ko'))
+      +'<br><br><button type="button" onclick="document.getElementById(\'jeu-app\').hidden=true;document.body.style.overflow=\'\';"'
+      +' style="background:#00E896;color:#04120c;border:0;border-radius:999px;padding:11px 22px;font-weight:800;cursor:pointer">OK</button>';
+  }
 }
 async function renderHomeHub(){
   const host=document.getElementById('home-hub'); if(!host) return;
@@ -10992,5 +11051,1636 @@ if (!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.
     <button class="btn subtle" id="nf-cancel" style="margin-top:9px">Annuler</button>
   </div>
 </div>
+
+<!-- ─────────── MODE JEU ──────────────────────────────────────────────────────
+   Le jeu vivait dans jeu.html, une page a part. Deux pages, c'est deux portes :
+   celle-la n'avait pas la session de l'app, donc son abonnement se lisait dans
+   le stockage local — un drapeau que n'importe qui pouvait mettre a 1. Le jeu
+   est maintenant DANS l'app, dans la meme session, derriere le meme controle
+   serveur que les programmes et la console coach.
+
+   Il vit dans une racine fantome (shadow DOM) accrochee a ce conteneur. C'est
+   ce qui permet de garder son feuille de style telle quelle : le jeu redefinit
+   des noms que l'app utilise aussi — .card, .on, .show, et des selecteurs nus
+   comme button, video, h1 — et sans cette cloison il repeindrait toute l'app.
+   Aucune classe n'a eu besoin d'etre renommee.
+──────────────────────────────────────────────────────────────────────────── -->
+<div id="jeu-app" hidden></div>
+<style>
+  #jeu-app{position:fixed;inset:0;z-index:4000;background:#050807}
+  #jeu-app[hidden]{display:none}
+</style>
+<script id="jeu-src">/* ==========================================================================
+   MODE JEU — le moteur. Voir le conteneur #jeu-app plus haut pour le pourquoi
+   de la racine fantome. Ce bloc ne fait que DEFINIR window.__jeuDemarrer ; il
+   ne touche a rien tant que l'app ne l'appelle pas.
+   ========================================================================== */
+
+/* ==================================================================
+   Coach DM — mode jeu. Catalogue de jeux batis sur un seul principe :
+   ATTRAPER UNE CIBLE AVEC LA BONNE PARTIE DU CORPS.
+   Le suivi tourne sur le telephone (MoveNet). Rien ne sort de l'appareil,
+   sauf le prenom et le score si un prenom est saisi.
+   ================================================================== */
+window.__jeuDemarrer = function (APP) {
+  /* JR est la racine fantome : tout le jeu vit dedans. Aucune regle de style
+     de l'app n'y entre, aucune des siennes n'en sort. C'est ce qui permet de
+     fusionner les deux pages sans renommer une seule classe. */
+  var JR = APP.JR;
+
+  'use strict';
+
+  /* =============== CE QUI EST GRATUIT =======================================
+     L'app est freemium. Sauts et Squats sont ouverts a tout le monde, avec
+     leurs quinze niveaux : ce sont les deux gestes que tout le monde sait
+     faire sans materiel et sans place. Les six autres demandent l'abonnement.
+     Un jeu verrouille reste essayable, quatre obstacles sans score.
+
+     L'abonnement n'est PAS lu ici. Le jeu tourne maintenant DANS l'app, dans
+     la meme session, et demande son etat a l'app — qui le tient de la fonction
+     serveur access_level(), exactement comme les programmes, les seances et la
+     console coach. Plus de drapeau dans le stockage local a modifier, plus de
+     page separee a ouvrir directement : pour jouer il faut une session
+     ouverte, et pour ouvrir les six jeux payants il faut que le serveur ait
+     dit oui. Meme porte que le reste des services payants. */
+  var GRATUIT = { saut: 1, squat: 1 };
+  function premium() { try { return !!APP.premium(); } catch (e) { return false; } }
+  function verrouille(k) { return !premium() && !GRATUIT[k]; }
+
+  var STORE = 'cdm_jeu_v4';
+
+  var vid = JR.getElementById('vid');
+  var cv = JR.getElementById('cv');
+  var ctx = cv.getContext('2d');
+  var rec = JR.getElementById('rec');
+  var rctx = rec.getContext('2d');
+  function $(i) { return JR.getElementById(i); }
+  function show(el, on) { el.classList.toggle('hide', !on); }
+
+  /* =============== CATALOGUE =============== */
+  /* type 'franchir' : une barre arrive, le corps doit etre en position.
+     type 'toucher'  : une cible arrive, une partie du corps doit entrer dedans. */
+  var JEUX = {
+    saut: {
+      nom: 'SAUTS', type: 'franchir', forme: 'haie', bas: false,
+      sous: 'Des haies arrivent. Tes deux pieds passent au-dessus.',
+      ordre: 'SAUTE',
+      regles: ['Une haie arrive de la droite, à la hauteur de la ligne dorée.',
+               'Quand elle est sur toi, tes deux chevilles doivent être au-dessus de la ligne.',
+               'La ligne est calculée sur TA taille au calibrage. Plus le niveau monte, plus elle monte.'],
+      place: 'Téléphone à la verticale contre un mur, à hauteur de hanche. Recule de 2 à 3 m, tout le corps dans l’image.',
+      seuils: [0.040,0.055,0.070,0.085,0.100,0.115,0.130,0.145,0.160,0.180]
+    },
+    squat: {
+      nom: 'SQUATS', type: 'franchir', forme: 'plafond', bas: true,
+      sous: 'Un plafond arrive. Ton bassin passe dessous.',
+      ordre: 'DESCENDS',
+      regles: ['Un plafond arrive, posé sur la ligne de tes genoux.',
+               'Ton bassin doit passer SOUS la ligne au moment où il te traverse.',
+               'La ligne suit tes genoux en direct : c’est le vrai standard, pas une estimation.'],
+      place: 'Téléphone à la verticale, à hauteur de hanche, 2 à 3 m de recul, de profil ou de face.',
+      seuils: [-0.050,-0.040,-0.030,-0.020,-0.010,0.000,0.010,0.020,0.030,0.040]
+    },
+    genoux: {
+      nom: 'MONTÉES DE GENOUX', type: 'toucher', forme: 'couloirs',
+      sous: 'Des cibles tombent à gauche et à droite. Tu les touches avec le genou.',
+      ordre: 'GENOUX',
+      corps: { 1: ['left_knee'], 2: ['right_knee'] },
+      regles: ['Une cible tombe dans le couloir gauche ou droit.',
+               'Tu la touches avec le genou de ce côté-là. Elle explose.',
+               'Ça tombe de plus en plus vite et les cibles montent de plus en plus haut.'],
+      place: 'Téléphone à la verticale, à hauteur de hanche, 2 à 3 m de recul, face à la caméra.',
+      /* memes seuils relevees que dans le parcours : en dessous du rayon de
+         tolerance, la cible se validait jambe au repos. */
+      seuils: [0.32,0.36,0.40,0.44,0.48,0.52,0.56,0.60,0.64,0.70]
+    },
+    pompe: {
+      nom: 'PUSH-UPS', type: 'franchir', forme: 'plafond', pivot: true, bas: true,
+      sous: 'Une barre passe. Ton épaule doit être descendue quand elle arrive.',
+      ordre: 'DESCENDS',
+      regles: ['Une barre arrive, posée à la profondeur demandée sous ton épaule.',
+               'Ton épaule doit être SOUS la barre au moment où elle te traverse.',
+               'Entre deux barres, tu dois remonter bras tendus — sinon la suivante ne compte pas.'],
+      place: 'Téléphone POSÉ AU SOL sur le côté, à 1,5 m de toi, tout ton corps dans l’image. L’image est redressée automatiquement.',
+      calPose: 'Mets-toi en position de pompe, bras tendus, et ne bouge plus.',
+      seuils: [0.26,0.30,0.34,0.38,0.42,0.46,0.50,0.54,0.58,0.62]
+    },
+    burpee: {
+      nom: 'BURPEES', type: 'toucher', forme: 'haut-bas',
+      sous: 'Une cible au sol, puis une cible en l’air. Tu alternes.',
+      ordre: 'AU SOL',
+      corps: { 1: ['left_wrist', 'right_wrist'], 2: ['left_wrist', 'right_wrist'] },
+      regles: ['Cible BASSE au sol : tu poses les mains dedans, poitrine au sol.',
+               'Cible HAUTE au-dessus de ta tête : tu sautes et tu vas la chercher avec les mains.',
+               'Basse, haute, basse, haute. C’est un burpee, mais tu ne le comptes pas.'],
+      place: 'Téléphone à la verticale contre un mur, posé au sol ou très bas. Recule de 2,5 à 3 m.',
+      seuils: [0.30,0.34,0.38,0.42,0.46,0.50,0.54,0.58,0.62,0.66]
+    },
+    kb: {
+      nom: 'KB SWING', type: 'toucher', forme: 'haut-bas',
+      sous: 'Cible poitrine, cible entre les jambes. Le rythme du swing.',
+      ordre: 'SWING',
+      corps: { 1: ['left_wrist', 'right_wrist'], 2: ['left_wrist', 'right_wrist'] },
+      regles: ['Cible HAUTE à hauteur de poitrine : la cloche monte, les mains la touchent.',
+               'Cible BASSE entre les jambes : la cloche recharge la hanche.',
+               'Pieds cloués au sol. Ce sont les hanches qui envoient, pas les bras.'],
+      place: 'Téléphone à la verticale, à hauteur de hanche, 2,5 m de recul, DE PROFIL pour bien voir la charnière.',
+      seuils: [0.28,0.30,0.32,0.34,0.36,0.38,0.40,0.42,0.44,0.46]
+    },
+    parcours: {
+      nom: 'LE PARCOURS', type: 'mix', mix: true, forme: 'mix',
+      sous: 'Cinq obstacles différents, tirés au hasard. Le plus dur.',
+      ordre: 'REGARDE',
+      regles: ['Cinq obstacles arrivent dans un ordre que tu ne connais pas. Ce que tu vois te dit quoi faire.',
+               'Une BARRE dorée à hauteur de poitrine : tu descends en squat, épaules sous la barre.',
+               'Une HAIE bleue au ras du sol : tu sautes par-dessus, les deux pieds.',
+               'Deux CERCLES violets qui tombent à gauche ou à droite : tu montes le genou de ce côté dedans.',
+               'Une BARRE ORANGE au sol : mains au sol, puis tu sautes. Le burpee en deux temps — l’écran te dit quand sauter.',
+               'La LIGNE VERTE en haut : tu sautes et tu vas la toucher de la main.',
+               'C’est le niveau le plus dur du catalogue : ça arrive plus vite, et tu n’as pas le temps de réfléchir.'],
+      place: 'Téléphone à la verticale contre un mur, à hauteur de hanche. Recule de 2,5 à 3 m : il faut TOUT ton corps dans l’image, du sol aux mains levées. Prévois de la hauteur de plafond.',
+      calPose: 'Debout, bras le long du corps, tout le corps dans l’image. Ne bouge plus deux secondes.',
+      seuils: [0,0,0,0,0,0,0,0,0,0]
+    },
+    overhead: {
+      nom: 'OVERHEAD', type: 'toucher', forme: 'solo',
+      sous: 'Cible au-dessus de la tête. Snatch, thruster, press.',
+      ordre: 'AU-DESSUS',
+      corps: { 0: ['left_wrist', 'right_wrist'] },
+      regles: ['Une cible apparaît au-dessus de ta tête, bras tendus.',
+               'Tu vas la chercher avec les deux mains, coudes verrouillés.',
+               'Charge ou pas charge : le geste est le même, le verrouillage aussi.'],
+      place: 'Téléphone à la verticale, à hauteur de hanche, 2,5 à 3 m de recul, assez de hauteur de plafond.',
+      seuils: [0.30,0.34,0.38,0.42,0.46,0.50,0.54,0.58,0.62,0.66]
+    }
+  };
+
+  /* =============== LE PARCOURS : PLUSIEURS GESTES DANS UNE MANCHE ============
+     Les sept premiers jeux ne demandent qu'un geste. On l'apprend, on le
+     repete, on sait toujours ce qui arrive : c'est un exercice deguise. Le
+     parcours enleve cette certitude. Chaque obstacle porte SON type, tire au
+     hasard, et c'est en le voyant arriver qu'il faut decider quoi faire du
+     corps. Cinq obstacles, cinq reponses :
+
+       barre    une barre a hauteur de poitrine  ->  je descends en squat
+       sol      ca arrive par le bas             ->  je saute par-dessus
+       cercles  deux cercles tombent             ->  je monte le genou dedans
+       rase     une barre au ras du sol          ->  mains au sol, puis je saute
+       ligne    une ligne haut dans l'ecran      ->  je saute la toucher
+
+     Chaque type garde son propre juge. Aucun geste ne peut valider celui du
+     voisin : se baisser ne fait pas passer un saut, sauter ne fait pas passer
+     une barre. C'est ce qui empeche de tricher en bougeant au hasard. */
+  var MIX = {
+    barre: {
+      nom: 'BARRE', ordre: 'DESCENDS', dessin: 'plafond', fen: [0.82, 1.22], col: '#E9C767',
+      seuils: [0.15,0.18,0.21,0.24,0.27,0.30,0.33,0.36,0.39,0.43],
+      /* La barre est DESSINEE exactement la ou l'epaule doit passer : ce qu'il
+         voit est ce qui est juge, sinon il croit a une erreur de la machine. */
+      y: function (S, b) { return b.shy + S * b.h; },
+      pos: function (S, b) { return { x: b.shx, y: b.shy + S * b.h }; },
+      juge: function (S, b, m) {
+        if (!m || !m.hp) return false;
+        var sousLaBarre = m.sh.y > (b.shy + S * b.h);
+        /* Epaules basses sans flechir = buste penche en avant. On exige donc
+           aussi que la hanche soit descendue : c'est ca qui en fait un squat. */
+        var hancheBasse = (m.hp.y - b.hpy) / b.h > S * 0.42;
+        return sousLaBarre && hancheBasse;
+      },
+      aide: 'ÉPAULES SOUS LA BARRE'
+    },
+    sol: {
+      nom: 'SOL', ordre: 'SAUTE', dessin: 'haie', fen: [0.82, 1.22], col: '#00D0FF',
+      seuils: [0.035,0.048,0.060,0.072,0.085,0.098,0.112,0.126,0.140,0.158],
+      y: function (S, b) { return b.any - S * b.h; },
+      pos: function (S, b) { return { x: b.anx, y: b.any - S * b.h }; },
+      juge: function (S, b, m) {
+        if (!m || !m.an || m.an.score < 0.3) return false;
+        return (b.any - m.an.y) / b.h > S;
+      },
+      aide: 'LES DEUX PIEDS AU-DESSUS'
+    },
+    cercles: {
+      nom: 'CERCLES', ordre: 'GENOUX', dessin: 'cercle', fen: [0.58, 1.32], col: '#C77DFF',
+      couloirs: true,
+      /* Le rayon de tolerance vaut 0,23 fois la taille du corps. Une cible
+         posee a 0,11 de taille au-dessus du genou tombe donc DANS ce rayon
+         quand la jambe est au repos : debout immobile, elle se validait toute
+         seule. C'etait la cause du « montees de genoux trop facile ».
+         On demarre maintenant au-dessus du rayon, et on exige en plus que le
+         genou ait REELLEMENT quitte sa position de calibrage. */
+      seuils: [0.34,0.38,0.42,0.46,0.50,0.54,0.58,0.62,0.66,0.72],
+      pos: function (S, b, lane) {
+        return lane === 2 ? { x: b.krx, y: b.kry - S * b.h } : { x: b.klx, y: b.kly - S * b.h };
+      },
+      juge: function (S, b, m, pose, o) {
+        var k = kp(pose, o.lane === 2 ? 'right_knee' : 'left_knee');
+        if (!k || k.score < 0.33) return false;
+        var repos = o.lane === 2 ? b.kry : b.kly;
+        if ((repos - k.y) / b.h < 0.18) return false;      /* la jambe n'a pas bouge */
+        var c = MIX.cercles.pos(S, b, o.lane), r = Math.max(34, b.h * 0.17) * 1.35;
+        return Math.hypot(k.x - c.x, k.y - c.y) < r;
+      },
+      aide: 'LE GENOU DANS LE CERCLE'
+    },
+    rase: {
+      /* Deux temps dans un seul obstacle, parce qu'un burpee EST deux temps :
+         on descend, on remonte. Juger seulement les mains au sol laisserait
+         passer un accroupi ; juger seulement le saut laisserait passer un saut
+         sec. Les deux dans l'ordre, ou rien. */
+      nom: 'RASE-SOL', ordre: 'MAINS AU SOL', dessin: 'rase', fen: [0.50, 1.55], col: '#FF6B35',
+      deuxTemps: true,
+      seuils: [0.030,0.042,0.054,0.066,0.078,0.090,0.104,0.118,0.132,0.150],
+      y: function (S, b) { return b.any - b.h * 0.02; },
+      pos: function (S, b) { return { x: b.hpx, y: b.any }; },
+      /* temps 1 : les deux poignets au niveau du sol */
+      temps1: function (S, b, m, pose) {
+        var a = kp(pose, 'left_wrist'), c = kp(pose, 'right_wrist');
+        var bas = b.any - b.h * 0.10;
+        var n = 0;
+        if (a && a.score >= 0.30 && a.y > bas) n++;
+        if (c && c.score >= 0.30 && c.y > bas) n++;
+        return n >= 1 && m && (m.hp.y - b.hpy) / b.h > 0.10;   /* et la hanche est descendue */
+      },
+      /* temps 2 : les pieds quittent le sol */
+      temps2: function (S, b, m) {
+        if (!m || !m.an || m.an.score < 0.3) return false;
+        return (b.any - m.an.y) / b.h > S;
+      },
+      aide: 'MAINS AU SOL PUIS SAUTE'
+    },
+    ligne: {
+      nom: 'LIGNE HAUTE', ordre: 'SAUTE ET TOUCHE', dessin: 'ligne', fen: [0.62, 1.34], col: '#00FFA3',
+      seuils: [0.90,0.95,1.00,1.05,1.10,1.15,1.20,1.25,1.30,1.36],
+      y: function (S, b) { return b.shy - (S - 0.62) * b.h; },
+      pos: function (S, b) { return { x: b.shx, y: b.shy - (S - 0.62) * b.h }; },
+      juge: function (S, b, m, pose) {
+        var lim = b.shy - (S - 0.62) * b.h;
+        var a = kp(pose, 'left_wrist'), c = kp(pose, 'right_wrist');
+        var main = (a && a.score >= 0.30 && a.y < lim) || (c && c.score >= 0.30 && c.y < lim);
+        if (!main) return false;
+        /* « en sautant » : la main seule ne suffit pas, les pieds doivent
+           decoller. Sinon un grand bras tendu debout validerait tout. */
+        if (!m || !m.an || m.an.score < 0.3) return main;
+        return (b.any - m.an.y) / b.h > 0.020;
+      },
+      aide: 'LA MAIN AU-DESSUS DE LA LIGNE'
+    }
+  };
+  var MIX_ORDRE = ['barre', 'sol', 'cercles', 'rase', 'ligne'];
+  /* Le tirage n'est pas un pur hasard : on garantit que les cinq passent tous,
+     et on evite deux fois le meme d'affilee. Un vrai hasard donne des series de
+     trois barres, et c'est la qu'on a l'impression que le jeu est casse. */
+  var mixSac = [];
+  function mixTirage(dernier) {
+    if (!mixSac.length) { mixSac = MIX_ORDRE.slice(); for (var i = mixSac.length - 1; i > 0; i--) { var j = (Math.random() * (i + 1)) | 0, t = mixSac[i]; mixSac[i] = mixSac[j]; mixSac[j] = t; } }
+    if (mixSac.length > 1 && mixSac[mixSac.length - 1] === dernier) { var x = mixSac.pop(); mixSac.unshift(x); }
+    return mixSac.pop();
+  }
+  function mixS(k) { return seuilDe(MIX[k].seuils, STAGE); }
+  function mixPos(o) { var K = MIX[o.k]; return K.pos(mixS(o.k), base, o.lane); }
+
+  var CLES = ['saut', 'squat', 'genoux', 'pompe', 'burpee', 'kb', 'overhead', 'parcours'];
+
+  /* La duree n'est pas un reglage de confort : trois minutes de burpees et
+     quarante secondes de burpees ne s'adressent pas aux memes gens. On garde
+     la meme difficulte par obstacle et on change seulement COMBIEN il y en a,
+     pour que la medaille — un pourcentage — reste comparable.
+     Le classement en ligne, lui, n'accepte que la duree normale : sinon un
+     score de manche longue ecraserait tout le tableau sans etre meilleur. */
+  /* 'nom' sert de nom de DIVISION (on dit « division Rx », pas « division
+     rxe ») ; 'mot' sert dans une phrase, ou la manche est feminine. */
+  var DUREES = { court:  { f: 0.55, nom: 'COURT',  mot: 'courte' },
+                 normal: { f: 1,    nom: 'NORMAL', mot: 'normale' },
+                 long:   { f: 1.7,  nom: 'LONG',   mot: 'longue' } };
+  function dureeCle() { return DUREES[SAVE.duree] ? SAVE.duree : 'normal'; }
+
+  function paramsStage(i, jeu) {
+    var J = JEUX[jeu];
+    /* Le parcours : plus serre et plus long que tout le reste. Au niveau 10 un
+       obstacle toutes les 1,2 s, 30 obstacles, et cinq gestes possibles a
+       chaque fois — c'est la que ca devient vraiment difficile. */
+    if (jeu === 'parcours') return { ecart: 2500 - (i - 1) * 145, vol: 2000 - (i - 1) * 100, nb: 12 + i * 2 };
+    if (jeu === 'genoux') return { ecart: 1500 - (i - 1) * 95, vol: 1700 - (i - 1) * 110, nb: 14 + i * 2 };
+    if (J && J.type === 'toucher') return { ecart: 2500 - (i - 1) * 120, vol: 2200 - (i - 1) * 100, nb: 8 + i };
+    return { ecart: 2600 - (i - 1) * 130, vol: 2400 - (i - 1) * 110, nb: 8 + i };
+  }
+  /* paramsStage donne la manche de reference ; c'est ici qu'on applique la duree. */
+  function paramsJoues(i, jeu) {
+    var P = paramsStage(i, jeu), f = DUREES[dureeCle()].f;
+    return { ecart: P.ecart, vol: P.vol, nb: Math.max(4, Math.round(P.nb * f)) };
+  }
+  /* Dix niveaux ne suffisaient plus a ceux qui les terminent. Au-dela de la
+     table, on prolonge la progression avec le PAS du jeu lui-meme — l'ecart
+     entre ses deux derniers niveaux. Rien a maintenir a la main, et la
+     difficulte continue de monter au rythme auquel il s'est habitue. */
+  var NIV = 15;
+  function seuilDe(tab, st) {
+    if (!tab || !tab.length) return 0;
+    if (st <= tab.length) return tab[st - 1];
+    var pas = tab[tab.length - 1] - tab[tab.length - 2];
+    return tab[tab.length - 1] + pas * (st - tab.length);
+  }
+
+  function medaille(ok, nb) { var p = ok / nb; return p >= 0.95 ? 'or' : p >= 0.80 ? 'argent' : p >= 0.60 ? 'bronze' : null; }
+
+  /* =============== LE CALCUL DES POINTS ====================================
+     L'ancienne formule comptait les obstacles franchis : ok x (10 + niveau x 2).
+     Elle avait un defaut de fond — plus la manche etait longue, plus elle
+     rapportait, quel que soit le geste. Un joueur moyen sur une manche longue
+     passait devant un joueur propre sur une manche courte, et deux niveaux
+     differents ne se comparaient pas du tout. D'ou l'exclusion des manches
+     courtes et longues du classement, qui n'etait pas une solution : c'etait
+     un aveu.
+
+     La nouvelle formule tient en trois facteurs, et chacun repond a une
+     question precise.
+
+       QUALITE     r = franchis / total, eleve a la puissance 1,5.
+                   La puissance ecarte le proprement fait du a-peu-pres :
+                   100 % vaut 1,00 ; 80 % vaut 0,72 ; 60 % vaut 0,46.
+                   Sans elle, bacler deux fois plus rapporterait autant.
+
+       NIVEAU      D = 1 + 0,12 x (niveau - 1).
+                   Niveau 1 = 1,00 ; niveau 15 = 2,68. Une progression droite,
+                   pas exponentielle : sinon les premiers niveaux ne valent
+                   plus rien et personne ne rejoue le debut.
+
+       DUREE       V = racine du facteur de duree.
+                   Courte 0,74 · Normale 1,00 · Longue 1,30.
+                   La longue rapporte 30 % de plus, parce que tenir le standard
+                   sur presque deux fois plus d'obstacles EST plus dur. Mais la
+                   racine empeche que ce soit du volume pur : sans elle, une
+                   manche longue facile passerait devant une manche normale
+                   difficile, et il suffirait de jouer longtemps.
+
+     score = 300 x r^1,5 x D x V, arrondi.
+
+     Ce qu'on peut verifier a la main :
+       niveau 1  parfait  normal = 300        niveau 10 parfait normal = 624
+       niveau 5  or (95%) normal = 411        niveau 15 parfait long   = 1048
+       niveau 1  parfait  long   = 391   <   niveau 5 parfait normal = 444
+     La derniere ligne est la garantie qui compte : allonger la manche ne
+     remplace jamais monter de niveau. */
+  var DUR_F = { court: 0.55, normal: 1, long: 1.7 };
+  function coefNiveau(n) { return 1 + 0.12 * (Math.max(1, n) - 1); }
+  function coefDuree(d) { return Math.sqrt(DUR_F[d] || 1); }
+  function pointsDe(ok, i, med, nb, d) {
+    /* med reste dans la signature : il ouvre le niveau suivant, mais il
+       n'entre plus dans les points. Il etait compte deux fois — une medaille
+       d'or est deja un taux de 95 %, donc deja paye par le facteur qualite. */
+    var total = Math.max(1, nb || 1);
+    var r = Math.max(0, Math.min(1, ok / total));
+    return Math.round(300 * Math.pow(r, 1.5) * coefNiveau(i) * coefDuree(d || 'normal'));
+  }
+  var COUL = { or: '#E9C767', argent: '#C8D3CE', bronze: '#C08457' };
+  var SVG_CADENAS = '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#E9C767" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+  function svgMedaille(m, t) {
+    if (!m) return '';
+    t = t || 21;
+    return '<svg width="' + t + '" height="' + t + '" viewBox="0 0 24 24" aria-hidden="true">' +
+      '<circle cx="12" cy="14" r="7.4" fill="none" stroke="' + COUL[m] + '" stroke-width="2.4"/>' +
+      '<path d="M8 2l2 5M16 2l-2 5" stroke="' + COUL[m] + '" stroke-width="2.2" stroke-linecap="round" fill="none"/>' +
+      '<circle cx="12" cy="14" r="2.6" fill="' + COUL[m] + '"/></svg>';
+  }
+
+  /* =============== sauvegarde locale =============== */
+  var SAVE = { pseudo: '', video: false, jeux: {} };
+  try { var raw = localStorage.getItem(STORE); if (raw) SAVE = JSON.parse(raw); } catch (e) {}
+  if (!SAVE.jeux) SAVE.jeux = {};
+  function sauver() { try { localStorage.setItem(STORE, JSON.stringify(SAVE)); } catch (e) {} }
+  function fiche(j, i) {
+    if (!SAVE.jeux[j]) SAVE.jeux[j] = {};
+    if (!SAVE.jeux[j][i]) SAVE.jeux[j][i] = { best: 0, med: null };
+    return SAVE.jeux[j][i];
+  }
+  function ouvert(j, i) { return i === 1 || !!fiche(j, i - 1).med; }
+  function totalPoints(j) { var t = 0, o = SAVE.jeux[j] || {}; for (var k in o) if (o.hasOwnProperty(k)) t += o[k].best || 0; return t; }
+
+  /* =============== son =============== */
+  var AC = null;
+  function audio() {
+    if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } }
+    if (AC && AC.state === 'suspended') AC.resume();
+    return AC;
+  }
+  function bip(f, d, t, v, delai) {
+    var a = audio(); if (!a) return;
+    var t0 = a.currentTime + (delai || 0), o = a.createOscillator(), g = a.createGain();
+    o.type = t || 'sine'; o.frequency.setValueAtTime(f, t0);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(v || 0.22, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    o.connect(g); g.connect(a.destination); o.start(t0); o.stop(t0 + d + 0.02);
+  }
+  function sonOk(c) { var b = 620 + Math.min(6, c) * 40; bip(b, 0.09, 'sine', 0.20, 0); bip(b * 1.5, 0.12, 'sine', 0.18, 0.07); }
+  function sonKo() { bip(150, 0.22, 'sawtooth', 0.20, 0); bip(104, 0.26, 'sawtooth', 0.16, 0.05); }
+  function sonFin(m) { if (!m) { bip(220, 0.3, 'triangle', 0.18, 0); return; } var n = [523, 659, 784, 1047]; for (var i = 0; i < n.length; i++) bip(n[i], 0.16, 'triangle', 0.2, i * 0.10); }
+  function sonTick() { bip(880, 0.05, 'square', 0.09, 0); }
+  /* chaque type de cible a son propre son : on peut jouer sans fixer l'ecran */
+  function sonCible(lane) {
+    if (JEU === 'genoux') { bip(lane === 1 ? 420 : 700, 0.10, 'triangle', 0.16, 0); return; }
+    if (JEUX[JEU] && JEUX[JEU].forme === 'haut-bas') { bip(lane === 1 ? 300 : 820, 0.13, 'triangle', 0.17, 0); return; }
+    bip(560, 0.09, 'triangle', 0.14, 0);
+  }
+  function sonAppro(pr) { bip(300 + 500 * pr, 0.035, 'square', 0.06, 0); }
+  /* Dans le parcours il y a cinq choses possibles : le son doit dire LAQUELLE
+     arrive, sinon il faut lire l'ecran et on perd le temps de reagir. Une
+     hauteur par type, du grave (au sol) a l'aigu (en haut). */
+  var SON_MIX = { rase: 210, barre: 330, cercles: 560, sol: 760, ligne: 990 };
+  function sonMix(k) { var f = SON_MIX[k] || 560; bip(f, 0.11, 'triangle', 0.17, 0); bip(f * 1.5, 0.07, 'sine', 0.10, 0.06); }
+  /* premier temps du burpee valide : un clic sec, different du vert de reussite */
+  function sonEtape() { bip(1180, 0.05, 'square', 0.13, 0); bip(1480, 0.05, 'square', 0.11, 0.05); }
+
+
+  /* =============== camera, modele, image pivotee =============== */
+  var detector = null, running = false;
+  var rot = document.createElement('canvas'), rotx = rot.getContext('2d');
+
+  function demarrerCamera() {
+    return navigator.mediaDevices.getUserMedia({
+      audio: false, video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+    }).then(function (s) { vid.srcObject = s; return vid.play(); });
+  }
+  function chargerModele() {
+    if (detector) return Promise.resolve(detector);
+    return poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, {
+      modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING
+    }).then(function (d) { detector = d; return d; });
+  }
+  function taille() {
+    var r = window.devicePixelRatio || 1;
+    cv.width = Math.round(cv.clientWidth * r); cv.height = Math.round(cv.clientHeight * r);
+    ctx.setTransform(r, 0, 0, r, 0, 0);
+  }
+  window.addEventListener('resize', taille);
+
+  /* le corps allonge est mal reconnu : pour les pompes on pivote l'image
+     de 90 degres avant l'analyse, puis on remet les points a l'endroit. */
+  function sourceAnalyse() {
+    var vw = vid.videoWidth || 640, vh = vid.videoHeight || 480;
+    if (!(JEUX[JEU] && JEUX[JEU].pivot)) return vid;
+    if (rot.width !== vh) { rot.width = vh; rot.height = vw; }
+    rotx.save();
+    rotx.translate(vh / 2, vw / 2); rotx.rotate(-Math.PI / 2);
+    rotx.drawImage(vid, -vw / 2, -vh / 2, vw, vh);
+    rotx.restore();
+    return rot;
+  }
+  function dePivot(pose) {
+    if (!(JEUX[JEU] && JEUX[JEU].pivot) || !pose) return pose;
+    var vw = vid.videoWidth || 640, vh = vid.videoHeight || 480;
+    var cVx = vw / 2, cVy = vh / 2, cRx = vh / 2, cRy = vw / 2;
+    for (var i = 0; i < pose.keypoints.length; i++) {
+      var k = pose.keypoints[i], x = k.x, y = k.y;
+      k.y = x - cRx + cVy;
+      k.x = cVx - (y - cRy);
+    }
+    return pose;
+  }
+
+  var SCL = 1;
+  function proj() {
+    var vw = vid.videoWidth || 640, vh = vid.videoHeight || 480;
+    var cw = cv.clientWidth, ch = cv.clientHeight;
+    var s = Math.max(cw / vw, ch / vh); SCL = s;
+    var dx = (cw - vw * s) / 2, dy = (ch - vh * s) / 2;
+    return function (p) { return { x: cw - (p.x * s + dx), y: p.y * s + dy }; };
+  }
+
+  function kp(pose, n) { for (var i = 0; i < pose.keypoints.length; i++) if (pose.keypoints[i].name === n) return pose.keypoints[i]; return null; }
+  function mid(a, b) { if (!a || !b) return null; return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, score: Math.min(a.score, b.score) }; }
+
+  var OS = [['left_shoulder','right_shoulder'],['left_shoulder','left_elbow'],['left_elbow','left_wrist'],
+            ['right_shoulder','right_elbow'],['right_elbow','right_wrist'],['left_shoulder','left_hip'],
+            ['right_shoulder','right_hip'],['left_hip','right_hip'],['left_hip','left_knee'],
+            ['left_knee','left_ankle'],['right_hip','right_knee'],['right_knee','right_ankle']];
+  /* trois façons de montrer le corps :
+     complet = squelette entier, actif = seulement ce qui compte, cibles = rien */
+  function squelette(pose, P, col, mode) {
+    if (mode === 'cibles') return;
+    if (mode === 'actif') {
+      var noms = partiesActives();
+      for (var a2 = 0; a2 < noms.length; a2++) {
+        var k2 = kp(pose, noms[a2]);
+        if (!k2 || k2.score < 0.32) continue;
+        var q = P(k2);
+        ctx.save();
+        ctx.globalAlpha = .25; ctx.fillStyle = col;
+        ctx.beginPath(); ctx.arc(q.x, q.y, 22, 0, 6.2832); ctx.fill();
+        ctx.globalAlpha = 1; ctx.strokeStyle = col; ctx.lineWidth = 4;
+        ctx.shadowColor = col; ctx.shadowBlur = 16;
+        ctx.beginPath(); ctx.arc(q.x, q.y, 12, 0, 6.2832); ctx.stroke();
+        ctx.restore();
+      }
+      return;
+    }
+    ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = col;
+    for (var i = 0; i < OS.length; i++) {
+      var a = kp(pose, OS[i][0]), b = kp(pose, OS[i][1]);
+      if (!a || !b || a.score < 0.32 || b.score < 0.32) continue;
+      var pa = P(a), pb = P(b);
+      ctx.beginPath(); ctx.moveTo(pa.x, pa.y); ctx.lineTo(pb.x, pb.y); ctx.stroke();
+    }
+    ctx.fillStyle = col;
+    for (var j = 0; j < pose.keypoints.length; j++) {
+      var k = pose.keypoints[j]; if (k.score < 0.32) continue;
+      var p = P(k); ctx.beginPath(); ctx.arc(p.x, p.y, 4.5, 0, 6.2832); ctx.fill();
+    }
+    var nez = kp(pose, 'nose');
+    if (nez && nez.score > 0.32) { var pn = P(nez); ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(pn.x, pn.y - 6, 21, 0, 6.2832); ctx.stroke(); }
+  }
+
+  function mesure(pose) {
+    var shL = kp(pose, 'left_shoulder'), shR = kp(pose, 'right_shoulder');
+    var hpL = kp(pose, 'left_hip'), hpR = kp(pose, 'right_hip');
+    var knL = kp(pose, 'left_knee'), knR = kp(pose, 'right_knee');
+    var anL = kp(pose, 'left_ankle'), anR = kp(pose, 'right_ankle');
+    var wrL = kp(pose, 'left_wrist'), wrR = kp(pose, 'right_wrist');
+    var sh = mid(shL, shR), hp = mid(hpL, hpR), kn = mid(knL, knR), an = mid(anL, anR);
+    if (!sh || !hp || sh.score < 0.3 || hp.score < 0.3) return null;
+    /* taille de reference : on prend la plus grande distance fiable du corps,
+       comme ca elle reste valable meme allonge (apres redressement de l'image) */
+    var h = 0;
+    if (an && an.score > 0.28) h = Math.hypot(an.x - sh.x, an.y - sh.y);
+    else if (kn && kn.score > 0.28) h = Math.hypot(kn.x - sh.x, kn.y - sh.y) * 1.55;
+    else h = Math.hypot(hp.x - sh.x, hp.y - sh.y) * 2.4;
+    if (h < 40) return null;
+    return { sh: sh, hp: hp, kn: kn, an: an, knL: knL, knR: knR, wrL: wrL, wrR: wrR, h: h };
+  }
+
+  /* =============== calibrage =============== */
+  var base = null, cal = { on: 0, t0: 0, acc: [] };
+  function calibrer(m) {
+    var bar = $('calBar'), hint = $('calHint');
+    if (!m) { cal.on = 0; bar.style.width = '0%'; hint.textContent = 'Recherche du corps…'; return false; }
+    if (!cal.on) { cal.on = 1; cal.t0 = performance.now(); cal.acc = []; }
+    cal.acc.push(m);
+    var dt = performance.now() - cal.t0;
+    bar.style.width = Math.min(100, dt / 22) + '%';
+    var r = Math.max(0, Math.ceil((2200 - dt) / 1000));
+    hint.textContent = r ? ('Ne bouge plus… ' + r + ' s') : 'C’est parti !';
+    if (dt < 2200) return false;
+    var n = cal.acc.length, o = { shx: 0, shy: 0, hpx: 0, hpy: 0, h: 0, anx: 0, any: 0, klx: 0, kly: 0, krx: 0, kry: 0 };
+    for (var i = 0; i < n; i++) {
+      var a = cal.acc[i];
+      o.shx += a.sh.x; o.shy += a.sh.y; o.hpx += a.hp.x; o.hpy += a.hp.y; o.h += a.h;
+      o.anx += (a.an ? a.an.x : a.hp.x); o.any += (a.an ? a.an.y : a.hp.y);
+      o.klx += (a.knL ? a.knL.x : a.hp.x); o.kly += (a.knL ? a.knL.y : a.hp.y);
+      o.krx += (a.knR ? a.knR.x : a.hp.x); o.kry += (a.knR ? a.knR.y : a.hp.y);
+    }
+    base = { shx: o.shx/n, shy: o.shy/n, hpx: o.hpx/n, hpy: o.hpy/n, h: o.h/n,
+             anx: o.anx/n, any: o.any/n, klx: o.klx/n, kly: o.kly/n, krx: o.krx/n, kry: o.kry/n };
+    return true;
+  }
+
+  /* =============== la cible : ou elle se pose, qui doit la toucher =============== */
+  function placeCible(lane) {
+    var S = SEUIL, b = base;
+    if (!b) return { x: 320, y: 240 };
+    if (JEU === 'genoux') {
+      return lane === 1 ? { x: b.klx, y: b.kly - S * b.h } : { x: b.krx, y: b.kry - S * b.h };
+    }
+    if (JEU === 'pompe') {
+      /* image redressee : le corps est vertical, l'epaule descend vers le sol */
+      return { x: b.shx, y: b.shy + S * b.h * 0.42 };
+    }
+    if (JEU === 'burpee') {
+      return lane === 1 ? { x: b.hpx, y: b.any } : { x: b.shx, y: b.shy - S * b.h };
+    }
+    if (JEU === 'kb') {
+      return lane === 1 ? { x: b.hpx, y: b.shy + S * b.h * 0.9 } : { x: b.hpx, y: b.shy + S * b.h * 0.1 };
+    }
+    if (JEU === 'overhead') {
+      return { x: b.shx, y: b.shy - S * b.h };
+    }
+    return { x: b.hpx, y: b.hpy };
+  }
+  function rayonCible() { return base ? Math.max(34, base.h * 0.17) : 52; }
+  function partiesCible(lane) {
+    var c = JEUX[JEU].corps;
+    if (!c) return [];
+    return c[lane] || c[0] || [];
+  }
+  function toucheCible(pose, o) {
+    if (!pose || !base) return false;
+    /* Toucher la cible avec un genou qui n'a pas quitte sa position debout
+       n'est pas une montee de genou : c'est rester immobile. */
+    if (JEU === 'genoux') {
+      var kg = kp(pose, o.lane === 2 ? 'right_knee' : 'left_knee');
+      var rp = o.lane === 2 ? base.kry : base.kly;
+      if (!kg || kg.score < 0.33 || (rp - kg.y) / base.h < 0.18) return false;
+    }
+    var noms = partiesCible(o.lane), r = rayonCible() * 1.35;
+    var c = placeCible(o.lane), pts2 = [];
+    for (var i = 0; i < noms.length; i++) {
+      var k = kp(pose, noms[i]);
+      if (k && k.score >= 0.33) pts2.push(k);
+    }
+    /* deux mains : on accepte aussi le point entre les deux, c'est ce
+       qu'on vise vraiment quand on va chercher une cible a deux mains */
+    if (pts2.length === 2) pts2.push({ x: (pts2[0].x + pts2[1].x) / 2, y: (pts2[0].y + pts2[1].y) / 2 });
+    for (var j = 0; j < pts2.length; j++) {
+      if (Math.hypot(pts2[j].x - c.x, pts2[j].y - c.y) < r) return true;
+    }
+    return false;
+  }
+  /* quelles articulations comptent pour le jeu en cours */
+  function partiesActives() {
+    /* Le parcours peut demander n'importe quoi : tout le corps compte. */
+    if (JEUX[JEU] && JEUX[JEU].mix) return ['left_ankle','right_ankle','left_knee','right_knee','left_hip','right_hip','left_wrist','right_wrist','left_shoulder','right_shoulder'];
+    if (JEU === 'saut') return ['left_ankle', 'right_ankle'];
+    if (JEU === 'squat') return ['left_hip', 'right_hip', 'left_knee', 'right_knee'];
+    if (JEU === 'pompe') return ['left_shoulder', 'right_shoulder'];
+    if (JEU === 'genoux') return ['left_knee', 'right_knee'];
+    return ['left_wrist', 'right_wrist'];
+  }
+
+  /* jeux "franchir" : position du corps */
+  var pompeArme = true;
+  function profPompe() { return SEUIL * 0.42; }
+  function enPosition(m) {
+    if (!m || !base) return false;
+    if (JEU === 'saut') { if (!m.an || m.an.score < 0.3) return false; return (base.any - m.an.y) / base.h > SEUIL; }
+    if (JEU === 'squat') { if (!m.kn || m.kn.score < 0.3) return false; return (m.hp.y - m.kn.y) / base.h > SEUIL; }
+    if (JEU === 'pompe') {
+      var d = (m.sh.y - base.shy) / base.h;
+      if (d < profPompe() * 0.35) pompeArme = true;   /* bras tendus : la prochaine compte */
+      return pompeArme && d > profPompe();
+    }
+    return false;
+  }
+
+  /* =============== enregistrement video + filigrane =============== */
+  var MR = null, chunks = [], videoURL = null, recActif = false;
+  function recSupporte() { return !!(window.MediaRecorder && HTMLCanvasElement.prototype.captureStream); }
+  function demarrerRec() {
+    if (!recActif || !recSupporte()) return;
+    try {
+      var vw = vid.videoWidth || 640, vh = vid.videoHeight || 480;
+      rec.width = vw; rec.height = vh;
+      var st = rec.captureStream(30);
+      var types = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
+      var mime = '';
+      for (var i = 0; i < types.length; i++) { if (MediaRecorder.isTypeSupported(types[i])) { mime = types[i]; break; } }
+      chunks = [];
+      MR = new MediaRecorder(st, mime ? { mimeType: mime } : undefined);
+      MR.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+      MR.start(500);
+      show($('hudRec'), true);
+    } catch (e) { MR = null; }
+  }
+  function arreterRec() {
+    show($('hudRec'), false);
+    if (!MR) { show($('dlVideo'), false); return; }
+    var fini = MR;
+    MR = null;
+    fini.onstop = function () {
+      if (!chunks.length) { show($('dlVideo'), false); return; }
+      var type = chunks[0].type || 'video/webm';
+      var blob = new Blob(chunks, { type: type });
+      if (videoURL) URL.revokeObjectURL(videoURL);
+      videoURL = URL.createObjectURL(blob);
+      var a = $('dlVideo');
+      a.href = videoURL;
+      a.download = 'coachdm-' + JEU + '-niveau' + STAGE + (type.indexOf('mp4') >= 0 ? '.mp4' : '.webm');
+      show(a, true);
+    };
+    try { fini.stop(); } catch (e) { show($('dlVideo'), false); }
+  }
+  function composerRec() {
+    if (!MR) return;
+    var vw = rec.width, vh = rec.height;
+    rctx.save();
+    rctx.translate(vw, 0); rctx.scale(-1, 1);
+    rctx.drawImage(vid, 0, 0, vw, vh);
+    rctx.restore();
+    rctx.drawImage(cv, 0, 0, vw, vh);
+    /* filigrane */
+    rctx.save();
+    rctx.globalAlpha = 0.9;
+    rctx.fillStyle = '#00FFA3';
+    rctx.font = '900 ' + Math.round(vh * 0.045) + 'px -apple-system,Arial';
+    rctx.fillText('COACH DM', vw * 0.04, vh * 0.94);
+    rctx.globalAlpha = 0.65;
+    rctx.fillStyle = '#ffffff';
+    rctx.font = '700 ' + Math.round(vh * 0.028) + 'px -apple-system,Arial';
+    rctx.fillText('coachdm.be', vw * 0.04, vh * 0.975);
+    rctx.textAlign = 'right';
+    rctx.fillStyle = '#E9C767';
+    rctx.font = '900 ' + Math.round(vh * 0.032) + 'px -apple-system,Arial';
+    rctx.fillText(JEUX[JEU].nom + ' · NIVEAU ' + STAGE + ' · ' + nOk + ' pts', vw * 0.96, vh * 0.94);
+    rctx.textAlign = 'left';
+    rctx.restore();
+  }
+
+  /* =============== partie =============== */
+  var JEU = 'saut', STAGE = 1, PAR = null, SEUIL = 0, ESSAI = false;
+  var etat = 'menu', obstacles = [], nOk = 0, nKo = 0, nSpawn = 0, combo = 0, comboMax = 0;
+  var dernierK = '';   /* type du dernier obstacle tire : evite deux fois le meme d'affilee */
+  var tStart = 0, lastSpawn = 0, pts = 0, parts = [], flash = { t: '', c: '', jusqu: 0 };
+
+  function secouer() {
+    var s = $('shake');
+    s.style.transform = 'translate(4px,-3px)';
+    setTimeout(function () { s.style.transform = 'translate(-3px,2px)'; }, 55);
+    setTimeout(function () { s.style.transform = 'none'; }, 115);
+  }
+  function eclat(x, y, col) {
+    for (var i = 0; i < 16; i++) {
+      var a = Math.random() * 6.2832, v = 2 + Math.random() * 5;
+      parts.push({ x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1, vie: 1, col: col });
+    }
+  }
+  function dessinerParticules() {
+    for (var i = parts.length - 1; i >= 0; i--) {
+      var p = parts[i];
+      p.x += p.vx; p.y += p.vy; p.vy += 0.22; p.vie -= 0.028;
+      if (p.vie <= 0) { parts.splice(i, 1); continue; }
+      ctx.globalAlpha = Math.max(0, p.vie); ctx.fillStyle = p.col;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 3.4, 0, 6.2832); ctx.fill(); ctx.globalAlpha = 1;
+    }
+  }
+  function ligneCible(y, col, txt) {
+    var cw = cv.clientWidth;
+    ctx.save(); ctx.setLineDash([9, 9]); ctx.strokeStyle = col; ctx.lineWidth = 2.5; ctx.globalAlpha = .8;
+    ctx.beginPath(); ctx.moveTo(10, y); ctx.lineTo(cw - 10, y); ctx.stroke(); ctx.restore();
+    if (txt) { ctx.save(); ctx.font = '800 11px -apple-system,Arial'; ctx.fillStyle = col; ctx.globalAlpha = .9; ctx.fillText(txt, 12, y - 8); ctx.restore(); }
+  }
+  function haie(x, y, col, a) {
+    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineCap = 'round';
+    ctx.shadowColor = col; ctx.shadowBlur = 20;
+    ctx.lineWidth = 10; ctx.beginPath(); ctx.moveTo(x - 46, y); ctx.lineTo(x + 46, y); ctx.stroke();
+    ctx.lineWidth = 4; ctx.globalAlpha = a * .7;
+    ctx.beginPath(); ctx.moveTo(x - 36, y); ctx.lineTo(x - 36, y + 34); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x + 36, y); ctx.lineTo(x + 36, y + 34); ctx.stroke();
+    ctx.restore();
+  }
+  function plafond(x, y, col, a) {
+    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineCap = 'round';
+    ctx.shadowColor = col; ctx.shadowBlur = 20;
+    ctx.lineWidth = 13; ctx.beginPath(); ctx.moveTo(x - 78, y); ctx.lineTo(x + 78, y); ctx.stroke();
+    ctx.lineWidth = 3; ctx.globalAlpha = a * .55;
+    for (var i = -66; i <= 66; i += 22) { ctx.beginPath(); ctx.moveTo(x + i, y - 3); ctx.lineTo(x + i - 9, y - 22); ctx.stroke(); }
+    ctx.restore();
+  }
+  function dessinCible(x, y, r, col, a, pr) {
+    ctx.save();
+    /* halo : c'est ce qui permet de voir la cible a trois metres */
+    ctx.globalAlpha = a * .22; ctx.fillStyle = col;
+    ctx.beginPath(); ctx.arc(x, y, r * 1.5, 0, 6.2832); ctx.fill();
+    ctx.globalAlpha = a;
+    ctx.shadowColor = col; ctx.shadowBlur = 26;
+    ctx.strokeStyle = col; ctx.lineWidth = 9;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = a * .8; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.arc(x, y, r * .45, 0, 6.2832); ctx.stroke();
+    ctx.globalAlpha = a * .85; ctx.lineWidth = 6; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x - r * .22, y); ctx.lineTo(x + r * .22, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, y - r * .22); ctx.lineTo(x, y + r * .22); ctx.stroke();
+    if (pr < 1) {
+      ctx.globalAlpha = a * .55; ctx.lineWidth = 5; ctx.setLineDash([10, 12]);
+      ctx.beginPath(); ctx.arc(x, y, r + (1 - pr) * r * 2.4, 0, 6.2832); ctx.stroke(); ctx.setLineDash([]);
+    }
+    ctx.restore();
+  }
+  /* bandeau lumineux sur le bord de l'ecran : visible meme de loin */
+  function bordLumineux(col, force) {
+    var cw = cv.clientWidth, ch = cv.clientHeight, e = 22;
+    ctx.save(); ctx.globalAlpha = 0.30 * force; ctx.strokeStyle = col; ctx.lineWidth = e;
+    ctx.strokeRect(e / 2, e / 2, cw - e, ch - e);
+    ctx.restore();
+  }
+
+  /* barre tres basse : epaisse, au ras du sol, on doit la voir de trois metres */
+  function barreRase(x, y, col, a) {
+    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineCap = 'round';
+    ctx.shadowColor = col; ctx.shadowBlur = 24;
+    ctx.lineWidth = 16; ctx.beginPath(); ctx.moveTo(x - 92, y); ctx.lineTo(x + 92, y); ctx.stroke();
+    ctx.lineWidth = 4; ctx.globalAlpha = a * .5;
+    for (var i = -78; i <= 78; i += 26) { ctx.beginPath(); ctx.moveTo(x + i, y - 9); ctx.lineTo(x + i, y + 9); ctx.stroke(); }
+    ctx.restore();
+  }
+  /* ligne pleine largeur : la cible du saut, elle descend depuis le haut */
+  function ligneHaute(y, col, a, txt) {
+    var cw = cv.clientWidth;
+    ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineWidth = 7; ctx.lineCap = 'round';
+    ctx.shadowColor = col; ctx.shadowBlur = 22;
+    ctx.beginPath(); ctx.moveTo(14, y); ctx.lineTo(cw - 14, y); ctx.stroke();
+    ctx.shadowBlur = 0; ctx.globalAlpha = a * .5; ctx.lineWidth = 3;
+    for (var x = 24; x < cw - 20; x += 34) { ctx.beginPath(); ctx.moveTo(x, y + 4); ctx.lineTo(x, y + 16); ctx.stroke(); }
+    ctx.restore();
+    if (txt) { ctx.save(); ctx.font = '800 11px -apple-system,Arial'; ctx.fillStyle = col; ctx.globalAlpha = a * .95; ctx.textAlign = 'center'; ctx.fillText(txt, cw / 2, y - 11); ctx.textAlign = 'left'; ctx.restore(); }
+  }
+  /* Le parcours dessine obstacle par obstacle : chacun a sa forme, sa couleur
+     et son repere. Une seule couleur pour tout rendrait les cinq types
+     indistinguables a trois metres, et c'est exactement ce qu'il ne faut pas. */
+  function dessinerMix(now, m, pose, P) {
+    var cw = cv.clientWidth, ch = cv.clientHeight;
+    for (var i = 0; i < obstacles.length; i++) {
+      var o = obstacles[i], K = MIX[o.k], S = mixS(o.k);
+      var pr = (now - o.t) / PAR.vol;
+      if (pr < 0 || pr > K.fen[1] + 0.35) continue;
+      var col = o.juge === 1 ? '#00FFA3' : (o.juge === -1 ? '#EF4444' : K.col);
+      var a = pr > K.fen[1] ? Math.max(0, 1 - (pr - K.fen[1]) / 0.35) : Math.min(1, 0.32 + pr);
+      var c = K.pos(S, base, o.lane), pc = P(c);
+
+      if (K.dessin === 'cercle') {
+        var av = Math.min(1, pr / K.fen[1]);
+        dessinCible(pc.x, pc.y - (1 - av) * ch * 0.55, Math.max(34, base.h * 0.17) * SCL, col, a, av);
+        continue;
+      }
+      if (K.dessin === 'ligne') {
+        var avl = Math.min(1, pr / K.fen[1]);
+        ligneHaute(pc.y - (1 - avl) * ch * 0.45, col, a, o.juge === 0 ? 'SAUTE ET TOUCHE' : '');
+        continue;
+      }
+      /* les trois barres balayent l'ecran de droite a gauche */
+      var x = cw * (1.32 - 0.82 * pr / ((K.fen[0] + K.fen[1]) / 2));
+      if (K.dessin === 'plafond') plafond(x, pc.y, col, a);
+      else if (K.dessin === 'haie') haie(x, pc.y, col, a);
+      else if (K.dessin === 'rase') {
+        barreRase(x, pc.y, col, a);
+        /* deuxieme temps du burpee : la ligne du saut s'allume */
+        if (o.temps === 1 && o.juge === 0) {
+          var yS = P({ x: 0, y: base.any - S * base.h }).y;
+          ligneHaute(yS, '#00FFA3', 0.95, 'MAINTENANT SAUTE');
+        }
+      }
+      /* repere fixe : la hauteur a atteindre, dans la couleur de l'obstacle */
+      /* repere fixe a la hauteur a atteindre, dans la couleur de l'obstacle :
+         il faut voir OU ca va passer avant que ca arrive. */
+      if (o.juge === 0 && pr > 0.28) { ctx.save(); ctx.globalAlpha = 0.45; ligneCible(pc.y, col, ''); ctx.restore(); }
+    }
+  }
+  function dessiner(now, m, pose) {
+    var cw = cv.clientWidth, P = proj(), J = JEUX[JEU];
+    if (J.mix) { dessinerMix(now, m, pose, P); return; }
+    if (J.type === 'franchir') {
+      var yc;
+      if (JEU === 'saut') yc = P({ x: 0, y: base.any - SEUIL * base.h }).y;
+      else if (JEU === 'pompe') yc = P({ x: 0, y: base.shy + profPompe() * base.h }).y;
+      else {
+        var kY = (m && m.kn && m.kn.score > 0.3) ? m.kn.y : base.hpy + base.h * 0.22;
+        yc = P({ x: 0, y: kY + SEUIL * base.h }).y;
+      }
+      ligneCible(yc, 'rgba(233,199,103,.85)', JEU === 'saut' ? 'PASSE AU-DESSUS' : (JEU === 'pompe' ? 'ÉPAULE SOUS LA LIGNE' : 'PASSE DESSOUS'));
+      for (var i = 0; i < obstacles.length; i++) {
+        var o = obstacles[i], pr = (now - o.t) / PAR.vol;
+        if (pr < 0 || pr > 1.6) continue;
+        var x = cw * (1.30 - 0.80 * pr);
+        var col = o.juge === 1 ? '#00FFA3' : (o.juge === -1 ? '#EF4444' : '#E9C767');
+        var a = pr > 1.2 ? Math.max(0, 1 - (pr - 1.2) / 0.4) : Math.min(1, 0.35 + pr);
+        if (J.forme === 'haie') haie(x, yc, col, a); else plafond(x, yc, col, a);
+      }
+      return;
+    }
+    /* jeux "toucher" */
+    for (var j = 0; j < obstacles.length; j++) {
+      var q = obstacles[j], pq = (now - q.t) / PAR.vol;
+      if (pq < 0 || pq > 1.7) continue;
+      var c = placeCible(q.lane), pc = P(c), r = rayonCible() * SCL;
+      var av = Math.min(1, pq);
+      var y = pc.y - (1 - av) * cv.clientHeight * 0.55;
+      var cc = q.juge === 1 ? '#00FFA3' : (q.juge === -1 ? '#EF4444' : '#E9C767');
+      var aa = pq > 1.3 ? Math.max(0, 1 - (pq - 1.3) / 0.4) : Math.min(1, 0.35 + pq);
+      dessinCible(pc.x, y, r, cc, aa, av);
+    }
+    if (JEU === 'genoux') {
+      ctx.save(); ctx.globalAlpha = .14; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+      var xm = P({ x: base.hpx, y: 0 }).x;
+      ctx.beginPath(); ctx.moveTo(xm, 0); ctx.lineTo(xm, cv.clientHeight); ctx.stroke(); ctx.restore();
+    }
+  }
+
+  var busy = false;
+  function boucle() {
+    if (!running) return;
+    requestAnimationFrame(boucle);
+    if (vid.readyState < 2 || busy) return;
+    busy = true;
+    var src;
+    try { src = sourceAnalyse(); } catch (e) { src = vid; }
+    detector.estimatePoses(src, { maxPoses: 1, flipHorizontal: false }).then(function (poses) {
+      busy = false;
+      var now = performance.now(), cw = cv.clientWidth, ch = cv.clientHeight;
+      ctx.clearRect(0, 0, cw, ch);
+      var pose = (poses && poses[0]) ? dePivot(poses[0]) : null;
+      var m = pose ? mesure(pose) : null;
+      var P = proj();
+
+      if (etat === 'cal') {
+        if (pose) squelette(pose, P, 'rgba(0,255,163,.85)', 'complet');  /* au calibrage on montre tout */
+        if (calibrer(m)) lancer();
+        return;
+      }
+      if (etat !== 'jeu') return;
+
+      var J = JEUX[JEU];
+      var actif = (J.type === 'franchir') ? enPosition(m) : false;
+
+      if (now - lastSpawn > PAR.ecart && nSpawn < PAR.nb) {
+        lastSpawn = now; nSpawn++;
+        var lane = 0;
+        if (J.mix) {
+          /* Le type est tire ici, a l'apparition : l'obstacle le porte jusqu'a
+             son jugement. Rien d'autre dans la boucle ne decide du geste. */
+          var k = mixTirage(dernierK); dernierK = k;
+          if (MIX[k].couloirs) lane = (Math.random() < 0.5 ? 1 : 2);
+          obstacles.push({ t: now, juge: 0, lane: lane, k: k, temps: 0 });
+          sonMix(k);
+        } else {
+          if (JEU === 'genoux') lane = (Math.random() < 0.5 ? 1 : 2);
+          else if (J.forme === 'haut-bas') lane = (nSpawn % 2 === 1 ? 1 : 2);
+          obstacles.push({ t: now, juge: 0, lane: lane });
+          sonCible(lane);
+        }
+      }
+
+      for (var i = 0; i < obstacles.length; i++) {
+        var o = obstacles[i], pr = (now - o.t) / PAR.vol;
+        if (o.juge !== 0) continue;
+        var bon, fin, motOk = 'TOUCHÉ';
+        if (J.mix) {
+          var K = MIX[o.k], S = mixS(o.k);
+          fin = (pr >= K.fen[1]);
+          bon = false;
+          if (pr > K.fen[0] && pr < K.fen[1]) {
+            if (K.deuxTemps) {
+              /* Les deux temps doivent se suivre DANS L'ORDRE, sans quoi un
+                 simple saut validerait le burpee. */
+              if (o.temps === 0) {
+                if (K.temps1(S, base, m, pose)) { o.temps = 1; sonEtape(); flash = { t: 'MAINTENANT SAUTE', c: 'good', jusqu: now + 700 }; }
+              } else if (K.temps2(S, base, m)) { bon = true; }
+            } else {
+              bon = K.juge(S, base, m, pose, o);
+            }
+          }
+          motOk = (o.k === 'cercles' || o.k === 'ligne') ? 'TOUCHÉ' : 'PASSÉ';
+        } else {
+          bon = (J.type === 'franchir') ? (pr > 0.84 && pr < 1.18 && actif)
+                                        : (pr > 0.62 && pr < 1.30 && toucheCible(pose, o));
+          fin = (J.type === 'franchir') ? (pr >= 1.18) : (pr >= 1.30);
+          motOk = (J.type === 'franchir') ? 'PASSÉ' : 'TOUCHÉ';
+        }
+        if (bon) {
+          o.juge = 1; nOk++; combo++; comboMax = Math.max(comboMax, combo);
+          pts += (10 + STAGE * 2) * (combo >= 5 ? 2 : 1) * (J.mix ? 2 : 1);
+          flash = { t: motOk, c: 'good', jusqu: now + 600 };
+          if (JEU === 'pompe') pompeArme = false;
+          var cc = J.mix ? mixPos(o) : placeCible(o.lane), pc = P(cc);
+          eclat(pc.x, pc.y, '#00FFA3');
+          sonOk(combo);
+        } else if (fin) {
+          o.juge = -1; nKo++; combo = 0;
+          flash = { t: 'RATÉ', c: 'bad', jusqu: now + 600 };
+          sonKo(); secouer();
+        }
+      }
+
+      /* bord lumineux quand une cible est dans sa fenetre : visible de loin */
+      var proche = 0, coulProche = '#E9C767';
+      for (var z = 0; z < obstacles.length; z++) {
+        var oz = obstacles[z], pz = (now - oz.t) / PAR.vol;
+        if (oz.juge === 0 && pz > 0.55 && pz < 1.3) { proche = Math.max(proche, Math.min(1, (pz - 0.55) / 0.35)); }
+      }
+      if (now < flash.jusqu) { proche = 1; coulProche = flash.c === 'good' ? '#00FFA3' : '#EF4444'; }
+      if (proche > 0) bordLumineux(coulProche, proche);
+
+      dessiner(now, m, pose);
+      if (pose) squelette(pose, P, (actif || (now < flash.jusqu && flash.c === 'good')) ? '#00FFA3' : 'rgba(255,255,255,.72)', SAVE.aff || 'complet');
+      dessinerParticules();
+      composerRec();
+
+      $('hudLeft').textContent = ESSAI ? 'ESSAI LIBRE' : ('NIVEAU ' + STAGE);
+      $('hudRight').textContent = nSpawn + ' / ' + PAR.nb;
+      $('footScore').textContent = nOk + (J.type === 'franchir' ? ' passés · ' : ' touchées · ') + nKo + ' ratés';
+      $('footBar').style.width = Math.round(100 * (nOk + nKo) / PAR.nb) + '%';
+      $('footPts').textContent = ESSAI ? '—' : pts;
+      var c2 = $('combo');
+      if (combo >= 3) { c2.textContent = 'SÉRIE ×' + combo + (combo >= 5 ? '  ·  POINTS DOUBLES' : ''); c2.classList.add('show'); }
+      else c2.classList.remove('show');
+      var o2 = $('order');
+      /* Dans le parcours la consigne CHANGE a chaque obstacle. On affiche celle
+         de l'obstacle le plus avance qui n'est pas encore juge : sans ca il
+         faudrait deviner le geste a la couleur, et on rate le premier de
+         chaque type. */
+      var consigne = J.ordre, urgent = false;
+      if (J.mix) {
+        var meilleur = -1, kAct = null, oAct = null;
+        for (var w = 0; w < obstacles.length; w++) {
+          var ow = obstacles[w]; if (ow.juge !== 0) continue;
+          var prw = (now - ow.t) / PAR.vol;
+          if (prw < 0 || prw > MIX[ow.k].fen[1]) continue;
+          if (prw > meilleur) { meilleur = prw; kAct = ow.k; oAct = ow; }
+        }
+        if (kAct) {
+          var KA = MIX[kAct];
+          consigne = (KA.deuxTemps && oAct.temps === 1) ? 'SAUTE !' : KA.ordre;
+          urgent = meilleur > KA.fen[0] * 0.8;
+        } else consigne = 'REGARDE CE QUI ARRIVE';
+      }
+      if (now < flash.jusqu) { o2.textContent = flash.t; o2.className = 'show ' + flash.c; o2.style.opacity = '1'; }
+      else if (!m) { o2.textContent = 'RECULE'; o2.className = 'show bad'; o2.style.opacity = '1'; }
+      else { o2.textContent = consigne; o2.className = 'show'; o2.style.opacity = urgent ? '1' : '.5'; }
+      /* le rappel de ce qu'on attend du corps, sous la consigne */
+      var aide = $('orderHint');
+      if (aide) {
+        if (J.mix && kAct) { aide.textContent = MIX[kAct].aide; aide.style.opacity = '.85'; }
+        else { aide.textContent = ''; aide.style.opacity = '0'; }
+      }
+
+      if (nOk + nKo >= PAR.nb) terminer();
+    }).catch(function () { busy = false; });
+  }
+
+  function lancer() {
+    etat = 'jeu';
+    obstacles = []; nOk = 0; nKo = 0; nSpawn = 0; pts = 0; combo = 0; comboMax = 0; parts = []; pompeArme = true;
+    tStart = performance.now(); lastSpawn = tStart - PAR.ecart + 1800;
+    show($('pCal'), false); show($('hud'), true); show($('foot'), true); show($('orderWrap'), true);
+    $('footTitle').textContent = JEUX[JEU].nom + (ESSAI ? ' · ESSAI' : ' · NIVEAU ' + STAGE);
+    if (!ESSAI) demarrerRec();
+  }
+
+  function terminer() {
+    etat = 'fin';
+    show($('hud'), false); show($('foot'), false); show($('orderWrap'), false);
+    $('combo').classList.remove('show');
+    if (ESSAI) {
+      ESSAI = false;
+      if (verrouille(JEU)) {
+        /* Le seul moment ou l'offre a du sens : il vient de jouer, il sait ce
+           que c'est. Avant, c'etait une promesse ; la, c'est une suite. */
+        $('regPlace').textContent = JEUX[JEU].nom + ' compte 15 niveaux, des médailles et un classement — ils font partie de l\u2019abonnement. ' +
+          'Les sauts et les squats restent ouverts à tout le monde, avec leurs 15 niveaux. L\u2019abonnement se prend dans l\u2019app.';
+      }
+      show($('pRegles'), true); return;
+    }
+    arreterRec();
+    var med = medaille(nOk, PAR.nb);
+    var total = pointsDe(nOk, STAGE, med, PAR.nb, dureeCle());
+    var f = fiche(JEU, STAGE);
+    var record = total > (f.best || 0);
+    if (record) f.best = total;
+    var ord = { bronze: 1, argent: 2, or: 3 };
+    if (med && (!f.med || ord[med] > ord[f.med])) f.med = med;
+    sauver(); sonFin(med);
+    $('endKicker').textContent = 'NIVEAU ' + STAGE + ' · ' + JEUX[JEU].nom;
+    $('endTitle').textContent = med ? (med === 'or' ? 'Médaille d’or' : med === 'argent' ? 'Médaille d’argent' : 'Médaille de bronze') : 'Pas encore';
+    $('endOk').textContent = nOk + '/' + PAR.nb;
+    $('endOkLab').textContent = JEUX[JEU].type === 'franchir' ? 'PASSÉS' : 'TOUCHÉES';
+    $('endPts').textContent = total;
+    $('endMedal').innerHTML = svgMedaille(med, 52);
+    $('endText').textContent = (record ? 'Nouveau record sur ce niveau. ' : '') +
+      (med ? (STAGE < NIV ? 'Le niveau ' + (STAGE + 1) + ' est ouvert. ' : 'Dernier niveau du jeu : tu l’as fini. ') : 'Il faut 60 % pour ouvrir le niveau suivant. ') +
+      (comboMax >= 3 ? 'Meilleure série : ' + comboMax + '. ' : '') +
+      (nKo > nOk ? 'Beaucoup de ratés : recule, ou baisse d’un niveau.' : '');
+    show($('btnNext'), !!med && STAGE < NIV);
+    show($('pEnd'), true);
+    classement(total);
+  }
+
+  function classement(total) {
+    var box = $('lbBox'), p = (SAVE.pseudo || '').trim(), d = dureeCle();
+    box.innerHTML = '<div class="muted">Classement…</div>';
+
+    /* Les scores passent par le client Supabase DE L'APP, donc par la session
+       de l'utilisateur. Avant, le jeu ecrivait avec la cle publique et sans
+       identite : n'importe qui pouvait poster n'importe quel score au nom de
+       n'importe quel pseudo, avec une seule commande. La regle RLS exige
+       maintenant user_id = auth.uid() ; le serveur refuse tout le reste.
+
+       Deux tableaux, deux questions. LA DIVISION — un jeu, un niveau, une
+       duree : tout le monde y a fait exactement le meme travail, c'est le
+       tableau equitable, sur le modele beginner / intermediate / Rx.
+       LE GENERAL — un jeu, tous niveaux et toutes durees : la formule rend les
+       manches comparables, donc le premier du general joue forcement haut ET
+       propre. On ne peut pas y arriver en repetant le niveau 1. */
+    var sb = APP.sb, moi = null;
+    try { moi = APP.user(); } catch (e) {}
+    var envoi = Promise.resolve();
+    if (sb && moi && p && total > 0) {
+      envoi = sb.from('jeu_scores').insert({
+        user_id: moi.id, jeu: JEU, stage: STAGE, duree: d, pseudo: p.slice(0, 18),
+        points: total, franchis: nOk, total: PAR.nb,
+        taux: Math.round(1000 * nOk / Math.max(1, PAR.nb)) / 1000
+      });
+    }
+    function tableau(titre, rows, avecNiveau) {
+      var h = '<div style="font-size:10px;letter-spacing:1.5px;color:var(--gold);font-weight:800;margin:9px 0 5px">' + titre + '</div>';
+      if (!rows || !rows.length) return h + '<div class="muted">Personne encore. Tu es le premier.</div>';
+      for (var i = 0; i < rows.length; i++) {
+        var r = rows[i], mine = (r.pseudo || '').trim().toLowerCase() === p.toLowerCase();
+        var detail = avecNiveau
+          ? ('niv. ' + r.stage + ' · ' + (DUREES[r.duree] ? DUREES[r.duree].mot : 'normale'))
+          : (r.franchis + '/' + r.total);
+        h += '<div class="l"><span style="color:' + (mine ? 'var(--brand)' : 'var(--ink)') + ';font-weight:' + (mine ? 800 : 600) + '">' +
+             (i + 1) + '. ' + String(r.pseudo).replace(/[<>&]/g, '') + '</span>' +
+             '<span style="color:var(--dim)">' + detail + ' · <b style="color:var(--gold)">' + r.points + '</b></span></div>';
+      }
+      return h;
+    }
+    Promise.resolve(envoi).catch(function () {}).then(function () {
+      if (!sb) return [{ data: [] }, { data: [] }];
+      return Promise.all([
+        sb.from('jeu_scores').select('pseudo,points,franchis,total')
+          .eq('jeu', JEU).eq('stage', STAGE).eq('duree', d)
+          .order('points', { ascending: false }).limit(5),
+        sb.from('jeu_scores').select('pseudo,points,stage,duree')
+          .eq('jeu', JEU).order('points', { ascending: false }).limit(5)
+      ]);
+    }).then(function (res) {
+      box.innerHTML =
+        tableau('DIVISION ' + DUREES[d].nom + ' · NIVEAU ' + STAGE, res[0] && res[0].data, false) +
+        tableau('GÉNÉRAL ' + JEUX[JEU].nom + ' · TOUS NIVEAUX', res[1] && res[1].data, true) +
+        '<div class="muted" style="margin-top:8px">Ton score : ' + total + ' points. ' +
+        Math.round(100 * nOk / Math.max(1, PAR.nb)) + ' % de réussite, niveau ' + STAGE +
+        ' (×' + coefNiveau(STAGE).toFixed(2).replace('.', ',') + '), manche ' + DUREES[d].mot +
+        ' (×' + coefDuree(d).toFixed(2).replace('.', ',') + '). ' +
+        (d === 'long' ? 'La manche longue rapporte 30 % de plus.' :
+         d === 'court' ? 'Une manche normale ou longue rapporterait plus.' :
+         'La manche longue rapporterait 30 % de plus.') + '</div>';
+    }).catch(function () {
+      box.innerHTML = '<div class="muted">Classement indisponible. Ton score est gardé sur ton téléphone.</div>';
+    });
+  }
+
+  /* =============== ecrans =============== */
+  /* Lecture seule, pour les verifications automatiques : le jeu vit dans une
+     fonction fermee, un test ne peut donc pas voir ce qui arrive a l'ecran.
+     Sans ce point de lecture on ne peut pas prouver qu'un obstacle donne est
+     bien juge — on ne peut que regarder le score et esperer. */
+  window.__cdmJeu = function () {
+    var l = [];
+    for (var i = 0; i < obstacles.length; i++) {
+      var o = obstacles[i];
+      l.push({ k: o.k || JEU, lane: o.lane, juge: o.juge, temps: o.temps || 0, pr: PAR ? (performance.now() - o.t) / PAR.vol : 0 });
+    }
+    return { jeu: JEU, stage: STAGE, etat: etat, ok: nOk, ko: nKo, nb: PAR ? PAR.nb : 0, obstacles: l };
+  };
+
+  function rendreMenu() {
+    var h = '';
+    for (var i = 0; i < CLES.length; i++) {
+      var k = CLES[i], J = JEUX[k], tp = totalPoints(k), nm = 0, o = SAVE.jeux[k] || {};
+      for (var s in o) if (o.hasOwnProperty(s) && o[s].med) nm++;
+      var vr = verrouille(k);
+      h += '<button class="card' + (k === JEU ? ' on' : '') + (vr ? ' pro' : '') + '" data-jeu="' + k + '">' +
+           (vr ? '<span class="ico">' + SVG_CADENAS + '</span>'
+               : '<span class="ico" style="font-size:18px;font-weight:900;color:var(--brand)">' + (i + 1) + '</span>') +
+           '<span style="flex-grow:1"><b>' + J.nom + '</b><em>' + J.sous + '</em></span>' +
+           (vr ? '<span style="text-align:right"><span class="tag-pro">PREMIUM</span>' +
+                 '<span style="display:block;font-size:10px;color:var(--dim);font-weight:700;margin-top:3px">essai libre</span></span>'
+               : '<span style="text-align:right"><span style="display:block;font-size:16px;font-weight:900;color:var(--gold)">' + tp + '</span>' +
+                 '<span style="display:block;font-size:10px;color:var(--dim);font-weight:700">' + nm + '/' + NIV + '</span></span>') +
+           '</button>';
+    }
+    $('menuCards').innerHTML = h;
+    var cs = $('menuCards').querySelectorAll('.card');
+    for (var j = 0; j < cs.length; j++) (function (c) { c.onclick = function () { JEU = c.getAttribute('data-jeu'); rendreMenu(); }; })(cs[j]);
+    $('swRec').classList.toggle('on', !!SAVE.video);
+    var mf = $('menuFree');
+    if (mf) mf.innerHTML = premium()
+      ? 'Ton abonnement ouvre les huit jeux et leurs 15 niveaux.'
+      : '<b style="color:var(--brand)">Sauts et Squats sont gratuits</b>, 15 niveaux chacun. Les six autres font partie de l\u2019abonnement — tu peux les essayer, 4 obstacles sans score.';
+    /* la note de duree parle du jeu choisi : elle doit suivre le choix */
+    try{ appliquerDuree(); }catch(e){}
+  }
+  /* Sur un jeu verrouille on saute la grille des niveaux — elle n'a aucun sens
+     si aucun n'est jouable — et on va droit aux regles, d'ou part l'essai
+     libre. Le bouton « Aller direct au niveau » y est remplace par l'offre. */
+  function versNiveauxOuOffre() {
+    if (verrouille(JEU)) { STAGE = 1; versRegles(); return; }
+    rendreStages();
+    show($('pMenu'), false); show($('pStages'), true);
+  }
+  function rendreStages() {
+    $('stKicker').textContent = JEUX[JEU].nom;
+    var h = '';
+    for (var i = 1; i <= NIV; i++) {
+      var f = fiche(JEU, i), ok = ouvert(JEU, i), P = paramsJoues(i, JEU);
+      h += '<button class="st' + (ok ? '' : ' lock') + (f.med ? ' done' : '') + '" data-st="' + i + '"' + (ok ? '' : ' disabled') + '>' +
+           '<span class="med">' + svgMedaille(f.med) + '</span><span class="n">' + i + '</span>' +
+           '<span class="d">' + P.nb + ' cibles · ' + (P.ecart / 1000).toFixed(1) + ' s</span>' +
+           (f.best ? '<span class="b">record ' + f.best + '</span>' : (ok ? '<span class="d">jamais joué</span>' : '<span class="d">verrouillé</span>')) +
+           '</button>';
+    }
+    $('stGrid').innerHTML = h;
+    var bs = $('stGrid').querySelectorAll('.st');
+    for (var j = 0; j < bs.length; j++) (function (b) {
+      b.onclick = function () {
+        var n = parseInt(b.getAttribute('data-st'), 10);
+        if (!ouvert(JEU, n)) return;
+        STAGE = n; versRegles();
+      };
+    })(bs[j]);
+  }
+  function versRegles() {
+    etat = 'menu';
+    var J = JEUX[JEU], vr = verrouille(JEU);
+    $('regKicker').textContent = J.nom + (vr ? ' · PREMIUM' : ' · NIVEAU ' + STAGE);
+    /* Sur un jeu verrouille, le bouton principal n'est plus « aller au niveau »
+       mais l'essai. On ne vend pas avant d'avoir laisse essayer. */
+    var bd = $('btnDirect'), be = $('btnEssai');
+    if (vr) {
+      be.textContent = 'Essayer — 4 obstacles, sans score';
+      be.className = 'cta';
+      bd.textContent = 'Les 15 niveaux sont dans l\u2019abonnement';
+      bd.className = 'cta ghost';
+    } else {
+      be.textContent = 'Essai libre — sans score';
+      be.className = 'cta';
+      bd.textContent = 'Aller direct au niveau';
+      bd.className = 'cta ghost';
+    }
+    var h = '';
+    for (var i = 0; i < J.regles.length; i++) h += '<div class="step"><span class="k">' + (i + 1) + '</span><span class="t">' + J.regles[i] + '</span></div>';
+    $('regSteps').innerHTML = h;
+    $('regPlace').textContent = J.place;
+    show($('pMenu'), false); show($('pStages'), false); show($('pEnd'), false); show($('pCal'), false);
+    show($('pRegles'), true);
+  }
+  function versCalibrage(essai) {
+    ESSAI = !!essai;
+    PAR = paramsJoues(STAGE, JEU);
+    if (ESSAI) PAR = { ecart: PAR.ecart, vol: PAR.vol, nb: 4 };
+    SEUIL = seuilDe(JEUX[JEU].seuils, STAGE);
+    base = null; cal.on = 0; etat = 'cal';
+    show($('pMenu'), false); show($('pStages'), false); show($('pEnd'), false); show($('pRegles'), false);
+    show($('pCal'), true);
+    $('calKicker').textContent = JEUX[JEU].nom + (ESSAI ? ' · ESSAI' : ' · NIVEAU ' + STAGE);
+    $('calText').textContent = (JEUX[JEU].calPose || 'Place-toi comme sur l’écran précédent, puis ne bouge plus deux secondes.');
+    $('calBar').style.width = '0%';
+    audio();
+  }
+
+  /* =============== evenements =============== */
+  $('pseudo').value = SAVE.pseudo || '';
+  $('pseudo').oninput = function () { SAVE.pseudo = this.value.slice(0, 18); sauver(); };
+  $('swRec').onclick = function () {
+    SAVE.video = !SAVE.video; sauver();
+    this.classList.toggle('on', !!SAVE.video);
+    if (SAVE.video && !recSupporte()) {
+      $('menuErr').innerHTML = '<div class="err">Ce navigateur ne sait pas enregistrer la vidéo. Sur iPhone il faut Safari récent ; sur Android, Chrome. Le jeu marche quand même.</div>';
+    } else $('menuErr').innerHTML = '';
+    recActif = !!SAVE.video && recSupporte();
+  };
+  recActif = !!SAVE.video && recSupporte();
+
+  function appliquerDuree() {
+    var d = dureeCle(), P = paramsJoues(STAGE, JEU);
+    $('durVal').textContent = DUREES[d].mot.charAt(0).toUpperCase() + DUREES[d].mot.slice(1);
+    var n = $('durNote');
+    if (n) n.textContent = 'Au niveau ' + STAGE + ' de ' + JEUX[JEU].nom.toLowerCase() + ' : ' + P.nb + ' obstacles, environ ' +
+      Math.round(P.nb * P.ecart / 1000) + ' s d\u2019effort. La difficult\u00e9 par obstacle ne change pas, seulement le nombre.' +
+      (d === 'normal' ? '' : ' Cette dur\u00e9e n\u2019entre pas au classement en ligne.');
+    var bs = JR.querySelectorAll('.db');
+    for (var i = 0; i < bs.length; i++) {
+      var on = bs[i].getAttribute('data-d') === d;
+      bs[i].style.borderColor = on ? 'var(--brand)' : 'rgba(255,255,255,.18)';
+      bs[i].style.color = on ? 'var(--brand)' : 'var(--ink)';
+    }
+  }
+  function appliquerZoom() {
+    var z = SAVE.zoom || 1;
+    $('zoom').style.transform = 'scale(' + z + ')';
+    $('zoomVal').textContent = String(z).replace('.', ',') + '×';
+    var zs = JR.querySelectorAll('.zb');
+    for (var i = 0; i < zs.length; i++) {
+      var on = parseFloat(zs[i].getAttribute('data-z')) === z;
+      zs[i].style.borderColor = on ? 'var(--brand)' : 'rgba(255,255,255,.18)';
+      zs[i].style.color = on ? 'var(--brand)' : 'var(--ink)';
+    }
+  }
+  function appliquerAff() {
+    var a = SAVE.aff || 'complet';
+    $('affVal').textContent = a === 'complet' ? 'Squelette' : (a === 'actif' ? 'Points actifs' : 'Cercles seuls');
+    var bs = JR.querySelectorAll('.ab');
+    for (var i = 0; i < bs.length; i++) {
+      var on = bs[i].getAttribute('data-a') === a;
+      bs[i].style.borderColor = on ? 'var(--brand)' : 'rgba(255,255,255,.18)';
+      bs[i].style.color = on ? 'var(--brand)' : 'var(--ink)';
+    }
+  }
+  (function () {
+    var as = JR.querySelectorAll('.ab');
+    for (var i = 0; i < as.length; i++) (function (b) {
+      b.onclick = function () { SAVE.aff = b.getAttribute('data-a'); sauver(); appliquerAff(); };
+    })(as[i]);
+    appliquerAff();
+  })();
+  (function () {
+    var ds = JR.querySelectorAll('.db');
+    for (var d0 = 0; d0 < ds.length; d0++) (function (b) {
+      b.onclick = function () { SAVE.duree = b.getAttribute('data-d'); sauver(); appliquerDuree(); };
+    })(ds[d0]);
+    appliquerDuree();
+    var zs = JR.querySelectorAll('.zb');
+    for (var i = 0; i < zs.length; i++) (function (b) {
+      b.onclick = function () { SAVE.zoom = parseFloat(b.getAttribute('data-z')); sauver(); appliquerZoom(); };
+    })(zs[i]);
+    appliquerZoom();
+  })();
+
+  $('btnGo').onclick = function () {
+    var b = $('btnGo');
+    b.disabled = true; b.textContent = 'Chargement du suivi…';
+    audio(); taille();
+    demarrerCamera().then(chargerModele).then(function () {
+      b.disabled = false; b.textContent = 'Continuer';
+      running = true; taille();
+      versNiveauxOuOffre(); boucle();
+    }).catch(function (e) {
+      b.disabled = false; b.textContent = 'Réessayer';
+      $('menuErr').innerHTML = '<div class="err">Impossible de démarrer : ' + (e && e.message ? e.message : e) +
+        '<br><br>iPhone : Safari, et autoriser la caméra. Android : Chrome. La page doit être en https.</div>';
+    });
+  };
+  /* Quitter le jeu n'est plus un changement de page : le navigateur ne fait
+     donc plus le menage a notre place. Sans ces trois lignes, la camera reste
+     allumee et la boucle d'analyse continue de tourner derriere l'app —
+     batterie, voyant vert allume, et un telephone qui chauffe pour rien. */
+  function versApp(){
+    running = false;
+    try { arreterRec(); } catch (e) {}
+    try {
+      var st = vid.srcObject;
+      if (st && st.getTracks) st.getTracks().forEach(function (t) { t.stop(); });
+      vid.srcObject = null;
+    } catch (e) {}
+    etat = 'menu';
+    try { APP.fermer(); } catch (e) {}
+  }
+  $('btnApp').onclick = versApp;
+  $('btnApp2').onclick = versApp;
+  $('btnStop').onclick = function () {
+    etat = 'menu';
+    try{ arreterRec(); }catch(e){}
+    show($('hud'), false); show($('foot'), false); show($('orderWrap'), false);
+    $('combo').classList.remove('show');
+    if (verrouille(JEU)) { show($('pRegles'), true); } else { show($('pStages'), true); rendreStages(); }
+  };
+  $('btnBackMenu').onclick = function () { show($('pStages'), false); show($('pMenu'), true); etat = 'menu'; rendreMenu(); };
+  $('btnRegRetour').onclick = function () { show($('pRegles'), false); show($('pStages'), true); rendreStages(); };
+  $('btnEssai').onclick = function () { versCalibrage(true); };
+  $('btnDirect').onclick = function () {
+    if (verrouille(JEU)) { versApp(); return; }   /* l'abonnement se prend dans l'app, jamais ici */
+    versCalibrage(false);
+  };
+  $('btnQuitCal').onclick = function () { etat = 'menu'; show($('pCal'), false); show($('pRegles'), true); };
+  $('btnAgain').onclick = function () { show($('pEnd'), false); show($('dlVideo'), false); versCalibrage(false); };
+  $('btnStages').onclick = function () { show($('pEnd'), false); show($('dlVideo'), false); show($('pStages'), true); etat = 'menu'; rendreStages(); };
+  $('btnNext').onclick = function () { if (STAGE < NIV) STAGE++; show($('pEnd'), false); show($('dlVideo'), false); versRegles(); };
+
+  rendreMenu();
+  taille();
+
+  /* Ce que l'app peut faire au jeu apres le premier montage. On rouvre
+     TOUJOURS sur le menu : revenir sur un calibrage a moitie fait, ou sur un
+     ecran de fin vieux d'une heure, n'a aucun sens — et la camera a ete rendue
+     en sortant, donc rien de ce qui etait en cours n'existe plus. */
+  return {
+    ouvrir: function () {
+      running = false; etat = 'menu';
+      ['pStages','pRegles','pCal','pEnd'].forEach(function (id) { show($(id), false); });
+      show($('hud'), false); show($('foot'), false); show($('orderWrap'), false);
+      show($('dlVideo'), false);
+      $('combo').classList.remove('show');
+      show($('pMenu'), true);
+      rendreMenu(); taille();
+    }
+  };
+};
+</script>
+<script id="jeu-css" type="text/css">
+  :host{--brand:#00FFA3;--gold:#E9C767;--red:#EF4444;--bg:#050807;--ink:#C9DCD3;--dim:#7d8f86;--card:#0E1512}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :host{margin:0;height:100%;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;overflow:hidden;overscroll-behavior:none}
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  #stage{position:fixed;inset:0;overflow:hidden}
+  #shake{position:absolute;inset:0;transition:transform .05s}
+  #zoom{position:absolute;inset:0;transform-origin:50% 50%;transition:transform .2s}
+  video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+  #cv{position:absolute;inset:0;width:100%;height:100%}
+  #rec{display:none}
+  .panel{position:absolute;inset:0;display:flex;flex-direction:column;padding:22px 20px calc(22px + env(safe-area-inset-bottom));
+    gap:12px;overflow:auto;background:radial-gradient(130% 70% at 50% -10%, rgba(0,255,163,.12) 0%, rgba(5,8,7,0) 62%), rgba(5,8,7,.95)}
+  .kicker{font-size:10px;letter-spacing:2.4px;color:var(--gold);font-weight:800}
+  h1{margin:4px 0 0;font-size:26px;color:#fff;font-weight:900;letter-spacing:-.025em;line-height:1.12}
+  p{margin:0;font-size:13.5px;line-height:1.5}
+  .muted{color:var(--dim);font-size:12.5px;line-height:1.5}
+  .row{display:flex;gap:10px;align-items:center}
+  .card{width:100%;text-align:left;background:var(--card);border:1.5px solid rgba(255,255,255,.10);
+    border-radius:18px;padding:13px 14px;display:flex;align-items:center;gap:12px;color:var(--ink);margin-bottom:9px}
+  .card.on{border-color:var(--brand);background:linear-gradient(120deg,rgba(0,255,163,.15),rgba(0,255,163,.04))}
+  /* Un jeu verrouille reste LISIBLE et cliquable : on doit pouvoir lire ce
+     qu'il fait et l'essayer. Le griser completement donne l'impression d'un
+     bug, pas d'une offre. */
+  .card.pro{border-color:rgba(233,199,103,.38)}
+  .card.pro b{color:#F2E4BB}
+  .tag-pro{display:inline-block;font-size:9.5px;font-weight:900;letter-spacing:1.2px;color:#0A0A0A;
+    background:var(--gold);border-radius:999px;padding:3px 8px}
+  .card b{display:block;font-size:15px;color:#fff;font-weight:900;letter-spacing:.3px}
+  .card em{display:block;font-style:normal;font-size:11px;color:var(--dim);margin-top:2px;line-height:1.35}
+  .ico{width:42px;height:42px;border-radius:14px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .cta{width:100%;border-radius:16px;background:var(--brand);color:#04110A;font-size:16px;font-weight:900;padding:15px 0;letter-spacing:.3px}
+  .cta.ghost{background:transparent;border:1.5px solid rgba(255,255,255,.18);color:var(--ink);font-weight:800}
+  .cta[disabled]{opacity:.5}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+  .st{position:relative;background:var(--card);border:1.5px solid rgba(255,255,255,.10);border-radius:16px;
+    padding:11px;text-align:left;display:flex;flex-direction:column;gap:4px;min-height:80px}
+  .st.lock{opacity:.42}.st.done{border-color:rgba(0,255,163,.45)}
+  .st .n{font-size:19px;font-weight:900;color:#fff;line-height:1}
+  .st .d{font-size:10px;color:var(--dim);line-height:1.3}
+  .st .b{font-size:10.5px;color:var(--brand);font-weight:800}
+  .med{position:absolute;top:9px;right:9px;width:21px;height:21px}
+  .hud{position:absolute;left:14px;right:14px;top:calc(12px + env(safe-area-inset-top));display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+  .pill{background:rgba(0,0,0,.5);border-radius:999px;padding:7px 12px;font-size:11px;font-weight:800;letter-spacing:1.2px;color:#fff}
+  .pill.rec{color:#fff;background:rgba(239,68,68,.75)}
+  .order{position:absolute;left:0;right:0;top:calc(74px + env(safe-area-inset-top));text-align:center;pointer-events:none}
+  .order i{display:inline-block;font-style:normal;font-size:30px;font-weight:900;letter-spacing:4px;padding:9px 20px;border-radius:15px;
+    background:rgba(233,199,103,.95);color:#0A0A0A;opacity:0;transform:scale(.92);transition:opacity .1s,transform .1s}
+  .order i.show{opacity:1;transform:scale(1)}
+  .order i.good{background:rgba(0,255,163,.95);color:#04110A}
+  .order i.bad{background:rgba(239,68,68,.95);color:#fff}
+  /* La consigne dit QUOI faire, cette ligne dit COMMENT c'est juge. Deux
+     niveaux : on lit le gros mot en jouant, le detail entre deux obstacles. */
+  .order u{display:block;margin:7px auto 0;max-width:80%;text-decoration:none;font-size:11.5px;font-weight:800;letter-spacing:1.4px;
+    color:#fff;background:rgba(0,0,0,.55);border-radius:9px;padding:5px 11px;opacity:0;transition:opacity .15s}
+  .combo{position:absolute;left:0;right:0;top:calc(132px + env(safe-area-inset-top));text-align:center;font-size:14px;font-weight:900;
+    letter-spacing:2px;color:var(--gold);opacity:0;transition:opacity .15s;pointer-events:none}
+  .combo.show{opacity:1}
+  .foot{position:absolute;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));background:rgba(0,0,0,.55);
+    border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:11px 13px;display:flex;align-items:center;gap:12px;pointer-events:none}
+  .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:6px}
+  .bar>i{display:block;height:100%;background:var(--brand);width:0%;transition:width .2s}
+  .err{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);border-radius:14px;padding:12px 13px;font-size:13px;color:#ffb4b4;line-height:1.5}
+  .lb{background:var(--card);border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:11px 13px}
+  .lb div.l{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
+  input{background:#0B100E;border:1.5px solid rgba(255,255,255,.12);border-radius:13px;padding:11px 12px;color:var(--ink);font-size:15px;width:100%;outline:none;font-family:inherit}
+  .sw{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1.5px solid rgba(255,255,255,.10);
+    border-radius:14px;padding:11px 13px;font-size:13.5px;font-weight:700;color:#fff}
+  .sw i{width:44px;height:26px;border-radius:99px;background:rgba(255,255,255,.14);position:relative;transition:background .15s;flex-shrink:0}
+  .sw i:after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s}
+  .sw.on i{background:var(--brand)}
+  .sw.on i:after{transform:translateX(18px)}
+  .steps{display:flex;flex-direction:column;gap:8px}
+  .step{display:flex;gap:10px;align-items:flex-start}
+  .step span.k{width:20px;height:20px;border-radius:50%;background:rgba(0,255,163,.14);color:var(--brand);font-size:10.5px;
+    font-weight:900;line-height:20px;text-align:center;flex-shrink:0}
+  .step span.t{font-size:13px;line-height:1.45;color:var(--ink)}
+  .retour{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;margin-bottom:2px;
+    padding:8px 13px;border-radius:999px;border:1px solid rgba(255,255,255,.16);
+    background:rgba(255,255,255,.04);color:var(--ink);font-size:12.5px;font-weight:800}
+  .hide{display:none!important}
+  .spacer{flex:1 1 auto}
+  a.dl{display:block;text-align:center;text-decoration:none;color:#04110A;background:var(--gold);border-radius:16px;font-weight:900;padding:15px 0;font-size:15.5px}
+</script>
+<template id="jeu-mk"><div id="stage"><div id="shake"><div id="zoom">
+  <video id="vid" playsinline muted autoplay></video>
+  <canvas id="cv"></canvas>
+  </div>
+  <canvas id="rec"></canvas>
+
+  <div class="hud hide" id="hud">
+    <div class="row" style="gap:6px;pointer-events:auto">
+      <button type="button" class="pill" id="btnStop" style="padding:7px 11px">✕</button>
+      <div class="pill" id="hudLeft">NIVEAU 1</div>
+    </div>
+    <div class="row" style="gap:6px">
+      <div class="pill rec hide" id="hudRec">● REC</div>
+      <div class="pill" id="hudRight" style="color:var(--gold)">0 / 9</div>
+    </div>
+  </div>
+  <div class="order hide" id="orderWrap"><i id="order">PRÊT</i><u id="orderHint"></u></div>
+  <div class="combo" id="combo"></div>
+  <div class="foot hide" id="foot">
+    <div style="flex-grow:1">
+      <div style="font-size:10.5px;letter-spacing:1.3px;color:var(--dim);font-weight:800" id="footTitle">SAUTS</div>
+      <div style="font-size:15px;color:#fff;font-weight:900;margin-top:2px" id="footScore">0 touchées</div>
+      <div class="bar"><i id="footBar"></i></div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:26px;font-weight:900;color:var(--brand);line-height:1" id="footPts">0</div>
+      <div style="font-size:10px;color:var(--dim);font-weight:700">points</div>
+    </div>
+  </div>
+
+  <div class="panel" id="pMenu">
+    <button type="button" class="retour" id="btnApp">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      <span>Retour à l'app</span>
+    </button>
+    <div class="kicker">COACH DM · MODE JEU</div>
+    <h1>Travailler en jouant</h1>
+    <p class="muted">Tout se calcule sur ton téléphone. Aucune image ne part : la vidéo que tu enregistres reste chez toi.</p>
+    <p class="muted" id="menuFree" style="margin-top:-4px"></p>
+    <div id="menuCards"></div>
+    <input id="pseudo" maxlength="18" placeholder="Ton prénom, pour le classement" />
+    <button class="sw" id="swRec"><span>Enregistrer ma partie (avec le filigrane)</span><i></i></button>
+    <div class="sw" style="display:block">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span>Longueur de la manche</span><span id="durVal" style="color:var(--brand);font-weight:900">Normale</span>
+      </div>
+      <div class="row" style="margin-top:9px">
+        <button class="db cta ghost" data-d="court" style="padding:9px 0;font-size:12.5px">Courte</button>
+        <button class="db cta ghost" data-d="normal" style="padding:9px 0;font-size:12.5px">Normale</button>
+        <button class="db cta ghost" data-d="long" style="padding:9px 0;font-size:12.5px">Longue</button>
+      </div>
+      <p class="muted" style="margin-top:8px" id="durNote">La difficulté de chaque obstacle ne change pas — seulement combien il y en a. Chaque durée a son propre classement, et la longue rapporte 30 % de points en plus.</p>
+    </div>
+    <div class="sw" style="display:block">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span>Zoom de l'image</span><span id="zoomVal" style="color:var(--brand);font-weight:900">1,0×</span>
+      </div>
+      <div class="row" style="margin-top:9px">
+        <button class="zb cta ghost" data-z="1" style="padding:9px 0;font-size:13px">1,0×</button>
+        <button class="zb cta ghost" data-z="1.3" style="padding:9px 0;font-size:13px">1,3×</button>
+        <button class="zb cta ghost" data-z="1.6" style="padding:9px 0;font-size:13px">1,6×</button>
+        <button class="zb cta ghost" data-z="2" style="padding:9px 0;font-size:13px">2,0×</button>
+      </div>
+      <p class="muted" style="margin-top:8px">Le zoom agrandit seulement l'affichage : le suivi continue de voir tout ton corps. À 3 m, mets 1,6×.</p>
+    </div>
+    <div class="sw" style="display:block">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span>Ce qu'on voit sur toi</span><span id="affVal" style="color:var(--brand);font-weight:900">Squelette</span>
+      </div>
+      <div class="row" style="margin-top:9px">
+        <button class="ab cta ghost" data-a="complet" style="padding:9px 0;font-size:12.5px">Squelette</button>
+        <button class="ab cta ghost" data-a="actif" style="padding:9px 0;font-size:12.5px">Points actifs</button>
+        <button class="ab cta ghost" data-a="cibles" style="padding:9px 0;font-size:12.5px">Cercles seuls</button>
+      </div>
+      <p class="muted" style="margin-top:8px">« Cercles seuls » efface tout le squelette : il ne reste que toi et les cibles. « Points actifs » ne garde que la partie du corps qui doit toucher.</p>
+    </div>
+    <div class="spacer"></div>
+    <button class="cta" id="btnGo">Continuer</button>
+    <div id="menuErr"></div>
+  </div>
+
+  <div class="panel hide" id="pStages">
+    <button type="button" class="retour" id="btnApp2">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      <span>Retour à l'app</span>
+    </button>
+    <div class="kicker" id="stKicker">SAUTS</div>
+    <h1>Choisis ton niveau</h1>
+    <p class="muted">Il faut le bronze pour ouvrir le suivant. Tu reviens sur n'importe quel niveau déjà ouvert.</p>
+    <div class="grid" id="stGrid"></div>
+    <div class="spacer"></div>
+    <button class="cta ghost" id="btnBackMenu">Changer de jeu</button>
+  </div>
+
+  <div class="panel hide" id="pRegles">
+    <div class="kicker" id="regKicker">SAUTS · NIVEAU 1</div>
+    <h1 id="regTitre">Comment on joue</h1>
+    <div class="steps" id="regSteps"></div>
+    <div style="background:var(--card);border:1px solid rgba(233,199,103,.35);border-radius:16px;padding:12px 13px">
+      <div class="kicker" style="margin-bottom:5px">LE PLACEMENT</div>
+      <p class="muted" id="regPlace"></p>
+    </div>
+    <div class="spacer"></div>
+    <button class="cta" id="btnEssai">Essai libre — sans score</button>
+    <button class="cta ghost" id="btnDirect">Aller direct au niveau</button>
+    <button class="cta ghost" id="btnRegRetour">Retour</button>
+  </div>
+
+  <div class="panel hide" id="pCal" style="background:linear-gradient(180deg,rgba(5,8,7,.88),rgba(5,8,7,.42))">
+    <div class="kicker" id="calKicker">CALIBRAGE</div>
+    <h1 id="calTitle">Mets-toi en place</h1>
+    <p id="calText">Recule jusqu'à voir tout ton corps, puis ne bouge plus.</p>
+    <div class="bar" style="height:8px"><i id="calBar"></i></div>
+    <p class="muted" id="calHint">Recherche du corps…</p>
+    <div class="spacer"></div>
+    <button class="cta ghost" id="btnQuitCal">Retour</button>
+  </div>
+
+  <div class="panel hide" id="pEnd">
+    <div class="kicker" id="endKicker">NIVEAU 1 · SAUTS</div>
+    <h1 id="endTitle">Bronze</h1>
+    <div class="row">
+      <div style="flex:1;background:var(--card);border:1px solid rgba(0,255,163,.3);border-radius:18px;padding:13px">
+        <div style="font-size:30px;font-weight:900;color:var(--brand);line-height:1" id="endOk">0</div>
+        <div style="font-size:11px;color:var(--dim);font-weight:700;margin-top:3px" id="endOkLab">TOUCHÉES</div>
+      </div>
+      <div style="flex:1;background:var(--card);border:1px solid rgba(233,199,103,.3);border-radius:18px;padding:13px">
+        <div style="font-size:30px;font-weight:900;color:var(--gold);line-height:1" id="endPts">0</div>
+        <div style="font-size:11px;color:var(--dim);font-weight:700;margin-top:3px">POINTS</div>
+      </div>
+      <div id="endMedal" style="width:60px;display:flex;align-items:center;justify-content:center"></div>
+    </div>
+    <p id="endText" class="muted"></p>
+    <a class="dl hide" id="dlVideo" download="coachdm-jeu.webm">Enregistrer ma vidéo</a>
+    <div class="lb" id="lbBox"><div class="muted">Classement…</div></div>
+    <div class="spacer"></div>
+    <button class="cta" id="btnNext">Niveau suivant</button>
+    <button class="cta ghost" id="btnAgain">Refaire ce niveau</button>
+    <button class="cta ghost" id="btnStages">Tous les niveaux</button>
+  </div>
+</div></div></template>
 </body>
 </html>
