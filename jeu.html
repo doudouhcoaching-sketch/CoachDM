@@ -29,6 +29,13 @@
   .card{width:100%;text-align:left;background:var(--card);border:1.5px solid rgba(255,255,255,.10);
     border-radius:18px;padding:13px 14px;display:flex;align-items:center;gap:12px;color:var(--ink);margin-bottom:9px}
   .card.on{border-color:var(--brand);background:linear-gradient(120deg,rgba(0,255,163,.15),rgba(0,255,163,.04))}
+  /* Un jeu verrouille reste LISIBLE et cliquable : on doit pouvoir lire ce
+     qu'il fait et l'essayer. Le griser completement donne l'impression d'un
+     bug, pas d'une offre. */
+  .card.pro{border-color:rgba(233,199,103,.38)}
+  .card.pro b{color:#F2E4BB}
+  .tag-pro{display:inline-block;font-size:9.5px;font-weight:900;letter-spacing:1.2px;color:#0A0A0A;
+    background:var(--gold);border-radius:999px;padding:3px 8px}
   .card b{display:block;font-size:15px;color:#fff;font-weight:900;letter-spacing:.3px}
   .card em{display:block;font-style:normal;font-size:11px;color:var(--dim);margin-top:2px;line-height:1.35}
   .ico{width:42px;height:42px;border-radius:14px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -125,6 +132,7 @@
     <div class="kicker">COACH DM · MODE JEU</div>
     <h1>Travailler en jouant</h1>
     <p class="muted">Tout se calcule sur ton téléphone. Aucune image ne part : la vidéo que tu enregistres reste chez toi.</p>
+    <p class="muted" id="menuFree" style="margin-top:-4px"></p>
     <div id="menuCards"></div>
     <input id="pseudo" maxlength="18" placeholder="Ton prénom, pour le classement" />
     <button class="sw" id="swRec"><span>Enregistrer ma partie (avec le filigrane)</span><i></i></button>
@@ -137,7 +145,7 @@
         <button class="db cta ghost" data-d="normal" style="padding:9px 0;font-size:12.5px">Normale</button>
         <button class="db cta ghost" data-d="long" style="padding:9px 0;font-size:12.5px">Longue</button>
       </div>
-      <p class="muted" style="margin-top:8px" id="durNote">La difficulté de chaque obstacle ne change pas — seulement combien il y en a. La médaille est un pourcentage, elle reste comparable. Le classement en ligne n'accepte que la manche normale.</p>
+      <p class="muted" style="margin-top:8px" id="durNote">La difficulté de chaque obstacle ne change pas — seulement combien il y en a. Chaque durée a son propre classement, et la longue rapporte 30 % de points en plus.</p>
     </div>
     <div class="sw" style="display:block">
       <div style="display:flex;justify-content:space-between;align-items:center">
@@ -239,6 +247,38 @@
    ================================================================== */
 (function () {
   'use strict';
+
+  /* =============== CE QUI EST GRATUIT =======================================
+     L'app est freemium. Deux jeux sont ouverts a tout le monde, et pas au
+     hasard : le saut et le squat sont les deux gestes que tout le monde sait
+     faire sans materiel et sans place. Quinze niveaux chacun — de quoi jouer
+     des semaines sans payer, ce qui est le but : on ne vend rien a quelqu'un
+     qui n'a pas d'abord vu que ca marche.
+
+     Les six autres demandent l'abonnement. L'essai libre reste ouvert sur
+     tous, quatre obstacles sans score : on goute avant de decider.
+
+     Comment l'acces arrive ici. jeu.html est une page a part, elle n'a pas la
+     session de l'app. app.html ecrit l'etat de l'abonnement dans le stockage
+     local juste avant d'ouvrir le jeu, avec l'heure. On le relit ici et on
+     l'ignore au-dela de douze heures, pour qu'un telephone prete ne reste pas
+     ouvert indefiniment.
+
+     C'est un verrou cote client : quelqu'un qui sait ouvrir la console de son
+     navigateur peut le contourner. C'est assume — le contenu qui a de la
+     valeur (les programmes, les seances, le coach) est protege cote serveur
+     par les regles de la base. Ici on protege une fonction de confort, et un
+     verrou serveur couterait une requete reseau avant chaque partie. */
+  var GRATUIT = { saut: 1, squat: 1 };
+  var PREMIUM = (function () {
+    try {
+      var v = JSON.parse(localStorage.getItem('cdm_jeu_acces') || '{}');
+      if (!v || !v.t) return false;
+      if (Date.now() - v.t > 12 * 3600 * 1000) return false;   /* trop vieux : on redemande a l'app */
+      return v.p === 1;
+    } catch (e) { return false; }
+  })();
+  function verrouille(k) { return !PREMIUM && !GRATUIT[k]; }
 
   var SB_URL = 'https://kkcmhviyvttwpaclrjmv.supabase.co';
   var SB_KEY = 'sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b';
@@ -483,7 +523,11 @@
      pour que la medaille — un pourcentage — reste comparable.
      Le classement en ligne, lui, n'accepte que la duree normale : sinon un
      score de manche longue ecraserait tout le tableau sans etre meilleur. */
-  var DUREES = { court: { f: 0.55, nom: 'COURT' }, normal: { f: 1, nom: 'NORMAL' }, long: { f: 1.7, nom: 'LONG' } };
+  /* 'nom' sert de nom de DIVISION (on dit « division Rx », pas « division
+     rxe ») ; 'mot' sert dans une phrase, ou la manche est feminine. */
+  var DUREES = { court:  { f: 0.55, nom: 'COURT',  mot: 'courte' },
+                 normal: { f: 1,    nom: 'NORMAL', mot: 'normale' },
+                 long:   { f: 1.7,  nom: 'LONG',   mot: 'longue' } };
   function dureeCle() { return DUREES[SAVE.duree] ? SAVE.duree : 'normal'; }
 
   function paramsStage(i, jeu) {
@@ -514,8 +558,59 @@
   }
 
   function medaille(ok, nb) { var p = ok / nb; return p >= 0.95 ? 'or' : p >= 0.80 ? 'argent' : p >= 0.60 ? 'bronze' : null; }
-  function pointsDe(ok, i, med) { return ok * (10 + i * 2) + (med === 'or' ? 150 : med === 'argent' ? 80 : med === 'bronze' ? 30 : 0); }
+
+  /* =============== LE CALCUL DES POINTS ====================================
+     L'ancienne formule comptait les obstacles franchis : ok x (10 + niveau x 2).
+     Elle avait un defaut de fond — plus la manche etait longue, plus elle
+     rapportait, quel que soit le geste. Un joueur moyen sur une manche longue
+     passait devant un joueur propre sur une manche courte, et deux niveaux
+     differents ne se comparaient pas du tout. D'ou l'exclusion des manches
+     courtes et longues du classement, qui n'etait pas une solution : c'etait
+     un aveu.
+
+     La nouvelle formule tient en trois facteurs, et chacun repond a une
+     question precise.
+
+       QUALITE     r = franchis / total, eleve a la puissance 1,5.
+                   La puissance ecarte le proprement fait du a-peu-pres :
+                   100 % vaut 1,00 ; 80 % vaut 0,72 ; 60 % vaut 0,46.
+                   Sans elle, bacler deux fois plus rapporterait autant.
+
+       NIVEAU      D = 1 + 0,12 x (niveau - 1).
+                   Niveau 1 = 1,00 ; niveau 15 = 2,68. Une progression droite,
+                   pas exponentielle : sinon les premiers niveaux ne valent
+                   plus rien et personne ne rejoue le debut.
+
+       DUREE       V = racine du facteur de duree.
+                   Courte 0,74 · Normale 1,00 · Longue 1,30.
+                   La longue rapporte 30 % de plus, parce que tenir le standard
+                   sur presque deux fois plus d'obstacles EST plus dur. Mais la
+                   racine empeche que ce soit du volume pur : sans elle, une
+                   manche longue facile passerait devant une manche normale
+                   difficile, et il suffirait de jouer longtemps.
+
+     score = 300 x r^1,5 x D x V, arrondi.
+
+     Ce qu'on peut verifier a la main :
+       niveau 1  parfait  normal = 300        niveau 10 parfait normal = 624
+       niveau 5  or (95%) normal = 411        niveau 15 parfait long   = 1048
+       niveau 1  parfait  long   = 391   <   niveau 5 parfait normal = 444
+     La derniere ligne est la garantie qui compte : allonger la manche ne
+     remplace jamais monter de niveau. */
+  var DUR_F = { court: 0.55, normal: 1, long: 1.7 };
+  function coefNiveau(n) { return 1 + 0.12 * (Math.max(1, n) - 1); }
+  function coefDuree(d) { return Math.sqrt(DUR_F[d] || 1); }
+  function pointsDe(ok, i, med, nb, d) {
+    /* med reste dans la signature : il ouvre le niveau suivant, mais il
+       n'entre plus dans les points. Il etait compte deux fois — une medaille
+       d'or est deja un taux de 95 %, donc deja paye par le facteur qualite. */
+    var total = Math.max(1, nb || 1);
+    var r = Math.max(0, Math.min(1, ok / total));
+    return Math.round(300 * Math.pow(r, 1.5) * coefNiveau(i) * coefDuree(d || 'normal'));
+  }
   var COUL = { or: '#E9C767', argent: '#C8D3CE', bronze: '#C08457' };
+  var SVG_CADENAS = '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#E9C767" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
   function svgMedaille(m, t) {
     if (!m) return '';
     t = t || 21;
@@ -1189,10 +1284,19 @@
     etat = 'fin';
     show($('hud'), false); show($('foot'), false); show($('orderWrap'), false);
     $('combo').classList.remove('show');
-    if (ESSAI) { ESSAI = false; show($('pRegles'), true); return; }
+    if (ESSAI) {
+      ESSAI = false;
+      if (verrouille(JEU)) {
+        /* Le seul moment ou l'offre a du sens : il vient de jouer, il sait ce
+           que c'est. Avant, c'etait une promesse ; la, c'est une suite. */
+        $('regPlace').textContent = JEUX[JEU].nom + ' compte 15 niveaux, des médailles et un classement — ils font partie de l\u2019abonnement. ' +
+          'Les sauts et les squats restent ouverts à tout le monde, avec leurs 15 niveaux. L\u2019abonnement se prend dans l\u2019app.';
+      }
+      show($('pRegles'), true); return;
+    }
     arreterRec();
     var med = medaille(nOk, PAR.nb);
-    var total = pointsDe(nOk, STAGE, med);
+    var total = pointsDe(nOk, STAGE, med, PAR.nb, dureeCle());
     var f = fiche(JEU, STAGE);
     var record = total > (f.best || 0);
     if (record) f.best = total;
@@ -1215,32 +1319,69 @@
   }
 
   function classement(total) {
-    var box = $('lbBox'), p = (SAVE.pseudo || '').trim();
+    var box = $('lbBox'), p = (SAVE.pseudo || '').trim(), d = dureeCle();
     box.innerHTML = '<div class="muted">Classement…</div>';
+
+    /* Deux tableaux, et ils ne repondent pas a la meme question.
+
+       LA DIVISION — un jeu, un niveau, une duree. C'est le tableau equitable :
+       tout le monde y a fait exactement le meme travail. Trois divisions par
+       niveau, comme un box qui affiche beginner, intermediate et Rx cote a
+       cote au lieu de melanger tout le monde et de n'annoncer qu'un vainqueur.
+
+       LE GENERAL — un jeu, tous niveaux et toutes durees confondus. C'est le
+       tableau qui donne envie de monter : la formule rend les manches
+       comparables, donc le meilleur score general appartient forcement a
+       quelqu'un qui joue haut ET propre. On ne peut pas y arriver en
+       repetant le niveau 1 en manche longue. */
     var envoi = Promise.resolve();
-    if (p && total > 0 && dureeCle() === 'normal') {
+    if (p && total > 0) {
       envoi = fetch(SB_URL + '/rest/v1/jeu_scores', {
         method: 'POST',
         headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ jeu: JEU, stage: STAGE, pseudo: p.slice(0, 18), points: total, franchis: nOk, total: PAR.nb })
+        body: JSON.stringify({
+          jeu: JEU, stage: STAGE, duree: d, pseudo: p.slice(0, 18),
+          points: total, franchis: nOk, total: PAR.nb,
+          taux: Math.round(1000 * nOk / Math.max(1, PAR.nb)) / 1000
+        })
       });
     }
-    envoi.catch(function () {}).then(function () {
-      return fetch(SB_URL + '/rest/v1/jeu_scores?jeu=eq.' + JEU + '&stage=eq.' + STAGE +
-        '&select=pseudo,points,franchis&order=points.desc&limit=5',
-        { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } });
-    }).then(function (r) { return r.json(); }).then(function (rows) {
-      if (dureeCle() !== 'normal') box.setAttribute('data-hors', '1');
-      if (!rows || !rows.length) { box.innerHTML = '<div class="muted">Personne n’a encore joué ce niveau. Tu es le premier.</div>'; return; }
-      var h = '<div style="font-size:10px;letter-spacing:1.5px;color:var(--gold);font-weight:800;margin-bottom:5px">LES MEILLEURS · NIVEAU ' + STAGE + '</div>';
+    function lire(url) {
+      return fetch(SB_URL + url, { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } })
+        .then(function (r) { return r.json(); });
+    }
+    function tableau(titre, rows, avecNiveau) {
+      var h = '<div style="font-size:10px;letter-spacing:1.5px;color:var(--gold);font-weight:800;margin:9px 0 5px">' + titre + '</div>';
+      if (!rows || !rows.length) return h + '<div class="muted">Personne encore. Tu es le premier.</div>';
       for (var i = 0; i < rows.length; i++) {
-        var mine = (rows[i].pseudo || '').trim().toLowerCase() === p.toLowerCase();
+        var r = rows[i], mine = (r.pseudo || '').trim().toLowerCase() === p.toLowerCase();
+        var detail = avecNiveau
+          ? ('niv. ' + r.stage + ' · ' + (DUREES[r.duree] ? DUREES[r.duree].mot : 'normale'))
+          : (r.franchis + '/' + r.total);
         h += '<div class="l"><span style="color:' + (mine ? 'var(--brand)' : 'var(--ink)') + ';font-weight:' + (mine ? 800 : 600) + '">' +
-             (i + 1) + '. ' + String(rows[i].pseudo).replace(/[<>&]/g, '') + '</span>' +
-             '<span style="color:var(--dim)">' + rows[i].franchis + ' · <b style="color:var(--gold)">' + rows[i].points + '</b></span></div>';
+             (i + 1) + '. ' + String(r.pseudo).replace(/[<>&]/g, '') + '</span>' +
+             '<span style="color:var(--dim)">' + detail + ' · <b style="color:var(--gold)">' + r.points + '</b></span></div>';
       }
-      if (dureeCle() !== 'normal') h += '<div class="muted" style="margin-top:6px">Manche ' + DUREES[dureeCle()].nom.toLowerCase() + ' : ton score reste sur ton téléphone, il n’entre pas au classement. Seule la durée normale y compte, sinon le tableau ne veut plus rien dire.</div>';
-      box.innerHTML = h;
+      return h;
+    }
+    envoi.catch(function () {}).then(function () {
+      return Promise.all([
+        lire('/rest/v1/jeu_scores?jeu=eq.' + JEU + '&stage=eq.' + STAGE + '&duree=eq.' + d +
+             '&select=pseudo,points,franchis,total&order=points.desc&limit=5'),
+        lire('/rest/v1/jeu_scores?jeu=eq.' + JEU +
+             '&select=pseudo,points,stage,duree&order=points.desc&limit=5')
+      ]);
+    }).then(function (res) {
+      box.innerHTML =
+        tableau('DIVISION ' + DUREES[d].nom + ' · NIVEAU ' + STAGE, res[0], false) +
+        tableau('GÉNÉRAL ' + JEUX[JEU].nom + ' · TOUS NIVEAUX', res[1], true) +
+        '<div class="muted" style="margin-top:8px">Ton score : ' + total + ' points. ' +
+        Math.round(100 * nOk / Math.max(1, PAR.nb)) + ' % de réussite, niveau ' + STAGE +
+        ' (×' + coefNiveau(STAGE).toFixed(2).replace('.', ',') + '), manche ' + DUREES[d].mot +
+        ' (×' + coefDuree(d).toFixed(2).replace('.', ',') + '). ' +
+        (d === 'long' ? 'La manche longue rapporte 30 % de plus.' :
+         d === 'court' ? 'Une manche normale ou longue rapporterait plus.' :
+         'La manche longue rapporterait 30 % de plus.') + '</div>';
     }).catch(function () {
       box.innerHTML = '<div class="muted">Classement indisponible. Ton score est gardé sur ton téléphone.</div>';
     });
@@ -1265,18 +1406,35 @@
     for (var i = 0; i < CLES.length; i++) {
       var k = CLES[i], J = JEUX[k], tp = totalPoints(k), nm = 0, o = SAVE.jeux[k] || {};
       for (var s in o) if (o.hasOwnProperty(s) && o[s].med) nm++;
-      h += '<button class="card' + (k === JEU ? ' on' : '') + '" data-jeu="' + k + '">' +
-           '<span class="ico" style="font-size:18px;font-weight:900;color:var(--brand)">' + (i + 1) + '</span>' +
+      var vr = verrouille(k);
+      h += '<button class="card' + (k === JEU ? ' on' : '') + (vr ? ' pro' : '') + '" data-jeu="' + k + '">' +
+           (vr ? '<span class="ico">' + SVG_CADENAS + '</span>'
+               : '<span class="ico" style="font-size:18px;font-weight:900;color:var(--brand)">' + (i + 1) + '</span>') +
            '<span style="flex-grow:1"><b>' + J.nom + '</b><em>' + J.sous + '</em></span>' +
-           '<span style="text-align:right"><span style="display:block;font-size:16px;font-weight:900;color:var(--gold)">' + tp + '</span>' +
-           '<span style="display:block;font-size:10px;color:var(--dim);font-weight:700">' + nm + '/' + NIV + '</span></span></button>';
+           (vr ? '<span style="text-align:right"><span class="tag-pro">PREMIUM</span>' +
+                 '<span style="display:block;font-size:10px;color:var(--dim);font-weight:700;margin-top:3px">essai libre</span></span>'
+               : '<span style="text-align:right"><span style="display:block;font-size:16px;font-weight:900;color:var(--gold)">' + tp + '</span>' +
+                 '<span style="display:block;font-size:10px;color:var(--dim);font-weight:700">' + nm + '/' + NIV + '</span></span>') +
+           '</button>';
     }
     $('menuCards').innerHTML = h;
     var cs = $('menuCards').querySelectorAll('.card');
     for (var j = 0; j < cs.length; j++) (function (c) { c.onclick = function () { JEU = c.getAttribute('data-jeu'); rendreMenu(); }; })(cs[j]);
     $('swRec').classList.toggle('on', !!SAVE.video);
+    var mf = $('menuFree');
+    if (mf) mf.innerHTML = PREMIUM
+      ? 'Ton abonnement ouvre les huit jeux et leurs 15 niveaux.'
+      : '<b style="color:var(--brand)">Sauts et Squats sont gratuits</b>, 15 niveaux chacun. Les six autres font partie de l\u2019abonnement — tu peux les essayer, 4 obstacles sans score.';
     /* la note de duree parle du jeu choisi : elle doit suivre le choix */
     try{ appliquerDuree(); }catch(e){}
+  }
+  /* Sur un jeu verrouille on saute la grille des niveaux — elle n'a aucun sens
+     si aucun n'est jouable — et on va droit aux regles, d'ou part l'essai
+     libre. Le bouton « Aller direct au niveau » y est remplace par l'offre. */
+  function versNiveauxOuOffre() {
+    if (verrouille(JEU)) { STAGE = 1; versRegles(); return; }
+    rendreStages();
+    show($('pMenu'), false); show($('pStages'), true);
   }
   function rendreStages() {
     $('stKicker').textContent = JEUX[JEU].nom;
@@ -1301,8 +1459,22 @@
   }
   function versRegles() {
     etat = 'menu';
-    var J = JEUX[JEU];
-    $('regKicker').textContent = J.nom + ' · NIVEAU ' + STAGE;
+    var J = JEUX[JEU], vr = verrouille(JEU);
+    $('regKicker').textContent = J.nom + (vr ? ' · PREMIUM' : ' · NIVEAU ' + STAGE);
+    /* Sur un jeu verrouille, le bouton principal n'est plus « aller au niveau »
+       mais l'essai. On ne vend pas avant d'avoir laisse essayer. */
+    var bd = $('btnDirect'), be = $('btnEssai');
+    if (vr) {
+      be.textContent = 'Essayer — 4 obstacles, sans score';
+      be.className = 'cta';
+      bd.textContent = 'Les 15 niveaux sont dans l\u2019abonnement';
+      bd.className = 'cta ghost';
+    } else {
+      be.textContent = 'Essai libre — sans score';
+      be.className = 'cta';
+      bd.textContent = 'Aller direct au niveau';
+      bd.className = 'cta ghost';
+    }
     var h = '';
     for (var i = 0; i < J.regles.length; i++) h += '<div class="step"><span class="k">' + (i + 1) + '</span><span class="t">' + J.regles[i] + '</span></div>';
     $('regSteps').innerHTML = h;
@@ -1339,7 +1511,7 @@
 
   function appliquerDuree() {
     var d = dureeCle(), P = paramsJoues(STAGE, JEU);
-    $('durVal').textContent = d === 'court' ? 'Courte' : (d === 'long' ? 'Longue' : 'Normale');
+    $('durVal').textContent = DUREES[d].mot.charAt(0).toUpperCase() + DUREES[d].mot.slice(1);
     var n = $('durNote');
     if (n) n.textContent = 'Au niveau ' + STAGE + ' de ' + JEUX[JEU].nom.toLowerCase() + ' : ' + P.nb + ' obstacles, environ ' +
       Math.round(P.nb * P.ecart / 1000) + ' s d\u2019effort. La difficult\u00e9 par obstacle ne change pas, seulement le nombre.' +
@@ -1399,8 +1571,7 @@
     demarrerCamera().then(chargerModele).then(function () {
       b.disabled = false; b.textContent = 'Continuer';
       running = true; taille();
-      show($('pMenu'), false); show($('pStages'), true);
-      rendreStages(); boucle();
+      versNiveauxOuOffre(); boucle();
     }).catch(function (e) {
       b.disabled = false; b.textContent = 'Réessayer';
       $('menuErr').innerHTML = '<div class="err">Impossible de démarrer : ' + (e && e.message ? e.message : e) +
@@ -1415,12 +1586,15 @@
     try{ arreterRec(); }catch(e){}
     show($('hud'), false); show($('foot'), false); show($('orderWrap'), false);
     $('combo').classList.remove('show');
-    show($('pStages'), true); rendreStages();
+    if (verrouille(JEU)) { show($('pRegles'), true); } else { show($('pStages'), true); rendreStages(); }
   };
   $('btnBackMenu').onclick = function () { show($('pStages'), false); show($('pMenu'), true); etat = 'menu'; rendreMenu(); };
   $('btnRegRetour').onclick = function () { show($('pRegles'), false); show($('pStages'), true); rendreStages(); };
   $('btnEssai').onclick = function () { versCalibrage(true); };
-  $('btnDirect').onclick = function () { versCalibrage(false); };
+  $('btnDirect').onclick = function () {
+    if (verrouille(JEU)) { versApp(); return; }   /* l'abonnement se prend dans l'app, jamais ici */
+    versCalibrage(false);
+  };
   $('btnQuitCal').onclick = function () { etat = 'menu'; show($('pCal'), false); show($('pRegles'), true); };
   $('btnAgain').onclick = function () { show($('pEnd'), false); show($('dlVideo'), false); versCalibrage(false); };
   $('btnStages').onclick = function () { show($('pEnd'), false); show($('dlVideo'), false); show($('pStages'), true); etat = 'menu'; rendreStages(); };

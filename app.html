@@ -10777,6 +10777,15 @@ function hubTuile(cle,ic,titre,sous,live){
     <span class="hi">${ic}</span><b>${esc(titre)}</b><em>${esc(sous)}</em>
     <span class="go">›</span></button>`;
 }
+/* jeu.html est une page a part : elle n'a ni la session Supabase ni PREMIUM.
+   On lui passe l'etat de l'abonnement par le stockage local, horodate — elle
+   l'ignore au-dela de douze heures, pour qu'un telephone prete ne reste pas
+   ouvert. Verrou de confort cote client, assume : le contenu qui a de la
+   valeur est protege cote serveur par les regles de la base. */
+function ouvrirJeu(){
+  try{ localStorage.setItem('cdm_jeu_acces', JSON.stringify({ p: PREMIUM ? 1 : 0, t: Date.now() })); }catch(_){}
+  location.href='jeu.html';
+}
 async function renderHomeHub(){
   const host=document.getElementById('home-hub'); if(!host) return;
   let dernier='';
@@ -10811,7 +10820,7 @@ async function renderHomeHub(){
     ${dernier}<div class="hub-grid">${tuiles}</div>`;
   host.querySelectorAll('[data-hub]').forEach(b=>b.onclick=()=>{
     const k=b.dataset.hub;
-    if(k==='jeu'){ location.href='jeu.html'; return; }
+    if(k==='jeu'){ ouvrirJeu(); return; }
     if(k==='bib'){ bibOpen(); return; }
     const onglets={an:'analyse',se:'seances',rc:'journal',ia:'ia',co:'cours'};
     if(onglets[k]) switchTab(onglets[k]);
@@ -10824,7 +10833,7 @@ async function renderHomeHub(){
   const bt=document.getElementById('bib-open-btn'); if(bt) bt.onclick=()=>bibOpen();
   const q=document.getElementById('bib-q'); if(q) q.oninput=()=>{ BIB_Q=q.value; bibListe(); };
   const jb=document.getElementById('jeu-open');
-  if(jb) jb.onclick=()=>{ location.href='jeu.html'; };
+  if(jb) jb.onclick=()=>{ ouvrirJeu(); };
 })();
 {
   const ov=document.getElementById('lex-ov');
