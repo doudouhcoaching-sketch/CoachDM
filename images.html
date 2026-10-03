@@ -167,7 +167,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 let RECIPES = [], PROGRAMS = [], SOLO = [], CUR = null, TAB = 'recipes';
 
 const MEALS = {breakfast:'Petit-déj',lunch:'Déjeuner',dinner:'Dîner',snack:'Collation',pre_workout:'Pré-training',post_workout:'Post-training'};
-const PROG_ORDER = ['barbell-strength-12w','physique-12w','open-prep-8w','gravity-10w','hyrox-engine-12w','engine-amrap-10w','metcon-emom-8w','fat-burner-10w','football-elite-12w','foundation-8w'];
+const PROG_ORDER = ['barbell-strength-12w','physique-12w','booty-10w','open-prep-8w','gravity-10w','hyrox-engine-12w','run-10k-12w','engine-amrap-10w','metcon-emom-8w','fat-burner-10w','football-elite-12w','foundation-8w','core-strength-8w'];
 const PROG_SCENE = {
   'barbell-strength-12w':'a heavily loaded barbell with bumper plates on a lifting platform',
   'physique-12w':'dumbbells and a cable station in a bodybuilding gym corner',
@@ -178,7 +178,10 @@ const PROG_SCENE = {
   'metcon-emom-8w':'kettlebells lined up under a gym wall clock',
   'fat-burner-10w':'battle ropes mid-wave on rubber gym floor',
   'football-elite-12w':'speed cones and a resistance sled on artificial turf, football boots',
-  'foundation-8w':'clean minimal gym with light dumbbells and a foam roller'
+  'foundation-8w':'clean minimal gym with light dumbbells and a foam roller',
+  'booty-10w':'a loaded barbell set up for hip thrusts on a padded bench, resistance bands on the floor',
+  'run-10k-12w':'running shoes on an empty road at sunrise, kilometre marker in the distance',
+  'core-strength-8w':'an ab wheel, a kettlebell and a mat on a clean gym floor'
 };
 
 function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2600); }
@@ -242,7 +245,7 @@ function renderRecipes(){
 async function loadWorkouts(){
   const [cat, solo] = await Promise.all([
     sb.from('workouts').select('id,program_slug,source,type,cover_image_url')
-      .in('program_slug', PROG_ORDER).eq('is_published',true),
+      .in('program_slug', PROG_ORDER),  /* 03/10/2026 : aussi les programmes pas encore publies, pour preparer leur photo */
     sb.from('workouts').select('id,name_fr,type,cover_image_url')
       .is('program_slug',null).eq('is_published',true).order('name_fr')
   ]);
