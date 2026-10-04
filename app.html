@@ -200,6 +200,9 @@
   .logitem .meal{font-size:11px;color:var(--brand);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
   .logitem .ln{font-weight:600;font-size:14px;margin-top:2px}
   .logitem .lq{font-size:12px;color:var(--muted);margin-top:2px}
+  .logitem .lmac{font-size:11.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
+  .logitem .lmac span{font-weight:600}
+  .logitem .lmac .mp{color:var(--prot)} .logitem .lmac .mc{color:var(--carb)} .logitem .lmac .mf{color:var(--fat)}
   .logitem .lk{font-weight:700;font-variant-numeric:tabular-nums;font-size:14px}
   .logitem .del{margin-left:12px;color:var(--muted);font-size:20px;padding:4px 6px}
 .go-head{display:flex;align-items:center;justify-content:space-between;margin:2px 0 12px}
@@ -3163,7 +3166,7 @@ const T = {
  hub_an:{fr:'Analyse filmée',en:'Filmed analysis',nl:'Gefilmde analyse'},
  hub_an_s:{fr:'Squat, saut, barre, course, Hyrox',en:'Squat, jump, bar, run, Hyrox',nl:'Squat, sprong, stang, lopen, Hyrox'},
  hub_jeu_s:{fr:'7 jeux, la caméra te suit',en:'7 games, the camera follows you',nl:'7 spellen, de camera volgt je'},
- hub_bib_s:{fr:'391 mouvements expliqués',en:'391 movements explained',nl:'391 bewegingen uitgelegd'},
+ hub_bib_s:{fr:'422 mouvements expliqués',en:'422 movements explained',nl:'422 bewegingen uitgelegd'},
  hub_se:{fr:'Mes séances',en:'My workouts',nl:'Mijn trainingen'},
  hub_se_s:{fr:'Programmes, cycles, séance du jour',en:'Programs, cycles, today\u2019s session',nl:'Programma\u2019s, cycli, sessie van vandaag'},
  hub_rc:{fr:'Repas & recettes',en:'Meals & recipes',nl:'Maaltijden & recepten'},
@@ -3432,6 +3435,7 @@ const T = {
  macro_protein:{fr:'Protéines',en:'Protein',nl:'Eiwitten'},
  macro_carb:{fr:'Glucides',en:'Carbs',nl:'Koolhydraten'},
  macro_fat:{fr:'Lipides',en:'Fat',nl:'Vetten'},
+ jo_mac_ab:{fr:'Prot.|Gluc.|Lip.',en:'Prot|Carbs|Fat',nl:'Eiw.|Koolh.|Vet'},
  macro_fiber:{fr:'Fibres',en:'Fiber',nl:'Vezels'},
  ct_badge:{fr:'Coach du jour',en:'Coach of the day',nl:'Coach van de dag'},
  ct_morning:{fr:'Nouvelle journ\u00e9e. Objectif {P}g de prot\u00e9ines \u2014 on lance fort :',en:'New day. Target {P}g of protein \u2014 start strong:',nl:'Nieuwe dag. Doel {P}g eiwit \u2014 sterk beginnen:'},
@@ -3941,11 +3945,11 @@ const T = {
  wn_1t:{fr:'Le mode jeu : tu t’entraînes sans compter',en:'Game mode: you train without counting',nl:'De spelmodus: je traint zonder te tellen'},
  wn_1d:{fr:'Huit jeux dans l’onglet Analyse. La caméra te suit, un obstacle arrive, et c’est ton corps qui répond : tu sautes par-dessus, tu passes dessous, tu vas chercher la cible. Quinze niveaux chacun, des médailles, un classement. Les sauts et les squats sont gratuits pour tout le monde. Tout se calcule sur ton téléphone, aucune image ne part.',en:'Eight games in the Analysis tab. The camera follows you, an obstacle arrives, and your body answers: you jump over it, duck under it, reach the target. Fifteen levels each, medals, a leaderboard. Jumps and squats are free for everyone. Everything runs on your phone — no image ever leaves it.',nl:'Acht spellen in het tabblad Analyse. De camera volgt je, er komt een obstakel aan, en je lichaam antwoordt: je springt eroverheen, je duikt eronderdoor, je gaat het doel halen. Vijftien niveaus per spel, medailles, een klassement. Sprongen en squats zijn gratis voor iedereen. Alles wordt op je telefoon berekend — er vertrekt geen enkel beeld.'},
  wn_2t:{fr:'Mes conseils sur chaque mouvement',en:'My advice on every movement',nl:'Mijn tips bij elke beweging'},
- wn_2d:{fr:'Les 391 mouvements de la bibliothèque ont maintenant leurs points de performance et les erreurs que je vois le plus souvent en salle, avec la façon de les corriger — ce que je te dirais si j’étais à côté de toi. Vingt-huit sont dessinés et animés : le bon geste d’un côté, l’erreur de l’autre. Et dans une séance, touche un mouvement : sa fiche s’ouvre.',en:'All 391 movements in the library now have their performance points and the mistakes I see most often in the gym, with how to fix them — what I would tell you if I were standing next to you. Twenty-eight are drawn and animated: the right movement on one side, the mistake on the other. And inside a workout, tap a movement: its page opens.',nl:'De 391 bewegingen in de bibliotheek hebben nu hun prestatiepunten en de fouten die ik het vaakst in de gym zie, met hoe je ze corrigeert — wat ik je zou zeggen als ik naast je stond. Achtentwintig zijn getekend en geanimeerd: de juiste beweging aan de ene kant, de fout aan de andere. En in een training tik je op een beweging: haar fiche gaat open.'},
+ wn_2d:{fr:'Les 422 mouvements de la bibliothèque ont maintenant leurs points de performance et les erreurs que je vois le plus souvent en salle, avec la façon de les corriger — ce que je te dirais si j’étais à côté de toi. Tous sont dessinés et animés : le bon geste d’un côté, l’erreur de l’autre. Et dans une séance, touche un mouvement : sa fiche s’ouvre.',en:'All 422 movements in the library now have their performance points and the mistakes I see most often in the gym, with how to fix them — what I would tell you if I were standing next to you. Every one of them is drawn and animated: the right movement on one side, the mistake on the other. And inside a workout, tap a movement: its page opens.',nl:'De 422 bewegingen in de bibliotheek hebben nu hun prestatiepunten en de fouten die ik het vaakst in de gym zie, met hoe je ze corrigeert — wat ik je zou zeggen als ik naast je stond. Ze zijn allemaal getekend en geanimeerd: de juiste beweging aan de ene kant, de fout aan de andere. En in een training tik je op een beweging: haar fiche gaat open.'},
  wn_3t:{fr:'Ton historique nutrition',en:'Your nutrition history',nl:'Je voedingsgeschiedenis'},
- wn_3d:{fr:'Dans l’onglet Repas, les flèches en haut te ramènent jour par jour sur les deux derniers mois : ce que tu as mangé, tes calories et tes macros de chaque journée. Touche la date pour revenir à aujourd’hui. C’est comme ça qu’on voit ce qui a marché une semaine et pas l’autre.',en:'In the Meals tab, the arrows at the top take you back day by day over the last two months: what you ate, your calories and your macros for each day. Tap the date to come back to today. That is how you see what worked one week and not the next.',nl:'In het tabblad Maaltijden brengen de pijlen bovenaan je dag per dag terug over de laatste twee maanden: wat je gegeten hebt, je calorieën en je macro’s van elke dag. Tik op de datum om terug te gaan naar vandaag. Zo zie je wat de ene week werkte en de andere niet.'},
+ wn_3d:{fr:'Dans l’onglet Repas, les flèches en haut te ramènent jour par jour sur les deux derniers mois : ce que tu as mangé, tes calories et tes macros de chaque journée, avec sous chaque aliment ses protéines, ses glucides et ses lipides. Touche la date pour revenir à aujourd’hui. C’est comme ça qu’on voit ce qui a marché une semaine et pas l’autre.',en:'In the Meals tab, the arrows at the top take you back day by day over the last two months: what you ate, your calories and your macros for each day, with the protein, carbs and fat of every food. Tap the date to come back to today. That is how you see what worked one week and not the next.',nl:'In het tabblad Maaltijden brengen de pijlen bovenaan je dag per dag terug over de laatste twee maanden: wat je gegeten hebt, je calorieën en je macro’s van elke dag, met onder elk voedingsmiddel de eiwitten, koolhydraten en vetten. Tik op de datum om terug te gaan naar vandaag. Zo zie je wat de ene week werkte en de andere niet.'},
  wn_4t:{fr:'L’accueil te propose, tu ne cherches plus',en:'The home screen offers, you stop searching',nl:'Het startscherm biedt aan, je zoekt niet meer'},
- wn_4d:{fr:'Analyses, jeux, bibliothèque, séances, recettes : tout est sur l’accueil, avec le résultat de ta dernière analyse filmée. Les recettes suivent l’heure de la journée — pas de dîner proposé à sept heures du matin.',en:'Analyses, games, library, workouts, recipes: it is all on the home screen, with the result of your last filmed analysis. Recipes follow the time of day — no dinner suggested at seven in the morning.',nl:'Analyses, spellen, bibliotheek, trainingen, recepten: alles staat op het startscherm, met het resultaat van je laatste gefilmde analyse. Recepten volgen het uur van de dag — geen avondmaal om zeven uur ’s ochtends.'},
+ wn_4d:{fr:'Analyses, jeux, bibliothèque, séances, recettes : tout est sur l’accueil, avec le résultat de ta dernière analyse filmée. Les recettes suivent l’heure de la journée — pas de dîner proposé à sept heures du matin. Et il y en a maintenant cent.',en:'Analyses, games, library, workouts, recipes: it is all on the home screen, with the result of your last filmed analysis. Recipes follow the time of day — no dinner suggested at seven in the morning. And there are now a hundred of them.',nl:'Analyses, spellen, bibliotheek, trainingen, recepten: alles staat op het startscherm, met het resultaat van je laatste gefilmde analyse. Recepten volgen het uur van de dag — geen avondmaal om zeven uur ’s ochtends. En het zijn er nu honderd.'},
  wn_5t:{fr:'Sur la vidéo, tu choisis ce qu’on voit de toi',en:'On the video, you choose what is shown',nl:'Op de video kies je wat er van jou te zien is'},
  wn_5d:{fr:'Trois réglages, dans les jeux comme dans les analyses : le squelette entier, les repères de mesure seuls, ou rien du tout sur l’image. Le calcul ne change pas d’un iota.',en:'Three settings, in the games and the analyses alike: the full skeleton, the measurement guides only, or nothing at all on the image. The calculation does not change one bit.',nl:'Drie instellingen, zowel in de spellen als in de analyses: het volledige skelet, alleen de meetlijnen, of helemaal niets op het beeld. De berekening verandert geen haar.'},
  /* ---- D#22 : rendez-vous de la première séance ---- */
@@ -7430,10 +7434,19 @@ $('#sh-add').onclick = async ()=>{
   await loadLogs(); await loadToday();
 };
 
+/* 04/10/2026 : demande d'un testeur. L'historique montrait l'aliment et ses
+   calories mais pas ses macros : on ajoute proteines, glucides et lipides
+   sous chaque ligne. Les vieilles lignes sans macros n'affichent rien. */
+function joMacLine(l){
+  if(l.protein_g==null && l.carbs_g==null && l.fat_g==null) return '';
+  const ab=t('jo_mac_ab').split('|');
+  const v=x=>{ const n=Number(x)||0; return n<10?(Math.round(n*10)/10):Math.round(n); };
+  return `<div class="lmac"><span class="mp">${ab[0]} ${v(l.protein_g)} g</span> · <span class="mc">${ab[1]} ${v(l.carbs_g)} g</span> · <span class="mf">${ab[2]} ${v(l.fat_g)} g</span></div>`;
+}
 async function loadLogs(){
   loadTrends();
   const { data } = await sb.from('food_logs')
-    .select('id,food_id,meal_type,quantity_g,kcal')
+    .select('id,food_id,meal_type,quantity_g,kcal,protein_g,carbs_g,fat_g')
     .eq('user_id',USER.id).eq('logged_date',JO_DATE)
     .order('logged_at',{ascending:true});
   joPaint();
@@ -7448,7 +7461,7 @@ async function loadLogs(){
     <div class="logitem" data-id="${l.id}">
       <div><div class="meal">${mealLabel(l.meal_type)}</div>
         <div class="ln">${names[l.food_id]||t('sh_food')}</div>
-        <div class="lq">${r0(l.quantity_g)} g</div></div>
+        <div class="lq">${r0(l.quantity_g)} g</div>${joMacLine(l)}</div>
       <div style="display:flex;align-items:center"><span class="lk">${r0(l.kcal)} kcal</span>
         <span class="del" title="Supprimer">✕</span></div>
     </div>`).join('');
@@ -10660,7 +10673,7 @@ function animCharger(){
   ANIM_ETAT=1;
   return new Promise(r=>{
     const sc=document.createElement('script');
-    sc.src='anim.js?v=1';
+    sc.src='anim.js?v=2';
     sc.onload=()=>{ ANIM_ETAT=2; r(true); };
     sc.onerror=()=>{ ANIM_ETAT=3; r(false); };
     document.head.appendChild(sc);

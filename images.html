@@ -230,7 +230,9 @@ async function loadRecipes(){
     .select('id,name_fr,description_fr,meal_type,image_url')
     .order('meal_type').order('name_fr');
   if(error){ toast('Erreur de chargement recettes'); return; }
-  RECIPES = data || [];
+  /* 04/10/2026 : 100 recettes. Celles sans photo passent en tete, sinon les
+     38 nouvelles se perdent au milieu de la grille. */
+  RECIPES = (data || []).slice().sort((a,b)=>(!!a.image_url)-(!!b.image_url));
   renderRecipes();
 }
 function renderRecipes(){
