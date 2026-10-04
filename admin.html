@@ -270,6 +270,7 @@ h1, h2,
     <div class="tabs">
       <button class="on" data-tab="members">Membres</button>
       <button data-tab="apports">Apports<span id="ap-badge"></span></button>
+      <button data-tab="exercises">Exercices</button>
       <button data-tab="workouts">Séances</button>
       <button data-tab="foods">Aliments</button>
       <button data-tab="cours">Cours</button>
@@ -303,20 +304,24 @@ h1, h2,
       <div id="m-list"><div class="spin"></div></div>
     </div>
 
+    <!-- 04/10/2026 : les exercices ont leur propre onglet. Melanges aux seances,
+         les 400 fiches noyaient la liste et les nouveaux mouvements a completer
+         etaient introuvables tout en bas. -->
+    <div class="pane" id="pane-exercises">
+      <div class="toolbar"><div class="sub" style="text-align:left;margin:0">Bibliothèque d'exercices.</div>
+        <button class="btn sm" id="ex-new">＋ Exercice</button></div>
+      <div class="ufil" id="ex-filters" style="margin-bottom:10px">
+        <button class="on" data-exf="todo">À compléter<b></b></button>
+        <button data-exf="novid">Sans vidéo<b></b></button>
+        <button data-exf="draft">Brouillons<b></b></button>
+        <button data-exf="all">Tous<b></b></button>
+      </div>
+      <div class="field" style="margin-bottom:11px"><input id="ex-q" type="search" autocomplete="off" placeholder="Rechercher : nom, muscle, catégorie, matériel…" /></div>
+      <div id="ex-list"><div class="spin"></div></div>
+    </div>
+
     <div class="pane" id="pane-workouts">
-      <div class="subswitch">
-        <button class="on" data-sub="ex">Exercices</button>
-        <button data-sub="wk">Séances</button>
-      </div>
-
-      <div class="subpane active" id="sub-ex">
-        <div class="toolbar"><div class="sub" style="text-align:left;margin:0">Bibliothèque d'exercices.</div>
-          <button class="btn sm" id="ex-new">＋ Exercice</button></div>
-        <div class="field" style="margin-bottom:11px"><input id="ex-q" type="search" autocomplete="off" placeholder="Rechercher : nom, muscle, catégorie, matériel…" /></div>
-        <div id="ex-list"><div class="spin"></div></div>
-      </div>
-
-      <div class="subpane" id="sub-wk">
+      <div>
         <div class="toolbar"><div class="sub" style="text-align:left;margin:0">Séances publiées dans l'app.</div>
           <button class="btn sm" id="wk-new">＋ Séance</button></div>
         <div class="field" style="margin-bottom:11px"><input id="wk-q" type="search" autocomplete="off" placeholder="Rechercher : nom, type, difficulté…" /></div>
@@ -605,7 +610,7 @@ function applyRoleUI(){
   const h = document.querySelector('.topbar h2'); if(h) h.textContent = coach ? 'Console Coach' : 'Console Admin';
   // Coach : accès limité au seul onglet Séances
   document.querySelectorAll('.tabs button').forEach(b=>{
-    if(coach && b.dataset.tab!=='workouts') b.style.display='none';
+    if(coach && b.dataset.tab!=='workouts' && b.dataset.tab!=='exercises') b.style.display='none';
   });
   // Coach : bibliothèque d'exercices en lecture seule (ajout réservé à l'admin)
   if(coach){ const x=$('#ex-new'); if(x) x.style.display='none'; }
@@ -616,7 +621,7 @@ function switchTab(t){
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
   $('#pane-'+t).classList.add('active');
   document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
-  if(t==='workouts' && !window.__wkLoaded){ window.__wkLoaded=true; loadExercises(); loadWorkouts(); }
+  if((t==='workouts' || t==='exercises') && !window.__wkLoaded){ window.__wkLoaded=true; loadExercises(); loadWorkouts(); }
   if(t==='cours' && window.__coursOpen){ window.__coursOpen(); }
   if(t==='prospects'){ loadProspects(); }
   if(t==='founders'){ loadFounders(); }
@@ -1199,6 +1204,20 @@ let EXS=[]; // cache complet pour la composition
 /* Les listes sont chargées une fois puis filtrées en mémoire : dérouler 392
    exercices pour en trouver un était le geste le plus pénible de la console. */
 let EX_Q='';
+/* Filtre par defaut : ce qui reste a completer (brouillon ou sans video),
+   pour que les nouveaux mouvements sortent en tete au lieu d'etre perdus en bas. */
+let EX_F='todo';
+const EX_FILT = {
+  todo:  e => !e.is_published || !e.video_url,
+  novid: e => !e.video_url,
+  draft: e => !e.is_published,
+  all:   () => true,
+};
+document.querySelectorAll('#ex-filters button').forEach(b=>b.onclick=()=>{
+  EX_F=b.dataset.exf;
+  document.querySelectorAll('#ex-filters button').forEach(x=>x.classList.toggle('on',x===b));
+  renderExList();
+});
 async function loadExercises(){
   $('#ex-list').innerHTML='<div class="spin"></div>';
   const { data, error } = await sb.rpc('admin_list_exercises');
@@ -1208,15 +1227,20 @@ async function loadExercises(){
 }
 function renderExList(){
   if(!EXS.length){ $('#ex-list').innerHTML='<p class="empty">Aucun exercice.</p>'; return; }
+  document.querySelectorAll('#ex-filters button').forEach(b=>{
+    const n=EXS.filter(EX_FILT[b.dataset.exf]).length; const el=b.querySelector('b'); if(el) el.textContent=' '+n;
+  });
+  /* Une recherche porte toujours sur toute la bibliotheque, quel que soit le filtre. */
   const q=EX_Q.trim().toLowerCase();
-  const list = q ? EXS.filter(e=>{
+  const base = q ? EXS : EXS.filter(EX_FILT[EX_F]||EX_FILT.all);
+  const list = q ? base.filter(e=>{
     const cat=L_CAT[e.category]||e.category||'', mus=L_MUS[e.primary_muscle]||e.primary_muscle||'',
           eq=L_EQUIP[e.equipment]||e.equipment||'';
     return (e.name_fr||'').toLowerCase().includes(q) || (e.name_en||'').toLowerCase().includes(q)
         || cat.toLowerCase().includes(q) || mus.toLowerCase().includes(q) || eq.toLowerCase().includes(q);
-  }) : EXS;
+  }) : base;
   const count=`<p class="empty" style="margin:0 0 10px;text-align:left">${list.length} exercice(s)${q?` sur ${EXS.length}`:''}</p>`;
-  if(!list.length){ $('#ex-list').innerHTML=`<p class="empty">Aucun exercice pour « ${esc(EX_Q)} ».</p>`; return; }
+  if(!list.length){ $('#ex-list').innerHTML= q ? `<p class="empty">Aucun exercice pour « ${esc(EX_Q)} ».</p>` : '<p class="empty">Rien dans ce filtre. Choisis « Tous » pour voir toute la bibliothèque.</p>'; return; }
   $('#ex-list').innerHTML = count + list.map(e=>{
     const pub = e.is_published?'':'<span class="pill no">Brouillon</span>';
     const vid = e.video_url?'<span class="pill vid">Vidéo ✓</span>':'';
