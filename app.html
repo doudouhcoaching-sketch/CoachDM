@@ -10973,7 +10973,19 @@ function hubTuile(cle,ic,titre,sous,live){
      fermer() le retour a l'app
    Consequence voulue : plus aucun drapeau modifiable cote client, et plus de
    page a ouvrir directement sans session. Meme porte que les programmes. */
-let JEU_API=null, JEU_CHARGE=false;
+let JEU_API=null, JEU_CHARGE=false, JEU_LANG=null;
+/* Textes du gabarit du jeu (FR -> [EN, NL]). Le moteur traduit les siens avec _T(). */
+const JEU_TPL_TR={"NIVEAU 1":["LEVEL 1","NIVEAU 1"],"PRÊT":["READY","KLAAR"],"SAUTS":["JUMPS","SPRONGEN"],"0 touchées":["0 hit","0 geraakt"],"points":["points","punten"],"Retour à l'app":["Back to the app","Terug naar de app"],"COACH DM · MODE JEU":["COACH DM · GAME MODE","COACH DM · SPELMODUS"],"Travailler en jouant":["Train while you play","Trainen al spelend"],"Tout se calcule sur ton téléphone. Aucune image ne part : la vidéo que tu enregistres reste chez toi.":["Everything runs on your phone. No image leaves it: the video you record stays with you.","Alles wordt op je telefoon berekend. Er gaat geen enkel beeld weg: de video die je opneemt, blijft bij jou."],"Ton prénom, pour le classement":["Your first name, for the leaderboard","Je voornaam, voor het klassement"],"Enregistrer ma partie (avec le filigrane)":["Record my game (with watermark)","Mijn spel opnemen (met watermerk)"],"Longueur de la manche":["Round length","Lengte van de ronde"],"Normale":["Normal","Normaal"],"Courte":["Short","Kort"],"Longue":["Long","Lang"],"La difficulté de chaque obstacle ne change pas — seulement combien il y en a. Chaque durée a son propre classement, et la longue rapporte 30 % de points en plus.":["The difficulty of each obstacle doesn't change — only how many there are. Each length has its own leaderboard, and the long one earns 30% more points.","De moeilijkheid van elk obstakel verandert niet — alleen hoeveel er zijn. Elke duur heeft een eigen klassement, en de lange levert 30 % meer punten op."],"Zoom de l'image":["Image zoom","Beeldzoom"],"Le zoom agrandit seulement l'affichage : le suivi continue de voir tout ton corps. À 3 m, mets 1,6×.":["Zoom only enlarges the display: tracking still sees your whole body. At 3 m, use 1.6×.","De zoom vergroot alleen het beeld: de tracking blijft je hele lichaam zien. Op 3 m zet je 1,6×."],"Ce qu'on voit sur toi":["What's drawn on you","Wat je op jezelf ziet"],"Squelette":["Skeleton","Skelet"],"Points actifs":["Active points","Actieve punten"],"Cercles seuls":["Circles only","Enkel cirkels"],"« Cercles seuls » efface tout le squelette : il ne reste que toi et les cibles. « Points actifs » ne garde que la partie du corps qui doit toucher.":["“Circles only” hides the whole skeleton: just you and the targets. “Active points” keeps only the body part that has to touch.","“Enkel cirkels” wist het hele skelet: alleen jij en de doelen blijven over. “Actieve punten” toont alleen het lichaamsdeel dat moet raken."],"Continuer":["Continue","Verder"],"Choisis ton niveau":["Choose your level","Kies je niveau"],"Il faut le bronze pour ouvrir le suivant. Tu reviens sur n'importe quel niveau déjà ouvert.":["You need bronze to unlock the next one. You can go back to any level already unlocked.","Je hebt brons nodig om het volgende te openen. Je kan terug naar elk niveau dat al open is."],"Changer de jeu":["Change game","Ander spel"],"SAUTS · NIVEAU 1":["JUMPS · LEVEL 1","SPRONGEN · NIVEAU 1"],"Comment on joue":["How to play","Hoe je speelt"],"LE PLACEMENT":["SETUP","OPSTELLING"],"Essai libre — sans score":["Free trial — no score","Vrije proef — zonder score"],"Aller direct au niveau":["Go straight to the level","Direct naar het niveau"],"Retour":["Back","Terug"],"CALIBRAGE":["CALIBRATION","KALIBRATIE"],"Mets-toi en place":["Get into position","Ga in positie"],"Recule jusqu'à voir tout ton corps, puis ne bouge plus.":["Step back until your whole body is visible, then hold still.","Ga achteruit tot je hele lichaam zichtbaar is, en beweeg dan niet meer."],"Recherche du corps…":["Looking for your body…","Lichaam zoeken…"],"NIVEAU 1 · SAUTS":["LEVEL 1 · JUMPS","NIVEAU 1 · SPRONGEN"],"Bronze":["Bronze","Brons"],"TOUCHÉES":["HITS","GERAAKT"],"POINTS":["POINTS","PUNTEN"],"Enregistrer ma vidéo":["Save my video","Mijn video opslaan"],"Classement…":["Leaderboard…","Klassement…"],"Niveau suivant":["Next level","Volgend niveau"],"Refaire ce niveau":["Replay this level","Dit niveau opnieuw"],"Tous les niveaux":["All levels","Alle niveaus"]};
+function jeuTraduireGabarit(racine){
+  if(LANG==='fr') return;
+  const i=(LANG==='nl')?1:0;
+  const w=document.createTreeWalker(racine, NodeFilter.SHOW_TEXT); const nodes=[];
+  while(w.nextNode()) nodes.push(w.currentNode);
+  nodes.forEach(n=>{ const k=n.nodeValue.trim(); const v=JEU_TPL_TR[k];
+    if(v) n.nodeValue=n.nodeValue.replace(k, v[i]); });
+  racine.querySelectorAll('[placeholder]').forEach(el=>{ const v=JEU_TPL_TR[el.getAttribute('placeholder')];
+    if(v) el.setAttribute('placeholder', v[i]); });
+}
 function jeuScript(src){
   return new Promise((ok,ko)=>{
     const t=document.createElement('script'); t.src=src; t.async=true;
@@ -10994,8 +11006,13 @@ function fermerJeu(){
   document.body.style.overflow='';
 }
 async function ouvrirJeu(){
-  const hote=document.getElementById('jeu-app');
+  let hote=document.getElementById('jeu-app');
   if(!hote || !USER) return;
+  /* Langue changee depuis le premier montage : on remonte le jeu sur un
+     conteneur neuf (la racine fantome ne peut pas etre recreee sur l'ancien). */
+  if(JEU_API && JEU_LANG!==LANG){
+    const neuf=hote.cloneNode(false); hote.replaceWith(neuf); hote=neuf; JEU_API=null; JEU_CHARGE=false;
+  }
   hote.hidden=false;
   document.body.style.overflow='hidden';
   if(JEU_API){ try{ JEU_API.ouvrir(); }catch(_){} return; }
@@ -11013,8 +11030,10 @@ async function ouvrirJeu(){
     st.textContent=document.getElementById('jeu-css').textContent;
     racine.appendChild(st);
     racine.appendChild(document.getElementById('jeu-mk').content.cloneNode(true));
+    jeuTraduireGabarit(racine);
+    JEU_LANG=LANG;
     JEU_API=window.__jeuDemarrer({
-      JR: racine, sb, user: ()=>USER, premium: ()=>PREMIUM, fermer: fermerJeu
+      JR: racine, sb, user: ()=>USER, premium: ()=>PREMIUM, fermer: fermerJeu, lang: ()=>JEU_LANG
     });
     const l=document.getElementById('jeu-load'); if(l) l.remove();
   }catch(e){
@@ -11267,6 +11286,13 @@ window.__jeuDemarrer = function (APP) {
      de l'app n'y entre, aucune des siennes n'en sort. C'est ce qui permet de
      fusionner les deux pages sans renommer une seule classe. */
   var JR = APP.JR;
+  /* Traduction : chaque texte visible passe par _T(n, 'francais'). La langue
+     est celle de l'app au moment ou le jeu est monte (l'app remonte le jeu si
+     la langue change). */
+  var _TL = (APP.lang && APP.lang()) || 'fr';
+  var _TX = { en: ["JUMPS","Hurdles are coming. Both feet go over.","JUMP","A hurdle comes from the right, at the height of the gold line.","When it reaches you, both ankles must be above the line.","The line is based on YOUR height at calibration. The higher the level, the higher it goes.","Phone upright against a wall, at hip height. Step back 2 to 3 m, whole body in the frame.","SQUATS","A ceiling is coming. Your hips go under it.","GO DOWN","A ceiling comes in, set at the line of your knees.","Your hips must be BELOW the line when it passes through you.","The line follows your knees live: it's the real standard, not an estimate.","Phone upright, at hip height, 2 to 3 m away, side-on or facing.","HIGH KNEES","Targets fall left and right. You hit them with your knee.","KNEES","A target falls in the left or right lane.","You hit it with the knee on that side. It explodes.","They fall faster and faster and the targets get higher and higher.","Phone upright, at hip height, 2 to 3 m away, facing the camera.","PUSH-UPS","A bar passes. Your shoulder must be down when it arrives.","A bar comes in, set at the required depth below your shoulder.","Your shoulder must be BELOW the bar when it passes through you.","Between two bars, push back up to straight arms — otherwise the next one doesn't count.","Phone ON THE FLOOR to your side, 1.5 m away, your whole body in the frame. The image is straightened automatically.","Get into push-up position, arms straight, and hold still.","BURPEES","A target on the floor, then one in the air. You alternate.","TO THE FLOOR","LOW target on the floor: put your hands in it, chest to the floor.","HIGH target above your head: jump and reach it with your hands.","Low, high, low, high. It's a burpee, but you don't count it.","Phone upright against a wall, on the floor or very low. Step back 2.5 to 3 m.","KB SWING","Chest target, target between the legs. The swing rhythm.","SWING","HIGH target at chest height: the bell goes up, your hands touch it.","LOW target between the legs: the bell loads the hips.","Feet glued to the floor. The hips drive it, not the arms.","Phone upright, at hip height, 2.5 m away, SIDE-ON to see the hinge clearly.","THE COURSE","Five different obstacles, in random order. The hardest one.","WATCH","Five obstacles come in an order you don't know. What you see tells you what to do.","A gold BAR at chest height: squat down, shoulders under the bar.","A blue HURDLE just off the floor: jump over it, both feet.","Two purple CIRCLES falling left or right: drive the knee on that side into them.","An ORANGE BAR on the floor: hands down, then jump. A two-step burpee — the screen tells you when to jump.","The GREEN LINE up high: jump and touch it with your hand.","It's the hardest level in the catalogue: things come faster, and you have no time to think.","Phone upright against a wall, at hip height. Step back 2.5 to 3 m: your WHOLE body must be in the frame, from the floor to your raised hands. Make sure the ceiling is high enough.","Stand, arms by your sides, whole body in the frame. Hold still for two seconds.","OVERHEAD","Target overhead. Snatch, thruster, press.","OVERHEAD","A target appears above your head, at arm's length.","Reach it with both hands, elbows locked.","Loaded or not: the movement is the same, and so is the lockout.","Phone upright, at hip height, 2.5 to 3 m away, enough ceiling height.","BAR","SHOULDERS UNDER THE BAR","LOW","BOTH FEET OVER","CIRCLES","KNEE INTO THE CIRCLE","FLOOR BAR","HANDS DOWN","HANDS DOWN THEN JUMP","HIGH LINE","JUMP AND TOUCH","HAND ABOVE THE LINE","SHORT","short","NORMAL","normal","LONG","long","Looking for your body…","Hold still… ","Let's go!"," · LEVEL ","NOW JUMP","GO OVER","SHOULDER BELOW THE LINE","GO UNDER","HIT","CLEARED","MISSED","FREE TRIAL","LEVEL "," cleared · "," hit · "," missed","STREAK ×","  ·  DOUBLE POINTS","JUMP!","WATCH WHAT'S COMING","STEP BACK"," · TRIAL"," has 15 levels, medals and a leaderboard — they're part of the subscription. ","Jumps and squats stay open to everyone, with their 15 levels. You can subscribe in the app.","Gold medal","Silver medal","Bronze medal","Not yet","CLEARED","HITS","New record on this level. ","Level "," is unlocked. ","Last level of the game: you've finished it. ","You need 60% to unlock the next level. ","Best streak: ","Lots of misses: step back, or drop a level.","<div class=\"muted\">Leaderboard…</div>","<div class=\"muted\">Nobody yet. You're the first.</div>","lvl ","DIVISION ","OVERALL "," · ALL LEVELS","<div class=\"muted\" style=\"margin-top:8px\">Your score: "," points. ","% success, level ","), round ","The long round earns 30% more.","A normal or long round would earn more.","The long round would earn 30% more.","<div class=\"muted\">Leaderboard unavailable. Your score is saved on your phone.</div>","<span style=\"display:block;font-size:10px;color:var(--dim);font-weight:700;margin-top:3px\">free trial</span></span>","Your subscription unlocks all eight games and their 15 levels.","<b style=\"color:var(--brand)\">Jumps and Squats are free</b>, 15 levels each. The other six are part of the subscription — you can try them, 4 obstacles with no score."," targets · ","<span class=\"b\">best ","<span class=\"d\">never played</span>","<span class=\"d\">locked</span>","Try it — 4 obstacles, no score","The 15 levels are in the subscription","Free trial — no score","Go straight to the level","Set up as shown on the previous screen, then hold still for two seconds.","<div class=\"err\">This browser can't record video. On iPhone you need a recent Safari; on Android, Chrome. The game still works.</div>","Level "," of ",": "," obstacles, about "," s of effort. The difficulty per obstacle doesn't change, only the number."," This length doesn't count for the online leaderboard.","Skeleton","Active points","Circles only","Loading tracking…","Continue","Try again","<div class=\"err\">Can't start: ","<br><br>iPhone: Safari, and allow the camera. Android: Chrome. The page must be on https.</div>"],
+    nl: ["SPRONGEN","Er komen horden aan. Je twee voeten gaan erover.","SPRING","Een horde komt van rechts, op de hoogte van de gouden lijn.","Als ze bij je is, moeten je twee enkels boven de lijn zijn.","De lijn wordt berekend op JOUW lengte bij het kalibreren. Hoe hoger het niveau, hoe hoger ze komt.","Telefoon rechtop tegen een muur, op heuphoogte. Ga 2 tot 3 m achteruit, heel je lichaam in beeld.","SQUATS","Er komt een plafond aan. Je heupen gaan eronder.","ZAK","Er komt een plafond aan, op de lijn van je knieën.","Je heupen moeten ONDER de lijn zijn op het moment dat het door je heen gaat.","De lijn volgt je knieën live: dat is de echte standaard, geen schatting.","Telefoon rechtop, op heuphoogte, 2 tot 3 m afstand, van opzij of van voren.","HIGH KNEES","Er vallen doelen links en rechts. Je raakt ze met je knie.","KNIEËN","Een doel valt in de linker- of rechterbaan.","Je raakt het met de knie aan die kant. Het ontploft.","Het valt steeds sneller en de doelen komen steeds hoger.","Telefoon rechtop, op heuphoogte, 2 tot 3 m afstand, met je gezicht naar de camera.","PUSH-UPS","Er komt een balk voorbij. Je schouder moet laag zijn als hij aankomt.","Er komt een balk aan, op de gevraagde diepte onder je schouder.","Je schouder moet ONDER de balk zijn op het moment dat hij door je heen gaat.","Tussen twee balken moet je terug omhoog met gestrekte armen — anders telt de volgende niet.","Telefoon OP DE GROND naast je, op 1,5 m, heel je lichaam in beeld. Het beeld wordt automatisch rechtgezet.","Ga in push-uppositie, armen gestrekt, en beweeg niet meer.","BURPEES","Een doel op de grond, dan een in de lucht. Je wisselt af.","NAAR DE GROND","LAAG doel op de grond: je zet je handen erin, borst op de grond.","HOOG doel boven je hoofd: je springt en haalt het met je handen.","Laag, hoog, laag, hoog. Het is een burpee, maar je telt niet.","Telefoon rechtop tegen een muur, op de grond of heel laag. Ga 2,5 tot 3 m achteruit.","KB SWING","Doel op borsthoogte, doel tussen de benen. Het ritme van de swing.","SWING","HOOG doel op borsthoogte: de kettlebell gaat omhoog, je handen raken het.","LAAG doel tussen de benen: de kettlebell laadt de heup.","Voeten vast op de grond. Het zijn de heupen die duwen, niet de armen.","Telefoon rechtop, op heuphoogte, 2,5 m afstand, VAN OPZIJ om de hip hinge goed te zien.","HET PARCOURS","Vijf verschillende obstakels, willekeurig. De moeilijkste.","KIJK","Vijf obstakels komen in een volgorde die je niet kent. Wat je ziet, zegt je wat je moet doen.","Een gouden BALK op borsthoogte: je zakt in squat, schouders onder de balk.","Een blauwe HORDE vlak boven de grond: je springt erover, met beide voeten.","Twee paarse CIRKELS die links of rechts vallen: je brengt de knie aan die kant erin.","Een ORANJE BALK op de grond: handen op de grond, dan spring je. De burpee in twee tijden — het scherm zegt je wanneer je moet springen.","De GROENE LIJN bovenaan: je springt en raakt ze met je hand.","Het is het moeilijkste niveau van de catalogus: het komt sneller, en je hebt geen tijd om na te denken.","Telefoon rechtop tegen een muur, op heuphoogte. Ga 2,5 tot 3 m achteruit: HEEL je lichaam moet in beeld, van de grond tot je opgestoken handen. Zorg voor genoeg plafondhoogte.","Recht staan, armen langs je lichaam, heel je lichaam in beeld. Beweeg twee seconden niet.","OVERHEAD","Doel boven je hoofd. Snatch, thruster, press.","BOVEN JE HOOFD","Er verschijnt een doel boven je hoofd, op armlengte.","Je haalt het met beide handen, ellebogen gestrekt.","Met of zonder gewicht: de beweging is dezelfde, de lockout ook.","Telefoon rechtop, op heuphoogte, 2,5 tot 3 m afstand, genoeg plafondhoogte.","BALK","SCHOUDERS ONDER DE BALK","LAAG","BEIDE VOETEN EROVER","CIRKELS","KNIE IN DE CIRKEL","GRONDBALK","HANDEN OP DE GROND","HANDEN NEER, DAN SPRINGEN","HOGE LIJN","SPRING EN RAAK","HAND BOVEN DE LIJN","KORT","korte","NORMAAL","normale","LANG","lange","Lichaam zoeken…","Niet bewegen… ","Daar gaan we!"," · NIVEAU ","NU SPRINGEN","EROVER","SCHOUDER ONDER DE LIJN","ERONDER","GERAAKT","GEHAALD","GEMIST","VRIJE PROEF","NIVEAU "," gehaald · "," geraakt · "," gemist","REEKS ×","  ·  DUBBELE PUNTEN","SPRING!","KIJK WAT ER KOMT","ACHTERUIT"," · PROEF"," heeft 15 niveaus, medailles en een klassement — die horen bij het abonnement. ","Sprongen en squats blijven open voor iedereen, met hun 15 niveaus. Het abonnement neem je in de app.","Gouden medaille","Zilveren medaille","Bronzen medaille","Nog niet","GEHAALD","GERAAKT","Nieuw record op dit niveau. ","Niveau "," is open. ","Laatste niveau van het spel: je hebt het uitgespeeld. ","Je hebt 60 % nodig om het volgende niveau te openen. ","Beste reeks: ","Veel gemist: ga wat achteruit, of zak een niveau.","<div class=\"muted\">Klassement…</div>","<div class=\"muted\">Nog niemand. Jij bent de eerste.</div>","niv. ","DIVISIE ","ALGEMEEN "," · ALLE NIVEAUS","<div class=\"muted\" style=\"margin-top:8px\">Jouw score: "," punten. "," % geslaagd, niveau ","), ronde ","De lange ronde levert 30 % meer op.","Een normale of lange ronde zou meer opleveren.","De lange ronde zou 30 % meer opleveren.","<div class=\"muted\">Klassement niet beschikbaar. Je score blijft op je telefoon bewaard.</div>","<span style=\"display:block;font-size:10px;color:var(--dim);font-weight:700;margin-top:3px\">vrije proef</span></span>","Je abonnement opent de acht spellen en hun 15 niveaus.","<b style=\"color:var(--brand)\">Sprongen en Squats zijn gratis</b>, 15 niveaus elk. De zes andere horen bij het abonnement — je kan ze proberen, 4 obstakels zonder score."," doelen · ","<span class=\"b\">record ","<span class=\"d\">nooit gespeeld</span>","<span class=\"d\">vergrendeld</span>","Proberen — 4 obstakels, zonder score","De 15 niveaus zitten in het abonnement","Vrije proef — zonder score","Direct naar het niveau","Ga staan zoals op het vorige scherm, en beweeg dan twee seconden niet.","<div class=\"err\">Deze browser kan geen video opnemen. Op iPhone heb je een recente Safari nodig; op Android, Chrome. Het spel werkt toch.</div>","Op niveau "," van "," : "," obstakels, ongeveer "," s inspanning. De moeilijkheid per obstakel verandert niet, alleen het aantal."," Deze duur telt niet mee voor het online klassement.","Skelet","Actieve punten","Enkel cirkels","Tracking laden…","Verder","Opnieuw","<div class=\"err\">Kan niet starten: ","<br><br>iPhone: Safari, en sta de camera toe. Android: Chrome. De pagina moet op https staan.</div>"] };
+  function _T(i, f) { var a = _TX[_TL]; return (a && a[i] != null) ? a[i] : f; }
 
   'use strict';
 
@@ -11302,95 +11328,95 @@ window.__jeuDemarrer = function (APP) {
      type 'toucher'  : une cible arrive, une partie du corps doit entrer dedans. */
   var JEUX = {
     saut: {
-      nom: 'SAUTS', type: 'franchir', forme: 'haie', bas: false,
-      sous: 'Des haies arrivent. Tes deux pieds passent au-dessus.',
-      ordre: 'SAUTE',
-      regles: ['Une haie arrive de la droite, à la hauteur de la ligne dorée.',
-               'Quand elle est sur toi, tes deux chevilles doivent être au-dessus de la ligne.',
-               'La ligne est calculée sur TA taille au calibrage. Plus le niveau monte, plus elle monte.'],
-      place: 'Téléphone à la verticale contre un mur, à hauteur de hanche. Recule de 2 à 3 m, tout le corps dans l’image.',
+      nom: _T(0,'SAUTS'), type: 'franchir', forme: 'haie', bas: false,
+      sous: _T(1,'Des haies arrivent. Tes deux pieds passent au-dessus.'),
+      ordre: _T(2,'SAUTE'),
+      regles: [_T(3,'Une haie arrive de la droite, à la hauteur de la ligne dorée.'),
+               _T(4,'Quand elle est sur toi, tes deux chevilles doivent être au-dessus de la ligne.'),
+               _T(5,'La ligne est calculée sur TA taille au calibrage. Plus le niveau monte, plus elle monte.')],
+      place: _T(6,'Téléphone à la verticale contre un mur, à hauteur de hanche. Recule de 2 à 3 m, tout le corps dans l’image.'),
       seuils: [0.040,0.055,0.070,0.085,0.100,0.115,0.130,0.145,0.160,0.180]
     },
     squat: {
-      nom: 'SQUATS', type: 'franchir', forme: 'plafond', bas: true,
-      sous: 'Un plafond arrive. Ton bassin passe dessous.',
-      ordre: 'DESCENDS',
-      regles: ['Un plafond arrive, posé sur la ligne de tes genoux.',
-               'Ton bassin doit passer SOUS la ligne au moment où il te traverse.',
-               'La ligne suit tes genoux en direct : c’est le vrai standard, pas une estimation.'],
-      place: 'Téléphone à la verticale, à hauteur de hanche, 2 à 3 m de recul, de profil ou de face.',
+      nom: _T(7,'SQUATS'), type: 'franchir', forme: 'plafond', bas: true,
+      sous: _T(8,'Un plafond arrive. Ton bassin passe dessous.'),
+      ordre: _T(9,'DESCENDS'),
+      regles: [_T(10,'Un plafond arrive, posé sur la ligne de tes genoux.'),
+               _T(11,'Ton bassin doit passer SOUS la ligne au moment où il te traverse.'),
+               _T(12,'La ligne suit tes genoux en direct : c’est le vrai standard, pas une estimation.')],
+      place: _T(13,'Téléphone à la verticale, à hauteur de hanche, 2 à 3 m de recul, de profil ou de face.'),
       seuils: [-0.050,-0.040,-0.030,-0.020,-0.010,0.000,0.010,0.020,0.030,0.040]
     },
     genoux: {
-      nom: 'MONTÉES DE GENOUX', type: 'toucher', forme: 'couloirs',
-      sous: 'Des cibles tombent à gauche et à droite. Tu les touches avec le genou.',
-      ordre: 'GENOUX',
+      nom: _T(14,'MONTÉES DE GENOUX'), type: 'toucher', forme: 'couloirs',
+      sous: _T(15,'Des cibles tombent à gauche et à droite. Tu les touches avec le genou.'),
+      ordre: _T(16,'GENOUX'),
       corps: { 1: ['left_knee'], 2: ['right_knee'] },
-      regles: ['Une cible tombe dans le couloir gauche ou droit.',
-               'Tu la touches avec le genou de ce côté-là. Elle explose.',
-               'Ça tombe de plus en plus vite et les cibles montent de plus en plus haut.'],
-      place: 'Téléphone à la verticale, à hauteur de hanche, 2 à 3 m de recul, face à la caméra.',
+      regles: [_T(17,'Une cible tombe dans le couloir gauche ou droit.'),
+               _T(18,'Tu la touches avec le genou de ce côté-là. Elle explose.'),
+               _T(19,'Ça tombe de plus en plus vite et les cibles montent de plus en plus haut.')],
+      place: _T(20,'Téléphone à la verticale, à hauteur de hanche, 2 à 3 m de recul, face à la caméra.'),
       /* memes seuils relevees que dans le parcours : en dessous du rayon de
          tolerance, la cible se validait jambe au repos. */
       seuils: [0.32,0.36,0.40,0.44,0.48,0.52,0.56,0.60,0.64,0.70]
     },
     pompe: {
-      nom: 'PUSH-UPS', type: 'franchir', forme: 'plafond', pivot: true, bas: true,
-      sous: 'Une barre passe. Ton épaule doit être descendue quand elle arrive.',
-      ordre: 'DESCENDS',
-      regles: ['Une barre arrive, posée à la profondeur demandée sous ton épaule.',
-               'Ton épaule doit être SOUS la barre au moment où elle te traverse.',
-               'Entre deux barres, tu dois remonter bras tendus — sinon la suivante ne compte pas.'],
-      place: 'Téléphone POSÉ AU SOL sur le côté, à 1,5 m de toi, tout ton corps dans l’image. L’image est redressée automatiquement.',
-      calPose: 'Mets-toi en position de pompe, bras tendus, et ne bouge plus.',
+      nom: _T(21,'PUSH-UPS'), type: 'franchir', forme: 'plafond', pivot: true, bas: true,
+      sous: _T(22,'Une barre passe. Ton épaule doit être descendue quand elle arrive.'),
+      ordre: _T(9,'DESCENDS'),
+      regles: [_T(23,'Une barre arrive, posée à la profondeur demandée sous ton épaule.'),
+               _T(24,'Ton épaule doit être SOUS la barre au moment où elle te traverse.'),
+               _T(25,'Entre deux barres, tu dois remonter bras tendus — sinon la suivante ne compte pas.')],
+      place: _T(26,'Téléphone POSÉ AU SOL sur le côté, à 1,5 m de toi, tout ton corps dans l’image. L’image est redressée automatiquement.'),
+      calPose: _T(27,'Mets-toi en position de pompe, bras tendus, et ne bouge plus.'),
       seuils: [0.26,0.30,0.34,0.38,0.42,0.46,0.50,0.54,0.58,0.62]
     },
     burpee: {
-      nom: 'BURPEES', type: 'toucher', forme: 'haut-bas',
-      sous: 'Une cible au sol, puis une cible en l’air. Tu alternes.',
-      ordre: 'AU SOL',
+      nom: _T(28,'BURPEES'), type: 'toucher', forme: 'haut-bas',
+      sous: _T(29,'Une cible au sol, puis une cible en l’air. Tu alternes.'),
+      ordre: _T(30,'AU SOL'),
       corps: { 1: ['left_wrist', 'right_wrist'], 2: ['left_wrist', 'right_wrist'] },
-      regles: ['Cible BASSE au sol : tu poses les mains dedans, poitrine au sol.',
-               'Cible HAUTE au-dessus de ta tête : tu sautes et tu vas la chercher avec les mains.',
-               'Basse, haute, basse, haute. C’est un burpee, mais tu ne le comptes pas.'],
-      place: 'Téléphone à la verticale contre un mur, posé au sol ou très bas. Recule de 2,5 à 3 m.',
+      regles: [_T(31,'Cible BASSE au sol : tu poses les mains dedans, poitrine au sol.'),
+               _T(32,'Cible HAUTE au-dessus de ta tête : tu sautes et tu vas la chercher avec les mains.'),
+               _T(33,'Basse, haute, basse, haute. C’est un burpee, mais tu ne le comptes pas.')],
+      place: _T(34,'Téléphone à la verticale contre un mur, posé au sol ou très bas. Recule de 2,5 à 3 m.'),
       seuils: [0.30,0.34,0.38,0.42,0.46,0.50,0.54,0.58,0.62,0.66]
     },
     kb: {
-      nom: 'KB SWING', type: 'toucher', forme: 'haut-bas',
-      sous: 'Cible poitrine, cible entre les jambes. Le rythme du swing.',
-      ordre: 'SWING',
+      nom: _T(35,'KB SWING'), type: 'toucher', forme: 'haut-bas',
+      sous: _T(36,'Cible poitrine, cible entre les jambes. Le rythme du swing.'),
+      ordre: _T(37,'SWING'),
       corps: { 1: ['left_wrist', 'right_wrist'], 2: ['left_wrist', 'right_wrist'] },
-      regles: ['Cible HAUTE à hauteur de poitrine : la cloche monte, les mains la touchent.',
-               'Cible BASSE entre les jambes : la cloche recharge la hanche.',
-               'Pieds cloués au sol. Ce sont les hanches qui envoient, pas les bras.'],
-      place: 'Téléphone à la verticale, à hauteur de hanche, 2,5 m de recul, DE PROFIL pour bien voir la charnière.',
+      regles: [_T(38,'Cible HAUTE à hauteur de poitrine : la cloche monte, les mains la touchent.'),
+               _T(39,'Cible BASSE entre les jambes : la cloche recharge la hanche.'),
+               _T(40,'Pieds cloués au sol. Ce sont les hanches qui envoient, pas les bras.')],
+      place: _T(41,'Téléphone à la verticale, à hauteur de hanche, 2,5 m de recul, DE PROFIL pour bien voir la charnière.'),
       seuils: [0.28,0.30,0.32,0.34,0.36,0.38,0.40,0.42,0.44,0.46]
     },
     parcours: {
-      nom: 'LE PARCOURS', type: 'mix', mix: true, forme: 'mix',
-      sous: 'Cinq obstacles différents, tirés au hasard. Le plus dur.',
-      ordre: 'REGARDE',
-      regles: ['Cinq obstacles arrivent dans un ordre que tu ne connais pas. Ce que tu vois te dit quoi faire.',
-               'Une BARRE dorée à hauteur de poitrine : tu descends en squat, épaules sous la barre.',
-               'Une HAIE bleue au ras du sol : tu sautes par-dessus, les deux pieds.',
-               'Deux CERCLES violets qui tombent à gauche ou à droite : tu montes le genou de ce côté dedans.',
-               'Une BARRE ORANGE au sol : mains au sol, puis tu sautes. Le burpee en deux temps — l’écran te dit quand sauter.',
-               'La LIGNE VERTE en haut : tu sautes et tu vas la toucher de la main.',
-               'C’est le niveau le plus dur du catalogue : ça arrive plus vite, et tu n’as pas le temps de réfléchir.'],
-      place: 'Téléphone à la verticale contre un mur, à hauteur de hanche. Recule de 2,5 à 3 m : il faut TOUT ton corps dans l’image, du sol aux mains levées. Prévois de la hauteur de plafond.',
-      calPose: 'Debout, bras le long du corps, tout le corps dans l’image. Ne bouge plus deux secondes.',
+      nom: _T(42,'LE PARCOURS'), type: 'mix', mix: true, forme: 'mix',
+      sous: _T(43,'Cinq obstacles différents, tirés au hasard. Le plus dur.'),
+      ordre: _T(44,'REGARDE'),
+      regles: [_T(45,'Cinq obstacles arrivent dans un ordre que tu ne connais pas. Ce que tu vois te dit quoi faire.'),
+               _T(46,'Une BARRE dorée à hauteur de poitrine : tu descends en squat, épaules sous la barre.'),
+               _T(47,'Une HAIE bleue au ras du sol : tu sautes par-dessus, les deux pieds.'),
+               _T(48,'Deux CERCLES violets qui tombent à gauche ou à droite : tu montes le genou de ce côté dedans.'),
+               _T(49,'Une BARRE ORANGE au sol : mains au sol, puis tu sautes. Le burpee en deux temps — l’écran te dit quand sauter.'),
+               _T(50,'La LIGNE VERTE en haut : tu sautes et tu vas la toucher de la main.'),
+               _T(51,'C’est le niveau le plus dur du catalogue : ça arrive plus vite, et tu n’as pas le temps de réfléchir.')],
+      place: _T(52,'Téléphone à la verticale contre un mur, à hauteur de hanche. Recule de 2,5 à 3 m : il faut TOUT ton corps dans l’image, du sol aux mains levées. Prévois de la hauteur de plafond.'),
+      calPose: _T(53,'Debout, bras le long du corps, tout le corps dans l’image. Ne bouge plus deux secondes.'),
       seuils: [0,0,0,0,0,0,0,0,0,0]
     },
     overhead: {
-      nom: 'OVERHEAD', type: 'toucher', forme: 'solo',
-      sous: 'Cible au-dessus de la tête. Snatch, thruster, press.',
-      ordre: 'AU-DESSUS',
+      nom: _T(54,'OVERHEAD'), type: 'toucher', forme: 'solo',
+      sous: _T(55,'Cible au-dessus de la tête. Snatch, thruster, press.'),
+      ordre: _T(56,'AU-DESSUS'),
       corps: { 0: ['left_wrist', 'right_wrist'] },
-      regles: ['Une cible apparaît au-dessus de ta tête, bras tendus.',
-               'Tu vas la chercher avec les deux mains, coudes verrouillés.',
-               'Charge ou pas charge : le geste est le même, le verrouillage aussi.'],
-      place: 'Téléphone à la verticale, à hauteur de hanche, 2,5 à 3 m de recul, assez de hauteur de plafond.',
+      regles: [_T(57,'Une cible apparaît au-dessus de ta tête, bras tendus.'),
+               _T(58,'Tu vas la chercher avec les deux mains, coudes verrouillés.'),
+               _T(59,'Charge ou pas charge : le geste est le même, le verrouillage aussi.')],
+      place: _T(60,'Téléphone à la verticale, à hauteur de hanche, 2,5 à 3 m de recul, assez de hauteur de plafond.'),
       seuils: [0.30,0.34,0.38,0.42,0.46,0.50,0.54,0.58,0.62,0.66]
     }
   };
@@ -11413,7 +11439,7 @@ window.__jeuDemarrer = function (APP) {
      une barre. C'est ce qui empeche de tricher en bougeant au hasard. */
   var MIX = {
     barre: {
-      nom: 'BARRE', ordre: 'DESCENDS', dessin: 'plafond', fen: [0.82, 1.22], col: '#E9C767',
+      nom: _T(61,'BARRE'), ordre: _T(9,'DESCENDS'), dessin: 'plafond', fen: [0.82, 1.22], col: '#E9C767',
       seuils: [0.15,0.18,0.21,0.24,0.27,0.30,0.33,0.36,0.39,0.43],
       /* La barre est DESSINEE exactement la ou l'epaule doit passer : ce qu'il
          voit est ce qui est juge, sinon il croit a une erreur de la machine. */
@@ -11427,10 +11453,10 @@ window.__jeuDemarrer = function (APP) {
         var hancheBasse = (m.hp.y - b.hpy) / b.h > S * 0.42;
         return sousLaBarre && hancheBasse;
       },
-      aide: 'ÉPAULES SOUS LA BARRE'
+      aide: _T(62,'ÉPAULES SOUS LA BARRE')
     },
     sol: {
-      nom: 'SOL', ordre: 'SAUTE', dessin: 'haie', fen: [0.82, 1.22], col: '#00D0FF',
+      nom: _T(63,'SOL'), ordre: _T(2,'SAUTE'), dessin: 'haie', fen: [0.82, 1.22], col: '#00D0FF',
       seuils: [0.035,0.048,0.060,0.072,0.085,0.098,0.112,0.126,0.140,0.158],
       y: function (S, b) { return b.any - S * b.h; },
       pos: function (S, b) { return { x: b.anx, y: b.any - S * b.h }; },
@@ -11438,10 +11464,10 @@ window.__jeuDemarrer = function (APP) {
         if (!m || !m.an || m.an.score < 0.3) return false;
         return (b.any - m.an.y) / b.h > S;
       },
-      aide: 'LES DEUX PIEDS AU-DESSUS'
+      aide: _T(64,'LES DEUX PIEDS AU-DESSUS')
     },
     cercles: {
-      nom: 'CERCLES', ordre: 'GENOUX', dessin: 'cercle', fen: [0.58, 1.32], col: '#C77DFF',
+      nom: _T(65,'CERCLES'), ordre: _T(16,'GENOUX'), dessin: 'cercle', fen: [0.58, 1.32], col: '#C77DFF',
       couloirs: true,
       /* Le rayon de tolerance vaut 0,23 fois la taille du corps. Une cible
          posee a 0,11 de taille au-dessus du genou tombe donc DANS ce rayon
@@ -11461,14 +11487,14 @@ window.__jeuDemarrer = function (APP) {
         var c = MIX.cercles.pos(S, b, o.lane), r = Math.max(34, b.h * 0.17) * 1.35;
         return Math.hypot(k.x - c.x, k.y - c.y) < r;
       },
-      aide: 'LE GENOU DANS LE CERCLE'
+      aide: _T(66,'LE GENOU DANS LE CERCLE')
     },
     rase: {
       /* Deux temps dans un seul obstacle, parce qu'un burpee EST deux temps :
          on descend, on remonte. Juger seulement les mains au sol laisserait
          passer un accroupi ; juger seulement le saut laisserait passer un saut
          sec. Les deux dans l'ordre, ou rien. */
-      nom: 'RASE-SOL', ordre: 'MAINS AU SOL', dessin: 'rase', fen: [0.50, 1.55], col: '#FF6B35',
+      nom: _T(67,'RASE-SOL'), ordre: _T(68,'MAINS AU SOL'), dessin: 'rase', fen: [0.50, 1.55], col: '#FF6B35',
       deuxTemps: true,
       seuils: [0.030,0.042,0.054,0.066,0.078,0.090,0.104,0.118,0.132,0.150],
       y: function (S, b) { return b.any - b.h * 0.02; },
@@ -11487,10 +11513,10 @@ window.__jeuDemarrer = function (APP) {
         if (!m || !m.an || m.an.score < 0.3) return false;
         return (b.any - m.an.y) / b.h > S;
       },
-      aide: 'MAINS AU SOL PUIS SAUTE'
+      aide: _T(69,'MAINS AU SOL PUIS SAUTE')
     },
     ligne: {
-      nom: 'LIGNE HAUTE', ordre: 'SAUTE ET TOUCHE', dessin: 'ligne', fen: [0.62, 1.34], col: '#00FFA3',
+      nom: _T(70,'LIGNE HAUTE'), ordre: _T(71,'SAUTE ET TOUCHE'), dessin: 'ligne', fen: [0.62, 1.34], col: '#00FFA3',
       seuils: [0.90,0.95,1.00,1.05,1.10,1.15,1.20,1.25,1.30,1.36],
       y: function (S, b) { return b.shy - (S - 0.62) * b.h; },
       pos: function (S, b) { return { x: b.shx, y: b.shy - (S - 0.62) * b.h }; },
@@ -11504,7 +11530,7 @@ window.__jeuDemarrer = function (APP) {
         if (!m || !m.an || m.an.score < 0.3) return main;
         return (b.any - m.an.y) / b.h > 0.020;
       },
-      aide: 'LA MAIN AU-DESSUS DE LA LIGNE'
+      aide: _T(72,'LA MAIN AU-DESSUS DE LA LIGNE')
     }
   };
   var MIX_ORDRE = ['barre', 'sol', 'cercles', 'rase', 'ligne'];
@@ -11530,9 +11556,9 @@ window.__jeuDemarrer = function (APP) {
      score de manche longue ecraserait tout le tableau sans etre meilleur. */
   /* 'nom' sert de nom de DIVISION (on dit « division Rx », pas « division
      rxe ») ; 'mot' sert dans une phrase, ou la manche est feminine. */
-  var DUREES = { court:  { f: 0.55, nom: 'COURT',  mot: 'courte' },
-                 normal: { f: 1,    nom: 'NORMAL', mot: 'normale' },
-                 long:   { f: 1.7,  nom: 'LONG',   mot: 'longue' } };
+  var DUREES = { court:  { f: 0.55, nom: _T(73,'COURT'),  mot: _T(74,'courte') },
+                 normal: { f: 1,    nom: _T(75,'NORMAL'), mot: _T(76,'normale') },
+                 long:   { f: 1.7,  nom: _T(77,'LONG'),   mot: _T(78,'longue') } };
   function dureeCle() { return DUREES[SAVE.duree] ? SAVE.duree : 'normal'; }
 
   function paramsStage(i, jeu) {
@@ -11794,13 +11820,13 @@ window.__jeuDemarrer = function (APP) {
   var base = null, cal = { on: 0, t0: 0, acc: [] };
   function calibrer(m) {
     var bar = $('calBar'), hint = $('calHint');
-    if (!m) { cal.on = 0; bar.style.width = '0%'; hint.textContent = 'Recherche du corps…'; return false; }
+    if (!m) { cal.on = 0; bar.style.width = '0%'; hint.textContent = _T(79,'Recherche du corps…'); return false; }
     if (!cal.on) { cal.on = 1; cal.t0 = performance.now(); cal.acc = []; }
     cal.acc.push(m);
     var dt = performance.now() - cal.t0;
     bar.style.width = Math.min(100, dt / 22) + '%';
     var r = Math.max(0, Math.ceil((2200 - dt) / 1000));
-    hint.textContent = r ? ('Ne bouge plus… ' + r + ' s') : 'C’est parti !';
+    hint.textContent = r ? (_T(80,'Ne bouge plus… ') + r + ' s') : _T(81,'C’est parti !');
     if (dt < 2200) return false;
     var n = cal.acc.length, o = { shx: 0, shy: 0, hpx: 0, hpy: 0, h: 0, anx: 0, any: 0, klx: 0, kly: 0, krx: 0, kry: 0 };
     for (var i = 0; i < n; i++) {
@@ -11950,7 +11976,7 @@ window.__jeuDemarrer = function (APP) {
     rctx.textAlign = 'right';
     rctx.fillStyle = '#E9C767';
     rctx.font = '900 ' + Math.round(vh * 0.032) + 'px -apple-system,Arial';
-    rctx.fillText(JEUX[JEU].nom + ' · NIVEAU ' + STAGE + ' · ' + nOk + ' pts', vw * 0.96, vh * 0.94);
+    rctx.fillText(JEUX[JEU].nom + _T(82,' · NIVEAU ') + STAGE + ' · ' + nOk + ' pts', vw * 0.96, vh * 0.94);
     rctx.textAlign = 'left';
     rctx.restore();
   }
@@ -12074,7 +12100,7 @@ window.__jeuDemarrer = function (APP) {
       }
       if (K.dessin === 'ligne') {
         var avl = Math.min(1, pr / K.fen[1]);
-        ligneHaute(pc.y - (1 - avl) * ch * 0.45, col, a, o.juge === 0 ? 'SAUTE ET TOUCHE' : '');
+        ligneHaute(pc.y - (1 - avl) * ch * 0.45, col, a, o.juge === 0 ? _T(71,'SAUTE ET TOUCHE') : '');
         continue;
       }
       /* les trois barres balayent l'ecran de droite a gauche */
@@ -12086,7 +12112,7 @@ window.__jeuDemarrer = function (APP) {
         /* deuxieme temps du burpee : la ligne du saut s'allume */
         if (o.temps === 1 && o.juge === 0) {
           var yS = P({ x: 0, y: base.any - S * base.h }).y;
-          ligneHaute(yS, '#00FFA3', 0.95, 'MAINTENANT SAUTE');
+          ligneHaute(yS, '#00FFA3', 0.95, _T(83,'MAINTENANT SAUTE'));
         }
       }
       /* repere fixe : la hauteur a atteindre, dans la couleur de l'obstacle */
@@ -12106,7 +12132,7 @@ window.__jeuDemarrer = function (APP) {
         var kY = (m && m.kn && m.kn.score > 0.3) ? m.kn.y : base.hpy + base.h * 0.22;
         yc = P({ x: 0, y: kY + SEUIL * base.h }).y;
       }
-      ligneCible(yc, 'rgba(233,199,103,.85)', JEU === 'saut' ? 'PASSE AU-DESSUS' : (JEU === 'pompe' ? 'ÉPAULE SOUS LA LIGNE' : 'PASSE DESSOUS'));
+      ligneCible(yc, 'rgba(233,199,103,.85)', JEU === 'saut' ? _T(84,'PASSE AU-DESSUS') : (JEU === 'pompe' ? _T(85,'ÉPAULE SOUS LA LIGNE') : _T(86,'PASSE DESSOUS')));
       for (var i = 0; i < obstacles.length; i++) {
         var o = obstacles[i], pr = (now - o.t) / PAR.vol;
         if (pr < 0 || pr > 1.6) continue;
@@ -12182,7 +12208,7 @@ window.__jeuDemarrer = function (APP) {
       for (var i = 0; i < obstacles.length; i++) {
         var o = obstacles[i], pr = (now - o.t) / PAR.vol;
         if (o.juge !== 0) continue;
-        var bon, fin, motOk = 'TOUCHÉ';
+        var bon, fin, motOk = _T(87,'TOUCHÉ');
         if (J.mix) {
           var K = MIX[o.k], S = mixS(o.k);
           fin = (pr >= K.fen[1]);
@@ -12192,18 +12218,18 @@ window.__jeuDemarrer = function (APP) {
               /* Les deux temps doivent se suivre DANS L'ORDRE, sans quoi un
                  simple saut validerait le burpee. */
               if (o.temps === 0) {
-                if (K.temps1(S, base, m, pose)) { o.temps = 1; sonEtape(); flash = { t: 'MAINTENANT SAUTE', c: 'good', jusqu: now + 700 }; }
+                if (K.temps1(S, base, m, pose)) { o.temps = 1; sonEtape(); flash = { t: _T(83,'MAINTENANT SAUTE'), c: 'good', jusqu: now + 700 }; }
               } else if (K.temps2(S, base, m)) { bon = true; }
             } else {
               bon = K.juge(S, base, m, pose, o);
             }
           }
-          motOk = (o.k === 'cercles' || o.k === 'ligne') ? 'TOUCHÉ' : 'PASSÉ';
+          motOk = (o.k === 'cercles' || o.k === 'ligne') ? _T(87,'TOUCHÉ') : _T(88,'PASSÉ');
         } else {
           bon = (J.type === 'franchir') ? (pr > 0.84 && pr < 1.18 && actif)
                                         : (pr > 0.62 && pr < 1.30 && toucheCible(pose, o));
           fin = (J.type === 'franchir') ? (pr >= 1.18) : (pr >= 1.30);
-          motOk = (J.type === 'franchir') ? 'PASSÉ' : 'TOUCHÉ';
+          motOk = (J.type === 'franchir') ? _T(88,'PASSÉ') : _T(87,'TOUCHÉ');
         }
         if (bon) {
           o.juge = 1; nOk++; combo++; comboMax = Math.max(comboMax, combo);
@@ -12215,7 +12241,7 @@ window.__jeuDemarrer = function (APP) {
           sonOk(combo);
         } else if (fin) {
           o.juge = -1; nKo++; combo = 0;
-          flash = { t: 'RATÉ', c: 'bad', jusqu: now + 600 };
+          flash = { t: _T(89,'RATÉ'), c: 'bad', jusqu: now + 600 };
           sonKo(); secouer();
         }
       }
@@ -12234,13 +12260,13 @@ window.__jeuDemarrer = function (APP) {
       dessinerParticules();
       composerRec();
 
-      $('hudLeft').textContent = ESSAI ? 'ESSAI LIBRE' : ('NIVEAU ' + STAGE);
+      $('hudLeft').textContent = ESSAI ? _T(90,'ESSAI LIBRE') : (_T(91,'NIVEAU ') + STAGE);
       $('hudRight').textContent = nSpawn + ' / ' + PAR.nb;
-      $('footScore').textContent = nOk + (J.type === 'franchir' ? ' passés · ' : ' touchées · ') + nKo + ' ratés';
+      $('footScore').textContent = nOk + (J.type === 'franchir' ? _T(92,' passés · ') : _T(93,' touchées · ')) + nKo + _T(94,' ratés');
       $('footBar').style.width = Math.round(100 * (nOk + nKo) / PAR.nb) + '%';
       $('footPts').textContent = ESSAI ? '—' : pts;
       var c2 = $('combo');
-      if (combo >= 3) { c2.textContent = 'SÉRIE ×' + combo + (combo >= 5 ? '  ·  POINTS DOUBLES' : ''); c2.classList.add('show'); }
+      if (combo >= 3) { c2.textContent = _T(95,'SÉRIE ×') + combo + (combo >= 5 ? _T(96,'  ·  POINTS DOUBLES') : ''); c2.classList.add('show'); }
       else c2.classList.remove('show');
       var o2 = $('order');
       /* Dans le parcours la consigne CHANGE a chaque obstacle. On affiche celle
@@ -12258,12 +12284,12 @@ window.__jeuDemarrer = function (APP) {
         }
         if (kAct) {
           var KA = MIX[kAct];
-          consigne = (KA.deuxTemps && oAct.temps === 1) ? 'SAUTE !' : KA.ordre;
+          consigne = (KA.deuxTemps && oAct.temps === 1) ? _T(97,'SAUTE !') : KA.ordre;
           urgent = meilleur > KA.fen[0] * 0.8;
-        } else consigne = 'REGARDE CE QUI ARRIVE';
+        } else consigne = _T(98,'REGARDE CE QUI ARRIVE');
       }
       if (now < flash.jusqu) { o2.textContent = flash.t; o2.className = 'show ' + flash.c; o2.style.opacity = '1'; }
-      else if (!m) { o2.textContent = 'RECULE'; o2.className = 'show bad'; o2.style.opacity = '1'; }
+      else if (!m) { o2.textContent = _T(99,'RECULE'); o2.className = 'show bad'; o2.style.opacity = '1'; }
       else { o2.textContent = consigne; o2.className = 'show'; o2.style.opacity = urgent ? '1' : '.5'; }
       /* le rappel de ce qu'on attend du corps, sous la consigne */
       var aide = $('orderHint');
@@ -12281,7 +12307,7 @@ window.__jeuDemarrer = function (APP) {
     obstacles = []; nOk = 0; nKo = 0; nSpawn = 0; pts = 0; combo = 0; comboMax = 0; parts = []; pompeArme = true;
     tStart = performance.now(); lastSpawn = tStart - PAR.ecart + 1800;
     show($('pCal'), false); show($('hud'), true); show($('foot'), true); show($('orderWrap'), true);
-    $('footTitle').textContent = JEUX[JEU].nom + (ESSAI ? ' · ESSAI' : ' · NIVEAU ' + STAGE);
+    $('footTitle').textContent = JEUX[JEU].nom + (ESSAI ? _T(100,' · ESSAI') : _T(82,' · NIVEAU ') + STAGE);
     if (!ESSAI) demarrerRec();
   }
 
@@ -12294,8 +12320,8 @@ window.__jeuDemarrer = function (APP) {
       if (verrouille(JEU)) {
         /* Le seul moment ou l'offre a du sens : il vient de jouer, il sait ce
            que c'est. Avant, c'etait une promesse ; la, c'est une suite. */
-        $('regPlace').textContent = JEUX[JEU].nom + ' compte 15 niveaux, des médailles et un classement — ils font partie de l\u2019abonnement. ' +
-          'Les sauts et les squats restent ouverts à tout le monde, avec leurs 15 niveaux. L\u2019abonnement se prend dans l\u2019app.';
+        $('regPlace').textContent = JEUX[JEU].nom + _T(101,' compte 15 niveaux, des médailles et un classement — ils font partie de l\u2019abonnement. ') +
+          _T(102,'Les sauts et les squats restent ouverts à tout le monde, avec leurs 15 niveaux. L\u2019abonnement se prend dans l\u2019app.');
       }
       show($('pRegles'), true); return;
     }
@@ -12308,16 +12334,16 @@ window.__jeuDemarrer = function (APP) {
     var ord = { bronze: 1, argent: 2, or: 3 };
     if (med && (!f.med || ord[med] > ord[f.med])) f.med = med;
     sauver(); sonFin(med);
-    $('endKicker').textContent = 'NIVEAU ' + STAGE + ' · ' + JEUX[JEU].nom;
-    $('endTitle').textContent = med ? (med === 'or' ? 'Médaille d’or' : med === 'argent' ? 'Médaille d’argent' : 'Médaille de bronze') : 'Pas encore';
+    $('endKicker').textContent = _T(91,'NIVEAU ') + STAGE + ' · ' + JEUX[JEU].nom;
+    $('endTitle').textContent = med ? (med === 'or' ? _T(103,'Médaille d’or') : med === 'argent' ? _T(104,'Médaille d’argent') : _T(105,'Médaille de bronze')) : _T(106,'Pas encore');
     $('endOk').textContent = nOk + '/' + PAR.nb;
-    $('endOkLab').textContent = JEUX[JEU].type === 'franchir' ? 'PASSÉS' : 'TOUCHÉES';
+    $('endOkLab').textContent = JEUX[JEU].type === 'franchir' ? _T(107,'PASSÉS') : _T(108,'TOUCHÉES');
     $('endPts').textContent = total;
     $('endMedal').innerHTML = svgMedaille(med, 52);
-    $('endText').textContent = (record ? 'Nouveau record sur ce niveau. ' : '') +
-      (med ? (STAGE < NIV ? 'Le niveau ' + (STAGE + 1) + ' est ouvert. ' : 'Dernier niveau du jeu : tu l’as fini. ') : 'Il faut 60 % pour ouvrir le niveau suivant. ') +
-      (comboMax >= 3 ? 'Meilleure série : ' + comboMax + '. ' : '') +
-      (nKo > nOk ? 'Beaucoup de ratés : recule, ou baisse d’un niveau.' : '');
+    $('endText').textContent = (record ? _T(109,'Nouveau record sur ce niveau. ') : '') +
+      (med ? (STAGE < NIV ? _T(110,'Le niveau ') + (STAGE + 1) + _T(111,' est ouvert. ') : _T(112,'Dernier niveau du jeu : tu l’as fini. ')) : _T(113,'Il faut 60 % pour ouvrir le niveau suivant. ')) +
+      (comboMax >= 3 ? _T(114,'Meilleure série : ') + comboMax + '. ' : '') +
+      (nKo > nOk ? _T(115,'Beaucoup de ratés : recule, ou baisse d’un niveau.') : '');
     show($('btnNext'), !!med && STAGE < NIV);
     show($('pEnd'), true);
     classement(total);
@@ -12325,7 +12351,7 @@ window.__jeuDemarrer = function (APP) {
 
   function classement(total) {
     var box = $('lbBox'), p = (SAVE.pseudo || '').trim(), d = dureeCle();
-    box.innerHTML = '<div class="muted">Classement…</div>';
+    box.innerHTML = _T(116,'<div class="muted">Classement…</div>');
 
     /* Les scores passent par le client Supabase DE L'APP, donc par la session
        de l'utilisateur. Avant, le jeu ecrivait avec la cle publique et sans
@@ -12351,11 +12377,11 @@ window.__jeuDemarrer = function (APP) {
     }
     function tableau(titre, rows, avecNiveau) {
       var h = '<div style="font-size:10px;letter-spacing:1.5px;color:var(--gold);font-weight:800;margin:9px 0 5px">' + titre + '</div>';
-      if (!rows || !rows.length) return h + '<div class="muted">Personne encore. Tu es le premier.</div>';
+      if (!rows || !rows.length) return h + _T(117,'<div class="muted">Personne encore. Tu es le premier.</div>');
       for (var i = 0; i < rows.length; i++) {
         var r = rows[i], mine = (r.pseudo || '').trim().toLowerCase() === p.toLowerCase();
         var detail = avecNiveau
-          ? ('niv. ' + r.stage + ' · ' + (DUREES[r.duree] ? DUREES[r.duree].mot : 'normale'))
+          ? (_T(118,'niv. ') + r.stage + ' · ' + (DUREES[r.duree] ? DUREES[r.duree].mot : _T(76,'normale')))
           : (r.franchis + '/' + r.total);
         h += '<div class="l"><span style="color:' + (mine ? 'var(--brand)' : 'var(--ink)') + ';font-weight:' + (mine ? 800 : 600) + '">' +
              (i + 1) + '. ' + String(r.pseudo).replace(/[<>&]/g, '') + '</span>' +
@@ -12374,17 +12400,17 @@ window.__jeuDemarrer = function (APP) {
       ]);
     }).then(function (res) {
       box.innerHTML =
-        tableau('DIVISION ' + DUREES[d].nom + ' · NIVEAU ' + STAGE, res[0] && res[0].data, false) +
-        tableau('GÉNÉRAL ' + JEUX[JEU].nom + ' · TOUS NIVEAUX', res[1] && res[1].data, true) +
-        '<div class="muted" style="margin-top:8px">Ton score : ' + total + ' points. ' +
-        Math.round(100 * nOk / Math.max(1, PAR.nb)) + ' % de réussite, niveau ' + STAGE +
-        ' (×' + coefNiveau(STAGE).toFixed(2).replace('.', ',') + '), manche ' + DUREES[d].mot +
+        tableau(_T(119,'DIVISION ') + DUREES[d].nom + _T(82,' · NIVEAU ') + STAGE, res[0] && res[0].data, false) +
+        tableau(_T(120,'GÉNÉRAL ') + JEUX[JEU].nom + _T(121,' · TOUS NIVEAUX'), res[1] && res[1].data, true) +
+        _T(122,'<div class="muted" style="margin-top:8px">Ton score : ') + total + _T(123,' points. ') +
+        Math.round(100 * nOk / Math.max(1, PAR.nb)) + _T(124,' % de réussite, niveau ') + STAGE +
+        ' (×' + coefNiveau(STAGE).toFixed(2).replace('.', ',') + _T(125,'), manche ') + DUREES[d].mot +
         ' (×' + coefDuree(d).toFixed(2).replace('.', ',') + '). ' +
-        (d === 'long' ? 'La manche longue rapporte 30 % de plus.' :
-         d === 'court' ? 'Une manche normale ou longue rapporterait plus.' :
-         'La manche longue rapporterait 30 % de plus.') + '</div>';
+        (d === 'long' ? _T(126,'La manche longue rapporte 30 % de plus.') :
+         d === 'court' ? _T(127,'Une manche normale ou longue rapporterait plus.') :
+         _T(128,'La manche longue rapporterait 30 % de plus.')) + '</div>';
     }).catch(function () {
-      box.innerHTML = '<div class="muted">Classement indisponible. Ton score est gardé sur ton téléphone.</div>';
+      box.innerHTML = _T(129,'<div class="muted">Classement indisponible. Ton score est gardé sur ton téléphone.</div>');
     });
   }
 
@@ -12413,7 +12439,7 @@ window.__jeuDemarrer = function (APP) {
                : '<span class="ico" style="font-size:18px;font-weight:900;color:var(--brand)">' + (i + 1) + '</span>') +
            '<span style="flex-grow:1"><b>' + J.nom + '</b><em>' + J.sous + '</em></span>' +
            (vr ? '<span style="text-align:right"><span class="tag-pro">PREMIUM</span>' +
-                 '<span style="display:block;font-size:10px;color:var(--dim);font-weight:700;margin-top:3px">essai libre</span></span>'
+                 _T(130,'<span style="display:block;font-size:10px;color:var(--dim);font-weight:700;margin-top:3px">essai libre</span></span>')
                : '<span style="text-align:right"><span style="display:block;font-size:16px;font-weight:900;color:var(--gold)">' + tp + '</span>' +
                  '<span style="display:block;font-size:10px;color:var(--dim);font-weight:700">' + nm + '/' + NIV + '</span></span>') +
            '</button>';
@@ -12424,8 +12450,8 @@ window.__jeuDemarrer = function (APP) {
     $('swRec').classList.toggle('on', !!SAVE.video);
     var mf = $('menuFree');
     if (mf) mf.innerHTML = premium()
-      ? 'Ton abonnement ouvre les huit jeux et leurs 15 niveaux.'
-      : '<b style="color:var(--brand)">Sauts et Squats sont gratuits</b>, 15 niveaux chacun. Les six autres font partie de l\u2019abonnement — tu peux les essayer, 4 obstacles sans score.';
+      ? _T(131,'Ton abonnement ouvre les huit jeux et leurs 15 niveaux.')
+      : _T(132,'<b style="color:var(--brand)">Sauts et Squats sont gratuits</b>, 15 niveaux chacun. Les six autres font partie de l\u2019abonnement — tu peux les essayer, 4 obstacles sans score.');
     /* la note de duree parle du jeu choisi : elle doit suivre le choix */
     try{ appliquerDuree(); }catch(e){}
   }
@@ -12444,8 +12470,8 @@ window.__jeuDemarrer = function (APP) {
       var f = fiche(JEU, i), ok = ouvert(JEU, i), P = paramsJoues(i, JEU);
       h += '<button class="st' + (ok ? '' : ' lock') + (f.med ? ' done' : '') + '" data-st="' + i + '"' + (ok ? '' : ' disabled') + '>' +
            '<span class="med">' + svgMedaille(f.med) + '</span><span class="n">' + i + '</span>' +
-           '<span class="d">' + P.nb + ' cibles · ' + (P.ecart / 1000).toFixed(1) + ' s</span>' +
-           (f.best ? '<span class="b">record ' + f.best + '</span>' : (ok ? '<span class="d">jamais joué</span>' : '<span class="d">verrouillé</span>')) +
+           '<span class="d">' + P.nb + _T(133,' cibles · ') + (P.ecart / 1000).toFixed(1) + ' s</span>' +
+           (f.best ? _T(134,'<span class="b">record ') + f.best + '</span>' : (ok ? _T(135,'<span class="d">jamais joué</span>') : _T(136,'<span class="d">verrouillé</span>'))) +
            '</button>';
     }
     $('stGrid').innerHTML = h;
@@ -12461,19 +12487,19 @@ window.__jeuDemarrer = function (APP) {
   function versRegles() {
     etat = 'menu';
     var J = JEUX[JEU], vr = verrouille(JEU);
-    $('regKicker').textContent = J.nom + (vr ? ' · PREMIUM' : ' · NIVEAU ' + STAGE);
+    $('regKicker').textContent = J.nom + (vr ? ' · PREMIUM' : _T(82,' · NIVEAU ') + STAGE);
     /* Sur un jeu verrouille, le bouton principal n'est plus « aller au niveau »
        mais l'essai. On ne vend pas avant d'avoir laisse essayer. */
     var bd = $('btnDirect'), be = $('btnEssai');
     if (vr) {
-      be.textContent = 'Essayer — 4 obstacles, sans score';
+      be.textContent = _T(137,'Essayer — 4 obstacles, sans score');
       be.className = 'cta';
-      bd.textContent = 'Les 15 niveaux sont dans l\u2019abonnement';
+      bd.textContent = _T(138,'Les 15 niveaux sont dans l\u2019abonnement');
       bd.className = 'cta ghost';
     } else {
-      be.textContent = 'Essai libre — sans score';
+      be.textContent = _T(139,'Essai libre — sans score');
       be.className = 'cta';
-      bd.textContent = 'Aller direct au niveau';
+      bd.textContent = _T(140,'Aller direct au niveau');
       bd.className = 'cta ghost';
     }
     var h = '';
@@ -12491,8 +12517,8 @@ window.__jeuDemarrer = function (APP) {
     base = null; cal.on = 0; etat = 'cal';
     show($('pMenu'), false); show($('pStages'), false); show($('pEnd'), false); show($('pRegles'), false);
     show($('pCal'), true);
-    $('calKicker').textContent = JEUX[JEU].nom + (ESSAI ? ' · ESSAI' : ' · NIVEAU ' + STAGE);
-    $('calText').textContent = (JEUX[JEU].calPose || 'Place-toi comme sur l’écran précédent, puis ne bouge plus deux secondes.');
+    $('calKicker').textContent = JEUX[JEU].nom + (ESSAI ? _T(100,' · ESSAI') : _T(82,' · NIVEAU ') + STAGE);
+    $('calText').textContent = (JEUX[JEU].calPose || _T(141,'Place-toi comme sur l’écran précédent, puis ne bouge plus deux secondes.'));
     $('calBar').style.width = '0%';
     audio();
   }
@@ -12504,7 +12530,7 @@ window.__jeuDemarrer = function (APP) {
     SAVE.video = !SAVE.video; sauver();
     this.classList.toggle('on', !!SAVE.video);
     if (SAVE.video && !recSupporte()) {
-      $('menuErr').innerHTML = '<div class="err">Ce navigateur ne sait pas enregistrer la vidéo. Sur iPhone il faut Safari récent ; sur Android, Chrome. Le jeu marche quand même.</div>';
+      $('menuErr').innerHTML = _T(142,'<div class="err">Ce navigateur ne sait pas enregistrer la vidéo. Sur iPhone il faut Safari récent ; sur Android, Chrome. Le jeu marche quand même.</div>');
     } else $('menuErr').innerHTML = '';
     recActif = !!SAVE.video && recSupporte();
   };
@@ -12514,9 +12540,9 @@ window.__jeuDemarrer = function (APP) {
     var d = dureeCle(), P = paramsJoues(STAGE, JEU);
     $('durVal').textContent = DUREES[d].mot.charAt(0).toUpperCase() + DUREES[d].mot.slice(1);
     var n = $('durNote');
-    if (n) n.textContent = 'Au niveau ' + STAGE + ' de ' + JEUX[JEU].nom.toLowerCase() + ' : ' + P.nb + ' obstacles, environ ' +
-      Math.round(P.nb * P.ecart / 1000) + ' s d\u2019effort. La difficult\u00e9 par obstacle ne change pas, seulement le nombre.' +
-      (d === 'normal' ? '' : ' Cette dur\u00e9e n\u2019entre pas au classement en ligne.');
+    if (n) n.textContent = _T(143,'Au niveau ') + STAGE + _T(144,' de ') + JEUX[JEU].nom.toLowerCase() + _T(145,' : ') + P.nb + _T(146,' obstacles, environ ') +
+      Math.round(P.nb * P.ecart / 1000) + _T(147,' s d\u2019effort. La difficult\u00e9 par obstacle ne change pas, seulement le nombre.') +
+      (d === 'normal' ? '' : _T(148,' Cette dur\u00e9e n\u2019entre pas au classement en ligne.'));
     var bs = JR.querySelectorAll('.db');
     for (var i = 0; i < bs.length; i++) {
       var on = bs[i].getAttribute('data-d') === d;
@@ -12537,7 +12563,7 @@ window.__jeuDemarrer = function (APP) {
   }
   function appliquerAff() {
     var a = SAVE.aff || 'complet';
-    $('affVal').textContent = a === 'complet' ? 'Squelette' : (a === 'actif' ? 'Points actifs' : 'Cercles seuls');
+    $('affVal').textContent = a === 'complet' ? _T(149,'Squelette') : (a === 'actif' ? _T(150,'Points actifs') : _T(151,'Cercles seuls'));
     var bs = JR.querySelectorAll('.ab');
     for (var i = 0; i < bs.length; i++) {
       var on = bs[i].getAttribute('data-a') === a;
@@ -12567,16 +12593,16 @@ window.__jeuDemarrer = function (APP) {
 
   $('btnGo').onclick = function () {
     var b = $('btnGo');
-    b.disabled = true; b.textContent = 'Chargement du suivi…';
+    b.disabled = true; b.textContent = _T(152,'Chargement du suivi…');
     audio(); taille();
     demarrerCamera().then(chargerModele).then(function () {
-      b.disabled = false; b.textContent = 'Continuer';
+      b.disabled = false; b.textContent = _T(153,'Continuer');
       running = true; taille();
       versNiveauxOuOffre(); boucle();
     }).catch(function (e) {
-      b.disabled = false; b.textContent = 'Réessayer';
-      $('menuErr').innerHTML = '<div class="err">Impossible de démarrer : ' + (e && e.message ? e.message : e) +
-        '<br><br>iPhone : Safari, et autoriser la caméra. Android : Chrome. La page doit être en https.</div>';
+      b.disabled = false; b.textContent = _T(154,'Réessayer');
+      $('menuErr').innerHTML = _T(155,'<div class="err">Impossible de démarrer : ') + (e && e.message ? e.message : e) +
+        _T(156,'<br><br>iPhone : Safari, et autoriser la caméra. Android : Chrome. La page doit être en https.</div>');
     });
   };
   /* Quitter le jeu n'est plus un changement de page : le navigateur ne fait
