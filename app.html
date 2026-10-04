@@ -1065,6 +1065,13 @@
   .bib-step i{flex-shrink:0;width:19px;height:19px;border-radius:50%;background:rgba(0,232,150,.14);color:var(--brand);
     font-style:normal;font-size:10px;font-weight:800;line-height:19px;text-align:center}
   .bib-step p{margin:0;font-size:13px;line-height:1.45}
+  .bib-lk{width:12px;height:12px;margin-right:6px;vertical-align:-1px;color:#C79BFF}
+  .bib-lock{margin:16px 0 4px;padding:18px 16px;border-radius:16px;text-align:center;background:rgba(124,92,255,.12);border:1px solid rgba(124,92,255,.45)}
+  .bib-lock .lk{width:40px;height:40px;margin:0 auto 10px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(124,92,255,.22);color:#D9B3FF}
+  .bib-lock .lk .ic{width:18px;height:18px}
+  .bib-lock b{display:block;font-size:14.5px;margin-bottom:6px}
+  .bib-lock p{margin:0 0 14px;font-size:12.5px;line-height:1.5;color:var(--muted)}
+  .bib-lock .btn{max-width:220px;margin:0 auto;background:linear-gradient(135deg,#7C5CFF,#C840FF);color:#fff}
   .bib-sheet{display:flex;flex-direction:column;height:86vh;max-height:86vh;overflow:hidden}
   .bib-fixe{flex:0 0 auto}
   .bib-scroll{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:4px}
@@ -3184,6 +3191,9 @@ const T = {
  bib_ok_tag:{fr:'POINTS DE PERFORMANCE',en:'POINTS OF PERFORMANCE',nl:'UITVOERINGSPUNTEN'},
  bib_err_tag:{fr:'CE QUI SE PASSE',en:'WHAT HAPPENS',nl:'WAT ER GEBEURT'},
  bib_ligne:{fr:'Le trait doré est la verticale du milieu du pied. C\u2019est la seule ligne qui juge le geste.',en:'The gold line is the vertical through the midfoot. It is the only line that judges the movement.',nl:'De gouden lijn is de verticaal door het midden van de voet. Dat is de enige lijn die de beweging beoordeelt.'},
+ bib_lock_t:{fr:'Les conseils de Coach DM sont Premium',en:'Coach DM\u2019s coaching points are Premium',nl:'De tips van Coach DM zijn Premium'},
+ bib_lock_p:{fr:'Points de performance et erreurs à ne pas reproduire : débloque-les pour les 422 mouvements. Les mouvements des séances gratuites restent ouverts.',en:'Points of performance and mistakes to avoid: unlock them for all 422 movements. Movements from the free workouts stay open.',nl:'Uitvoeringspunten en fouten om te vermijden: ontgrendel ze voor alle 422 bewegingen. Bewegingen uit de gratis trainingen blijven open.'},
+ bib_lock_cta:{fr:'Débloquer',en:'Unlock',nl:'Ontgrendelen'},
  bib_nopoints:{fr:'Points de performance à venir pour ce mouvement.',en:'Points of performance coming for this movement.',nl:'Uitvoeringspunten volgen voor deze beweging.'},
  bib_back_seance:{fr:'Retour à la séance',en:'Back to the workout',nl:'Terug naar de training'},
  bib_nofiche:{fr:"Pas encore de fiche pour ce mouvement.",en:'No sheet yet for this movement.',nl:'Nog geen fiche voor deze beweging.'},
@@ -3728,6 +3738,7 @@ const T = {
  gate_ask:{fr:"Demander l'accès",en:'Request access',nl:'Toegang aanvragen'},
  up_title:{fr:'Passe en Premium',en:'Go Premium',nl:'Word Premium'},
  up_workout:{fr:'Cette séance fait partie du programme complet, réservé aux membres.',en:'This workout is part of the full members-only program.',nl:'Deze training hoort bij het volledige ledenprogramma.'},
+ up_bib:{fr:'Les points de performance et les erreurs à éviter de Coach DM sont réservés aux membres Premium.',en:'Coach DM\u2019s points of performance and mistakes to avoid are for Premium members.',nl:'De uitvoeringspunten en fouten om te vermijden van Coach DM zijn voor Premium-leden.'},
  up_ia:{fr:'Le Coach IA est réservé aux membres Premium.',en:'The AI Coach is for Premium members.',nl:'De AI-coach is voor Premium-leden.'},
  up_price:{fr:'14,99 €/mois',en:'€14.99/month',nl:'€14,99/maand'},
  up_feat1:{fr:'Tous les programmes, semaine après semaine',en:'Every program, week after week',nl:"Alle programma's, week na week"},
@@ -8211,7 +8222,7 @@ async function upsellPrice(){
   }catch(e){}
 }
 function showUpsell(kind){
-  const sub=$('#up-sub'); if(sub) sub.textContent=t(kind==='ia'?'up_ia':'up_workout');
+  const sub=$('#up-sub'); if(sub) sub.textContent=t(kind==='ia'?'up_ia':(kind==='bib'?'up_bib':'up_workout'));
   /* Le bouton et le prix etaient masques en natif : le membre gratuit tombait
      sur un mur « Passe en Premium » sans aucun bouton pour le faire. */
   const cta=$('#up-cta'); if(cta) cta.style.display='';
@@ -10751,7 +10762,7 @@ async function bibCharger(){
     let tout=[], de=0;
     for(let page=0; page<5; page++){
       const { data, error } = await sb.from('exercises')
-        .select('id,slug,name_fr,name_en,name_nl,primary_muscle,equipment,pattern,video_url,cue_fr,cue_en,cue_nl,instructions_fr,instructions_en,instructions_nl,mistakes_fr,mistakes_en,mistakes_nl')
+        .select('id,slug,name_fr,name_en,name_nl,primary_muscle,equipment,pattern,video_url,cue_fr,cue_en,cue_nl')
         .eq('is_published',true).order('name_fr',{ascending:true}).range(de, de+199);
       if(error){ break; }
       if(!data || !data.length) break;
@@ -10760,14 +10771,21 @@ async function bibCharger(){
       de+=200;
     }
     if(!tout.length) return false;
-    /* les fiches completes d'abord : ce sont celles qui portent les points
-       de performance et la consigne de Coach DM */
-    tout.sort((a,b)=>{
-      const ca=(pickList(a,'instructions').length?1:0);
-      const cb=(pickList(b,'instructions').length?1:0);
-      if(ca!==cb) return cb-ca;
-      return String(pick(a,'name')||'').localeCompare(String(pick(b,'name')||''));
+    /* Les conseils de Coach DM (points de performance + erreurs) sont premium.
+       Ils ne sont plus lus dans la table : le serveur ne les renvoie, via
+       bib_contenu(), qu'aux membres premium — et pour tout le monde sur les
+       mouvements des seances gratuites. Une fiche sans contenu renvoye est
+       verrouillee (cadenas), le nom, la consigne, la video et le bonhomme
+       restent visibles. */
+    let contenu=null;
+    try{ const r=await sb.rpc('bib_contenu'); if(!r.error && r.data) contenu=r.data; }catch(_){}
+    const parId={}; (contenu||[]).forEach(c=>{ parId[c.id]=c; });
+    tout.forEach(e=>{
+      const c=parId[e.id];
+      if(c){ ['instructions_fr','instructions_en','instructions_nl','mistakes_fr','mistakes_en','mistakes_nl'].forEach(k=>{ e[k]=c[k]; }); e._lock=false; }
+      else e._lock=true;
     });
+    tout.sort((a,b)=>String(pick(a,'name')||'').localeCompare(String(pick(b,'name')||'')));
     BIB=tout;
   }
   return true;
@@ -10810,7 +10828,7 @@ function bibListe(garderScroll){
   if(cnt) cnt.textContent=list.length+' / '+BIB.length;
   if(!list.length){ body.innerHTML='<p class="empty">'+t('bib_none')+'</p>'; return; }
   body.innerHTML=list.map(e=>{
-    const fiche=(pickList(e,'instructions').length)?'<i class="bib-dot"></i>':'';
+    const fiche=e._lock?'<svg class="ic bib-lk" aria-hidden="true"><use href="#i-lock"/></svg>':((pickList(e,'instructions').length)?'<i class="bib-dot"></i>':'');
     return `<button type="button" class="bib-item" data-b="${BIB.indexOf(e)}">
       <span style="flex:1 1 auto;min-width:0"><b>${fiche}${esc(pick(e,'name'))}</b><span>${esc(equipLab(e.equipment))} · ${esc(bibLab(e.primary_muscle))}</span></span>
       <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted)"><path d="M9 18l6-6-6-6"/></svg>
@@ -10885,19 +10903,27 @@ function bibFicheRender(){
         <span class="anim-tag" style="background:${mode==='ko'?'#EF4444':'#E9C767'}">${mode==='ko'?esc(t('bib_err_tag')):esc(t('bib_ok_tag'))}</span></div>`:''}
     ${(A||erreurs.length)?`<div class="anim-sw"${A?'':' style="margin-top:4px"'}>
         <button type="button" class="btn subtle${mode==='ok'?' on':''}" data-bmode="ok">${esc(t('bib_ok_btn'))}</button>
-        <button type="button" class="btn subtle${mode==='ko'?' on ko':''}" data-bmode="ko"${erreurs.length?'':' disabled'}>${esc(t('bib_ko_btn'))}</button>
+        <button type="button" class="btn subtle${mode==='ko'?' on ko':''}" data-bmode="ko"${(erreurs.length||(e._lock&&A))?'':' disabled'}>${esc(t('bib_ko_btn'))}</button>
       </div>`:''}
     ${(mode==='ok'&&cue)?`<div class="block" style="margin:14px 0;border-left:3px solid var(--brand)">
         <div style="font-size:10px;letter-spacing:1.4px;color:var(--brand);font-weight:800;margin-bottom:6px">${esc(t('bib_cue')).toUpperCase()}</div>
         <p style="margin:0;font-size:13.5px;line-height:1.55">${esc(cue)}</p></div>`:''}
-    ${listeAff.length?`<div style="font-size:10px;letter-spacing:1.4px;color:${mode==='ko'?'#EF4444':'var(--muted)'};font-weight:800;margin:14px 0 9px">${esc(titreAff).toUpperCase()}</div>
+    ${e._lock?`<div class="bib-lock">
+        <div class="lk"><svg class="ic"><use href="#i-lock"/></svg></div>
+        <b>${esc(t('bib_lock_t'))}</b>
+        <p>${esc(t('bib_lock_p'))}</p>
+        <button type="button" class="btn" id="bib-unlock">${esc(t('bib_lock_cta'))}</button>
+      </div>`
+    :(listeAff.length?`<div style="font-size:10px;letter-spacing:1.4px;color:${mode==='ko'?'#EF4444':'var(--muted)'};font-weight:800;margin:14px 0 9px">${esc(titreAff).toUpperCase()}</div>
       ${listeAff.map((x,i)=>`<div class="bib-step"><i${mode==='ko'?' class="ko"':''}>${i+1}</i><p>${esc(x)}</p></div>`).join('')}`
-      :`<p class="empty" style="margin-top:14px">${esc(t('bib_nopoints'))}</p>`}
+      :`<p class="empty" style="margin-top:14px">${esc(t('bib_nopoints'))}</p>`)}
     ${A?`<p class="fk" style="margin-top:12px;font-size:11px">${esc(t('bib_ligne'))}</p>`:''}
     ${vid?`<a class="btn subtle ex-demo" href="${esc(vid)}" style="display:block;text-align:center;margin-top:14px">${esc(t('bib_video'))}</a>`:''}
   `;
   const bk=document.getElementById('bib-back');
   if(bk) bk.onclick=()=>{ if(BIB_SOLO) bibClose(); else bibListe(true); };
+  const ul=document.getElementById('bib-unlock');
+  if(ul) ul.onclick=()=>showUpsell('bib');
   body.querySelectorAll('[data-bmode]').forEach(b=>b.onclick=()=>{
     /* basculer points / erreurs re-rend la fiche : on ne veut pas repartir en
        haut si l'utilisateur lisait le bas de la liste */
