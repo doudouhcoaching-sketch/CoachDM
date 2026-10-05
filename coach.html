@@ -1775,7 +1775,8 @@ async function enter(user){
   initChatLive();
   /* Lien direct depuis l'Atelier : coach.html?chat=<id>&n=<prenom> ouvre la conversation (verrou compris). */
   try{ const q=new URLSearchParams(location.search), cid=q.get('chat');
-    if(cid && /^[0-9a-f-]{36}$/i.test(cid)){ history.replaceState(null,'',location.pathname); setTimeout(()=>openChatGated(cid,q.get('n')||''),400); } }catch(_){}
+    if(cid && /^[0-9a-f-]{36}$/i.test(cid)){ history.replaceState(null,'',location.pathname); const pre=q.get('t'); setTimeout(()=>openChatGated(cid,q.get('n')||''),400);
+      if(pre){ let k=0; const iv=setInterval(()=>{ const i=$('#ch-in'); k++; if(i && CHAT_PEER===cid && $('#ov-chat').classList.contains('show')){ if(!i.value) i.value=pre.slice(0,1000); i.dispatchEvent(new Event('input',{bubbles:true})); clearInterval(iv); } else if(k>40) clearInterval(iv); },250); } } }catch(_){}
 }
 /* Vrai tant qu'on ne sait pas : on n'inflige jamais un écran d'offre à un
    coach payant à cause d'un appel réseau qui a échoué. */

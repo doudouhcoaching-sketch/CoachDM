@@ -94,6 +94,40 @@ input,textarea,select{font-family:inherit;font-size:16px;color:var(--text)}
 .steps i.on{background:var(--brand)}
 .q{font-size:24px;font-weight:800;margin:0 0 6px;letter-spacing:-.015em}
 .qsub{color:var(--muted);font-size:15px;margin:0 0 18px;line-height:1.45}
+.bigadd.ai{background:linear-gradient(135deg,rgba(233,199,103,.16),rgba(0,255,163,.08));border-color:rgba(233,199,103,.45)}
+.bigadd.ai .plus{background:var(--goldsoft);color:var(--gold);font-size:22px}
+.astxt{width:100%;box-sizing:border-box;min-height:120px;padding:16px;border-radius:16px;background:var(--s1);border:1.5px solid var(--line2);color:inherit;font:inherit;font-size:16px;line-height:1.5;resize:vertical}
+.astxt:focus,.astitle:focus{outline:none;border-color:var(--brand)}
+.asex{display:flex;flex-direction:column;gap:8px;margin:14px 0}
+.asex button{text-align:left;padding:12px 14px;border-radius:14px;background:var(--s1);border:1px dashed var(--line2);color:var(--muted);font-size:14px}
+.linkbtn{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:14px;padding:8px 2px}
+.asnote{background:var(--goldsoft);color:var(--gold);border-radius:14px;padding:12px 14px;font-size:14px;margin:0 0 16px;line-height:1.45}
+.astitle{width:100%;box-sizing:border-box;height:50px;padding:0 14px;border-radius:14px;background:var(--s1);border:1.5px solid var(--line2);color:inherit;font:inherit;font-size:16px}
+.asdone{text-align:center;max-width:520px;margin:20px auto}
+.asok{width:72px;height:72px;border-radius:24px;margin:0 auto 16px;display:grid;place-items:center;font-size:34px;font-weight:900;background:var(--brandsoft);color:var(--brand)}
+.c3tabs{margin:12px 16px 0;overflow-x:auto;scrollbar-width:none}
+.c3tabs::-webkit-scrollbar{display:none}
+.c3tabs button{flex:1 0 auto;padding:0 12px;font-size:13.5px}
+.c3bars{position:relative;display:flex;align-items:flex-end;gap:5px;height:130px;padding:6px 2px 20px;background:var(--s1);border:1px solid var(--line);border-radius:14px}
+.c3b{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}
+.c3b i{display:block;width:100%;max-width:28px;border-radius:6px 6px 2px 2px;background:var(--brand);opacity:.85}
+.c3b i.hi{background:var(--gold)}
+.c3b small{position:absolute;bottom:-17px;font-size:10px;color:var(--muted);white-space:nowrap}
+.c3tl{position:absolute;left:0;right:0;border-top:1.5px dashed var(--gold);z-index:1;pointer-events:none}
+.c3list{display:flex;flex-direction:column;gap:8px}
+.c3list>div{background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:11px 13px}
+.c3list b{display:block;font-size:14.5px}
+.c3list span{color:var(--muted);font-size:12.5px}
+.c3empty{color:var(--muted);font-size:14px;padding:14px;background:var(--s1);border-radius:12px;border:1px dashed var(--line2)}
+.c3nudges{display:flex;flex-direction:column;gap:8px}
+.c3nudge{display:flex;gap:12px;align-items:flex-start;text-align:left;padding:13px 14px;border-radius:14px;background:var(--brandsoft);border:1px solid rgba(0,255,163,.25);color:inherit;font-size:14px;line-height:1.45}
+.c3nudge .ic{flex:none;width:18px;height:18px;color:var(--brand);margin-top:2px}
+.c3big{font-size:26px;font-weight:800;margin:2px 0 6px}
+.c3big span{font-size:14px;font-weight:700;margin-left:6px}
+.c3big .dn{color:var(--brand)} .c3big .up{color:var(--gold)}
+.c3spark{width:100%;height:70px;background:var(--s1);border-radius:12px;border:1px solid var(--line)}
+.c3spark polyline{fill:none;stroke:var(--brand);stroke-width:2.5;vector-effect:non-scaling-stroke}
+.c3saved{color:var(--muted);font-size:13px;margin-top:8px;min-height:18px}
 .tdcard{align-items:flex-start;cursor:pointer}
 .tdcard.hot{border-color:rgba(255,100,100,.45)}
 .tdchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -256,6 +290,7 @@ textarea.inp{min-height:90px;padding:14px 16px;line-height:1.5;resize:vertical}
 .fchips{display:flex;gap:7px;overflow:auto;padding-bottom:8px;margin-bottom:6px;scrollbar-width:none}
 .fchips::-webkit-scrollbar{display:none}
 .fchips button{flex:none;min-height:40px;padding:0 14px;border-radius:999px;background:var(--s1);border:1px solid var(--line2);font-weight:700;font-size:13.5px;white-space:nowrap}
+.fchips.wrap{flex-wrap:wrap;overflow:visible}
 .fchips button.on{background:var(--brand);color:#03140C;border-color:var(--brand)}
 .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .mv{position:relative;display:flex;flex-direction:column;border-radius:16px;background:var(--s1);border:2px solid var(--line);overflow:hidden;text-align:left}
@@ -610,9 +645,11 @@ async function viewHome() {
   PLAN = null; setTitle(t('title')); dock('');
   const v = $('#view');
   v.innerHTML = homeTabs() + `<div class="hero"><p>${esc(t('hero'))}</p>
-    <button class="bigadd" id="h-new"><div class="plus">${ic('plus')}</div><div><b>${esc(t('new_prog'))}</b><span>${esc(t('new_prog_s'))}</span></div></button></div>
-    <div class="sect">${esc(t('in_progress'))}</div><div id="h-list"><div class="load" style="min-height:120px"><div class="spin"></div></div></div>`;
-  $('#h-new').onclick = () => startWizard(null); bindHomeTabs();
+    <button class="bigadd" id="h-new"><div class="plus">${ic('plus')}</div><div><b>${esc(t('new_prog'))}</b><span>${esc(t('new_prog_s'))}</span></div></button>
+    <button class="bigadd ai" id="h-ai"><div class="plus">✨</div><div><b>${esc(t('as_btn'))}</b><span>${esc(t('as_btn_s'))}</span></div></button></div>
+    <div class="sect">${esc(t('in_progress'))}</div><div id="h-list"><div class="load" style="min-height:120px"><div class="spin"></div></div></div><div id="h-tpl"></div>`;
+  paintTplSection();
+  $('#h-new').onclick = () => startWizard(null); $('#h-ai').onclick = () => startAssistant(null); bindHomeTabs();
   if (!CLIENTS.length) { $('#h-list').innerHTML = `<div class="empty">${esc(t('no_client'))}</div>`; return; }
   const res = await Promise.all(CLIENTS.map((c) => rpc('coach_list_plans', { p_client: c.client_id }).then((p) => (p || []).map((x) => ({ ...x, client: c }))).catch(() => [])));
   HOME_PLANS = res.flat().filter((p) => p.status !== 'archived').sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
@@ -634,7 +671,8 @@ async function viewHome() {
 let WZ = null;
 function startWizard(client) {
   const m0 = monday(new Date()); const next = addDays(m0, 7);
-  WZ = { step: client ? 2 : 1, client, start: iso(new Date() .getDay() === 1 ? m0 : next), weeks: 8, days: [1, 3, 5], from: 'blank', prog: null };
+  WZ = { step: client ? 2 : 1, client, start: iso(new Date() .getDay() === 1 ? m0 : next), weeks: 8, days: [1, 3, 5], from: 'blank', prog: null, tpl: null };
+  if (WZ_TPL) { WZ.tpl = WZ_TPL; WZ.from = 'tpl'; WZ.weeks = WZ_TPL.weeks; WZ.days = [...WZ_TPL.days].sort((a, b) => a - b); WZ_TPL = null; }
   go(viewWizard);
 }
 function viewWizard() {
@@ -665,10 +703,19 @@ function viewWizard() {
   }
   v.innerHTML = steps + `<h2 class="q">${esc(t('q3'))}</h2><p class="qsub">${esc(t('q3s'))}</p>
     <div class="choice"><button data-f="blank" class="${WZ.from === 'blank' ? 'on' : ''}"><b>${esc(t('blank'))}</b><span>${esc(t('blank_s'))}</span></button>
-    <button data-f="lib" class="${WZ.from === 'lib' ? 'on' : ''}"><b>${esc(t('fromlib'))}</b><span>${esc(t('fromlib_s'))}</span></button></div><div id="wz-progs"></div>`;
+    <button data-f="lib" class="${WZ.from === 'lib' ? 'on' : ''}"><b>${esc(t('fromlib'))}</b><span>${esc(t('fromlib_s'))}</span></button>
+    <button data-f="tpl" class="${WZ.from === 'tpl' ? 'on' : ''}"><b>${esc(t('tp_from'))}</b><span>${esc(t('tp_from_s'))}</span></button></div><div id="wz-progs"></div>`;
   $$('.choice button', v).forEach((b) => b.onclick = () => { WZ.from = b.dataset.f; $$('.choice button', v).forEach((x) => x.classList.toggle('on', x === b)); paintProgs(); });
   async function paintProgs() {
-    const el = $('#wz-progs'); if (WZ.from !== 'lib') { el.innerHTML = ''; return; }
+    const el = $('#wz-progs');
+    if (WZ.from === 'tpl') {
+      const list = await loadTpls();
+      if (!list.length) { el.innerHTML = `<div class="empty" style="margin-top:12px">${esc(t('tp_none'))}</div>`; return; }
+      el.innerHTML = `<div class="progs">${list.map((x, i) => `<button data-i="${i}" class="${WZ.tpl && WZ.tpl.id === x.id ? 'on' : ''}"><b>${esc(x.title)}</b><span>${esc(t('tp_meta', { n: x.n, w: x.weeks }))}</span></button>`).join('')}</div>`;
+      $$('.progs button', el).forEach((b) => b.onclick = () => { WZ.tpl = list[+b.dataset.i]; $$('.progs button', el).forEach((x) => x.classList.toggle('on', x === b)); WZ.weeks = WZ.tpl.weeks; if (WZ.tpl.days.length !== WZ.days.length) WZ.days = [...WZ.tpl.days].sort((a, b) => a - b); });
+      return;
+    }
+    if (WZ.from !== 'lib') { el.innerHTML = ''; return; }
     el.innerHTML = '<div class="load" style="min-height:80px"><div class="spin"></div></div>';
     const lib = await loadLib();
     const by = {}; lib.filter((w) => !w.is_mine && PROGS[w.program_slug]).forEach((w) => { (by[w.program_slug] = by[w.program_slug] || []).push(w); });
@@ -686,7 +733,8 @@ function viewWizard() {
   dock(`<button class="btn main" id="wz-go">${esc(t('create'))}</button>`);
   $('#wz-go').onclick = async () => {
     const c = WZ.client;
-    PLAN = { id: null, client: c, title: t('prog_of', { n: firstName(c) }) + (WZ.from === 'lib' && WZ.prog ? ' · ' + PROGS[WZ.prog] : ''),
+    if (WZ.from === 'tpl' && !WZ.tpl) return toast(t('tp_pick_t'), true);
+    PLAN = { id: null, client: c, title: WZ.from === 'tpl' ? WZ.tpl.title : t('prog_of', { n: firstName(c) }) + (WZ.from === 'lib' && WZ.prog ? ' · ' + PROGS[WZ.prog] : ''),
       start: WZ.start, weeks: WZ.weeks, days: [...WZ.days], cells: {}, status: 'draft', dirty: true };
     if (WZ.from === 'lib' && WZ.prog) {
       const lib = await loadLib(); const ws = lib.filter((w) => w.program_slug === WZ.prog && !w.is_mine);
@@ -694,6 +742,7 @@ function viewWizard() {
       ws.forEach((w) => { const dw = PLAN.days[(w.day_number || 1) - 1]; if (!dw) return; PLAN.cells[(w.week_number || 1) - 1 + '-' + dw] = cellOf(w); });
       if (D > PLAN.days.length) toast(t('maxed', { d: D, c: PLAN.days.length }));
     }
+    if (WZ.from === 'tpl') PLAN.cells = tplToCells(WZ.tpl, PLAN.days);
     STACK.pop(); go(viewPlan);
   };
 }
@@ -813,12 +862,16 @@ function cellMenu(k) {
 function planMenu() {
   const P = PLAN;
   const sh = openSheet('ov', shHead(t('menu'), 'ov') + `<div class="sh-b"><div class="acts">
+    ${Object.keys(P.cells).length ? `<button class="act" data-a="multi">${ic('send')}<div>${esc(t('tp_multi'))}</div></button>
+    <button class="act" data-a="tpl">${ic('copy')}<div>${esc(t('tp_save'))}</div></button>` : ''}
     ${P.id ? `<button class="act" data-a="dup">${ic('copy')}<div>${esc(t('dup_to'))}</div></button>` : ''}
     ${P.id ? `<button class="act red" data-a="arch">${ic('trash')}<div>${esc(t('del_plan'))}</div></button>` : ''}
     </div></div>`);
   $$('[data-a]', sh).forEach((b) => b.onclick = async () => {
     const a = b.dataset.a;
     if (a === 'arch') { closeSheet('ov'); return savePlan('archived', true); }
+    if (a === 'tpl') return saveAsTemplate();
+    if (a === 'multi') return planMulti();
     if (a === 'dup') {
       $('.sh-b', sh).innerHTML = `<div class="tiles">${CLIENTS.filter((c) => c.client_id !== P.client.client_id).map((c) => `<button class="tile" data-c="${c.client_id}"><div class="av">${esc(initials(c.full_name || c.email))}</div>${esc(firstName(c) || c.email)}</button>`).join('')}</div>`;
       $$('.tile', sh).forEach((tb) => tb.onclick = async () => {
@@ -1302,7 +1355,7 @@ function openCalc() {
   const d = NC.detail || {}, p = d.profile || {}, nt = d.nutrition_targets || {};
   const w = (Array.isArray(d.weight) && d.weight.length && (d.weight[d.weight.length - 1].kg || d.weight[d.weight.length - 1].weight_kg)) || nt.current_weight_kg || 75;
   CALC = { sex: p.sex === 'female' ? 'female' : 'male', age: ageOf(p.date_of_birth) || 30, h: Math.round(p.height_cm || (p.sex === 'female' ? 166 : 178)),
-    w: Math.round(+w * 2) / 2, act: 'moderate', goal: nt.goal && GOALS.some((g) => g[0] === nt.goal) ? nt.goal : 'maintain', pace: 2, pkg: null, adj: 0 };
+    w: Math.round(+w * 2) / 2, act: 'moderate', goal: (typeof NUTRI_GOAL_HINT !== 'undefined' && NUTRI_GOAL_HINT) || (nt.goal && GOALS.some((g) => g[0] === nt.goal) ? nt.goal : 'maintain'), pace: 2, pkg: null, adj: 0 };
   paintCalc();
 }
 function calcRes() {
@@ -1594,15 +1647,15 @@ function tdIssues(r) {
   if (r.unread > 0) out.push([2, t('td_unread', { n: r.unread }), 'msg']);
   if (r.checkins_todo > 0) out.push([1, t('td_checkin'), 'msg']);
   if (!r.personal) return out;
-  if (r.missed_7d > 0) out.push([2, t('td_missed', { n: r.missed_7d }), 'msg']);
+  if (r.missed_7d > 0) out.push([2, t('td_missed', { n: r.missed_7d }), 'msg', 'missed']);
   const today = iso(new Date());
-  if (r.active_plan && r.plan_end && r.plan_end < today) out.push([1, t('td_ended'), 'new']);
-  else if (r.active_plan && r.plan_end) { const n = -daysSince(r.plan_end); if (n <= 7) out.push([1, t('td_ends', { n }), 'new']); }
-  if (!r.active_plan) out.push([1, t('td_noplan'), 'new']);
+  if (r.active_plan && r.plan_end && r.plan_end < today) out.push([1, t('td_ended'), 'new', 'ended']);
+  else if (r.active_plan && r.plan_end) { const n = -daysSince(r.plan_end); if (n <= 7) out.push([1, t('td_ends', { n }), 'new', 'ends']); }
+  if (!r.active_plan) out.push([1, t('td_noplan'), 'new', 'noplan']);
   const idle = daysSince(r.last_session_at);
-  if (r.active_plan && idle != null && idle >= 10) out.push([1, t('td_idle', { n: idle }), 'msg']);
+  if (r.active_plan && idle != null && idle >= 10) out.push([1, t('td_idle', { n: idle }), 'msg', 'idle']);
   if (!r.has_targets) out.push([0, t('td_notarget'), 'food']);
-  else { const f = daysSince(r.last_food); if (f == null) out.push([0, t('td_nofood0'), 'food']); else if (f >= 3) out.push([0, t('td_nofood', { n: f }), 'food']); }
+  else { const f = daysSince(r.last_food); if (f == null) out.push([0, t('td_nofood0'), 'food', 'nofood']); else if (f >= 3) out.push([0, t('td_nofood', { n: f }), 'food', 'nofood']); }
   return out;
 }
 
@@ -1660,6 +1713,7 @@ async function tdAct(a, x) {
   if (a === 'msg') { location.href = 'coach.html?chat=' + encodeURIComponent(r.client_id) + '&n=' + encodeURIComponent(firstName(c) || ''); return; }
   if (a === 'food') return openNutriClient(c);
   if (a === 'new') return startWizard(c);
+  if (a === 'ai') return startAssistant(c);
   if (a === 'open') {
     try {
       const pl = (await rpc('coach_list_plans', { p_client: r.client_id })) || [];
@@ -1670,13 +1724,75 @@ async function tdAct(a, x) {
   }
 }
 
-function openClient360(x) {
+/* ---------------- relances pretes (dans la langue du client) ---------------- */
+const NUDGE = {
+  missed: { fr: 'Salut {n} ! J’ai vu qu’une séance est passée à la trappe cette semaine. Tout va bien ? Dis-moi si on doit adapter le programme 💪', en: 'Hi {n}! I saw a session slipped this week. All good? Tell me if we should adjust the program 💪', nl: 'Hoi {n}! Ik zag dat er deze week een training is weggevallen. Alles oké? Laat me weten of we het programma moeten aanpassen 💪' },
+  idle: { fr: 'Hello {n}, ça fait {d} jours sans entraînement. Comment tu te sens ? On reprend doucement cette semaine ?', en: 'Hey {n}, it’s been {d} days without training. How are you feeling? Shall we ease back in this week?', nl: 'Hey {n}, al {d} dagen geen training. Hoe voel je je? Zullen we deze week rustig herbeginnen?' },
+  ended: { fr: '{n}, ton programme est terminé, bravo pour le travail ! Je te prépare la suite. Qu’est-ce que tu as préféré, et qu’est-ce qu’on change ?', en: '{n}, your program is done, great work! I’m preparing what’s next. What did you like most, and what should we change?', nl: '{n}, je programma is afgelopen, knap gedaan! Ik bereid het vervolg voor. Wat vond je het leukst en wat veranderen we?' },
+  ends: { fr: '{n}, plus que quelques jours sur ton programme. Je prépare la suite : tu as un objectif précis pour le prochain bloc ?', en: '{n}, only a few days left on your program. I’m preparing the next one: any specific goal for the next block?', nl: '{n}, nog maar enkele dagen in je programma. Ik bereid het vervolg voor: heb je een concreet doel voor het volgende blok?' },
+  noplan: { fr: 'Salut {n} ! Je te prépare ton programme. Combien de séances par semaine tu peux faire, et avec quel matériel ?', en: 'Hi {n}! I’m preparing your program. How many sessions a week can you do, and with what equipment?', nl: 'Hoi {n}! Ik maak je programma klaar. Hoeveel trainingen per week kan je doen, en met welk materiaal?' },
+  nofood: { fr: 'Petit rappel {n} : note tes repas dans l’app quelques jours, ça m’aide à ajuster tes calories au plus juste 🍽️', en: 'Quick reminder {n}: log your meals in the app for a few days, it helps me fine-tune your calories 🍽️', nl: 'Kleine herinnering {n}: noteer een paar dagen je maaltijden in de app, zo kan ik je calorieën juist afstellen 🍽️' },
+};
+Object.assign(TX, {
+  c3_over: { fr: 'Aperçu', en: 'Overview', nl: 'Overzicht' },
+  c3_train: { fr: 'Entraînement', en: 'Training', nl: 'Training' },
+  c3_food: { fr: 'Nutrition', en: 'Nutrition', nl: 'Voeding' },
+  c3_health: { fr: 'Santé', en: 'Health', nl: 'Gezondheid' },
+  c3_notes: { fr: 'Notes', en: 'Notes', nl: 'Notities' },
+  c3_nudges: { fr: 'Messages prêts à envoyer', en: 'Ready-to-send messages', nl: 'Berichten klaar om te versturen' },
+  c3_nudge_s: { fr: 'Touche : la conversation s’ouvre avec le texte, tu relis et tu envoies.', en: 'Tap: the chat opens with the text, you review and send.', nl: 'Tik: het gesprek opent met de tekst, jij leest na en verstuurt.' },
+  c3_weeks: { fr: 'Séances par semaine (8 sem.)', en: 'Sessions per week (8 wk)', nl: 'Trainingen per week (8 wk)' },
+  c3_last: { fr: 'Dernières séances', en: 'Last sessions', nl: 'Laatste trainingen' },
+  c3_prs: { fr: 'Records', en: 'Records', nl: 'Records' },
+  c3_kcal: { fr: 'Calories notées (14 j)', en: 'Calories logged (14 d)', nl: 'Genoteerde calorieën (14 d)' },
+  c3_prot: { fr: 'Protéines notées (14 j)', en: 'Protein logged (14 d)', nl: 'Genoteerde eiwitten (14 d)' },
+  c3_wt: { fr: 'Poids (4 mois)', en: 'Weight (4 months)', nl: 'Gewicht (4 maanden)' },
+  c3_steps: { fr: 'Pas par jour (14 j)', en: 'Steps per day (14 d)', nl: 'Stappen per dag (14 d)' },
+  c3_sleep: { fr: 'Sommeil (14 j)', en: 'Sleep (14 d)', nl: 'Slaap (14 d)' },
+  c3_nodata: { fr: 'Pas encore de données.', en: 'No data yet.', nl: 'Nog geen gegevens.' },
+  c3_note_ph: { fr: 'Tes notes privées : blessures, préférences, objectifs, ce qu’il s’est dit… Ton client ne les voit pas.', en: 'Your private notes: injuries, preferences, goals, what was said… Your client never sees them.', nl: 'Je privénotities: blessures, voorkeuren, doelen, wat er gezegd is… Je klant ziet ze niet.' },
+  c3_saved: { fr: 'Enregistré', en: 'Saved', nl: 'Opgeslagen' },
+  c3_target: { fr: 'objectif {n}', en: 'target {n}', nl: 'doel {n}' },
+  c3_avg: { fr: 'moyenne {n}', en: 'average {n}', nl: 'gemiddeld {n}' },
+});
+const nudgeText = (code, c, loc, extra = {}) => { const m = NUDGE[code]; if (!m) return ''; let s = m[loc] || m.fr; const v = { n: firstName(c) || '', ...extra }; for (const k in v) s = s.split('{' + k + '}').join(v[k]); return s; };
+function goChat(c, text) { location.href = 'coach.html?chat=' + encodeURIComponent(c.client_id) + '&n=' + encodeURIComponent(firstName(c) || '') + (text ? '&t=' + encodeURIComponent(text) : ''); }
+
+/* petit graphique en barres, sans librairie */
+function bars(list, val, opts = {}) {
+  if (!list.length) return `<div class="c3empty">${esc(t('c3_nodata'))}</div>`;
+  const vs = list.map(val); const max = Math.max(opts.target || 0, ...vs, 1);
+  const tl = opts.target ? `<i class="c3tl" style="bottom:calc(20px + (100% - 26px) * ${(opts.target / max).toFixed(3)})"></i>` : '';
+  return `<div class="c3bars">${tl}${list.map((x, i) => `<div class="c3b"><i style="height:${Math.max(3, 100 * vs[i] / max).toFixed(1)}%" class="${opts.target && opts.over !== false && vs[i] > opts.target * 1.1 ? 'hi' : ''}"></i><small>${esc(opts.lab ? opts.lab(x) : '')}</small></div>`).join('')}</div>`;
+}
+function spark(list) {
+  if (list.length < 2) return list.length ? `<div class="c3big">${nf(list[0].kg, 1)} kg</div>` : `<div class="c3empty">${esc(t('c3_nodata'))}</div>`;
+  const ys = list.map((p) => +p.kg); const mn = Math.min(...ys), mx = Math.max(...ys); const W = 300, H = 70;
+  const pts = ys.map((y, i) => `${(i * W / (ys.length - 1)).toFixed(1)},${(H - 6 - (mx === mn ? 0.5 : (y - mn) / (mx - mn)) * (H - 12)).toFixed(1)}`).join(' ');
+  const d = ys[ys.length - 1] - ys[0];
+  return `<div class="c3big">${nf(ys[ys.length - 1], 1)} kg <span class="${d < 0 ? 'dn' : 'up'}">${d > 0 ? '+' : ''}${nf(d, 1)}</span></div><svg viewBox="0 0 ${W} ${H}" class="c3spark" preserveAspectRatio="none"><polyline points="${pts}"/></svg>`;
+}
+const dd = (s) => fmtShort(parse(s));
+
+let C3 = null;
+async function openClient360(x) {
   const { r, c, is } = x;
-  const w = r.last_weight != null ? nf(r.last_weight, 1) + ' kg' : '—';
-  const dw = r.weight_delta_30d != null ? t('td_30d', { s: (r.weight_delta_30d > 0 ? '+' : '') + nf(r.weight_delta_30d, 1) }) : '';
-  const pct = r.planned_7d ? Math.round(100 * r.done_7d / r.planned_7d) : null;
-  const sh = openSheet('ov', shHead(c.full_name || c.email || '—', 'ov') + `<div class="sh-b">
-    ${is.length ? `<div class="tdchips" style="margin:0 0 14px">${is.map((i) => `<span class="tdchip l${i[0]}">${esc(i[1])}</span>`).join('')}</div>` : ''}
+  C3 = { x, tab: 'over', d: null };
+  const sh = openSheet('ov2', shHead(c.full_name || c.email || '—', 'ov2') + `<div class="tabs c3tabs">${['over', 'train', 'food', 'health', 'notes'].map((k) => `<button data-k="${k}" class="${k === 'over' ? 'on' : ''}">${esc(t('c3_' + k))}</button>`).join('')}</div><div class="sh-b" id="c3-b"><div class="load" style="min-height:200px"><div class="spin"></div></div></div>`, () => { C3 = null; });
+  $$('.c3tabs button', sh).forEach((b) => b.onclick = () => { if (!C3) return; C3.tab = b.dataset.k; $$('.c3tabs button', sh).forEach((y) => y.classList.toggle('on', y === b)); paintC3(); });
+  try { C3.d = await rpc('studio_client_360', { p_client: r.client_id }); } catch (e) { C3.d = {}; }
+  if (C3) paintC3();
+}
+
+function paintC3() {
+  const el = $('#c3-b'); if (!el || !C3) return;
+  const { r, c, is } = C3.x; const D = C3.d || {}; const loc = D.locale || 'fr';
+  if (C3.tab === 'over') {
+    const w = r.last_weight != null ? nf(r.last_weight, 1) + ' kg' : '—';
+    const dw = r.weight_delta_30d != null ? t('td_30d', { s: (r.weight_delta_30d > 0 ? '+' : '') + nf(r.weight_delta_30d, 1) }) : '';
+    const pct = r.planned_7d ? Math.round(100 * r.done_7d / r.planned_7d) : null;
+    const nudges = is.filter((i) => NUDGE[i[3]]).map((i) => ({ code: i[3], txt: nudgeText(i[3], c, loc, { d: daysSince(r.last_session_at) || '' }) }));
+    el.innerHTML = `${is.length ? `<div class="tdchips" style="margin:0 0 14px">${is.map((i) => `<span class="tdchip l${i[0]}">${esc(i[1])}</span>`).join('')}</div>` : ''}
     <div class="tdstats">
       <div><small>${esc(t('td_plan'))}</small><b>${esc(r.active_plan_title || '—')}</b>${r.plan_end ? `<span>${esc(t('td_until', { d: fmtShort(parse(r.plan_end)) }))}</span>` : ''}</div>
       <div><small>7 j</small><b>${pct == null ? '—' : pct + ' %'}</b>${r.planned_7d ? `<span>${r.done_7d}/${r.planned_7d}</span>` : ''}</div>
@@ -1684,13 +1800,361 @@ function openClient360(x) {
       <div><small>${esc(t('td_last_f'))}</small><b>${esc(agoTxt(r.last_food))}</b></div>
       <div><small>${esc(t('td_weight'))}</small><b>${esc(w)}</b>${dw ? `<span>${esc(dw)}</span>` : ''}</div>
     </div>
-    <div class="tdbig">
+    ${nudges.length ? `<div class="sect" style="margin-top:4px">${esc(t('c3_nudges'))}</div><p class="qsub" style="margin-top:-6px">${esc(t('c3_nudge_s'))}</p>
+      <div class="c3nudges">${nudges.map((n, i) => `<button class="c3nudge" data-n="${i}">${ic('send')}<span>${esc(n.txt)}</span></button>`).join('')}</div>` : ''}
+    <div class="tdbig" style="margin-top:16px">
       <button class="btn main block" data-a="msg">${ic('send')} ${esc(t('td_msg'))}</button>
       ${r.active_plan ? `<button class="btn block" data-a="open">${ic('cal')} ${esc(t('td_open'))}</button>` : ''}
+      <button class="btn gold block" data-a="ai">✨ ${esc(t('td_ai'))}</button>
       <button class="btn block" data-a="new">${ic('plus')} ${esc(t('td_new'))}</button>
       <button class="btn block" data-a="food">${ic('bolt')} ${esc(t('td_calc'))}</button>
-    </div></div>`);
-  $$('[data-a]', sh).forEach((b) => b.onclick = () => tdAct(b.dataset.a, x));
+    </div>`;
+    $$('[data-n]', el).forEach((b) => b.onclick = () => goChat(c, nudges[+b.dataset.n].txt));
+    $$('[data-a]', el).forEach((b) => b.onclick = () => { const a = b.dataset.a; closeSheet('ov2'); tdAct(a, C3 ? C3.x : { r, c }); });
+    return;
+  }
+  if (C3.tab === 'train') {
+    const m0 = monday(new Date()); const wk = [7, 6, 5, 4, 3, 2, 1, 0].map((k) => { const d = iso(addDays(m0, -7 * k)); const f = (D.weeks || []).find((z) => String(z.wk).slice(0, 10) === d); return { d, n: f ? f.n : 0 }; });
+    el.innerHTML = `<div class="sect">${esc(t('c3_weeks'))}</div>${bars(wk, (z) => z.n, { lab: (z) => dd(z.d) })}
+      <div class="sect">${esc(t('c3_last'))}</div>${(D.sessions || []).length ? `<div class="c3list">${D.sessions.map((s) => `<div><b>${esc(s.name || '—')}</b><span>${esc(dd(s.d))}${s.min ? ' · ' + s.min + ' min' : ''}${s.rpe ? ' · RPE ' + nf(s.rpe, 1) : ''}${s.vol ? ' · ' + nf(s.vol) + ' kg' : ''}</span></div>`).join('')}</div>` : `<div class="c3empty">${esc(t('c3_nodata'))}</div>`}
+      <div class="sect">${esc(t('c3_prs'))}</div>${(D.prs || []).length ? `<div class="c3list">${D.prs.map((p) => `<div><b>${esc(p.name)}</b><span>${nf(p.v, 1)} ${esc(p.u || '')}${p.prev ? ' (' + nf(p.prev, 1) + ')' : ''} · ${esc(dd(p.d))}</span></div>`).join('')}</div>` : `<div class="c3empty">${esc(t('c3_nodata'))}</div>`}`;
+    return;
+  }
+  if (C3.tab === 'food') {
+    const days = [...Array(14)].map((_, i) => { const d = iso(addDays(new Date(), i - 13)); const f = (D.food || []).find((z) => String(z.d).slice(0, 10) === d); return { d, kcal: f ? +f.kcal : 0, p: f ? +f.p : 0 }; });
+    const T = D.targets || {}; const logged = days.filter((z) => z.kcal > 0);
+    const avg = (k) => logged.length ? Math.round(logged.reduce((s, z) => s + z[k], 0) / logged.length) : null;
+    el.innerHTML = `<div class="sect">${esc(t('c3_kcal'))}</div><p class="qsub" style="margin-top:-6px">${T.kcal ? esc(t('c3_target', { n: nf(T.kcal) + ' kcal' })) + ' · ' : ''}${avg('kcal') != null ? esc(t('c3_avg', { n: nf(avg('kcal')) + ' kcal' })) : ''}</p>${logged.length ? bars(days, (z) => z.kcal, { target: T.kcal, lab: (z) => String(parse(z.d).getDate()) }) : `<div class="c3empty">${esc(t('c3_nodata'))}</div>`}
+      <div class="sect">${esc(t('c3_prot'))}</div><p class="qsub" style="margin-top:-6px">${T.p ? esc(t('c3_target', { n: nf(T.p) + ' g' })) + ' · ' : ''}${avg('p') != null ? esc(t('c3_avg', { n: nf(avg('p')) + ' g' })) : ''}</p>${logged.length ? bars(days, (z) => z.p, { target: T.p, lab: (z) => String(parse(z.d).getDate()) }) : `<div class="c3empty">${esc(t('c3_nodata'))}</div>`}
+      <div class="sect">${esc(t('c3_wt'))}</div>${spark(D.weights || [])}
+      <button class="btn block" id="c3-food" style="margin-top:18px">${ic('bolt')} ${esc(t('td_calc'))}</button>`;
+    $('#c3-food').onclick = () => { closeSheet('ov2'); openNutriClient(c); };
+    return;
+  }
+  if (C3.tab === 'health') {
+    const days = [...Array(14)].map((_, i) => { const d = iso(addDays(new Date(), i - 13)); const f = (D.health || []).find((z) => String(z.d).slice(0, 10) === d); return { d, steps: f ? +f.steps || 0 : 0, sleep: f ? +f.sleep || 0 : 0, hr: f ? f.hr : null }; });
+    const has = (k) => days.some((z) => z[k] > 0);
+    el.innerHTML = `<div class="sect">${esc(t('c3_steps'))}</div>${has('steps') ? bars(days, (z) => z.steps, { target: 8000, over: false, lab: (z) => String(parse(z.d).getDate()) }) : `<div class="c3empty">${esc(t('c3_nodata'))}</div>`}
+      <div class="sect">${esc(t('c3_sleep'))}</div>${has('sleep') ? bars(days, (z) => z.sleep / 60, { target: 7, over: false, lab: (z) => String(parse(z.d).getDate()) }) : `<div class="c3empty">${esc(t('c3_nodata'))}</div>`}`;
+    return;
+  }
+  /* notes privees */
+  el.innerHTML = `<textarea id="c3-note" class="astxt" rows="10" placeholder="${esc(t('c3_note_ph'))}">${esc(D.note || '')}</textarea><div class="c3saved" id="c3-st"></div>`;
+  let tm = 0; const ta = $('#c3-note');
+  ta.oninput = () => { clearTimeout(tm); $('#c3-st').textContent = '…'; tm = setTimeout(async () => {
+    try { await rpc('studio_set_note', { p_client: r.client_id, p_note: ta.value }); D.note = ta.value; const s = $('#c3-st'); if (s) s.textContent = '✓ ' + t('c3_saved'); }
+    catch (e) { const s = $('#c3-st'); if (s) s.textContent = errMsg(e); }
+  }, 700); };
+}
+
+/* =====================================================================
+   ASSISTANT — le coach ecrit sa demande, l'assistant regle le moteur,
+   le coach corrige d'un geste, un brouillon est cree, il relit, il envoie.
+   Lecture de la demande : edge function studio-assistant (Gemini, secours
+   Mistral, secours local). Creation : studio_ai_program (brouillon).
+   ===================================================================== */
+Object.assign(TX, {
+  as_btn: { fr: 'L’assistant le construit', en: 'Let the assistant build it', nl: 'De assistent bouwt het' },
+  as_btn_s: { fr: 'Tu dis ce que tu veux, il prépare tout', en: 'Say what you want, it prepares everything', nl: 'Zeg wat je wil, hij bereidt alles voor' },
+  as_title: { fr: 'Assistant', en: 'Assistant', nl: 'Assistent' },
+  as_who: { fr: 'Pour qui ?', en: 'Who for?', nl: 'Voor wie?' },
+  as_q: { fr: 'Dis-moi ce que tu veux', en: 'Tell me what you want', nl: 'Zeg me wat je wil' },
+  as_qs: { fr: 'Comme tu l’écrirais à un collègue. Tu pourras tout corriger ensuite.', en: 'As you would write it to a colleague. You can fix everything after.', nl: 'Zoals je het aan een collega zou schrijven. Je kan alles nadien aanpassen.' },
+  as_ph: { fr: 'Ex. : 8 semaines pour perdre du gras, 3 séances, en salle, genou fragile, et ses calories', en: 'E.g. 8 weeks of fat loss, 3 sessions, gym, sore knee, plus calories', nl: 'Bv. 8 weken vetverlies, 3 trainingen, fitness, gevoelige knie, en zijn calorieën' },
+  as_ex1: { fr: '12 semaines de force, 4 jours, en salle', en: '12 weeks of strength, 4 days, gym', nl: '12 weken kracht, 4 dagen, fitness' },
+  as_ex2: { fr: 'Perte de gras à la maison sans matériel, 3 fois par semaine, 30 min', en: 'Fat loss at home with no equipment, 3× a week, 30 min', nl: 'Vetverlies thuis zonder materiaal, 3× per week, 30 min' },
+  as_ex3: { fr: 'Préparer un 10 km, débutant, mal au dos', en: 'Train for a 10K, beginner, back pain', nl: 'Voorbereiding 10 km, beginner, rugpijn' },
+  as_go: { fr: 'Préparer', en: 'Prepare', nl: 'Voorbereiden' },
+  as_manual: { fr: 'Je règle moi-même', en: 'I’ll set it myself', nl: 'Ik stel het zelf in' },
+  as_reading: { fr: 'Je lis ta demande…', en: 'Reading your request…', nl: 'Ik lees je vraag…' },
+  as_check: { fr: 'Vérifie et ajuste', en: 'Check and adjust', nl: 'Controleer en pas aan' },
+  as_checks: { fr: 'Voilà ce que j’ai compris. Touche pour changer.', en: 'Here’s what I understood. Tap to change.', nl: 'Dit heb ik begrepen. Tik om te wijzigen.' },
+  as_goal: { fr: 'Objectif', en: 'Goal', nl: 'Doel' },
+  as_level: { fr: 'Niveau', en: 'Level', nl: 'Niveau' },
+  as_beg: { fr: 'Débutant', en: 'Beginner', nl: 'Beginner' }, as_int: { fr: 'Intermédiaire', en: 'Intermediate', nl: 'Gemiddeld' }, as_adv: { fr: 'Avancé', en: 'Advanced', nl: 'Gevorderd' },
+  as_dur: { fr: 'Durée d’une séance', en: 'Session length', nl: 'Duur van een training' },
+  as_eq: { fr: 'Matériel', en: 'Equipment', nl: 'Materiaal' },
+  as_gym: { fr: 'Salle complète', en: 'Full gym', nl: 'Volledige fitness' }, as_home: { fr: 'Maison, sans matériel', en: 'Home, no equipment', nl: 'Thuis, zonder materiaal' }, as_db: { fr: 'Haltères + élastiques', en: 'Dumbbells + bands', nl: 'Halters + elastieken' },
+  as_zones: { fr: 'À ménager', en: 'Go easy on', nl: 'Ontzien' },
+  z_dos: { fr: 'Dos', en: 'Back', nl: 'Rug' }, z_epaule: { fr: 'Épaule', en: 'Shoulder', nl: 'Schouder' }, z_genou: { fr: 'Genou', en: 'Knee', nl: 'Knie' }, z_poignet: { fr: 'Poignet', en: 'Wrist', nl: 'Pols' },
+  g_perte_gras: { fr: 'Perte de gras', en: 'Fat loss', nl: 'Vetverlies' }, g_forme: { fr: 'Remise en forme', en: 'Get fit', nl: 'Fit worden' }, g_force: { fr: 'Force & muscle', en: 'Strength & muscle', nl: 'Kracht & spieren' }, g_endurance: { fr: 'Endurance / course', en: 'Endurance / running', nl: 'Uithouding / lopen' }, g_energie: { fr: 'Énergie & vitalité', en: 'Energy & vitality', nl: 'Energie & vitaliteit' },
+  as_ptitle: { fr: 'Nom du programme', en: 'Program name', nl: 'Naam van het programma' },
+  as_also_n: { fr: 'Ensuite, ses calories et ses repas', en: 'Then their calories and meals', nl: 'Daarna zijn calorieën en maaltijden' },
+  as_build: { fr: 'Créer le brouillon', en: 'Create the draft', nl: 'Concept maken' },
+  as_building: { fr: 'Je construis {n} séances…', en: 'Building {n} sessions…', nl: 'Ik bouw {n} trainingen…' },
+  as_done: { fr: 'Brouillon prêt ✓', en: 'Draft ready ✓', nl: 'Concept klaar ✓' },
+  as_dones: { fr: '{n} séances, exercices animés et consignes compris. Rien n’est encore envoyé à {c} : relis, change ce que tu veux, puis envoie.', en: '{n} sessions, animated moves and cues included. Nothing has been sent to {c} yet: review, change anything, then send.', nl: '{n} trainingen, met geanimeerde oefeningen en tips. Er is nog niets verstuurd naar {c}: lees na, wijzig wat je wil en verstuur.' },
+  as_audit_ko: { fr: 'Le contrôle automatique a relevé un point à vérifier : {d}', en: 'The automatic check flagged something to review: {d}', nl: 'De automatische controle vond iets om na te kijken: {d}' },
+  as_open: { fr: 'Relire et envoyer', en: 'Review and send', nl: 'Nalezen en versturen' },
+  as_food: { fr: 'Ses calories et repas', en: 'Their calories and meals', nl: 'Calorieën en maaltijden' },
+  as_pool: { fr: 'Avec ce matériel, je ne peux pas construire de vraies séances pour ces journées. Choisis plus de matériel.', en: 'With this equipment I can’t build proper sessions for those days. Pick more equipment.', nl: 'Met dit materiaal kan ik geen degelijke trainingen bouwen voor die dagen. Kies meer materiaal.' },
+  as_offline: { fr: 'L’assistant n’a pas pu lire ta demande, je l’ai lue moi-même : vérifie bien les réglages.', en: 'The assistant couldn’t read your request, I parsed it locally: double-check the settings.', nl: 'De assistent kon je vraag niet lezen, ik heb ze lokaal gelezen: controleer de instellingen goed.' },
+  as_need_c: { fr: 'Choisis d’abord le client', en: 'Pick the client first', nl: 'Kies eerst de klant' },
+  as_premium: { fr: 'L’assistant fait partie de l’offre coach premium.', en: 'The assistant is part of the premium coach plan.', nl: 'De assistent hoort bij het premium coach-abonnement.' },
+  min: { fr: 'min', en: 'min', nl: 'min' },
+  max5: { fr: '5 séances par semaine au maximum', en: '5 sessions a week at most', nl: 'Maximaal 5 trainingen per week' },
+  td_ai: { fr: 'Programme par l’assistant', en: 'Program by the assistant', nl: 'Programma via de assistent' },
+});
+
+const AS_GOALS = ['perte_gras', 'forme', 'force', 'endurance', 'energie'];
+const AS_EQ = { gym: null, home: ['bodyweight', 'none'], dumbbells: ['bodyweight', 'none', 'dumbbell', 'bands', 'pullup_bar', 'kettlebell'] };
+const AS_NUTRI = { perte_gras: 'lose_fat', forme: 'maintain', force: 'build_muscle', endurance: 'performance', energie: 'maintain' };
+const DEF_WD = { 2: [1, 4], 3: [1, 3, 5], 4: [1, 2, 4, 5], 5: [1, 2, 3, 4, 5] };
+let AS = null, COACH_PAID = null;
+const isPersonal = (c) => ['active', 'pending', 'paused'].includes(String(c.link_status || ''));
+const asClients = () => { const p = CLIENTS.filter(isPersonal); return p.length ? p : CLIENTS; };
+
+function startAssistant(client) {
+  const m = iso(addDays(monday(new Date()), 7));
+  AS = { client: client || null, text: '', stage: 'ask', note: '', offline: false,
+    p: { goal: 'forme', level: 'beginner', days: 3, weeks: 8, session_min: 45, equipment: 'gym', constraints: [], weekdays: [1, 3, 5], start: m, title: '', nutrition: false } };
+  closeSheet('ov');
+  go(viewAssistant);
+}
+
+/* Lecture locale : sert quand l'IA ne repond pas. Volontairement simple. */
+function localParse(s) {
+  const x = s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); const o = {};
+  if (/gras|maigr|poids|sech|afvall|vet|fat|lose/.test(x)) o.goal = 'perte_gras';
+  else if (/force|muscle|masse|hypertroph|power|kracht|strength/.test(x)) o.goal = 'force';
+  else if (/course|run|10 ?k|km|semi|marathon|endurance|cardio|lopen/.test(x)) o.goal = 'endurance';
+  else if (/energie|vitalit|fatigu|senior|energy/.test(x)) o.goal = 'energie';
+  let m = x.match(/(\d{1,2})\s*(semaines|sem|weeks|weken|wk)/); if (m) o.weeks = +m[1];
+  m = x.match(/(\d)\s*(jours|j\b|seances|fois|x|days|sessions|dagen|keer|trainingen)/); if (m) o.days = +m[1];
+  m = x.match(/(\d{2})\s*(min|minutes)/); if (m) o.session_min = +m[1];
+  if (/maison|sans materiel|home|thuis|no equipment|zonder/.test(x)) o.equipment = 'home';
+  else if (/haltere|elasti|dumbbell|halter|band/.test(x)) o.equipment = 'dumbbells';
+  if (/debutant|beginner|beginn/.test(x)) o.level = 'beginner'; else if (/avance|advanced|gevorderd|confirme/.test(x)) o.level = 'advanced'; else if (/intermed|gemiddeld/.test(x)) o.level = 'intermediate';
+  o.constraints = ['dos', 'epaule', 'genou', 'poignet'].filter((z) => ({ dos: /dos|lombaire|back|rug/, epaule: /epaule|shoulder|schouder/, genou: /genou|knee|knie/, poignet: /poignet|wrist|pols/ })[z].test(x));
+  o.nutrition = /calori|repas|diete|nutrition|macro|meal|voeding|maaltijd/.test(x);
+  return o;
+}
+
+function asMerge(o) {
+  const P = AS.p;
+  ['goal', 'level', 'days', 'weeks', 'session_min', 'equipment', 'title'].forEach((k) => { if (o[k] != null && o[k] !== '') P[k] = o[k]; });
+  if (Array.isArray(o.constraints)) P.constraints = o.constraints;
+  P.nutrition = !!o.nutrition;
+  P.days = Math.max(2, Math.min(5, P.days)); P.weeks = Math.max(4, Math.min(12, P.weeks));
+  P.weekdays = Array.isArray(o.weekdays) && o.weekdays.length === P.days ? o.weekdays : DEF_WD[P.days];
+  AS.note = o.note || '';
+}
+
+async function asRead() {
+  const txt = ($('#as-txt') || {}).value || AS.text; AS.text = txt.trim();
+  if (!AS.client) return toast(t('as_need_c'), true);
+  if (!AS.text) { AS.stage = 'set'; return viewAssistant(); }
+  $('#view').innerHTML = `<div class="load" style="min-height:240px"><div class="spin"></div><div>${esc(t('as_reading'))}</div></div>`; dock('');
+  let o = null;
+  try {
+    const { data, error } = await sb.functions.invoke('studio-assistant', { body: { text: AS.text, lang: LANG } });
+    if (!error && data && data.ok) o = data.params;
+  } catch (_) {}
+  AS.offline = !o;
+  asMerge(o || localParse(AS.text));
+  AS.stage = 'set'; viewAssistant();
+}
+
+async function viewAssistant() {
+  if (!AS) return viewHome();
+  setTitle(t('as_title'), AS.client ? firstName(AS.client) : ''); dock('');
+  const v = $('#view');
+  if (COACH_PAID === null) { try { const pi = await rpc('coach_my_plan_info'); COACH_PAID = !pi || pi.paid !== false; } catch (_) { COACH_PAID = true; } }
+  if (!COACH_PAID && !(ME && ME.role === 'admin')) { v.innerHTML = `<div class="gate"><h2>✨ ${esc(t('as_title'))}</h2><p>${esc(t('as_premium'))}</p></div>`; return; }
+
+  if (AS.stage === 'ask') {
+    v.innerHTML = (AS.client ? '' : `<h2 class="q">${esc(t('as_who'))}</h2><div class="fchips wrap" id="as-cl" style="margin-bottom:22px">${asClients().map((c, i) => `<button data-i="${i}">${esc(firstName(c) || c.email)}</button>`).join('')}</div>`) +
+      `<h2 class="q">✨ ${esc(t('as_q'))}</h2><p class="qsub">${esc(t('as_qs'))}</p>
+      <textarea id="as-txt" class="astxt" rows="4" placeholder="${esc(t('as_ph'))}">${esc(AS.text)}</textarea>
+      <div class="asex">${['as_ex1', 'as_ex2', 'as_ex3'].map((k) => `<button data-k="${k}">${esc(t(k))}</button>`).join('')}</div>
+      <button class="linkbtn" id="as-man">${esc(t('as_manual'))}</button>`;
+    $$('#as-cl button').forEach((b) => b.onclick = () => { AS.client = asClients()[+b.dataset.i]; $$('#as-cl button').forEach((x) => x.classList.toggle('on', x === b)); setTitle(t('as_title'), firstName(AS.client)); });
+    $$('.asex button', v).forEach((b) => b.onclick = () => { $('#as-txt').value = t(b.dataset.k); $('#as-txt').focus(); });
+    $('#as-man').onclick = () => { if (!AS.client) return toast(t('as_need_c'), true); AS.text = $('#as-txt').value; AS.stage = 'set'; viewAssistant(); };
+    dock(`<button class="btn main" id="as-go">✨ ${esc(t('as_go'))}</button>`);
+    $('#as-go').onclick = asRead;
+    setTimeout(() => { const ta = $('#as-txt'); if (ta && AS.client && matchMedia('(min-width:700px)').matches) ta.focus(); }, 50);
+    return;
+  }
+
+  if (AS.stage === 'set') {
+    const P = AS.p; const m0 = monday(new Date());
+    const mondays = [0, 1, 2, 3, 4].map((k) => addDays(m0, 7 * k));
+    const ch = (id, list, cur, lab) => `<div class="fchips wrap" id="${id}">${list.map((x) => `<button data-v="${x}" class="${cur === x ? 'on' : ''}">${esc(lab(x))}</button>`).join('')}</div>`;
+    v.innerHTML = `<h2 class="q">${esc(t('as_check'))}</h2><p class="qsub">${esc(t('as_checks'))}</p>
+      ${AS.offline && AS.text ? `<div class="asnote">${esc(t('as_offline'))}</div>` : ''}${AS.note ? `<div class="asnote">${esc(AS.note)}</div>` : ''}
+      <div class="field"><label>${esc(t('as_goal'))}</label>${ch('as-goal', AS_GOALS, P.goal, (x) => t('g_' + x))}</div>
+      <div class="field"><label>${esc(t('as_level'))}</label>${ch('as-level', ['beginner', 'intermediate', 'advanced'], P.level, (x) => t({ beginner: 'as_beg', intermediate: 'as_int', advanced: 'as_adv' }[x]))}</div>
+      <div class="field"><label>${esc(t('train_days'))}</label><div class="days" id="as-wd">${DOW[LANG].map((d, k) => `<button data-k="${k + 1}" class="${P.weekdays.includes(k + 1) ? 'on' : ''}">${d}</button>`).join('')}</div></div>
+      <div class="field"><label>${esc(t('weeks'))}</label><div class="stepper"><button id="as-wm">−</button><output id="as-w">${P.weeks}<small>${esc(t('week_s'))}</small></output><button id="as-wp">+</button></div></div>
+      <div class="field"><label>${esc(t('as_dur'))}</label>${ch('as-dur', [30, 45, 60, 75], P.session_min, (x) => x + ' ' + t('min'))}</div>
+      <div class="field"><label>${esc(t('as_eq'))}</label>${ch('as-eq', ['gym', 'dumbbells', 'home'], P.equipment, (x) => t({ gym: 'as_gym', home: 'as_home', dumbbells: 'as_db' }[x]))}</div>
+      <div class="field"><label>${esc(t('as_zones'))}</label><div class="fchips wrap" id="as-z">${['dos', 'epaule', 'genou', 'poignet'].map((z) => `<button data-v="${z}" class="${P.constraints.includes(z) ? 'on' : ''}">${esc(t('z_' + z))}</button>`).join('')}</div></div>
+      <div class="field"><label>${esc(t('start_week'))}</label><div class="fchips" id="as-st">${mondays.map((d, k) => `<button data-d="${iso(d)}" class="${iso(d) === P.start ? 'on' : ''}">${k === 0 ? esc(t('today')) : esc(fmtShort(d))}</button>`).join('')}</div></div>
+      <div class="field"><label>${esc(t('as_ptitle'))}</label><input id="as-title" class="astitle" value="${esc(P.title || '')}" placeholder="${esc(t('g_' + P.goal) + ' — ' + P.weeks + ' ' + t('week_s'))}"></div>
+      <label class="tdall" style="margin-top:6px"><input type="checkbox" id="as-n" ${P.nutrition ? 'checked' : ''}> ${esc(t('as_also_n'))}</label>`;
+    const one = (id, key, num) => $$('#' + id + ' button').forEach((b) => b.onclick = () => { P[key] = num ? +b.dataset.v : b.dataset.v; $$('#' + id + ' button').forEach((x) => x.classList.toggle('on', x === b)); if (key === 'goal') $('#as-title').placeholder = t('g_' + P.goal) + ' — ' + P.weeks + ' ' + t('week_s'); });
+    one('as-goal', 'goal'); one('as-level', 'level'); one('as-dur', 'session_min', true); one('as-eq', 'equipment');
+    $$('#as-z button').forEach((b) => b.onclick = () => { const z = b.dataset.v; P.constraints = P.constraints.includes(z) ? P.constraints.filter((x) => x !== z) : [...P.constraints, z]; b.classList.toggle('on'); });
+    $$('#as-wd button').forEach((b) => b.onclick = () => {
+      const k = +b.dataset.k; let wd = P.weekdays.includes(k) ? P.weekdays.filter((x) => x !== k) : [...P.weekdays, k].sort();
+      if (wd.length > 5) return toast(t('max5'), true);
+      P.weekdays = wd; P.days = wd.length; b.classList.toggle('on');
+    });
+    $$('#as-st button').forEach((b) => b.onclick = () => { P.start = b.dataset.d; $$('#as-st button').forEach((x) => x.classList.toggle('on', x === b)); });
+    const setW = (n) => { P.weeks = Math.max(4, Math.min(12, n)); $('#as-w').innerHTML = `${P.weeks}<small>${esc(t('week_s'))}</small>`; };
+    $('#as-wm').onclick = () => setW(P.weeks - 1); $('#as-wp').onclick = () => setW(P.weeks + 1);
+    $('#as-title').oninput = (e) => { P.title = e.target.value; };
+    $('#as-n').onchange = (e) => { P.nutrition = e.target.checked; };
+    dock(`<button class="btn main" id="as-build">✨ ${esc(t('as_build'))}</button>`);
+    $('#as-build').onclick = asBuild;
+    return;
+  }
+
+  /* termine */
+  const R = AS.result;
+  v.innerHTML = `<div class="asdone"><div class="asok">✓</div><h2 class="q">${esc(t('as_done'))}</h2>
+    <p class="qsub"><b>${esc(R.title)}</b></p>
+    <p class="qsub">${esc(t('as_dones', { n: R.sessions, c: firstName(AS.client) }))}</p>
+    ${R.audit_ok ? '' : `<div class="asnote">${esc(t('as_audit_ko', { d: ((R.audit && R.audit.defauts) || []).map((d) => d.code || d).join(', ') || '—' }))}</div>`}
+    <div class="tdbig" style="margin-top:18px"><button class="btn main block" id="as-open">${esc(t('as_open'))}</button>
+    ${AS.p.nutrition ? `<button class="btn block" id="as-food">${ic('bolt')} ${esc(t('as_food'))}</button>` : ''}</div></div>`;
+  $('#as-open').onclick = async () => {
+    try { const pl = (await rpc('coach_list_plans', { p_client: AS.client.client_id })) || []; const p = pl.find((x) => x.id === R.plan_id);
+      if (p) { STACK.length = 0; HOME_TAB = 'prog'; STACK.push(viewHome); return openPlan({ ...p, client: AS.client }); } } catch (e) { toast(errMsg(e), true); }
+  };
+  const fb = $('#as-food'); if (fb) fb.onclick = () => { NUTRI_GOAL_HINT = AS_NUTRI[AS.p.goal]; openNutriClient(AS.client); };
+}
+let NUTRI_GOAL_HINT = null;
+
+async function asBuild() {
+  const P = AS.p; if (!P.weekdays.length || P.weekdays.length < 2) return toast(t('need_day'), true);
+  const b = $('#as-build'); b.disabled = true;
+  $('#view').innerHTML = `<div class="load" style="min-height:260px"><div class="spin"></div><div>${esc(t('as_building', { n: P.weeks * P.weekdays.length }))}</div></div>`; dock('');
+  try {
+    const r = await rpc('studio_ai_program', { p_client: AS.client.client_id, p_goal: P.goal, p_level: P.level, p_days: P.weekdays.length, p_weeks: P.weeks,
+      p_equipment: AS_EQ[P.equipment], p_constraints: P.constraints, p_session_min: P.session_min, p_start: P.start, p_weekdays: P.weekdays, p_title: (P.title || '').trim() || null });
+    if (r && r.error) { AS.stage = 'set'; viewAssistant(); return toast(r.error === 'pool_insuffisant' ? t('as_pool') : (r.message || t('err')), true); }
+    AS.result = r; AS.stage = 'done'; HOME_PLANS = null; viewAssistant();
+  } catch (e) { AS.stage = 'set'; viewAssistant(); toast(errMsg(e), true); }
+}
+
+/* =====================================================================
+   MODELES + ENVOI A PLUSIEURS CLIENTS
+   studio_save_template / studio_list_templates / studio_archive_template /
+   studio_apply_template / studio_duplicate_multi.
+   ===================================================================== */
+Object.assign(TX, {
+  tp_save: { fr: 'Enregistrer comme modèle', en: 'Save as template', nl: 'Opslaan als sjabloon' },
+  tp_saved: { fr: 'Modèle enregistré ✓ Tu le retrouves dans Programmes', en: 'Template saved ✓ Find it under Programs', nl: 'Sjabloon opgeslagen ✓ Je vindt het bij Programma’s' },
+  tp_multi: { fr: 'Envoyer à plusieurs clients', en: 'Send to several clients', nl: 'Naar meerdere klanten sturen' },
+  tp_mine: { fr: 'Mes modèles', en: 'My templates', nl: 'Mijn sjablonen' },
+  tp_none: { fr: 'Pas encore de modèle. Ouvre un programme réussi, menu ⋯, « Enregistrer comme modèle ».', en: 'No templates yet. Open a program that worked, ⋯ menu, “Save as template”.', nl: 'Nog geen sjablonen. Open een geslaagd programma, menu ⋯, “Opslaan als sjabloon”.' },
+  tp_meta: { fr: '{n} séances · {w} sem.', en: '{n} sessions · {w} wk', nl: '{n} trainingen · {w} wk' },
+  tp_who: { fr: 'Qui le reçoit ?', en: 'Who gets it?', nl: 'Wie krijgt het?' },
+  tp_all: { fr: 'Tout sélectionner', en: 'Select all', nl: 'Alles selecteren' },
+  tp_now: { fr: 'Envoyer tout de suite', en: 'Send right away', nl: 'Meteen versturen' },
+  tp_draft: { fr: 'Garder en brouillon', en: 'Keep as draft', nl: 'Als concept bewaren' },
+  tp_send_n: { fr: 'Envoyer à {n} client(s)', en: 'Send to {n} client(s)', nl: 'Versturen naar {n} klant(en)' },
+  tp_prep_n: { fr: 'Préparer pour {n} client(s)', en: 'Prepare for {n} client(s)', nl: 'Klaarzetten voor {n} klant(en)' },
+  tp_sent: { fr: 'Envoyé à {n} client(s) ✓', en: 'Sent to {n} client(s) ✓', nl: 'Verstuurd naar {n} klant(en) ✓' },
+  tp_prepped: { fr: '{n} brouillon(s) prêt(s) ✓', en: '{n} draft(s) ready ✓', nl: '{n} concept(en) klaar ✓' },
+  tp_pick: { fr: 'Choisis au moins un client', en: 'Pick at least one client', nl: 'Kies minstens één klant' },
+  tp_use: { fr: 'L’adapter pour un client', en: 'Adapt it for one client', nl: 'Aanpassen voor één klant' },
+  tp_rm: { fr: 'Retirer ce modèle', en: 'Remove this template', nl: 'Dit sjabloon verwijderen' },
+  tp_rmd: { fr: 'Modèle retiré', en: 'Template removed', nl: 'Sjabloon verwijderd' },
+  tp_name: { fr: 'Nom du modèle', en: 'Template name', nl: 'Naam van het sjabloon' },
+  tp_ok: { fr: 'Enregistrer', en: 'Save', nl: 'Opslaan' },
+  tp_from: { fr: 'Un de mes modèles', en: 'One of my templates', nl: 'Een van mijn sjablonen' },
+  tp_pick_t: { fr: 'Choisis un modèle', en: 'Pick a template', nl: 'Kies een sjabloon' },
+  tp_from_s: { fr: 'Déjà prêt, tu ajustes', en: 'Ready-made, you adjust', nl: 'Kant-en-klaar, jij past aan' },
+});
+
+let TPLS = null;
+async function loadTpls(force) { if (!TPLS || force) TPLS = (await rpc('studio_list_templates').catch(() => [])) || []; return TPLS; }
+
+/* --- depuis un programme ouvert --- */
+function planToTemplate(P) {
+  const items = Object.keys(P.cells).map((k) => { const [w, d] = k.split('-').map(Number); const c = P.cells[k];
+    return { w, d, workout_id: c.workout_id, notes: c.notes || null, name_fr: c.name_fr || c.name, name_en: c.name_en || null, name_nl: c.name_nl || null, dur: c.dur || null, n: c.n || null, mine: !!c.mine }; })
+    .sort((a, b) => a.w - b.w || a.d - b.d);
+  return { weeks: Math.max(P.weeks, ...items.map((i) => i.w + 1)), days: [...new Set(items.map((i) => i.d))].sort((a, b) => a - b), items };
+}
+function saveAsTemplate() {
+  const P = PLAN; const base = (P.title || '').replace(new RegExp('^' + t('prog_of', { n: firstName(P.client) }).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*·?\\s*'), '') || P.title || '';
+  const sh = openSheet('ov', shHead(t('tp_save'), 'ov') + `<div class="sh-b"><div class="field"><label>${esc(t('tp_name'))}</label>
+    <input id="tp-n" class="astitle" value="${esc(base)}"></div><button class="btn main block" id="tp-ok">${esc(t('tp_ok'))}</button></div>`);
+  $('#tp-ok', sh).onclick = async () => {
+    const T = planToTemplate(P); if (!T.items.length) return toast(t('err'), true);
+    try { await rpc('studio_save_template', { p_id: null, p_title: $('#tp-n').value, p_weeks: T.weeks, p_days: T.days, p_items: T.items }); TPLS = null; closeSheet('ov'); toast(t('tp_saved')); }
+    catch (e) { toast(errMsg(e), true); }
+  };
+}
+
+/* --- choix de plusieurs clients + date de debut --- */
+function multiSend(opts) {
+  const list = typeof asClients === 'function' ? asClients() : CLIENTS;
+  const pool = list.filter((c) => !opts.exclude || c.client_id !== opts.exclude);
+  const sel = new Set(); let status = 'active';
+  const m0 = monday(new Date()); const mondays = [0, 1, 2, 3, 4].map((k) => addDays(m0, 7 * k)); let start = iso(mondays[1]);
+  const sh = openSheet('ov', shHead(opts.title, 'ov') + `<div class="sh-b">
+    <div class="field"><label>${esc(t('tp_who'))} <button class="linkbtn" id="ms-all" style="float:right;padding:0">${esc(t('tp_all'))}</button></label>
+      <div class="tiles" id="ms-c">${pool.map((c) => `<button class="tile" data-c="${c.client_id}"><div class="av">${esc(initials(c.full_name || c.email))}</div>${esc(firstName(c) || c.email)}</button>`).join('')}</div></div>
+    <div class="field"><label>${esc(t('start_week'))}</label><div class="fchips wrap" id="ms-st">${mondays.map((d, k) => `<button data-d="${iso(d)}" class="${iso(d) === start ? 'on' : ''}">${k === 0 ? esc(t('today')) : esc(fmtShort(d))}</button>`).join('')}</div></div>
+    <div class="fchips wrap" id="ms-s"><button data-s="active" class="on">${esc(t('tp_now'))}</button><button data-s="draft">${esc(t('tp_draft'))}</button></div>
+    <button class="btn main block" id="ms-go" style="margin-top:14px" disabled>${esc(t('tp_send_n', { n: 0 }))}</button></div>`);
+  const paint = () => { const b = $('#ms-go', sh); b.disabled = !sel.size; b.textContent = t(status === 'active' ? 'tp_send_n' : 'tp_prep_n', { n: sel.size }); };
+  $$('#ms-c .tile', sh).forEach((b) => b.onclick = () => { const c = b.dataset.c; sel.has(c) ? sel.delete(c) : sel.add(c); b.classList.toggle('on', sel.has(c)); paint(); });
+  $('#ms-all', sh).onclick = () => { const all = sel.size < pool.length; pool.forEach((c) => all ? sel.add(c.client_id) : sel.delete(c.client_id)); $$('#ms-c .tile', sh).forEach((b) => b.classList.toggle('on', sel.has(b.dataset.c))); paint(); };
+  $$('#ms-st button', sh).forEach((b) => b.onclick = () => { start = b.dataset.d; $$('#ms-st button', sh).forEach((x) => x.classList.toggle('on', x === b)); });
+  $$('#ms-s button', sh).forEach((b) => b.onclick = () => { status = b.dataset.s; $$('#ms-s button', sh).forEach((x) => x.classList.toggle('on', x === b)); paint(); });
+  $('#ms-go', sh).onclick = async () => {
+    if (!sel.size) return toast(t('tp_pick'), true);
+    const b = $('#ms-go', sh); b.disabled = true;
+    try { const n = await opts.run([...sel], start, status); closeSheet('ov'); HOME_PLANS = null; toast(t(status === 'active' ? 'tp_sent' : 'tp_prepped', { n })); if (opts.after) opts.after(); }
+    catch (e) { b.disabled = false; toast(errMsg(e), true); }
+  };
+}
+
+function planMulti() {
+  const P = PLAN;
+  multiSend({ title: t('tp_multi'), exclude: P.client.client_id, run: async (ids, start, status) => {
+    if (P.dirty || !P.id) await savePlan(P.status === 'active' ? 'active' : 'draft', false, true);
+    return rpc('studio_duplicate_multi', { p_id: P.id, p_clients: ids, p_start: start, p_status: status });
+  } });
+}
+
+/* --- section « Mes modeles » sur l'accueil Programmes --- */
+async function paintTplSection() {
+  const host = $('#h-tpl'); if (!host) return;
+  const list = await loadTpls(true); if (!$('#h-tpl')) return;
+  host.innerHTML = `<div class="sect">${esc(t('tp_mine'))}${list.length ? ' · ' + list.length : ''}</div>` + (list.length
+    ? `<div class="plist">${list.map((x, i) => `<button class="pcard" data-t="${i}"><div class="av">⧉</div><div class="tx"><b>${esc(x.title)}</b><div class="meta">${esc(t('tp_meta', { n: x.n, w: x.weeks }))}</div></div></button>`).join('')}</div>`
+    : `<div class="empty">${esc(t('tp_none'))}</div>`);
+  $$('[data-t]', host).forEach((b) => b.onclick = () => tplSheet(list[+b.dataset.t]));
+}
+function tplSheet(x) {
+  const sh = openSheet('ov', shHead(x.title, 'ov') + `<div class="sh-b"><p class="qsub">${esc(t('tp_meta', { n: x.n, w: x.weeks }))}</p><div class="acts">
+    <button class="act" data-a="multi">${ic('send')}<div>${esc(t('tp_multi'))}</div></button>
+    <button class="act" data-a="use">${ic('edit')}<div>${esc(t('tp_use'))}</div></button>
+    <button class="act red" data-a="rm">${ic('trash')}<div>${esc(t('tp_rm'))}</div></button></div></div>`);
+  $$('[data-a]', sh).forEach((b) => b.onclick = async () => {
+    const a = b.dataset.a;
+    if (a === 'multi') return multiSend({ title: x.title, run: (ids, start, status) => rpc('studio_apply_template', { p_template: x.id, p_clients: ids, p_start: start, p_status: status }) });
+    if (a === 'use') { closeSheet('ov'); WZ_TPL = x; return startWizard(null); }
+    if (a === 'rm') { try { await rpc('studio_archive_template', { p_id: x.id }); closeSheet('ov'); toast(t('tp_rmd')); paintTplSection(); } catch (e) { toast(errMsg(e), true); } }
+  });
+}
+
+/* --- assistant 3 etapes : partir d'un modele --- */
+let WZ_TPL = null;
+function tplToCells(x, days) {
+  const cells = {}; const order = [...x.days].sort((a, b) => a - b);
+  (x.items || []).forEach((it) => {
+    const idx = order.indexOf(it.d); const d = idx >= 0 ? days[idx] : it.d; if (!d) return;
+    cells[it.w + '-' + d] = { workout_id: it.workout_id, name: it.name_fr, name_fr: it.name_fr, name_en: it.name_en, name_nl: it.name_nl, dur: it.dur, n: it.n, mine: !!it.mine, notes: it.notes || null };
+  });
+  return cells;
 }
 
 boot().catch((e) => { console.error(e); $('#view').innerHTML = `<div class="gate"><h2>${esc(t('err'))}</h2><p>${esc(String(e && e.message || e))}</p></div>`; });
