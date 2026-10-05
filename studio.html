@@ -1170,7 +1170,7 @@ const MUG = [
   { k: 'core', fr: 'Abdos', en: 'Core', nl: 'Core', m: ['core'] },
   { k: 'full', fr: 'Tout le corps', en: 'Full body', nl: 'Volledig lichaam', m: ['full_body', 'cardio'] },
 ];
-let MV = { q: '', eq: null, mu: null, lim: 60, added: 0 };
+let MV = { q: '', eq: null, mu: null, lim: 60, added: 0, mine: false };
 async function openMoves() {
   MV.added = 0; MV.lim = 60;
   const ov = $('#ov3'); ov.classList.add('full');
@@ -1184,17 +1184,23 @@ async function openMoves() {
     const q = MV.q.trim().toLowerCase();
     const eq = MV.eq && EQG.find((x) => x.k === MV.eq), mu = MV.mu && MUG.find((x) => x.k === MV.mu);
     const l = exs.filter((e) => (!q || [e.name_fr, e.name_en, e.name_nl, e.slug].some((x) => String(x || '').toLowerCase().includes(q)))
-      && (!eq || eq.m.includes(e.equipment)) && (!mu || mu.m.includes(e.primary_muscle)));
+      && (!eq || eq.m.includes(e.equipment)) && (!mu || mu.m.includes(e.primary_muscle)) && (!MV.mine || e.mine));
+    const nMine = exs.filter((e) => e.mine).length;
     const cnt = (id) => ED.items.filter((x) => x.exercise_id === id).length;
     b.innerHTML = `<div class="search">${ic('search')}<input class="inp" id="mv-q" placeholder="${esc(t('search'))}" value="${esc(MV.q)}"></div>
+      <div class="fchips mvtop"><button data-mine class="${MV.mine ? 'on' : ''}">⭐ ${esc(t('ex_mine'))}${nMine ? ' · ' + nMine : ''}</button><button id="mv-new">＋ ${esc(t('ex_new'))}</button></div>
       <div class="fchips"><button data-eq="" class="${!MV.eq ? 'on' : ''}">${esc(t('all_f'))}</button>${EQG.map((g) => `<button data-eq="${g.k}" class="${MV.eq === g.k ? 'on' : ''}">${esc(lab(g))}</button>`).join('')}</div>
       <div class="fchips"><button data-mu="" class="${!MV.mu ? 'on' : ''}">${esc(t('all_f'))}</button>${MUG.map((g) => `<button data-mu="${g.k}" class="${MV.mu === g.k ? 'on' : ''}">${esc(lab(g))}</button>`).join('')}</div>
-      <div class="mgrid">${l.slice(0, MV.lim).map((e) => { const n = cnt(e.id); return `<button class="mv ${n ? 'added' : ''}" data-id="${e.id}"><span class="cnt">${n || ''}</span>${thumb(e.slug, exName(e), true)}<b>${esc(exName(e))}</b><span>${esc(muL(e.primary_muscle))} · ${esc(eqL(e.equipment))}</span></button>`; }).join('')}</div>
+      ${MV.mine && !nMine ? `<div class="empty">${esc(t('ex_none'))}</div>` : ''}<div class="mgrid">${l.slice(0, MV.lim).map((e) => { const n = cnt(e.id); return `<button class="mv ${n ? 'added' : ''}" data-id="${e.id}"><span class="cnt">${n || ''}</span>${e.mine ? `<span class="ed" data-ed="${e.id}" role="button" aria-label="${esc(t('ex_edit'))}">✎</span>` + exThumbHtml(e) : thumb(e.slug, exName(e), true)}<b>${esc(exName(e))}</b><span>${esc(muL(e.primary_muscle))} · ${esc(eqL(e.equipment))}</span></button>`; }).join('')}</div>
       ${l.length > MV.lim ? `<button class="btn soft block" id="mv-more" style="margin-top:12px">${esc(t('more_res'))} (${l.length - MV.lim})</button>` : ''}`;
     const qi = $('#mv-q', b); qi.oninput = () => { MV.q = qi.value; MV.lim = 60; const p = qi.selectionStart; paint(); const n = $('#mv-q', b); n.focus(); n.setSelectionRange(p, p); };
     $$('[data-eq]', b).forEach((x) => x.onclick = () => { MV.eq = x.dataset.eq || null; MV.lim = 60; paint(); });
     $$('[data-mu]', b).forEach((x) => x.onclick = () => { MV.mu = x.dataset.mu || null; MV.lim = 60; paint(); });
     const more = $('#mv-more', b); if (more) more.onclick = () => { MV.lim += 60; paint(); };
+    $('[data-mine]', b).onclick = () => { MV.mine = !MV.mine; MV.lim = 60; paint(); };
+    const upd = (ex, gone) => { exs = exs.filter((y) => y.id !== ex.id); if (!gone) { exs.unshift(ex); MV.mine = true; } paint(); };
+    $('#mv-new', b).onclick = () => openExForm(null, upd);
+    $$('[data-ed]', b).forEach((x) => x.onclick = (ev) => { ev.stopPropagation(); const e = exs.find((y) => y.id === x.dataset.ed); if (e) openExForm(e, upd); });
     $$('.mv', b).forEach((x) => x.onclick = () => {
       const e = exs.find((y) => y.id === x.dataset.id);
       ED.items.push({ exercise_id: e.id, slug: e.slug, name_fr: e.name_fr, name_en: e.name_en, name_nl: e.name_nl, primary_muscle: e.primary_muscle, equipment: e.equipment,
@@ -2265,6 +2271,357 @@ function tplToCells(x, days) {
     cells[it.w + '-' + d] = { workout_id: it.workout_id, name: it.name_fr, name_fr: it.name_fr, name_en: it.name_en, name_nl: it.name_nl, dur: it.dur, n: it.n, mine: !!it.mine, notes: it.notes || null };
   });
   return cells;
+}
+
+/* =====================================================================
+   RETOURS SUR LES SEANCES + QUESTIONNAIRE D'ARRIVEE (6 oct. 2026)
+   - Le coach ouvre une seance terminee (series, charges, RPE, records),
+     la commente en un geste ; le client recoit une notification et voit le
+     commentaire sur son accueil.
+   - « Aujourd'hui » : les seances des 4 derniers jours pas encore commentees.
+   - Fiche client : le questionnaire d'arrivee (5 questions) et un bouton
+     « Utiliser son questionnaire » dans l'assistant ✨ (aucun appel IA).
+   RPC : studio_session_detail, studio_comment_session,
+   studio_sessions_to_comment, studio_client_intake.
+   ===================================================================== */
+Object.assign(TX, {
+  fb_feed: { fr: 'Séances à commenter', en: 'Sessions to comment on', nl: 'Trainingen om op te reageren' },
+  fb_feed_s: { fr: 'Un mot de ta part après une séance, c’est ce qui fait revenir un client.', en: 'A word from you after a session is what keeps a client coming back.', nl: 'Een woordje van jou na een training: daardoor blijft een klant komen.' },
+  fb_more: { fr: 'Voir les {n} autres', en: 'Show {n} more', nl: 'Toon {n} andere' },
+  fb_title: { fr: 'Séance de {n}', en: '{n}’s session', nl: 'Training van {n}' },
+  fb_note: { fr: 'Son mot après la séance', en: 'Their note after the session', nl: 'Zijn woordje na de training' },
+  fb_pr: { fr: 'Record', en: 'Record', nl: 'Record' },
+  fb_ex: { fr: 'Ce qu’il a fait', en: 'What they did', nl: 'Wat hij deed' },
+  fb_noex: { fr: 'Séance validée sans le détail des séries.', en: 'Session completed without set details.', nl: 'Training afgewerkt zonder details van de sets.' },
+  fb_wu: { fr: 'échauf.', en: 'warm-up', nl: 'opwarm.' },
+  fb_cms: { fr: 'Tes commentaires', en: 'Your comments', nl: 'Jouw reacties' },
+  fb_seen: { fr: 'Lu', en: 'Read', nl: 'Gelezen' },
+  fb_unseen: { fr: 'Pas encore lu', en: 'Not read yet', nl: 'Nog niet gelezen' },
+  fb_quick: { fr: 'Réponses rapides (dans sa langue)', en: 'Quick replies (in their language)', nl: 'Snelle antwoorden (in zijn taal)' },
+  fb_ph: { fr: 'Ton commentaire : il le reçoit en notification et sur son accueil.', en: 'Your comment: they get it as a notification and on their home screen.', nl: 'Je reactie: hij krijgt ze als melding en op zijn startscherm.' },
+  fb_send: { fr: 'Envoyer le commentaire', en: 'Send comment', nl: 'Reactie versturen' },
+  fb_sent: { fr: 'Commentaire envoyé ✓', en: 'Comment sent ✓', nl: 'Reactie verstuurd ✓' },
+  fb_tap: { fr: 'Touche une séance pour la voir et la commenter.', en: 'Tap a session to see it and comment.', nl: 'Tik op een training om ze te bekijken en te reageren.' },
+  in_title: { fr: 'Questionnaire d’arrivée', en: 'Intake questionnaire', nl: 'Intakevragenlijst' },
+  in_none: { fr: 'Pas encore rempli. Il le trouve sur l’accueil de son app (5 questions, 30 secondes).', en: 'Not filled in yet. They find it on their app home screen (5 questions, 30 seconds).', nl: 'Nog niet ingevuld. Hij vindt hem op het startscherm van zijn app (5 vragen, 30 seconden).' },
+  in_ask: { fr: 'Lui demander de le remplir', en: 'Ask them to fill it in', nl: 'Vragen om hem in te vullen' },
+  in_use: { fr: 'Utiliser son questionnaire', en: 'Use their questionnaire', nl: 'Zijn vragenlijst gebruiken' },
+  in_use_s: { fr: 'Les réglages sont remplis directement, sans IA.', en: 'Settings are filled in directly, no AI needed.', nl: 'De instellingen worden meteen ingevuld, zonder AI.' },
+  in_days: { fr: '{n} j/sem', en: '{n} d/wk', nl: '{n} d/wk' },
+  in_word: { fr: 'Son mot', en: 'Their note', nl: 'Zijn woordje' },
+  in_on: { fr: 'rempli le {d}', en: 'filled in on {d}', nl: 'ingevuld op {d}' },
+});
+const IN_L = {
+  goal: { perte_gras: ['Perdre du gras', 'Lose fat', 'Vet verliezen'], force: ['Prendre du muscle', 'Build muscle', 'Spieren opbouwen'], forme: ['Être en forme', 'Get fit', 'Fit worden'], energie: ['Plus d’énergie', 'More energy', 'Meer energie'], endurance: ['Courir / endurance', 'Running / endurance', 'Lopen / uithouding'] },
+  level: { beginner: ['Débute ou reprend', 'Beginner or returning', 'Beginner of herstart'], intermediate: ['S’entraîne un peu', 'Trains a bit', 'Traint een beetje'], advanced: ['S’entraîne régulièrement', 'Trains regularly', 'Traint regelmatig'] },
+  place: { gym: ['Salle', 'Gym', 'Fitness'], home: ['Maison sans matériel', 'Home, no kit', 'Thuis zonder materiaal'], dumbbells: ['Maison avec haltères/élastiques', 'Home with dumbbells/bands', 'Thuis met dumbbells/elastieken'] },
+  zones: { dos: ['Dos', 'Back', 'Rug'], epaule: ['Épaule', 'Shoulder', 'Schouder'], genou: ['Genou', 'Knee', 'Knie'], poignet: ['Poignet', 'Wrist', 'Pols'] },
+};
+const inL = (grp, k) => (IN_L[grp] && IN_L[grp][k] ? IN_L[grp][k][li()] : (k || '—'));
+const IN_ASK = { fr: 'Salut {n} ! Avant de te préparer ton programme, remplis le petit questionnaire sur l’accueil de ton app : 5 questions, 30 secondes 🙏', en: 'Hi {n}! Before I prepare your program, please fill in the short questionnaire on your app home screen: 5 questions, 30 seconds 🙏', nl: 'Hoi {n}! Voor ik je programma maak: vul even de korte vragenlijst op het startscherm van je app in. 5 vragen, 30 seconden 🙏' };
+const FB_QUICK = {
+  fr: ['Belle séance 💪', 'Bravo pour le record 🏆', 'Super régulier, continue comme ça 🔥', 'La prochaine fois, monte un peu la charge 📈', 'RPE élevé : soigne ta récup cette semaine 😴', 'Envoie-moi une vidéo de ta dernière série 🎥'],
+  en: ['Great session 💪', 'Congrats on the record 🏆', 'So consistent, keep it up 🔥', 'Next time, add a bit of weight 📈', 'High RPE: look after your recovery this week 😴', 'Send me a video of your last set 🎥'],
+  nl: ['Sterke training 💪', 'Proficiat met je record 🏆', 'Super regelmatig, ga zo door 🔥', 'Volgende keer mag het gewicht iets omhoog 📈', 'Hoge RPE: zorg goed voor je herstel deze week 😴', 'Stuur me een video van je laatste set 🎥'],
+};
+
+(function fbCss() {
+  const s = document.createElement('style');
+  s.textContent = `
+  .fbfeed{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+  .fbcard{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;border-radius:14px;background:var(--card,rgba(255,255,255,.04));border:1px solid var(--line,rgba(255,255,255,.1));color:inherit;cursor:pointer;font:inherit}
+  .fbcard .tx{flex:1;min-width:0}.fbcard b{display:block;font-size:14px}.fbcard span{font-size:12.5px;opacity:.7}
+  .fbcard .pr{font-size:11px;font-weight:800;padding:2px 7px;border-radius:8px;background:rgba(245,190,40,.18);color:#F5BE28;margin-left:6px}
+  .fbcard .go{font-size:18px;opacity:.5}
+  .fbmeta{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.fbmeta span{font-size:12.5px;padding:4px 9px;border-radius:9px;background:rgba(127,127,127,.12)}
+  .fbnote{padding:10px 12px;border-left:3px solid var(--brand,#00E896);background:rgba(127,127,127,.08);border-radius:8px;font-size:13.5px;margin:0 0 12px;white-space:pre-wrap}
+  .fbprs{display:flex;flex-direction:column;gap:6px;margin:0 0 12px}.fbprs div{font-size:13.5px;padding:8px 10px;border-radius:10px;background:rgba(245,190,40,.12)}
+  .fbex{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}.fbex>div b{display:block;font-size:13.5px;margin-bottom:5px}
+  .fbsets{display:flex;flex-wrap:wrap;gap:5px}.fbsets i{font-style:normal;font-size:12px;padding:3px 7px;border-radius:7px;background:rgba(127,127,127,.12)}.fbsets i.wu{opacity:.55}.fbsets i.ko{text-decoration:line-through;opacity:.5}
+  .fbcm{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}.fbcm div{padding:10px 12px;border-radius:12px;background:rgba(0,232,150,.1);font-size:13.5px;white-space:pre-wrap}.fbcm small{display:block;opacity:.6;font-size:11.5px;margin-top:4px}
+  .fbq{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}.fbq button{font:inherit;font-size:12.5px;padding:6px 10px;border-radius:999px;border:1px solid var(--line,rgba(255,255,255,.15));background:transparent;color:inherit;cursor:pointer}
+  .c3list>div.fbrow{cursor:pointer;position:relative;padding-right:28px}.c3list>div.fbrow:after{content:'›';position:absolute;right:8px;top:50%;transform:translateY(-50%);opacity:.45;font-size:18px}
+  .fbbadge{font-size:11px;margin-left:6px;opacity:.8}
+  .inbox{margin:16px 0 0;padding:14px;border-radius:14px;border:1px solid var(--line,rgba(255,255,255,.12));background:rgba(127,127,127,.05)}
+  .inbox h4{margin:0 0 8px;font-size:14px}.inbox .tdchips{margin:0 0 6px}
+  .inbox p{margin:6px 0 0;font-size:13px;opacity:.85;white-space:pre-wrap}
+  .incard{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:14px;border-radius:14px;border:1px solid rgba(245,190,40,.45);background:rgba(245,190,40,.08);color:inherit;font:inherit;cursor:pointer;margin:0 0 18px}
+  .incard b{display:block;font-size:14px}.incard span{font-size:12.5px;opacity:.8}`;
+  document.head.appendChild(s);
+})();
+
+const fbWhen = (d) => { const x = new Date(d); return x.toLocaleDateString(LANG === 'en' ? 'en-GB' : LANG === 'nl' ? 'nl-BE' : 'fr-BE', { weekday: 'short', day: 'numeric', month: 'short' }) + ' ' + x.toLocaleTimeString(LANG === 'en' ? 'en-GB' : 'fr-BE', { hour: '2-digit', minute: '2-digit' }); };
+const fbSetTxt = (s, load) => {
+  if (s.sec && (load === 'time' || !s.reps)) return s.sec >= 60 ? Math.floor(s.sec / 60) + ':' + String(s.sec % 60).padStart(2, '0') : s.sec + ' s';
+  if (s.m && !s.reps) return nf(s.m) + ' m';
+  if (s.cal && !s.reps) return s.cal + ' cal';
+  let x = (s.reps != null ? s.reps : '?') + (s.kg ? ' × ' + nf(s.kg, 1) + ' kg' : '');
+  if (s.rpe) x += ' @' + nf(s.rpe, 1);
+  return x;
+};
+
+/* ---------------- fiche d'une seance ---------------- */
+async function openSessionFb(sessionId, c, onSent) {
+  $('#ov3').classList.remove('full');
+  const nm = firstName(c) || c.email || '—';
+  const sh = openSheet('ov3', shHead(t('fb_title', { n: nm }), 'ov3') + `<div class="sh-b" id="fb-b"><div class="load" style="min-height:200px"><div class="spin"></div></div></div>`);
+  let S;
+  try { S = await rpc('studio_session_detail', { p_session: sessionId }); } catch (e) { $('#fb-b', sh).innerHTML = `<div class="empty">${esc(errMsg(e))}</div>`; return; }
+  const loc = S.locale && FB_QUICK[S.locale] ? S.locale : 'fr';
+  const exn = (e) => (LANG === 'en' && e.name_en) || (LANG === 'nl' && e.name_nl) || e.name;
+  const paint = () => {
+    const b = $('#fb-b', sh); if (!b) return;
+    const meta = [S.d ? fbWhen(S.d) : null, S.min ? S.min + ' min' : null, S.rpe ? 'RPE ' + nf(S.rpe, 1) : null, +S.vol ? nf(S.vol) + ' kg' : null, S.sets ? S.sets + ' sets' : null].filter(Boolean);
+    b.innerHTML = `<h3 style="margin:0 0 8px;font-size:16px">${esc(S.name || '—')}</h3>
+      <div class="fbmeta">${meta.map((m) => `<span>${esc(m)}</span>`).join('')}</div>
+      ${S.note ? `<div class="sect" style="margin-top:0">${esc(t('fb_note'))}</div><div class="fbnote">${esc(S.note)}</div>` : ''}
+      ${(S.prs || []).length ? `<div class="fbprs">${S.prs.map((p) => `<div>🏆 ${esc(t('fb_pr'))} : <b>${esc(p.name)}</b> ${nf(p.v, 1)} ${esc(p.u || '')}${p.prev ? ' (' + nf(p.prev, 1) + ')' : ''}</div>`).join('')}</div>` : ''}
+      <div class="sect">${esc(t('fb_ex'))}</div>
+      ${(S.ex || []).length ? `<div class="fbex">${S.ex.map((e) => `<div><b>${esc(exn(e))}</b><div class="fbsets">${(e.sets || []).map((s) => `<i class="${s.wu ? 'wu' : ''} ${s.ok === false ? 'ko' : ''}">${esc(fbSetTxt(s, e.load))}${s.wu ? ' · ' + esc(t('fb_wu')) : ''}</i>`).join('')}</div></div>`).join('')}</div>` : `<div class="c3empty">${esc(t('fb_noex'))}</div>`}
+      ${(S.comments || []).length ? `<div class="sect">${esc(t('fb_cms'))}</div><div class="fbcm">${S.comments.map((m) => `<div>${esc(m.body)}<small>${esc(fbWhen(m.at))} · ${esc(m.seen ? t('fb_seen') + ' ✓' : t('fb_unseen'))}</small></div>`).join('')}</div>` : ''}
+      <div class="sect">${esc(t('fb_quick'))}</div>
+      <div class="fbq">${FB_QUICK[loc].map((q, i) => `<button data-q="${i}">${esc(q)}</button>`).join('')}</div>
+      <textarea id="fb-txt" class="astxt" rows="3" placeholder="${esc(t('fb_ph'))}"></textarea>
+      <button class="btn main block" id="fb-send" style="margin-top:10px">${ic('send')} ${esc(t('fb_send'))}</button>`;
+    const ta = $('#fb-txt', b);
+    $$('[data-q]', b).forEach((x) => x.onclick = () => { const q = FB_QUICK[loc][+x.dataset.q]; ta.value = ta.value.trim() ? ta.value.trim() + ' ' + q : q; ta.focus(); });
+    $('#fb-send', b).onclick = async () => {
+      const body = ta.value.trim(); if (!body) { ta.focus(); return; }
+      const btn = $('#fb-send', b); btn.disabled = true;
+      try {
+        const r = await rpc('studio_comment_session', { p_session: S.id, p_body: body });
+        S.comments = [...(S.comments || []), { id: r.id, body: r.body, at: r.at, seen: null }];
+        toast(t('fb_sent')); paint(); if (onSent) onSent(S.id);
+      } catch (e) { btn.disabled = false; toast(errMsg(e), true); }
+    };
+  };
+  paint();
+}
+
+/* ---------------- Aujourd'hui : seances a commenter ---------------- */
+let FB_FEED = null, FB_ALL = false;
+async function fbFeed() {
+  const td = $('#td'); if (!td) return;
+  let box = $('#td-fb'); if (!box) { box = document.createElement('div'); box.id = 'td-fb'; td.parentNode.insertBefore(box, td); }
+  try { FB_FEED = (await rpc('studio_sessions_to_comment')) || []; } catch (_) { FB_FEED = []; }
+  fbPaintFeed();
+}
+function fbPaintFeed() {
+  const box = $('#td-fb'); if (!box) return;
+  const L = FB_FEED || [];
+  if (!L.length) { box.innerHTML = ''; return; }
+  const show = FB_ALL ? L : L.slice(0, 4);
+  box.innerHTML = `<div class="sect">💬 ${esc(t('fb_feed'))} · ${L.length}</div><p class="qsub" style="margin-top:-6px">${esc(t('fb_feed_s'))}</p>
+    <div class="fbfeed">${show.map((s, i) => `<button class="fbcard" data-i="${i}"><div class="av">${esc(initials(s.full_name || s.email))}</div><div class="tx"><b>${esc(firstName(s) || s.email)} · ${esc(s.name || '—')}${+s.pr ? `<em class="pr">🏆 ${s.pr}</em>` : ''}</b><span>${esc(fbWhen(s.d))}${s.min ? ' · ' + s.min + ' min' : ''}${s.rpe ? ' · RPE ' + nf(s.rpe, 1) : ''}${+s.vol ? ' · ' + nf(s.vol) + ' kg' : ''}</span></div><span class="go">›</span></button>`).join('')}</div>
+    ${!FB_ALL && L.length > 4 ? `<button class="linkbtn" id="fb-all">${esc(t('fb_more', { n: L.length - 4 }))}</button>` : ''}`;
+  $$('.fbcard', box).forEach((b) => b.onclick = () => {
+    const s = show[+b.dataset.i]; const c = CLIENTS.find((x) => x.client_id === s.client_id) || { client_id: s.client_id, full_name: s.full_name, email: s.email };
+    openSessionFb(s.id, c, (id) => { FB_FEED = (FB_FEED || []).filter((x) => x.id !== id); fbPaintFeed(); });
+  });
+  const all = $('#fb-all', box); if (all) all.onclick = () => { FB_ALL = true; fbPaintFeed(); };
+}
+{
+  const _vt = viewToday;
+  viewToday = async function () { await _vt(); if ($('#td')) fbFeed(); };
+}
+
+/* ---------------- fiche client : seances cliquables + questionnaire ---------------- */
+async function inLoad(clientId) {
+  try { return (await rpc('studio_client_intake', { p_client: clientId })) || null; } catch (_) { return null; }
+}
+function inSummary(a) {
+  const ch = [inL('goal', a.goal), inL('level', a.level), a.days ? t('in_days', { n: a.days }) : null, a.minutes ? a.minutes + ' min' : null, inL('place', a.place)]
+    .concat((a.zones || []).map((z) => '⚠ ' + inL('zones', z))).filter((x) => x && x !== '—');
+  return ch;
+}
+{
+  const _p = paintC3;
+  paintC3 = function () {
+    _p();
+    if (!C3) return;
+    const el = $('#c3-b'); if (!el) return;
+    const { r, c } = C3.x; const D = C3.d || {};
+    if (C3.tab === 'train') {
+      const list = $('.c3list', el);
+      if (list && (D.sessions || []).length) {
+        [...list.children].forEach((row, i) => {
+          const s = D.sessions[i]; if (!s || !s.id) return;
+          row.classList.add('fbrow');
+          if (+s.cm) row.querySelector('b').insertAdjacentHTML('beforeend', `<span class="fbbadge">💬 ${s.cm}</span>`);
+          row.onclick = () => openSessionFb(s.id, c, () => { s.cm = (+s.cm || 0) + 1; if (C3 && C3.tab === 'train') paintC3(); });
+        });
+        list.insertAdjacentHTML('beforebegin', `<p class="qsub" style="margin:-6px 0 8px">${esc(t('fb_tap'))}</p>`);
+      }
+    }
+    if (C3.tab === 'over') {
+      const box = document.createElement('div'); box.className = 'inbox'; box.id = 'c3-in';
+      const st = $('.tdstats', el); if (st) st.after(box); else el.appendChild(box);
+      const paintIn = (I) => {
+        const b = $('#c3-in'); if (!b) return;
+        if (!I || !I.answers) {
+          b.innerHTML = `<h4>📋 ${esc(t('in_title'))}</h4><p>${esc(t('in_none'))}</p><button class="btn block" id="c3-in-ask" style="margin-top:10px">${ic('send')} ${esc(t('in_ask'))}</button>`;
+          $('#c3-in-ask').onclick = () => { const loc = D.locale || 'fr'; goChat(c, (IN_ASK[loc] || IN_ASK.fr).split('{n}').join(firstName(c) || '')); };
+          return;
+        }
+        const a = I.answers;
+        b.innerHTML = `<h4>📋 ${esc(t('in_title'))} <small style="font-weight:400;opacity:.6">· ${esc(t('in_on', { d: fmtShort(new Date(I.at)) }))}</small></h4>
+          <div class="tdchips">${inSummary(a).map((x) => `<span class="tdchip l0">${esc(x)}</span>`).join('')}</div>
+          ${a.note ? `<p><b>${esc(t('in_word'))} :</b> ${esc(a.note)}</p>` : ''}`;
+      };
+      if (C3.intake !== undefined) paintIn(C3.intake);
+      else { const cur = C3; inLoad(r.client_id).then((I) => { if (C3 !== cur) return; C3.intake = I; if (C3.tab === 'over') paintIn(I); }); }
+    }
+  };
+}
+
+/* ---------------- assistant : utiliser le questionnaire ---------------- */
+function inToParams(a) {
+  const o = {};
+  if (['perte_gras', 'force', 'forme', 'energie', 'endurance'].includes(a.goal)) o.goal = a.goal;
+  if (['beginner', 'intermediate', 'advanced'].includes(a.level)) o.level = a.level;
+  if (+a.days >= 2 && +a.days <= 5) o.days = +a.days;
+  if (+a.minutes >= 30) o.session_min = Math.min(75, +a.minutes);
+  if (['gym', 'home', 'dumbbells'].includes(a.place)) o.equipment = a.place;
+  o.constraints = (a.zones || []).filter((z) => ['dos', 'epaule', 'genou', 'poignet'].includes(z));
+  o.nutrition = a.goal === 'perte_gras';
+  return o;
+}
+{
+  const _va = viewAssistant;
+  viewAssistant = async function () {
+    await _va();
+    if (!AS || AS.stage !== 'ask' || !AS.client) return;
+    const cl = AS.client; const I = await inLoad(cl.client_id);
+    if (!I || !I.answers || !AS || AS.client !== cl || AS.stage !== 'ask') return;
+    const ta = $('#as-txt'); if (!ta || $('#as-in')) return;
+    const card = document.createElement('button'); card.className = 'incard'; card.id = 'as-in'; card.type = 'button';
+    card.innerHTML = `<i style="font-style:normal;font-size:24px">📋</i><div><b>${esc(t('in_use'))}</b><span>${esc(inSummary(I.answers).join(' · '))}</span><span style="display:block;margin-top:3px;opacity:.65">${esc(t('in_use_s'))}</span></div>`;
+    const h = ta.previousElementSibling && ta.previousElementSibling.previousElementSibling; (h || ta).before(card);
+    card.onclick = () => {
+      const P = AS.p; const o = inToParams(I.answers);
+      asMerge(o);
+      AS.text = I.answers.note || ''; AS.stage = 'set'; viewAssistant();
+    };
+  };
+}
+
+/* =====================================================================
+   MES EXERCICES (6 oct. 2026) — le coach ajoute ses propres mouvements,
+   avec sa video (lien YouTube, meme « non repertoriee »). Ils restent prives :
+   visibles par lui et par ses clients (politique exercises_select_coach_clients),
+   jamais dans le catalogue public ni dans le moteur de programme.
+   RPC : studio_my_exercises, studio_save_exercise, studio_archive_exercise.
+   ===================================================================== */
+Object.assign(TX, {
+  ex_mine: { fr: 'Mes exercices', en: 'My exercises', nl: 'Mijn oefeningen' },
+  ex_new: { fr: 'Créer un exercice', en: 'Create an exercise', nl: 'Oefening maken' },
+  ex_edit: { fr: 'Modifier l’exercice', en: 'Edit exercise', nl: 'Oefening wijzigen' },
+  ex_name: { fr: 'Nom du mouvement', en: 'Movement name', nl: 'Naam van de beweging' },
+  ex_name_ph: { fr: 'Ex. : Landmine press à genoux', en: 'E.g. Half-kneeling landmine press', nl: 'Bv. Landmine press op één knie' },
+  ex_vid: { fr: 'Vidéo (lien YouTube)', en: 'Video (YouTube link)', nl: 'Video (YouTube-link)' },
+  ex_vid_s: { fr: 'Filme-toi, mets la vidéo sur YouTube en « Non répertoriée » et colle le lien. Ton client la verra dans sa séance.', en: 'Film yourself, upload to YouTube as “Unlisted” and paste the link. Your client will see it in their session.', nl: 'Film jezelf, zet de video op YouTube als “Niet vermeld” en plak de link. Je klant ziet hem in zijn training.' },
+  ex_vid_bad: { fr: 'Ce lien ne ressemble pas à une vidéo YouTube.', en: 'This link doesn’t look like a YouTube video.', nl: 'Deze link lijkt geen YouTube-video.' },
+  ex_mu: { fr: 'Muscle principal', en: 'Main muscle', nl: 'Belangrijkste spier' },
+  ex_eq: { fr: 'Matériel', en: 'Equipment', nl: 'Materiaal' },
+  ex_load: { fr: 'On le mesure en…', en: 'Measured in…', nl: 'Gemeten in…' },
+  ex_cue: { fr: 'Ta consigne (1 ou 2 phrases)', en: 'Your cue (1 or 2 sentences)', nl: 'Jouw tip (1 of 2 zinnen)' },
+  ex_cue_ph: { fr: 'Ex. : Gainage serré, la barre monte en diagonale devant toi.', en: 'E.g. Brace hard, the bar travels diagonally in front of you.', nl: 'Bv. Romp stevig aanspannen, de stang gaat schuin voor je omhoog.' },
+  ex_def: { fr: 'Par défaut dans un programme', en: 'Default in a program', nl: 'Standaard in een programma' },
+  ex_sets: { fr: 'Séries', en: 'Sets', nl: 'Sets' }, ex_reps: { fr: 'Reps', en: 'Reps', nl: 'Reps' }, ex_rest: { fr: 'Repos (s)', en: 'Rest (s)', nl: 'Rust (s)' },
+  ex_save: { fr: 'Enregistrer', en: 'Save', nl: 'Opslaan' },
+  ex_saved: { fr: 'Exercice enregistré ✓', en: 'Exercise saved ✓', nl: 'Oefening opgeslagen ✓' },
+  ex_arch: { fr: 'Retirer de ma liste', en: 'Remove from my list', nl: 'Uit mijn lijst halen' },
+  ex_arch_q: { fr: 'Retirer cet exercice de ta liste ? Les programmes qui l’utilisent déjà le gardent.', en: 'Remove this exercise from your list? Programs already using it keep it.', nl: 'Deze oefening uit je lijst halen? Programma’s die ze al gebruiken houden ze.' },
+  ex_need: { fr: 'Donne un nom au mouvement.', en: 'Give the movement a name.', nl: 'Geef de beweging een naam.' },
+  ex_priv: { fr: 'Visible seulement par toi et tes clients.', en: 'Visible only to you and your clients.', nl: 'Alleen zichtbaar voor jou en je klanten.' },
+  ex_none: { fr: 'Tu n’as pas encore créé d’exercice.', en: 'You haven’t created an exercise yet.', nl: 'Je hebt nog geen oefening gemaakt.' },
+});
+const EX_LOAD = { weight: ['Charge (kg)', 'Load (kg)', 'Gewicht (kg)'], bodyweight: ['Poids du corps', 'Bodyweight', 'Lichaamsgewicht'], reps_only: ['Répétitions', 'Reps', 'Herhalingen'], time: ['Temps', 'Time', 'Tijd'], distance: ['Distance', 'Distance', 'Afstand'], calories: ['Calories', 'Calories', 'Calorieën'] };
+const exYt = (u) => { const m = String(u || '').match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/); return m ? m[1] : null; };
+
+(function exCss() {
+  const s = document.createElement('style');
+  s.textContent = `
+  #ov4{z-index:70}
+  .mv .ytth{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:10px;display:block;background:#111}
+  .mv .ed{position:absolute;top:6px;left:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;z-index:2}
+  .mv{position:relative}
+  .exprev{margin:8px 0 0;border-radius:12px;overflow:hidden;max-width:260px}.exprev img{width:100%;display:block}
+  .exrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .exrow label{font-size:12px;opacity:.7;display:block;margin-bottom:4px}
+  .exsel{width:100%}
+  .expriv{font-size:12px;opacity:.65;margin:10px 0 0;text-align:center}
+  .mvtop{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 8px}`;
+  document.head.appendChild(s);
+})();
+
+let MY_EXS = null;
+{
+  const _le = loadExs;
+  loadExs = async function () {
+    const base = await _le();
+    if (!MY_EXS) { try { MY_EXS = (await rpc('studio_my_exercises')) || []; } catch (_) { MY_EXS = []; } }
+    const ids = new Set(MY_EXS.map((e) => e.id));
+    return [...MY_EXS, ...base.filter((e) => !ids.has(e.id))];
+  };
+}
+const exThumbHtml = (e) => { const y = exYt(e.video_url); return y ? `<img class="ytth" loading="lazy" src="https://i.ytimg.com/vi/${y}/mqdefault.jpg" alt="">` : thumb(e.slug, exName(e), true); };
+
+function exOv() {
+  let ov = $('#ov4');
+  if (!ov) {
+    ov = document.createElement('div'); ov.className = 'ov'; ov.id = 'ov4'; ov.innerHTML = '<div class="sheet" id="sheet4"></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click', (e) => { if (e.target === ov) closeSheet('ov4'); });
+    ov.addEventListener('click', (e) => { const c = e.target.closest('[data-close="ov4"]'); if (c) closeSheet('ov4'); });
+  }
+  return ov;
+}
+
+/* Formulaire : creer ou modifier. onSaved(ex, archived) */
+function openExForm(ex, onSaved) {
+  exOv();
+  const e = ex || { name_fr: '', video_url: '', primary_muscle: 'full_body', equipment: 'bodyweight', load_type: 'weight', cue_fr: '', default_sets: 3, default_reps: '10', default_rest_sec: 90 };
+  const sh = openSheet('ov4', shHead(t(ex ? 'ex_edit' : 'ex_new'), 'ov4') + `<div class="sh-b">
+    <div class="field"><label>${esc(t('ex_name'))}</label><input class="inp" id="ex-n" maxlength="80" placeholder="${esc(t('ex_name_ph'))}" value="${esc(e.name_fr || '')}"></div>
+    <div class="field"><label>${esc(t('ex_vid'))}</label><input class="inp" id="ex-v" inputmode="url" placeholder="https://youtu.be/…" value="${esc(e.video_url || '')}"><p class="qsub" style="margin:6px 0 0">${esc(t('ex_vid_s'))}</p><div class="exprev" id="ex-pv"></div></div>
+    <div class="field"><label>${esc(t('ex_mu'))}</label><select class="inp exsel" id="ex-mu">${Object.keys(MU_L).map((k) => `<option value="${k}" ${k === e.primary_muscle ? 'selected' : ''}>${esc(muL(k))}</option>`).join('')}</select></div>
+    <div class="field"><label>${esc(t('ex_eq'))}</label><select class="inp exsel" id="ex-eq">${Object.keys(EQ_L).map((k) => `<option value="${k}" ${k === e.equipment ? 'selected' : ''}>${esc(eqL(k))}</option>`).join('')}</select></div>
+    <div class="field"><label>${esc(t('ex_load'))}</label><div class="fchips wrap" id="ex-ld">${Object.keys(EX_LOAD).map((k) => `<button type="button" data-k="${k}" class="${k === e.load_type ? 'on' : ''}">${esc(EX_LOAD[k][li()])}</button>`).join('')}</div></div>
+    <div class="field"><label>${esc(t('ex_cue'))}</label><textarea class="astxt" id="ex-c" rows="2" maxlength="400" placeholder="${esc(t('ex_cue_ph'))}">${esc(e.cue_fr || '')}</textarea></div>
+    <div class="field"><label>${esc(t('ex_def'))}</label><div class="exrow">
+      <div><label>${esc(t('ex_sets'))}</label><input class="inp" id="ex-s" type="number" min="1" max="12" value="${e.default_sets || 3}"></div>
+      <div><label>${esc(t('ex_reps'))}</label><input class="inp" id="ex-r" maxlength="12" value="${esc(e.default_reps || '10')}"></div>
+      <div><label>${esc(t('ex_rest'))}</label><input class="inp" id="ex-re" type="number" min="0" max="600" step="15" value="${e.default_rest_sec ?? 90}"></div></div></div>
+    <button class="btn main block" id="ex-go">${esc(t('ex_save'))}</button>
+    ${ex ? `<button class="btn soft block" id="ex-ar" style="margin-top:8px">${esc(t('ex_arch'))}</button>` : ''}
+    <p class="expriv">🔒 ${esc(t('ex_priv'))}</p></div>`);
+  let load = e.load_type || 'weight';
+  $$('#ex-ld button', sh).forEach((b) => b.onclick = () => { load = b.dataset.k; $$('#ex-ld button', sh).forEach((x) => x.classList.toggle('on', x === b)); });
+  const pv = () => { const y = exYt($('#ex-v', sh).value); $('#ex-pv', sh).innerHTML = y ? `<img src="https://i.ytimg.com/vi/${y}/mqdefault.jpg" alt="">` : ''; };
+  $('#ex-v', sh).oninput = pv; pv();
+  setTimeout(() => { if (!ex) $('#ex-n', sh).focus(); }, 60);
+  $('#ex-go', sh).onclick = async () => {
+    const name = $('#ex-n', sh).value.trim(); if (name.length < 2) { toast(t('ex_need'), true); $('#ex-n', sh).focus(); return; }
+    let vid = $('#ex-v', sh).value.trim();
+    if (vid && !/^https?:\/\//i.test(vid)) vid = 'https://' + vid;
+    if (vid && !exYt(vid)) { toast(t('ex_vid_bad'), true); return; }
+    const mu = $('#ex-mu', sh).value;
+    const cat = load === 'time' || load === 'distance' || load === 'calories' ? (mu === 'cardio' ? 'cardio' : 'conditioning') : (mu === 'core' ? 'core' : 'strength');
+    const btn = $('#ex-go', sh); btn.disabled = true;
+    try {
+      const r = await rpc('studio_save_exercise', { p_id: ex ? ex.id : null, p_name: name, p_muscle: mu, p_equipment: $('#ex-eq', sh).value, p_load: load, p_category: cat,
+        p_video: vid || null, p_cue: $('#ex-c', sh).value.trim() || null, p_sets: Math.max(1, Math.min(12, +$('#ex-s', sh).value || 3)), p_reps: $('#ex-r', sh).value.trim() || '10', p_rest: Math.max(0, Math.min(600, +$('#ex-re', sh).value || 0)) });
+      MY_EXS = [r, ...(MY_EXS || []).filter((x) => x.id !== r.id)];
+      toast(t('ex_saved')); closeSheet('ov4'); if (onSaved) onSaved(r, false);
+    } catch (err) { btn.disabled = false; toast(errMsg(err), true); }
+  };
+  const ar = $('#ex-ar', sh);
+  if (ar) ar.onclick = async () => {
+    if (!confirm(t('ex_arch_q'))) return;
+    try { await rpc('studio_archive_exercise', { p_id: ex.id }); MY_EXS = (MY_EXS || []).filter((x) => x.id !== ex.id); closeSheet('ov4'); if (onSaved) onSaved(ex, true); }
+    catch (err) { toast(errMsg(err), true); }
+  };
 }
 
 boot().catch((e) => { console.error(e); $('#view').innerHTML = `<div class="gate"><h2>${esc(t('err'))}</h2><p>${esc(String(e && e.message || e))}</p></div>`; });

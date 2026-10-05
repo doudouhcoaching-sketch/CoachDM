@@ -1420,6 +1420,7 @@ h1, h2,
     <div id="home-founder"></div>
     <div id="home-coach-badge"></div>
     <div id="home-su"></div>
+    <div id="home-cl"></div>
     <!-- Cote coach : signal seulement. Qui a ecrit, combien, une porte vers la
          console. Pas d'apercu, pas de zone de reponse : lire et repondre est
          le travail de la console, pas de l'accueil. Vide quand rien n'attend. -->
@@ -8763,6 +8764,144 @@ function suPhoto(p){
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
+/* =====================================================================
+   LIEN AVEC LE COACH (6 oct. 2026)
+   1. Questionnaire d'arrivee : 5 ecrans, que des touches, 30 secondes.
+      Propose sur l'accueil aux membres suivis par un coach qui ne l'ont pas
+      encore rempli. RPC my_intake_status / my_intake_save.
+   2. Commentaires du coach sur les seances : carte sur l'accueil, « Merci »
+      (marque comme lu) ou « Répondre » (ouvre la conversation).
+      RPC my_coach_comments / my_coach_comments_seen.
+   ===================================================================== */
+Object.assign(T, {
+  in_home:{fr:'Aide ton coach à te préparer le bon programme',en:'Help your coach build the right program',nl:'Help je coach het juiste programma te maken'},
+  in_home_s:{fr:'5 questions, 30 secondes, que des touches.',en:'5 questions, 30 seconds, just taps.',nl:'5 vragen, 30 seconden, alleen tikken.'},
+  in_q1:{fr:'Ton objectif principal ?',en:'Your main goal?',nl:'Je belangrijkste doel?'},
+  in_q2:{fr:'Où en es-tu aujourd’hui ?',en:'Where are you at today?',nl:'Waar sta je vandaag?'},
+  in_q3:{fr:'Combien de séances par semaine ?',en:'How many sessions a week?',nl:'Hoeveel trainingen per week?'},
+  in_q3b:{fr:'Combien de temps par séance ?',en:'How long per session?',nl:'Hoe lang per training?'},
+  in_q4:{fr:'Tu t’entraînes où ?',en:'Where do you train?',nl:'Waar train je?'},
+  in_q5:{fr:'Une zone à ménager ?',en:'Any area to go easy on?',nl:'Een zone om te sparen?'},
+  in_q5s:{fr:'Touche tout ce qui s’applique.',en:'Tap all that apply.',nl:'Tik alles aan wat past.'},
+  in_none:{fr:'Rien à signaler',en:'Nothing to report',nl:'Niets te melden'},
+  in_note:{fr:'Un mot pour ton coach (facultatif)',en:'A word for your coach (optional)',nl:'Een woordje voor je coach (optioneel)'},
+  in_note_ph:{fr:'Ex. : mariage en juin, je travaille de nuit…',en:'E.g. wedding in June, I work nights…',nl:'Bv. huwelijk in juni, ik werk ’s nachts…'},
+  in_next:{fr:'Suivant',en:'Next',nl:'Volgende'},
+  in_send:{fr:'Envoyer à mon coach',en:'Send to my coach',nl:'Naar mijn coach sturen'},
+  in_back:{fr:'Retour',en:'Back',nl:'Terug'},
+  in_done:{fr:'Merci ! Ton coach a tes réponses 💪',en:'Thanks! Your coach has your answers 💪',nl:'Bedankt! Je coach heeft je antwoorden 💪'},
+  in_err:{fr:'Envoi impossible, réessaie.',en:'Couldn’t send, try again.',nl:'Versturen mislukt, probeer opnieuw.'},
+  cm_title:{fr:'Ton coach a commenté ta séance',en:'Your coach commented on your session',nl:'Je coach reageerde op je training'},
+  cm_thanks:{fr:'Merci 👍',en:'Thanks 👍',nl:'Bedankt 👍'},
+  cm_reply:{fr:'Répondre',en:'Reply',nl:'Antwoorden'},
+  cm_more:{fr:'+ {n} autre(s)',en:'+ {n} more',nl:'+ {n} andere'},
+});
+const IN_OPT={
+  goal:[['perte_gras','🔥',{fr:'Perdre du gras',en:'Lose fat',nl:'Vet verliezen'}],['force','💪',{fr:'Prendre du muscle',en:'Build muscle',nl:'Spieren opbouwen'}],['forme','✨',{fr:'Être en forme',en:'Get fit',nl:'Fit worden'}],['energie','⚡',{fr:'Avoir plus d’énergie',en:'More energy',nl:'Meer energie'}],['endurance','🏃',{fr:'Courir / endurance',en:'Running / endurance',nl:'Lopen / uithouding'}]],
+  level:[['beginner','🌱',{fr:'Je débute ou je reprends',en:'Beginner or getting back',nl:'Ik begin of herstart'}],['intermediate','🙂',{fr:'Je m’entraîne un peu',en:'I train a bit',nl:'Ik train een beetje'}],['advanced','🏆',{fr:'Je m’entraîne régulièrement',en:'I train regularly',nl:'Ik train regelmatig'}]],
+  place:[['gym','🏋️',{fr:'En salle',en:'At the gym',nl:'In de fitness'}],['home','🏠',{fr:'À la maison, sans matériel',en:'At home, no equipment',nl:'Thuis, zonder materiaal'}],['dumbbells','🎒',{fr:'À la maison, avec haltères ou élastiques',en:'At home, with dumbbells or bands',nl:'Thuis, met dumbbells of elastieken'}]],
+  zones:[['dos',{fr:'Dos',en:'Back',nl:'Rug'}],['epaule',{fr:'Épaule',en:'Shoulder',nl:'Schouder'}],['genou',{fr:'Genou',en:'Knee',nl:'Knie'}],['poignet',{fr:'Poignet',en:'Wrist',nl:'Pols'}]],
+};
+const clE=(s)=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clL=(o)=>o[LANG]||o.fr;
+(function(){
+  const s=document.createElement('style');
+  s.textContent=`
+  .cl-card{box-sizing:border-box;width:100%;text-align:left;padding:14px 16px;border-radius:16px;background:rgba(0,232,150,.08);border:1px solid rgba(0,232,150,.28);color:var(--txt);margin:0 0 14px}
+  .cl-card.in{display:flex;align-items:center;gap:14px;cursor:pointer;font:inherit;background:rgba(245,190,40,.08);border-color:rgba(245,190,40,.4)}
+  .cl-card b{display:block;font-size:14.5px}.cl-card span{font-size:12.5px;color:var(--muted)}.cl-card i{font-style:normal;font-size:24px}
+  .cl-cm-h{display:flex;align-items:center;gap:10px;margin-bottom:8px}.cl-cm-h i{font-style:normal;font-size:22px}
+  .cl-cm-b{font-size:14.5px;line-height:1.45;white-space:pre-wrap;margin:0 0 4px}
+  .cl-cm-s{font-size:12px;color:var(--muted)}
+  .cl-cm-a{display:flex;gap:8px;margin-top:12px}.cl-cm-a .btn{flex:1;padding:10px;font-size:14px}
+  #in-ov .sheet{max-height:92dvh;overflow:auto}
+  .in-prog{display:flex;gap:5px;margin:2px 0 18px}.in-prog i{flex:1;height:4px;border-radius:4px;background:var(--line,rgba(255,255,255,.12))}.in-prog i.on{background:var(--brand,#00E896)}
+  .in-q{font-size:20px;font-weight:800;margin:0 0 4px}.in-s{font-size:13px;color:var(--muted);margin:0 0 14px}
+  .in-opts{display:flex;flex-direction:column;gap:9px}
+  .in-o{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 16px;border-radius:14px;border:1.5px solid var(--line,rgba(255,255,255,.14));background:transparent;color:var(--txt);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+  .in-o i{font-style:normal;font-size:22px;width:28px;text-align:center}
+  .in-o.on{border-color:var(--brand,#00E896);background:rgba(0,232,150,.1)}
+  .in-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+  .in-p{flex:1;min-width:64px;padding:14px 8px;border-radius:14px;border:1.5px solid var(--line,rgba(255,255,255,.14));background:transparent;color:var(--txt);font:inherit;font-size:16px;font-weight:800;cursor:pointer}
+  .in-p.on{border-color:var(--brand,#00E896);background:rgba(0,232,150,.1)}
+  .in-lbl{font-size:14px;font-weight:700;margin:0 0 8px}
+  .in-ta{width:100%;box-sizing:border-box;min-height:70px;padding:12px;border-radius:12px;border:1px solid var(--line,rgba(255,255,255,.14));background:transparent;color:var(--txt);font:inherit;font-size:14px;resize:vertical;margin-top:6px}
+  .in-nav{display:flex;gap:10px;margin-top:18px}.in-nav .btn{flex:1}`;
+  document.head.appendChild(s);
+})();
+
+let IN=null;
+function inOpen(){
+  IN={ step:0, a:{ zones:[] } };
+  let ov=document.getElementById('in-ov');
+  if(!ov){
+    ov=document.createElement('div'); ov.className='overlay'; ov.id='in-ov'; ov.innerHTML='<div class="sheet"><div class="grab"></div><div id="in-b"></div></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); });
+  }
+  inPaint(); ov.classList.add('show');
+}
+function inPaint(){
+  const b=document.getElementById('in-b'); if(!b||!IN) return;
+  const s=IN.step, a=IN.a, N=5;
+  const prog=`<div class="in-prog">${[0,1,2,3,4].map(i=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div>`;
+  const one=(key,q)=>`<p class="in-q">${clE(t(q))}</p><div class="in-opts" style="margin-top:14px">${IN_OPT[key].map(o=>`<button type="button" class="in-o ${a[key]===o[0]?'on':''}" data-k="${key}" data-v="${o[0]}"><i>${o[1]}</i>${clE(clL(o[2]))}</button>`).join('')}</div>`;
+  let h='';
+  if(s===0) h=one('goal','in_q1');
+  else if(s===1) h=one('level','in_q2');
+  else if(s===2) h=`<p class="in-q">${clE(t('in_q3'))}</p><div class="in-row" style="margin-top:14px">${[2,3,4,5].map(n=>`<button type="button" class="in-p ${a.days===n?'on':''}" data-d="${n}">${n}${n===5?'+':''}</button>`).join('')}</div>
+    <p class="in-lbl">${clE(t('in_q3b'))}</p><div class="in-row">${[30,45,60,75].map(n=>`<button type="button" class="in-p ${a.minutes===n?'on':''}" data-m="${n}">${n}${n===75?'+':''}′</button>`).join('')}</div>`;
+  else if(s===3) h=one('place','in_q4');
+  else h=`<p class="in-q">${clE(t('in_q5'))}</p><p class="in-s">${clE(t('in_q5s'))}</p>
+    <div class="in-row">${IN_OPT.zones.map(z=>`<button type="button" class="in-p ${a.zones.includes(z[0])?'on':''}" style="font-size:14px" data-z="${z[0]}">${clE(clL(z[1]))}</button>`).join('')}
+    <button type="button" class="in-p ${a.zones.length===0&&a.zok?'on':''}" style="font-size:14px;flex-basis:100%" data-z="">${clE(t('in_none'))}</button></div>
+    <p class="in-lbl">${clE(t('in_note'))}</p><textarea class="in-ta" id="in-note" maxlength="500" placeholder="${clE(t('in_note_ph'))}">${clE(a.note||'')}</textarea>
+    <div class="in-nav"><button type="button" class="btn subtle" id="in-prev">${clE(t('in_back'))}</button><button type="button" class="btn" id="in-go">${clE(t('in_send'))}</button></div>`;
+  if(s>0&&s<4&&s!==2) h+=`<div class="in-nav"><button type="button" class="btn subtle" id="in-prev">${clE(t('in_back'))}</button></div>`;
+  if(s===2) h+=`<div class="in-nav"><button type="button" class="btn subtle" id="in-prev">${clE(t('in_back'))}</button><button type="button" class="btn" id="in-nx" ${a.days&&a.minutes?'':'disabled'}>${clE(t('in_next'))}</button></div>`;
+  b.innerHTML=prog+h;
+  b.querySelectorAll('[data-k]').forEach(x=>x.onclick=()=>{ a[x.dataset.k]=x.dataset.v; x.classList.add('on'); setTimeout(()=>{ IN.step++; inPaint(); },160); });
+  b.querySelectorAll('[data-d]').forEach(x=>x.onclick=()=>{ a.days=+x.dataset.d; if(a.days&&a.minutes){ inPaint(); setTimeout(()=>{ IN.step++; inPaint(); },180); } else inPaint(); });
+  b.querySelectorAll('[data-m]').forEach(x=>x.onclick=()=>{ a.minutes=+x.dataset.m; if(a.days&&a.minutes){ inPaint(); setTimeout(()=>{ IN.step++; inPaint(); },180); } else inPaint(); });
+  b.querySelectorAll('[data-z]').forEach(x=>x.onclick=()=>{ const z=x.dataset.z; const n=document.getElementById('in-note'); if(n) a.note=n.value;
+    if(!z){ a.zones=[]; a.zok=true; } else { a.zok=false; a.zones=a.zones.includes(z)?a.zones.filter(y=>y!==z):[...a.zones,z]; } inPaint(); });
+  const pv=document.getElementById('in-prev'); if(pv) pv.onclick=()=>{ const n=document.getElementById('in-note'); if(n) a.note=n.value; IN.step=Math.max(0,s-1); inPaint(); };
+  const nx=document.getElementById('in-nx'); if(nx) nx.onclick=()=>{ IN.step++; inPaint(); };
+  const go=document.getElementById('in-go'); if(go) go.onclick=async()=>{
+    a.note=(document.getElementById('in-note').value||'').trim();
+    go.disabled=true;
+    const ans={ goal:a.goal, level:a.level, days:a.days, minutes:a.minutes, place:a.place, zones:a.zones, note:a.note||null, lang:LANG };
+    const { error }=await sb.rpc('my_intake_save',{ p_answers:ans });
+    if(error){ go.disabled=false; toast(t('in_err')); return; }
+    document.getElementById('in-ov').classList.remove('show'); toast(t('in_done')); IN=null; clHome();
+  };
+}
+
+/* Accueil : commentaires non lus, puis questionnaire a remplir. */
+async function clHome(){
+  const box=document.getElementById('home-cl'); if(!box||!USER) return;
+  let html='';
+  try{
+    const [cm, st]=await Promise.all([sb.rpc('my_coach_comments'), sb.rpc('my_intake_status')]);
+    const L=(cm&&cm.data)||[];
+    if(L.length){
+      const c=L[0];
+      const when=c.sd?new Date(c.sd).toLocaleDateString(LANG==='en'?'en-GB':LANG==='nl'?'nl-BE':'fr-BE',{weekday:'long',day:'numeric',month:'short'}):'';
+      html+=`<div class="cl-card" id="cl-cm"><div class="cl-cm-h"><i>💬</i><b>${clE(t('cm_title'))}</b></div>
+        <p class="cl-cm-b">${clE(c.body)}</p><div class="cl-cm-s">${clE(c.session||'')}${when?' · '+clE(when):''}${L.length>1?' · '+clE(t('cm_more').replace('{n}',L.length-1)):''}</div>
+        <div class="cl-cm-a"><button type="button" class="btn subtle" id="cl-cm-ok">${clE(t('cm_thanks'))}</button><button type="button" class="btn" id="cl-cm-re">${clE(t('cm_reply'))}</button></div></div>`;
+      box._cm=L;
+    }
+    const S=st&&st.data;
+    if(S&&S.has_coach&&!S.answers) html+=`<button type="button" class="cl-card in" id="cl-in"><i>📋</i><div><b>${clE(t('in_home'))}</b><span>${clE(t('in_home_s'))}</span></div></button>`;
+  }catch(_){}
+  box.innerHTML=html;
+  const seen=async(all)=>{ const L=box._cm||[]; const ids=all?L.map(x=>x.id):[L[0].id]; await sb.rpc('my_coach_comments_seen',{ p_ids:ids }); };
+  const ok=document.getElementById('cl-cm-ok'); if(ok) ok.onclick=async()=>{ ok.disabled=true; await seen(false); clHome(); };
+  const re=document.getElementById('cl-cm-re'); if(re) re.onclick=async()=>{ await seen(false); clHome(); try{ if(!COACH_THREAD) await loadCoachCard(); }catch(_){}
+    if(typeof COACH_THREAD!=='undefined'&&COACH_THREAD) openCoachChat(); else toast('—'); };
+  const inb=document.getElementById('cl-in'); if(inb) inb.onclick=inOpen;
+}
 
 
 /* ---------------- helpers ---------------- */
@@ -8825,6 +8964,7 @@ async function loadHome(){
   loadHomeCours();   /* C#16 : cours reserves a venir, si le membre en a */
   loadActivation();  /* D#21 : checklist, tant que les 4 etapes ne sont pas faites */
   suHomeNudge();
+  clHome();
 }
 
 /* ---- Mon programme (assigné par mon coach) ---- */
