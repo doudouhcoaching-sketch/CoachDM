@@ -2008,12 +2008,12 @@ function iaEngines(g,E,usd,k){
   <div class="ia-eng ${onMistral?'warn':''}"><span class="dot"></span><div><b>${onMistral?'Secours Mistral en service':'Gemini en service (gratuit)'}</b>
     <span>${g.last_model_at?'Dernier appel : '+E(new Date(g.last_model_at).toLocaleString('fr-BE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))+' · '+E(g.last_model||''):'Aucun appel encore.'}</span></div></div>
   <div class="ia-kpis">
-    <div class="ia-kpi"><small>Gemini aujourd’hui</small><b>${k(used)}${lim?' / '+k(lim):''} requêtes</b>
+    <div class="ia-kpi"><small>Gemini aujourd’hui</small><b>${k(used)}${lim?' / '+k(lim):''} réponses</b>
       ${lim?`<div class="ia-gauge"><i style="width:${pct}%" class="${pct>=80?'hi':''}"></i></div>`:''}
-      <span>${lim?(pct>=100?'Quota du jour atteint : le secours prend le relais.':'Reste ≈ '+k(Math.max(0,lim-used))+' requêtes.'):'Indique la limite lue dans Google AI Studio ↓'} Remise à zéro à ${E(reset)} (minuit en Californie).</span></div>
+      <span>${lim?(pct>=100?'Quota du jour atteint : le secours prend le relais.':'Reste ≈ '+k(Math.max(0,lim-used))+' (une réponse du Coach IA peut coûter 2 à 4 requêtes).'):'Indique la limite lue dans Google AI Studio ↓'} Remise à zéro à ${E(reset)} (minuit en Californie).</span></div>
     <div class="ia-kpi"><small>Mistral ce mois (secours)</small><b>${k(mm.calls)} requêtes</b>
       ${bud?`<div class="ia-gauge"><i style="width:${Math.min(100,Math.round(100*(+mm.est||0)/bud))}%"></i></div>`:''}
-      <span>≈ ${usd(mm.est)} sur ${usd(bud)} de crédit${g.mistral_ever?'':' · jamais utilisé pour l’instant (clé MISTRAL_API_KEY à vérifier)'}${mh?' · restant annoncé par Mistral : '+(mh.remaining_req!=null?mh.remaining_req+' req/min':'')+(mh.remaining_tok!=null?' · '+k(mh.remaining_tok)+' tokens':''):''}</span></div>
+      <span>${bud?'≈ '+usd(mm.est)+' sur '+usd(bud)+' de crédit':'Palier gratuit « Experiment » : pas de crédit, limité en débit (ministral-14b : 30 req/min)'}${g.mistral_ever?'':' · jamais utilisé pour l’instant (clé MISTRAL_API_KEY à vérifier)'}${mh?' · restant annoncé par Mistral : '+(mh.remaining_req!=null?mh.remaining_req+' req/min':'')+(mh.remaining_tok!=null?' · '+k(mh.remaining_tok)+' tokens':''):''}</span></div>
     <div class="ia-kpi"><small>Dernier quota atteint</small><b>${g.last_quota?E(new Date(g.last_quota.at).toLocaleString('fr-BE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})):'Jamais'}</b>
       <span>${g.last_quota?E(g.last_quota.engine+' · '+(g.last_quota.source==='assistant'?'Atelier':'Coach IA')+' · '+(g.last_quota.detail||'')):'Aucune limite touchée depuis la mise en place du journal.'}</span></div>
   </div>
