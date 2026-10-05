@@ -303,6 +303,10 @@ h1, h2,
         <button data-sub="my" data-i18n="c_sub_my">Mes apports</button>
       </div>
 
+      <a href="studio.html" id="studio-cta" style="display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;padding:16px;margin:0 0 14px;border-radius:18px;background:linear-gradient(135deg,rgba(0,232,150,.18),rgba(0,232,150,.05));border:1.5px solid rgba(0,232,150,.45)">
+        <span style="width:48px;height:48px;border-radius:15px;background:var(--brand);color:#03140C;display:grid;place-items:center;font-size:26px;font-weight:800;flex:none">＋</span>
+        <span style="flex:1"><b style="display:block;font-size:17px" data-i18n="c_studio_t">Atelier programmes</b>
+        <span style="display:block;color:var(--muted);font-size:13.5px;margin-top:2px" data-i18n="c_studio_s">Construis un programme semaine par semaine et envoie-le à ton client.</span></span></a>
       <div class="subpane active" id="sub-wk">
         <div class="toolbar"><div class="sub" style="text-align:left;margin:0"><span data-i18n="c_wk_hint">Une séance = une liste d'exercices. Tu l'assignes ensuite à un client depuis sa fiche.</span></div>
           <button class="btn sm" id="wk-new" data-i18n="c_wk_new">＋ Séance</button></div>
@@ -1346,6 +1350,8 @@ const T = {
  c_sub_my:{fr:'Mes apports',en:'My contributions',nl:'Mijn bijdragen'},
  c_wk_hint:{fr:'Une séance = une liste d\'exercices. Tu l\'assignes ensuite à un client depuis sa fiche.',en:'A workout is a list of exercises. You then assign it to a client from their profile.',nl:'Een training is een lijst oefeningen. Je wijst ze daarna toe aan een klant vanuit zijn fiche.'},
  c_wk_new:{fr:'＋ Séance',en:'＋ Workout',nl:'＋ Training'},
+ c_studio_t:{fr:'Atelier programmes',en:'Program studio',nl:'Programma-atelier'},
+ c_studio_s:{fr:'Construis un programme semaine par semaine et envoie-le à ton client.',en:'Build a program week by week and send it to your client.',nl:'Bouw een programma week per week en stuur het naar je klant.'},
  c_wk_q:{fr:'Rechercher : nom, type…',en:'Search: name, type…',nl:'Zoeken: naam, type…'},
  c_ex_hint:{fr:'Bibliothèque commune. Ta contribution rejoint la liste après validation.',en:'Shared library. Your contribution joins the list once approved.',nl:'Gedeelde bibliotheek. Je bijdrage komt in de lijst na goedkeuring.'},
  c_ex_new:{fr:'＋ Exercice',en:'＋ Exercise',nl:'＋ Oefening'},
@@ -2202,8 +2208,14 @@ async function renderCdPlan(cid, name){
   box.innerHTML=h;
   /* On laisse la fiche ouverte dessous : fermer l'écran des programmes doit
      ramener au client, pas à la liste. */
-  const nb=$('#cdp-new'); if(nb) nb.onclick=()=>openTrainPlans(cid,name);
-  const ob=$('#cdp-open'); if(ob) ob.onclick=()=>openTrainPlans(cid,name);
+  /* 05/10/2026 : creer et ouvrir passent par l'Atelier programmes (studio.html).
+     L'ancien ecran reste joignable par le petit lien « ancienne vue ». */
+  const nb=$('#cdp-new'); if(nb) nb.onclick=()=>{ location.href='studio.html?client='+encodeURIComponent(cid); };
+  const ob=$('#cdp-open'); if(ob) ob.onclick=()=>{ location.href='studio.html?client='+encodeURIComponent(cid)+(cur&&cur.id?'&plan='+encodeURIComponent(cur.id):''); };
+  const oldv=document.createElement('button'); oldv.type='button';
+  oldv.style.cssText='display:block;margin:8px auto 0;background:none;border:0;color:var(--muted);font-size:12.5px;text-decoration:underline;cursor:pointer';
+  oldv.textContent=({fr:'ancienne vue des programmes',en:'old programs view',nl:'oude programmaweergave'})[(typeof LANG!=='undefined'&&LANG)||'fr']||'ancienne vue des programmes';
+  oldv.onclick=()=>openTrainPlans(cid,name); box.appendChild(oldv);
 }
 
 /* ---- Appels vidéo (Lot 6) : créneaux ciblés, gating Coach+ ---- */
