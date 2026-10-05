@@ -343,7 +343,7 @@ h1, h2,
 
       <div class="subpane" id="sub-my">
         <div class="toolbar"><div class="sub" style="text-align:left;margin:0"><span data-i18n="c_my_hint">Ce que tu as ajouté à la bibliothèque commune.</span></div>
-          <button class="btn sm" id="my-food" data-i18n="c_my_food">＋ Aliment</button></div>
+          <button class="btn sm" id="my-food" data-i18n="c_my_food" style="display:none">＋ Aliment</button></div>
         <div id="my-body"><div class="spin"></div></div>
       </div>
     </div>
@@ -1568,6 +1568,14 @@ const T = {
  m_meals_failed:{fr:'Repas non enregistrés : ',en:'Meals not saved: ',nl:'Maaltijden niet opgeslagen: '},
  m_request_sent:{fr:'Demande envoyée — en attente de l\'accord du membre',en:'Request sent — waiting for the member to accept',nl:'Verzoek verstuurd — wacht op akkoord van het lid'},
  b_proposed_on:{fr:'Proposé le',en:'Proposed on',nl:'Voorgesteld op'},
+ my_ex:{fr:'Exercices',en:'Exercises',nl:'Oefeningen'},
+ my_fd:{fr:'Aliments',en:'Foods',nl:'Voedingsmiddelen'},
+ my_pending:{fr:'En attente',en:'Pending',nl:'In afwachting'},
+ my_load_err:{fr:'Chargement impossible.',en:'Could not load.',nl:'Laden mislukt.'},
+ my_fd_hint:{fr:'Les aliments que tu as ajoutés au journal (pour toi et tes clients). Ils rejoignent la base commune une fois validés par Coach DM.',en:'Foods you added to the food log (for you and your clients). They join the shared database once Coach DM approves them.',nl:'Voedingsmiddelen die je aan het dagboek toevoegde (voor jou en je klanten). Ze komen in de gedeelde databank zodra Coach DM ze goedkeurt.'},
+ my_ex_hint:{fr:'Les exercices que tu as ajoutés à la bibliothèque.',en:'Exercises you added to the library.',nl:'Oefeningen die je aan de bibliotheek toevoegde.'},
+ my_none_ex:{fr:'Aucun exercice ajouté pour l’instant. Crée-les dans l’Atelier : Ajouter des mouvements › ＋ Créer un exercice.',en:'No exercises added yet. Create them in the Studio: Add movements › ＋ Create an exercise.',nl:'Nog geen oefeningen toegevoegd. Maak ze in het Atelier: Bewegingen toevoegen › ＋ Oefening maken.'},
+ my_none_fd:{fr:'Aucun aliment ajouté pour l’instant.',en:'No foods added yet.',nl:'Nog geen voedingsmiddelen toegevoegd.'},
  m_macros_ok:{fr:'Macros cohérentes (~{0} kcal).',en:'Macros consistent (~{0} kcal).',nl:'Macro\'s kloppen (~{0} kcal).'},
  m_macros_warn:{fr:'Attention : tes macros donnent ~{0} kcal, tu as saisi {1}. Vérifie l\'étiquette.',en:'Careful: your macros give ~{0} kcal, you entered {1}. Check the label.',nl:'Let op: je macro\'s geven ~{0} kcal, je gaf {1} in. Controleer het etiket.'},
  m_name_food:{fr:'Donne un nom à l\'aliment.',en:'Give the food a name.',nl:'Geef het voedingsmiddel een naam.'},
@@ -3119,36 +3127,40 @@ document.querySelectorAll('.subswitch [data-sub]').forEach(b=>b.onclick=()=>{
    ici ce qu'il a proposé et où ça en est. La suppression reste réservée à
    l'admin : un apport validé sert à tout le monde, il ne doit pas pouvoir
    disparaître sur un clic. */
+let MY_C=null, MY_V='ex';
 async function loadMyContrib(){
   const box=$('#my-body'); if(!box) return;
   box.innerHTML='<div class="spin"></div>';
-  let d=null;
   try{
     const { data, error } = await sb.rpc('coach_my_contributions');
     if(error) throw error;
-    d=data||{};
-  }catch(e){ box.innerHTML='<p class="empty">Chargement impossible.</p>'; return; }
-  const exs=d.exercises||[], fds=d.foods||[];
-  if(!exs.length && !fds.length){
-    box.innerHTML=`<div class="item"><div class="meta" style="line-height:1.6"><span data-i18n="g_nothing_added">Tu n'as encore rien ajouté. Un exercice qui te manque ou un aliment que tes clients mangent souvent ? Ajoute-le : il te sert tout de suite, et rejoint la bibliothèque commune une fois validé.</span></div></div>`;
-    return;
-  }
-  let h='';
-  if(exs.length){
-    h+=`<div class="mini" style="margin:2px 0 7px">Exercices · ${exs.length}</div>`;
-    h+=exs.map(e=>`<div class="item acc" style="--a:${accentFor('ex')}">
-      <div class="nm">${esc(e.name_fr)} ${e.is_published?'<span class="pill ok"><span data-i18n="g_validated">Validé</span></span>':'<span class="pill warnp">En attente</span>'}${e.video_url?' <span class="pill vid"><span data-i18n="b_video">Vidéo</span></span>':''}</div>
-      <div class="meta">${tr('b_proposed_on')} ${dFR(e.created_at)}</div></div>`).join('');
-  }
-  if(fds.length){
-    h+=`<div class="mini" style="margin:14px 0 7px">Aliments · ${fds.length}</div>`;
-    h+=fds.map(f=>`<div class="item acc" style="--a:${accentFor('food')}">
-      <div class="nm">${esc(f.name_fr)} ${f.is_verified?'<span class="pill ok"><span data-i18n="g_validated">Validé</span></span>':'<span class="pill warnp">En attente</span>'}</div>
-      <div class="meta">${f.brand?esc(f.brand)+' · ':''}${tr('b_proposed_on')} ${dFR(f.created_at)}</div></div>`).join('');
-  }
-  h+=`<p class="sub" style="text-align:left;margin:14px 2px 0"><span data-i18n="b_pending_contrib">Un apport en attente est déjà utilisable par toi. Seul Coach DM peut le retirer.</span></p>`;
-  box.innerHTML=h;
+    MY_C=data||{};
+  }catch(e){ box.innerHTML=`<p class="empty">${tr('my_load_err')}</p>`; return; }
+  paintMyContrib();
 }
+/* Exercices et aliments ne se mélangent plus : deux vues séparées (6 oct. 2026). */
+function paintMyContrib(){
+  const box=$('#my-body'); if(!box||!MY_C) return;
+  const exs=(MY_C.exercises||[]).slice().sort((a,b)=>(a.is_published-b.is_published)||String(b.created_at).localeCompare(String(a.created_at)));
+  const fds=(MY_C.foods||[]).slice().sort((a,b)=>(a.is_verified-b.is_verified)||String(b.created_at).localeCompare(String(a.created_at)));
+  const fb=$('#my-food'); if(fb) fb.style.display = MY_V==='fd' ? '' : 'none';
+  const hint=document.querySelector('#sub-my [data-i18n="c_my_hint"]'); if(hint) hint.textContent = tr(MY_V==='fd'?'my_fd_hint':'my_ex_hint');
+  const pend=`<span class="pill warnp">${tr('my_pending')}</span>`, ok=`<span class="pill ok">${tr('g_validated')}</span>`;
+  let h=`<div class="subswitch" id="my-sw" style="margin:0 0 12px"><button data-v="ex" class="${MY_V==='ex'?'on':''}">${tr('my_ex')} · ${exs.length}</button><button data-v="fd" class="${MY_V==='fd'?'on':''}">${tr('my_fd')} · ${fds.length}</button></div>`;
+  if(MY_V==='ex'){
+    h+= exs.length ? exs.map(e=>`<div class="item acc" style="--a:${accentFor('ex')}">
+      <div class="nm">${esc((LANG==='en'&&e.name_en)||(LANG==='nl'&&e.name_nl)||e.name_fr)} ${e.is_published?ok:pend}${e.video_url?` <span class="pill vid">${tr('b_video')}</span>`:''}</div>
+      <div class="meta">${tr('b_proposed_on')} ${dFR(e.created_at)}</div></div>`).join('') : `<p class="empty">${tr('my_none_ex')}</p>`;
+  } else {
+    h+= fds.length ? fds.map(f=>`<div class="item acc" style="--a:${accentFor('food')}">
+      <div class="nm">${esc(f.name_fr)} ${f.is_verified?ok:pend}</div>
+      <div class="meta">${f.brand?esc(f.brand)+' · ':''}${tr('b_proposed_on')} ${dFR(f.created_at)}</div></div>`).join('') : `<p class="empty">${tr('my_none_fd')}</p>`;
+    h+=`<p class="sub" style="text-align:left;margin:14px 2px 0">${tr('b_pending_contrib')}</p>`;
+  }
+  box.innerHTML=h;
+  box.querySelectorAll('#my-sw button').forEach(b=>b.onclick=()=>{ MY_V=b.dataset.v; try{ sessionStorage.setItem('c_myv',MY_V); }catch(_){} paintMyContrib(); });
+}
+try{ MY_V=sessionStorage.getItem('c_myv')==='fd'?'fd':'ex'; }catch(_){}
 
 /* Création d'un aliment. Le contrôle de cohérence évite l'erreur de saisie
    la plus fréquente : des macros qui ne correspondent pas aux calories
