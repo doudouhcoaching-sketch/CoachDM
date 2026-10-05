@@ -228,13 +228,23 @@
   .ia-kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
   .ia-kpi small{display:block;color:var(--muted);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px}
   .ia-kpi b{display:block;font-size:22px;margin-top:5px}
-  .ia-kpi span{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+  .ia-kpi span{display:block;color:var(--muted);font-size:12px;margin-top:3px;overflow-wrap:anywhere}
   .ia-h{font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin:20px 2px 10px}
   .ia-bars{display:flex;align-items:flex-end;gap:3px;height:120px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px}
   .ia-bars i{flex:1;background:var(--brand);border-radius:4px 4px 1px 1px;min-height:2px;opacity:.85}
   .ia-row{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);font-size:14px}
   .ia-row span{color:var(--muted)}
   .ia-note{color:var(--muted);font-size:12.5px;line-height:1.5;margin-top:16px}
+  .ia-eng{display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid rgba(0,232,150,.35);border-radius:14px;padding:14px;margin-bottom:10px}
+  .ia-eng .dot{width:12px;height:12px;border-radius:50%;background:var(--brand);box-shadow:0 0 0 4px var(--brand-soft);flex:none}
+  .ia-eng.warn{border-color:rgba(217,182,92,.5)} .ia-eng.warn .dot{background:var(--gold);box-shadow:0 0 0 4px rgba(217,182,92,.18)}
+  .ia-eng b{display:block} .ia-eng span{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+  .ia-gauge{height:8px;border-radius:99px;background:var(--surface-2);margin:8px 0 2px;overflow:hidden}
+  .ia-gauge i{display:block;height:100%;background:var(--brand)} .ia-gauge i.hi{background:var(--warn)}
+  .ia-limits{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin:4px 0}
+  .ia-limits label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);font-weight:700}
+  .ia-limits input{width:150px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--text)}
+  .ia-limits button{padding:10px 16px;border-radius:10px;border:0;background:var(--brand);color:#04120a;font-weight:800}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap">
 <style>
@@ -1953,7 +1963,7 @@ let IA_DAYS=30;
 document.querySelectorAll('#ia-days button').forEach(b=>b.onclick=()=>{ IA_DAYS=+b.dataset.d; document.querySelectorAll('#ia-days button').forEach(x=>x.classList.toggle('on',x===b)); loadIA(); });
 async function loadIA(){
   const box=$('#ia-body'); if(!box) return; box.innerHTML='<div class="spin"></div>';
-  const { data:r, error } = await sb.rpc('admin_ai_usage',{ p_days:IA_DAYS });
+  const [{ data:r, error }, { data:eng }] = await Promise.all([sb.rpc('admin_ai_usage',{ p_days:IA_DAYS }), sb.rpc('admin_ai_engines')]);
   if(error||!r){ box.innerHTML='<p class="empty">Erreur de chargement.</p>'; return; }
   const E=(x)=>String(x==null?'':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const src=(k)=>(r.by_src||[]).find(x=>x.src===k)||{calls:0,tin:0,tout:0,est:0};
@@ -1963,7 +1973,7 @@ async function loadIA(){
   const per=(x)=>x.calls? usd(x.est/x.calls*100).replace('$','')+' ¢' : '—';
   const progs=(r.programs||[]).reduce((s,x)=>s+x.n,0);
   const daily=r.daily||[]; const mx=Math.max(1,...daily.map(d=>d.calls));
-  box.innerHTML=`<div class="ia-kpis">
+  box.innerHTML=iaEngines(eng,E,usd,k)+`<div class="ia-h">Consommation</div><div class="ia-kpis">
       <div class="ia-kpi"><small>Coût si payant</small><b>${usd((+ia.est||0)+(+as.est||0))}</b><span>sur ${IA_DAYS} jours · facture réelle : 0 (palier gratuit)</span></div>
       <div class="ia-kpi"><small>Coach IA (membres)</small><b>${k(ia.calls)} réponses</b><span>${k((+ia.tin||0)+(+ia.tout||0))} tokens · ${per(ia)} / réponse</span></div>
       <div class="ia-kpi"><small>Assistant Atelier</small><b>${k(as.calls)} demandes</b><span>${k((+as.tin||0)+(+as.tout||0))} tokens · ${per(as)} / demande</span></div>
@@ -1976,7 +1986,40 @@ async function loadIA(){
     ${(r.programs||[]).map(x=>`<div class="ia-row"><b>${E(x.coach)}</b><span>${x.n} (aujourd’hui ${x.today}/20)</span></div>`).join('')||'<p class="empty">Aucun pour l’instant.</p>'}
     <div class="ia-h">Plus gros utilisateurs du Coach IA</div>
     ${(r.top_members||[]).map(x=>`<div class="ia-row"><b>${E(x.who||'—')}</b><span>${x.calls} réponses · ${k(x.tokens)} tokens</span></div>`).join('')||'<p class="empty">Aucun.</p>'}
+    <div class="ia-h">Journal des moteurs (quota, bascules, erreurs)</div>
+    ${((eng&&eng.events)||[]).map(x=>`<div class="ia-row"><b>${E(new Date(x.at).toLocaleString('fr-BE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))} · ${E(x.engine)} · ${E({quota:'quota atteint',fallback:'bascule vers Mistral',error:'erreur'}[x.event]||x.event)}</b><span>${E(x.source==='assistant'?'Atelier':'Coach IA')} ${E(x.detail||'')}</span></div>`).join('')||'<p class="empty">Rien à signaler : aucun quota atteint, aucune bascule.</p>'}
     <p class="ia-note">Tarifs utilisés : Gemini 2.5 Flash 0,30 $ / 2,50 $ par million de tokens (envoyés / reçus), Mistral Small 0,15 $ / 0,60 $. Limites : 20 programmes générés et 60 lectures de demande par jour et par coach ; l’admin n’a pas de limite.</p>`;
+}
+
+function iaEngines(g,E,usd,k){
+  if(!g) return '';
+  const st=g.settings||{}; const lim=st.gemini_rpd_limit; const used=g.gemini_today||0;
+  const pct=lim?Math.min(100,Math.round(100*used/lim)):null;
+  const recentFb=g.last_fallback && (Date.now()-new Date(g.last_fallback).getTime()<15*60*1000);
+  const onMistral=recentFb || /mistral/.test(g.last_model||'') && (Date.now()-new Date(g.last_model_at).getTime()<15*60*1000);
+  const mm=g.mistral_month||{calls:0,est:0}; const bud=+st.mistral_budget||0;
+  const mh=g.mistral_headers;
+  const reset=new Date(g.gemini_reset_at).toLocaleTimeString('fr-BE',{hour:'2-digit',minute:'2-digit'});
+  setTimeout(()=>{ const b=document.getElementById('ia-lim-save'); if(b) b.onclick=async()=>{
+    const v=parseInt(document.getElementById('ia-lim-g').value,10)||0, m=parseFloat(String(document.getElementById('ia-lim-m').value).replace(',','.'));
+    const { error } = await sb.rpc('admin_set_ai_limits',{ p_gemini_rpd:v, p_mistral_budget:isFinite(m)?m:null });
+    if(error) alert('Échec'); else loadIA(); }; },0);
+  return `<div class="ia-h">Moteurs en ce moment</div>
+  <div class="ia-eng ${onMistral?'warn':''}"><span class="dot"></span><div><b>${onMistral?'Secours Mistral en service':'Gemini en service (gratuit)'}</b>
+    <span>${g.last_model_at?'Dernier appel : '+E(new Date(g.last_model_at).toLocaleString('fr-BE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}))+' · '+E(g.last_model||''):'Aucun appel encore.'}</span></div></div>
+  <div class="ia-kpis">
+    <div class="ia-kpi"><small>Gemini aujourd’hui</small><b>${k(used)}${lim?' / '+k(lim):''} requêtes</b>
+      ${lim?`<div class="ia-gauge"><i style="width:${pct}%" class="${pct>=80?'hi':''}"></i></div>`:''}
+      <span>${lim?(pct>=100?'Quota du jour atteint : le secours prend le relais.':'Reste ≈ '+k(Math.max(0,lim-used))+' requêtes.'):'Indique la limite lue dans Google AI Studio ↓'} Remise à zéro à ${E(reset)} (minuit en Californie).</span></div>
+    <div class="ia-kpi"><small>Mistral ce mois (secours)</small><b>${k(mm.calls)} requêtes</b>
+      ${bud?`<div class="ia-gauge"><i style="width:${Math.min(100,Math.round(100*(+mm.est||0)/bud))}%"></i></div>`:''}
+      <span>≈ ${usd(mm.est)} sur ${usd(bud)} de crédit${g.mistral_ever?'':' · jamais utilisé pour l’instant (clé MISTRAL_API_KEY à vérifier)'}${mh?' · restant annoncé par Mistral : '+(mh.remaining_req!=null?mh.remaining_req+' req/min':'')+(mh.remaining_tok!=null?' · '+k(mh.remaining_tok)+' tokens':''):''}</span></div>
+    <div class="ia-kpi"><small>Dernier quota atteint</small><b>${g.last_quota?E(new Date(g.last_quota.at).toLocaleString('fr-BE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})):'Jamais'}</b>
+      <span>${g.last_quota?E(g.last_quota.engine+' · '+(g.last_quota.source==='assistant'?'Atelier':'Coach IA')+' · '+(g.last_quota.detail||'')):'Aucune limite touchée depuis la mise en place du journal.'}</span></div>
+  </div>
+  <div class="ia-limits"><label>Limite Gemini / jour (AI Studio)<input id="ia-lim-g" type="number" min="0" value="${lim||''}" placeholder="ex. 250"></label>
+    <label>Crédit Mistral / mois ($)<input id="ia-lim-m" type="number" step="0.5" min="0" value="${bud||''}"></label><button id="ia-lim-save">Enregistrer</button></div>
+  <p class="ia-note" style="margin-top:6px">Ni Google ni Mistral ne donnent le « restant » du palier gratuit : ces compteurs viennent de nos propres journaux. La limite exacte se lit dans Google AI Studio › Rate limits ; Gemini et Mistral ne sont jamais facturés tant que tu restes en gratuit.</p>`;
 }
 </script>
 <a id="cdm-backapp" href="app.html" style="position:fixed;left:14px;bottom:14px;z-index:9999;background:#0c1210;color:#00E896;border:1px solid #1e2a25;border-radius:999px;padding:10px 16px;font:600 14px/1 -apple-system,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.4)">&#8249; App</a>
