@@ -94,6 +94,23 @@ input,textarea,select{font-family:inherit;font-size:16px;color:var(--text)}
 .steps i.on{background:var(--brand)}
 .q{font-size:24px;font-weight:800;margin:0 0 6px;letter-spacing:-.015em}
 .qsub{color:var(--muted);font-size:15px;margin:0 0 18px;line-height:1.45}
+.tdcard{align-items:flex-start;cursor:pointer}
+.tdcard.hot{border-color:rgba(255,100,100,.45)}
+.tdchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tdchip{font-size:12.5px;font-weight:700;padding:5px 10px;border-radius:999px;background:var(--s3);color:var(--muted)}
+.tdchip.l2{background:var(--redsoft);color:var(--red)}
+.tdchip.l1{background:var(--goldsoft);color:var(--gold)}
+.tdwk{font-weight:700}
+.tdacts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.tdb{display:inline-flex;align-items:center;gap:6px;padding:9px 13px;border-radius:12px;background:var(--s2,var(--s3));border:1px solid var(--line);font-weight:700;font-size:13.5px;color:inherit}
+.tdb .ic{width:16px;height:16px}
+.tdstats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:18px}
+.tdstats>div{background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:12px}
+.tdstats small{display:block;color:var(--muted);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+.tdstats b{display:block;font-size:16px;margin-top:4px}
+.tdstats span{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.tdbig{display:flex;flex-direction:column;gap:10px}
+.tdall{display:flex;align-items:center;gap:10px;margin:22px 2px;color:var(--muted);font-size:14px}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .tile{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 10px;border-radius:var(--r);background:var(--s1);
   border:2px solid var(--line);text-align:center;font-weight:700;font-size:15px}
@@ -569,7 +586,7 @@ async function boot() {
   ME = prof;
   try { CLIENTS = (await rpc('coach_list_clients')) || []; } catch (_) { CLIENTS = []; }
   CLIENTS = CLIENTS.filter((c) => c.link_status !== 'ended' && c.link_status !== 'archived');
-  go(HOME_TAB === 'nutri' ? viewNutriHome : viewHome);
+  go(homeView());
   loadAnim();
   const q = new URLSearchParams(location.search);
   const c = q.get('client') && CLIENTS.find((x) => x.client_id === q.get('client'));
@@ -822,7 +839,7 @@ async function savePlan(status, leave = false, quiet = false) {
     await rpc('coach_set_plan_items', { p_plan: id, p_items: items });
     P.status = status; P.dirty = false; HOME_PLANS = null;
     if (!quiet) toast(status === 'active' ? t('sent', { n: firstName(P.client) }) : status === 'archived' ? t('archived') : t('saved'));
-    if (leave || status === 'archived') { STACK.length = 0; go(viewHome); } else if (!quiet) viewPlan();
+    if (leave || status === 'archived') { STACK.length = 0; HOME_TAB = 'prog'; go(viewHome); } else if (!quiet) viewPlan();
   } catch (e) { toast(errMsg(e), true); }
   finally { btns.forEach((b) => b.disabled = false); }
 }
@@ -1219,12 +1236,13 @@ const GOALS = [['lose_fat', 'g_lose'], ['maintain', 'g_keep'], ['build_muscle', 
 const r5 = (x) => Math.round(x / 5) * 5;
 const nf = (x, d = 0) => (Math.round((+x || 0) * 10 ** d) / 10 ** d).toLocaleString(loc());
 
-let HOME_TAB = 'prog';
-try { if (new URLSearchParams(location.search).get('tab') === 'nutri') HOME_TAB = 'nutri'; } catch (_) {}
+let HOME_TAB = 'today';
+try { const q = new URLSearchParams(location.search); const tb = q.get('tab'); if (['nutri', 'prog', 'today'].includes(tb)) HOME_TAB = tb; else if (q.get('client')) HOME_TAB = 'prog'; } catch (_) {}
+const homeView = () => HOME_TAB === 'nutri' ? viewNutriHome : HOME_TAB === 'prog' ? viewHome : viewToday;
 function homeTabs() {
-  return `<div class="tabs" id="h-tabs" style="max-width:460px"><button data-h="prog" class="${HOME_TAB === 'prog' ? 'on' : ''}">${esc(t('tab_prog'))}</button><button data-h="nutri" class="${HOME_TAB === 'nutri' ? 'on' : ''}">${esc(t('tab_nutri'))}</button></div>`;
+  return `<div class="tabs" id="h-tabs" style="max-width:560px"><button data-h="today" class="${HOME_TAB === 'today' ? 'on' : ''}">${esc(t('tab_today'))}</button><button data-h="prog" class="${HOME_TAB === 'prog' ? 'on' : ''}">${esc(t('tab_prog'))}</button><button data-h="nutri" class="${HOME_TAB === 'nutri' ? 'on' : ''}">${esc(t('tab_nutri'))}</button></div>`;
 }
-function bindHomeTabs() { $$('#h-tabs button').forEach((b) => b.onclick = () => { HOME_TAB = b.dataset.h; STACK.length = 0; go(HOME_TAB === 'nutri' ? viewNutriHome : viewHome); }); }
+function bindHomeTabs() { $$('#h-tabs button').forEach((b) => b.onclick = () => { HOME_TAB = b.dataset.h; STACK.length = 0; go(homeView()); }); }
 
 /* ---------------- accueil nutrition ---------------- */
 function viewNutriHome() {
@@ -1527,7 +1545,156 @@ async function saveMP() {
   } catch (e) { toast(errMsg(e), true); btn.disabled = false; }
 }
 
+/* =====================================================================
+   AUJOURD'HUI — ce qui demande ton attention, client par client.
+   Lecture seule : studio_today(). Les actions renvoient vers les outils
+   existants (Atelier programmes / nutrition, messagerie de coach.html).
+   ===================================================================== */
+Object.assign(TX, {
+  tab_today: { fr: 'Aujourd’hui', en: 'Today', nl: 'Vandaag' },
+  td_hero0: { fr: 'Tout roule. Personne n’a besoin de toi pour l’instant 👌', en: 'All good. Nobody needs you right now 👌', nl: 'Alles loopt. Niemand heeft je nu nodig 👌' },
+  td_hero: { fr: '{n} client(s) ont besoin de toi.', en: '{n} client(s) need you.', nl: '{n} klant(en) hebben je nodig.' },
+  td_todo: { fr: 'À traiter', en: 'To do', nl: 'Te doen' },
+  td_ok: { fr: 'Tout va bien', en: 'On track', nl: 'Op schema' },
+  td_unread: { fr: '{n} message(s) non lu(s)', en: '{n} unread message(s)', nl: '{n} ongelezen bericht(en)' },
+  td_checkin: { fr: 'Bilan à relire', en: 'Check-in to review', nl: 'Check-in na te lezen' },
+  td_missed: { fr: '{n} séance(s) manquée(s) cette semaine', en: '{n} missed session(s) this week', nl: '{n} gemiste training(en) deze week' },
+  td_ended: { fr: 'Programme terminé, prépare la suite', en: 'Program finished, plan what’s next', nl: 'Programma afgelopen, plan het vervolg' },
+  td_ends: { fr: 'Programme fini dans {n} j', en: 'Program ends in {n} d', nl: 'Programma eindigt over {n} d' },
+  td_noplan: { fr: 'Pas de programme', en: 'No program', nl: 'Geen programma' },
+  td_nofood: { fr: 'Aucun repas noté depuis {n} j', en: 'No meals logged for {n} d', nl: 'Geen maaltijden genoteerd sinds {n} d' },
+  td_nofood0: { fr: 'N’a jamais noté ses repas', en: 'Has never logged meals', nl: 'Heeft nog nooit maaltijden genoteerd' },
+  td_idle: { fr: 'Pas entraîné depuis {n} j', en: 'No training for {n} d', nl: '{n} d niet getraind' },
+  td_notarget: { fr: 'Pas d’objectif calories', en: 'No calorie target', nl: 'Geen caloriedoel' },
+  td_week: { fr: 'Semaine : {d}/{n} séances', en: 'Week: {d}/{n} sessions', nl: 'Week: {d}/{n} trainingen' },
+  td_msg: { fr: 'Écrire', en: 'Message', nl: 'Bericht' },
+  td_prog: { fr: 'Programme', en: 'Program', nl: 'Programma' },
+  td_food: { fr: 'Nutrition', en: 'Nutrition', nl: 'Voeding' },
+  td_new: { fr: 'Nouveau programme', en: 'New program', nl: 'Nieuw programma' },
+  td_open: { fr: 'Ouvrir son programme', en: 'Open program', nl: 'Programma openen' },
+  td_calc: { fr: 'Calories et repas', en: 'Calories & meals', nl: 'Calorieën en maaltijden' },
+  td_last_s: { fr: 'Dernière séance', en: 'Last session', nl: 'Laatste training' },
+  td_last_f: { fr: 'Derniers repas notés', en: 'Last meals logged', nl: 'Laatste maaltijden' },
+  td_weight: { fr: 'Poids', en: 'Weight', nl: 'Gewicht' },
+  td_30d: { fr: '{s} kg en 30 j', en: '{s} kg in 30 d', nl: '{s} kg in 30 d' },
+  td_never: { fr: 'jamais', en: 'never', nl: 'nooit' },
+  td_today: { fr: 'aujourd’hui', en: 'today', nl: 'vandaag' },
+  td_ago: { fr: 'il y a {n} j', en: '{n} d ago', nl: '{n} d geleden' },
+  td_plan: { fr: 'Programme en cours', en: 'Current program', nl: 'Huidig programma' },
+  td_until: { fr: 'jusqu’au {d}', en: 'until {d}', nl: 'tot {d}' },
+  td_members: { fr: 'Afficher aussi les membres de l’app', en: 'Also show app members', nl: 'Ook app-leden tonen' },
+});
+
+let TD = null, TD_ALL = false;
+const daysSince = (d) => d ? Math.floor((Date.now() - new Date(String(d).length <= 10 ? d + 'T12:00:00' : d).getTime()) / 864e5) : null;
+const agoTxt = (d) => { const n = daysSince(d); return n == null ? t('td_never') : n <= 0 ? t('td_today') : t('td_ago', { n }); };
+
+function tdIssues(r) {
+  const out = []; // [niveau 2=rouge 1=or 0=gris, texte, action]
+  if (r.unread > 0) out.push([2, t('td_unread', { n: r.unread }), 'msg']);
+  if (r.checkins_todo > 0) out.push([1, t('td_checkin'), 'msg']);
+  if (!r.personal) return out;
+  if (r.missed_7d > 0) out.push([2, t('td_missed', { n: r.missed_7d }), 'msg']);
+  const today = iso(new Date());
+  if (r.active_plan && r.plan_end && r.plan_end < today) out.push([1, t('td_ended'), 'new']);
+  else if (r.active_plan && r.plan_end) { const n = -daysSince(r.plan_end); if (n <= 7) out.push([1, t('td_ends', { n }), 'new']); }
+  if (!r.active_plan) out.push([1, t('td_noplan'), 'new']);
+  const idle = daysSince(r.last_session_at);
+  if (r.active_plan && idle != null && idle >= 10) out.push([1, t('td_idle', { n: idle }), 'msg']);
+  if (!r.has_targets) out.push([0, t('td_notarget'), 'food']);
+  else { const f = daysSince(r.last_food); if (f == null) out.push([0, t('td_nofood0'), 'food']); else if (f >= 3) out.push([0, t('td_nofood', { n: f }), 'food']); }
+  return out;
+}
+
+async function viewToday() {
+  PLAN = null; setTitle(t('tab_today')); dock('');
+  const v = $('#view');
+  v.innerHTML = homeTabs() + `<div id="td"><div class="load" style="min-height:160px"><div class="spin"></div></div></div>`;
+  bindHomeTabs();
+  try { TD = (await rpc('studio_today')) || []; } catch (e) { $('#td').innerHTML = `<div class="empty">${esc(errMsg(e))}</div>`; return; }
+  paintToday();
+}
+
+function paintToday() {
+  const el = $('#td'); if (!el) return;
+  const rows = TD.map((r) => ({ r, c: CLIENTS.find((x) => x.client_id === r.client_id) || { client_id: r.client_id, full_name: r.full_name, email: r.email }, is: tdIssues(r) }))
+    .filter((x) => x.r.personal || x.is.length || TD_ALL);
+  const score = (x) => x.is.reduce((s, i) => s + [1, 10, 100][i[0]], 0);
+  const todo = rows.filter((x) => x.is.some((i) => i[0] > 0)).sort((a, b) => score(b) - score(a));
+  const ok = rows.filter((x) => !todo.includes(x));
+  TD._rows = rows;
+  const hasMembers = TD.some((r) => !r.personal);
+  el.innerHTML = `<div class="hero"><p>${esc(todo.length ? t('td_hero', { n: todo.length }) : t('td_hero0'))}</p></div>` +
+    (todo.length ? `<div class="sect">${esc(t('td_todo'))} · ${todo.length}</div><div class="plist">${todo.map(tdCard).join('')}</div>` : '') +
+    (ok.length ? `<div class="sect">${esc(t('td_ok'))} · ${ok.length}</div><div class="plist">${ok.map(tdCard).join('')}</div>` : '') +
+    (hasMembers ? `<label class="tdall"><input type="checkbox" id="td-all" ${TD_ALL ? 'checked' : ''}> ${esc(t('td_members'))}</label>` : '');
+  const all = $('#td-all'); if (all) all.onchange = () => { TD_ALL = all.checked; paintToday(); };
+  $$('[data-td]', el).forEach((b) => b.onclick = (e) => {
+    e.stopPropagation();
+    const x = rows.find((y) => y.r.client_id === b.dataset.id); if (!x) return;
+    tdAct(b.dataset.td, x);
+  });
+  $$('.tdcard', el).forEach((b) => b.onclick = () => { const x = rows.find((y) => y.r.client_id === b.dataset.id); if (x) openClient360(x); });
+}
+
+function tdCard(x) {
+  const { r, c, is } = x;
+  const wk = r.planned_7d ? `<span class="tdwk">${esc(t('td_week', { d: r.done_7d, n: r.planned_7d }))}</span>` : '';
+  const chips = is.map((i) => `<span class="tdchip l${i[0]}">${esc(i[1])}</span>`).join('');
+  const lvl = is.reduce((m, i) => Math.max(m, i[0]), -1);
+  return `<div class="pcard tdcard ${lvl === 2 ? 'hot' : ''}" data-id="${r.client_id}" role="button" tabindex="0">
+    <div class="av">${esc(initials(c.full_name || c.email))}</div>
+    <div class="tx"><b>${esc(c.full_name || c.email || '—')}</b>
+      <div class="meta">${r.active_plan_title ? esc(r.active_plan_title) + ' · ' : ''}${wk || esc(t('td_last_s')) + ' : ' + esc(agoTxt(r.last_session_at))}</div>
+      ${chips ? `<div class="tdchips">${chips}</div>` : ''}
+      <div class="tdacts">
+        <button class="tdb" data-td="msg" data-id="${r.client_id}">${ic('send')}${esc(t('td_msg'))}</button>
+        <button class="tdb" data-td="${r.active_plan ? 'open' : 'new'}" data-id="${r.client_id}">${ic('cal')}${esc(t('td_prog'))}</button>
+        <button class="tdb" data-td="food" data-id="${r.client_id}">${ic('bolt')}${esc(t('td_food'))}</button>
+      </div></div></div>`;
+}
+
+async function tdAct(a, x) {
+  const { r, c } = x;
+  closeSheet('ov');
+  if (a === 'msg') { location.href = 'coach.html?chat=' + encodeURIComponent(r.client_id) + '&n=' + encodeURIComponent(firstName(c) || ''); return; }
+  if (a === 'food') return openNutriClient(c);
+  if (a === 'new') return startWizard(c);
+  if (a === 'open') {
+    try {
+      const pl = (await rpc('coach_list_plans', { p_client: r.client_id })) || [];
+      const p = pl.find((y) => y.id === r.active_plan);
+      if (p) return openPlan({ ...p, client: c });
+    } catch (e) { toast(errMsg(e), true); return; }
+    return startWizard(c);
+  }
+}
+
+function openClient360(x) {
+  const { r, c, is } = x;
+  const w = r.last_weight != null ? nf(r.last_weight, 1) + ' kg' : '—';
+  const dw = r.weight_delta_30d != null ? t('td_30d', { s: (r.weight_delta_30d > 0 ? '+' : '') + nf(r.weight_delta_30d, 1) }) : '';
+  const pct = r.planned_7d ? Math.round(100 * r.done_7d / r.planned_7d) : null;
+  const sh = openSheet('ov', shHead(c.full_name || c.email || '—', 'ov') + `<div class="sh-b">
+    ${is.length ? `<div class="tdchips" style="margin:0 0 14px">${is.map((i) => `<span class="tdchip l${i[0]}">${esc(i[1])}</span>`).join('')}</div>` : ''}
+    <div class="tdstats">
+      <div><small>${esc(t('td_plan'))}</small><b>${esc(r.active_plan_title || '—')}</b>${r.plan_end ? `<span>${esc(t('td_until', { d: fmtShort(parse(r.plan_end)) }))}</span>` : ''}</div>
+      <div><small>7 j</small><b>${pct == null ? '—' : pct + ' %'}</b>${r.planned_7d ? `<span>${r.done_7d}/${r.planned_7d}</span>` : ''}</div>
+      <div><small>${esc(t('td_last_s'))}</small><b>${esc(agoTxt(r.last_session_at))}</b></div>
+      <div><small>${esc(t('td_last_f'))}</small><b>${esc(agoTxt(r.last_food))}</b></div>
+      <div><small>${esc(t('td_weight'))}</small><b>${esc(w)}</b>${dw ? `<span>${esc(dw)}</span>` : ''}</div>
+    </div>
+    <div class="tdbig">
+      <button class="btn main block" data-a="msg">${ic('send')} ${esc(t('td_msg'))}</button>
+      ${r.active_plan ? `<button class="btn block" data-a="open">${ic('cal')} ${esc(t('td_open'))}</button>` : ''}
+      <button class="btn block" data-a="new">${ic('plus')} ${esc(t('td_new'))}</button>
+      <button class="btn block" data-a="food">${ic('bolt')} ${esc(t('td_calc'))}</button>
+    </div></div>`);
+  $$('[data-a]', sh).forEach((b) => b.onclick = () => tdAct(b.dataset.a, x));
+}
+
 boot().catch((e) => { console.error(e); $('#view').innerHTML = `<div class="gate"><h2>${esc(t('err'))}</h2><p>${esc(String(e && e.message || e))}</p></div>`; });
+
 
 </script>
 </body>
