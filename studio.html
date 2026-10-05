@@ -128,6 +128,18 @@ input,textarea,select{font-family:inherit;font-size:16px;color:var(--text)}
 .c3spark{width:100%;height:70px;background:var(--s1);border-radius:12px;border:1px solid var(--line)}
 .c3spark polyline{fill:none;stroke:var(--brand);stroke-width:2.5;vector-effect:non-scaling-stroke}
 .c3saved{color:var(--muted);font-size:13px;margin-top:8px;min-height:18px}
+.suci{background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:10px}
+.suci.new{border-color:rgba(233,199,103,.5)}
+.suci-h{display:flex;align-items:center;gap:8px;margin-bottom:8px}.suci-h b{flex:1}
+.suci-r{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:13px;color:var(--muted)}
+.suci-n{margin:10px 0 0;font-size:14.5px;line-height:1.5}
+.suci-fb{margin:10px 0 0;font-size:13.5px;line-height:1.5;color:var(--brand);background:var(--brandsoft);border-radius:10px;padding:9px 11px}
+.suci .astxt{min-height:80px;margin-top:10px}
+.suhab{display:flex;gap:8px;margin-top:10px}.suhab .astitle{flex:1}.suhab .btn{flex:none;white-space:nowrap}
+.suph{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.suph a{position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:var(--s1);border:1px solid var(--line)}
+.suph img{width:100%;height:100%;object-fit:cover;display:block}
+.suph span{position:absolute;left:0;right:0;bottom:0;padding:14px 6px 5px;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.7))}
 .tdcard{align-items:flex-start;cursor:pointer}
 .tdcard.hot{border-color:rgba(255,100,100,.45)}
 .tdchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -1739,6 +1751,23 @@ Object.assign(TX, {
   c3_food: { fr: 'Nutrition', en: 'Nutrition', nl: 'Voeding' },
   c3_health: { fr: 'Santé', en: 'Health', nl: 'Gezondheid' },
   c3_notes: { fr: 'Notes', en: 'Notes', nl: 'Notities' },
+  c3_suivi: { fr: 'Bilans', en: 'Check-ins', nl: 'Check-ins' },
+  su_ci: { fr: 'Bilans de la semaine', en: 'Weekly check-ins', nl: 'Wekelijkse check-ins' },
+  su_none_ci: { fr: 'Pas encore de bilan. Ton client le remplit dans l’app : Profil › Mon suivi (un rappel s’affiche sur son accueil du vendredi au lundi).', en: 'No check-in yet. Your client fills it in the app: Profile › My progress (a reminder shows on their home screen Friday to Monday).', nl: 'Nog geen check-in. Je klant vult hem in de app in: Profiel › Mijn opvolging (een herinnering verschijnt vrijdag tot maandag op het startscherm).' },
+  su_week_of: { fr: 'Semaine du {d}', en: 'Week of {d}', nl: 'Week van {d}' },
+  su_new: { fr: 'À lire', en: 'To read', nl: 'Te lezen' },
+  su_read: { fr: 'Lu', en: 'Read', nl: 'Gelezen' },
+  su_energy: { fr: 'Énergie', en: 'Energy', nl: 'Energie' }, su_sleep: { fr: 'Sommeil', en: 'Sleep', nl: 'Slaap' }, su_stress: { fr: 'Stress', en: 'Stress', nl: 'Stress' }, su_sore: { fr: 'Courbatures', en: 'Soreness', nl: 'Spierpijn' }, su_adh: { fr: 'Plan suivi', en: 'Plan followed', nl: 'Plan gevolgd' },
+  su_reply_ph: { fr: 'Ta réponse : elle s’affiche dans son app, sous son bilan.', en: 'Your reply: it shows in their app, under their check-in.', nl: 'Je antwoord: het verschijnt in zijn app, onder zijn check-in.' },
+  su_reply: { fr: 'Répondre et marquer comme lu', en: 'Reply and mark as read', nl: 'Antwoorden en als gelezen markeren' },
+  su_replied: { fr: 'Réponse envoyée ✓', en: 'Reply sent ✓', nl: 'Antwoord verstuurd ✓' },
+  su_hab: { fr: 'Habitudes (cette semaine)', en: 'Habits (this week)', nl: 'Gewoontes (deze week)' },
+  su_hab_add: { fr: 'Lui donner une habitude', en: 'Give them a habit', nl: 'Een gewoonte geven' },
+  su_hab_ph: { fr: 'Ex. : 8 000 pas', en: 'E.g. 8,000 steps', nl: 'Bv. 8.000 stappen' },
+  su_meas: { fr: 'Mensurations', en: 'Measurements', nl: 'Lichaamsmaten' },
+  su_ph: { fr: 'Photos partagées avec toi', en: 'Photos shared with you', nl: 'Foto’s gedeeld met jou' },
+  su_ph_none: { fr: 'Aucune photo partagée. Ton client choisit lui-même s’il te les montre.', en: 'No shared photos. Your client decides whether to show them.', nl: 'Geen gedeelde foto’s. Je klant beslist zelf of hij ze toont.' },
+  m_waist_cm: { fr: 'Taille', en: 'Waist', nl: 'Taille' }, m_hips_cm: { fr: 'Hanches', en: 'Hips', nl: 'Heupen' }, m_chest_cm: { fr: 'Poitrine', en: 'Chest', nl: 'Borst' }, m_biceps_r_cm: { fr: 'Bras', en: 'Arm', nl: 'Arm' }, m_thigh_r_cm: { fr: 'Cuisse', en: 'Thigh', nl: 'Dij' }, m_neck_cm: { fr: 'Cou', en: 'Neck', nl: 'Nek' },
   c3_nudges: { fr: 'Messages prêts à envoyer', en: 'Ready-to-send messages', nl: 'Berichten klaar om te versturen' },
   c3_nudge_s: { fr: 'Touche : la conversation s’ouvre avec le texte, tu relis et tu envoies.', en: 'Tap: the chat opens with the text, you review and send.', nl: 'Tik: het gesprek opent met de tekst, jij leest na en verstuurt.' },
   c3_weeks: { fr: 'Séances par semaine (8 sem.)', en: 'Sessions per week (8 wk)', nl: 'Trainingen per week (8 wk)' },
@@ -1778,9 +1807,9 @@ let C3 = null;
 async function openClient360(x) {
   const { r, c, is } = x;
   C3 = { x, tab: 'over', d: null };
-  const sh = openSheet('ov2', shHead(c.full_name || c.email || '—', 'ov2') + `<div class="tabs c3tabs">${['over', 'train', 'food', 'health', 'notes'].map((k) => `<button data-k="${k}" class="${k === 'over' ? 'on' : ''}">${esc(t('c3_' + k))}</button>`).join('')}</div><div class="sh-b" id="c3-b"><div class="load" style="min-height:200px"><div class="spin"></div></div></div>`, () => { C3 = null; });
+  const sh = openSheet('ov2', shHead(c.full_name || c.email || '—', 'ov2') + `<div class="tabs c3tabs">${['over', 'suivi', 'train', 'food', 'health', 'notes'].map((k) => `<button data-k="${k}" class="${k === 'over' ? 'on' : ''}">${esc(t('c3_' + k))}</button>`).join('')}</div><div class="sh-b" id="c3-b"><div class="load" style="min-height:200px"><div class="spin"></div></div></div>`, () => { C3 = null; });
   $$('.c3tabs button', sh).forEach((b) => b.onclick = () => { if (!C3) return; C3.tab = b.dataset.k; $$('.c3tabs button', sh).forEach((y) => y.classList.toggle('on', y === b)); paintC3(); });
-  try { C3.d = await rpc('studio_client_360', { p_client: r.client_id }); } catch (e) { C3.d = {}; }
+  try { const [a, b] = await Promise.all([rpc('studio_client_360', { p_client: r.client_id }), rpc('studio_client_suivi', { p_client: r.client_id }).catch(() => ({}))]); C3.d = { ...(a || {}), su: b || {} }; } catch (e) { C3.d = { su: {} }; }
   if (C3) paintC3();
 }
 
@@ -1838,6 +1867,7 @@ function paintC3() {
       <div class="sect">${esc(t('c3_sleep'))}</div>${has('sleep') ? bars(days, (z) => z.sleep / 60, { target: 7, over: false, lab: (z) => String(parse(z.d).getDate()) }) : `<div class="c3empty">${esc(t('c3_nodata'))}</div>`}`;
     return;
   }
+  if (C3.tab === 'suivi') return paintSuivi(el, D.su || {}, c, r);
   /* notes privees */
   el.innerHTML = `<textarea id="c3-note" class="astxt" rows="10" placeholder="${esc(t('c3_note_ph'))}">${esc(D.note || '')}</textarea><div class="c3saved" id="c3-st"></div>`;
   let tm = 0; const ta = $('#c3-note');
@@ -1845,6 +1875,43 @@ function paintC3() {
     try { await rpc('studio_set_note', { p_client: r.client_id, p_note: ta.value }); D.note = ta.value; const s = $('#c3-st'); if (s) s.textContent = '✓ ' + t('c3_saved'); }
     catch (e) { const s = $('#c3-st'); if (s) s.textContent = errMsg(e); }
   }, 700); };
+}
+
+/* ---------------- onglet Bilans : ce que le client remplit dans « Mon suivi » ---------------- */
+async function paintSuivi(el, S, c, r) {
+  const cis = S.checkins || [], hab = S.habits || [], ms = S.meas || [], ph = S.photos || [];
+  const face = (n, inv) => n ? ['😫', '😕', '😐', '🙂', '😄'][(inv ? 6 - n : n) - 1] : '—';
+  const mon = iso(monday(new Date())); const wk = [0, 1, 2, 3, 4, 5, 6].map((i) => iso(addDays(parse(mon), i)));
+  const first = ms[0], last = ms[ms.length - 1];
+  const MK = ['waist_cm', 'hips_cm', 'chest_cm', 'biceps_r_cm', 'thigh_r_cm', 'neck_cm'];
+  el.innerHTML = `<div class="sect">${esc(t('su_ci'))}</div>${cis.length ? cis.map((k, i) => `<div class="suci ${k.status === 'submitted' ? 'new' : ''}">
+      <div class="suci-h"><b>${esc(t('su_week_of', { d: dd(k.period_start) }))}</b><span class="pill ${k.status === 'submitted' ? 'draft' : 'off'}">${esc(t(k.status === 'submitted' ? 'su_new' : 'su_read'))}</span></div>
+      <div class="suci-r"><span>${esc(t('su_energy'))} ${face(k.energy_rating)}</span><span>${esc(t('su_sleep'))} ${face(k.sleep_rating)}</span><span>${esc(t('su_stress'))} ${face(k.stress_rating, 1)}</span><span>${esc(t('su_sore'))} ${face(k.soreness_rating, 1)}</span>${k.adherence_pct != null ? `<span>${esc(t('su_adh'))} ${k.adherence_pct} %</span>` : ''}${k.weight_kg ? `<span>${nf(k.weight_kg, 1)} kg</span>` : ''}</div>
+      ${k.client_note ? `<p class="suci-n">« ${esc(k.client_note)} »</p>` : ''}
+      ${k.coach_feedback ? `<p class="suci-fb">${esc(k.coach_feedback)}</p>` : ''}
+      ${k.status === 'submitted' ? `<textarea class="astxt" rows="3" data-fb="${i}" placeholder="${esc(t('su_reply_ph'))}"></textarea><button class="btn main block" data-rv="${i}" style="margin-top:8px">${esc(t('su_reply'))}</button>` : ''}
+    </div>`).join('') : `<div class="c3empty">${esc(t('su_none_ci'))}</div>`}
+    <div class="sect">${esc(t('su_hab'))}</div>${hab.length ? `<div class="c3list">${hab.map((h) => { const n = wk.filter((d) => (h.days || []).some((x) => String(x).slice(0, 10) === d)).length; return `<div><b>${esc(h.name)}</b><span>${n}/${h.target} · ${wk.map((d) => (h.days || []).some((x) => String(x).slice(0, 10) === d) ? '●' : '○').join(' ')}</span></div>`; }).join('')}</div>` : ''}
+    <div class="suhab"><input class="astitle" id="su-hn" placeholder="${esc(t('su_hab_ph'))}"><button class="btn" id="su-ha">${esc(t('su_hab_add'))}</button></div>
+    <div class="sect">${esc(t('su_meas'))}</div>${last ? `<div class="tdstats">${MK.filter((k) => last[k] != null).map((k) => { const d = first && first !== last && first[k] != null ? last[k] - first[k] : null; return `<div><small>${esc(t('m_' + k))}</small><b>${nf(last[k], 1)} cm</b>${d != null ? `<span>${d > 0 ? '+' : ''}${nf(d, 1)} cm · ${esc(dd(first.measured_date))}</span>` : ''}</div>`; }).join('')}</div>` : `<div class="c3empty">${esc(t('c3_nodata'))}</div>`}
+    <div class="sect">${esc(t('su_ph'))}</div>${ph.length ? `<div class="suph">${ph.map((p) => `<a target="_blank" rel="noopener" data-p="${esc(p.path)}"><img alt=""><span>${esc(dd(p.d))}${p.kg ? ' · ' + nf(p.kg, 1) + ' kg' : ''}</span></a>`).join('')}</div>` : `<div class="c3empty">${esc(t('su_ph_none'))}</div>`}`;
+  $$('[data-rv]', el).forEach((b) => b.onclick = async () => {
+    const i = +b.dataset.rv; const fb = ($(`[data-fb="${i}"]`, el) || {}).value || '';
+    b.disabled = true;
+    try { await rpc('studio_review_checkin', { p_id: cis[i].id, p_feedback: fb }); cis[i].status = 'reviewed'; cis[i].coach_feedback = fb.trim() || null; toast(t('su_replied')); paintSuivi(el, S, c, r); }
+    catch (e) { b.disabled = false; toast(errMsg(e), true); }
+  });
+  $('#su-ha', el).onclick = async () => {
+    const nm = ($('#su-hn', el).value || '').trim(); if (!nm) return;
+    try { const id = await rpc('studio_add_habit', { p_client: r.client_id, p_name: nm, p_target: 7 }); hab.push({ id, name: nm, target: 7, days: [] }); S.habits = hab; paintSuivi(el, S, c, r); }
+    catch (e) { toast(errMsg(e), true); }
+  };
+  if (ph.length) {
+    try {
+      const { data } = await sb.storage.from('progress-photos').createSignedUrls(ph.map((p) => p.path), 3600);
+      (data || []).forEach((x) => { const a = $(`[data-p="${CSS.escape(x.path)}"]`, el); if (a && x.signedUrl) { a.href = x.signedUrl; a.querySelector('img').src = x.signedUrl; } });
+    } catch (_) {}
+  }
 }
 
 /* =====================================================================
