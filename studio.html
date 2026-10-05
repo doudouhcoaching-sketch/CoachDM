@@ -855,7 +855,7 @@ function viewPlan() {
   $$('[data-copy]', v).forEach((b) => b.onclick = () => copyWeek(+b.dataset.copy, +b.dataset.copy + 1));
   $$('[data-wm]', v).forEach((b) => b.onclick = () => weekMenu(+b.dataset.wm));
   $$('.cell', v).forEach((b) => b.onclick = () => b.classList.contains('add') ? pickSession(b.dataset.k) : cellMenu(b.dataset.k));
-  $('#p-menu').onclick = planMenu;
+  $('#p-menu').onclick = () => planMenu();
   const isSent = P.status !== 'draft';
   dock(`<button class="btn soft" id="p-save">${esc(t('save'))}</button>
     <button class="btn main" id="p-send">${ic('send')}${esc(isSent ? t('update_to') : t('send_to', { n: firstName(P.client) }))}</button>`);
@@ -2667,6 +2667,279 @@ function openExForm(ex, onSaved) {
     if (!confirm(t('ex_arch_q'))) return;
     try { await rpc('studio_archive_exercise', { p_id: ex.id }); MY_EXS = (MY_EXS || []).filter((x) => x.id !== ex.id); closeSheet('ov4'); if (onSaved) onSaved(ex, true); }
     catch (err) { toast(errMsg(err), true); }
+  };
+}
+
+/* =====================================================================
+   GROUPES DE CLIENTS + MESSAGE GROUPE (6 oct. 2026)
+   « Perte de poids », « Compétition », « Entreprise X »… Un client peut etre
+   dans plusieurs groupes. Dans « Aujourd'hui » : filtre par groupe et message
+   a tout le groupe, personnalise avec {prénom}.
+   RPC : studio_groups, studio_save_group, studio_archive_group, studio_broadcast.
+   ===================================================================== */
+Object.assign(TX, {
+  gr_all: { fr: 'Tous', en: 'All', nl: 'Iedereen' },
+  gr_new: { fr: 'Groupe', en: 'Group', nl: 'Groep' },
+  gr_new_t: { fr: 'Nouveau groupe', en: 'New group', nl: 'Nieuwe groep' },
+  gr_edit_t: { fr: 'Modifier le groupe', en: 'Edit group', nl: 'Groep wijzigen' },
+  gr_name: { fr: 'Nom du groupe', en: 'Group name', nl: 'Naam van de groep' },
+  gr_name_ph: { fr: 'Ex. : Perte de poids, Compétition, Entreprise X', en: 'E.g. Weight loss, Competition, Company X', nl: 'Bv. Gewichtsverlies, Competitie, Bedrijf X' },
+  gr_color: { fr: 'Couleur', en: 'Colour', nl: 'Kleur' },
+  gr_members: { fr: 'Clients dans ce groupe', en: 'Clients in this group', nl: 'Klanten in deze groep' },
+  gr_save: { fr: 'Enregistrer le groupe', en: 'Save group', nl: 'Groep opslaan' },
+  gr_saved: { fr: 'Groupe enregistré ✓', en: 'Group saved ✓', nl: 'Groep opgeslagen ✓' },
+  gr_arch: { fr: 'Supprimer le groupe', en: 'Remove group', nl: 'Groep verwijderen' },
+  gr_arch_q: { fr: 'Supprimer ce groupe ? Les clients ne sont pas touchés.', en: 'Remove this group? Clients are not affected.', nl: 'Deze groep verwijderen? De klanten blijven ongemoeid.' },
+  gr_msg: { fr: 'Message au groupe', en: 'Message the group', nl: 'Bericht aan de groep' },
+  gr_msg_t: { fr: 'Message à {g}', en: 'Message to {g}', nl: 'Bericht aan {g}' },
+  gr_msg_s: { fr: 'Chaque client le reçoit dans sa conversation avec toi, comme un message normal. {prénom} est remplacé par son prénom.', en: 'Each client gets it in their own chat with you, like a normal message. {prénom} is replaced with their first name.', nl: 'Elke klant krijgt het in zijn eigen gesprek met jou, zoals een gewoon bericht. {prénom} wordt vervangen door zijn voornaam.' },
+  gr_msg_ph: { fr: 'Salut {prénom} ! Cette semaine on met l’accent sur le sommeil : objectif 7 h minimum 😴', en: 'Hi {prénom}! This week we focus on sleep: 7 hours minimum 😴', nl: 'Hoi {prénom}! Deze week focussen we op slaap: minstens 7 uur 😴' },
+  gr_ins: { fr: '+ prénom', en: '+ first name', nl: '+ voornaam' },
+  gr_to: { fr: 'Envoyer à {n} client(s)', en: 'Send to {n} client(s)', nl: 'Versturen naar {n} klant(en)' },
+  gr_sent: { fr: 'Envoyé à {n} client(s) ✓', en: 'Sent to {n} client(s) ✓', nl: 'Verstuurd naar {n} klant(en) ✓' },
+  gr_failed: { fr: '{n} non envoyé(s) : lien inactif ou messagerie non incluse dans ta formule.', en: '{n} not sent: inactive link or messaging not in your plan.', nl: '{n} niet verstuurd: inactieve link of berichten niet in je formule.' },
+  gr_empty: { fr: 'Ce groupe est vide. Touche ✎ pour y ajouter des clients.', en: 'This group is empty. Tap ✎ to add clients.', nl: 'Deze groep is leeg. Tik op ✎ om klanten toe te voegen.' },
+  gr_none_c: { fr: 'Aucun client dans ce groupe pour l’instant.', en: 'No clients in this group yet.', nl: 'Nog geen klanten in deze groep.' },
+  gr_in: { fr: 'Groupes', en: 'Groups', nl: 'Groepen' },
+});
+const GR_COL = { green: '#00C985', gold: '#D9A82B', blue: '#3B8EEA', red: '#E5484D', purple: '#9B6BE8', grey: '#8A9A92' };
+let GROUPS = null, G_SEL = null;
+
+(function grCss() {
+  const s = document.createElement('style');
+  s.textContent = `
+  .grbar{display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;margin:0 0 4px;scrollbar-width:none}.grbar::-webkit-scrollbar{display:none}
+  .grbar button{flex:none;display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--s1);color:var(--text);font:inherit;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .grbar button.on{border-color:var(--brand);background:var(--brandsoft)}
+  .grbar i{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .grbar small{opacity:.6;font-weight:600}
+  .grbar .add{border-style:dashed;color:var(--muted)}
+  .gracts{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}.gracts .btn{width:auto;padding:10px 14px;font-size:14px;min-height:0}
+  .grcols{display:flex;gap:10px;flex-wrap:wrap}.grcols button{width:34px;height:34px;border-radius:50%;border:3px solid transparent;cursor:pointer}.grcols button.on{border-color:var(--text)}
+  .grmem{display:flex;flex-direction:column;gap:6px;max-height:46vh;overflow:auto}
+  .grmem label{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);cursor:pointer;font-size:14px}
+  .grmem input{width:18px;height:18px}
+  .grchips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.grchips span{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--s2)}.grchips i{width:8px;height:8px;border-radius:50%}`;
+  document.head.appendChild(s);
+})();
+
+async function grLoad(force) { if (!GROUPS || force) { try { GROUPS = (await rpc('studio_groups')) || []; } catch (_) { GROUPS = []; } } return GROUPS; }
+const grOf = (cid) => (GROUPS || []).filter((g) => (g.members || []).includes(cid));
+
+function grPaintBar() {
+  const td = $('#td'); if (!td) return;
+  let bar = $('#td-grp');
+  if (!bar) { bar = document.createElement('div'); bar.id = 'td-grp'; const fb = $('#td-fb'); td.parentNode.insertBefore(bar, fb || td); }
+  if (G_SEL && !(GROUPS || []).some((g) => g.id === G_SEL)) G_SEL = null;
+  const g = (GROUPS || []).find((x) => x.id === G_SEL);
+  bar.innerHTML = `<div class="grbar"><button data-g="" class="${!G_SEL ? 'on' : ''}">${esc(t('gr_all'))}</button>${(GROUPS || []).map((x) => `<button data-g="${x.id}" class="${G_SEL === x.id ? 'on' : ''}"><i style="background:${GR_COL[x.color] || GR_COL.green}"></i>${esc(x.name)} <small>${(x.members || []).length}</small></button>`).join('')}<button class="add" id="gr-new">＋ ${esc(t('gr_new'))}</button></div>
+    ${g ? `<div class="gracts"><button class="btn soft" id="gr-msg" style="width:auto">${ic('send')} ${esc(t('gr_msg'))}</button><button class="btn soft" id="gr-ed" style="width:auto">✎ ${esc(g.name)}</button></div>${(g.members || []).length ? '' : `<p class="qsub">${esc(t('gr_empty'))}</p>`}` : ''}`;
+  $$('[data-g]', bar).forEach((b) => b.onclick = () => { G_SEL = b.dataset.g || null; try { sessionStorage.setItem('st_grp', G_SEL || ''); } catch (_) {} grPaintBar(); paintToday(); if (typeof fbPaintFeed === 'function') fbPaintFeed(); });
+  $('#gr-new', bar).onclick = () => grEdit(null);
+  if (g) { $('#gr-ed', bar).onclick = () => grEdit(g); $('#gr-msg', bar).onclick = () => grBroadcast(g); }
+}
+{
+  const _vt = viewToday;
+  viewToday = async function () {
+    try { G_SEL = sessionStorage.getItem('st_grp') || null; } catch (_) {}
+    await Promise.all([_vt(), grLoad()]);
+    if ($('#td')) { grPaintBar(); if (G_SEL) paintToday(); }
+  };
+  const _pt = paintToday;
+  paintToday = function () {
+    const g = G_SEL && (GROUPS || []).find((x) => x.id === G_SEL);
+    if (!g || !Array.isArray(TD)) return _pt();
+    const all = TD; const set = new Set(g.members || []);
+    TD = all.filter((r) => set.has(r.client_id));
+    try { _pt(); } finally { TD = all; }
+    if (!set.size || !TD.some((r) => set.has(r.client_id))) { const el = $('#td'); if (el) el.insertAdjacentHTML('beforeend', `<div class="empty">${esc(t('gr_none_c'))}</div>`); }
+  };
+}
+
+function grEdit(g) {
+  $('#ov3').classList.remove('full');
+  const sel = new Set(g ? g.members || [] : (G_SEL ? [] : []));
+  let col = g ? g.color : 'green';
+  const sh = openSheet('ov3', shHead(t(g ? 'gr_edit_t' : 'gr_new_t'), 'ov3') + `<div class="sh-b">
+    <div class="field"><label>${esc(t('gr_name'))}</label><input class="inp" id="gr-n" maxlength="40" placeholder="${esc(t('gr_name_ph'))}" value="${esc(g ? g.name : '')}"></div>
+    <div class="field"><label>${esc(t('gr_color'))}</label><div class="grcols">${Object.keys(GR_COL).map((k) => `<button type="button" data-c="${k}" class="${k === col ? 'on' : ''}" style="background:${GR_COL[k]}" aria-label="${k}"></button>`).join('')}</div></div>
+    <div class="field"><label>${esc(t('gr_members'))} · <span id="gr-cnt">${sel.size}</span></label><div class="grmem">${CLIENTS.map((c) => `<label><input type="checkbox" value="${c.client_id}" ${sel.has(c.client_id) ? 'checked' : ''}>${esc(c.full_name || c.email || '—')}</label>`).join('') || `<div class="empty">${esc(t('no_client'))}</div>`}</div></div>
+    <button class="btn main block" id="gr-go">${esc(t('gr_save'))}</button>
+    ${g ? `<button class="btn soft block" id="gr-ar" style="margin-top:8px">${esc(t('gr_arch'))}</button>` : ''}</div>`);
+  $$('[data-c]', sh).forEach((b) => b.onclick = () => { col = b.dataset.c; $$('[data-c]', sh).forEach((x) => x.classList.toggle('on', x === b)); });
+  $$('.grmem input', sh).forEach((x) => x.onchange = () => { x.checked ? sel.add(x.value) : sel.delete(x.value); $('#gr-cnt', sh).textContent = sel.size; });
+  setTimeout(() => { if (!g) $('#gr-n', sh).focus(); }, 60);
+  $('#gr-go', sh).onclick = async () => {
+    const name = $('#gr-n', sh).value.trim(); if (!name) { $('#gr-n', sh).focus(); return; }
+    const btn = $('#gr-go', sh); btn.disabled = true;
+    try { const id = await rpc('studio_save_group', { p_id: g ? g.id : null, p_name: name, p_color: col, p_members: [...sel] }); await grLoad(true); G_SEL = id; try { sessionStorage.setItem('st_grp', id); } catch (_) {} closeSheet('ov3'); toast(t('gr_saved')); grPaintBar(); paintToday(); }
+    catch (e) { btn.disabled = false; toast(errMsg(e), true); }
+  };
+  const ar = $('#gr-ar', sh);
+  if (ar) ar.onclick = async () => { if (!confirm(t('gr_arch_q'))) return; try { await rpc('studio_archive_group', { p_id: g.id }); await grLoad(true); G_SEL = null; closeSheet('ov3'); grPaintBar(); paintToday(); } catch (e) { toast(errMsg(e), true); } };
+}
+
+function grBroadcast(g) {
+  const ids = (g.members || []).filter((id) => CLIENTS.some((c) => c.client_id === id));
+  $('#ov3').classList.remove('full');
+  const sh = openSheet('ov3', shHead(t('gr_msg_t', { g: g.name }), 'ov3') + `<div class="sh-b">
+    <p class="qsub" style="margin-top:0">${esc(t('gr_msg_s'))}</p>
+    <textarea id="gr-txt" class="astxt" rows="5" maxlength="2000" placeholder="${esc(t('gr_msg_ph'))}"></textarea>
+    <div class="fbq"><button type="button" id="gr-ins">${esc(t('gr_ins'))}</button></div>
+    <button class="btn main block" id="gr-send" ${ids.length ? '' : 'disabled'}>${ic('send')} ${esc(t('gr_to', { n: ids.length }))}</button></div>`);
+  const ta = $('#gr-txt', sh);
+  $('#gr-ins', sh).onclick = () => { const p = ta.selectionStart ?? ta.value.length; ta.value = ta.value.slice(0, p) + '{prénom}' + ta.value.slice(p); ta.focus(); ta.setSelectionRange(p + 8, p + 8); };
+  $('#gr-send', sh).onclick = async () => {
+    const body = ta.value.trim(); if (!body) { ta.focus(); return; }
+    const btn = $('#gr-send', sh); btn.disabled = true;
+    try {
+      const r = await rpc('studio_broadcast', { p_clients: ids, p_body: body });
+      closeSheet('ov3'); toast(t('gr_sent', { n: r.sent || 0 }));
+      if (r.failed) setTimeout(() => toast(t('gr_failed', { n: r.failed }), true), 2100);
+    } catch (e) { btn.disabled = false; toast(errMsg(e), true); }
+  };
+}
+
+/* fiche client : ses groupes */
+{
+  const _p = paintC3;
+  paintC3 = function () {
+    _p();
+    if (!C3 || C3.tab !== 'over') return;
+    const el = $('#c3-b'); if (!el) return;
+    const gs = grOf(C3.x.r.client_id); if (!gs.length) return;
+    el.insertAdjacentHTML('afterbegin', `<div class="grchips">${gs.map((g) => `<span><i style="background:${GR_COL[g.color] || GR_COL.green}"></i>${esc(g.name)}</span>`).join('')}</div>`);
+  };
+}
+
+/* les seances a commenter suivent aussi le groupe choisi */
+{
+  const _f = fbPaintFeed;
+  fbPaintFeed = function () {
+    const g = G_SEL && (GROUPS || []).find((x) => x.id === G_SEL);
+    if (!g) return _f();
+    const all = FB_FEED; const set = new Set(g.members || []);
+    FB_FEED = (all || []).filter((x) => set.has(x.client_id));
+    try { _f(); } finally { FB_FEED = all; }
+  };
+}
+
+/* =====================================================================
+   PROGRAMME IMPRIMABLE / PDF (6 oct. 2026)
+   Menu ⋯ d'un programme › « Imprimer / PDF ». Page A4 au logo Coach DM :
+   le calendrier semaine par semaine, puis chaque séance une seule fois avec
+   ses exercices (séries × reps, repos, %1RM / RPE, tempo, consigne).
+   Langue : celle choisie en haut de l'Atelier (FR / EN / NL).
+   Rien n'est envoyé : c'est le navigateur qui imprime ou enregistre en PDF.
+   ===================================================================== */
+Object.assign(TX, {
+  pr_menu: { fr: 'Imprimer / PDF', en: 'Print / PDF', nl: 'Afdrukken / PDF' },
+  pr_wait: { fr: 'Préparation du PDF…', en: 'Preparing the PDF…', nl: 'PDF wordt klaargemaakt…' },
+  pr_for: { fr: 'Programme de {n}', en: 'Program for {n}', nl: 'Programma voor {n}' },
+  pr_from: { fr: 'Du {a} au {b}', en: 'From {a} to {b}', nl: 'Van {a} tot {b}' },
+  pr_cal: { fr: 'Le calendrier', en: 'The calendar', nl: 'De kalender' },
+  pr_sess: { fr: 'Les séances', en: 'The sessions', nl: 'De trainingen' },
+  pr_week: { fr: 'Semaine {n}', en: 'Week {n}', nl: 'Week {n}' },
+  pr_ex: { fr: 'Exercice', en: 'Exercise', nl: 'Oefening' },
+  pr_sr: { fr: 'Séries × reps', en: 'Sets × reps', nl: 'Sets × reps' },
+  pr_rest: { fr: 'Repos', en: 'Rest', nl: 'Rust' },
+  pr_int: { fr: 'Intensité', en: 'Intensity', nl: 'Intensiteit' },
+  pr_note: { fr: 'Consigne', en: 'Cue', nl: 'Tip' },
+  pr_ss: { fr: 'superset', en: 'superset', nl: 'superset' },
+  pr_rule: { fr: 'On ne brûle pas les étapes : la technique d’abord, la constance ensuite, la charge après.', en: 'Don’t skip steps: technique first, then consistency, then load.', nl: 'Sla geen stappen over: eerst techniek, dan regelmaat, dan gewicht.' },
+  pr_foot: { fr: 'Coach DM · coachdm.be · contact@coachdm.be', en: 'Coach DM · coachdm.be · contact@coachdm.be', nl: 'Coach DM · coachdm.be · contact@coachdm.be' },
+  pr_err: { fr: 'Impossible de préparer le PDF.', en: 'Couldn’t prepare the PDF.', nl: 'PDF kon niet worden klaargemaakt.' },
+  pr_nores: { fr: 'Repos', en: 'Rest', nl: 'Rust' },
+});
+
+const prName = (o) => (LANG === 'en' && o.name_en) || (LANG === 'nl' && o.name_nl) || o.name_fr || o.name || '—';
+const prNote = (e) => (LANG === 'en' && e.notes_en) || (LANG === 'nl' && e.notes_nl) || e.notes_fr || '';
+const prRest = (s) => !s ? '—' : s >= 60 ? (Math.floor(s / 60) + (s % 60 ? ':' + String(s % 60).padStart(2, '0') : '') + ' min') : s + ' s';
+const prDate = (d) => d.toLocaleDateString(loc(), { day: 'numeric', month: 'long', year: 'numeric' });
+
+async function printPlan() {
+  const P = PLAN; if (!P) return;
+  closeSheet('ov'); toast(t('pr_wait'));
+  try {
+    const keys = Object.keys(P.cells).map((k) => { const [w, d] = k.split('-').map(Number); return { w, d, c: P.cells[k] }; }).sort((a, b) => a.w - b.w || a.d - b.d);
+    const ids = [...new Set(keys.map((k) => k.c.workout_id).filter(Boolean))];
+    const ws = {};
+    for (let i = 0; i < ids.length; i += 4) {
+      const part = await Promise.all(ids.slice(i, i + 4).map((id) => rpc('studio_get_workout', { p_id: id }).catch(() => null)));
+      part.forEach((w, j) => { if (w) ws[ids[i + j]] = w; });
+    }
+    const start = parse(P.start), end = addDays(start, P.weeks * 7 - 1);
+    const who = P.client ? (P.client.full_name || P.client.email || '') : '';
+    const title = (P.title || '').trim() || t('pr_for', { n: firstName(P.client || {}) });
+    /* lettre par seance distincte : A, B, C… dans l'ordre d'apparition */
+    const letter = {}; ids.forEach((id, i) => { letter[id] = String.fromCharCode(65 + (i % 26)) + (i >= 26 ? Math.floor(i / 26) : ''); });
+    const days = [...P.days].sort((a, b) => a - b);
+    const cal = [...Array(P.weeks)].map((_, w) => `<tr><th>${esc(t('pr_week', { n: w + 1 }))}<small>${esc(fmtShort(cellDate(w, 1)))}</small></th>${days.map((d) => { const c = P.cells[w + '-' + d]; return `<td>${c ? `<b>${esc(letter[c.workout_id] || '')}</b> ${esc(ws[c.workout_id] ? prName(ws[c.workout_id]) : c.name || '')}` : '<span class="off">—</span>'}</td>`; }).join('')}</tr>`).join('');
+    const sess = ids.map((id) => {
+      const w = ws[id]; if (!w) return '';
+      const ex = w.exercises || [];
+      const rows = ex.map((e, i) => {
+        const ss = e.superset_group && ((ex[i + 1] && ex[i + 1].superset_group === e.superset_group) || (ex[i - 1] && ex[i - 1].superset_group === e.superset_group));
+        const inten = [e.load_pct_1rm ? Math.round(e.load_pct_1rm) + ' % 1RM' : '', e.target_rpe ? 'RPE ' + nf(e.target_rpe, 1) : '', e.tempo ? 'tempo ' + e.tempo : ''].filter(Boolean).join(' · ');
+        return `<tr class="${ss ? 'ss' : ''}"><td class="n">${i + 1}</td><td><b>${esc(prName(e))}</b>${ss ? ` <em>${esc(t('pr_ss'))} ${esc(e.superset_group)}</em>` : ''}${prNote(e) ? `<div class="cue">${esc(prNote(e))}</div>` : ''}</td><td>${esc((e.sets || '—') + ' × ' + (e.reps || '—'))}</td><td>${esc(prRest(e.rest_sec))}</td><td>${esc(inten || '—')}</td></tr>`;
+      }).join('');
+      return `<section class="sess"><h3><span>${esc(letter[id])}</span>${esc(prName(w))}${w.estimated_duration_min ? `<small>≈ ${w.estimated_duration_min} min</small>` : ''}</h3>
+        <table class="ex"><thead><tr><th></th><th>${esc(t('pr_ex'))}</th><th>${esc(t('pr_sr'))}</th><th>${esc(t('pr_rest'))}</th><th>${esc(t('pr_int'))}</th></tr></thead><tbody>${rows}</tbody></table></section>`;
+    }).join('');
+    const logo = location.origin && /^https?:/.test(location.origin) ? location.origin + '/logo-dm.png' : 'logo-dm.png';
+    const html = `<!doctype html><html lang="${LANG}"><head><meta charset="utf-8"><title>${esc(title)}${who ? ' — ' + esc(who) : ''}</title><style>
+      @page{size:A4;margin:14mm 12mm 16mm}
+      *{box-sizing:border-box}body{font-family:'Helvetica Neue',Arial,sans-serif;color:#0A1512;margin:0;font-size:10.5pt;line-height:1.35;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      header{display:flex;align-items:center;gap:14px;border-bottom:3px solid #00A870;padding-bottom:10px;margin-bottom:14px}
+      header img{width:54px;height:54px;object-fit:contain}
+      header h1{font-size:20pt;margin:0;line-height:1.1}header p{margin:3px 0 0;color:#4F6B5D;font-size:10pt}
+      .brand{margin-left:auto;text-align:right;font-size:9pt;color:#4F6B5D}.brand b{display:block;color:#00794F;font-size:11pt;letter-spacing:.06em}
+      h2{font-size:12pt;text-transform:uppercase;letter-spacing:.08em;color:#00794F;margin:16px 0 8px}
+      table{width:100%;border-collapse:collapse}
+      .cal th,.cal td{border:1px solid #D5E2DA;padding:6px 7px;vertical-align:top;font-size:9.5pt}
+      .cal thead th{background:#EEF3F0;font-size:9pt;text-transform:uppercase}
+      .cal tbody th{width:88px;text-align:left;background:#F6FAF8}.cal tbody th small{display:block;font-weight:400;color:#4F6B5D}
+      .cal td b{color:#00794F}.off{color:#A8B8AF}
+      .sess{break-inside:avoid;margin:0 0 14px}
+      .sess h3{display:flex;align-items:center;gap:8px;font-size:12.5pt;margin:0 0 6px}
+      .sess h3 span{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;background:#00A870;color:#fff;font-size:11pt}
+      .sess h3 small{margin-left:auto;font-weight:400;color:#4F6B5D;font-size:9.5pt}
+      .ex th{text-align:left;font-size:8.5pt;text-transform:uppercase;color:#4F6B5D;border-bottom:1.5px solid #00A870;padding:4px 6px}
+      .ex td{border-bottom:1px solid #E3ECE7;padding:6px;vertical-align:top}
+      .ex td.n{width:20px;color:#4F6B5D}.ex tr.ss td{background:#F3FAF6}.ex em{font-style:normal;font-size:8.5pt;color:#9A7414;font-weight:700}
+      .cue{color:#4F6B5D;font-size:9pt;margin-top:2px}
+      .rule{margin:16px 0 0;padding:10px 12px;border-left:4px solid #00A870;background:#F3FAF6;font-style:italic}
+      footer{position:fixed;bottom:-10mm;left:0;right:0;text-align:center;font-size:8pt;color:#7D9488}
+      .page{break-before:page}
+    </style></head><body>
+      <header><img src="${logo}" alt=""><div><h1>${esc(title)}</h1><p>${who ? esc(who) + ' · ' : ''}${esc(t('pr_from', { a: prDate(start), b: prDate(end) }))}</p></div><div class="brand"><b>COACH DM</b>coachdm.be</div></header>
+      <h2>${esc(t('pr_cal'))}</h2>
+      <table class="cal"><thead><tr><th></th>${days.map((d) => `<th>${esc(DOW[LANG][d - 1])}</th>`).join('')}</tr></thead><tbody>${cal}</tbody></table>
+      <p class="rule">${esc(t('pr_rule'))}</p>
+      <h2 class="page">${esc(t('pr_sess'))}</h2>${sess}
+      <footer>${esc(t('pr_foot'))}</footer>
+    </body></html>`;
+    let fr = document.getElementById('pr-frame');
+    if (fr) fr.remove();
+    fr = document.createElement('iframe'); fr.id = 'pr-frame';
+    fr.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+    document.body.appendChild(fr);
+    const d = fr.contentWindow.document; d.open(); d.write(html); d.close();
+    let done = false; const go = () => { if (done) return; done = true; try { fr.contentWindow.focus(); fr.contentWindow.print(); } catch (_) { toast(t('pr_err'), true); } };
+    const img = d.querySelector('img');
+    if (img && !img.complete) { img.onload = img.onerror = () => setTimeout(go, 50); setTimeout(go, 2500); } else setTimeout(go, 150);
+    window.__PR_HTML = html; /* pour les tests */
+  } catch (e) { toast(t('pr_err'), true); }
+}
+{
+  const _pm = planMenu;
+  planMenu = function () {
+    _pm();
+    const acts = $('#ov .acts'); if (!acts || !PLAN || !Object.keys(PLAN.cells).length) return;
+    const b = document.createElement('button'); b.className = 'act'; b.dataset.a = 'print';
+    b.innerHTML = `<span style="font-size:19px;width:20px;text-align:center">🖨</span><div>${esc(t('pr_menu'))}</div>`;
+    acts.insertBefore(b, acts.firstChild);
+    b.onclick = (e) => { e.stopPropagation(); printPlan(); };
   };
 }
 
