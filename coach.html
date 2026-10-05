@@ -2171,8 +2171,10 @@ async function openClientDetail(cid){
   $('#cd-body').innerHTML=h;
   $('#cd-close').onclick=closeCd;
   $('#cd-chat').onclick=()=>{ closeCd(); openChatGated(cid, p.full_name||p.email||''); };
-  $('#cd-macro').onclick=()=>openMacro(cid, p.full_name||p.email||'', nt);
-  $('#cd-meal').onclick=()=>openMealPlans(cid, p.full_name||p.email||'');
+  /* 05/10/2026 : calories et plans repas passent par l'Atelier (studio.html, onglet Nutrition). */
+  const toNutri=()=>{ location.href='studio.html?tab=nutri&client='+encodeURIComponent(cid); };
+  $('#cd-macro').onclick=toNutri;
+  $('#cd-meal').onclick=toNutri;
   renderCdPlan(cid, p.full_name||p.email||'');
   renderCdCalls(cid);
 }

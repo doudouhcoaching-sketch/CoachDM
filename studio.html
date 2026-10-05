@@ -193,6 +193,7 @@ textarea.inp{min-height:90px;padding:14px 16px;line-height:1.5;resize:vertical}
 .witem b{display:block;font-size:15px;line-height:1.3}
 .witem span{display:block;color:var(--muted);font-size:12.5px;margin-top:3px}
 .witem .go{color:var(--brand)}
+.mitem .tx{flex:1 1 55%;min-width:170px}
 .grp{font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold);margin:16px 2px 8px}
 .progrow{display:flex;gap:8px;overflow:auto;padding-bottom:6px;margin-bottom:6px;scrollbar-width:none}
 .progrow::-webkit-scrollbar{display:none}
@@ -489,7 +490,7 @@ function closeSheet(id) { const ov = $('#' + id); ov.classList.remove('show'); c
 ['ov', 'ov2', 'ov3'].forEach((id) => {
   $('#' + id).addEventListener('click', (e) => {
     if (e.target.id !== id) return;
-    if (id === 'ov2' && ED && ED.dirty && !confirm(t('unsaved'))) return;
+    if (id === 'ov2' && ((ED && ED.dirty) || (MP && MP.dirty)) && !confirm(t('unsaved'))) return;
     closeSheet(id);
   });
 });
@@ -497,7 +498,7 @@ const shHead = (title, closeId) => `<div class="sh-h"><h2>${esc(title)}</h2><but
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-close]'); if (!b) return;
   const id = b.dataset.close;
-  if (id === 'ov2' && ED && ED.dirty && !confirm(t('unsaved'))) return;
+  if (id === 'ov2' && ((ED && ED.dirty) || (MP && MP.dirty)) && !confirm(t('unsaved'))) return;
   closeSheet(id);
 });
 
@@ -568,13 +569,14 @@ async function boot() {
   ME = prof;
   try { CLIENTS = (await rpc('coach_list_clients')) || []; } catch (_) { CLIENTS = []; }
   CLIENTS = CLIENTS.filter((c) => c.link_status !== 'ended' && c.link_status !== 'archived');
-  go(viewHome);
+  go(HOME_TAB === 'nutri' ? viewNutriHome : viewHome);
   loadAnim();
   const q = new URLSearchParams(location.search);
   const c = q.get('client') && CLIENTS.find((x) => x.client_id === q.get('client'));
   if (c && q.get('plan')) {
     try { const pl = (await rpc('coach_list_plans', { p_client: c.client_id })) || []; const p = pl.find((x) => x.id === q.get('plan')); if (p) return openPlan({ ...p, client: c }); } catch (_) {}
   }
+  if (c && HOME_TAB === 'nutri') return openNutriClient(c);
   if (c) startWizard(c);
 }
 function gate(isMember) {
@@ -590,10 +592,10 @@ let HOME_PLANS = null;
 async function viewHome() {
   PLAN = null; setTitle(t('title')); dock('');
   const v = $('#view');
-  v.innerHTML = `<div class="hero"><p>${esc(t('hero'))}</p>
+  v.innerHTML = homeTabs() + `<div class="hero"><p>${esc(t('hero'))}</p>
     <button class="bigadd" id="h-new"><div class="plus">${ic('plus')}</div><div><b>${esc(t('new_prog'))}</b><span>${esc(t('new_prog_s'))}</span></div></button></div>
     <div class="sect">${esc(t('in_progress'))}</div><div id="h-list"><div class="load" style="min-height:120px"><div class="spin"></div></div></div>`;
-  $('#h-new').onclick = () => startWizard(null);
+  $('#h-new').onclick = () => startWizard(null); bindHomeTabs();
   if (!CLIENTS.length) { $('#h-list').innerHTML = `<div class="empty">${esc(t('no_client'))}</div>`; return; }
   const res = await Promise.all(CLIENTS.map((c) => rpc('coach_list_plans', { p_client: c.client_id }).then((p) => (p || []).map((x) => ({ ...x, client: c }))).catch(() => [])));
   HOME_PLANS = res.flat().filter((p) => p.status !== 'archived').sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
@@ -1117,6 +1119,412 @@ async function openMoves() {
     });
   };
   paint();
+}
+
+/* =====================================================================
+   NUTRITION — objectifs calcules + plans repas tires des recettes et
+   des aliments. Lecture : coach_client_detail, coach_list_meal_plans,
+   coach_get_meal_plan, recipes, foods. Ecriture : studio_save_targets,
+   coach_upsert_meal_plan, coach_set_meal_plan_items.
+   ===================================================================== */
+Object.assign(TX, {
+  tab_prog: { fr: 'Programmes', en: 'Programs', nl: 'Programma’s' },
+  tab_nutri: { fr: 'Nutrition', en: 'Nutrition', nl: 'Voeding' },
+  n_hero: { fr: 'Choisis un client : on calcule ses calories en 30 secondes, puis on remplit ses repas avec tes recettes.', en: 'Pick a client: we work out their calories in 30 seconds, then fill their meals with your recipes.', nl: 'Kies een klant: we berekenen zijn calorieën in 30 seconden en vullen dan zijn maaltijden met je recepten.' },
+  n_targets: { fr: 'Objectifs du jour', en: 'Daily targets', nl: 'Dagdoelen' },
+  n_none: { fr: 'Pas encore d’objectif.', en: 'No targets yet.', nl: 'Nog geen doelen.' },
+  n_calc: { fr: 'Calculer ses calories', en: 'Work out calories', nl: 'Calorieën berekenen' },
+  n_recalc: { fr: 'Recalculer', en: 'Recalculate', nl: 'Herberekenen' },
+  n_plans: { fr: 'Plans repas', en: 'Meal plans', nl: 'Maaltijdplannen' },
+  n_newplan: { fr: 'Nouveau plan repas', en: 'New meal plan', nl: 'Nieuw maaltijdplan' },
+  n_newplan_s: { fr: 'Remplissage automatique avec tes recettes', en: 'Auto-filled with your recipes', nl: 'Automatisch gevuld met je recepten' },
+  n_noplan: { fr: 'Aucun plan repas pour l’instant.', en: 'No meal plans yet.', nl: 'Nog geen maaltijdplannen.' },
+  kcal: { fr: 'kcal', en: 'kcal', nl: 'kcal' },
+  prot: { fr: 'Protéines', en: 'Protein', nl: 'Eiwitten' },
+  carb: { fr: 'Glucides', en: 'Carbs', nl: 'Koolhydraten' },
+  fat: { fr: 'Lipides', en: 'Fat', nl: 'Vetten' },
+  fiber: { fr: 'Fibres', en: 'Fiber', nl: 'Vezels' },
+  water: { fr: 'Eau', en: 'Water', nl: 'Water' },
+  c_title: { fr: 'Calories de {n}', en: '{n}’s calories', nl: 'Calorieën van {n}' },
+  c_sex: { fr: 'Sexe', en: 'Sex', nl: 'Geslacht' },
+  male: { fr: 'Homme', en: 'Man', nl: 'Man' }, female: { fr: 'Femme', en: 'Woman', nl: 'Vrouw' },
+  age: { fr: 'Âge', en: 'Age', nl: 'Leeftijd' }, years: { fr: 'ans', en: 'yrs', nl: 'jaar' },
+  height: { fr: 'Taille', en: 'Height', nl: 'Lengte' }, weight: { fr: 'Poids', en: 'Weight', nl: 'Gewicht' },
+  activity: { fr: 'Son activité', en: 'Activity', nl: 'Activiteit' },
+  a1: { fr: 'Assis toute la journée', en: 'Sitting all day', nl: 'Hele dag zittend' }, a1s: { fr: 'Peu ou pas de sport', en: 'Little or no sport', nl: 'Weinig of geen sport' },
+  a2: { fr: 'Un peu actif', en: 'Lightly active', nl: 'Licht actief' }, a2s: { fr: '1 à 2 séances par semaine', en: '1–2 sessions a week', nl: '1 à 2 trainingen per week' },
+  a3: { fr: 'Actif', en: 'Active', nl: 'Actief' }, a3s: { fr: '3 à 4 séances par semaine', en: '3–4 sessions a week', nl: '3 à 4 trainingen per week' },
+  a4: { fr: 'Très actif', en: 'Very active', nl: 'Zeer actief' }, a4s: { fr: '5 à 6 séances par semaine', en: '5–6 sessions a week', nl: '5 à 6 trainingen per week' },
+  a5: { fr: 'Athlète', en: 'Athlete', nl: 'Atleet' }, a5s: { fr: 'Travail physique + entraînement', en: 'Physical job + training', nl: 'Fysiek werk + training' },
+  goalq: { fr: 'Son objectif', en: 'Goal', nl: 'Doel' },
+  g_lose: { fr: 'Perdre du gras', en: 'Lose fat', nl: 'Vet verliezen' },
+  g_keep: { fr: 'Garder son poids', en: 'Maintain', nl: 'Gewicht behouden' },
+  g_gain: { fr: 'Prendre du muscle', en: 'Build muscle', nl: 'Spieren opbouwen' },
+  g_recomp: { fr: 'Recomposition', en: 'Recomp', nl: 'Recompositie' },
+  g_perf: { fr: 'Performance', en: 'Performance', nl: 'Prestatie' },
+  pace: { fr: 'Rythme', en: 'Pace', nl: 'Tempo' },
+  p1: { fr: 'Doux', en: 'Gentle', nl: 'Zacht' }, p2: { fr: 'Normal', en: 'Normal', nl: 'Normaal' }, p3: { fr: 'Rapide', en: 'Fast', nl: 'Snel' },
+  per_week: { fr: '≈ {n} kg / semaine', en: '≈ {n} kg / week', nl: '≈ {n} kg / week' },
+  prot_kg: { fr: 'Protéines par kg', en: 'Protein per kg', nl: 'Eiwit per kg' },
+  result: { fr: 'Son objectif par jour', en: 'Their daily target', nl: 'Zijn dagdoel' },
+  tdee_l: { fr: 'Dépense : {n} kcal/jour', en: 'Burns: {n} kcal/day', nl: 'Verbruik: {n} kcal/dag' },
+  adjust: { fr: 'Ajuster à la main', en: 'Adjust by hand', nl: 'Handmatig aanpassen' },
+  save_targets: { fr: 'Enregistrer pour {n}', en: 'Save for {n}', nl: 'Opslaan voor {n}' },
+  t_saved: { fr: 'Objectifs envoyés ✓ {n} les voit dans son app', en: 'Targets sent ✓ {n} sees them in the app', nl: 'Doelen verstuurd ✓ {n} ziet ze in de app' },
+  mp_title: { fr: 'Plan repas', en: 'Meal plan', nl: 'Maaltijdplan' },
+  mp_name: { fr: 'Nom du plan', en: 'Plan name', nl: 'Naam van het plan' },
+  mp_def: { fr: 'Journée type de {n}', en: '{n}’s typical day', nl: 'Typische dag van {n}' },
+  mp_day: { fr: 'Une journée type', en: 'One typical day', nl: 'Eén typische dag' },
+  mp_week: { fr: 'Une semaine (7 jours)', en: 'A week (7 days)', nl: 'Een week (7 dagen)' },
+  mp_auto: { fr: 'Remplir automatiquement', en: 'Fill automatically', nl: 'Automatisch vullen' },
+  mp_auto_s: { fr: 'Avec tes recettes, au plus près de son objectif', en: 'With your recipes, as close as possible to the target', nl: 'Met je recepten, zo dicht mogelijk bij het doel' },
+  mp_copyday: { fr: 'Copier ce jour sur toute la semaine', en: 'Copy this day to the whole week', nl: 'Deze dag kopiëren naar de hele week' },
+  mp_add: { fr: 'Ajouter', en: 'Add', nl: 'Toevoegen' },
+  mp_save: { fr: 'Envoyer à {n}', en: 'Send to {n}', nl: 'Versturen naar {n}' },
+  mp_saved: { fr: 'Plan repas envoyé ✓', en: 'Meal plan sent ✓', nl: 'Maaltijdplan verstuurd ✓' },
+  mp_empty: { fr: 'Rien pour l’instant', en: 'Nothing yet', nl: 'Nog niets' },
+  mp_total: { fr: 'Total du jour', en: 'Day total', nl: 'Dagtotaal' },
+  mp_target: { fr: 'objectif', en: 'target', nl: 'doel' },
+  mp_need_t: { fr: 'Calcule d’abord ses calories : le plan s’en sert pour viser juste.', en: 'Work out their calories first: the plan uses them to aim right.', nl: 'Bereken eerst zijn calorieën: het plan gebruikt ze om juist te mikken.' },
+  mp_del: { fr: 'Supprimer ce plan', en: 'Delete this plan', nl: 'Dit plan verwijderen' },
+  mp_inactive: { fr: 'masqué', en: 'hidden', nl: 'verborgen' },
+  s_breakfast: { fr: 'Petit-déjeuner', en: 'Breakfast', nl: 'Ontbijt' },
+  s_lunch: { fr: 'Déjeuner', en: 'Lunch', nl: 'Lunch' },
+  s_snack: { fr: 'Collation', en: 'Snack', nl: 'Tussendoortje' },
+  s_dinner: { fr: 'Dîner', en: 'Dinner', nl: 'Avondeten' },
+  s_preworkout: { fr: 'Avant l’entraînement', en: 'Pre-workout', nl: 'Voor de training' },
+  s_postworkout: { fr: 'Après l’entraînement', en: 'Post-workout', nl: 'Na de training' },
+  s_meal: { fr: 'Repas', en: 'Meal', nl: 'Maaltijd' },
+  add_slot: { fr: '+ Moment', en: '+ Moment', nl: '+ Moment' },
+  pk_recipes: { fr: 'Recettes', en: 'Recipes', nl: 'Recepten' },
+  pk_foods: { fr: 'Aliments', en: 'Foods', nl: 'Voedingsmiddelen' },
+  pk_free: { fr: 'Texte libre', en: 'Free text', nl: 'Vrije tekst' },
+  portion: { fr: 'portion', en: 'serving', nl: 'portie' },
+  portions: { fr: 'portions', en: 'servings', nl: 'porties' },
+  grams: { fr: 'g', en: 'g', nl: 'g' },
+  free_t: { fr: 'Ce que mange ton client', en: 'What your client eats', nl: 'Wat je klant eet' },
+  free_ph: { fr: 'Ex. : Skyr + fruits rouges', en: 'E.g. Skyr + berries', nl: 'Bv. Skyr + rood fruit' },
+  add_it: { fr: 'Ajouter', en: 'Add', nl: 'Toevoegen' },
+  qty: { fr: 'Quantité', en: 'Quantity', nl: 'Hoeveelheid' },
+  pk_food_hint: { fr: 'Tape au moins 2 lettres', en: 'Type at least 2 letters', nl: 'Typ minstens 2 letters' },
+  remove: { fr: 'Retirer', en: 'Remove', nl: 'Weghalen' },
+  per_100: { fr: 'pour 100 g', en: 'per 100 g', nl: 'per 100 g' },
+});
+
+const SLOTS = ['breakfast', 'lunch', 'snack', 'dinner', 'preworkout', 'postworkout', 'meal'];
+const SLOT_SHARE = { breakfast: .25, lunch: .35, snack: .10, dinner: .30, preworkout: .10, postworkout: .12, meal: .30 };
+const SLOT_MT = { breakfast: ['breakfast'], lunch: ['lunch', 'dinner'], dinner: ['dinner', 'lunch'], snack: ['snack', 'pre_workout'], preworkout: ['pre_workout', 'snack'], postworkout: ['post_workout', 'snack'], meal: ['lunch', 'dinner'] };
+const ACT = [['sedentary', 1.2, 'a1'], ['light', 1.375, 'a2'], ['moderate', 1.55, 'a3'], ['active', 1.725, 'a4'], ['very_active', 1.9, 'a5']];
+const GOALS = [['lose_fat', 'g_lose'], ['maintain', 'g_keep'], ['build_muscle', 'g_gain'], ['recomp', 'g_recomp'], ['performance', 'g_perf']];
+const r5 = (x) => Math.round(x / 5) * 5;
+const nf = (x, d = 0) => (Math.round((+x || 0) * 10 ** d) / 10 ** d).toLocaleString(loc());
+
+let HOME_TAB = 'prog';
+try { if (new URLSearchParams(location.search).get('tab') === 'nutri') HOME_TAB = 'nutri'; } catch (_) {}
+function homeTabs() {
+  return `<div class="tabs" id="h-tabs" style="max-width:460px"><button data-h="prog" class="${HOME_TAB === 'prog' ? 'on' : ''}">${esc(t('tab_prog'))}</button><button data-h="nutri" class="${HOME_TAB === 'nutri' ? 'on' : ''}">${esc(t('tab_nutri'))}</button></div>`;
+}
+function bindHomeTabs() { $$('#h-tabs button').forEach((b) => b.onclick = () => { HOME_TAB = b.dataset.h; STACK.length = 0; go(HOME_TAB === 'nutri' ? viewNutriHome : viewHome); }); }
+
+/* ---------------- accueil nutrition ---------------- */
+function viewNutriHome() {
+  PLAN = null; setTitle(t('tab_nutri')); dock('');
+  const v = $('#view');
+  v.innerHTML = homeTabs() + `<div class="hero"><p>${esc(t('n_hero'))}</p></div>` +
+    (CLIENTS.length ? `<div class="tiles">${CLIENTS.map((c, i) => `<button class="tile" data-i="${i}"><div class="av">${esc(initials(c.full_name || c.email))}</div>${esc(firstName(c) || c.email)}</button>`).join('')}</div>` : `<div class="empty">${esc(t('no_client'))}</div>`);
+  bindHomeTabs();
+  $$('.tile', v).forEach((b) => b.onclick = () => openNutriClient(CLIENTS[+b.dataset.i]));
+}
+
+/* ---------------- fiche nutrition d'un client ---------------- */
+let NC = null;
+async function openNutriClient(c) {
+  NC = { client: c, detail: null, plans: [] };
+  go(viewNutriClient);
+}
+async function viewNutriClient() {
+  if (!NC) return viewNutriHome();
+  const c = NC.client; setTitle(firstName(c), t('tab_nutri')); dock('');
+  const v = $('#view'); v.innerHTML = '<div class="load"><div class="spin"></div></div>';
+  try {
+    const [d, pl] = await Promise.all([rpc('coach_client_detail', { p_client: c.client_id }).catch(() => null), rpc('coach_list_meal_plans', { p_client: c.client_id }).catch(() => [])]);
+    NC.detail = d || {}; NC.plans = pl || [];
+  } catch (_) {}
+  const nt = NC.detail.nutrition_targets;
+  const tg = nt && nt.daily_calories_kcal ? nt : null;
+  let h = `<div class="sect" style="margin-top:4px">${esc(t('n_targets'))}</div>`;
+  if (tg) {
+    const kp = Math.round(tg.protein_g * 4), kc = Math.round(tg.carbs_g * 4), kf = Math.round(tg.fat_g * 9), tot = kp + kc + kf || 1;
+    h += `<div class="week" style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+      <div style="min-width:150px"><div style="font-size:44px;font-weight:900;line-height:1;color:var(--brand)">${nf(tg.daily_calories_kcal)}</div><div style="color:var(--muted);font-weight:700">${esc(t('kcal'))} / ${LANG === 'fr' ? 'jour' : LANG === 'nl' ? 'dag' : 'day'}</div></div>
+      <div style="flex:1;min-width:220px">${macroBar(t('prot'), tg.protein_g, kp / tot, '#FF6B6B')}${macroBar(t('carb'), tg.carbs_g, kc / tot, '#5AB0FF')}${macroBar(t('fat'), tg.fat_g, kf / tot, '#B98CFF')}</div>
+      <button class="btn soft" id="n-calc" style="flex:none">${esc(t('n_recalc'))}</button></div>`;
+  } else {
+    h += `<button class="bigadd" id="n-calc"><div class="plus">${ic('bolt')}</div><div><b>${esc(t('n_calc'))}</b><span>${esc(t('n_none'))}</span></div></button>`;
+  }
+  h += `<div class="sect">${esc(t('n_plans'))}</div>
+    <button class="bigadd" id="n-new" style="margin-bottom:12px"><div class="plus">${ic('plus')}</div><div><b>${esc(t('n_newplan'))}</b><span>${esc(t('n_newplan_s'))}</span></div></button>`;
+  h += NC.plans.length ? `<div class="plist">${NC.plans.map((p, i) => `<button class="pcard" data-i="${i}"><div class="av">${ic('cal')}</div><div class="tx"><b>${esc(p.title)}</b>
+      <div class="meta">${esc(p.plan_type === 'week' ? t('mp_week') : t('mp_day'))} · ${p.item_count || 0} ${esc(t('s_meal').toLowerCase())}${p.is_active ? '' : ' · ' + esc(t('mp_inactive'))}</div></div></button>`).join('')}</div>`
+    : `<div class="empty">${esc(t('n_noplan'))}</div>`;
+  v.innerHTML = h;
+  $('#n-calc').onclick = openCalc;
+  $('#n-new').onclick = () => openMealPlan(null);
+  $$('.pcard', v).forEach((b) => b.onclick = () => openMealPlan(NC.plans[+b.dataset.i].id));
+}
+function macroBar(lab, g, frac, col) {
+  return `<div style="margin:6px 0"><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:700"><span>${esc(lab)}</span><span>${nf(g)} g</span></div>
+    <div class="bar" style="margin-top:5px"><i style="width:${Math.round(frac * 100)}%;background:${col}"></i></div></div>`;
+}
+
+/* ---------------- calculateur ---------------- */
+let CALC = null;
+function ageOf(dob) { if (!dob) return null; const d = parse(dob), n = new Date(); let a = n.getFullYear() - d.getFullYear(); if (n < new Date(n.getFullYear(), d.getMonth(), d.getDate())) a--; return a; }
+function openCalc() {
+  const d = NC.detail || {}, p = d.profile || {}, nt = d.nutrition_targets || {};
+  const w = (Array.isArray(d.weight) && d.weight.length && (d.weight[d.weight.length - 1].kg || d.weight[d.weight.length - 1].weight_kg)) || nt.current_weight_kg || 75;
+  CALC = { sex: p.sex === 'female' ? 'female' : 'male', age: ageOf(p.date_of_birth) || 30, h: Math.round(p.height_cm || (p.sex === 'female' ? 166 : 178)),
+    w: Math.round(+w * 2) / 2, act: 'moderate', goal: nt.goal && GOALS.some((g) => g[0] === nt.goal) ? nt.goal : 'maintain', pace: 2, pkg: null, adj: 0 };
+  paintCalc();
+}
+function calcRes() {
+  const C = CALC;
+  const bmr = 10 * C.w + 6.25 * C.h - 5 * C.age + (C.sex === 'male' ? 5 : -161);
+  const f = (ACT.find((a) => a[0] === C.act) || ACT[2])[1];
+  const tdee = bmr * f;
+  const pace = { lose_fat: [.10, .18, .25], build_muscle: [.05, .10, .15] };
+  let kcal = tdee;
+  if (C.goal === 'lose_fat') kcal = tdee * (1 - pace.lose_fat[C.pace - 1]);
+  else if (C.goal === 'build_muscle') kcal = tdee * (1 + pace.build_muscle[C.pace - 1]);
+  else if (C.goal === 'recomp') kcal = tdee * .95;
+  else if (C.goal === 'performance') kcal = tdee * 1.05;
+  kcal = Math.max(C.sex === 'male' ? 1500 : 1200, r5(kcal + C.adj));
+  const pkgDef = { lose_fat: 2.0, maintain: 1.8, build_muscle: 1.8, recomp: 2.2, performance: 1.8 }[C.goal];
+  const pkg = C.pkg || pkgDef;
+  const P = Math.round(pkg * C.w);
+  const F = Math.round(Math.max(.8 * C.w, kcal * .25 / 9));
+  const Cb = Math.max(50, Math.round((kcal - P * 4 - F * 9) / 4));
+  const weekly = C.goal === 'lose_fat' || C.goal === 'build_muscle' ? Math.abs((kcal - tdee) * 7 / 7700) : 0;
+  return { bmr: Math.round(bmr), tdee: Math.round(tdee), kcal, P, F, C: Cb, pkg, fiber: Math.round(kcal / 1000 * 14), water: Math.round(C.w * 35 / 250) * 250, weekly };
+}
+function paintCalc() {
+  const C = CALC, R = calcRes(), name = firstName(NC.client);
+  const opt = (key, val, lab, sub) => `<button data-${key}="${val}" class="${String(C[key]) === String(val) ? 'on' : ''}"><b>${esc(lab)}</b>${sub ? `<span>${esc(sub)}</span>` : ''}</button>`;
+  const step = (id, lab, val, unit) => `<div class="field" style="margin:0"><label>${esc(lab)}</label><div class="stepper"><button data-st="${id}" data-d="-1">−</button><output>${nf(val, id === 'w' ? 1 : 0)}<small>${esc(unit)}</small></output><button data-st="${id}" data-d="1">+</button></div></div>`;
+  const tot = R.P * 4 + R.C * 4 + R.F * 9 || 1;
+  const sh = openSheet('ov2', shHead(t('c_title', { n: name }), 'ov2') + `<div class="sh-b" id="calc-b">
+    <div style="position:sticky;top:-16px;z-index:6;margin:-16px -16px 14px;padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+      <b style="font-size:26px;font-weight:900;color:var(--brand)">${nf(R.kcal)}</b><span style="color:var(--muted);font-weight:700">${esc(t('kcal'))}</span>
+      <span style="margin-left:auto;font-size:13.5px;font-weight:700"><span style="color:#FF6B6B">P ${R.P}</span> · <span style="color:#5AB0FF">G ${R.C}</span> · <span style="color:#B98CFF">L ${R.F}</span></span></div>
+    <div class="field"><label>${esc(t('c_sex'))}</label><div class="choice">${opt('sex', 'male', t('male'))}${opt('sex', 'female', t('female'))}</div></div>
+    <div style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:18px">${step('age', t('age'), C.age, t('years'))}${step('h', t('height'), C.h, 'cm')}${step('w', t('weight'), C.w, 'kg')}</div>
+    <div class="field"><label>${esc(t('activity'))}</label><div class="choice" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">${ACT.map((a) => opt('act', a[0], t(a[2]), t(a[2] + 's'))).join('')}</div></div>
+    <div class="field"><label>${esc(t('goalq'))}</label><div class="choice" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">${GOALS.map((g) => opt('goal', g[0], t(g[1]))).join('')}</div></div>
+    ${C.goal === 'lose_fat' || C.goal === 'build_muscle' ? `<div class="field"><label>${esc(t('pace'))}</label><div class="choice" style="grid-template-columns:repeat(3,1fr)">${opt('pace', 1, t('p1'))}${opt('pace', 2, t('p2'))}${opt('pace', 3, t('p3'))}</div></div>` : ''}
+    <div class="week" style="border-color:rgba(0,232,150,.4);background:linear-gradient(180deg,rgba(0,232,150,.09),rgba(0,232,150,.02))">
+      <div style="font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)">${esc(t('result'))}</div>
+      <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:6px 0 4px">
+        <div style="font-size:52px;font-weight:900;line-height:1;color:var(--brand)">${nf(R.kcal)}</div><div style="font-weight:800;color:var(--muted);padding-bottom:6px">${esc(t('kcal'))}</div>
+        <div class="stepper" style="margin-left:auto" title="${esc(t('adjust'))}"><button data-adj="-50">−</button><output style="font-size:14px">±50</output><button data-adj="50">+</button></div></div>
+      <div style="color:var(--muted);font-size:13.5px">${esc(t('tdee_l', { n: nf(R.tdee) }))}${R.weekly ? ' · ' + esc(t('per_week', { n: nf(R.weekly, 2) })) : ''}</div>
+      <div style="margin-top:10px">${macroBar(t('prot'), R.P, R.P * 4 / tot, '#FF6B6B')}${macroBar(t('carb'), R.C, R.C * 4 / tot, '#5AB0FF')}${macroBar(t('fat'), R.F, R.F * 9 / tot, '#B98CFF')}</div>
+      <div style="display:flex;gap:16px;color:var(--muted);font-size:13.5px;margin-top:8px"><span>${esc(t('fiber'))} <b style="color:var(--text)">${R.fiber} g</b></span><span>${esc(t('water'))} <b style="color:var(--text)">${nf(R.water / 1000, 2)} L</b></span></div>
+      <div class="field" style="margin:12px 0 0"><label>${esc(t('prot_kg'))}</label><div class="fchips">${[1.6, 1.8, 2.0, 2.2, 2.4].map((x) => `<button data-pkg="${x}" class="${Math.abs(R.pkg - x) < .01 ? 'on' : ''}">${nf(x, 1)} g/kg</button>`).join('')}</div></div>
+    </div>
+</div>
+    <div class="sh-f"><button class="btn main" id="calc-save">${esc(t('save_targets', { n: name }))}</button></div>`);
+  const b = $('#calc-b', sh), y = 0;
+  const re = () => { const s = $('#calc-b').scrollTop; paintCalc(); $('#calc-b').scrollTop = s; };
+  $$('[data-sex]', b).forEach((x) => x.onclick = () => { C.sex = x.dataset.sex; re(); });
+  $$('[data-act]', b).forEach((x) => x.onclick = () => { C.act = x.dataset.act; re(); });
+  $$('[data-goal]', b).forEach((x) => x.onclick = () => { C.goal = x.dataset.goal; C.pkg = null; C.adj = 0; re(); });
+  $$('[data-pace]', b).forEach((x) => x.onclick = () => { C.pace = +x.dataset.pace; re(); });
+  $$('[data-pkg]', b).forEach((x) => x.onclick = () => { C.pkg = +x.dataset.pkg; re(); });
+  $$('[data-adj]', b).forEach((x) => x.onclick = () => { C.adj += +x.dataset.adj; re(); });
+  $$('[data-st]', b).forEach((x) => x.onclick = () => {
+    const k = x.dataset.st, d = +x.dataset.d;
+    if (k === 'age') C.age = Math.max(14, Math.min(90, C.age + d));
+    if (k === 'h') C.h = Math.max(130, Math.min(220, C.h + d));
+    if (k === 'w') C.w = Math.max(35, Math.min(220, C.w + d * .5));
+    re();
+  });
+  $('#calc-save', sh).onclick = async () => {
+    const R2 = calcRes(); const btn = $('#calc-save'); btn.disabled = true;
+    try {
+      await rpc('studio_save_targets', { p_client: NC.client.client_id, p_kcal: R2.kcal, p_protein: R2.P, p_carbs: R2.C, p_fat: R2.F, p_fiber: R2.fiber, p_water: R2.water,
+        p_goal: C.goal, p_activity: C.act, p_weight: C.w, p_bmr: R2.bmr, p_tdee: R2.tdee, p_weekly_rate: R2.weekly ? (C.goal === 'lose_fat' ? -1 : 1) * Math.round(R2.weekly * 100) / 100 : null });
+      closeSheet('ov2'); toast(t('t_saved', { n: firstName(NC.client) })); viewNutriClient();
+    } catch (e) { toast(errMsg(e), true); btn.disabled = false; }
+  };
+}
+
+/* ---------------- plan repas ---------------- */
+let MP = null, RECIPES = null;
+async function loadRecipes() {
+  if (!RECIPES) {
+    const { data } = await sb.from('recipes').select('id,name_fr,name_en,name_nl,meal_type,kcal_per_serving,protein_per_serving,carbs_per_serving,fat_per_serving,image_url,prep_time_min,cook_time_min,target_goal').eq('is_published', true).limit(500);
+    RECIPES = data || [];
+  }
+  return RECIPES;
+}
+const rName = (r) => (LANG === 'en' && r.name_en) || (LANG === 'nl' && r.name_nl) || r.name_fr;
+function itemVals(it) {
+  if (it.kind === 'recipe') return { k: it.base.k * it.qty, p: it.base.p * it.qty, c: it.base.c * it.qty, f: it.base.f * it.qty };
+  if (it.kind === 'food') { const q = it.qty / 100; return { k: it.base.k * q, p: it.base.p * q, c: it.base.c * q, f: it.base.f * q }; }
+  return { k: +it.k || 0, p: +it.p || 0, c: +it.c || 0, f: +it.f || 0 };
+}
+function targetsOf() { const nt = NC && NC.detail && NC.detail.nutrition_targets; return nt && nt.daily_calories_kcal ? { k: nt.daily_calories_kcal, p: nt.protein_g, c: nt.carbs_g, f: nt.fat_g } : null; }
+
+async function openMealPlan(id) {
+  const name = firstName(NC.client);
+  MP = { id, title: t('mp_def', { n: name }), type: 'day', active: true, notes: '', day: 1, slots: ['breakfast', 'lunch', 'snack', 'dinner'], items: [], dirty: false };
+  openSheet('ov2', shHead(t('mp_title'), 'ov2') + `<div class="sh-b"><div class="load" style="min-height:200px"><div class="spin"></div></div></div>`, () => { MP = null; });
+  loadRecipes();
+  if (id) {
+    try {
+      const d = await rpc('coach_get_meal_plan', { p_id: id });
+      MP.title = d.plan.title; MP.type = d.plan.plan_type === 'week' ? 'week' : 'day'; MP.active = d.plan.is_active !== false; MP.notes = d.plan.notes || '';
+      MP.items = (d.items || []).map((i) => ({ kind: 'free', day: i.day_index || 1, slot: i.slot || 'meal', title: i.title, title_en: i.title_en, title_nl: i.title_nl, desc: i.description || '', k: i.kcal, p: i.protein_g, c: i.carbs_g, f: i.fat_g }));
+      const used = [...new Set(MP.items.map((i) => i.slot))];
+      MP.slots = SLOTS.filter((s) => MP.slots.includes(s) || used.includes(s));
+    } catch (e) { closeSheet('ov2'); toast(errMsg(e), true); return; }
+  }
+  paintMP();
+}
+function paintMP() {
+  if (!MP) return;
+  const T = targetsOf(), name = firstName(NC.client);
+  const dayItems = MP.items.filter((i) => i.day === MP.day);
+  const tot = dayItems.reduce((a, it) => { const v = itemVals(it); a.k += v.k; a.p += v.p; a.c += v.c; a.f += v.f; return a; }, { k: 0, p: 0, c: 0, f: 0 });
+  const gauge = (lab, val, tg, col) => { const pct = tg ? Math.min(130, Math.round(val / tg * 100)) : 0; const off = tg && Math.abs(val - tg) / tg > .1;
+    return `<div style="flex:1;min-width:120px"><div style="display:flex;justify-content:space-between;font-size:12.5px;font-weight:700"><span>${esc(lab)}</span><span style="color:${off ? 'var(--gold)' : 'var(--brand)'}">${nf(val)}${tg ? ' / ' + nf(tg) : ''}</span></div>
+      <div class="bar" style="margin-top:4px"><i style="width:${Math.min(100, pct)}%;background:${col}"></i></div></div>`; };
+  let h = `<div class="field"><label>${esc(t('mp_name'))}</label><input class="inp" id="mp-name" value="${esc(MP.title)}" style="font-weight:800"></div>
+    <div class="choice" style="margin-bottom:14px"><button data-ty="day" class="${MP.type === 'day' ? 'on' : ''}"><b>${esc(t('mp_day'))}</b></button><button data-ty="week" class="${MP.type === 'week' ? 'on' : ''}"><b>${esc(t('mp_week'))}</b></button></div>`;
+  if (MP.type === 'week') h += `<div class="days" style="margin-bottom:10px">${DOW[LANG].map((d, k) => `<button data-day="${k + 1}" class="${MP.day === k + 1 ? 'on' : ''}">${d}</button>`).join('')}</div>
+    <button class="chipbtn" id="mp-copyday" style="margin-bottom:12px">${ic('copy')}${esc(t('mp_copyday'))}</button>`;
+  if (!T) h += `<div class="help">${ic('info')}<div>${esc(t('mp_need_t'))}</div></div>`;
+  h += `<div class="week" style="position:sticky;top:-16px;z-index:5;background:var(--bg2);border-color:var(--line2)">
+    <div style="font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">${esc(t('mp_total'))}</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">${gauge(t('kcal'), tot.k, T && T.k, 'var(--brand)')}${gauge(t('prot'), tot.p, T && T.p, '#FF6B6B')}${gauge(t('carb'), tot.c, T && T.c, '#5AB0FF')}${gauge(t('fat'), tot.f, T && T.f, '#B98CFF')}</div></div>
+    <button class="act" id="mp-auto" style="border-color:rgba(233,199,103,.45);margin-bottom:14px">${ic('bolt')}<div>${esc(t('mp_auto'))}<small>${esc(t('mp_auto_s'))}</small></div></button>`;
+  for (const s of MP.slots) {
+    const its = MP.items.map((it, idx) => ({ it, idx })).filter((x) => x.it.day === MP.day && x.it.slot === s);
+    h += `<section class="week"><div class="whead"><b>${esc(t('s_' + s))}${T ? `<small>≈ ${nf(r5(T.k * SLOT_SHARE[s]))} kcal</small>` : ''}</b>
+      <button class="chipbtn" data-addto="${s}">${ic('plus')}${esc(t('mp_add'))}</button></div>
+      ${its.length ? its.map(({ it, idx }) => { const v = itemVals(it); return `<div class="witem mitem" style="margin-top:8px;cursor:default;flex-wrap:wrap">
+        <div class="tx"><b>${esc(it.kind === 'recipe' ? rName(it.ref) : it.kind === 'food' ? ((LANG === 'en' && it.ref.name_en) || (LANG === 'nl' && it.ref.name_nl) || it.ref.name_fr) : it.title)}</b>
+        <span>${nf(v.k)} kcal · P ${nf(v.p)} · G ${nf(v.c)} · L ${nf(v.f)}</span></div>
+        ${it.kind !== 'free' ? `<div class="stepper" style="transform:scale(.82);transform-origin:right center;margin-left:auto"><button data-q="${idx}" data-d="-1">−</button><output style="font-size:15px;min-width:64px">${it.kind === 'recipe' ? nf(it.qty, 2) + '<small>' + esc(it.qty === 1 ? t('portion') : t('portions')) + '</small>' : nf(it.qty) + '<small>g</small>'}</output><button data-q="${idx}" data-d="1">+</button></div>` : ''}
+        <button class="iconbtn" data-rm="${idx}" aria-label="${esc(t('remove'))}" style="width:40px;height:40px">${ic('x')}</button></div>`; }).join('') : `<div style="color:var(--dim);font-size:14px;padding:6px 2px">${esc(t('mp_empty'))}</div>`}
+      </section>`;
+  }
+  const missing = SLOTS.filter((s) => !MP.slots.includes(s));
+  if (missing.length) h += `<div class="fchips">${missing.map((s) => `<button data-slot="${s}">+ ${esc(t('s_' + s))}</button>`).join('')}</div>`;
+  const sh = $('#sheet2');
+  sh.innerHTML = shHead(t('mp_title'), 'ov2') + `<div class="sh-b" id="mp-b">${h}</div>
+    <div class="sh-f">${MP.id ? `<button class="btn danger" id="mp-del" style="flex:0 0 auto">${ic('trash')}</button>` : ''}<button class="btn main" id="mp-save">${ic('send')}${esc(t('mp_save', { n: name }))}</button></div>`;
+  const b = $('#mp-b');
+  const re = () => { const y = $('#mp-b').scrollTop; paintMP(); $('#mp-b').scrollTop = y; };
+  $('#mp-name').oninput = (e) => { MP.title = e.target.value; MP.dirty = true; };
+  $$('[data-ty]', b).forEach((x) => x.onclick = () => { MP.type = x.dataset.ty; if (MP.type === 'day') { MP.items = MP.items.filter((i) => i.day === MP.day).map((i) => ({ ...i, day: 1 })); MP.day = 1; } MP.dirty = true; re(); });
+  $$('[data-day]', b).forEach((x) => x.onclick = () => { MP.day = +x.dataset.day; re(); });
+  const cd = $('#mp-copyday'); if (cd) cd.onclick = () => { const src = MP.items.filter((i) => i.day === MP.day); MP.items = MP.items.filter((i) => i.day === MP.day); for (let d = 1; d <= 7; d++) if (d !== MP.day) src.forEach((i) => MP.items.push({ ...i, day: d })); MP.dirty = true; toast('✓'); re(); };
+  $$('[data-slot]', b).forEach((x) => x.onclick = () => { MP.slots = SLOTS.filter((s) => MP.slots.includes(s) || s === x.dataset.slot); re(); });
+  $$('[data-addto]', b).forEach((x) => x.onclick = () => pickFood(x.dataset.addto));
+  $$('[data-rm]', b).forEach((x) => x.onclick = () => { MP.items.splice(+x.dataset.rm, 1); MP.dirty = true; re(); });
+  $$('[data-q]', b).forEach((x) => x.onclick = () => { const it = MP.items[+x.dataset.q], d = +x.dataset.d;
+    if (it.kind === 'recipe') it.qty = Math.max(.25, Math.min(4, it.qty + d * .25)); else it.qty = Math.max(5, Math.min(1500, it.qty + d * (it.qty >= 100 ? 25 : 10)));
+    MP.dirty = true; re(); });
+  $('#mp-auto').onclick = async () => { await autoFill(); MP.dirty = true; re(); };
+  $('#mp-save').onclick = saveMP;
+  const del = $('#mp-del'); if (del) del.onclick = async () => { if (!confirm(t('mp_del') + ' ?')) return; try { await rpc('coach_delete_meal_plan', { p_id: MP.id }); MP.dirty = false; closeSheet('ov2'); viewNutriClient(); } catch (e) { toast(errMsg(e), true); } };
+}
+
+/* remplissage automatique : une recette par moment vide, portion ajustee
+   pour coller a la part de calories du moment, puis on privilegie les
+   recettes riches en proteines si on est en dessous de l'objectif. */
+async function autoFill() {
+  const rec = await loadRecipes(); const T = targetsOf() || { k: 2200, p: 140, c: 250, f: 70 };
+  const usedIds = new Set(MP.items.filter((i) => i.kind === 'recipe').map((i) => i.ref.id));
+  const shares = MP.slots.reduce((a, s) => a + SLOT_SHARE[s], 0) || 1;
+  for (const s of MP.slots) {
+    if (MP.items.some((i) => i.day === MP.day && i.slot === s)) continue;
+    const want = T.k * SLOT_SHARE[s] / shares, wantP = T.p * SLOT_SHARE[s] / shares;
+    const pool = rec.filter((r) => SLOT_MT[s].includes(String(r.meal_type)) && +r.kcal_per_serving > 0 && !usedIds.has(r.id));
+    if (!pool.length) continue;
+    const scored = pool.map((r) => { let q = Math.max(.5, Math.min(2.5, Math.round(want / r.kcal_per_serving * 4) / 4));
+      const k = r.kcal_per_serving * q, p = r.protein_per_serving * q; return { r, q, sc: Math.abs(k - want) / want + .6 * Math.max(0, wantP - p) / (wantP || 1) + Math.random() * .15 }; })
+      .sort((a, b) => a.sc - b.sc);
+    const best = scored[0]; usedIds.add(best.r.id);
+    MP.items.push(recipeItem(best.r, s, best.q));
+  }
+}
+const recipeItem = (r, slot, q) => ({ kind: 'recipe', day: MP.day, slot, ref: r, qty: q, base: { k: +r.kcal_per_serving || 0, p: +r.protein_per_serving || 0, c: +r.carbs_per_serving || 0, f: +r.fat_per_serving || 0 } });
+
+let FP = { tab: 'recipes', q: '' };
+async function pickFood(slot) {
+  const sh = openSheet('ov3', shHead(t('s_' + slot), 'ov3') + `<div class="sh-b" id="fp-b"><div class="load" style="min-height:160px"><div class="spin"></div></div></div>`, () => { if (MP) paintMP(); });
+  $('#ov3').classList.add('full');
+  const rec = await loadRecipes();
+  const b = $('#fp-b', sh);
+  let foods = [], ft = 0;
+  const paint = () => {
+    let h = `<div class="tabs">${['recipes', 'foods', 'free'].map((k) => `<button data-t="${k}" class="${FP.tab === k ? 'on' : ''}">${esc(t('pk_' + k))}</button>`).join('')}</div>`;
+    if (FP.tab !== 'free') h += `<div class="search">${ic('search')}<input class="inp" id="fp-q" placeholder="${esc(t('search'))}" value="${esc(FP.q)}"></div>`;
+    if (FP.tab === 'recipes') {
+      const q = FP.q.trim().toLowerCase();
+      const l = rec.filter((r) => !q || [r.name_fr, r.name_en, r.name_nl].some((x) => String(x || '').toLowerCase().includes(q)))
+        .sort((a, b) => (SLOT_MT[slot].includes(String(b.meal_type)) ? 1 : 0) - (SLOT_MT[slot].includes(String(a.meal_type)) ? 1 : 0));
+      h += `<div class="wlist">${l.slice(0, 80).map((r) => `<button class="witem" data-r="${r.id}">${r.image_url ? `<img src="${esc(r.image_url)}" alt="" loading="lazy" style="width:56px;height:56px;border-radius:12px;object-fit:cover;flex:none">` : ''}<div class="tx"><b>${esc(rName(r))}</b><span>${nf(r.kcal_per_serving)} kcal · P ${nf(r.protein_per_serving)} · G ${nf(r.carbs_per_serving)} · L ${nf(r.fat_per_serving)}</span></div><span class="go">${ic('plus')}</span></button>`).join('')}</div>`;
+    } else if (FP.tab === 'foods') {
+      h += FP.q.trim().length < 2 ? `<div class="empty">${esc(t('pk_food_hint'))}</div>` : `<div class="wlist">${foods.map((f) => `<button class="witem" data-f="${f.id}"><div class="tx"><b>${esc((LANG === 'en' && f.name_en) || (LANG === 'nl' && f.name_nl) || f.name_fr)}${f.brand ? ` <span style="display:inline;color:var(--dim)">· ${esc(f.brand)}</span>` : ''}</b><span>${esc(t('per_100'))} : ${nf(f.kcal_per_100g)} kcal · P ${nf(f.protein_per_100g, 1)} · G ${nf(f.carbs_per_100g, 1)} · L ${nf(f.fat_per_100g, 1)}</span></div><span class="go">${ic('plus')}</span></button>`).join('')}</div>`;
+    } else {
+      h += `<div class="field"><label>${esc(t('free_t'))}</label><input class="inp" id="fr-t" placeholder="${esc(t('free_ph'))}"></div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${['kcal', 'prot', 'carb', 'fat'].map((k) => `<div class="field" style="margin:0"><label>${esc(t(k))}</label><input class="inp" inputmode="decimal" id="fr-${k}"></div>`).join('')}</div>
+        <button class="btn main block" id="fr-add" style="margin-top:14px">${esc(t('add_it'))}</button>`;
+    }
+    b.innerHTML = h;
+    $$('.tabs button', b).forEach((x) => x.onclick = () => { FP.tab = x.dataset.t; paint(); });
+    const qi = $('#fp-q', b);
+    if (qi) qi.oninput = () => { FP.q = qi.value; const p = qi.selectionStart;
+      if (FP.tab === 'foods') { clearTimeout(ft); ft = setTimeout(async () => { if (FP.q.trim().length < 2) { foods = []; } else { const s = FP.q.trim().replace(/[%,()]/g, ' ');
+        const { data } = await sb.from('foods').select('id,name_fr,name_en,name_nl,brand,kcal_per_100g,protein_per_100g,carbs_per_100g,fat_per_100g,default_serving_g').or(`name_fr.ilike.%${s}%,name_en.ilike.%${s}%,name_nl.ilike.%${s}%`).limit(40); foods = data || []; }
+        paint(); const n = $('#fp-q', b); if (n) { n.focus(); n.setSelectionRange(p, p); } }, 250); return; }
+      paint(); const n = $('#fp-q', b); n.focus(); n.setSelectionRange(p, p); };
+    $$('[data-r]', b).forEach((x) => x.onclick = () => { const r = rec.find((y) => y.id === x.dataset.r); const T = targetsOf();
+      const q = T && r.kcal_per_serving ? Math.max(.5, Math.min(2.5, Math.round(T.k * SLOT_SHARE[slot] / r.kcal_per_serving * 4) / 4)) : 1;
+      MP.items.push(recipeItem(r, slot, q)); MP.dirty = true; closeSheet('ov3'); });
+    $$('[data-f]', b).forEach((x) => x.onclick = () => { const f = foods.find((y) => y.id === x.dataset.f);
+      MP.items.push({ kind: 'food', day: MP.day, slot, ref: f, qty: Math.round(+f.default_serving_g || 100), base: { k: +f.kcal_per_100g || 0, p: +f.protein_per_100g || 0, c: +f.carbs_per_100g || 0, f: +f.fat_per_100g || 0 } });
+      MP.dirty = true; closeSheet('ov3'); });
+    const fa = $('#fr-add', b); if (fa) fa.onclick = () => { const ti = $('#fr-t').value.trim(); if (!ti) return toast(t('need_name'), true);
+      const g = (k) => parseFloat(($('#fr-' + k).value || '').replace(',', '.')) || 0;
+      MP.items.push({ kind: 'free', day: MP.day, slot, title: ti, k: g('kcal'), p: g('prot'), c: g('carb'), f: g('fat') }); MP.dirty = true; closeSheet('ov3'); };
+  };
+  paint();
+}
+
+async function saveMP() {
+  if (!MP) return;
+  const btn = $('#mp-save'); btn.disabled = true;
+  try {
+    const title = (MP.title || '').trim() || t('mp_def', { n: firstName(NC.client) });
+    const id = await rpc('coach_upsert_meal_plan', { p_id: MP.id, p_client: NC.client.client_id, p_title: title, p_notes: MP.notes || null, p_plan_type: MP.type, p_is_active: true, p_title_en: title, p_title_nl: title });
+    MP.id = id;
+    const ord = {}; const items = MP.items.slice().sort((a, b) => a.day - b.day || SLOTS.indexOf(a.slot) - SLOTS.indexOf(b.slot)).map((it) => {
+      const v = itemVals(it); const key = it.day; ord[key] = (ord[key] || 0) + 1;
+      let tFr, tEn, tNl, dFr = '', dEn = '', dNl = '';
+      if (it.kind === 'recipe') { tFr = it.ref.name_fr; tEn = it.ref.name_en || tFr; tNl = it.ref.name_nl || tFr;
+        const q = nf(it.qty, 2); dFr = `${q} ${it.qty === 1 ? 'portion' : 'portions'}`; dEn = `${q} ${it.qty === 1 ? 'serving' : 'servings'}`; dNl = `${q} ${it.qty === 1 ? 'portie' : 'porties'}`; }
+      else if (it.kind === 'food') { tFr = it.ref.name_fr; tEn = it.ref.name_en || tFr; tNl = it.ref.name_nl || tFr; dFr = dEn = dNl = `${Math.round(it.qty)} g`; }
+      else { tFr = it.title; tEn = it.title_en || tFr; tNl = it.title_nl || tFr; dFr = dEn = dNl = it.desc || ''; }
+      return { day_index: it.day, slot: it.slot, title: tFr, title_en: tEn, title_nl: tNl, description: dFr, description_en: dEn, description_nl: dNl,
+        kcal: Math.round(v.k), protein_g: Math.round(v.p), carbs_g: Math.round(v.c), fat_g: Math.round(v.f), display_order: ord[key] };
+    });
+    await rpc('coach_set_meal_plan_items', { p_plan: id, p_items: items });
+    MP.dirty = false; closeSheet('ov2'); toast(t('mp_saved')); viewNutriClient();
+  } catch (e) { toast(errMsg(e), true); btn.disabled = false; }
 }
 
 boot().catch((e) => { console.error(e); $('#view').innerHTML = `<div class="gate"><h2>${esc(t('err'))}</h2><p>${esc(String(e && e.message || e))}</p></div>`; });
