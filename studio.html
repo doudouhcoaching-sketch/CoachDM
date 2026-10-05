@@ -103,6 +103,7 @@ input,textarea,select{font-family:inherit;font-size:16px;color:var(--text)}
 .linkbtn{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:14px;padding:8px 2px}
 .asnote{background:var(--goldsoft);color:var(--gold);border-radius:14px;padding:12px 14px;font-size:14px;margin:0 0 16px;line-height:1.45}
 .astitle{width:100%;box-sizing:border-box;height:50px;padding:0 14px;border-radius:14px;background:var(--s1);border:1.5px solid var(--line2);color:inherit;font:inherit;font-size:16px}
+.asquota{color:var(--muted);font-size:12.5px;margin-top:10px}
 .asdone{text-align:center;max-width:520px;margin:20px auto}
 .asok{width:72px;height:72px;border-radius:24px;margin:0 auto 16px;display:grid;place-items:center;font-size:34px;font-weight:900;background:var(--brandsoft);color:var(--brand)}
 .c3tabs{margin:12px 16px 0;overflow-x:auto;scrollbar-width:none}
@@ -1996,6 +1997,8 @@ Object.assign(TX, {
   as_pool: { fr: 'Avec ce matériel, je ne peux pas construire de vraies séances pour ces journées. Choisis plus de matériel.', en: 'With this equipment I can’t build proper sessions for those days. Pick more equipment.', nl: 'Met dit materiaal kan ik geen degelijke trainingen bouwen voor die dagen. Kies meer materiaal.' },
   as_offline: { fr: 'L’assistant n’a pas pu lire ta demande, je l’ai lue moi-même : vérifie bien les réglages.', en: 'The assistant couldn’t read your request, I parsed it locally: double-check the settings.', nl: 'De assistent kon je vraag niet lezen, ik heb ze lokaal gelezen: controleer de instellingen goed.' },
   as_need_c: { fr: 'Choisis d’abord le client', en: 'Pick the client first', nl: 'Kies eerst de klant' },
+  as_quota: { fr: 'Aujourd’hui : {n} / {m} programmes créés', en: 'Today: {n} / {m} programs created', nl: 'Vandaag: {n} / {m} programma’s gemaakt' },
+  as_limit: { fr: 'Tu as atteint la limite de {m} programmes créés aujourd’hui. Elle repart à zéro demain matin. Tu peux toujours modifier tes brouillons ou partir d’un modèle.', en: 'You’ve reached today’s limit of {m} created programs. It resets tomorrow morning. You can still edit drafts or start from a template.', nl: 'Je hebt de limiet van {m} programma’s vandaag bereikt. Morgenochtend begint het opnieuw. Je kan nog altijd concepten aanpassen of vertrekken van een sjabloon.' },
   as_premium: { fr: 'L’assistant fait partie de l’offre coach premium.', en: 'The assistant is part of the premium coach plan.', nl: 'De assistent hoort bij het premium coach-abonnement.' },
   min: { fr: 'min', en: 'min', nl: 'min' },
   max5: { fr: '5 séances par semaine au maximum', en: '5 sessions a week at most', nl: 'Maximaal 5 trainingen per week' },
@@ -2073,7 +2076,8 @@ async function viewAssistant() {
       `<h2 class="q">✨ ${esc(t('as_q'))}</h2><p class="qsub">${esc(t('as_qs'))}</p>
       <textarea id="as-txt" class="astxt" rows="4" placeholder="${esc(t('as_ph'))}">${esc(AS.text)}</textarea>
       <div class="asex">${['as_ex1', 'as_ex2', 'as_ex3'].map((k) => `<button data-k="${k}">${esc(t(k))}</button>`).join('')}</div>
-      <button class="linkbtn" id="as-man">${esc(t('as_manual'))}</button>`;
+      <button class="linkbtn" id="as-man">${esc(t('as_manual'))}</button><div class="asquota" id="as-q"></div>`;
+    rpc('studio_usage_me').then((u) => { const q = $('#as-q'); if (q && u && u.limit) q.textContent = t('as_quota', { n: u.today, m: u.limit }); }).catch(() => {});
     $$('#as-cl button').forEach((b) => b.onclick = () => { AS.client = asClients()[+b.dataset.i]; $$('#as-cl button').forEach((x) => x.classList.toggle('on', x === b)); setTitle(t('as_title'), firstName(AS.client)); });
     $$('.asex button', v).forEach((b) => b.onclick = () => { $('#as-txt').value = t(b.dataset.k); $('#as-txt').focus(); });
     $('#as-man').onclick = () => { if (!AS.client) return toast(t('as_need_c'), true); AS.text = $('#as-txt').value; AS.stage = 'set'; viewAssistant(); };
@@ -2140,7 +2144,7 @@ async function asBuild() {
   try {
     const r = await rpc('studio_ai_program', { p_client: AS.client.client_id, p_goal: P.goal, p_level: P.level, p_days: P.weekdays.length, p_weeks: P.weeks,
       p_equipment: AS_EQ[P.equipment], p_constraints: P.constraints, p_session_min: P.session_min, p_start: P.start, p_weekdays: P.weekdays, p_title: (P.title || '').trim() || null });
-    if (r && r.error) { AS.stage = 'set'; viewAssistant(); return toast(r.error === 'pool_insuffisant' ? t('as_pool') : (r.message || t('err')), true); }
+    if (r && r.error) { AS.stage = 'set'; viewAssistant(); return toast(r.error === 'pool_insuffisant' ? t('as_pool') : r.error === 'daily_limit' ? t('as_limit', { m: r.limit || 20 }) : (r.message || t('err')), true); }
     AS.result = r; AS.stage = 'done'; HOME_PLANS = null; viewAssistant();
   } catch (e) { AS.stage = 'set'; viewAssistant(); toast(errMsg(e), true); }
 }

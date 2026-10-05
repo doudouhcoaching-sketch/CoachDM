@@ -143,9 +143,9 @@
   .toast.show{opacity:1}
 
   /* ===== Apports coach (modération) ===== */
-  #pane-apports .asub{display:flex;gap:8px;margin-bottom:14px}
-  #pane-apports .asub button{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-weight:700;font-size:14px}
-  #pane-apports .asub button.on{background:var(--brand);color:#04120a;border-color:var(--brand)}
+  #pane-apports .asub,#pane-ia .asub{display:flex;gap:8px;margin-bottom:14px}
+  #pane-apports .asub button,#pane-ia .asub button{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-weight:700;font-size:14px}
+  #pane-apports .asub button.on,#pane-ia .asub button.on{background:var(--brand);color:#04120a;border-color:var(--brand)}
   /* Pastille de comptage sur l'onglet : ce qui attend une décision se voit
      sans ouvrir la page. */
   #ap-badge{display:none;margin-left:6px;background:var(--warn);color:#fff;border-radius:999px;
@@ -223,6 +223,18 @@
   .chat-in textarea{flex:1;min-height:42px;max-height:110px;resize:none;background:var(--surface-2);
     border:1px solid var(--line);border-radius:13px;color:var(--text);padding:10px 13px;font-size:15px;font-family:inherit}
   .chat-in textarea:focus{outline:none;border-color:var(--brand)}
+
+  .ia-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin:6px 0 18px}
+  .ia-kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .ia-kpi small{display:block;color:var(--muted);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px}
+  .ia-kpi b{display:block;font-size:22px;margin-top:5px}
+  .ia-kpi span{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+  .ia-h{font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin:20px 2px 10px}
+  .ia-bars{display:flex;align-items:flex-end;gap:3px;height:120px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px}
+  .ia-bars i{flex:1;background:var(--brand);border-radius:4px 4px 1px 1px;min-height:2px;opacity:.85}
+  .ia-row{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);font-size:14px}
+  .ia-row span{color:var(--muted)}
+  .ia-note{color:var(--muted);font-size:12.5px;line-height:1.5;margin-top:16px}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap">
 <style>
@@ -276,6 +288,7 @@ h1, h2,
       <button data-tab="cours">Cours</button>
       <button data-tab="prospects">Prospects</button>
       <button data-tab="founders">Fondateurs</button>
+      <button data-tab="ia">IA</button>
     </div>
   </div>
 
@@ -383,6 +396,11 @@ h1, h2,
          j'invite". Une adresse ajoutee ici debloque 9,99 EUR/mois pour ce compte,
          et pour lui seul : founder_can_buy_for() l'exige en base, et la meme
          fonction garde le checkout Stripe. Personne d'autre ne voit ce prix. -->
+    <div class="pane" id="pane-ia">
+      <div class="asub" id="ia-days"><button data-d="7">7 jours</button><button class="on" data-d="30">30 jours</button><button data-d="90">90 jours</button></div>
+      <div id="ia-body"><div class="spin"></div></div>
+    </div>
+
     <div class="pane" id="pane-founders">
       <div class="card" style="margin-bottom:14px">
         <h3 style="margin:0 0 4px;font-size:16px">Inviter un fondateur</h3>
@@ -626,6 +644,7 @@ function switchTab(t){
   if(t==='prospects'){ loadProspects(); }
   if(t==='founders'){ loadFounders(); }
   if(t==='apports'){ loadApports(); }
+  if(t==='ia'){ loadIA(); }
 }
 
 /* ===================================================================
@@ -1924,6 +1943,41 @@ $('#f-new').onclick = ()=>openEditor(null);
 })();
 
 boot();
+
+/* ===================================================================
+   IA — consommation Gemini / Mistral (admin_ai_usage)
+   Cout « si payant » = tarifs publics du 5 oct. 2026 ; aujourd'hui le
+   palier gratuit couvre tout, donc la facture reelle est 0.
+=================================================================== */
+let IA_DAYS=30;
+document.querySelectorAll('#ia-days button').forEach(b=>b.onclick=()=>{ IA_DAYS=+b.dataset.d; document.querySelectorAll('#ia-days button').forEach(x=>x.classList.toggle('on',x===b)); loadIA(); });
+async function loadIA(){
+  const box=$('#ia-body'); if(!box) return; box.innerHTML='<div class="spin"></div>';
+  const { data:r, error } = await sb.rpc('admin_ai_usage',{ p_days:IA_DAYS });
+  if(error||!r){ box.innerHTML='<p class="empty">Erreur de chargement.</p>'; return; }
+  const E=(x)=>String(x==null?'':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const src=(k)=>(r.by_src||[]).find(x=>x.src===k)||{calls:0,tin:0,tout:0,est:0};
+  const ia=src('coach_ia'), as=src('assistant');
+  const usd=(x)=>(+x||0).toLocaleString('fr-BE',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2});
+  const k=(x)=>(+x||0).toLocaleString('fr-BE');
+  const per=(x)=>x.calls? usd(x.est/x.calls*100).replace('$','')+' ¢' : '—';
+  const progs=(r.programs||[]).reduce((s,x)=>s+x.n,0);
+  const daily=r.daily||[]; const mx=Math.max(1,...daily.map(d=>d.calls));
+  box.innerHTML=`<div class="ia-kpis">
+      <div class="ia-kpi"><small>Coût si payant</small><b>${usd((+ia.est||0)+(+as.est||0))}</b><span>sur ${IA_DAYS} jours · facture réelle : 0 (palier gratuit)</span></div>
+      <div class="ia-kpi"><small>Coach IA (membres)</small><b>${k(ia.calls)} réponses</b><span>${k((+ia.tin||0)+(+ia.tout||0))} tokens · ${per(ia)} / réponse</span></div>
+      <div class="ia-kpi"><small>Assistant Atelier</small><b>${k(as.calls)} demandes</b><span>${k((+as.tin||0)+(+as.tout||0))} tokens · ${per(as)} / demande</span></div>
+      <div class="ia-kpi"><small>Programmes générés</small><b>${k(progs)}</b><span>par les coachs · moteur = 0 token</span></div>
+      <div class="ia-kpi"><small>Brouillons ouverts</small><b>${k(r.drafts&&r.drafts.open)}</b><span>${k(r.drafts&&r.drafts.stale)} de plus de 30 j (archivés chaque nuit)</span></div>
+    </div>
+    <div class="ia-h">Appels IA par jour</div>
+    <div class="ia-bars">${daily.map(d=>`<i title="${E(d.d)} · ${d.calls} appels · ${usd(d.est)}" style="height:${Math.max(2,100*d.calls/mx)}%"></i>`).join('')||'<span class="empty">Rien sur la période.</span>'}</div>
+    <div class="ia-h">Programmes générés par coach</div>
+    ${(r.programs||[]).map(x=>`<div class="ia-row"><b>${E(x.coach)}</b><span>${x.n} (aujourd’hui ${x.today}/20)</span></div>`).join('')||'<p class="empty">Aucun pour l’instant.</p>'}
+    <div class="ia-h">Plus gros utilisateurs du Coach IA</div>
+    ${(r.top_members||[]).map(x=>`<div class="ia-row"><b>${E(x.who||'—')}</b><span>${x.calls} réponses · ${k(x.tokens)} tokens</span></div>`).join('')||'<p class="empty">Aucun.</p>'}
+    <p class="ia-note">Tarifs utilisés : Gemini 2.5 Flash 0,30 $ / 2,50 $ par million de tokens (envoyés / reçus), Mistral Small 0,15 $ / 0,60 $. Limites : 20 programmes générés et 60 lectures de demande par jour et par coach ; l’admin n’a pas de limite.</p>`;
+}
 </script>
 <a id="cdm-backapp" href="app.html" style="position:fixed;left:14px;bottom:14px;z-index:9999;background:#0c1210;color:#00E896;border:1px solid #1e2a25;border-radius:999px;padding:10px 16px;font:600 14px/1 -apple-system,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.4)">&#8249; App</a>
 </body>
