@@ -140,6 +140,10 @@ input,textarea,select{font-family:inherit;font-size:16px;color:var(--text)}
 .suph a{position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:var(--s1);border:1px solid var(--line)}
 .suph img{width:100%;height:100%;object-fit:cover;display:block}
 .suph span{position:absolute;left:0;right:0;bottom:0;padding:14px 6px 5px;font-size:11px;font-weight:700;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.7))}
+.aurow{display:flex;gap:12px;align-items:flex-start;padding:13px 14px;border-radius:14px;background:var(--s1);border:1px solid var(--line);margin-bottom:9px;cursor:pointer}
+.aurow input{width:22px;height:22px;flex:none;margin-top:2px;accent-color:var(--brand)}
+.aurow b{display:block;font-size:15px}.aurow span{display:block;color:var(--muted);font-size:13px;margin-top:2px;line-height:1.4}
+.aurow em{display:block;font-style:normal;font-size:12.5px;margin-top:7px;color:var(--text);opacity:.8;line-height:1.45}
 .tdcard{align-items:flex-start;cursor:pointer}
 .tdcard.hot{border-color:rgba(255,100,100,.45)}
 .tdchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -1689,11 +1693,12 @@ function paintToday() {
   const ok = rows.filter((x) => !todo.includes(x));
   TD._rows = rows;
   const hasMembers = TD.some((r) => !r.personal);
-  el.innerHTML = `<div class="hero"><p>${esc(todo.length ? t('td_hero', { n: todo.length }) : t('td_hero0'))}</p></div>` +
+  el.innerHTML = `<div class="hero"><p>${esc(todo.length ? t('td_hero', { n: todo.length }) : t('td_hero0'))}</p><button class="linkbtn" id="td-auto" style="align-self:flex-start;padding:0">⚙ ${esc(t('au_title'))}</button></div>` +
     (todo.length ? `<div class="sect">${esc(t('td_todo'))} · ${todo.length}</div><div class="plist">${todo.map(tdCard).join('')}</div>` : '') +
     (ok.length ? `<div class="sect">${esc(t('td_ok'))} · ${ok.length}</div><div class="plist">${ok.map(tdCard).join('')}</div>` : '') +
     (hasMembers ? `<label class="tdall"><input type="checkbox" id="td-all" ${TD_ALL ? 'checked' : ''}> ${esc(t('td_members'))}</label>` : '');
   const all = $('#td-all'); if (all) all.onchange = () => { TD_ALL = all.checked; paintToday(); };
+  $('#td-auto').onclick = openAutoRules;
   $$('[data-td]', el).forEach((b) => b.onclick = (e) => {
     e.stopPropagation();
     const x = rows.find((y) => y.r.client_id === b.dataset.id); if (!x) return;
@@ -1912,6 +1917,40 @@ async function paintSuivi(el, S, c, r) {
       (data || []).forEach((x) => { const a = $(`[data-p="${CSS.escape(x.path)}"]`, el); if (a && x.signedUrl) { a.href = x.signedUrl; a.querySelector('img').src = x.signedUrl; } });
     } catch (_) {}
   }
+}
+
+/* ---------------- relances automatiques (studio_autorules, cron 9 h) ---------------- */
+Object.assign(TX, {
+  au_title: { fr: 'Relances automatiques', en: 'Automatic nudges', nl: 'Automatische herinneringen' },
+  au_sub: { fr: 'Chaque matin à 9 h, l’Atelier envoie le message à ta place, dans la langue du client. Une fois par semaine au plus par sujet, et jamais si tu lui as écrit dans les 48 h.', en: 'Every morning at 9, the Studio sends the message for you, in the client’s language. At most once a week per topic, and never if you wrote to them in the last 48 h.', nl: 'Elke ochtend om 9 u stuurt het Atelier het bericht voor jou, in de taal van de klant. Hoogstens één keer per week per onderwerp, en nooit als je hem de laatste 48 u schreef.' },
+  au_missed: { fr: 'Séance manquée', en: 'Missed session', nl: 'Gemiste training' },
+  au_missed_s: { fr: 'Une séance du programme n’a pas été faite ces 3 derniers jours.', en: 'A program session wasn’t done in the last 3 days.', nl: 'Een training uit het programma werd de laatste 3 dagen niet gedaan.' },
+  au_idle: { fr: 'Plus d’entraînement depuis 10 jours', en: 'No training for 10 days', nl: '10 dagen geen training' },
+  au_idle_s: { fr: 'Aucune séance terminée depuis 10 jours ou plus.', en: 'No completed session for 10 days or more.', nl: 'Geen voltooide training sinds 10 dagen of meer.' },
+  au_ends: { fr: 'Programme bientôt fini', en: 'Program ending soon', nl: 'Programma bijna gedaan' },
+  au_ends_s: { fr: 'Le programme se termine dans 1 à 5 jours : tu lui demandes son prochain objectif.', en: 'The program ends in 1 to 5 days: ask for their next goal.', nl: 'Het programma eindigt binnen 1 à 5 dagen: vraag naar zijn volgende doel.' },
+  au_nofood: { fr: 'Repas pas notés', en: 'Meals not logged', nl: 'Maaltijden niet genoteerd' },
+  au_nofood_s: { fr: 'Il a un objectif calories mais n’a rien noté depuis 3 jours.', en: 'They have a calorie target but logged nothing for 3 days.', nl: 'Hij heeft een caloriedoel maar noteerde 3 dagen niets.' },
+  au_save: { fr: 'Enregistrer', en: 'Save', nl: 'Opslaan' },
+  au_saved: { fr: 'Relances enregistrées ✓', en: 'Nudges saved ✓', nl: 'Herinneringen opgeslagen ✓' },
+  au_log: { fr: 'Dernières relances envoyées', en: 'Last nudges sent', nl: 'Laatst verstuurde herinneringen' },
+  au_ex: { fr: 'Exemple', en: 'Example', nl: 'Voorbeeld' },
+  au_personal: { fr: 'Seulement pour tes clients suivis (pas les membres de l’app).', en: 'Only for your coached clients (not app members).', nl: 'Enkel voor je eigen klanten (niet de app-leden).' },
+});
+async function openAutoRules() {
+  const sh = openSheet('ov', shHead(t('au_title'), 'ov') + `<div class="sh-b"><div class="load" style="min-height:140px"><div class="spin"></div></div></div>`);
+  let R; try { R = await rpc('studio_get_autorules'); } catch (e) { R = { missed: false, idle: false, ends: false, nofood: false, log: [] }; }
+  const ex = { missed: 'missed', idle: 'idle', ends: 'ends', nofood: 'nofood' };
+  const fake = { full_name: 'Sophie' };
+  $('.sh-b', sh).innerHTML = `<p class="qsub">${esc(t('au_sub'))}</p><p class="qsub" style="margin-top:-10px">${esc(t('au_personal'))}</p>
+    ${['missed', 'idle', 'ends', 'nofood'].map((k) => `<label class="aurow"><input type="checkbox" data-k="${k}" ${R[k] ? 'checked' : ''}><div><b>${esc(t('au_' + k))}</b><span>${esc(t('au_' + k + '_s'))}</span><em>${esc(t('au_ex'))} : « ${esc(nudgeText(ex[k], fake, LANG, { d: 12 }))} »</em></div></label>`).join('')}
+    <button class="btn main block" id="au-ok" style="margin-top:14px">${esc(t('au_save'))}</button>
+    ${(R.log || []).length ? `<div class="sect">${esc(t('au_log'))}</div><div class="c3list">${R.log.map((l) => `<div><b>${esc(l.client || '—')}</b><span>${esc(t('au_' + l.rule))} · ${esc(fmtShort(new Date(l.at)))}</span></div>`).join('')}</div>` : ''}`;
+  $('#au-ok', sh).onclick = async () => {
+    const v = (k) => !!$(`[data-k="${k}"]`, sh).checked;
+    try { await rpc('studio_set_autorules', { p_missed: v('missed'), p_idle: v('idle'), p_nofood: v('nofood'), p_ends: v('ends') }); closeSheet('ov'); toast(t('au_saved')); }
+    catch (e) { toast(errMsg(e), true); }
+  };
 }
 
 /* =====================================================================

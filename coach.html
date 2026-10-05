@@ -601,6 +601,12 @@ h1, h2,
     border:1px solid var(--line);border-radius:13px;color:var(--text);padding:10px 13px;font-size:15px;font-family:inherit}
   .chat-in textarea:focus{outline:none;border-color:var(--brand)}
   .bub.media{padding:5px 5px 7px}
+  .vn-bar{display:flex;align-items:center;gap:10px;padding-top:10px;border-top:1px solid var(--line)}
+  .vn-dot{width:12px;height:12px;border-radius:50%;background:#EF4444;animation:vnP 1s infinite;flex:none}
+  @keyframes vnP{50%{opacity:.3}}
+  .vn-t{font-weight:800;font-variant-numeric:tabular-nums;flex:none}
+  .vn-l{flex:1;color:var(--muted);font-size:13px}
+  .bub audio{display:block;width:240px;max-width:100%;height:40px}
   .bub.media time{padding-right:8px}
   .bub img,.bub video{max-width:100%;max-height:320px;border-radius:12px;display:block}
   .bub .cap{padding:5px 8px 0}
@@ -2528,6 +2534,7 @@ function threadPreview(th){
   let b = '';
   if(th.last_kind === 'image') b = tr('c_msg_photo');
   else if(th.last_kind === 'video') b = tr('c_msg_video');
+  else if(th.last_kind === 'audio') b = vnL('voice');
   else if(th.last_kind === 'system'){
     const c = /^call:(proposed|confirmed):(.+)$/.exec(th.last_body||'');
     b = c ? (c[1]==='proposed' ? tr('m_call_proposed') : tr('m_call_confirmed')) : (th.last_body||'');
@@ -2622,10 +2629,11 @@ function msgBub(m){
     return `<div class="sysline">${esc(txt)}</div>`;
   }
   const at=new Date(m.created_at).toLocaleTimeString(locale(),{hour:'2-digit',minute:'2-digit'});
-  const isMedia = m.kind==='image'||m.kind==='video';
+  const isMedia = m.kind==='image'||m.kind==='video'||m.kind==='audio';
   let inner='';
   if(m.kind==='image' && m._url) inner=`<a href="${m._url}" target="_blank" rel="noopener"><img src="${m._url}" alt=""></a>`;
   else if(m.kind==='video' && m._url) inner=`<video src="${m._url}" controls playsinline preload="metadata"></video>`;
+  else if(m.kind==='audio' && m._url) inner=`<audio src="${m._url}" controls preload="metadata"></audio>`;
   else if(isMedia) inner=`<span style="opacity:.7"><span data-i18n="b_media_na">Média indisponible</span></span>`;
   else inner=esc(m.body||'');
   if(isMedia && m.body) inner+=`<div class="cap">${esc(m.body)}</div>`;
@@ -2841,6 +2849,70 @@ $('#ch-file').onchange=async ev=>{
   body.insertAdjacentHTML('beforeend', msgBub({sender_id:ME,kind:isVideo?'video':'image',_url:URL.createObjectURL(f),created_at:new Date().toISOString()}));
   body.scrollTop=body.scrollHeight;
 };
+/* ---------- Notes vocales (5 oct. 2026) ----------
+   Bouton micro a cote du « + » de la messagerie. Enregistre (3 min max),
+   envoie dans le bucket prive coaching-media sous <relation>/..., puis
+   msg_send_media(kind 'audio'). Rien ne part sans le bouton « Envoyer ». */
+const VN_L = {
+  fr:{rec:'Note vocale',recording:'Enregistrement…',cancel:'Annuler',send:'Envoyer',denied:'Micro refusé. Autorise-le dans les réglages.',short:'Trop court.',fail:'Échec de l’envoi',na:'Note vocale indisponible',voice:'🎤 Note vocale'},
+  en:{rec:'Voice note',recording:'Recording…',cancel:'Cancel',send:'Send',denied:'Microphone blocked. Allow it in settings.',short:'Too short.',fail:'Sending failed',na:'Voice note unavailable',voice:'🎤 Voice note'},
+  nl:{rec:'Spraakbericht',recording:'Opnemen…',cancel:'Annuleren',send:'Versturen',denied:'Microfoon geweigerd. Sta hem toe in de instellingen.',short:'Te kort.',fail:'Versturen mislukt',na:'Spraakbericht niet beschikbaar',voice:'🎤 Spraakbericht'},
+};
+const vnL = (k)=>{ const l=(typeof LANG!=='undefined'&&VN_L[LANG])?LANG:'fr'; return VN_L[l][k]; };
+function vnSetup(o){
+  const att=document.querySelector(o.after);
+  if(!att || !window.MediaRecorder || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+  const row=att.parentElement;
+  const mic=document.createElement('button');
+  mic.type='button'; mic.id='ch-mic'; mic.className=att.className; mic.setAttribute('style', att.getAttribute('style')||'');
+  mic.setAttribute('aria-label', vnL('rec'));
+  mic.innerHTML='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+  att.after(mic);
+  const bar=document.createElement('div'); bar.className='vn-bar'; bar.style.display='none';
+  bar.innerHTML='<span class="vn-dot"></span><span class="vn-t">0:00</span><span class="vn-l"></span><button type="button" class="btn subtle sm vn-x" style="width:auto;flex:none"></button><button type="button" class="btn sm vn-ok" style="width:auto;flex:none"></button>';
+  row.parentElement.insertBefore(bar, row.nextSibling);
+  const tEl=bar.querySelector('.vn-t');
+  let rec=null, chunks=[], stream=null, t0=0, tick=0, cancelled=false, ctx=null, mt='';
+  const show=(on)=>{ row.style.display=on?'none':''; bar.style.display=on?'flex':'none';
+    bar.querySelector('.vn-l').textContent=vnL('recording'); bar.querySelector('.vn-x').textContent=vnL('cancel'); bar.querySelector('.vn-ok').textContent=vnL('send'); };
+  const stop=(cancel)=>{ cancelled=!!cancel; try{ if(rec && rec.state!=='inactive') rec.stop(); }catch(_){ } };
+  bar.querySelector('.vn-x').onclick=()=>stop(true);
+  bar.querySelector('.vn-ok').onclick=()=>stop(false);
+  mic.onclick=async()=>{
+    ctx=o.ctx(); if(!ctx||!ctx.rel){ o.toast(vnL('fail')); return; }
+    try{ stream=await navigator.mediaDevices.getUserMedia({ audio:true }); }
+    catch(_){ o.toast(vnL('denied')); return; }
+    const types=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/aac'];
+    mt=types.find(x=>MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(x))||'';
+    try{ rec=new MediaRecorder(stream, mt?{ mimeType:mt }:undefined); }catch(_){ rec=new MediaRecorder(stream); }
+    chunks=[]; cancelled=false;
+    rec.ondataavailable=(e)=>{ if(e.data && e.data.size) chunks.push(e.data); };
+    rec.onstop=()=>{ try{ stream.getTracks().forEach(t=>t.stop()); }catch(_){ } clearInterval(tick); show(false);
+      if(cancelled) return;
+      const type=String(rec.mimeType||mt||'audio/webm').split(';')[0];
+      const blob=new Blob(chunks,{ type });
+      if(Date.now()-t0<1000 || blob.size<1200){ o.toast(vnL('short')); return; }
+      vnUpload(o, ctx, blob, type);
+    };
+    rec.start(250); t0=Date.now(); show(true);
+    tick=setInterval(()=>{ const s=Math.floor((Date.now()-t0)/1000); tEl.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); if(s>=180) stop(false); },250);
+  };
+}
+async function vnUpload(o, ctx, blob, type){
+  const ext = /mp4|m4a|aac/.test(type) ? 'm4a' : /ogg/.test(type) ? 'ogg' : 'webm';
+  const ct = ext==='m4a' ? 'audio/mp4' : type;
+  const path = ctx.rel+'/'+((crypto.randomUUID&&crypto.randomUUID())||(Date.now()+'-'+Math.random().toString(36).slice(2)))+'.'+ext;
+  const up = await sb.storage.from('coaching-media').upload(path, blob, { contentType:ct });
+  if(up.error){ o.toast(vnL('fail')); return; }
+  const { data, error } = await sb.rpc('msg_send_media',{ p_peer:ctx.peer, p_kind:'audio', p_path:path });
+  if(error || !data || !data.ok){ o.toast(vnL('fail')); return; }
+  o.onSent(URL.createObjectURL(blob));
+}
+
+vnSetup({ after:'#ch-att', toast:(m)=>toast(m),
+  ctx:()=>{ const th=CHAT_PEER&&THREADS[CHAT_PEER]; return th&&th.relationship_id ? { rel:th.relationship_id, peer:CHAT_PEER } : null; },
+  onSent:(url)=>{ const body=$('#ch-body'); const e=body.querySelector('.empty'); if(e) e.remove();
+    body.insertAdjacentHTML('beforeend', msgBub({sender_id:ME,kind:'audio',_url:url,created_at:new Date().toISOString()})); body.scrollTop=body.scrollHeight; } });
 function initChatLive(){
   if(CHAT_CH) return;
   CHAT_CH = sb.channel('msg-live')
