@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<script>(function(){try{var m=localStorage.getItem("cdm_console_theme")||"dark";var d=m==="dark"||(m==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.setAttribute("data-theme",d?"dark":"light");}catch(e){}})();</script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, interactive-widget=resizes-content" />
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#070A08" />
@@ -182,6 +183,23 @@
   .rating{flex:1;min-width:70px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:9px 6px;text-align:center}
   .rating .rv{font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
   .rating .rl{font-size:10.5px;color:var(--muted);font-weight:600;margin-top:1px}
+
+  /* ---------- mode clair (6 oct. 2026) : au choix, sombre par defaut ---------- */
+  .themebtn{width:38px;height:38px;flex:none;border-radius:11px;border:1px solid var(--line);background:var(--surface-2);font-size:16px;display:grid;place-items:center;margin-right:6px;padding:0}
+  :root[data-theme="light"]{
+    --bg:#F4F7F5; --bg-2:#FFFFFF;
+    --surface:#FFFFFF; --surface-2:#EEF3F0; --line:rgba(12,32,24,.11);
+    --text:#0A1512; --muted:#4F6B5D;
+    --brand:#00A870; --brand-2:#008F5E; --brand-soft:rgba(0,168,112,.12);
+    --ok:#0E9F6E; --warn:#D93636; --amber:#9A7414;
+    --gold:#9A7414; --gold-soft:rgba(184,150,63,.16);
+    --shadow:0 14px 34px rgba(18,44,32,.10); --shadow-soft:0 8px 22px rgba(18,44,32,.07);
+    --glow:0 8px 22px rgba(0,168,112,.18);
+  }
+  :root[data-theme="light"] body{background:radial-gradient(120% 70% at 50% -10%, rgba(0,168,112,.10) 0%, transparent 60%),linear-gradient(180deg,#FFFFFF,var(--bg) 30%)}
+  :root[data-theme="light"] .overlay{background:rgba(10,21,18,.35)}
+  :root[data-theme="light"] .mp-tr{background:rgba(0,0,0,.02)}
+  :root[data-theme="light"] #c_qr_wrap{background:var(--surface-2)!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <style>
@@ -266,7 +284,7 @@ h1, h2,
   <div class="topbar">
     <div class="row">
       <div class="tb-id"><img src="/logo-dm.png" alt="Coach DM"><div><div class="tb-kick">Power · Transform · Excel</div><h2 data-i18n="c_title">Console Coach</h2></div></div>
-      <div id="c-lang" class="langsw" style="display:flex;gap:4px;margin-right:8px"><button type="button" data-lang="fr">FR</button><button type="button" data-lang="en">EN</button><button type="button" data-lang="nl">NL</button></div><button class="btn subtle sm" id="logout" data-i18n="c_logout">Déconnexion</button>
+      <button type="button" id="c-theme" class="themebtn" aria-label="Mode clair / sombre" title="Mode clair / sombre">☀️</button><div id="c-lang" class="langsw" style="display:flex;gap:4px;margin-right:8px"><button type="button" data-lang="fr">FR</button><button type="button" data-lang="en">EN</button><button type="button" data-lang="nl">NL</button></div><button class="btn subtle sm" id="logout" data-i18n="c_logout">Déconnexion</button>
     </div>
     <div class="tabs">
       <button class="on" data-tab="clients" data-i18n="c_tab_clients">Clients</button>
@@ -303,7 +321,7 @@ h1, h2,
         <button data-sub="my" data-i18n="c_sub_my">Mes apports</button>
       </div>
 
-      <a href="studio.html" id="studio-cta" style="display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;padding:16px;margin:0 0 14px;border-radius:18px;background:linear-gradient(135deg,rgba(0,232,150,.18),rgba(0,232,150,.05));border:1.5px solid rgba(0,232,150,.45)">
+      <a href="studio.html?tab=prog" id="studio-cta" style="display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit;padding:16px;margin:0 0 14px;border-radius:18px;background:linear-gradient(135deg,rgba(0,232,150,.18),rgba(0,232,150,.05));border:1.5px solid rgba(0,232,150,.45)">
         <span style="width:48px;height:48px;border-radius:15px;background:var(--brand);color:#03140C;display:grid;place-items:center;font-size:26px;font-weight:800;flex:none">＋</span>
         <span style="flex:1"><b style="display:block;font-size:17px" data-i18n="c_studio_t">Atelier programmes</b>
         <span style="display:block;color:var(--muted);font-size:13.5px;margin-top:2px" data-i18n="c_studio_s">Construis un programme semaine par semaine et envoie-le à ton client.</span></span></a>
@@ -1777,7 +1795,10 @@ async function enter(user){
   try{ const { data:pi } = await sb.rpc('coach_my_plan_info'); PLAN_INFO = pi || {paid:false}; }
   catch(e){ PLAN_INFO = {paid:false}; }
   show('app');
-  switchTab('clients'); loadClientList();
+  { let tb='clients'; try{ const q=new URLSearchParams(location.search).get('tab'); const m=q||sessionStorage.getItem('c_tab'); if(['clients','workouts','cours'].includes(m)) tb=m; }catch(_){}
+    switchTab(tb);
+    try{ const sb2=sessionStorage.getItem('c_sub'); if(tb==='workouts'&&sb2){ const bt=document.querySelector('.subswitch [data-sub="'+sb2+'"]'); if(bt) bt.click(); } }catch(_){} }
+  loadClientList();
   initChatLive();
   /* Lien direct depuis l'Atelier : coach.html?chat=<id>&n=<prenom> ouvre la conversation (verrou compris). */
   try{ const q=new URLSearchParams(location.search), cid=q.get('chat');
@@ -1788,8 +1809,12 @@ async function enter(user){
    coach payant à cause d'un appel réseau qui a échoué. */
 const isPaid = ()=> !PLAN_INFO || PLAN_INFO.paid !== false;
 
+/* ---- MODE CLAIR / SOMBRE (choix gardé sur cet appareil) ---- */
+function paintThemeBtn(){ const b=document.getElementById('c-theme'); if(b) b.textContent=document.documentElement.getAttribute('data-theme')==='light'?'🌙':'☀️'; }
+{ const b=document.getElementById('c-theme'); if(b) b.onclick=()=>{ const m=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light'; try{ localStorage.setItem('cdm_console_theme',m); }catch(_){} document.documentElement.setAttribute('data-theme',m); paintThemeBtn(); }; paintThemeBtn(); }
 /* ---- TABS ---- */
 function switchTab(t){
+  try{ sessionStorage.setItem('c_tab',t); }catch(_){}
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
   $('#pane-'+t).classList.add('active');
   document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
@@ -3086,6 +3111,7 @@ document.querySelectorAll('.subswitch [data-sub]').forEach(b=>b.onclick=()=>{
   $('#sub-'+b.dataset.sub).classList.add('active');
   document.querySelectorAll('.subswitch [data-sub]').forEach(x=>x.classList.toggle('on',x===b));
   if(b.dataset.sub==='my') loadMyContrib();
+  try{ sessionStorage.setItem('c_sub',b.dataset.sub); }catch(_){}
 });
 
 /* ── Mes apports ─────────────────────────────────────────────────────────
