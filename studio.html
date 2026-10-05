@@ -1191,7 +1191,7 @@ async function openMoves() {
       <div class="fchips mvtop"><button data-mine class="${MV.mine ? 'on' : ''}">⭐ ${esc(t('ex_mine'))}${nMine ? ' · ' + nMine : ''}</button><button id="mv-new">＋ ${esc(t('ex_new'))}</button></div>
       <div class="fchips"><button data-eq="" class="${!MV.eq ? 'on' : ''}">${esc(t('all_f'))}</button>${EQG.map((g) => `<button data-eq="${g.k}" class="${MV.eq === g.k ? 'on' : ''}">${esc(lab(g))}</button>`).join('')}</div>
       <div class="fchips"><button data-mu="" class="${!MV.mu ? 'on' : ''}">${esc(t('all_f'))}</button>${MUG.map((g) => `<button data-mu="${g.k}" class="${MV.mu === g.k ? 'on' : ''}">${esc(lab(g))}</button>`).join('')}</div>
-      ${MV.mine && !nMine ? `<div class="empty">${esc(t('ex_none'))}</div>` : ''}<div class="mgrid">${l.slice(0, MV.lim).map((e) => { const n = cnt(e.id); return `<button class="mv ${n ? 'added' : ''}" data-id="${e.id}"><span class="cnt">${n || ''}</span>${e.mine ? `<span class="ed" data-ed="${e.id}" role="button" aria-label="${esc(t('ex_edit'))}">✎</span>` + exThumbHtml(e) : thumb(e.slug, exName(e), true)}<b>${esc(exName(e))}</b><span>${esc(muL(e.primary_muscle))} · ${esc(eqL(e.equipment))}</span></button>`; }).join('')}</div>
+      ${MV.mine && !nMine ? `<div class="empty">${esc(t('ex_none'))}</div>` : ''}<div class="mgrid">${l.slice(0, MV.lim).map((e) => { const n = cnt(e.id); return `<button class="mv ${n ? 'added' : ''}" data-id="${e.id}"><span class="cnt">${n || ''}</span>${e.mine ? `<span class="ed" data-ed="${e.id}" role="button" aria-label="${esc(t('ex_edit'))}">✎</span>${e.share_status === 'proposed' ? '<span class="shb">⏳</span>' : e.share_status === 'accepted' ? '<span class="shb">✓ DM</span>' : ''}` + exThumbHtml(e) : thumb(e.slug, exName(e), true)}<b>${esc(exName(e))}</b><span>${esc(muL(e.primary_muscle))} · ${esc(eqL(e.equipment))}</span></button>`; }).join('')}</div>
       ${l.length > MV.lim ? `<button class="btn soft block" id="mv-more" style="margin-top:12px">${esc(t('more_res'))} (${l.length - MV.lim})</button>` : ''}`;
     const qi = $('#mv-q', b); qi.oninput = () => { MV.q = qi.value; MV.lim = 60; const p = qi.selectionStart; paint(); const n = $('#mv-q', b); n.focus(); n.setSelectionRange(p, p); };
     $$('[data-eq]', b).forEach((x) => x.onclick = () => { MV.eq = x.dataset.eq || null; MV.lim = 60; paint(); });
@@ -2534,6 +2534,13 @@ Object.assign(TX, {
   ex_arch_q: { fr: 'Retirer cet exercice de ta liste ? Les programmes qui l’utilisent déjà le gardent.', en: 'Remove this exercise from your list? Programs already using it keep it.', nl: 'Deze oefening uit je lijst halen? Programma’s die ze al gebruiken houden ze.' },
   ex_need: { fr: 'Donne un nom au mouvement.', en: 'Give the movement a name.', nl: 'Geef de beweging een naam.' },
   ex_priv: { fr: 'Visible seulement par toi et tes clients.', en: 'Visible only to you and your clients.', nl: 'Alleen zichtbaar voor jou en je klanten.' },
+  ex_share: { fr: 'Proposer à la bibliothèque Coach DM', en: 'Suggest it for the Coach DM library', nl: 'Voorstellen voor de Coach DM-bibliotheek' },
+  ex_share_s: { fr: 'Si Coach DM le valide, il entre dans la bibliothèque commune et tous les coachs peuvent l’utiliser (avec ta vidéo). Sinon il reste privé.', en: 'If Coach DM approves it, it joins the shared library and every coach can use it (with your video). Otherwise it stays private.', nl: 'Als Coach DM het goedkeurt, komt het in de gedeelde bibliotheek en kan elke coach het gebruiken (met jouw video). Anders blijft het privé.' },
+  ex_st_proposed: { fr: '⏳ Proposé, en attente de Coach DM', en: '⏳ Suggested, waiting for Coach DM', nl: '⏳ Voorgesteld, wacht op Coach DM' },
+  ex_st_accepted: { fr: '✓ Dans la bibliothèque Coach DM', en: '✓ In the Coach DM library', nl: '✓ In de Coach DM-bibliotheek' },
+  ex_st_rejected: { fr: 'Pas retenu pour la bibliothèque (reste privé)', en: 'Not kept for the library (stays private)', nl: 'Niet opgenomen in de bibliotheek (blijft privé)' },
+  ex_locked: { fr: 'Validé par Coach DM : il ne se modifie plus ici.', en: 'Approved by Coach DM: it can no longer be edited here.', nl: 'Goedgekeurd door Coach DM: het kan hier niet meer aangepast worden.' },
+  ex_tr: { fr: 'Traduit en 3 langues automatiquement.', en: 'Automatically translated into 3 languages.', nl: 'Automatisch vertaald in 3 talen.' },
   ex_none: { fr: 'Tu n’as pas encore créé d’exercice.', en: 'You haven’t created an exercise yet.', nl: 'Je hebt nog geen oefening gemaakt.' },
 });
 const EX_LOAD = { weight: ['Charge (kg)', 'Load (kg)', 'Gewicht (kg)'], bodyweight: ['Poids du corps', 'Bodyweight', 'Lichaamsgewicht'], reps_only: ['Répétitions', 'Reps', 'Herhalingen'], time: ['Temps', 'Time', 'Tijd'], distance: ['Distance', 'Distance', 'Afstand'], calories: ['Calories', 'Calories', 'Calorieën'] };
@@ -2551,6 +2558,9 @@ const exYt = (u) => { const m = String(u || '').match(/(?:v=|youtu\.be\/|shorts\
   .exrow label{font-size:12px;opacity:.7;display:block;margin-bottom:4px}
   .exsel{width:100%}
   .expriv{font-size:12px;opacity:.65;margin:10px 0 0;text-align:center}
+  .exshare{display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:12px;border:1px solid var(--line,rgba(255,255,255,.12));margin:0 0 12px;cursor:pointer}
+  .exshare input{margin-top:3px;width:18px;height:18px;flex:none}.exshare b{display:block;font-size:13.5px}.exshare small{display:block;font-size:12px;opacity:.7;margin-top:3px;line-height:1.4}
+  .mv .shb{position:absolute;top:6px;right:6px;font-size:11px;padding:2px 6px;border-radius:7px;background:rgba(0,0,0,.65);color:#fff;z-index:2}
   .mvtop{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 8px}`;
   document.head.appendChild(s);
 })();
@@ -2593,15 +2603,17 @@ function openExForm(ex, onSaved) {
       <div><label>${esc(t('ex_sets'))}</label><input class="inp" id="ex-s" type="number" min="1" max="12" value="${e.default_sets || 3}"></div>
       <div><label>${esc(t('ex_reps'))}</label><input class="inp" id="ex-r" maxlength="12" value="${esc(e.default_reps || '10')}"></div>
       <div><label>${esc(t('ex_rest'))}</label><input class="inp" id="ex-re" type="number" min="0" max="600" step="15" value="${e.default_rest_sec ?? 90}"></div></div></div>
-    <button class="btn main block" id="ex-go">${esc(t('ex_save'))}</button>
-    ${ex ? `<button class="btn soft block" id="ex-ar" style="margin-top:8px">${esc(t('ex_arch'))}</button>` : ''}
-    <p class="expriv">🔒 ${esc(t('ex_priv'))}</p></div>`);
+    ${ex && ex.share_status && ex.share_status !== 'private' ? `<p class="qsub" style="margin:0 0 10px"><b>${esc(t('ex_st_' + ex.share_status))}</b>${ex.share_note ? ' — ' + esc(ex.share_note) : ''}</p>` : ''}
+    ${ex && ex.is_published ? `<p class="qsub">${esc(t('ex_locked'))}</p>` : `<label class="exshare"><input type="checkbox" id="ex-sh" ${!ex || ex.share_status === 'proposed' ? 'checked' : ''}><span><b>${esc(t('ex_share'))}</b><small>${esc(t('ex_share_s'))}</small></span></label>
+    <button class="btn main block" id="ex-go">${esc(t('ex_save'))}</button>`}
+    ${ex && !ex.is_published ? `<button class="btn soft block" id="ex-ar" style="margin-top:8px">${esc(t('ex_arch'))}</button>` : ''}
+    <p class="expriv">🔒 ${esc(t('ex_priv'))} 🌍 ${esc(t('ex_tr'))}</p></div>`);
   let load = e.load_type || 'weight';
   $$('#ex-ld button', sh).forEach((b) => b.onclick = () => { load = b.dataset.k; $$('#ex-ld button', sh).forEach((x) => x.classList.toggle('on', x === b)); });
   const pv = () => { const y = exYt($('#ex-v', sh).value); $('#ex-pv', sh).innerHTML = y ? `<img src="https://i.ytimg.com/vi/${y}/mqdefault.jpg" alt="">` : ''; };
   $('#ex-v', sh).oninput = pv; pv();
   setTimeout(() => { if (!ex) $('#ex-n', sh).focus(); }, 60);
-  $('#ex-go', sh).onclick = async () => {
+  const goBtn = $('#ex-go', sh); if (goBtn) goBtn.onclick = async () => {
     const name = $('#ex-n', sh).value.trim(); if (name.length < 2) { toast(t('ex_need'), true); $('#ex-n', sh).focus(); return; }
     let vid = $('#ex-v', sh).value.trim();
     if (vid && !/^https?:\/\//i.test(vid)) vid = 'https://' + vid;
@@ -2612,8 +2624,15 @@ function openExForm(ex, onSaved) {
     try {
       const r = await rpc('studio_save_exercise', { p_id: ex ? ex.id : null, p_name: name, p_muscle: mu, p_equipment: $('#ex-eq', sh).value, p_load: load, p_category: cat,
         p_video: vid || null, p_cue: $('#ex-c', sh).value.trim() || null, p_sets: Math.max(1, Math.min(12, +$('#ex-s', sh).value || 3)), p_reps: $('#ex-r', sh).value.trim() || '10', p_rest: Math.max(0, Math.min(600, +$('#ex-re', sh).value || 0)) });
+      const want = $('#ex-sh', sh).checked; const had = !!(ex && ex.share_status === 'proposed');
+      r.share_status = ex ? ex.share_status : 'private';
+      if (want !== had && r.share_status !== 'accepted') { try { r.share_status = await rpc('studio_propose_exercise', { p_id: r.id, p_on: want }) || r.share_status; } catch (_) {} }
       MY_EXS = [r, ...(MY_EXS || []).filter((x) => x.id !== r.id)];
       toast(t('ex_saved')); closeSheet('ov4'); if (onSaved) onSaved(r, false);
+      /* traduction FR / EN / NL en arriere-plan */
+      sb.functions.invoke('ex-translate', { body: { id: r.id, lang: LANG } }).then(({ data }) => {
+        if (data && data.ok && data.name_fr) { Object.assign(r, { name_fr: data.name_fr, name_en: data.name_en, name_nl: data.name_nl, cue_fr: data.cue_fr ?? r.cue_fr }); if (onSaved) onSaved(r, false); }
+      }).catch(() => {});
     } catch (err) { btn.disabled = false; toast(errMsg(err), true); }
   };
   const ar = $('#ex-ar', sh);

@@ -687,7 +687,7 @@ function apDate(d){ return d ? new Date(d).toLocaleDateString('fr-BE',{day:'nume
 function renderApports(){
   const box=$('#ap-body'); if(!box||!AP_DATA) return;
   const pendingOnly = AP_VIEW==='pending';
-  const exs=(AP_DATA.exercises||[]).filter(e=>pendingOnly ? !e.is_published : true);
+  const exs=(AP_DATA.exercises||[]).filter(e=>pendingOnly ? (!e.is_published && e.share_status==='proposed') : !e.is_archived);
   const fds=(AP_DATA.foods||[]).filter(f=>pendingOnly ? !f.is_verified : true);
 
   if(!exs.length && !fds.length){
@@ -726,26 +726,32 @@ function renderApports(){
   }
   if(exs.length){
     h+=`<div class="mini" style="margin:16px 0 8px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Exercices · ${exs.length}</div>`;
-    h+=exs.map(e=>`<div class="ap-card${e.is_published?'':' pending'}">
-        <div class="nm">${apEsc(e.name_fr)}
-          ${e.is_published?'<span class="pill ok">Validé</span>':'<span class="pill verif">En attente</span>'}</div>
-        <div class="who">${apEsc(e.author_name||e.author_email||'—')} · ${apDate(e.created_at)}</div>
-        <div class="ap-vals">
-          <span>${apEsc(e.category||'')}</span><span>${apEsc(e.primary_muscle||'')}</span>
-          <span>${apEsc(e.equipment||'')}</span><span>${apEsc(e.difficulty||'')}</span>
-        </div>
+    h+=exs.map(e=>{
+      const st = e.is_published ? '<span class="pill ok">Validé · visible par tous</span>'
+        : e.share_status==='proposed' ? '<span class="pill verif">Proposé par le coach</span>'
+        : e.share_status==='rejected' ? '<span class="pill no">Refusé</span>'
+        : '<span class="pill gift">Privé (non proposé)</span>';
+      const yt=(String(e.video_url||'').match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/)||[])[1];
+      return `<div class="ap-card${!e.is_published&&e.share_status==='proposed'?' pending':''}">
+        <div class="nm">${apEsc(e.name_fr)} ${st}</div>
+        ${e.name_en&&e.name_en!==e.name_fr?`<div class="who">EN ${apEsc(e.name_en)} · NL ${apEsc(e.name_nl||'—')}</div>`:''}
+        <div class="who">${apEsc(e.author_name||e.author_email||'—')} · ${apDate(e.shared_at||e.created_at)}</div>
+        <div class="ap-vals">${[e.primary_muscle,e.equipment,e.load_type,e.difficulty].filter(Boolean).map(x=>`<span>${apEsc(x)}</span>`).join('')}</div>
         ${e.cue_fr?`<div class="who" style="margin-top:7px">« ${apEsc(e.cue_fr)} »</div>`:''}
-        ${e.video_url?`<div style="margin-top:7px"><a href="${apEsc(e.video_url)}" target="_blank" rel="noopener" style="color:var(--brand);font-size:12.5px">Voir la vidéo proposée</a></div>`:''}
+        ${e.share_note?`<div class="who" style="margin-top:5px;color:var(--warn)">Ta réponse : ${apEsc(e.share_note)}</div>`:''}
+        ${yt?`<a href="${apEsc(e.video_url)}" target="_blank" rel="noopener" style="display:block;margin-top:8px;max-width:240px"><img src="https://i.ytimg.com/vi/${yt}/mqdefault.jpg" alt="" style="width:100%;border-radius:10px;display:block"></a>`
+            :(e.video_url?`<div style="margin-top:7px"><a href="${apEsc(e.video_url)}" target="_blank" rel="noopener" style="color:var(--brand);font-size:12.5px">Voir la vidéo</a></div>`:'<div class="who" style="margin-top:7px;color:var(--warn)">Pas de vidéo : impossible à publier.</div>')}
         <div class="ap-acts">
-          ${e.is_published?'':`<button class="btn sm" data-ape-ok="${e.id}">Valider</button>`}
-          <button class="btn danger sm" data-ape-no="${e.id}">Supprimer</button>
+          ${!e.is_published&&e.share_status==='proposed'?`<button class="btn sm" data-apx="${e.id}">Examiner et publier</button><button class="btn subtle sm" data-apx-no="${e.id}">Refuser</button>`:''}
+          ${!e.is_published&&e.share_status==='rejected'?`<button class="btn danger sm" data-ape-no="${e.id}">Supprimer</button>`:''}
         </div>
-      </div>`).join('');
+      </div>`;}).join('');
   }
   box.innerHTML=h;
   box.querySelectorAll('[data-apf-ok]').forEach(b=>b.onclick=()=>apReview('food',b.dataset.apfOk,true));
   box.querySelectorAll('[data-apf-no]').forEach(b=>b.onclick=()=>apReview('food',b.dataset.apfNo,false));
-  box.querySelectorAll('[data-ape-ok]').forEach(b=>b.onclick=()=>apReview('exercise',b.dataset.apeOk,true));
+  box.querySelectorAll('[data-apx]').forEach(b=>b.onclick=()=>apxOpen(b.dataset.apx));
+  box.querySelectorAll('[data-apx-no]').forEach(b=>b.onclick=()=>apxReject(b.dataset.apxNo));
   box.querySelectorAll('[data-ape-no]').forEach(b=>b.onclick=()=>apReview('exercise',b.dataset.apeNo,false));
 }
 async function apReview(kind,id,approve){
@@ -762,6 +768,62 @@ async function apReview(kind,id,approve){
   }
   toast(approve ? 'Validé — visible par tous' : 'Supprimé');
   loadApports();
+}
+/* ---- Exercices proposés par les coachs : examen, traduction FR/EN/NL, publication ---- */
+const APX_PAT={charniere:'Charnière (hinge)',squat:'Squat',fente:'Fente (lunge)',poussee_h:'Poussée horizontale',poussee_v:'Poussée verticale',tirage_h:'Tirage horizontal',tirage_v:'Tirage vertical',gainage:'Gainage (core)',port:'Port de charge (carry)',plyo:'Pliométrie',sprint:'Sprint',haltero:'Haltérophilie',gym_skill:'Skill gymnique',isolation:'Isolation',mono:'Monostructural (cardio court)',mono_long:'Monostructural (cardio long)',preparation:'Préparation / échauffement'};
+const APX_GOAL={forme:'Remise en forme',perte_gras:'Perte de gras',force:'Force & muscle',endurance:'Endurance',energie:'Énergie',skill:'Skill'};
+function apxOv(){
+  let ov=document.getElementById('apx-ov');
+  if(!ov){ ov=document.createElement('div'); ov.className='overlay'; ov.id='apx-ov'; ov.innerHTML='<div class="sheet"><div id="apx-b"></div></div>'; document.body.appendChild(ov);
+    ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); }); }
+  return ov;
+}
+function apxOpen(id){
+  const e=(AP_DATA.exercises||[]).find(x=>x.id===id); if(!e) return;
+  const ov=apxOv(); const g=new Set(e.goal_fit||[]);
+  const f=(k,lab,v,ta)=>`<div class="field"><label>${lab}</label>${ta?`<textarea id="apx-${k}">${apEsc(v||'')}</textarea>`:`<input id="apx-${k}" value="${apEsc(v||'')}">`}</div>`;
+  document.getElementById('apx-b').innerHTML=`<h3 style="margin:0 0 4px">Examiner l'exercice</h3>
+    <p class="who" style="margin:0 0 14px;color:var(--muted);font-size:13px">Proposé par ${apEsc(e.author_name||e.author_email||'—')}. Une fois publié, il est visible par tous les coachs et leurs clients.</p>
+    <button class="btn subtle sm" id="apx-tr" style="margin-bottom:12px">🌍 Traduire automatiquement FR / EN / NL</button>
+    ${f('name_fr','Nom FR',e.name_fr)}${f('name_en','Nom EN',e.name_en)}${f('name_nl','Nom NL',e.name_nl)}
+    ${f('cue_fr','Consigne FR',e.cue_fr,1)}${f('cue_en','Consigne EN',e.cue_en,1)}${f('cue_nl','Consigne NL',e.cue_nl,1)}
+    ${f('video_url','Vidéo (lien)',e.video_url)}
+    <div class="field"><label>Patron de mouvement (sert au moteur)</label><select id="apx-pattern"><option value="">—</option>${Object.keys(APX_PAT).map(k=>`<option value="${k}" ${e.pattern===k?'selected':''}>${APX_PAT[k]}</option>`).join('')}</select></div>
+    <div class="field"><label>Objectifs où il a sa place</label><div id="apx-goal" style="display:flex;flex-wrap:wrap;gap:6px">${Object.keys(APX_GOAL).map(k=>`<button type="button" class="btn ${g.has(k)?'':'subtle'} sm" data-g="${k}">${APX_GOAL[k]}</button>`).join('')}</div></div>
+    <div class="field"><label>Niveau</label><select id="apx-diff">${['beginner','intermediate','advanced'].map(k=>`<option value="${k}" ${e.difficulty===k?'selected':''}>${{beginner:'Débutant',intermediate:'Intermédiaire',advanced:'Avancé'}[k]}</option>`).join('')}</select></div>
+    <div class="msg" id="apx-msg"></div>
+    <button class="btn" id="apx-go" style="margin-top:6px">Publier dans la bibliothèque</button>
+    <button class="btn subtle" id="apx-x" style="margin-top:8px">Fermer</button>`;
+  ov.classList.add('show');
+  const $v=k=>document.getElementById('apx-'+k);
+  document.querySelectorAll('#apx-goal [data-g]').forEach(b=>b.onclick=()=>{ const k=b.dataset.g; g.has(k)?g.delete(k):g.add(k); b.classList.toggle('subtle',!g.has(k)); });
+  $v('x').onclick=()=>ov.classList.remove('show');
+  $v('tr').onclick=async()=>{
+    const b=$v('tr'); b.disabled=true; b.textContent='Traduction…';
+    const src=['fr','en','nl'].find(l=>$v('name_'+l).value.trim())||'fr';
+    const { data, error } = await sb.functions.invoke('ex-translate',{ body:{ name:$v('name_'+src).value, cue:$v('cue_'+src).value, lang:src } });
+    b.disabled=false; b.textContent='🌍 Traduire automatiquement FR / EN / NL';
+    if(error||!data||!data.ok){ toast('Traduction indisponible, réessaie'); return; }
+    ['name_fr','name_en','name_nl','cue_fr','cue_en','cue_nl'].forEach(k=>{ if(data[k]) $v(k).value=data[k]; });
+  };
+  $v('go').onclick=async()=>{
+    const p={}; ['name_fr','name_en','name_nl','cue_fr','cue_en','cue_nl','video_url'].forEach(k=>p[k]=$v(k).value.trim());
+    p.pattern=$v('pattern').value; p.goal_fit=[...g]; p.difficulty=$v('diff').value;
+    const miss=[]; if(!p.cue_fr||!p.cue_en||!p.cue_nl) miss.push('la consigne dans les 3 langues'); if(!p.pattern) miss.push('le patron'); if(!p.goal_fit.length) miss.push('au moins un objectif'); if(!p.video_url) miss.push('la vidéo');
+    if(miss.length){ $v('msg').textContent='Il manque : '+miss.join(', ')+'.'; $v('msg').className='msg err'; return; }
+    $v('go').disabled=true;
+    const { data, error } = await sb.rpc('admin_publish_exercise',{ p_id:e.id, p_f:p });
+    $v('go').disabled=false;
+    if(error||!data||!data.ok){ $v('msg').textContent=(data&&data.reason)||'Échec'; $v('msg').className='msg err'; return; }
+    ov.classList.remove('show'); toast('Publié — visible par tous les coachs'); loadApports();
+  };
+}
+async function apxReject(id){
+  const note=prompt('Un mot pour le coach (facultatif) : pourquoi il ne rentre pas dans la bibliothèque ?','');
+  if(note===null) return;
+  const { data, error } = await sb.rpc('admin_reject_exercise',{ p_id:id, p_note:note });
+  if(error||!data||!data.ok){ toast('Échec'); return; }
+  toast('Refusé — il reste privé chez le coach'); loadApports();
 }
 document.querySelectorAll('#pane-apports .asub button').forEach(b=>b.onclick=()=>{
   AP_VIEW=b.dataset.av;
