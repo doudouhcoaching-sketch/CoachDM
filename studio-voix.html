@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Studio voix · Coach DM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070A08;--panel:#0E1411;--panel2:#151D18;--line:rgba(234,244,238,.11);--fg:#EEF4EF;--mut:#8FA398;--brand:#00E896;--brand2:#00B978;--gold:#E9C767;--red:#FF5A5A;
+  --fd:'Barlow Condensed','Arial Narrow',Arial,sans-serif;--fb:'Outfit',-apple-system,'Segoe UI',Roboto,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--fb);-webkit-text-size-adjust:100%}
+body{padding:calc(12px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:620px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.top{display:flex;align-items:center;gap:10px}.top h1{font:800 26px var(--fd);text-transform:uppercase;margin:0;letter-spacing:.01em}
+.top a{margin-left:auto;color:var(--mut);font-size:13px;text-decoration:none}
+.tabs{display:flex;gap:6px}.tabs button{flex:1;padding:10px 6px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--mut);font:800 13px var(--fb);cursor:pointer}
+.tabs button.on{background:var(--panel2);color:var(--fg);border-color:var(--brand)}
+.prog{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mut)}.bar{flex:1;height:7px;border-radius:7px;background:var(--panel2);overflow:hidden}.bar i{display:block;height:100%;background:var(--brand);width:0;transition:width .3s}
+.prog b{color:var(--fg);font-variant-numeric:tabular-nums}
+details.tips{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+details.tips summary{cursor:pointer;font-weight:800;font-size:14px}details.tips ul{margin:8px 0 2px;padding-left:18px;color:#C9D6CE;font-size:13.5px;line-height:1.5}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px 16px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.grp{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--brand)}
+.say{font:800 clamp(30px,9vw,46px)/1.05 var(--fd);text-transform:none;margin:0;min-height:1.1em;overflow-wrap:anywhere}
+.say.long{font-size:clamp(22px,6vw,30px);line-height:1.2}
+.hint{font-size:12.5px;color:var(--mut);margin:-4px 0 0;min-height:1.2em}
+.meter{width:100%;height:10px;border-radius:10px;background:var(--panel2);overflow:hidden}.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--gold),var(--red));transition:width .05s}
+canvas.wave{width:100%;height:64px;border-radius:12px;background:#0A100D}
+.rec{width:96px;height:96px;border-radius:50%;border:4px solid rgba(255,90,90,.35);background:radial-gradient(circle at 40% 35%,#ff8080,#E03A3A);box-shadow:0 10px 40px rgba(224,58,58,.35);cursor:pointer;display:grid;place-items:center;color:#fff;font:800 13px var(--fb);letter-spacing:.06em}
+.rec.on{animation:pul 1s infinite;border-color:#fff}
+.rec:disabled{opacity:.4}
+@keyframes pul{50%{box-shadow:0 0 0 14px rgba(224,58,58,.18)}}
+.row{display:flex;gap:8px;width:100%}.row button{flex:1}
+.b{padding:13px 10px;border-radius:14px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);font:800 14.5px var(--fb);cursor:pointer}
+.b.ok{background:linear-gradient(180deg,var(--brand),var(--brand2));color:#03140C;border:0}
+.b:disabled{opacity:.4}
+.warn{font-size:13px;color:var(--gold);min-height:1.2em;margin:0}
+.nav{display:flex;gap:8px;width:100%}.nav button{flex:1;padding:9px;border-radius:12px;border:1px solid var(--line);background:transparent;color:var(--mut);font:700 13px var(--fb);cursor:pointer}
+.filt{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--mut)}
+.filt select{flex:1;padding:9px 10px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);font:600 14px var(--fb)}
+.list{display:flex;flex-direction:column;gap:4px}
+.it{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:var(--panel);border:1px solid transparent;cursor:pointer;text-align:left;color:var(--fg);font:600 14px var(--fb)}
+.it.cur{border-color:var(--brand)}.it .d{width:10px;height:10px;border-radius:50%;background:#33403A;flex:none}.it.done .d{background:var(--brand)}
+.it span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.it small{color:var(--mut);font-size:11.5px}
+.gate{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;text-align:center;line-height:1.5}
+.gate a{color:var(--brand)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><h1>Studio voix</h1><a href="admin.html">‹ Console admin</a></div>
+  <div class="gate" id="gate">Chargement…</div>
+  <div id="app" hidden>
+    <div class="tabs" id="tabs"><button data-l="fr" class="on">FR</button><button data-l="nl">NL</button><button data-l="x">Noms</button><button data-l="en">EN</button></div>
+    <div class="prog"><div class="bar"><i id="pbar"></i></div><b id="ptxt">0 / 0</b></div>
+    <details class="tips"><summary>Avant de commencer (2 minutes)</summary>
+      <ul>
+        <li>Pièce calme, porte et fenêtres fermées. Une pièce avec des rideaux, un canapé, un lit ou des vêtements sonne mieux qu'une pièce vide ou carrelée.</li>
+        <li>iPhone 11 : tiens-le à 15–20 cm de la bouche, <b>un peu sur le côté</b> (pas en face) pour éviter les « p » et « b » qui claquent. Garde toujours la même distance.</li>
+        <li>Mode Avion ou Ne pas déranger : une notification gâche une prise.</li>
+        <li>Coupe la clim, le frigo s'il ronronne, éloigne-toi de la fenêtre.</li>
+        <li>Parle comme à la salle : énergique, souriant, articulé. Même énergie du premier au dernier mot.</li>
+        <li>Appuie sur le rond rouge, attends une demi-seconde, parle, puis tais-toi : l'enregistrement s'arrête tout seul.</li>
+        <li>Fais des pauses toutes les 20 minutes et bois de l'eau : la voix fatigue.</li>
+        <li>Ordre conseillé : Phrases → Unités → Nombres → Encouragements, puis les Noms (classés du plus utilisé au moins utilisé).</li>
+      </ul>
+    </details>
+    <div class="filt">Afficher <select id="filt"><option value="todo">À enregistrer</option><option value="all">Tout</option><option value="done">Déjà enregistrés</option></select></div>
+    <div class="card">
+      <span class="grp" id="grp">—</span>
+      <p class="say" id="say">—</p>
+      <p class="hint" id="hint"></p>
+      <div class="meter"><i id="lvl"></i></div>
+      <canvas class="wave" id="wave" width="600" height="64"></canvas>
+      <button class="rec" id="rec" type="button">REC</button>
+      <p class="warn" id="warn"></p>
+      <div class="row"><button class="b" id="play" type="button" disabled>▶ Réécouter</button><button class="b ok" id="keep" type="button" disabled>✓ Garder</button></div>
+      <div class="nav"><button id="prev" type="button">‹ Précédent</button><button id="skip" type="button">Passer ›</button></div>
+    </div>
+    <div class="list" id="list"></div>
+  </div>
+</div>
+<script>
+/* ---- Catalogue de la VOIX DE COACH DM (studio d'enregistrement + Mode seance) ----
+   Des petits morceaux enregistres une fois, assembles en phrases pendant la seance :
+   « Serie » + « deux » + « sur » + « trois » … Les NOMS des exercices (anglais, les memes
+   dans les 3 langues) sont enregistres une seule fois, langue 'x', cle = slug. */
+const VC_U={fr:['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf'],
+  nl:['nul','een','twee','drie','vier','vijf','zes','zeven','acht','negen','tien','elf','twaalf','dertien','veertien','vijftien','zestien','zeventien','achttien','negentien'],
+  en:['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen']};
+const VC_T={fr:{2:'vingt',3:'trente',4:'quarante',5:'cinquante',6:'soixante',7:'septante',8:'quatre-vingt',9:'nonante'},
+  nl:{2:'twintig',3:'dertig',4:'veertig',5:'vijftig',6:'zestig',7:'zeventig',8:'tachtig',9:'negentig'},
+  en:{2:'twenty',3:'thirty',4:'forty',5:'fifty',6:'sixty',7:'seventy',8:'eighty',9:'ninety'}};
+function vcNumWord(l,n){
+  const U=VC_U[l],T=VC_T[l];
+  if(n<20) return U[n];
+  if(n===100) return ({fr:'cent',nl:'honderd',en:'one hundred'})[l];
+  if(n===200) return ({fr:'deux cents',nl:'tweehonderd',en:'two hundred'})[l];
+  if(n===300) return ({fr:'trois cents',nl:'driehonderd',en:'three hundred'})[l];
+  const t=Math.floor(n/10),u=n%10;
+  if(l==='fr'){ if(t===8) return u?'quatre-vingt-'+U[u]:'quatre-vingts'; return T[t]+(u===1?' et un':u?'-'+U[u]:''); }
+  if(l==='nl'){ if(!u) return T[t]; const a=U[u]; return a+(/e$/.test(a)?'ën':'en')+T[t]; }
+  return T[t]+(u?'-'+U[u]:'');
+}
+const VC_PHR={
+ fr:{p_go:"C'est parti !",p_ready:'Mets-toi en place.',p_rest:'Récupère. Respire par le nez.',p_next:'Récupère. Ensuite :',p_last:'Dernière série après ce repos. Tu vas tout donner.',
+     p_pr:'Nouveau record ! Bravo.',p_e1rm:'Nouveau 1RM estimé !',p_end:'Séance terminée. Bien joué : ta meilleure heure de la journée est faite.',p_10s:'Dix secondes.',
+     w_set:'Série',w_of:'sur',w_reps:'répétitions',w_side:'par côté',w_at:'à',w_kg:'kilos',w_kg5:'kilos et demi',w_sec:'secondes',w_min:'minutes',w_m:'mètres',w_cal:'calories',
+     e1:'Allez, on y va !',e2:"Propre. La technique d'abord.",e3:'Gaine, respire, et pousse.',e4:'Contrôle la descente.',e5:"Encore une, tu l'as !",e6:'Regard devant, poitrine fière.',e7:'Tu es plus fort que la dernière fois.',e8:'Bien. On garde ce rythme.'},
+ nl:{p_go:'Daar gaan we!',p_ready:'Neem je positie in.',p_rest:'Herstel. Adem door je neus.',p_next:'Herstel. Hierna:',p_last:'Laatste set na deze rust. Geef alles.',
+     p_pr:'Nieuw record! Goed zo.',p_e1rm:'Nieuwe geschatte 1RM!',p_end:'Training klaar. Goed gedaan: het beste uur van je dag zit erop.',p_10s:'Tien seconden.',
+     w_set:'Set',w_of:'van',w_reps:'herhalingen',w_side:'per kant',w_at:'met',w_kg:'kilo',w_kg5:'en een halve kilo',w_sec:'seconden',w_min:'minuten',w_m:'meter',w_cal:'calorieën',
+     e1:'Kom op, daar gaan we!',e2:'Netjes. Eerst de techniek.',e3:'Span aan, adem, en duwen.',e4:'Controleer de afdaling.',e5:'Nog eentje, je hebt hem!',e6:'Blik vooruit, borst fier.',e7:'Je bent sterker dan vorige keer.',e8:'Goed. Hou dit ritme vast.'},
+ en:{p_go:"Let's go!",p_ready:'Get in position.',p_rest:'Rest. Breathe through your nose.',p_next:'Rest. Next up:',p_last:'Last set after this rest. Give it everything.',
+     p_pr:'New record! Well done.',p_e1rm:'New estimated 1RM!',p_end:'Workout complete. Well done: the best hour of your day is done.',p_10s:'Ten seconds.',
+     w_set:'Set',w_of:'of',w_reps:'reps',w_side:'per side',w_at:'at',w_kg:'kilos',w_kg5:'and a half kilos',w_sec:'seconds',w_min:'minutes',w_m:'meters',w_cal:'calories',
+     e1:"Let's go!",e2:'Clean reps. Technique first.',e3:'Brace, breathe, and drive.',e4:'Control the way down.',e5:'One more, you got it!',e6:'Eyes up, chest proud.',e7:"You're stronger than last time.",e8:'Good. Keep this pace.'}
+};
+const VC_NUMS=[...Array(101).keys(),200,300];
+/* toutes les cles d'une langue, dans l'ordre du studio */
+function vcCatalog(l){
+  const P=VC_PHR[l], out=[];
+  Object.keys(P).filter(k=>k[0]==='p').forEach(k=>out.push({key:k,text:P[k],g:'phr'}));
+  Object.keys(P).filter(k=>k[0]==='w').forEach(k=>out.push({key:k,text:P[k],g:'unit'}));
+  VC_NUMS.forEach(n=>out.push({key:'n'+n,text:vcNumWord(l,n)+(n<=20?'':'')+'',g:'num',n}));
+  Object.keys(P).filter(k=>k[0]==='e').forEach(k=>out.push({key:k,text:P[k],g:'enc'}));
+  return out;
+}
+/* un poids en cles : 62,5 -> n62 + w_kg5 ; 120 -> n100 n20 w_kg */
+function vcKgKeys(v){
+  v=Math.round(v*2)/2; const i=Math.floor(v), half=(v-i)>=.5; const k=[];
+  if(i<=100) k.push('n'+i);
+  else { const h=Math.floor(i/100)*100, r=i%100; k.push('n'+(h>300?300:h)); if(r) k.push('n'+r); }
+  k.push(half?'w_kg5':'w_kg'); return k;
+}
+function vcNumKeys(i){ i=Math.round(i); if(i<=100) return ['n'+i]; const h=Math.min(300,Math.floor(i/100)*100), r=i%100; return r?['n'+h,'n'+r]:['n'+h]; }
+const vcNameText=n=>String(n||'').replace(/\(.*?\)/g,' ').replace(/\s+/g,' ').trim();
+
+</script>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const SUPABASE_URL='https://kkcmhviyvttwpaclrjmv.supabase.co';
+const SUPABASE_KEY='sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b';
+const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=s=>document.querySelector(s);
+const GROUP={phr:'Phrase',unit:'Mot',num:'Nombre',enc:'Encouragement',name:'Nom d’exercice'};
+const HINT={phr:'Phrase complète, ton naturel de coach.',unit:'Un seul mot, net, sans montée de voix à la fin.',num:'Juste le nombre, comme dans « Série … sur … ».',enc:'Avec de l’énergie, comme pendant une vraie série.',name:'Le nom en anglais, comme à la box.'};
+let LANG='fr', ITEMS=[], DONE={}, IDX=0, FILT='todo';
+let AC=null, stream=null, rec=null, chunks=[], take=null, analyser=null, raf=0, autoT=0;
+
+/* ---------- acces ---------- */
+(async()=>{
+  const { data:{ session } } = await sb.auth.getSession();
+  if(!session){ $('#gate').innerHTML='Connecte-toi d’abord dans <a href="app.html">l’app Coach DM</a> avec ton compte admin, dans ce même navigateur, puis reviens ici.'; return; }
+  const { data:isA } = await sb.rpc('is_admin');
+  if(!isA){ $('#gate').textContent='Cette page est réservée à l’administrateur.'; return; }
+  $('#gate').hidden=true; $('#app').hidden=false;
+  document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b)); load(b.dataset.l); });
+  $('#filt').onchange=e=>{ FILT=e.target.value; IDX=0; paint(); };
+  load('fr');
+})();
+
+async function load(l){
+  LANG=l; IDX=0; take=null;
+  if(l==='x'){
+    const { data } = await sb.rpc('voice_studio_names');
+    ITEMS=(data||[]).map(r=>({key:r.slug,text:vcNameText(r.name_en),g:'name',uses:r.uses}));
+  } else ITEMS=vcCatalog(l);
+  const { data:rows } = await sb.from('voice_clips').select('key,path,trim_start,trim_end,gain,updated_at').eq('lang',l);
+  DONE={}; (rows||[]).forEach(r=>DONE[r.key]=r);
+  paint();
+}
+const shown=()=>ITEMS.filter(it=>FILT==='all'||(FILT==='todo'?!DONE[it.key]:!!DONE[it.key]));
+function paint(){
+  const n=ITEMS.filter(i=>DONE[i.key]).length;
+  $('#ptxt').textContent=n+' / '+ITEMS.length; $('#pbar').style.width=(ITEMS.length?n/ITEMS.length*100:0)+'%';
+  const L=shown(); if(IDX>=L.length) IDX=Math.max(0,L.length-1);
+  const it=L[IDX];
+  $('#grp').textContent=it?(GROUP[it.g]+(it.uses!=null?' · utilisé '+it.uses+'×':'')+(DONE[it.key]?' · ✓ déjà enregistré':'')):'Tout est enregistré 🎉';
+  $('#say').textContent=it?it.text:'—'; $('#say').classList.toggle('long',!!it&&it.text.length>26);
+  $('#hint').textContent=it?HINT[it.g]:'';
+  $('#warn').textContent=''; take=null; $('#keep').disabled=true; $('#play').disabled=!(it&&DONE[it.key]); drawWave(null);
+  $('#list').innerHTML=L.slice(0,400).map((x,i)=>`<button type="button" class="it${DONE[x.key]?' done':''}${i===IDX?' cur':''}" data-i="${i}"><i class="d"></i><span>${esc(x.text)}</span>${x.uses!=null?`<small>${x.uses}×</small>`:''}</button>`).join('');
+  $('#list').querySelectorAll('.it').forEach(b=>b.onclick=()=>{ IDX=+b.dataset.i; paint(); scrollTo({top:0,behavior:'smooth'}); });
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const cur=()=>shown()[IDX];
+$('#prev').onclick=()=>{ IDX=Math.max(0,IDX-1); paint(); };
+$('#skip').onclick=()=>{ IDX=Math.min(shown().length-1,IDX+1); paint(); };
+
+/* ---------- enregistrement ---------- */
+/* AAC en priorite : lisible sur tous les iPhone et Android. Safari enregistre en AAC avec 'audio/mp4'. */
+function mimePick(){ const saf=/^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+  const c=saf?['audio/mp4','audio/mp4;codecs=mp4a.40.2']:['audio/mp4;codecs=mp4a.40.2','audio/webm;codecs=opus','audio/webm']; for(const m of c){ try{ if(window.MediaRecorder&&MediaRecorder.isTypeSupported(m)) return m; }catch(_){} } return ''; }
+async function ensureMic(){
+  if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)();
+  if(AC.state==='suspended') await AC.resume();
+  if(stream) return;
+  stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:true,autoGainControl:false,channelCount:1}});
+  const src=AC.createMediaStreamSource(stream); analyser=AC.createAnalyser(); analyser.fftSize=1024; src.connect(analyser);
+}
+$('#rec').onclick=async()=>{
+  if(rec&&rec.state==='recording'){ rec.stop(); return; }
+  const it=cur(); if(!it) return;
+  try{ await ensureMic(); }catch(e){ $('#warn').textContent='Micro refusé. Autorise le micro pour coachdm.be dans les réglages du navigateur.'; return; }
+  chunks=[]; const mt=mimePick(); rec=new MediaRecorder(stream,mt?{mimeType:mt}:undefined);
+  rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
+  rec.onstop=()=>{ cancelAnimationFrame(raf); clearTimeout(autoT); $('#rec').classList.remove('on'); $('#rec').textContent='REC'; $('#lvl').style.width='0'; analyse(new Blob(chunks,{type:(rec.mimeType||mt||'audio/mp4')})); };
+  rec.start(); $('#rec').classList.add('on'); $('#rec').textContent='STOP'; $('#warn').textContent='';
+  /* arret automatique : 0,8 s de silence apres avoir parle, ou duree max */
+  const maxMs=it.g==='phr'||it.g==='enc'?9000:it.g==='name'?5000:3500;
+  const buf=new Float32Array(analyser.fftSize); let spoke=false, quietSince=0; const t0=performance.now();
+  const loop=()=>{ analyser.getFloatTimeDomainData(buf); let s=0; for(let i=0;i<buf.length;i++) s+=buf[i]*buf[i]; const rms=Math.sqrt(s/buf.length);
+    $('#lvl').style.width=Math.min(100,rms*400)+'%'; const now=performance.now();
+    if(rms>0.03){ spoke=true; quietSince=0; } else if(spoke){ if(!quietSince) quietSince=now; else if(now-quietSince>800){ rec.stop(); return; } }
+    if(now-t0>maxMs){ rec.stop(); return; }
+    raf=requestAnimationFrame(loop); };
+  raf=requestAnimationFrame(loop);
+};
+async function analyse(blob){
+  const ab=await blob.arrayBuffer(); let audio;
+  try{ audio=await AC.decodeAudioData(ab.slice(0)); }catch(e){ $('#warn').textContent='Enregistrement illisible, recommence.'; return; }
+  const d=audio.getChannelData(0), sr=audio.sampleRate, fr=Math.round(sr*0.01), R=[];
+  for(let i=0;i+fr<=d.length;i+=fr){ let s=0; for(let j=i;j<i+fr;j++) s+=d[j]*d[j]; R.push(Math.sqrt(s/fr)); }
+  const sorted=[...R].sort((a,b)=>a-b), floor=sorted[Math.floor(sorted.length*0.15)]||0;
+  const thr=Math.max(floor*3.5,0.012);
+  let a=R.findIndex(x=>x>thr), b=R.length-1-[...R].reverse().findIndex(x=>x>thr);
+  if(a<0){ $('#warn').textContent='Je n’ai rien entendu. Rapproche le téléphone et recommence.'; return; }
+  const start=Math.max(0,a*0.01-0.06), end=Math.min(audio.duration,(b+1)*0.01+0.16);
+  let peak=0; for(let i=Math.floor(start*sr);i<Math.floor(end*sr);i++) peak=Math.max(peak,Math.abs(d[i]));
+  const gain=Math.min(4,0.9/Math.max(peak,0.01));
+  const w=[]; if(peak>0.98) w.push('Ça sature : recule un peu le téléphone.');
+  else if(peak<0.06) w.push('Un peu faible : rapproche le téléphone ou parle plus fort.');
+  if(floor>0.02) w.push('Bruit de fond élevé : cherche un endroit plus calme.');
+  if(end-start>8.5) w.push('Un peu long : essaie plus sec.');
+  $('#warn').textContent=w.join(' ');
+  take={blob,audio,start,end,gain}; drawWave(take); $('#play').disabled=false; $('#keep').disabled=false;
+  playTake();
+}
+function playBuf(audio,start,end,gain){ const s=AC.createBufferSource(), g=AC.createGain(); g.gain.value=gain; s.buffer=audio; s.connect(g).connect(AC.destination); s.start(0,start,Math.max(0.05,end-start)); }
+function playTake(){ if(take) playBuf(take.audio,take.start,take.end,take.gain); }
+$('#play').onclick=async()=>{
+  if(take) return playTake();
+  const it=cur(), r=it&&DONE[it.key]; if(!r) return;
+  if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended') await AC.resume();
+  const url=SUPABASE_URL+'/storage/v1/object/public/coach-voice/'+r.path+'?v='+encodeURIComponent(r.updated_at);
+  const ab=await (await fetch(url)).arrayBuffer(); const audio=await AC.decodeAudioData(ab);
+  playBuf(audio,r.trim_start||0,r.trim_end||audio.duration,r.gain||1);
+};
+function drawWave(t){
+  const c=$('#wave'), x=c.getContext('2d'); x.clearRect(0,0,c.width,c.height); if(!t) return;
+  const d=t.audio.getChannelData(0), n=c.width, step=Math.floor(d.length/n)||1, H=c.height/2;
+  x.fillStyle='rgba(0,232,150,.12)'; x.fillRect(t.start/t.audio.duration*n,0,(t.end-t.start)/t.audio.duration*n,c.height);
+  x.strokeStyle='#00E896'; x.beginPath();
+  for(let i=0;i<n;i++){ let m=0; for(let j=i*step;j<(i+1)*step&&j<d.length;j++) m=Math.max(m,Math.abs(d[j])); x.moveTo(i,H-m*H*t.gain); x.lineTo(i,H+m*H*t.gain); }
+  x.stroke();
+}
+$('#keep').onclick=async()=>{
+  const it=cur(); if(!it||!take) return;
+  const btn=$('#keep'); btn.disabled=true; btn.textContent='Envoi…';
+  const base=(take.blob.type||'audio/mp4').split(';')[0]; const ext=base==='audio/webm'?'webm':base==='audio/ogg'?'ogg':'m4a';
+  const path=LANG+'/'+it.key.replace(/[^a-z0-9_-]/gi,'_')+'.'+ext;
+  const up=await sb.storage.from('coach-voice').upload(path,take.blob,{upsert:true,contentType:base,cacheControl:'31536000'});
+  if(up.error){ btn.textContent='✓ Garder'; btn.disabled=false; $('#warn').textContent='Envoi impossible : '+up.error.message; return; }
+  const row={lang:LANG,key:it.key,path,mime:base,trim_start:+take.start.toFixed(3),trim_end:+take.end.toFixed(3),gain:+take.gain.toFixed(3),dur:+(take.end-take.start).toFixed(3),updated_at:new Date().toISOString()};
+  const { error } = await sb.from('voice_clips').upsert(row,{onConflict:'lang,key'});
+  btn.textContent='✓ Garder';
+  if(error){ btn.disabled=false; $('#warn').textContent='Enregistré mais non indexé : '+error.message; return; }
+  DONE[it.key]=row; take=null;
+  if(FILT==='todo'){ paint(); } else { IDX=Math.min(shown().length-1,IDX+1); paint(); }
+};
+/* clavier (ordinateur) : espace = REC/STOP, Entree = garder */
+document.addEventListener('keydown',e=>{ if(e.target.tagName==='SELECT') return; if(e.code==='Space'){ e.preventDefault(); $('#rec').click(); } else if(e.key==='Enter'&&!$('#keep').disabled){ e.preventDefault(); $('#keep').click(); } });
+</script>
+</body>
+</html>
