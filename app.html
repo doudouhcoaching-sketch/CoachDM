@@ -10634,7 +10634,7 @@ async function vcLoad(l,k){
 }
 /* precharge en arriere-plan tout ce dont la seance aura besoin */
 function vcPreload(keys){ keys.forEach(([l,k])=>{ if(vcHas(l,k)) vcLoad(l,k).catch(()=>{}); }); }
-function vcStop(){ VC_RUN++; VC_SRC.forEach(s=>{ try{ s.stop(); }catch(_){} }); VC_SRC=[]; try{ speechSynthesis.cancel(); }catch(_){} }
+function vcStop(){ VC_RUN++; VC_BUSY=0; VC_SRC.forEach(s=>{ try{ s.stop(); }catch(_){} }); VC_SRC=[]; try{ speechSynthesis.cancel(); }catch(_){} }
 function vcPlayBuf(o){ return new Promise(res=>{ const ac=vcCtx(), src=ac.createBufferSource(), g=ac.createGain();
   g.gain.value=o.r.gain||1; src.buffer=o.buf; src.connect(g).connect(ac.destination);
   const st=o.r.trim_start||0, en=o.r.trim_end||o.buf.duration; src.onended=()=>res();
@@ -10658,8 +10658,12 @@ function vcPlan(spec){
   }
   return items;
 }
+let VC_BUSY=0;
 async function vcRun(items){
-  vcStop(); const my=VC_RUN;
+  vcStop(); const my=VC_RUN; VC_BUSY=my;
+  try{ await vcRunIn(items,my); } finally { if(VC_BUSY===my) VC_BUSY=0; }
+}
+async function vcRunIn(items,my){
   for(const it of items){
     if(my!==VC_RUN) return;
     if(it.pause){ await vcWait(it.pause); continue; }
@@ -10672,6 +10676,45 @@ function msSayC(spec,fallback){
   if(!MSV.on) return;
   if(vcMode()==='coach'){ const it=vcPlan(spec); if(it){ vcRun(it); return; } }
   vcStop(); msSay(fallback);
+}
+
+/* ---- Consignes courtes PENDANT la serie (« Genoux dehors ! ») ----
+   Base : exercise_voice_cues (exercice -> consignes, dans l'ordre) + voice_lines (texte, ton,
+   vitesse). Voix de Coach DM si la consigne est enregistree, sinon la voix du telephone.
+   1re consigne ~6 s apres l'annonce, puis toutes les ~9 s, 3 maximum par serie. */
+let VC_CUES=null;
+async function vcCueData(slugs){
+  if(!VC_CUES||VC_CUES.lang!==LANG) VC_CUES={lang:LANG,map:{},txt:{}};
+  const need=slugs.filter(x=>x&&!VC_CUES.map[x]); if(!need.length&&Object.keys(VC_CUES.txt).length) return VC_CUES;
+  try{
+    const [a,b]=await Promise.all([
+      need.length?sb.from('exercise_voice_cues').select('slug,cue_key,ord').in('slug',need).order('ord'):Promise.resolve({data:[]}),
+      Object.keys(VC_CUES.txt).length?Promise.resolve({data:null}):sb.from('voice_lines').select('key,text').eq('lang',LANG).eq('grp','cue').limit(500)]);
+    need.forEach(x=>VC_CUES.map[x]=[]);
+    (a.data||[]).forEach(r=>VC_CUES.map[r.slug].push(r.cue_key));
+    if(b.data) b.data.forEach(r=>VC_CUES.txt[r.key]=r.text);
+  }catch(_){}
+  return VC_CUES;
+}
+function vcLiveOn(){ try{ return localStorage.getItem('cdm_ms_vlive')!=='0'; }catch(_){ return true; } }
+const vcSpeaking=()=>!!VC_BUSY||(('speechSynthesis' in window)&&speechSynthesis.speaking);
+function msLiveStop(){ if(MS&&MS.liveT){ clearTimeout(MS.liveT); MS.liveT=0; } }
+function msLiveCues(s){
+  msLiveStop();
+  if(!MS||!VC_CUES||!vcLiveOn()) return;
+  const keys=(VC_CUES.map[s.ex.slug]||[]).filter(k=>VC_CUES.txt[k]||vcHas(LANG,k)); if(!keys.length) return;
+  /* on tourne d'une serie a l'autre : la serie 2 ne recommence pas par la meme consigne */
+  const off=(s.k||0)%keys.length; let i=0, n=0;
+  const tick=()=>{
+    if(!MS||MS.cur!==s||document.getElementById('ms-work').hidden) return;
+    if(!MSV.on){ MS.liveT=setTimeout(tick,4000); return; }
+    if(vcSpeaking()){ MS.liveT=setTimeout(tick,1500); return; }
+    const k=keys[(off+i)%keys.length]; i++; n++;
+    if(vcMode()==='coach'&&vcHas(LANG,k)) vcRun([{l:LANG,k}]);
+    else if(VC_CUES.txt[k]) msSay(VC_CUES.txt[k]);
+    if(n<3&&n<keys.length+1) MS.liveT=setTimeout(tick,9000);
+  };
+  MS.liveT=setTimeout(tick,6000);
 }
 
 /* Reglages de la voix : choix de la voix, noms en anglais ou a la francaise, essai */
@@ -10690,7 +10733,8 @@ const MS_VTX={
  vc:{fr:'Voix de Coach DM',en:'Coach DM voice',nl:'Stem van Coach DM'},
  vp:{fr:'Voix du téléphone',en:'Phone voice',nl:'Stem van de telefoon'},
  vcn:{fr:'{a} morceaux enregistrés dans ta langue, {b} noms d’exercices.',en:'{a} recorded pieces, {b} exercise names.',nl:'{a} opgenomen stukjes, {b} oefeningnamen.'},
- vcues:{fr:'Lire aussi les consignes (voix du téléphone)',en:'Also read the cues (phone voice)',nl:'Ook de tips voorlezen (stem van de telefoon)'}
+ vcues:{fr:'Lire aussi les consignes détaillées (voix du téléphone)',en:'Also read the detailed cues (phone voice)',nl:'Ook de uitgebreide tips voorlezen (stem van de telefoon)'},
+ vlive:{fr:'Consignes pendant la série (« Genoux dehors ! »)',en:'Cues during the set (“Knees out!”)',nl:'Tips tijdens de set (« Knieën naar buiten! »)'}
 };
 const mvt=k=>{const o=MS_VTX[k];return o?(o[LANG]||o.fr):k;};
 async function msVoiceSheet(){
@@ -10704,8 +10748,9 @@ async function msVoiceSheet(){
   const vm=vcMode(), nOk=Object.keys((VC_IDX&&VC_IDX[LANG])||{}).length, nX=Object.keys((VC_IDX&&VC_IDX.x)||{}).length;
   sh.innerHTML=`<div class="ms-vsi"><h3>${esc(mvt('t'))}</h3>
     ${vcReady()?`<div class="ms-vseg" id="ms-vm"><button type="button" data-v="coach" class="${vm==='coach'?'on':''}">${esc(mvt('vc'))}</button><button type="button" data-v="phone" class="${vm==='phone'?'on':''}">${esc(mvt('vp'))}</button></div>
-    <p class="ms-vhint">${esc(mvt('vcn').replace('{a}',nOk).replace('{b}',nX))}</p>
-    <label class="ms-vck"><input type="checkbox" id="ms-vcues"${vcCuesToo()?' checked':''}> ${esc(mvt('vcues'))}</label>`:''}
+    <p class="ms-vhint">${esc(mvt('vcn').replace('{a}',nOk).replace('{b}',nX))}</p>`:''}
+    <label class="ms-vck"><input type="checkbox" id="ms-vlive"${vcLiveOn()?' checked':''}> ${esc(mvt('vlive'))}</label>
+    <label class="ms-vck"><input type="checkbox" id="ms-vcues"${vcCuesToo()?' checked':''}> ${esc(mvt('vcues'))}</label>
     <label>${esc(mvt('v'))}</label>
     ${L.length?`<select id="ms-vsel">${L.map(v=>`<option value="${esc(v.name)}"${cur&&v.name===cur.name?' selected':''}>${lab(v)}</option>`).join('')}</select>`:`<p class="ms-vnone">${esc(mvt('none'))}</p>`}
     ${LANG!=='en'?`<label>${esc(mvt('n'))}</label>
@@ -10715,6 +10760,7 @@ async function msVoiceSheet(){
     <button type="button" class="ms-btn" id="ms-vok">${esc(mvt('ok'))}</button></div>`;
   sh.hidden=false;
   sh.querySelectorAll('#ms-vm button').forEach(b=>b.onclick=()=>{ try{ localStorage.setItem('cdm_ms_vmode',b.dataset.v); }catch(_){} sh.querySelectorAll('#ms-vm button').forEach(x=>x.classList.toggle('on',x===b)); });
+  const vlb=document.getElementById('ms-vlive'); if(vlb) vlb.onchange=()=>{ try{ localStorage.setItem('cdm_ms_vlive',vlb.checked?'1':'0'); }catch(_){} if(!vlb.checked) msLiveStop(); };
   const vcb=document.getElementById('ms-vcues'); if(vcb) vcb.onchange=()=>{ try{ localStorage.setItem('cdm_ms_vcues',vcb.checked?'1':'0'); }catch(_){} };
   const sel=document.getElementById('ms-vsel');
   if(sel) sel.onchange=()=>{ const v=L.find(x=>x.name===sel.value); if(v){ MSV.v=v; try{ localStorage.setItem('cdm_ms_vox_'+LANG,v.name); }catch(_){} } };
@@ -10865,8 +10911,9 @@ async function msOpen(countdown){
   animCharger();
   MS.clk=setInterval(()=>{ const c=document.getElementById('ms-clock'); if(c&&SESSION) c.textContent=msFmt(Math.floor((Date.now()-SESSION.started)/1000)); },500);
   await msLoadVoices();
-  await vcIndex();
+  await Promise.all([vcIndex(), vcCueData([...new Set(slots.map(x=>x.ex.slug))])]);
   if(vcMode()==='coach'){ const pk=[];
+    slots.forEach(x=>(VC_CUES.map[x.ex.slug]||[]).forEach(k=>pk.push([LANG,k])));
     ['p_go','p_rest','p_next','p_last','p_pr','p_end','p_e1rm','w_set','w_of','w_reps','w_side','w_at','w_kg','w_kg5','w_sec','w_min','w_m','w_cal','e1','e2','e3','e4','e5','e6','e7','e8'].forEach(k=>pk.push([LANG,k]));
     for(let i=0;i<=30;i++) pk.push([LANG,'n'+i]);
     slots.forEach(x=>{ pk.push(['x',x.ex.slug]); const t=msTarget(x); if(t.kg) vcKgKeys(t.kg).forEach(k=>pk.push([LANG,k])); });
@@ -10883,7 +10930,7 @@ async function msOpen(countdown){
 }
 function msClose(quiet){
   if(!MS) return;
-  const r=MS.rest; clearInterval(MS.clk); clearInterval(MS.cueIv); if(r&&r.iv) clearInterval(r.iv);
+  const r=MS.rest; clearInterval(MS.clk); clearInterval(MS.cueIv); msLiveStop(); vcStop(); if(r&&r.iv) clearInterval(r.iv);
   try{ if(MS.lock) MS.lock.release(); }catch(_){}
   try{ const P=window.Capacitor&&window.Capacitor.Plugins; if(P&&P.KeepAwake) P.KeepAwake.allowSleep(); }catch(_){}
   try{ speechSynthesis.cancel(); }catch(_){}
@@ -10923,7 +10970,7 @@ function msAdjR(d){ const s=MS&&MS.cur; if(!s) return; const t=msTarget(s); t.r=
 async function msWork(announce){
   if(!MS) return;
   const s=msCur(); if(!s){ msEnd(); return; }
-  MS.cur=s; msShow('ms-work'); msPaintHud();
+  MS.cur=s; msShow('ms-work'); msPaintHud(); msLiveStop();
   const name=pick(s.ex,'name');
   document.getElementById('ms-blk').textContent=blockL(s.it.block)+(s.it.superset_group?' · superset '+s.it.superset_group:'');
   document.getElementById('ms-name').textContent=name;
@@ -10957,12 +11004,14 @@ async function msWork(announce){
     if(t.load==='weight'&&t.kg){ spec.push(P); if(LANG!=='nl') spec.push('w_at'); spec.push({kg:t.kg}); }
     if(first&&cue&&vcCuesToo()) spec.push({pause:350},{tts:msCue(cue)});
     else if(Math.random()<.35){ const e='e'+(1+Math.floor(Math.random()*8)); if(vcHas(LANG,e)) spec.push({pause:400},e); }
-    msSayC(spec,[nm,line.replace(/\.\./g,'.'),first&&cue?msCue(cue):'']);
+    msSayC(spec,[nm,line.replace(/\.\./g,'.'),first&&cue&&vcCuesToo()?msCue(cue):'']);
   }
+  msLiveCues(s);
 }
 
 async function msValidate(){
   const s=MS&&MS.cur; if(!s||!SESSION) return;
+  msLiveStop();
   const btn=document.getElementById('ms-done'); if(btn.disabled) return;
   const t=msTarget(s);
   const row={ session_id:SESSION.id, exercise_id:s.wrap.dataset.ex, workout_exercise_id:s.wrap.dataset.we,
@@ -11015,7 +11064,7 @@ function msRestPaint(){ const r=MS&&MS.rest; if(!r) return;
   document.getElementById('ms-restt').textContent=msFmt(Math.max(0,r.left));
   document.getElementById('ms-restc').setAttribute('stroke-dashoffset',(653.5*(1-Math.max(0,r.left)/r.total)).toFixed(1)); }
 async function msRest(sec,nx,prev){
-  msShow('ms-rest'); clearInterval(MS.cueIv);
+  msShow('ms-rest'); clearInterval(MS.cueIv); msLiveStop();
   if(MS.rest&&MS.rest.iv) clearInterval(MS.rest.iv);
   MS.rest={left:sec,total:sec};
   const newEx=nx.it.id!==prev.it.id;
@@ -11058,7 +11107,7 @@ async function msRir(n,btn){
 }
 function msEnd(){
   if(!MS) return;
-  clearInterval(MS.cueIv); msShow('ms-end');
+  clearInterval(MS.cueIv); msLiveStop(); msShow('ms-end');
   const mins=Math.max(1,Math.round((Date.now()-(SESSION?SESSION.started:Date.now()))/60000));
   const tg=[['ms-dmin',mins],['ms-dkg',Math.round(WO_VOL)],['ms-dset',WO_DONE],['ms-dpr',MS_KEEP?MS_KEEP.prs:0]]; const st=performance.now();
   const f=now=>{ const k=Math.min(1,(now-st)/1100); tg.forEach(([id,v])=>{ const e=document.getElementById(id); if(e) e.textContent=Math.round(v*k).toLocaleString(LANG==='en'?'en-GB':LANG+'-BE'); }); if(k<1) requestAnimationFrame(f); };

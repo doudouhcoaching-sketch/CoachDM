@@ -27,6 +27,8 @@ details.tips summary{cursor:pointer;font-weight:800;font-size:14px}details.tips 
 .say{font:800 clamp(30px,9vw,46px)/1.05 var(--fd);text-transform:none;margin:0;min-height:1.1em;overflow-wrap:anywhere}
 .say.long{font-size:clamp(22px,6vw,30px);line-height:1.2}
 .hint{font-size:12.5px;color:var(--mut);margin:-4px 0 0;min-height:1.2em}
+.tp{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:-2px 0 0;min-height:1.2em}.tp span{font:700 12px var(--fb);padding:4px 10px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);color:var(--fg)}.tp span b{color:var(--gold);font-weight:800}
+.edit{background:none;border:0;color:var(--mut);font:600 12.5px var(--fb);text-decoration:underline;cursor:pointer;padding:0}
 .meter{width:100%;height:10px;border-radius:10px;background:var(--panel2);overflow:hidden}.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--gold),var(--red));transition:width .05s}
 canvas.wave{width:100%;height:64px;border-radius:12px;background:#0A100D}
 .rec{width:96px;height:96px;border-radius:50%;border:4px solid rgba(255,90,90,.35);background:radial-gradient(circle at 40% 35%,#ff8080,#E03A3A);box-shadow:0 10px 40px rgba(224,58,58,.35);cursor:pointer;display:grid;place-items:center;color:#fff;font:800 13px var(--fb);letter-spacing:.06em}
@@ -66,14 +68,20 @@ canvas.wave{width:100%;height:64px;border-radius:12px;background:#0A100D}
         <li>Parle comme à la salle : énergique, souriant, articulé. Même énergie du premier au dernier mot.</li>
         <li>Appuie sur le rond rouge, attends une demi-seconde, parle, puis tais-toi : l'enregistrement s'arrête tout seul.</li>
         <li>Fais des pauses toutes les 20 minutes et bois de l'eau : la voix fatigue.</li>
-        <li>Ordre conseillé : Phrases → Unités → Nombres → Encouragements, puis les Noms (classés du plus utilisé au moins utilisé).</li>
+        <li>Chaque ligne te donne le <b>ton</b> (ferme, énergique, calme, explosif…) et la <b>vitesse</b> (vive, normale, posée). Joue-la comme à la box.</li>
+        <li>Les <b>Consignes</b> : seulement la partie du corps et la direction (« Genoux dehors ! », « Poitrine haute ! »). Les détails restent écrits dans la fiche.</li>
+        <li>Ordre conseillé : Phrases → Mots → Nombres → Consignes → Encouragements, puis les Noms (du plus utilisé au moins utilisé).</li>
+        <li>Tout ce que tu n’as pas encore enregistré est lu par la voix du téléphone : tu peux avancer petit à petit.</li>
       </ul>
     </details>
+    <div class="filt">Groupe <select id="gsel"><option value="">Tous</option><option value="phr">Phrases</option><option value="unit">Mots</option><option value="num">Nombres</option><option value="cue">Consignes</option><option value="enc">Encouragements</option></select></div>
     <div class="filt">Afficher <select id="filt"><option value="todo">À enregistrer</option><option value="all">Tout</option><option value="done">Déjà enregistrés</option></select></div>
     <div class="card">
       <span class="grp" id="grp">—</span>
       <p class="say" id="say">—</p>
+      <p class="tp" id="tp"></p>
       <p class="hint" id="hint"></p>
+      <button class="edit" id="edit" type="button">✎ Modifier le texte</button>
       <div class="meter"><i id="lvl"></i></div>
       <canvas class="wave" id="wave" width="600" height="64"></canvas>
       <button class="rec" id="rec" type="button">REC</button>
@@ -147,9 +155,10 @@ const SUPABASE_URL='https://kkcmhviyvttwpaclrjmv.supabase.co';
 const SUPABASE_KEY='sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b';
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=s=>document.querySelector(s);
-const GROUP={phr:'Phrase',unit:'Mot',num:'Nombre',enc:'Encouragement',name:'Nom d’exercice'};
-const HINT={phr:'Phrase complète, ton naturel de coach.',unit:'Un seul mot, net, sans montée de voix à la fin.',num:'Juste le nombre, comme dans « Série … sur … ».',enc:'Avec de l’énergie, comme pendant une vraie série.',name:'Le nom en anglais, comme à la box.'};
-let LANG='fr', ITEMS=[], DONE={}, IDX=0, FILT='todo';
+const GROUP={phr:'Phrase',unit:'Mot',num:'Nombre',cue:'Consigne',enc:'Encouragement',name:'Nom d’exercice'};
+const GORD={phr:0,unit:1,num:2,cue:3,enc:4,name:5};
+const HINT={cue:'Court et net : partie du corps + direction, comme à la box.',phr:'Phrase complète, ton naturel de coach.',unit:'Un seul mot, net, sans montée de voix à la fin.',num:'Juste le nombre, comme dans « Série … sur … ».',enc:'Avec de l’énergie, comme pendant une vraie série.',name:'Le nom en anglais, comme à la box.'};
+let LANG='fr', ITEMS=[], DONE={}, IDX=0, FILT='todo', GSEL='';
 let AC=null, stream=null, rec=null, chunks=[], take=null, analyser=null, raf=0, autoT=0;
 
 /* ---------- acces ---------- */
@@ -161,20 +170,29 @@ let AC=null, stream=null, rec=null, chunks=[], take=null, analyser=null, raf=0, 
   $('#gate').hidden=true; $('#app').hidden=false;
   document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b)); load(b.dataset.l); });
   $('#filt').onchange=e=>{ FILT=e.target.value; IDX=0; paint(); };
+  $('#gsel').onchange=e=>{ GSEL=e.target.value; IDX=0; paint(); };
   load('fr');
 })();
 
 async function load(l){
   LANG=l; IDX=0; take=null;
-  if(l==='x'){
-    const { data } = await sb.rpc('voice_studio_names');
-    ITEMS=(data||[]).map(r=>({key:r.slug,text:vcNameText(r.name_en),g:'name',uses:r.uses}));
+  $('#gsel').parentNode.hidden=(l==='x');
+  /* la base de donnees voice_lines : texte, ton, vitesse, note. Secours : le catalogue integre. */
+  const [{ data:vl }, nm] = await Promise.all([
+    sb.from('voice_lines').select('key,text,grp,tone,pace,note,sort').eq('lang',l).order('sort').limit(2000),
+    l==='x'?sb.rpc('voice_studio_names'):Promise.resolve({data:null}) ]);
+  const uses={}; (nm.data||[]).forEach(r=>uses[r.slug]=r.uses);
+  if(vl&&vl.length){
+    ITEMS=vl.map(r=>({key:r.key,text:r.text,g:r.grp,tone:r.tone,pace:r.pace,note:r.note,sort:r.sort,uses:l==='x'?(uses[r.key]??0):null}))
+      .sort((a,b)=>(GORD[a.g]??9)-(GORD[b.g]??9)||a.sort-b.sort);
+  } else if(l==='x'){
+    ITEMS=(nm.data||[]).map(r=>({key:r.slug,text:vcNameText(r.name_en),g:'name',uses:r.uses}));
   } else ITEMS=vcCatalog(l);
   const { data:rows } = await sb.from('voice_clips').select('key,path,trim_start,trim_end,gain,updated_at').eq('lang',l);
   DONE={}; (rows||[]).forEach(r=>DONE[r.key]=r);
   paint();
 }
-const shown=()=>ITEMS.filter(it=>FILT==='all'||(FILT==='todo'?!DONE[it.key]:!!DONE[it.key]));
+const shown=()=>ITEMS.filter(it=>(LANG==='x'||!GSEL||it.g===GSEL)&&(FILT==='all'||(FILT==='todo'?!DONE[it.key]:!!DONE[it.key])));
 function paint(){
   const n=ITEMS.filter(i=>DONE[i.key]).length;
   $('#ptxt').textContent=n+' / '+ITEMS.length; $('#pbar').style.width=(ITEMS.length?n/ITEMS.length*100:0)+'%';
@@ -182,13 +200,22 @@ function paint(){
   const it=L[IDX];
   $('#grp').textContent=it?(GROUP[it.g]+(it.uses!=null?' · utilisé '+it.uses+'×':'')+(DONE[it.key]?' · ✓ déjà enregistré':'')):'Tout est enregistré 🎉';
   $('#say').textContent=it?it.text:'—'; $('#say').classList.toggle('long',!!it&&it.text.length>26);
-  $('#hint').textContent=it?HINT[it.g]:'';
+  $('#hint').textContent=it?(it.note||HINT[it.g]||''):'';
+  $('#tp').innerHTML=it&&(it.tone||it.pace)?(it.tone?`<span>Ton : <b>${esc(it.tone)}</b></span>`:'')+(it.pace?`<span>Vitesse : <b>${esc(it.pace)}</b></span>`:''):'';
+  $('#edit').hidden=!(it&&it.sort!=null);
   $('#warn').textContent=''; take=null; $('#keep').disabled=true; $('#play').disabled=!(it&&DONE[it.key]); drawWave(null);
   $('#list').innerHTML=L.slice(0,400).map((x,i)=>`<button type="button" class="it${DONE[x.key]?' done':''}${i===IDX?' cur':''}" data-i="${i}"><i class="d"></i><span>${esc(x.text)}</span>${x.uses!=null?`<small>${x.uses}×</small>`:''}</button>`).join('');
   $('#list').querySelectorAll('.it').forEach(b=>b.onclick=()=>{ IDX=+b.dataset.i; paint(); scrollTo({top:0,behavior:'smooth'}); });
 }
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 const cur=()=>shown()[IDX];
+$('#edit').onclick=async()=>{
+  const it=cur(); if(!it) return;
+  const t=prompt('Nouveau texte (ce que tu vas dire) :',it.text); if(t==null||!t.trim()||t.trim()===it.text) return;
+  const { error } = await sb.from('voice_lines').update({text:t.trim(),updated_at:new Date().toISOString()}).eq('lang',LANG).eq('key',it.key);
+  if(error){ $('#warn').textContent='Erreur : '+error.message; return; }
+  it.text=t.trim(); paint(); $('#warn').textContent=DONE[it.key]?'Texte changé : pense à ré-enregistrer cette ligne.':'Texte changé.';
+};
 $('#prev').onclick=()=>{ IDX=Math.max(0,IDX-1); paint(); };
 $('#skip').onclick=()=>{ IDX=Math.min(shown().length-1,IDX+1); paint(); };
 
@@ -212,7 +239,7 @@ $('#rec').onclick=async()=>{
   rec.onstop=()=>{ cancelAnimationFrame(raf); clearTimeout(autoT); $('#rec').classList.remove('on'); $('#rec').textContent='REC'; $('#lvl').style.width='0'; analyse(new Blob(chunks,{type:(rec.mimeType||mt||'audio/mp4')})); };
   rec.start(); $('#rec').classList.add('on'); $('#rec').textContent='STOP'; $('#warn').textContent='';
   /* arret automatique : 0,8 s de silence apres avoir parle, ou duree max */
-  const maxMs=it.g==='phr'||it.g==='enc'?9000:it.g==='name'?5000:3500;
+  const maxMs=it.g==='phr'||it.g==='enc'?9000:it.g==='name'||it.g==='cue'?5000:3500;
   const buf=new Float32Array(analyser.fftSize); let spoke=false, quietSince=0; const t0=performance.now();
   const loop=()=>{ analyser.getFloatTimeDomainData(buf); let s=0; for(let i=0;i<buf.length;i++) s+=buf[i]*buf[i]; const rms=Math.sqrt(s/buf.length);
     $('#lvl').style.width=Math.min(100,rms*400)+'%'; const now=performance.now();
