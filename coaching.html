@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Coaching en ligne — Coach DM</title>
+<meta name="description" content="Coaching en ligne 1:1 avec Coach DM : programme personnalisé dans l'app, nutrition, appels vidéo, analyse de ta technique. FR · NL · EN.">
+<meta property="og:title" content="Coaching en ligne — Coach DM">
+<meta property="og:description" content="Ton coach, ton programme, ta progression. Dans l'app Coach DM.">
+<meta property="og:image" content="https://coachdm.be/og-image.jpg">
+<link rel="icon" href="favicon-32x32.png">
+<style>
+:root{--bg:#050807;--card:#0E1512;--card2:#121B17;--line:rgba(255,255,255,.10);--fg:#fff;--ink:#C9DCD3;--mut:#8fa79c;--brand:#00FFA3;--brand2:#00B978;--gold:#E9C767;--fb:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--fb);-webkit-font-smoothing:antialiased}
+a{color:var(--brand)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 18px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0}
+.logo{display:flex;align-items:center;gap:10px;color:var(--fg);text-decoration:none;font-weight:800;letter-spacing:.04em}
+.logo img{width:38px;height:38px;border-radius:10px}
+.langs{display:flex;gap:4px}
+.langs button{background:none;border:1px solid var(--line);color:var(--mut);border-radius:999px;padding:6px 11px;font:700 12.5px var(--fb);cursor:pointer}
+.langs button.on{color:var(--fg);border-color:var(--brand)}
+.hero{padding:34px 0 18px;text-align:center}
+.kick{color:var(--gold);font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+h1{color:var(--fg);font-size:clamp(32px,6.4vw,56px);line-height:1.04;margin:12px auto 14px;max-width:16ch;text-wrap:balance;letter-spacing:-.01em}
+h1 em{font-style:normal;color:var(--brand)}
+.lead{max-width:60ch;margin:0 auto;color:var(--ink);font-size:17px}
+.proof{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:20px 0 0}
+.proof span{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;color:var(--ink);background:var(--card)}
+h2{color:var(--fg);font-size:clamp(24px,4vw,32px);margin:0 0 8px;text-wrap:balance}
+section{padding:34px 0}
+.sub{color:var(--mut);margin:0 0 20px}
+.toggle{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;gap:4px;margin:0 0 18px}
+.toggle button{background:none;border:0;color:var(--mut);padding:9px 16px;border-radius:999px;font:700 14px var(--fb);cursor:pointer}
+.toggle button.on{background:var(--brand);color:#03140C}
+.toggle small{font-weight:800;color:var(--gold);margin-left:4px}
+.toggle button.on small{color:#03140C}
+.mail{display:flex;flex-direction:column;gap:6px;max-width:520px;margin:0 0 22px}
+.mail label{font-size:13.5px;color:var(--ink);font-weight:700}
+.mail input{background:var(--card);border:1px solid var(--line);border-radius:14px;color:var(--fg);padding:14px 14px;font:16px var(--fb)}
+.mail input:focus{outline:2px solid var(--brand);outline-offset:1px}
+.mail p{margin:0;font-size:13px;color:var(--mut)}
+.mail p b{color:var(--gold)}
+.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:stretch}
+.plan{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 20px;display:flex;flex-direction:column;gap:12px;min-width:0;position:relative}
+.plan.rec{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand),0 18px 50px rgba(0,255,163,.08)}
+.badge{position:absolute;top:-12px;left:20px;background:var(--brand);color:#03140C;font-size:11.5px;font-weight:800;letter-spacing:.06em;padding:5px 10px;border-radius:999px;text-transform:uppercase}
+.plan h3{margin:0;color:var(--fg);font-size:15px;letter-spacing:.14em;text-transform:uppercase}
+.plan .tag{margin:-6px 0 0;color:var(--mut);font-size:13.5px}
+.price{display:flex;align-items:baseline;gap:6px;color:var(--fg)}
+.price b{font-size:40px;line-height:1;font-variant-numeric:tabular-nums}
+.price span{color:var(--mut);font-size:14px}
+.per{margin:-6px 0 0;font-size:13px;color:var(--mut);min-height:1.2em}
+.app{font-size:13px;color:var(--gold);margin:0;font-weight:700}
+.plan ul{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:7px;flex:1}
+.plan li{padding-left:22px;position:relative;font-size:14.5px}
+.plan li::before{content:"";position:absolute;left:2px;top:.5em;width:10px;height:6px;border-left:2px solid var(--brand);border-bottom:2px solid var(--brand);transform:rotate(-45deg)}
+.go{margin-top:6px;border:0;border-radius:16px;padding:15px 14px;font:800 15.5px var(--fb);cursor:pointer;background:var(--card2);color:var(--fg);border:1px solid var(--line)}
+.plan.rec .go{background:linear-gradient(180deg,var(--brand),var(--brand2));color:#03140C;border:0}
+.go:disabled{opacity:.5;cursor:wait}
+.err{color:#ff8a8a;font-size:14px;min-height:1.2em;margin:12px 0 0}
+.note{font-size:13px;color:var(--mut);margin:14px 0 0}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;min-width:0}
+.box h4{margin:0 0 6px;color:var(--fg);font-size:16px}
+.box p{margin:0;font-size:14.5px}
+.num{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(0,255,163,.12);color:var(--brand);font-weight:800;margin-bottom:10px}
+.coach{display:grid;grid-template-columns:160px minmax(0,1fr);gap:20px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:20px}
+.coach img{width:160px;height:160px;object-fit:cover;border-radius:18px;max-width:100%}
+.coach p{margin:0 0 8px}
+details{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:0 0 8px}
+summary{cursor:pointer;color:var(--fg);font-weight:700}
+details p{margin:10px 0 2px;font-size:14.5px}
+.thanks{background:var(--card);border:1px solid var(--brand);border-radius:22px;padding:26px 22px;margin:26px 0;text-align:center}
+.thanks h2{color:var(--brand)}
+.thanks ol{text-align:left;max-width:520px;margin:12px auto 0;padding-left:20px}
+footer{border-top:1px solid var(--line);margin-top:30px;padding:22px 0 40px;font-size:13px;color:var(--mut);text-align:center;line-height:1.7}
+footer a{color:var(--mut)}
+@media (max-width:860px){.plans,.grid{grid-template-columns:minmax(0,1fr)}.plan.rec{order:-1}.coach{grid-template-columns:minmax(0,1fr);text-align:center}.coach img{margin:0 auto}}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="logo" href="https://coachdm.be/"><img src="logo-dm.png" alt="">COACH DM</a>
+    <div class="langs" id="langs"><button data-l="fr">FR</button><button data-l="nl">NL</button><button data-l="en">EN</button></div>
+  </header>
+
+  <div class="thanks" id="thanks" hidden>
+    <h2 data-k="ty_t"></h2>
+    <p data-k="ty_p"></p>
+    <ol><li data-k="ty_1"></li><li data-k="ty_2"></li><li data-k="ty_3"></li></ol>
+    <p class="note"><a href="telecharger.html" data-k="ty_dl"></a></p>
+  </div>
+
+  <div class="hero">
+    <div class="kick" data-k="kick"></div>
+    <h1 data-k="h1" data-html></h1>
+    <p class="lead" data-k="lead"></p>
+    <div class="proof"><span data-k="p1"></span><span data-k="p2"></span><span data-k="p3"></span><span data-k="p4"></span></div>
+  </div>
+
+  <section id="offres">
+    <h2 data-k="o_t"></h2>
+    <p class="sub" data-k="o_s"></p>
+    <div class="toggle" id="per"><button data-p="m" class="on" data-k="t_m"></button><button data-p="q"><span data-k="t_q"></span><small>-10 %</small></button></div>
+    <div class="mail">
+      <label for="em" data-k="em_l"></label>
+      <input id="em" type="email" autocomplete="email" inputmode="email" placeholder="ton@email.com">
+      <p data-k="em_p" data-html></p>
+    </div>
+    <div class="plans" id="plans"></div>
+    <p class="err" id="err" role="alert"></p>
+    <p class="note" data-k="o_note"></p>
+  </section>
+
+  <section>
+    <h2 data-k="h_t"></h2>
+    <div class="grid">
+      <div class="box"><span class="num">1</span><h4 data-k="h1t"></h4><p data-k="h1p"></p></div>
+      <div class="box"><span class="num">2</span><h4 data-k="h2t"></h4><p data-k="h2p"></p></div>
+      <div class="box"><span class="num">3</span><h4 data-k="h3t"></h4><p data-k="h3p"></p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 data-k="a_t"></h2>
+    <p class="sub" data-k="a_s"></p>
+    <div class="grid">
+      <div class="box"><h4 data-k="a1t"></h4><p data-k="a1p"></p></div>
+      <div class="box"><h4 data-k="a2t"></h4><p data-k="a2p"></p></div>
+      <div class="box"><h4 data-k="a3t"></h4><p data-k="a3p"></p></div>
+      <div class="box"><h4 data-k="a4t"></h4><p data-k="a4p"></p></div>
+      <div class="box"><h4 data-k="a5t"></h4><p data-k="a5p"></p></div>
+      <div class="box"><h4 data-k="a6t"></h4><p data-k="a6p"></p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="coach">
+      <img src="dm-coaching.jpg" alt="Coach DM">
+      <div><h2 data-k="c_t"></h2><p data-k="c_p1"></p><p data-k="c_p2"></p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 data-k="f_t"></h2>
+    <details><summary data-k="q1"></summary><p data-k="r1"></p></details>
+    <details><summary data-k="q2"></summary><p data-k="r2"></p></details>
+    <details><summary data-k="q3"></summary><p data-k="r3"></p></details>
+    <details><summary data-k="q4"></summary><p data-k="r4"></p></details>
+    <details><summary data-k="q5"></summary><p data-k="r5"></p></details>
+    <details><summary data-k="q6"></summary><p data-k="r6" data-html></p></details>
+  </section>
+
+  <footer>
+    Coach DM · Doudouh M. · BCE BE0840.260.421<br>
+    <span data-k="vat"></span><br>
+    Reasfit · Havenstraat 72b · Vilvoorde<br>
+    <a href="mailto:contact@coachdm.be">contact@coachdm.be</a> · <a href="https://coachdm.be">coachdm.be</a> · <a href="conditions.html" data-k="terms"></a> · <a href="privacy.html" data-k="priv"></a>
+  </footer>
+</div>
+
+<script>
+const FN='https://kkcmhviyvttwpaclrjmv.supabase.co/functions/v1/coaching-checkout';
+const PLANS=[
+  {id:'starter', m:150, q:405, key:{m:'coaching_starter_m',q:'coaching_starter_q'}},
+  {id:'performance', m:250, q:675, key:{m:'coaching_performance_m',q:'coaching_performance_q'}, rec:true},
+  {id:'elite', m:350, q:945, key:{m:'coaching_elite350_m',q:'coaching_elite350_q'}}
+];
+const T={
+ fr:{kick:'Coaching en ligne 1:1',h1:'Ton coach. Ton programme. <em>Partout.</em>',
+  lead:"Un vrai coach derrière chaque séance : ton programme construit pour toi, ajusté chaque semaine, dans l'app Coach DM. Où que tu sois.",
+  p1:'CrossFit L3 · NASM PES',p2:'12 ans de coaching',p3:'FR · NL · EN',p4:'Nutrition incluse',
+  o_t:'Choisis ta formule',o_s:"Sans engagement. Tu annules quand tu veux, en deux clics.",t_m:'Mensuel',t_q:'3 mois',
+  em_l:'Ton adresse e-mail',em_p:"Tu as déjà un compte dans l'app Coach DM ? Mets la même adresse : <b>-20 % à vie</b>, appliqué tout seul au paiement.",
+  per_m:'/ mois',per_q:'/ 3 mois',eq:'soit {x} € / mois',app:"Avec l'app Coach DM : {x} €",go:'Commencer',goe:'Candidater',
+  o_note:"Paiement sécurisé par Stripe : carte, Apple Pay, Google Pay, SEPA. Un code fondateur ? Tu l'entres à l'étape de paiement.",
+  rec:'Recommandé',
+  starter_tag:'Pour démarrer avec un vrai cadre',performance_tag:'Résultats mesurables',elite_tag:'Attention maximale',
+  starter:['Programme personnalisé dans l\'app','Plan nutrition inclus','Bilan chaque semaine','Réponse sous 48 h','Accès premium à l\'app inclus'],
+  performance:['Programme entièrement personnalisé','Nutrition complète + suivi','2 appels vidéo par mois','Analyse vidéo de tes mouvements','Bilan 2× par semaine','Ajustements continus'],
+  elite:['Programme ultra-personnalisé','Nutrition + planning repas','4 appels vidéo par mois','Analyse de chaque séance','Réponse en moins de 12 h','WhatsApp direct'],
+  h_t:'Comment ça marche',h1t:'Tu choisis ta formule',h1p:"Paiement en ligne, sans engagement. Tu reçois un e-mail avec ton accès dans la minute.",
+  h2t:'Tu me racontes',h2p:"Un questionnaire de deux minutes : ton objectif, ton niveau, ton matériel, tes contraintes.",
+  h3t:'Je construis, tu progresses',h3p:"Ton programme arrive dans l'app sous 48 h. Ensuite, on ajuste chaque semaine ensemble.",
+  a_t:"Tout se passe dans l'app",a_s:"Ce que tu as en plus du coach, inclus dans toutes les formules.",
+  a1t:'Mode séance guidé',a1p:'Le minuteur, le repos, la charge à prendre et la voix du coach : tu n\'as qu\'à t\'entraîner.',
+  a2t:'422 mouvements animés',a2p:'Chaque exercice avec son animation, sa vidéo, ses points clés et ses erreurs à éviter.',
+  a3t:'Charges calculées pour toi',a3p:'Ton 1RM se met à jour à chaque séance : tes charges suivent ta vraie forme du jour.',
+  a4t:'Nutrition',a4p:'Tes macros, ton journal, la photo de ton assiette analysée, 100 recettes.',
+  a5t:'Analyse de ta technique',a5p:'Filme ton squat, ton saut ou ta barre : l\'analyse vidéo te montre quoi corriger.',
+  a6t:'Messages et appels',a6p:'Texte, photo, vidéo, notes vocales et appels vidéo avec ton coach, au même endroit.',
+  c_t:'Qui est derrière',c_p1:"Je suis Coach DM, coach certifié CrossFit L3 et NASM PES, 12 ans de coaching. Je coache en présentiel à Reasfit Vilvoorde, et en ligne partout ailleurs.",
+  c_p2:"Ma règle : la technique d'abord, la constance ensuite, l'intensité enfin. Pas de raccourci, pas de produit miracle, des résultats qui durent.",
+  f_t:'Questions fréquentes',
+  q1:'Je peux arrêter quand je veux ?',r1:"Oui. Sans engagement : tu annules en deux clics depuis ton reçu Stripe ou en m'écrivant. Le mois (ou le trimestre) en cours reste dû, puis plus rien n'est prélevé.",
+  q2:"Je n'ai pas de salle de sport, ça marche ?",r2:"Oui. Ton programme est construit avec le matériel que tu as : salle, maison, extérieur.",
+  q3:'Je suis débutant(e).',r3:"C'est parfait. On commence simple, on construit les bases, et on progresse sans brûler les étapes.",
+  q4:'Et si j\'ai une douleur ou une blessure ?',r4:"Je construis autour, jamais dedans : ton médecin ou ton kiné pose la limite, je programme à l'intérieur. Un feu vert médical est demandé avant de commencer.",
+  q5:"C'est quoi la réduction app Coach DM ?",r5:"Si tu as déjà un compte dans l'app Coach DM, ton coaching est à -20 % à vie. Mets simplement la même adresse e-mail avant de payer.",
+  q6:'Une autre question ?',r6:'Écris-moi : <a href="mailto:contact@coachdm.be">contact@coachdm.be</a>. Je réponds personnellement.',
+  vat:'Petite entreprise soumise au régime de la franchise de taxe — TVA non applicable (art. 56bis).',terms:'Conditions',priv:'Confidentialité',
+  ty_t:'Bienvenue dans ton coaching',ty_p:'Ton paiement est confirmé. Merci pour ta confiance.',
+  ty_1:"Ouvre l'e-mail que tu viens de recevoir et clique sur « Ouvrir mon accès ».",ty_2:"Remplis le questionnaire de départ (deux minutes).",ty_3:'Je te contacte dans les 24 h et je construis ton programme.',ty_dl:"Installer l'app Coach DM sur ton téléphone",
+  e_mail:"Vérifie ton adresse e-mail.",e_net:"Le paiement n'a pas pu s'ouvrir. Réessaie, ou écris à contact@coachdm.be."},
+ nl:{kick:'Online coaching 1:1',h1:'Je coach. Je programma. <em>Overal.</em>',
+  lead:'Een echte coach achter elke training: je programma op maat gemaakt, elke week bijgestuurd, in de Coach DM-app. Waar je ook bent.',
+  p1:'CrossFit L3 · NASM PES',p2:'12 jaar coaching',p3:'NL · FR · EN',p4:'Voeding inbegrepen',
+  o_t:'Kies je formule',o_s:'Zonder verbintenis. Je zegt op wanneer je wil, in twee klikken.',t_m:'Maandelijks',t_q:'3 maanden',
+  em_l:'Je e-mailadres',em_p:'Heb je al een account in de Coach DM-app? Gebruik hetzelfde adres: <b>-20 % voor altijd</b>, vanzelf toegepast bij de betaling.',
+  per_m:'/ maand',per_q:'/ 3 maanden',eq:'of {x} € / maand',app:'Met de Coach DM-app: {x} €',go:'Starten',goe:'Aanvragen',
+  o_note:'Veilig betalen via Stripe: kaart, Apple Pay, Google Pay, SEPA. Een oprichterscode? Die vul je in bij de betaling.',
+  rec:'Aanbevolen',
+  starter_tag:'Starten met een echt kader',performance_tag:'Meetbare resultaten',elite_tag:'Maximale aandacht',
+  starter:['Programma op maat in de app','Voedingsplan inbegrepen','Elke week een check-in','Antwoord binnen 48 u','Premium-toegang tot de app inbegrepen'],
+  performance:['Volledig gepersonaliseerd programma','Volledige voeding + opvolging','2 videogesprekken per maand','Video-analyse van je bewegingen','Check-in 2× per week','Continue bijsturing'],
+  elite:['Ultra-gepersonaliseerd programma','Voeding + maaltijdplanning','4 videogesprekken per maand','Analyse van elke training','Antwoord binnen 12 u','Rechtstreeks via WhatsApp'],
+  h_t:'Hoe het werkt',h1t:'Je kiest je formule',h1p:'Online betalen, zonder verbintenis. Binnen de minuut krijg je een e-mail met je toegang.',
+  h2t:'Je vertelt me je verhaal',h2p:'Een vragenlijst van twee minuten: je doel, je niveau, je materiaal, je beperkingen.',
+  h3t:'Ik bouw, jij gaat vooruit',h3p:'Je programma staat binnen 48 u in de app. Daarna sturen we elke week samen bij.',
+  a_t:'Alles gebeurt in de app',a_s:'Wat je naast de coach krijgt, inbegrepen in elke formule.',
+  a1t:'Begeleide trainingsmodus',a1p:'Timer, rust, het gewicht dat je neemt en de stem van de coach: jij moet alleen trainen.',
+  a2t:'422 geanimeerde bewegingen',a2p:'Elke oefening met animatie, video, aandachtspunten en fouten om te vermijden.',
+  a3t:'Gewichten voor jou berekend',a3p:'Je 1RM wordt na elke training bijgewerkt: je gewichten volgen je echte vorm van de dag.',
+  a4t:'Voeding',a4p:'Je macro\'s, je dagboek, een foto van je bord geanalyseerd, 100 recepten.',
+  a5t:'Analyse van je techniek',a5p:'Film je squat, je sprong of je stang: de video-analyse toont wat je moet verbeteren.',
+  a6t:'Berichten en gesprekken',a6p:'Tekst, foto, video, spraakberichten en videogesprekken met je coach, op één plek.',
+  c_t:'Wie erachter zit',c_p1:'Ik ben Coach DM, gecertificeerd CrossFit L3 en NASM PES, 12 jaar coaching. Ik coach live bij Reasfit Vilvoorde, en online overal anders.',
+  c_p2:'Mijn regel: eerst techniek, dan regelmaat, pas daarna intensiteit. Geen shortcuts, geen wondermiddelen, resultaten die blijven.',
+  f_t:'Veelgestelde vragen',
+  q1:'Kan ik stoppen wanneer ik wil?',r1:'Ja. Zonder verbintenis: je zegt op in twee klikken via je Stripe-ontvangstbewijs of door me te mailen. De lopende maand (of het kwartaal) blijft verschuldigd, daarna wordt niets meer afgeschreven.',
+  q2:'Ik heb geen fitnesszaal, werkt dat?',r2:'Ja. Je programma wordt gebouwd met het materiaal dat je hebt: zaal, thuis, buiten.',
+  q3:'Ik ben beginner.',r3:'Perfect. We starten eenvoudig, bouwen de basis en gaan vooruit zonder stappen over te slaan.',
+  q4:'En als ik pijn of een blessure heb?',r4:'Ik bouw eromheen, nooit erin: je arts of kinesist legt de grens, ik programmeer daarbinnen. Een medisch groen licht wordt gevraagd voor je begint.',
+  q5:'Wat is de korting van de Coach DM-app?',r5:'Heb je al een account in de Coach DM-app, dan krijg je -20 % voor altijd op je coaching. Gebruik gewoon hetzelfde e-mailadres voor je betaalt.',
+  q6:'Nog een vraag?',r6:'Schrijf me: <a href="mailto:contact@coachdm.be">contact@coachdm.be</a>. Ik antwoord zelf.',
+  vat:'Kleine onderneming onderworpen aan de vrijstellingsregeling — btw niet van toepassing (art. 56bis).',terms:'Voorwaarden',priv:'Privacy',
+  ty_t:'Welkom in je coaching',ty_p:'Je betaling is bevestigd. Bedankt voor je vertrouwen.',
+  ty_1:'Open de e-mail die je net kreeg en klik op « Mijn toegang openen ».',ty_2:'Vul de startvragenlijst in (twee minuten).',ty_3:'Ik neem binnen 24 u contact met je op en bouw je programma.',ty_dl:'De Coach DM-app installeren op je telefoon',
+  e_mail:'Controleer je e-mailadres.',e_net:'De betaling kon niet openen. Probeer opnieuw, of mail naar contact@coachdm.be.'},
+ en:{kick:'1:1 online coaching',h1:'Your coach. Your program. <em>Anywhere.</em>',
+  lead:'A real coach behind every session: your program built for you, adjusted every week, in the Coach DM app. Wherever you are.',
+  p1:'CrossFit L3 · NASM PES',p2:'12 years coaching',p3:'EN · FR · NL',p4:'Nutrition included',
+  o_t:'Choose your plan',o_s:'No commitment. Cancel anytime, in two clicks.',t_m:'Monthly',t_q:'3 months',
+  em_l:'Your email address',em_p:'Already have a Coach DM app account? Use the same address: <b>-20% for life</b>, applied automatically at checkout.',
+  per_m:'/ month',per_q:'/ 3 months',eq:'that is €{x} / month',app:'With the Coach DM app: €{x}',go:'Start',goe:'Apply',
+  o_note:'Secure payment by Stripe: card, Apple Pay, Google Pay, SEPA. A founder code? Enter it at checkout.',
+  rec:'Recommended',
+  starter_tag:'Start with a real framework',performance_tag:'Measurable results',elite_tag:'Maximum attention',
+  starter:['Personalised program in the app','Nutrition plan included','Weekly check-in','Reply within 48 h','Premium app access included'],
+  performance:['Fully personalised program','Full nutrition + follow-up','2 video calls per month','Video analysis of your lifts','Check-in 2× per week','Continuous adjustments'],
+  elite:['Ultra-personalised program','Nutrition + meal planning','4 video calls per month','Every session reviewed','Reply in under 12 h','Direct WhatsApp'],
+  h_t:'How it works',h1t:'You choose your plan',h1p:'Pay online, no commitment. You get an email with your access within a minute.',
+  h2t:'You tell me about you',h2p:'A two-minute questionnaire: your goal, your level, your equipment, your constraints.',
+  h3t:'I build, you progress',h3p:'Your program lands in the app within 48 h. Then we adjust it together every week.',
+  a_t:'Everything happens in the app',a_s:'What you get on top of the coach, included in every plan.',
+  a1t:'Guided workout mode',a1p:'Timer, rest, the load to take and the coach\'s voice: you just train.',
+  a2t:'422 animated movements',a2p:'Every exercise with its animation, video, key points and mistakes to avoid.',
+  a3t:'Loads calculated for you',a3p:'Your 1RM updates after every session: your loads follow your real form of the day.',
+  a4t:'Nutrition',a4p:'Your macros, your log, a photo of your plate analysed, 100 recipes.',
+  a5t:'Technique analysis',a5p:'Film your squat, jump or barbell lift: the video analysis shows what to fix.',
+  a6t:'Messages and calls',a6p:'Text, photo, video, voice notes and video calls with your coach, in one place.',
+  c_t:"Who's behind it",c_p1:"I'm Coach DM, certified CrossFit L3 and NASM PES, 12 years of coaching. I coach in person at Reasfit Vilvoorde, and online everywhere else.",
+  c_p2:'My rule: technique first, consistency next, intensity last. No shortcuts, no miracle products, results that last.',
+  f_t:'FAQ',
+  q1:'Can I stop anytime?',r1:'Yes. No commitment: cancel in two clicks from your Stripe receipt or by emailing me. The current month (or quarter) remains due, then nothing more is charged.',
+  q2:"I don't have a gym, does it work?",r2:'Yes. Your program is built with the equipment you have: gym, home, outdoors.',
+  q3:"I'm a beginner.",r3:"Perfect. We start simple, build the basics, and progress without skipping steps.",
+  q4:'What if I have pain or an injury?',r4:'I build around it, never into it: your doctor or physio sets the limit, I program inside it. Medical clearance is required before starting.',
+  q5:'What is the Coach DM app discount?',r5:'If you already have a Coach DM app account, your coaching is -20% for life. Just use the same email address before paying.',
+  q6:'Another question?',r6:'Write to me: <a href="mailto:contact@coachdm.be">contact@coachdm.be</a>. I answer personally.',
+  vat:'Small business under the VAT franchise scheme — VAT not applicable (art. 56bis).',terms:'Terms',priv:'Privacy',
+  ty_t:'Welcome to your coaching',ty_p:'Your payment is confirmed. Thank you for your trust.',
+  ty_1:'Open the email you just received and tap « Open my access ».',ty_2:'Fill in the starting questionnaire (two minutes).',ty_3:'I will contact you within 24 h and build your program.',ty_dl:'Install the Coach DM app on your phone',
+  e_mail:'Check your email address.',e_net:"Checkout couldn't open. Try again, or email contact@coachdm.be."}
+};
+const qs=new URLSearchParams(location.search);
+let LANG=qs.get('lang'); try{ if(!LANG) LANG=localStorage.getItem('cdm_lang'); }catch(_){}
+if(!['fr','nl','en'].includes(LANG)) LANG=(navigator.language||'fr').slice(0,2)==='nl'?'nl':(navigator.language||'').slice(0,2)==='en'?'en':'fr';
+let PER=qs.get('p')==='q'?'q':'m';
+const $=s=>document.querySelector(s);
+const t=k=>(T[LANG]&&T[LANG][k]!=null)?T[LANG][k]:T.fr[k];
+const eur=n=>LANG==='en'?n.toLocaleString('en-GB',{maximumFractionDigits:2}):n.toLocaleString(LANG+'-BE',{maximumFractionDigits:2});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+function paint(){
+  document.documentElement.lang=LANG;
+  $('#em').placeholder=LANG==='nl'?'jij@email.be':LANG==='en'?'you@email.com':'toi@email.be';
+  document.querySelectorAll('[data-k]').forEach(e=>{ const v=t(e.dataset.k); if(e.hasAttribute('data-html')) e.innerHTML=v; else e.textContent=v; });
+  document.querySelectorAll('#langs button').forEach(b=>b.classList.toggle('on',b.dataset.l===LANG));
+  document.querySelectorAll('#per button').forEach(b=>b.classList.toggle('on',b.dataset.p===PER));
+  $('#plans').innerHTML=PLANS.map(p=>{
+    const price=PER==='m'?p.m:p.q, app=Math.round(price*0.8*100)/100;
+    return `<div class="plan${p.rec?' rec':''}">${p.rec?`<span class="badge">${esc(t('rec'))}</span>`:''}
+      <h3>${p.id==='elite'?'Elite':p.id==='performance'?'Performance':'Starter'}</h3>
+      <p class="tag">${esc(t(p.id+'_tag'))}</p>
+      <div class="price"><b>${LANG==='en'?'€'+eur(price):eur(price)+' €'}</b><span>${esc(t(PER==='m'?'per_m':'per_q'))}</span></div>
+      <p class="per">${PER==='q'?esc(t('eq').replace('{x}',eur(Math.round(p.q/3*100)/100))):'&nbsp;'}</p>
+      <p class="app">${esc(t('app').replace('{x}',eur(app)))}</p>
+      <ul>${t(p.id).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+      <button class="go" type="button" data-id="${p.id}">${esc(t(p.id==='elite'?'goe':'go'))} →</button></div>`;
+  }).join('');
+  $('#plans').querySelectorAll('.go').forEach(b=>b.onclick=()=>buy(b));
+  document.title=(LANG==='nl'?'Online coaching':LANG==='en'?'Online coaching':'Coaching en ligne')+' — Coach DM';
+}
+async function buy(btn){
+  const p=PLANS.find(x=>x.id===btn.dataset.id); const em=$('#em').value.trim();
+  $('#err').textContent='';
+  if(em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){ $('#err').textContent=t('e_mail'); $('#em').focus(); return; }
+  document.querySelectorAll('.go').forEach(b=>b.disabled=true);
+  try{
+    const r=await fetch(FN,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lookup_key:p.key[PER],locale:LANG,email:em})});
+    const j=await r.json().catch(()=>({}));
+    if(j&&j.url){ location.href=j.url; return; }
+    throw new Error(j&&j.error||'x');
+  }catch(_){ $('#err').textContent=t('e_net'); document.querySelectorAll('.go').forEach(b=>b.disabled=false); }
+}
+document.querySelectorAll('#langs button').forEach(b=>b.onclick=()=>{ LANG=b.dataset.l; try{ localStorage.setItem('cdm_lang',LANG); }catch(_){} paint(); });
+document.querySelectorAll('#per button').forEach(b=>b.onclick=()=>{ PER=b.dataset.p; paint(); });
+window.addEventListener('pageshow',()=>document.querySelectorAll('.go').forEach(b=>b.disabled=false));
+if(qs.get('email')) $('#em').value=qs.get('email');
+if(qs.get('merci')==='1'){ $('#thanks').hidden=false; }
+paint();
+</script>
+</body>
+</html>

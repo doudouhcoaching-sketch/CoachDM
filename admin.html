@@ -962,6 +962,9 @@ async function loadNotifs(){
     if(n.kind==='new_subscription') txt='Nouvel abonnement '+esc(p.tier||'')+(p.amount_cents?(' — '+(p.amount_cents/100).toFixed(2).replace('.',',')+' €'):'');
     else if(n.kind==='coach_promoted') txt='Nouveau coach : '+esc(p.full_name||p.email||'')+' ('+esc(p.tier||'')+')';
     else if(n.kind==='coach_plan_canceled') txt='Plan coach annulé';
+    else if(n.kind==='coaching_sold') txt='<b>💪 Nouveau client coaching '+esc(p.tier||'')+'</b> — '+esc(p.name||'')+(p.amount_cents?(' · '+(p.amount_cents/100).toFixed(2).replace('.',',')+' €'):'')+(p.goal?'<br>Objectif : '+esc(p.goal):'')+(p.email?'<br><a href="mailto:'+esc(p.email)+'" style="color:var(--brand)">'+esc(p.email)+'</a>':'')+(p.emailed===false?'<br><span style="color:#E9C767">Mail de bienvenue non parti : écris-lui.</span>':'')+'<br><span style="color:var(--muted)">À faire sous 24 h : son programme.</span>';
+    else if(n.kind==='coaching_canceled') txt='Coaching arrêté ('+esc(p.lookup_key||'')+')';
+    else if(n.kind==='double_subscription') txt='<b>Double abonnement</b> — '+esc(p.todo||'');
     /* Les demandes venant du site et de l'app tombaient dans le cas par defaut
        et s'affichaient en clair technique (« website_lead »). Elles portent
        pourtant tout ce qu'il faut pour agir : qui, quoi, et son adresse. */
