@@ -10066,6 +10066,7 @@ function renderDetail(w,items,tips){
   $('#se-detail').innerHTML=html;
   $('#se-back').onclick=goBackSmart;
   $('#se-start').onclick=startOrFinish;
+  liveResume().catch(()=>{});
   $('#rest-skip').onclick=()=>stopRest();
   $('#rest-plus').onclick=()=>{ if(REST){ REST.left+=30; REST.total+=30; } };
   /* D#25 — « Filmer cette série » depuis le player.
@@ -10321,17 +10322,21 @@ function updHud(){ const f=$('#wo-fill'),c=$('#wo-count'); if(!f||!c) return;
   c.textContent=WO_DONE+'/'+WO_TOTAL;
   f.style.width=(WO_TOTAL?Math.round(WO_DONE/WO_TOTAL*100):0)+'%'; }
 
-async function startOrFinish(){
-  const btn=$('#se-start');
-  if(!SESSION){
-    btn.disabled=true; btn.textContent='…';
-    const { data, error } = await sb.from('workout_sessions').insert({
-      user_id:USER.id, workout_id:SE_CUR.w.id, name_fr:SE_CUR.w.name_fr,
-      scheduled_date:todayStr(), started_at:new Date().toISOString(), status:'in_progress'
-    }).select('id').single();
-    btn.disabled=false;
-    if(error||!data){ btn.textContent=t('start_session'); toast(t('start_fail')); return; }
-    SESSION={id:data.id, started:Date.now()};
+/* ---- SEANCE EN COURS : elle ne se perd jamais (6 oct.) ----
+   Avant, la seance active ne vivait qu'en memoire (SESSION). Rouvrir la seance
+   (retour arriere, autre onglet, remplacement d'un exercice) ou un telephone qui
+   recharge l'app en arriere-plan (video, appel, autre app) la faisait oublier :
+   le bouton revenait sur « Commencer » et une nouvelle seance repartait de zero.
+   Maintenant la seance active est gardee sur le telephone (id + heure de debut) ;
+   en rouvrant la seance on la reprend : series deja faites cochees depuis la base,
+   chrono d'origine, bouton « Terminer ». Une seance n'est terminee que par le
+   bouton Terminer. Garde 12 h, ensuite on considere qu'elle est abandonnee. */
+const LIVE_KEY='cdm_live_sess';
+function liveSave(){ try{ if(SESSION&&SE_CUR&&SE_CUR.w) localStorage.setItem(LIVE_KEY,JSON.stringify({id:SESSION.id,w:SE_CUR.w.id,started:SESSION.started})); }catch(_){} }
+function liveGet(){ try{ const o=JSON.parse(localStorage.getItem(LIVE_KEY)||'null'); if(o&&o.id&&o.w&&Date.now()-o.started<12*3600e3) return o; localStorage.removeItem(LIVE_KEY); }catch(_){} return null; }
+function liveClear(){ try{ localStorage.removeItem(LIVE_KEY); }catch(_){} const b=document.getElementById('live-bar'); if(b) b.remove(); }
+function armSession(resumed){
+  const btn=$('#se-start'); if(!btn||!SESSION) return;
     document.querySelectorAll('#se-detail .pills').forEach(wrap=>{
       wrap.querySelectorAll('.pill').forEach(p=>{
         p.setAttribute('data-on','1');
@@ -10347,9 +10352,55 @@ async function startOrFinish(){
     WO_DONE=document.querySelectorAll('#se-detail .pill.done').length;
     WO_VOL=0; LAST_SET={};
     $('#wo-hud').classList.add('on'); updHud();
-    SND.start();
-    if(SE_CUR.w.wod_format&&SE_CUR.w.wod_format!=='classic') startWOD(SE_CUR.w);
-    toast(t('tap_hint'));
+    if(!resumed){
+      SND.start();
+      if(SE_CUR.w.wod_format&&SE_CUR.w.wod_format!=='classic') startWOD(SE_CUR.w);
+      toast(t('tap_hint'));
+    }
+    liveSave();
+}
+async function liveResume(){
+  if(!SE_CUR||!SE_CUR.w||!$('#se-start')) return;
+  let s=SESSION;
+  if(!s){
+    const o=liveGet(); if(!o||o.w!==SE_CUR.w.id) return;
+    const { data } = await sb.from('workout_sessions').select('id,status').eq('id',o.id).maybeSingle();
+    if(!data||data.status!=='in_progress'){ liveClear(); return; }
+    s={id:o.id, started:o.started};
+  }
+  if(!SE_CUR||!SE_CUR.w) return;
+  const { data:logs } = await sb.from('set_logs').select('workout_exercise_id,set_number,reps,weight_kg').eq('session_id',s.id);
+  (logs||[]).forEach(l=>{
+    const p=document.querySelector('#se-detail .pills[data-we="'+l.workout_exercise_id+'"] .pill[data-set="'+l.set_number+'"]');
+    if(p){ p.classList.add('done'); p.textContent='\u2713'; }
+  });
+  const wasLive=!!SESSION; SESSION=s;
+  armSession(true);
+  WO_VOL=(logs||[]).reduce((a,l)=>a+(l.weight_kg||0)*(l.reps||0),0);
+  const b=document.getElementById('live-bar'); if(b) b.remove();
+  if(!wasLive) toast(({fr:'Séance en cours reprise : rien n’est perdu',en:'Workout in progress resumed: nothing lost',nl:'Lopende training hervat: niets verloren'})[LANG]||'Séance en cours reprise');
+}
+function liveBar(){
+  const o=liveGet(); if(!o||document.getElementById('live-bar')) return;
+  const b=document.createElement('button'); b.id='live-bar'; b.type='button';
+  b.style.cssText='position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:900;padding:13px 16px;border-radius:16px;border:1px solid rgba(0,232,150,.45);background:#0E1A14;color:#EEF4EF;font:700 14.5px inherit;font-family:inherit;box-shadow:0 10px 30px rgba(0,0,0,.5);cursor:pointer;text-align:left';
+  b.textContent=({fr:'\u25B6  Séance en cours : reprendre',en:'\u25B6  Workout in progress: resume',nl:'\u25B6  Training bezig: hervatten'})[LANG]||'\u25B6  Séance en cours : reprendre';
+  b.onclick=()=>{ b.remove(); openWorkout(o.w); };
+  document.body.appendChild(b);
+}
+
+async function startOrFinish(){
+  const btn=$('#se-start');
+  if(!SESSION){
+    btn.disabled=true; btn.textContent='…';
+    const { data, error } = await sb.from('workout_sessions').insert({
+      user_id:USER.id, workout_id:SE_CUR.w.id, name_fr:SE_CUR.w.name_fr,
+      scheduled_date:todayStr(), started_at:new Date().toISOString(), status:'in_progress'
+    }).select('id').single();
+    btn.disabled=false;
+    if(error||!data){ btn.textContent=t('start_session'); toast(t('start_fail')); return; }
+    SESSION={id:data.id, started:Date.now()};
+    armSession(false);
   } else {
     btn.disabled=true;
     stopRest();
@@ -10360,7 +10411,7 @@ async function startOrFinish(){
     stopWOD();
     const mins=Math.max(1,Math.round((Date.now()-SESSION.started)/60000));
     await sb.from('workout_sessions').update({status:'completed',completed_at:new Date().toISOString(),duration_min:mins}).eq('id',SESSION.id);
-    SESSION=null; btn.disabled=false;
+    SESSION=null; liveClear(); btn.disabled=false;
     const _slug = SE_CUR && SE_CUR.w && SE_CUR.w.program_slug;
     $('#sum-title').textContent=t('sum_title');
     $('#sum-dur').textContent=mins;               $('#sum-dur-l').textContent=t('sum_min');
@@ -10788,6 +10839,7 @@ document.querySelectorAll('#p-coach-console, #p-admin-console, #p-admin-subs, [d
 const _enter_hist = enter;
 enter = async function(u){
   await _enter_hist(u);
+  try{ liveBar(); }catch(_){}
   /* Retour d'une analyse : on rouvre l'onglet d'où le membre est parti, au
      lieu de l'accueil impose par enter(). Le drapeau est consomme
      immediatement — il ne doit servir qu'une fois, sinon le prochain
@@ -11210,6 +11262,11 @@ function lexClose(){ const ov=document.getElementById('lex-ov'); if(ov) ov.class
    consigne de Coach DM, video). Il manquait juste la porte d'entree.
    ------------------------------------------------------------------ */
 let BIB=null, BIB_Q='', BIB_M='all', BIB_MODE='ok';
+const BIB_ABBR={kb:'kettlebell',db:'dumbbell',bb:'barbell',rdl:'romanian deadlift',hspu:'handstand push-up',t2b:'toes-to-bar',c2b:'chest-to-bar',mu:'muscle-up',bmu:'bar muscle-up',ghd:'glute ham',k2e:'knees-to-elbows',ohs:'overhead squat'};
+const bibNorm=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+const bibWords=q=>bibNorm(q).split(' ').filter(Boolean).map(w=>BIB_ABBR[w]?bibNorm(BIB_ABBR[w]):w).join(' ').split(' ');
+function bibHay(e){ if(e._hay) return e._hay; const raw=[e.name_fr,e.name_en,e.name_nl,e.slug].join(' ');
+  const ws=bibNorm(raw).split(' '); return e._hay=' '+ws.map(w=>BIB_ABBR[w]?w+' '+bibNorm(BIB_ABBR[w]):w).join(' ')+' '; }
 /* BIB_SCROLL : ou l'utilisateur en etait dans la liste. Sans cette memoire,
    ouvrir une fiche puis revenir renvoyait tout en haut des 391 mouvements —
    on perdait a chaque fois le defilement qu'on venait de faire.
@@ -11362,8 +11419,11 @@ function bibListe(garderScroll){
       else if(e.primary_muscle!==BIB_M) return false;
     }
     if(!qq) return true;
-    const n=(pick(e,'name')||'')+' '+(e.slug||'');
-    return n.toLowerCase().indexOf(qq)>=0;
+    /* Recherche par MOTS, dans n'importe quel ordre, sans accents, et les
+       abreviations de salle comptent pour le mot entier : « russian swing »
+       trouve « Russian KB Swing », « kettlebell » trouve « KB », « db » trouve
+       « Dumbbell ». Avant, il fallait taper le nom exact d'un bloc. */
+    return bibWords(qq).every(w=>bibHay(e).indexOf(w)>=0);
   });
   const cnt=document.getElementById('bib-count');
   if(cnt) cnt.textContent=list.length+' / '+BIB.length;
