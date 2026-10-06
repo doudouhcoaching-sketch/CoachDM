@@ -2943,6 +2943,177 @@ async function printPlan() {
   };
 }
 
+/* =====================================================================
+   RAPPORT DE SUIVI (PDF) — client ou groupe (6 oct. 2026)
+   Fiche client › Aperçu › « Rapport de suivi ». Groupe sélectionné dans
+   Aujourd'hui › « Rapport du groupe » (pour les clients entreprise).
+   Période 4 / 8 / 12 semaines, langue du rapport au choix (par défaut celle
+   du client), un mot du coach facultatif. RPC : studio_client_report.
+   Le navigateur imprime ou enregistre en PDF ; rien n'est envoyé.
+   ===================================================================== */
+Object.assign(TX, {
+  rp_btn: { fr: 'Rapport de suivi (PDF)', en: 'Progress report (PDF)', nl: 'Voortgangsrapport (PDF)' },
+  rp_grp: { fr: 'Rapport du groupe', en: 'Group report', nl: 'Groepsrapport' },
+  rp_t: { fr: 'Rapport de suivi', en: 'Progress report', nl: 'Voortgangsrapport' },
+  rp_period: { fr: 'Période', en: 'Period', nl: 'Periode' },
+  rp_wk: { fr: '{n} semaines', en: '{n} weeks', nl: '{n} weken' },
+  rp_lang: { fr: 'Langue du rapport', en: 'Report language', nl: 'Taal van het rapport' },
+  rp_note: { fr: 'Ton mot (facultatif) : ce qui va bien, la suite', en: 'Your note (optional): what’s going well, what’s next', nl: 'Jouw woordje (optioneel): wat goed gaat, wat volgt' },
+  rp_go: { fr: 'Créer le PDF', en: 'Create the PDF', nl: 'PDF maken' },
+  rp_wait: { fr: 'Préparation du rapport…', en: 'Preparing the report…', nl: 'Rapport wordt klaargemaakt…' },
+  rp_err: { fr: 'Impossible de préparer le rapport.', en: 'Couldn’t prepare the report.', nl: 'Rapport kon niet worden klaargemaakt.' },
+  rp_s: { fr: 'Le PDF s’ouvre dans la fenêtre d’impression : choisis « Enregistrer en PDF », puis envoie-le à ton client.', en: 'The PDF opens in the print window: choose “Save as PDF”, then send it to your client.', nl: 'De PDF opent in het afdrukvenster: kies “Opslaan als PDF” en stuur hem naar je klant.' },
+});
+/* textes du rapport lui-meme, dans la langue choisie */
+const RL = {
+  fr: { title: 'Rapport de suivi', grp: 'Rapport de groupe', from: 'du {a} au {b}', train: 'Entraînement', ses: 'Séances terminées', plan: 'Séances prévues faites', min: 'Minutes d’entraînement', vol: 'Volume soulevé', rpe: 'Effort moyen (RPE)', perwk: 'Séances par semaine', prs: 'Records battus', none_pr: 'Aucun record sur la période.', body: 'Corps', w: 'Poids', meas: 'Mensurations', start: 'début', end: 'fin', food: 'Nutrition', fdays: 'Jours avec repas notés', kcal: 'Calories moyennes', prot: 'Protéines moyennes', target: 'objectif', ci: 'Bilans de la semaine', cin: 'Bilans envoyés', en: 'Énergie', sl: 'Sommeil', st: 'Stress', so: 'Courbatures', adh: 'Plan suivi', hab: 'Habitudes', life: 'Mode de vie', steps: 'Pas par jour', sleep: 'Sommeil par nuit', word: 'Le mot de ton coach', nodata: '—', client: 'Client', tot: 'Total groupe', rule: 'On ne brûle pas les étapes : la technique d’abord, la constance ensuite, la charge après.', foot: 'Coach DM · coachdm.be · contact@coachdm.be', m_waist_cm: 'Taille', m_hips_cm: 'Hanches', m_chest_cm: 'Poitrine', m_biceps_r_cm: 'Bras', m_thigh_r_cm: 'Cuisse', m_neck_cm: 'Cou', h: 'h' },
+  en: { title: 'Progress report', grp: 'Group report', from: 'from {a} to {b}', train: 'Training', ses: 'Sessions completed', plan: 'Planned sessions done', min: 'Training minutes', vol: 'Volume lifted', rpe: 'Average effort (RPE)', perwk: 'Sessions per week', prs: 'Records broken', none_pr: 'No records in this period.', body: 'Body', w: 'Weight', meas: 'Measurements', start: 'start', end: 'end', food: 'Nutrition', fdays: 'Days with meals logged', kcal: 'Average calories', prot: 'Average protein', target: 'target', ci: 'Weekly check-ins', cin: 'Check-ins sent', en: 'Energy', sl: 'Sleep', st: 'Stress', so: 'Soreness', adh: 'Plan followed', hab: 'Habits', life: 'Lifestyle', steps: 'Steps per day', sleep: 'Sleep per night', word: 'A word from your coach', nodata: '—', client: 'Client', tot: 'Group total', rule: 'Don’t skip steps: technique first, then consistency, then load.', foot: 'Coach DM · coachdm.be · contact@coachdm.be', m_waist_cm: 'Waist', m_hips_cm: 'Hips', m_chest_cm: 'Chest', m_biceps_r_cm: 'Arm', m_thigh_r_cm: 'Thigh', m_neck_cm: 'Neck', h: 'h' },
+  nl: { title: 'Voortgangsrapport', grp: 'Groepsrapport', from: 'van {a} tot {b}', train: 'Training', ses: 'Afgewerkte trainingen', plan: 'Geplande trainingen gedaan', min: 'Trainingsminuten', vol: 'Opgetild volume', rpe: 'Gemiddelde inspanning (RPE)', perwk: 'Trainingen per week', prs: 'Gebroken records', none_pr: 'Geen records in deze periode.', body: 'Lichaam', w: 'Gewicht', meas: 'Lichaamsmaten', start: 'begin', end: 'einde', food: 'Voeding', fdays: 'Dagen met genoteerde maaltijden', kcal: 'Gemiddelde calorieën', prot: 'Gemiddelde eiwitten', target: 'doel', ci: 'Wekelijkse check-ins', cin: 'Verstuurde check-ins', en: 'Energie', sl: 'Slaap', st: 'Stress', so: 'Spierpijn', adh: 'Plan gevolgd', hab: 'Gewoontes', life: 'Levensstijl', steps: 'Stappen per dag', sleep: 'Slaap per nacht', word: 'Een woordje van je coach', nodata: '—', client: 'Klant', tot: 'Totaal groep', rule: 'Sla geen stappen over: eerst techniek, dan regelmaat, dan gewicht.', foot: 'Coach DM · coachdm.be · contact@coachdm.be', m_waist_cm: 'Taille', m_hips_cm: 'Heupen', m_chest_cm: 'Borst', m_biceps_r_cm: 'Arm', m_thigh_r_cm: 'Dij', m_neck_cm: 'Nek', h: 'u' },
+};
+const rpLoc = (l) => (l === 'en' ? 'en-GB' : l === 'nl' ? 'nl-BE' : 'fr-BE');
+const rpN = (x, l, d = 0) => (x == null || x === '' || isNaN(+x)) ? '—' : (+x).toLocaleString(rpLoc(l), { maximumFractionDigits: d, minimumFractionDigits: d });
+const rpD = (s, l) => new Date(String(s).slice(0, 10) + 'T12:00:00').toLocaleDateString(rpLoc(l), { day: 'numeric', month: 'long', year: 'numeric' });
+
+function rpSheet(title, defLang, onGo) {
+  $('#ov3').classList.remove('full');
+  let wk = 4, lg = ['fr', 'en', 'nl'].includes(defLang) ? defLang : LANG;
+  const sh = openSheet('ov3', shHead(title, 'ov3') + `<div class="sh-b">
+    <div class="field"><label>${esc(t('rp_period'))}</label><div class="fchips" id="rp-wk">${[4, 8, 12].map((n) => `<button data-w="${n}" class="${n === wk ? 'on' : ''}">${esc(t('rp_wk', { n }))}</button>`).join('')}</div></div>
+    <div class="field"><label>${esc(t('rp_lang'))}</label><div class="fchips" id="rp-lg">${['fr', 'en', 'nl'].map((x) => `<button data-l="${x}" class="${x === lg ? 'on' : ''}">${x.toUpperCase()}</button>`).join('')}</div></div>
+    <div class="field"><label>${esc(t('rp_note'))}</label><textarea id="rp-note" class="astxt" rows="4" maxlength="1200"></textarea></div>
+    <p class="qsub">${esc(t('rp_s'))}</p>
+    <button class="btn main block" id="rp-go">📄 ${esc(t('rp_go'))}</button></div>`);
+  $$('#rp-wk button', sh).forEach((b) => b.onclick = () => { wk = +b.dataset.w; $$('#rp-wk button', sh).forEach((x) => x.classList.toggle('on', x === b)); });
+  $$('#rp-lg button', sh).forEach((b) => b.onclick = () => { lg = b.dataset.l; $$('#rp-lg button', sh).forEach((x) => x.classList.toggle('on', x === b)); });
+  $('#rp-go', sh).onclick = async () => { const b = $('#rp-go', sh); b.disabled = true; toast(t('rp_wait')); try { await onGo(wk * 7, lg, $('#rp-note', sh).value.trim()); closeSheet('ov3'); } catch (e) { toast(t('rp_err'), true); } b.disabled = false; };
+}
+
+const RP_CSS = `@page{size:A4;margin:14mm 12mm 16mm}*{box-sizing:border-box}
+body{font-family:'Helvetica Neue',Arial,sans-serif;color:#0A1512;margin:0;font-size:10.5pt;line-height:1.35;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+header{display:flex;align-items:center;gap:14px;border-bottom:3px solid #00A870;padding-bottom:10px;margin-bottom:12px}header img{width:54px;height:54px;object-fit:contain}
+header h1{font-size:20pt;margin:0;line-height:1.1}header p{margin:3px 0 0;color:#4F6B5D}.brand{margin-left:auto;text-align:right;font-size:9pt;color:#4F6B5D}.brand b{display:block;color:#00794F;font-size:11pt;letter-spacing:.06em}
+h2{font-size:11.5pt;text-transform:uppercase;letter-spacing:.08em;color:#00794F;margin:14px 0 7px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.kpi{border:1px solid #D5E2DA;border-radius:10px;padding:8px 10px;background:#F6FAF8}.kpi b{display:block;font-size:16pt;color:#0A1512}.kpi span{font-size:8.5pt;color:#4F6B5D;text-transform:uppercase;letter-spacing:.04em}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid #E3ECE7;padding:5px 6px;text-align:left;font-size:9.5pt;vertical-align:top}th{font-size:8.5pt;text-transform:uppercase;color:#4F6B5D;border-bottom:1.5px solid #00A870}
+.up{color:#B4232A}.dn{color:#00794F}.muted{color:#7D9488}
+.word{margin:14px 0 0;padding:12px 14px;border-left:4px solid #00A870;background:#F3FAF6;white-space:pre-wrap}
+.rule{margin:12px 0 0;font-style:italic;color:#4F6B5D}svg{display:block;width:100%}
+footer{position:fixed;bottom:-10mm;left:0;right:0;text-align:center;font-size:8pt;color:#7D9488}.grp{break-before:auto}`;
+
+function rpPrint(html) {
+  let fr = document.getElementById('pr-frame'); if (fr) fr.remove();
+  fr = document.createElement('iframe'); fr.id = 'pr-frame'; fr.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(fr);
+  const d = fr.contentWindow.document; d.open(); d.write(html); d.close();
+  let done = false; const go = () => { if (done) return; done = true; try { fr.contentWindow.focus(); fr.contentWindow.print(); } catch (_) { toast(t('rp_err'), true); } };
+  const img = d.querySelector('img'); if (img && !img.complete) { img.onload = img.onerror = () => setTimeout(go, 50); setTimeout(go, 2500); } else setTimeout(go, 150);
+  window.__RP_HTML = html;
+}
+const rpLogo = () => (/^https?:/.test(location.origin) ? location.origin + '/logo-dm.png' : 'logo-dm.png');
+function rpHead(L, title, who, from, to, lg) {
+  return `<header><img src="${rpLogo()}" alt=""><div><h1>${esc(title)}</h1><p>${who ? esc(who) + ' · ' : ''}${esc(L.from.replace('{a}', rpD(from, lg)).replace('{b}', rpD(to, lg)))}</p></div><div class="brand"><b>COACH DM</b>coachdm.be</div></header>`;
+}
+/* barres : seances par semaine */
+function rpWeeks(R) {
+  const d0 = new Date(R.from + 'T12:00:00'); const m0 = monday(d0); const out = [];
+  for (let d = new Date(m0); d <= new Date(R.to + 'T12:00:00'); d = addDays(d, 7)) { const k = iso(d); const f = (R.weeks || []).find((z) => String(z.wk).slice(0, 10) === k); out.push({ k, n: f ? +f.n : 0 }); }
+  const mx = Math.max(1, ...out.map((x) => x.n)); const W = 340, H = 90, bw = W / out.length;
+  return `<svg viewBox="0 0 ${W} ${H + 16}">${out.map((x, i) => { const h = Math.max(2, (H - 14) * x.n / mx); return `<rect x="${i * bw + bw * 0.18}" y="${H - h}" width="${bw * 0.64}" height="${h}" rx="3" fill="#00A870"/><text x="${i * bw + bw / 2}" y="${H - h - 3}" font-size="9" text-anchor="middle" fill="#0A1512">${x.n || ''}</text><text x="${i * bw + bw / 2}" y="${H + 12}" font-size="8" text-anchor="middle" fill="#4F6B5D">${new Date(x.k + 'T12:00:00').getDate()}/${new Date(x.k + 'T12:00:00').getMonth() + 1}</text>`; }).join('')}</svg>`;
+}
+function rpWeight(R) {
+  const ws = (R.weights || []).map((w) => +w.kg); if (ws.length < 2) return '';
+  const mn = Math.min(...ws), mx = Math.max(...ws), W = 340, H = 80;
+  const pts = ws.map((y, i) => `${(i * W / (ws.length - 1)).toFixed(1)},${(H - 8 - (mx === mn ? .5 : (y - mn) / (mx - mn)) * (H - 16)).toFixed(1)}`).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}"><polyline points="${pts}" fill="none" stroke="#00A870" stroke-width="2.5" stroke-linejoin="round"/></svg>`;
+}
+
+async function clientReport(c, days, lg, note) {
+  const R = await rpc('studio_client_report', { p_client: c.client_id, p_days: days });
+  const L = RL[lg] || RL.fr;
+  const dw = R.w_start != null && R.w_end != null ? (+R.w_end - +R.w_start) : null;
+  const adhPlan = R.planned ? Math.round(100 * R.planned_done / R.planned) + ' %' : '—';
+  const T = R.targets || {}; const ci = R.checkins || {};
+  const MK = ['waist_cm', 'hips_cm', 'chest_cm', 'biceps_r_cm', 'thigh_r_cm', 'neck_cm'];
+  const ms = R.meas_start || {}, me = R.meas_end || {};
+  const measRows = MK.filter((k) => ms[k] != null || me[k] != null).map((k) => { const a = ms[k], b = me[k]; const d = a != null && b != null ? b - a : null; return `<tr><td>${esc(L['m_' + k])}</td><td>${rpN(a, lg, 1)}</td><td>${rpN(b, lg, 1)}</td><td class="${d < 0 ? 'dn' : d > 0 ? 'up' : ''}">${d == null ? '' : (d > 0 ? '+' : '') + rpN(d, lg, 1)} cm</td></tr>`; }).join('');
+  const habName = (h) => (lg === 'en' && h.name_en) || (lg === 'nl' && h.name_nl) || h.name;
+  const wks = Math.max(1, Math.round(days / 7));
+  const html = `<!doctype html><html lang="${lg}"><head><meta charset="utf-8"><title>${esc(L.title)} — ${esc(R.name || '')}</title><style>${RP_CSS}</style></head><body>
+    ${rpHead(L, L.title, R.name || c.full_name || '', R.from, R.to, lg)}
+    <h2>${esc(L.train)}</h2>
+    <div class="kpis"><div class="kpi"><b>${rpN(R.sessions, lg)}</b><span>${esc(L.ses)}</span></div><div class="kpi"><b>${R.planned ? rpN(R.planned_done, lg) + '/' + rpN(R.planned, lg) : '—'}</b><span>${esc(L.plan)} · ${adhPlan}</span></div>
+      <div class="kpi"><b>${rpN(R.minutes, lg)}</b><span>${esc(L.min)}</span></div><div class="kpi"><b>${+R.volume ? rpN(R.volume, lg) + ' kg' : '—'}</b><span>${esc(L.vol)}</span></div></div>
+    <div class="two" style="margin-top:10px"><div><h2 style="margin-top:4px">${esc(L.perwk)}</h2>${rpWeeks(R)}</div>
+      <div><h2 style="margin-top:4px">${esc(L.prs)}</h2>${(R.prs || []).length ? `<table>${R.prs.slice(0, 8).map((p) => `<tr><td><b>${esc(p.name)}</b></td><td>${rpN(p.v, lg, 1)} ${esc(p.u || '')}${p.prev ? ` <span class="muted">(${rpN(p.prev, lg, 1)})</span>` : ''}</td></tr>`).join('')}</table>` : `<p class="muted">${esc(L.none_pr)}</p>`}
+      ${R.rpe ? `<p class="muted" style="margin-top:8px">${esc(L.rpe)} : <b>${rpN(R.rpe, lg, 1)}</b></p>` : ''}</div></div>
+    <div class="two"><div><h2>${esc(L.body)}</h2>
+      <p>${esc(L.w)} : <b>${rpN(R.w_end ?? R.w_start, lg, 1)} kg</b>${dw != null ? ` <span class="${dw < 0 ? 'dn' : dw > 0 ? 'up' : ''}">(${dw > 0 ? '+' : ''}${rpN(dw, lg, 1)} kg)</span>` : ''}</p>${rpWeight(R)}
+      ${measRows ? `<table style="margin-top:8px"><tr><th>${esc(L.meas)}</th><th>${esc(L.start)}</th><th>${esc(L.end)}</th><th></th></tr>${measRows}</table>` : ''}</div>
+      <div><h2>${esc(L.food)}</h2><table>
+        <tr><td>${esc(L.fdays)}</td><td><b>${rpN(R.food_days, lg)}</b> / ${days}</td></tr>
+        <tr><td>${esc(L.kcal)}</td><td><b>${rpN(R.kcal, lg)}</b>${T.kcal ? ` <span class="muted">(${esc(L.target)} ${rpN(T.kcal, lg)})</span>` : ''}</td></tr>
+        <tr><td>${esc(L.prot)}</td><td><b>${R.prot != null ? rpN(R.prot, lg) + ' g' : '—'}</b>${T.p ? ` <span class="muted">(${esc(L.target)} ${rpN(T.p, lg)} g)</span>` : ''}</td></tr></table>
+      ${(R.steps || R.sleep_min) ? `<h2>${esc(L.life)}</h2><table>${R.steps ? `<tr><td>${esc(L.steps)}</td><td><b>${rpN(R.steps, lg)}</b></td></tr>` : ''}${R.sleep_min ? `<tr><td>${esc(L.sleep)}</td><td><b>${Math.floor(R.sleep_min / 60)} ${L.h} ${String(Math.round(R.sleep_min % 60)).padStart(2, '0')}</b></td></tr>` : ''}</table>` : ''}</div></div>
+    ${+ci.n ? `<h2>${esc(L.ci)}</h2><table><tr><th>${esc(L.cin)}</th><th>${esc(L.en)}</th><th>${esc(L.sl)}</th><th>${esc(L.st)}</th><th>${esc(L.so)}</th><th>${esc(L.adh)}</th></tr>
+      <tr><td>${rpN(ci.n, lg)}</td><td>${rpN(ci.energy, lg, 1)}/5</td><td>${rpN(ci.sleep, lg, 1)}/5</td><td>${rpN(ci.stress, lg, 1)}/5</td><td>${rpN(ci.sore, lg, 1)}/5</td><td>${ci.adh != null ? rpN(ci.adh, lg) + ' %' : '—'}</td></tr></table>` : ''}
+    ${(R.habits || []).length ? `<h2>${esc(L.hab)}</h2><table>${R.habits.map((h) => `<tr><td>${esc(habName(h))}</td><td><b>${rpN(h.done, lg)}</b> / ${h.target ? h.target * wks : '—'}</td></tr>`).join('')}</table>` : ''}
+    ${note ? `<h2>${esc(L.word)}</h2><div class="word">${esc(note)}</div>` : ''}
+    <p class="rule">${esc(L.rule)}</p><footer>${esc(L.foot)}</footer></body></html>`;
+  rpPrint(html);
+}
+
+async function groupReport(g, days, lg, note) {
+  const L = RL[lg] || RL.fr;
+  const ids = (g.members || []).filter((id) => CLIENTS.some((c) => c.client_id === id));
+  const rows = [];
+  for (let i = 0; i < ids.length; i += 4) {
+    const part = await Promise.all(ids.slice(i, i + 4).map((id) => rpc('studio_client_report', { p_client: id, p_days: days }).catch(() => null)));
+    part.forEach((r) => { if (r) rows.push(r); });
+  }
+  const sum = (k) => rows.reduce((s, r) => s + (+r[k] || 0), 0);
+  const from = rows[0] ? rows[0].from : iso(addDays(new Date(), -days + 1)), to = rows[0] ? rows[0].to : iso(new Date());
+  const planned = sum('planned'), pdone = sum('planned_done');
+  const body = rows.sort((a, b) => (b.sessions || 0) - (a.sessions || 0)).map((r) => {
+    const dw = r.w_start != null && r.w_end != null ? (+r.w_end - +r.w_start) : null;
+    return `<tr><td><b>${esc(r.name || '—')}</b></td><td>${rpN(r.sessions, lg)}</td><td>${r.planned ? Math.round(100 * r.planned_done / r.planned) + ' %' : '—'}</td><td>${rpN(r.minutes, lg)}</td><td>${(r.prs || []).length || ''}</td><td class="${dw < 0 ? 'dn' : dw > 0 ? 'up' : ''}">${dw == null ? '—' : (dw > 0 ? '+' : '') + rpN(dw, lg, 1) + ' kg'}</td><td>${rpN(r.food_days, lg)}</td></tr>`;
+  }).join('');
+  const html = `<!doctype html><html lang="${lg}"><head><meta charset="utf-8"><title>${esc(L.grp)} — ${esc(g.name)}</title><style>${RP_CSS}</style></head><body>
+    ${rpHead(L, L.grp + ' · ' + g.name, '', from, to, lg)}
+    <div class="kpis"><div class="kpi"><b>${rows.length}</b><span>${esc(L.client)}s</span></div><div class="kpi"><b>${rpN(sum('sessions'), lg)}</b><span>${esc(L.ses)}</span></div>
+      <div class="kpi"><b>${planned ? Math.round(100 * pdone / planned) + ' %' : '—'}</b><span>${esc(L.plan)}</span></div><div class="kpi"><b>${rpN(sum('minutes'), lg)}</b><span>${esc(L.min)}</span></div></div>
+    <h2>${esc(L.train)}</h2>
+    <table><tr><th>${esc(L.client)}</th><th>${esc(L.ses)}</th><th>${esc(L.plan)}</th><th>${esc(L.min)}</th><th>${esc(L.prs)}</th><th>${esc(L.w)}</th><th>${esc(L.fdays)}</th></tr>${body}
+      <tr><td><b>${esc(L.tot)}</b></td><td><b>${rpN(sum('sessions'), lg)}</b></td><td><b>${planned ? Math.round(100 * pdone / planned) + ' %' : '—'}</b></td><td><b>${rpN(sum('minutes'), lg)}</b></td><td><b>${rows.reduce((s, r) => s + (r.prs || []).length, 0) || ''}</b></td><td></td><td></td></tr></table>
+    ${note ? `<h2>${esc(L.word)}</h2><div class="word">${esc(note)}</div>` : ''}
+    <p class="rule">${esc(L.rule)}</p><footer>${esc(L.foot)}</footer></body></html>`;
+  rpPrint(html);
+}
+
+/* boutons : fiche client (Aperçu) et groupe selectionne */
+{
+  const _p = paintC3;
+  paintC3 = function () {
+    _p();
+    if (!C3 || C3.tab !== 'over') return;
+    const el = $('#c3-b'); if (!el) return;
+    const big = $('.tdbig', el); if (!big) return;
+    const b = document.createElement('button'); b.className = 'btn block'; b.innerHTML = `📄 ${esc(t('rp_btn'))}`;
+    big.appendChild(b);
+    const c = C3.x.c; const loc = (C3.d && C3.d.locale) || 'fr';
+    b.onclick = () => rpSheet(t('rp_t') + ' · ' + (firstName(c) || c.email || ''), loc, (days, lg, note) => clientReport(c, days, lg, note));
+  };
+  const _gb = grPaintBar;
+  grPaintBar = function () {
+    _gb();
+    const acts = $('#td-grp .gracts'); const g = G_SEL && (GROUPS || []).find((x) => x.id === G_SEL);
+    if (!acts || !g || !(g.members || []).length) return;
+    const b = document.createElement('button'); b.className = 'btn soft'; b.style.width = 'auto'; b.innerHTML = `📄 ${esc(t('rp_grp'))}`;
+    acts.appendChild(b);
+    b.onclick = () => rpSheet(t('rp_grp') + ' · ' + g.name, LANG, (days, lg, note) => groupReport(g, days, lg, note));
+  };
+}
+
 boot().catch((e) => { console.error(e); $('#view').innerHTML = `<div class="gate"><h2>${esc(t('err'))}</h2><p>${esc(String(e && e.message || e))}</p></div>`; });
 
 
