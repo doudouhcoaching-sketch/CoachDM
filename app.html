@@ -11316,10 +11316,17 @@ async function msStoryData(){
       if(data&&data.length){ let kg=0,reps=0; const vol={};
         data.forEach(r=>{ const rp=+r.reps||0, w=+r.weight_kg||0; reps+=rp; kg+=rp*w; vol[r.exercise_id]=(vol[r.exercise_id]||0)+(w?rp*w:rp)+0.001; });
         d.reps=reps; d.kg=Math.round(kg); d.sets=data.length;
-        const top=Object.keys(vol).sort((a,b)=>vol[b]-vol[a])[0]; if(top&&exMap[top]) d.slug=exMap[top].slug; }
+        const top=Object.keys(vol).sort((a,b)=>vol[b]-vol[a])[0]; if(top&&exMap[top]){ d.slug=exMap[top].slug; d.hero=exMap[top]; } }
     }
   }catch(_){}
-  if(!d.slug){ const f=(SE_ITEMS||[]).find(it=>it.exercise&&animSVG((subChosen(it.exercise.id)||it.exercise).slug,'ok')); if(f) d.slug=(subChosen(f.exercise.id)||f.exercise).slug; }
+  if(!d.slug){ const f=(SE_ITEMS||[]).find(it=>it.exercise&&animSVG((subChosen(it.exercise.id)||it.exercise).slug,'ok')); if(f){ d.hero=subChosen(f.exercise.id)||f.exercise; d.slug=d.hero.slug; } }
+  /* le grand mot du fond vient du MEME mouvement que le bonhomme : jamais
+     « UPPER » derriere un deadlift. Nom officiel anglais, le mot qui le dit. */
+  if(d.hero){ const w=String(d.hero.name_en||pick(d.hero,'name')||'').replace(/\(.*?\)/g,' ').trim().toUpperCase().split(/\s+/).filter(Boolean);
+    const mod=['BENT-OVER','STRICT','BARBELL','DUMBBELL','KETTLEBELL','KB','DB','SEATED','STANDING','WEIGHTED','SINGLE-ARM','SINGLE-LEG','ALTERNATING','PAUSED','TEMPO','BACK','FRONT','ROMANIAN','CONVENTIONAL','SUMO','INCLINE','DECLINE'];
+    const gen=['PRESS','ROW','RAISE','HOLD','WALK','UP','UPS','CURL','FLY','DIP','DIPS','JUMP','CARRY','PULL','PUSH','EXTENSION','STRETCH'];
+    const full=w.join(' '); let c=w.filter(x=>!mod.includes(x)); if(!c.length) c=w;
+    d.word=full.length<=12?full:(c.join(' ').length<=12?c.join(' '):(gen.includes(c[c.length-1])&&c.length>1?c[0]:c[c.length-1])); }
   if(WOD&&SE_CUR&&SE_CUR.w&&!msClassic()){
     const el=WOD.elapsed!=null?WOD.elapsed:Math.floor((Date.now()-WOD.t0)/1000);
     d.wod={f:WOD.f, rounds:(MS&&MS.wod)?MS.wodR:0, time:(WOD.f==='for_time'||WOD.f==='rft')?el:null};
@@ -11358,7 +11365,7 @@ async function msStoryDraw(style,d){
   for(let i=-H;i<W;i+=22){ x.beginPath(); x.moveTo(i,0); x.lineTo(i+H,H); x.stroke(); } x.restore();
   for(let i=0;i<2600;i++){ x.fillStyle=style==='beton'?'rgba(0,0,0,.05)':'rgba(255,255,255,.035)'; x.fillRect(Math.random()*W,Math.random()*H,2,2); }
   /* grand mot fantome derriere le bonhomme */
-  const word=(d.wod?'WOD':(String(d.name||'').split(/\s+/).filter(w=>w.length>2)[0]||'POWER')).toUpperCase().slice(0,9);
+  const word=(d.wod?'WOD':(d.word||'POWER')).toUpperCase().slice(0,12);
   x.save(); x.textAlign='center'; x.strokeStyle=T.ghost; x.lineWidth=4; x.fillStyle=T.ghost;
   const ws=stFit(x,word,'800 {s}px '+F,W+160,520); x.font='800 '+ws+'px '+F;
   x.globalAlpha=1; x.strokeText(word,W/2,880); x.fillText(word,W/2,880); x.restore();
@@ -11377,9 +11384,9 @@ async function msStoryDraw(style,d){
   x.fillStyle=T.ink; x.textAlign='center'; x.fillText(dt,W-64-dw/2,130);
   /* titre */
   x.textAlign='left'; x.fillStyle=T.acc; x.font='800 34px '+B;
-  x.fillText((d.first?d.first.toUpperCase()+' · ':'')+stt(d.wod?'wod':'done'),64,1210);
+  x.fillText((d.first?d.first.toUpperCase()+' · ':'')+stt(d.wod?'wod':'done'),64,1226);
   const nm=String(d.name||'Coach DM').toUpperCase(); x.fillStyle=T.ink;
-  const ns=stFit(x,nm,'800 {s}px '+F,W-128,96); x.font='800 '+ns+'px '+F; x.fillText(nm,64,1300);
+  const ns=stFit(x,nm,'800 {s}px '+F,W-128,96); x.font='800 '+ns+'px '+F; x.fillText(nm,64,1316);
   /* chiffre heros */
   let hv,hl;
   if(d.wod&&d.wod.time!=null){ hv=Math.floor(d.wod.time/60)+':'+String(d.wod.time%60).padStart(2,'0'); hl=stt('time'); }
@@ -11399,7 +11406,7 @@ async function msStoryDraw(style,d){
     x.fillStyle=T.mut; x.font='800 22px '+B; x.fillText(p[1],px+pw/2,py+108); });
   /* ruban record */
   if(d.prs.length){ const pr=d.prs[0]; const txt=stt('newpr')+' · '+String(pr.name||'').toUpperCase()+(pr.kg?' · '+String(pr.kg).replace('.',',')+' KG':'');
-    x.save(); x.translate(W/2,1162); x.rotate(-0.035); x.fillStyle='#E9C767'; const rs=stFit(x,txt,'800 {s}px '+B,W-160,34); x.font='800 '+rs+'px '+B;
+    x.save(); x.translate(W/2,1124); x.rotate(-0.035); x.fillStyle='#E9C767'; const rs=stFit(x,txt,'800 {s}px '+B,W-160,34); x.font='800 '+rs+'px '+B;
     const tw=x.measureText(txt).width+70; x.fillRect(-tw/2,-38,tw,64); x.fillStyle='#1A1203'; x.textAlign='center'; x.fillText('🏆 '+txt,0,8); x.restore(); }
   /* pied */
   x.textAlign='center'; x.fillStyle=T.mut; x.font='800 26px '+B; x.fillText(stt('by'),W/2,1820);
