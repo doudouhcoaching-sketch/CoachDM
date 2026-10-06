@@ -10412,6 +10412,9 @@ async function startOrFinish(){
     const mins=Math.max(1,Math.round((Date.now()-SESSION.started)/60000));
     await sb.from('workout_sessions').update({status:'completed',completed_at:new Date().toISOString(),duration_min:mins}).eq('id',SESSION.id);
     SESSION=null; liveClear(); btn.disabled=false;
+    /* Un record bat pendant la seance a deja mis a jour le 1RM en base (trigger) :
+       on vide le cache pour que la seance suivante calcule ses % sur le nouveau 1RM. */
+    PRMAP=null;
     const _slug = SE_CUR && SE_CUR.w && SE_CUR.w.program_slug;
     $('#sum-title').textContent=t('sum_title');
     $('#sum-dur').textContent=mins;               $('#sum-dur-l').textContent=t('sum_min');
