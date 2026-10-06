@@ -1254,6 +1254,27 @@ html.ms-on,html.ms-on body{overflow:hidden}
 .ms-rr{display:flex;align-items:center;justify-content:center;gap:12px;margin:6px 0 0;font-weight:700;color:#A9BBB1;font-size:14px}
 .ms-rr[hidden]{display:none}
 .ms-ghost{font-size:12.5px;color:#8FA398;margin:8px 0 12px;text-align:center;min-height:1.2em}.ms-ghost b{color:#EEF4EF}
+.ms-plates{font-size:12.5px;color:#E9C767;text-align:center;margin:6px 0 0;min-height:0;font-weight:700}.ms-plates[hidden]{display:none}
+.ms-warm{font-size:12.5px;color:#A9BBB1;text-align:center;margin:-6px 0 10px;padding:7px 10px;border-radius:12px;border:1px dashed rgba(233,199,103,.45)}.ms-warm b{color:#E9C767}.ms-warm[hidden]{display:none}
+.ms-v.run{color:#00E896}
+.ms-btn.stop{background:linear-gradient(180deg,#FF8A5C,#E0603A);color:#170700;box-shadow:0 10px 30px rgba(224,96,58,.35)}
+.ms-wod{align-items:center;text-align:center}
+.ms-wfmt{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#E9C767;font-weight:800;margin:6px 0 0}
+.ms-wclk{font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-weight:800;font-size:clamp(88px,30vw,150px);line-height:.95;margin:6px 0 2px;letter-spacing:-.01em}
+.ms-wclk.warn{color:#FF8A5C}
+.ms-wsub{font-size:13px;color:#8FA398;letter-spacing:.12em;text-transform:uppercase;margin:0 0 12px;min-height:1.2em}
+.ms-wcur{width:100%;display:flex;align-items:center;gap:12px;padding:10px;border-radius:16px;background:#0E1411;border:1px solid rgba(0,232,150,.35);text-align:left;margin:0 0 10px}.ms-wcur[hidden]{display:none}
+.ms-wcur b{display:block;font-size:19px}.ms-wcur small{display:block;color:#00E896;font-size:13px;font-weight:700}
+.ms-wlist{width:100%;list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:6px;max-height:34vh;overflow:auto}
+.ms-wlist li{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;border-radius:12px;background:#0E1411;border:1px solid rgba(234,244,238,.08);font-size:14.5px;text-align:left}
+.ms-wlist li.on{border-color:#00E896;background:rgba(0,232,150,.08)}
+.ms-wlist li span{color:#8FA398;white-space:nowrap}
+.ms-wrnd{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 10px}.ms-wrnd[hidden]{display:none}
+.ms-wrnd .n{flex:1;text-align:center}.ms-wrnd .n b{display:block;font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-size:46px;line-height:1}.ms-wrnd .n small{color:#8FA398;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.ms-wrnd .ms-btn{flex:1.4;padding:16px 10px}
+.ms-shr{position:fixed;inset:0;z-index:65;background:rgba(0,0,0,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px}
+.ms-shr img{max-height:70vh;max-width:100%;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.ms-shr p{color:#C9DCD3;font-size:13.5px;text-align:center;margin:0;max-width:340px}
 .ms-btn{border:0;border-radius:18px;padding:18px;font:800 17px inherit;font-family:inherit;cursor:pointer;width:100%;color:#03140C;background:linear-gradient(180deg,#00E896,#00B978);box-shadow:0 10px 30px rgba(0,232,150,.35)}
 .ms-btn:active{transform:scale(.98)}.ms-btn:disabled{opacity:.6}
 .ms-gh{border:1px solid rgba(234,244,238,.14);background:rgba(255,255,255,.05);color:#EEF4EF;border-radius:14px;padding:11px 16px;font:700 14px inherit;font-family:inherit;cursor:pointer}
@@ -6768,6 +6789,7 @@ function subPick(exId,subId){
   subSave(); subClose();
   if(SE_CUR&&SE_CUR.w&&SE_ITEMS) renderDetail(SE_CUR.w,SE_ITEMS,SE_TIPS||{});
   try{ toast(t(subId?'swap_done':'swap_undone')); }catch(_){}
+  if(MS&&!MS.wod) msAfterSwap();
 }
 
 /* ── Plan nutrition ecrit par le coach ────────────────────────────────────
@@ -10161,7 +10183,7 @@ function renderDetail(w,items,tips){
   $('#se-start').onclick=startOrFinish;
   liveResume().catch(()=>{});
   $('#rest-skip').onclick=()=>stopRest();
-  $('#rest-plus').onclick=()=>{ if(REST){ REST.left+=30; REST.total+=30; } };
+  $('#rest-plus').onclick=()=>{ if(REST){ REST.end=(REST.end||Date.now()+REST.left*1000)+30000; REST.total+=30; REST.left+=30; } };
   /* D#25 — « Filmer cette série » depuis le player.
      Le retour doit ramener sur LA SÉANCE, pas sur la liste des programmes :
      quelqu'un qui filme son squat au milieu de sa séance veut reprendre ou il
@@ -10288,12 +10310,12 @@ function fmtRest(s){ const m=Math.floor(s/60); return m+':'+String(s%60).padStar
 function startRest(sec){
   stopRest();
   const bar=$('#rest-bar'); if(!bar||!sec) return;
-  REST={left:sec,total:sec};
+  REST={left:sec,total:sec,end:Date.now()+sec*1000};
   bar.classList.add('on');
   $('#rest-num').textContent=fmtRest(sec); $('#rest-fill').style.width='100%';
   REST.iv=setInterval(()=>{
     if(!REST) return;
-    REST.left--;
+    const L=Math.max(0,Math.ceil((REST.end-Date.now())/1000)); if(L===REST.left&&L>0) return; REST.left=L;
     if(REST.left<=0){ stopRest(); buzz(200); SND.rest(); toast(t('rest_done')); return; }
     $('#rest-num').textContent=fmtRest(REST.left);
     $('#rest-fill').style.width=Math.max(0,REST.left/REST.total*100)+'%';
@@ -10304,9 +10326,9 @@ function startRest(sec){
       bar.classList.add('ending');
       SND.tick(); buzz(15);
     }
-  },1000);
+  },250);
 }
-function stopRest(){ if(REST&&REST.iv) clearInterval(REST.iv); REST=null; const b=$('#rest-bar'); if(b){ b.classList.remove('on'); b.classList.remove('ending'); } }
+function stopRest(){ if(REST&&REST.iv) clearInterval(REST.iv); REST=null; try{ msNotif(0); }catch(_){} const b=$('#rest-bar'); if(b){ b.classList.remove('on'); b.classList.remove('ending'); } }
 
 /* ---- Moteur WOD : EMOM / AMRAP / For Time / RFT ---- */
 let WOD=null, WOD_SCORE_SAVED=false;
@@ -10394,6 +10416,7 @@ function openScoreSheet(capped){
   inner+=`<button class="btn" id="wsc-save">${t('wsc_save')}</button>`;
   $('#wsc-title').textContent=t('wsc_title');
   $('#wsc-body').innerHTML=inner;
+  if(MS&&MS.wod&&MS.wodR&&$('#wsc-r')) $('#wsc-r').value=MS.wodR;
   $('#wsc-ov').classList.add('show');
   $('#wsc-save').onclick=async()=>{
     const row={ user_id:USER.id, workout_id:w.id, capped:!!capped, rx:$('#wsc-rx').checked };
@@ -10459,6 +10482,30 @@ const MS_TX={
  rir:{fr:'Il t’en restait combien ?',en:'Reps left in the tank?',nl:'Hoeveel had je nog over?'},
  rir_s:{fr:'Ça affine ton 1RM',en:'It sharpens your 1RM',nl:'Zo wordt je 1RM preciezer'},
  e1rm:{fr:'Nouveau 1RM estimé',en:'New estimated 1RM',nl:'Nieuwe geschatte 1RM'},
+ start:{fr:'Démarrer',en:'Start',nl:'Starten'},
+ stopnow:{fr:'Terminer maintenant',en:'Finish now',nl:'Nu stoppen'},
+ half:{fr:'Moitié. Tiens bon.',en:'Halfway. Hold on.',nl:'Halverwege. Hou vol.'},
+ bar:{fr:'Barre 20',en:'Bar 20',nl:'Stang 20'},
+ perside:{fr:'par côté',en:'per side',nl:'per kant'},
+ warm:{fr:'Montée',en:'Warm-up',nl:'Opwarming'},
+ scale:{fr:'⇄ Scaling',en:'⇄ Scaling',nl:'⇄ Scaling'},
+ share:{fr:'📸 Partager en story',en:'📸 Share to story',nl:'📸 Delen in story'},
+ share_h:{fr:'Appuie longtemps sur l’image pour l’enregistrer ou la partager.',en:'Long-press the image to save or share it.',nl:'Houd de afbeelding lang ingedrukt om ze te bewaren of te delen.'},
+ share_t:{fr:'SÉANCE TERMINÉE',en:'WORKOUT DONE',nl:'TRAINING KLAAR'},
+ close:{fr:'Fermer',en:'Close',nl:'Sluiten'},
+ rest_end:{fr:'Repos terminé : on y retourne !',en:'Rest is over: back to work!',nl:'Rust voorbij: aan de slag!'},
+ hold_end:{fr:'Temps écoulé : série terminée.',en:'Time is up: set done.',nl:'Tijd om: set klaar.'},
+ rounds:{fr:'Tours',en:'Rounds',nl:'Rondes'},
+ plus1:{fr:'+1 tour',en:'+1 round',nl:'+1 ronde'},
+ wod_done:{fr:'✓ Terminé',en:'✓ Done',nl:'✓ Klaar'},
+ wod_score:{fr:'Enregistrer mon score',en:'Save my score',nl:'Mijn score opslaan'},
+ wod_go:{fr:'▶ Lancer le chrono',en:'▶ Start the clock',nl:'▶ Klok starten'},
+ wod_left:{fr:'restant',en:'left',nl:'resterend'},
+ wod_el:{fr:'écoulé',en:'elapsed',nl:'verstreken'},
+ wod_min:{fr:'Minute',en:'Minute',nl:'Minuut'},
+ wod_last:{fr:'Dernière minute !',en:'Last minute!',nl:'Laatste minuut!'},
+ wod_end:{fr:'Fin du WOD',en:'WOD over',nl:'WOD voorbij'},
+ wod_cap:{fr:'cap',en:'cap',nl:'cap'},
  q:[{fr:'« La constance avant la performance. »',en:'“Consistency before performance.”',nl:'“Regelmaat voor prestatie.”'},
     {fr:'« On ne brûle pas les étapes. »',en:'“Don’t skip steps.”',nl:'“Sla geen stappen over.”'},
     {fr:'« La technique d’abord, la charge après. »',en:'“Technique first, load second.”',nl:'“Eerst techniek, dan gewicht.”'}],
@@ -10850,11 +10897,13 @@ function msMount(){
     <span class="ms-tag" id="ms-blk"></span>
     <h2 class="ms-big" id="ms-name"></h2>
     <p class="ms-cue" id="ms-cue"></p>
-    <div class="ms-tools"><button type="button" class="ms-tl" id="ms-tv">${esc(mt('vid'))}</button><button type="button" class="ms-tl" id="ms-tp">${esc(mt('pts'))}</button><button type="button" class="ms-tl ko" id="ms-te">${esc(mt('err'))}</button></div>
+    <div class="ms-tools"><button type="button" class="ms-tl" id="ms-tv">${esc(mt('vid'))}</button><button type="button" class="ms-tl" id="ms-tp">${esc(mt('pts'))}</button><button type="button" class="ms-tl ko" id="ms-te">${esc(mt('err'))}</button><button type="button" class="ms-tl" id="ms-ts" hidden>${esc(mt('scale'))}</button></div>
     <div class="ms-pips" id="ms-pips"></div>
     <div class="ms-target"><button type="button" class="ms-pm" id="ms-m">−</button><div class="ms-v" id="ms-tv2"></div><button type="button" class="ms-pm" id="ms-p">+</button></div>
     <div class="ms-rr" id="ms-rr" hidden><button type="button" class="ms-pm sm" id="ms-rm">−</button><span id="ms-rv"></span><button type="button" class="ms-pm sm" id="ms-rp">+</button></div>
+    <p class="ms-plates" id="ms-plates" hidden></p>
     <p class="ms-ghost" id="ms-ghost"></p>
+    <p class="ms-warm" id="ms-warm" hidden></p>
     <button type="button" class="ms-btn" id="ms-done">${esc(mt('done'))}</button>
   </section>
   <section class="ms-scr ms-rest" id="ms-rest" hidden>
@@ -10872,7 +10921,23 @@ function msMount(){
     <p class="ms-sub">${esc(mt('fin_s'))}</p>
     <div class="ms-stats"><div><b id="ms-dmin">0</b><span>${esc(mt('min'))}</span></div><div><b id="ms-dkg">0</b><span>${esc(mt('kgl'))}</span></div><div><b id="ms-dset">0</b><span>${esc(mt('sets'))}</span></div><div><b id="ms-dpr" class="gold">0</b><span>${esc(mt('recs'))}</span></div></div>
     <button type="button" class="ms-btn" id="ms-fin">${esc(mt('fin_b'))}</button>
+    <button type="button" class="ms-gh wide" id="ms-shb">${esc(mt('share'))}</button>
     <button type="button" class="ms-gh wide" id="ms-back">${esc(mt('back'))}</button>
+  </section>
+  <section class="ms-scr ms-wod" id="ms-wod" hidden>
+    <div class="ms-hud">
+      <button type="button" class="ms-ic" id="ms-wx" aria-label="×">✕</button>
+      <div class="ms-clock" id="ms-wtot"></div>
+      <button type="button" class="ms-ic" id="ms-wsnd" aria-label="voix">🔊</button>
+    </div>
+    <p class="ms-wfmt" id="ms-wfmt"></p>
+    <div class="ms-wclk" id="ms-wclk">0:00</div>
+    <p class="ms-wsub" id="ms-wsub"></p>
+    <div class="ms-wcur" id="ms-wcur" hidden><div class="ms-mini rig" id="ms-wfig"></div><div><small id="ms-wcurk"></small><b id="ms-wcurn"></b><small id="ms-wcurr" style="color:#A9BBB1"></small></div></div>
+    <ul class="ms-wlist" id="ms-wlist"></ul>
+    <div class="ms-wrnd" id="ms-wrnd" hidden><button type="button" class="ms-pm" id="ms-wrm">−</button><div class="n"><b id="ms-wrv">0</b><small>${esc(mt('rounds'))}</small></div><button type="button" class="ms-btn" id="ms-wrp">${esc(mt('plus1'))}</button></div>
+    <button type="button" class="ms-btn" id="ms-wact"></button>
+    <button type="button" class="ms-gh wide" id="ms-wfin" hidden>${esc(mt('fin_b'))}</button>
   </section>
   <div class="ms-pr" id="ms-pr" hidden><div class="ms-medal">PR</div><h3 class="ms-big">${esc(mt('pr'))}</h3><p id="ms-prt"></p><button type="button" class="ms-gh" id="ms-prok">${esc(mt('go'))}</button></div>
   <canvas class="ms-conf" id="ms-conf"></canvas>`;
@@ -10881,20 +10946,26 @@ function msMount(){
   g('ms-x').onclick=()=>msClose();
   g('ms-snd').onclick=()=>{ MSV.on=!MSV.on; try{ localStorage.setItem('cdm_ms_voice',MSV.on?'1':'0'); }catch(_){} g('ms-snd').textContent=MSV.on?'🔊':'🔇'; if(!MSV.on) try{ speechSynthesis.cancel(); }catch(_){} };
   g('ms-vset').onclick=()=>msVoiceSheet();
-  g('ms-done').onclick=()=>msValidate();
+  g('ms-done').onclick=()=>{ if(MS&&(MS.hold||MS.holdPre)) msHoldStop(true); else if(MS&&MS.holdReady) msHoldStart(); else msValidate(); };
+  g('ms-ts').onclick=()=>{ const s=MS&&MS.cur; if(s&&s.it.exercise) subOpen(s.it.exercise.id); };
+  g('ms-shb').onclick=()=>msShareCard();
+  g('ms-wx').onclick=()=>msClose();
+  g('ms-wsnd').onclick=()=>{ MSV.on=!MSV.on; try{ localStorage.setItem('cdm_ms_voice',MSV.on?'1':'0'); }catch(_){} g('ms-wsnd').textContent=MSV.on?'🔊':'🔇'; if(!MSV.on) try{ speechSynthesis.cancel(); }catch(_){} };
+  g('ms-wrp').onclick=()=>msWodRound(1); g('ms-wrm').onclick=()=>msWodRound(-1);
+  g('ms-wfin').onclick=()=>{ msClose(true); startOrFinish(); };
   g('ms-m').onclick=()=>msAdj(-1); g('ms-p').onclick=()=>msAdj(1);
   g('ms-rm').onclick=()=>msAdjR(-1); g('ms-rp').onclick=()=>msAdjR(1);
   g('ms-tv').onclick=()=>{ const s=MS&&MS.cur; if(s&&s.ex.video_url) openDemo(s.ex.video_url,pick(s.ex,'name')); };
   g('ms-tp').onclick=()=>{ const s=MS&&MS.cur; if(s) bibFicheSlug(s.ex.slug); };
   g('ms-te').onclick=async()=>{ const s=MS&&MS.cur; if(!s) return; await bibFicheSlug(s.ex.slug); if(BIB_CUR&&BIB_CUR.slug===s.ex.slug){ BIB_MODE='ko'; bibFicheRender(); } };
-  g('ms-r30').onclick=()=>{ if(MS&&MS.rest){ MS.rest.left+=30; MS.rest.total+=30; msRestPaint(); } };
-  g('ms-rsk').onclick=()=>{ if(MS&&MS.rest) MS.rest.left=0; };
+  g('ms-r30').onclick=()=>{ if(MS&&MS.rest){ MS.rest.end+=30000; MS.rest.total+=30; MS.rest.left=Math.ceil((MS.rest.end-Date.now())/1000); msRestPaint(); } };
+  g('ms-rsk').onclick=()=>{ if(MS&&MS.rest){ MS.rest.end=Date.now(); MS.rest.left=0; } };
   g('ms-prok').onclick=()=>{ g('ms-pr').hidden=true; msAfterSet(); };
   g('ms-fin').onclick=()=>{ msClose(true); startOrFinish(); };
   g('ms-back').onclick=()=>msClose();
   return ov;
 }
-function msShow(id){ ['ms-count','ms-work','ms-rest','ms-end'].forEach(x=>{ const e=document.getElementById(x); if(e) e.hidden=(x!==id); }); }
+function msShow(id){ ['ms-count','ms-work','ms-rest','ms-end','ms-wod'].forEach(x=>{ const e=document.getElementById(x); if(e) e.hidden=(x!==id); }); }
 const msFmt=s=>Math.floor(s/60)+':'+String(Math.max(0,s%60)).padStart(2,'0');
 
 async function msOpen(countdown){
@@ -10903,7 +10974,8 @@ async function msOpen(countdown){
   const slots=msSlots(); if(!slots.length) return;
   /* ce qui doit survivre a une fermeture / reouverture du mode seance */
   if(!MS_KEEP||MS_KEEP.id!==SESSION.id) MS_KEEP={id:SESSION.id,seen:{},prs:0,last:{},adj:{}};
-  MS={slots,adj:MS_KEEP.adj,last:MS_KEEP.last,seen:MS_KEEP.seen,prs:0,rest:null,cur:null,cueIv:0,clk:0,lock:null};
+  if(!MS_KEEP.warm) MS_KEEP.warm={};
+  MS={slots,adj:MS_KEEP.adj,last:MS_KEEP.last,seen:MS_KEEP.seen,warm:MS_KEEP.warm,prs:0,rest:null,cur:null,cueIv:0,clk:0,lock:null};
   const ov=msMount(); ov.classList.add('show'); document.documentElement.classList.add('ms-on');
   document.getElementById('ms-snd').textContent=MSV.on?'🔊':'🔇';
   try{ if(navigator.wakeLock) MS.lock=await navigator.wakeLock.request('screen'); }catch(_){}
@@ -10931,6 +11003,7 @@ async function msOpen(countdown){
 function msClose(quiet){
   if(!MS) return;
   const r=MS.rest; clearInterval(MS.clk); clearInterval(MS.cueIv); msLiveStop(); vcStop(); if(r&&r.iv) clearInterval(r.iv);
+  if(MS.hold&&MS.hold.iv) clearInterval(MS.hold.iv); if(MS.holdPre) clearInterval(MS.holdPre); if(MS.wiv) clearInterval(MS.wiv); msNotif(0);
   try{ if(MS.lock) MS.lock.release(); }catch(_){}
   try{ const P=window.Capacitor&&window.Capacitor.Plugins; if(P&&P.KeepAwake) P.KeepAwake.allowSleep(); }catch(_){}
   try{ speechSynthesis.cancel(); }catch(_){}
@@ -10951,10 +11024,13 @@ function msTv(){
   if(t.load==='weight'){
     tv.innerHTML=`${t.r!=null?t.r:'—'} <small>×</small> ${t.kg!=null?String(t.kg).replace('.',','):'—'} <small>kg</small>`;
     rr.hidden=false; document.getElementById('ms-rv').textContent=(t.r!=null?t.r:'—')+' reps';
+    const pl=document.getElementById('ms-plates'), pt=s.ex.equipment==='barbell'?msPlates(t.kg):'';
+    pl.hidden=!pt; pl.textContent=pt;
   } else if(t.load==='time'){ tv.innerHTML=t.v?msFmt(t.v)+' <small>min</small>':'—'; }
   else if(t.load==='distance'){ tv.innerHTML=t.v?(t.v>=1000?(t.v/1000).toString().replace('.',',')+' <small>km</small>':t.v+' <small>m</small>'):'—'; }
   else if(t.load==='calories'){ tv.innerHTML=t.v?t.v+' <small>kcal</small>':'—'; }
   else tv.innerHTML=`${t.r!=null?t.r:'—'} <small>reps</small>`;
+  if(t.load!=='weight'){ const pl=document.getElementById('ms-plates'); if(pl) pl.hidden=true; }
   s._side=side;
 }
 function msPlanKg(s,i){ const seg=((s.wrap.dataset.plan||'').split(';')[i]||'').split('@'); return parseFloat(seg[1])||null; }
@@ -10987,6 +11063,17 @@ async function msWork(announce){
   const n=s.pills.length, done=s.pills.filter(p=>p.classList.contains('done')).length;
   document.getElementById('ms-pips').innerHTML=s.pills.map((p,i)=>`<i class="${p.classList.contains('done')?'on':(i===s.k?'cur':'')}"></i>`).join('');
   msTv();
+  /* exercice au temps : Demarrer -> compte a rebours -> serie validee seule */
+  { const tt=msTarget(s), db=document.getElementById('ms-done'); if(MS.hold&&MS.hold.iv) clearInterval(MS.hold.iv); if(MS.holdPre){ clearInterval(MS.holdPre); MS.holdPre=0; } MS.hold=null; db.classList.remove('stop');
+    MS.holdReady=(tt.load==='time'&&tt.v>0); db.textContent=MS.holdReady?('▶ '+mt('start')+' · '+msFmt(tt.v)):mt('done'); }
+  /* montee d'echauffement avant la 1re serie lourde a la barre */
+  { const w=document.getElementById('ms-warm'), tt=msTarget(s); w.hidden=true;
+    if(s.k===0&&s.ex.equipment==='barbell'&&tt.load==='weight'&&tt.kg>=40&&!MS.warm[s.it.id]&&!s.pills.some(p=>p.classList.contains('done'))){
+      MS.warm[s.it.id]=1; const r=v=>Math.max(20,Math.round(v/2.5)*2.5), f=v=>String(v).replace('.',',');
+      const st=[[20,10]]; [[.4,5],[.6,3],[.8,1]].forEach(([p,n])=>{ const k=r(tt.kg*p); if(k>st[st.length-1][0]&&k<tt.kg) st.push([k,n]); });
+      w.innerHTML='<b>'+esc(mt('warm'))+'</b> : '+st.map(([k,n])=>f(k)+' × '+n).join(' · '); w.hidden=false; } }
+  /* scaling : version plus simple du mouvement, sans revenir a la liste */
+  { const b=document.getElementById('ms-ts'), eo=s.it.exercise; b.hidden=!(eo&&SUBS&&(SUBS[eo.id]||[]).length); }
   const gh=document.getElementById('ms-ghost'); gh.textContent='';
   msLastTime(s.wrap.dataset.ex).then(r=>{ if(!MS||MS.cur!==s) return; gh.innerHTML=r?`${esc(mt('last'))} : <b>${esc(msLastTxt(r))}</b>`:esc(mt('first')); });
   if(announce){
@@ -11066,7 +11153,7 @@ function msRestPaint(){ const r=MS&&MS.rest; if(!r) return;
 async function msRest(sec,nx,prev){
   msShow('ms-rest'); clearInterval(MS.cueIv); msLiveStop();
   if(MS.rest&&MS.rest.iv) clearInterval(MS.rest.iv);
-  MS.rest={left:sec,total:sec};
+  MS.rest={left:sec,total:sec,end:Date.now()+sec*1000};
   const newEx=nx.it.id!==prev.it.id;
   await animCharger();
   document.getElementById('ms-nxf').innerHTML=animSVG(nx.ex.slug,'ok')||'';
@@ -11089,12 +11176,14 @@ async function msRest(sec,nx,prev){
   else msSayC([lastSet?'p_last':'p_rest'],lastSet?(LANG==='fr'?'Dernière série après ce repos. Tu vas tout donner.':LANG==='nl'?'Laatste set na deze rust. Geef alles.':'Last set after this rest. Give it everything.')
                     :(LANG==='fr'?'Récupère. Respire par le nez.':LANG==='nl'?'Herstel. Adem door je neus.':'Rest. Breathe through your nose.'));
   msRestPaint();
+  let lastL=sec;
   MS.rest.iv=setInterval(()=>{
     if(!MS||!MS.rest) return;
-    MS.rest.left--; msRestPaint();
-    if(MS.rest.left<=3&&MS.rest.left>0){ SND.tick(); buzz(40); }
-    if(MS.rest.left<=0){ clearInterval(MS.rest.iv); MS.rest=null; SND.rest(); buzz(200); msWork(true); }
-  },1000);
+    const L=Math.max(0,Math.ceil((MS.rest.end-Date.now())/1000)); MS.rest.left=L;
+    if(L===lastL) return; lastL=L; msRestPaint();
+    if(L<=3&&L>0){ SND.tick(); buzz(40); }
+    if(L<=0){ clearInterval(MS.rest.iv); MS.rest=null; msNotif(0); SND.rest(); buzz(200); msWork(true); }
+  },250);
 }
 async function msRir(n,btn){
   const L=MS&&MS.lastSet; if(!L) return;
@@ -11123,13 +11212,201 @@ function msConfetti(){
   let n=0; const f=()=>{ x.clearRect(0,0,c.width,c.height); P.forEach(p=>{ p.vy+=.22; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr; x.save(); x.translate(p.x,p.y); x.rotate(p.r); x.fillStyle=p.c; x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); x.restore(); });
     if(++n<160) requestAnimationFrame(f); else x.clearRect(0,0,c.width,c.height); }; f();
 }
+/* ---- 2.3 : disques, chrono des exercices au temps, alerte telephone verrouille,
+   scaling, carte story, WOD plein ecran ---- */
+function msPlates(kg){
+  if(!(kg>20)) return '';
+  let side=(kg-20)/2; const out=[]; const P=[25,20,15,10,5,2.5,1.25];
+  for(const p of P){ while(side>=p-1e-6){ out.push(p); side-=p; } }
+  const f=v=>String(v).replace('.',',');
+  return mt('bar')+' + '+out.map(f).join(' · ')+' '+mt('perside')+(side>0.01?' (≈)':'');
+}
+/* rappel quand le telephone est verrouille : notification locale (app iPhone/Android) */
+function msNotif(sec,body){
+  const P=(typeof fsPlugin==='function')?fsPlugin():null; if(!P) return;
+  try{ P.cancel({notifications:[{id:7311}]}).catch(()=>{}); }catch(_){}
+  if(!(sec>0)) return;
+  try{ P.schedule({notifications:[{id:7311,title:'Coach DM',body:body||mt('rest_end'),schedule:{at:new Date(Date.now()+sec*1000),allowWhileIdle:true}}]}).catch(()=>{}); }catch(_){}
+}
+document.addEventListener('visibilitychange',()=>{
+  try{
+    if(document.hidden){
+      const now=Date.now();
+      if(MS&&MS.hold&&MS.hold.end) msNotif(Math.ceil((MS.hold.end-now)/1000),mt('hold_end'));
+      else if(MS&&MS.rest&&MS.rest.end) msNotif(Math.ceil((MS.rest.end-now)/1000),mt('rest_end'));
+      else if(typeof REST!=='undefined'&&REST&&REST.end) msNotif(Math.ceil((REST.end-now)/1000),mt('rest_end'));
+    } else msNotif(0);
+  }catch(_){}
+});
+function msHoldStart(){
+  const s=MS&&MS.cur; if(!s) return; const t=msTarget(s); if(!(t.v>0)) return;
+  MS.holdReady=false; const db=document.getElementById('ms-done'), tv=document.getElementById('ms-tv2');
+  db.textContent='■ '+mt('stopnow'); db.classList.add('stop');
+  let n=3; tones([[660,.08]]); buzz(30); tv.innerHTML=n; tv.classList.add('run');
+  const pre=setInterval(()=>{ if(!MS||MS.cur!==s){ clearInterval(pre); return; } n--;
+    if(n>0){ tv.textContent=n; tones([[660,.08]]); buzz(30); return; }
+    clearInterval(pre); tones([[1180,.25]]); buzz(90); msSayC(['p_go'],LANG==='fr'?'Go !':LANG==='nl'?'Go!':'Go!');
+    const total=t.v; MS.hold={total,end:Date.now()+total*1000,said:{}}; let last=-1;
+    MS.hold.iv=setInterval(()=>{
+      if(!MS||!MS.hold) return; const L=Math.max(0,Math.ceil((MS.hold.end-Date.now())/1000)); if(L===last) return; last=L;
+      tv.innerHTML=msFmt(L)+' <small>/ '+msFmt(total)+'</small>';
+      const h=MS.hold.said;
+      if(total>=20&&!h.half&&L<=Math.floor(total/2)&&L>10){ h.half=1; msSayC([{tts:mt('half')}],mt('half')); }
+      if(total>=20&&!h.ten&&L===10){ h.ten=1; msSayC(['p_10s'],LANG==='fr'?'Dix secondes.':LANG==='nl'?'Tien seconden.':'Ten seconds.'); }
+      if(L<=3&&L>0){ SND.tick(); buzz(30); }
+      if(L<=0) msHoldStop(false);
+    },200);
+  },1000);
+  MS.holdPre=pre;
+}
+function msHoldStop(early){
+  if(!MS) return; const s=MS.cur; const H=MS.hold;
+  if(MS.holdPre){ clearInterval(MS.holdPre); MS.holdPre=0; }
+  if(H&&H.iv) clearInterval(H.iv); MS.hold=null; msNotif(0);
+  const db=document.getElementById('ms-done'); db.classList.remove('stop'); document.getElementById('ms-tv2').classList.remove('run');
+  if(!s) return;
+  const t=msTarget(s);
+  if(H&&early){ const done=Math.round(H.total-Math.max(0,(H.end-Date.now())/1000)); if(done>=1) t.v=done; }
+  if(!H){ MS.holdReady=true; db.textContent='▶ '+mt('start')+' · '+msFmt(t.v); msTv(); return; }
+  SND.finish(); buzz(160); db.textContent=mt('done');
+  msValidate();
+}
+/* scaling depuis le player : renderDetail recree la liste, la seance se rearme
+   (liveResume) ; on reconstruit les series du player quand c'est fait */
+function msAfterSwap(){
+  const t0=Date.now();
+  const tick=()=>{ if(!MS) return;
+    const armed=!!document.querySelector('#se-detail .pills')&&(($('#se-start')||{}).classList||{contains:()=>false}).contains('fin');
+    if(!armed&&Date.now()-t0<4000){ setTimeout(tick,150); return; }
+    MS.slots=msSlots(); const c=msCur(); if(!c){ msEnd(); return; } msWork(false); };
+  setTimeout(tick,200);
+}
+/* carte story 1080 x 1920 : la seance partagee, avec le logo et coachdm.be */
+async function msShareCard(){
+  const W=1080,H=1920, c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,0,0,H); g.addColorStop(0,'#07110C'); g.addColorStop(1,'#030504'); x.fillStyle=g; x.fillRect(0,0,W,H);
+  const rg=x.createRadialGradient(W/2,640,40,W/2,640,620); rg.addColorStop(0,'rgba(0,232,150,.28)'); rg.addColorStop(1,'rgba(0,232,150,0)'); x.fillStyle=rg; x.fillRect(0,0,W,H);
+  const F="'Barlow Condensed','Arial Narrow',Arial,sans-serif", B="-apple-system,'Segoe UI',Arial,sans-serif";
+  try{ const im=new Image(); im.src='logo-dm.png'; await new Promise((ok,ko)=>{ im.onload=ok; im.onerror=ko; setTimeout(ko,2500); }); x.save(); x.beginPath(); x.roundRect?x.roundRect(W/2-90,150,180,180,40):x.rect(W/2-90,150,180,180); x.clip(); x.drawImage(im,W/2-90,150,180,180); x.restore(); }catch(_){}
+  x.textAlign='center'; x.fillStyle='#E9C767'; x.font='800 34px '+B; x.fillText('POWER · TRANSFORM · EXCEL',W/2,390);
+  x.fillStyle='#00E896'; x.font='800 62px '+B; x.fillText(mt('share_t'),W/2,560);
+  const nm=(SE_CUR&&SE_CUR.w)?pick(SE_CUR.w,'name'):''; x.fillStyle='#FFFFFF'; x.font='800 96px '+F;
+  const words=String(nm||'Coach DM').toUpperCase().split(' '); let line='', y=700; const lines=[];
+  words.forEach(w=>{ const tt=line?line+' '+w:w; if(x.measureText(tt).width>W-140&&line){ lines.push(line); line=w; } else line=tt; }); if(line) lines.push(line);
+  lines.slice(0,3).forEach(l=>{ x.fillText(l,W/2,y); y+=100; });
+  const mins=Math.max(1,Math.round((Date.now()-(SESSION?SESSION.started:Date.now()))/60000));
+  const loc=LANG==='en'?'en-GB':LANG+'-BE';
+  const st=[[mins,mt('min')],[Math.round(WO_VOL).toLocaleString(loc),mt('kgl')],[WO_DONE,mt('sets')],[MS_KEEP?MS_KEEP.prs:0,mt('recs')]];
+  const top=Math.max(y+60,1060);
+  st.forEach((it,i)=>{ const cx=i%2?W*0.73:W*0.27, cy=top+Math.floor(i/2)*300;
+    x.fillStyle='rgba(255,255,255,.05)'; x.strokeStyle='rgba(234,244,238,.12)'; x.lineWidth=3;
+    x.beginPath(); x.roundRect?x.roundRect(cx-220,cy-150,440,250,36):x.rect(cx-220,cy-150,440,250); x.fill(); x.stroke();
+    x.fillStyle=i===3?'#E9C767':'#FFFFFF'; x.font='800 120px '+F; x.fillText(String(it[0]),cx,cy+10);
+    x.fillStyle='#8FA398'; x.font='700 34px '+B; x.fillText(String(it[1]).toUpperCase(),cx,cy+70); });
+  x.fillStyle='#FFFFFF'; x.font='800 54px '+B; x.fillText('COACH DM',W/2,H-200);
+  x.fillStyle='#00E896'; x.font='700 40px '+B; x.fillText('coachdm.be',W/2,H-140);
+  const blob=await new Promise(r=>c.toBlob(r,'image/png'));
+  const file=blob?new File([blob],'coachdm-seance.png',{type:'image/png'}):null;
+  try{ if(file&&navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],text:'coachdm.be'}); return; } }catch(e){ if(e&&e.name==='AbortError') return; }
+  const url=c.toDataURL('image/png');
+  const ov=document.createElement('div'); ov.className='ms-shr';
+  ov.innerHTML=`<img src="${url}" alt=""><p>${esc(mt('share_h'))}</p><button type="button" class="ms-gh">${esc(mt('close'))}</button>`;
+  ov.querySelector('button').onclick=()=>ov.remove(); ov.onclick=e=>{ if(e.target===ov) ov.remove(); };
+  document.body.appendChild(ov);
+}
+/* ---- WOD plein ecran : AMRAP / EMOM / For Time / RFT ----
+   Le moteur WOD existant (startWOD / wodTick / score) reste la reference ;
+   ici on l'affiche en grand, avec les mouvements, les tours et la voix. */
+function msWodItems(){
+  return (SE_ITEMS||[]).map(it=>{ const eo=it.exercise||{}; const ex=subChosen(eo.id)||eo; return {it,ex,rx:String(it.reps||'').trim()}; });
+}
+async function msWodOpen(countdown){
+  try{ vcCtx(); }catch(_){}
+  if(!SESSION||!SE_CUR||!SE_CUR.w||msClassic()) return;
+  const w=SE_CUR.w, f=w.wod_format;
+  if(!MS_KEEP||MS_KEEP.id!==SESSION.id) MS_KEEP={id:SESSION.id,seen:{},prs:0,last:{},adj:{},warm:{}};
+  MS={wod:true,f,items:msWodItems(),wodR:MS_KEEP.wodR||0,said:{},lastRnd:0,clk:0,wiv:0,lock:null,slots:[],adj:MS_KEEP.adj,last:{},seen:{},warm:{}};
+  const ov=msMount(); ov.classList.add('show'); document.documentElement.classList.add('ms-on');
+  document.getElementById('ms-wsnd').textContent=MSV.on?'🔊':'🔇';
+  try{ if(navigator.wakeLock) MS.lock=await navigator.wakeLock.request('screen'); }catch(_){}
+  try{ const P=window.Capacitor&&window.Capacitor.Plugins; if(P&&P.KeepAwake) P.KeepAwake.keepAwake(); }catch(_){}
+  animCharger(); msLoadVoices().catch(()=>{});
+  const fl=f==='amrap'?'AMRAP '+wodFmtMin(w.time_cap_seconds):f==='emom'?'EMOM '+(w.emom_rounds||0)+' × '+wodFmtMin(w.emom_interval_seconds||60):f==='rft'?(w.rft_rounds||0)+' RFT':'For Time';
+  document.getElementById('ms-wfmt').textContent=fl+((f==='for_time'||f==='rft')&&w.time_cap_seconds?' · '+mt('wod_cap')+' '+wodFmtMin(w.time_cap_seconds):'');
+  document.getElementById('ms-wlist').innerHTML=MS.items.map((x,i)=>`<li data-i="${i}"><b>${esc(pick(x.ex,'name')||'')}</b><span>${esc(x.rx)}</span></li>`).join('');
+  document.getElementById('ms-wrnd').hidden=(f==='emom');
+  document.getElementById('ms-wrv').textContent=MS.wodR;
+  MS.clk=setInterval(()=>{ const c=document.getElementById('ms-wtot'); if(c&&SESSION) c.textContent=msFmt(Math.floor((Date.now()-SESSION.started)/1000)); },500);
+  const go=()=>{ if(!MS||!MS.wod) return; msShow('ms-wod'); msWodPaint(); MS.wiv=setInterval(msWodPaint,250); };
+  if(countdown&&!WOD){
+    msShow('ms-count'); let n=3; const el=document.getElementById('ms-cnum'); el.textContent=n;
+    tones([[660,.08]]); buzz(40); msSayC([{n:3}],LANG==='fr'?'Trois.':LANG==='nl'?'Drie.':'Three.');
+    const iv=setInterval(()=>{ n--; if(!MS||!MS.wod){ clearInterval(iv); return; }
+      if(n>0){ el.textContent=n; el.style.animation='none'; void el.offsetWidth; el.style.animation=''; tones([[660,.08]]); buzz(40);
+        msSayC([{n:n}],n===2?(LANG==='fr'?'Deux.':LANG==='nl'?'Twee.':'Two.'):(LANG==='fr'?'Un.':LANG==='nl'?'Eén.':'One.')); }
+      else { clearInterval(iv); startWOD(w); tones([[1180,.3]]); buzz(120); msSayC(['p_go'],LANG==='fr'?"C'est parti !":LANG==='nl'?'Daar gaan we!':"Let's go!"); go(); } },1000);
+  } else go();
+}
+function msWodRound(d){
+  if(!MS||!MS.wod) return;
+  MS.wodR=Math.max(0,MS.wodR+d); MS_KEEP.wodR=MS.wodR; buzz(d>0?60:15);
+  document.getElementById('ms-wrv').textContent=MS.wodR;
+  if(d>0){ tones([[988,.08]]); msSayC([{n:MS.wodR}],(LANG==='fr'?'Tour ':LANG==='nl'?'Ronde ':'Round ')+MS.wodR+'.');
+    if(MS.f==='rft'&&WOD&&WOD.rft&&MS.wodR>=WOD.rft&&!WOD.ended) wodFinish(); }
+}
+function msWodPaint(){
+  if(!MS||!MS.wod) return;
+  const clk=document.getElementById('ms-wclk'), sub=document.getElementById('ms-wsub'), act=document.getElementById('ms-wact'), fin=document.getElementById('ms-wfin'), cur=document.getElementById('ms-wcur');
+  const f=MS.f, items=MS.items, n=items.length;
+  if(!WOD){
+    clk.textContent='0:00'; clk.classList.remove('warn'); sub.textContent='';
+    if(MS.started){ sub.textContent=mt('wod_end'); act.hidden=true; fin.hidden=false; }
+    else { act.hidden=false; fin.hidden=true; act.textContent=mt('wod_go'); act.onclick=()=>{ MS.started=true; clearInterval(MS.wiv); clearInterval(MS.clk); msWodOpen(true); }; }
+    return;
+  }
+  MS.started=true;
+  const el=Math.floor((Date.now()-WOD.t0)/1000);
+  if(WOD.ended){ const shown=f==='amrap'||f==='emom'?0:(WOD.elapsed!=null?WOD.elapsed:el);
+    clk.textContent=wodClock(shown); clk.classList.remove('warn'); sub.textContent=mt('wod_end');
+    act.hidden=false; act.textContent=mt('wod_score'); act.onclick=()=>openScoreSheet(false); fin.hidden=false;
+    if(!MS.said.end){ MS.said.end=1; msSayC(['p_end'],mt('wod_end')+'.'); }
+    return; }
+  fin.hidden=true;
+  let hi=-1;
+  if(f==='amrap'){
+    const left=Math.max(0,WOD.cap-el); clk.textContent=wodClock(left); clk.classList.toggle('warn',left<=60);
+    sub.textContent=mt('wod_left');
+    if(WOD.cap>=240&&!MS.said.half&&left<=Math.floor(WOD.cap/2)&&left>60){ MS.said.half=1; msSayC([{tts:mt('half')}],mt('half')); }
+    if(WOD.cap>=120&&!MS.said.last&&left<=60&&left>50){ MS.said.last=1; msSayC([{tts:mt('wod_last')}],mt('wod_last')); }
+    if(left<=3&&left>0&&MS.said.t!==left){ MS.said.t=left; SND.tick(); }
+    act.hidden=true;
+  } else if(f==='emom'){
+    const rnd=Math.min(WOD.rounds,Math.floor(el/WOD.itv)+1), left=WOD.itv-(el%WOD.itv);
+    clk.textContent=wodClock(left); clk.classList.toggle('warn',left<=5);
+    sub.textContent=mt('wod_min')+' '+rnd+' / '+WOD.rounds;
+    hi=n>1?(rnd-1)%n:0;
+    if(rnd!==MS.lastRnd){ MS.lastRnd=rnd; const x=items[hi];
+      if(x){ msSayC([{name:x.ex.slug,text:pick(x.ex,'name')}],[(LANG==='fr'?'Minute ':LANG==='nl'?'Minuut ':'Minute ')+rnd+'.',msNm(pick(x.ex,'name'))]);
+        document.getElementById('ms-wcurk').textContent=mt('wod_min')+' '+rnd; document.getElementById('ms-wcurn').textContent=pick(x.ex,'name')||'';
+        document.getElementById('ms-wcurr').textContent=x.rx; const sv=animSVG(x.ex.slug,'ok'); document.getElementById('ms-wfig').innerHTML=sv||''; cur.hidden=false; } }
+    if(left<=3&&left>0&&MS.said.t!==el){ MS.said.t=el; SND.tick(); }
+    act.hidden=true;
+  } else {
+    clk.textContent=wodClock(el); const capL=WOD.cap?WOD.cap-el:null; clk.classList.toggle('warn',capL!=null&&capL<=60);
+    sub.textContent=(f==='rft'&&WOD.rft?(mt('rounds')+' '+Math.min(WOD.rft,MS.wodR+1)+' / '+WOD.rft+' · '):'')+mt('wod_el');
+    if(capL!=null&&WOD.cap>=120&&!MS.said.last&&capL<=60&&capL>50){ MS.said.last=1; msSayC([{tts:mt('wod_last')}],mt('wod_last')); }
+    act.hidden=false; act.textContent=mt('wod_done'); act.onclick=()=>wodFinish();
+  }
+  document.querySelectorAll('#ms-wlist li').forEach(li=>li.classList.toggle('on',+li.dataset.i===hi));
+  if(f!=='emom') cur.hidden=true;
+}
 /* bouton « Mode seance » dans la seance (pour y revenir apres l'avoir ferme) */
 function msButton(){
-  if(!SESSION||!msClassic()) return;
+  if(!SESSION) return;
   let b=document.getElementById('ms-open'); if(b) return;
   const st=document.getElementById('se-start'); if(!st) return;
   b=document.createElement('button'); b.type='button'; b.id='ms-open'; b.className='btn ms-openb';
-  b.textContent='▶ '+mt('open'); b.onclick=()=>msOpen(false);
+  b.textContent='▶ '+mt('open'); b.onclick=()=>msClassic()?msOpen(false):msWodOpen(false);
   st.parentNode.insertBefore(b,st);
 }
 
@@ -11166,8 +11443,7 @@ function armSession(resumed){
     msButton();
     if(!resumed){
       SND.start();
-      if(SE_CUR.w.wod_format&&SE_CUR.w.wod_format!=='classic') startWOD(SE_CUR.w);
-      if(msClassic()) msOpen(true); else toast(t('tap_hint'));
+      if(msClassic()) msOpen(true); else msWodOpen(true);
     }
     liveSave();
 }
