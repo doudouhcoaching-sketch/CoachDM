@@ -1286,6 +1286,12 @@ html.ms-on,html.ms-on body{overflow:hidden}
 .ms-pr h3{color:#E9C767;font-size:42px;margin:16px 0 4px}.ms-pr p{margin:0 0 18px;font-size:15.5px}
 @keyframes msBoom{from{transform:scale(.2) rotate(-30deg)}to{transform:scale(1) rotate(0)}}
 .ms-conf{position:absolute;inset:0;pointer-events:none;z-index:4}
+.ms-rir{width:100%;margin:0 0 12px;text-align:center}.ms-rir[hidden]{display:none}
+.ms-rir small{display:block;font-size:12.5px;font-weight:700;color:#EEF4EF;margin-bottom:7px}
+.ms-rir div{display:flex;gap:6px;justify-content:center}
+.ms-rir button{width:46px;height:40px;border-radius:12px;border:1px solid rgba(234,244,238,.14);background:rgba(255,255,255,.05);color:#EEF4EF;font:800 15px inherit;font-family:inherit;cursor:pointer}
+.ms-rir button.on{background:#00E896;color:#03140C;border-color:#00E896}
+.ms-rir em{display:block;font-style:normal;font-size:11px;color:#8FA398;margin-top:6px}
 .ms-openb{margin-bottom:10px;background:linear-gradient(180deg,#00E896,#00B978)!important;color:#03140C!important}
 @media (prefers-reduced-motion:reduce){.ms-glow,.ms-pips i.cur,.ms-medal,.ms-count .ms-n{animation:none}}
 </style>
@@ -10441,6 +10447,9 @@ const MS_TX={
  sets:{fr:'séries',en:'sets',nl:'sets'},
  recs:{fr:'records',en:'records',nl:'records'},
  side:{fr:'par côté',en:'per side',nl:'per kant'},
+ rir:{fr:'Il t’en restait combien ?',en:'Reps left in the tank?',nl:'Hoeveel had je nog over?'},
+ rir_s:{fr:'Ça affine ton 1RM',en:'It sharpens your 1RM',nl:'Zo wordt je 1RM preciezer'},
+ e1rm:{fr:'Nouveau 1RM estimé',en:'New estimated 1RM',nl:'Nieuwe geschatte 1RM'},
  q:[{fr:'« La constance avant la performance. »',en:'“Consistency before performance.”',nl:'“Regelmaat voor prestatie.”'},
     {fr:'« On ne brûle pas les étapes. »',en:'“Don’t skip steps.”',nl:'“Sla geen stappen over.”'},
     {fr:'« La technique d’abord, la charge après. »',en:'“Technique first, load second.”',nl:'“Eerst techniek, dan gewicht.”'}],
@@ -10505,6 +10514,10 @@ function msSay(parts){
   }catch(_){}
 }
 
+/* 1RM estime : meme methode que la base (compute_est_1rm) — Wathan sur les reps
+   jusqu'a l'echec (reps + RIR), series de 1 a 10 reps seulement. */
+function msE1rm(w,r,rir){ if(!(w>0)||!(r>=1)||r>10) return null; const n=Math.min(r+Math.min(Math.max(rir||0,0),5),12);
+  return n<=1?Math.round(w*10)/10:Math.round(100*w/(48.8+53.8*Math.exp(-0.075*n))*10)/10; }
 /* ---------- donnees ---------- */
 function msSlots(){
   const groups=[]; let g=null;
@@ -10584,6 +10597,7 @@ function msMount(){
   <section class="ms-scr ms-rest" id="ms-rest" hidden>
     <span class="ms-tag">${esc(mt('rest'))}</span>
     <div class="ms-rring"><svg viewBox="0 0 240 240"><circle cx="120" cy="120" r="104" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="14"/><circle id="ms-restc" cx="120" cy="120" r="104" fill="none" stroke="#00E896" stroke-width="14" stroke-linecap="round" stroke-dasharray="653.5" stroke-dashoffset="0" transform="rotate(-90 120 120)"/></svg><div class="c"><b id="ms-restt">1:30</b><span>${esc(mt('restu'))}</span></div></div>
+    <div class="ms-rir" id="ms-rir" hidden><small>${esc(mt('rir'))}</small><div>${[0,1,2,3,4].map(n=>`<button type="button" data-rir="${n}">${n===4?'4+':n}</button>`).join('')}</div><em>${esc(mt('rir_s'))}</em></div>
     <div class="ms-row"><button type="button" class="ms-gh" id="ms-r30">+30 s</button><button type="button" class="ms-gh" id="ms-rsk">${esc(mt('skip'))}</button></div>
     <div class="ms-next"><div class="ms-mini rig" id="ms-nxf"></div><div><small id="ms-nxk"></small><b id="ms-nxn"></b><small id="ms-nxv" class="lc"></small></div></div>
     <div class="ms-tip"><small>${esc(mt('tip'))}</small><p id="ms-tipt"></p></div>
@@ -10725,15 +10739,16 @@ async function msValidate(){
   if((t.load==='time'||t.load==='distance'||t.load==='calories')&&!(row.duration_sec||row.distance_m||row.calories)){ toast('+ / −'); return; }
   /* record : 1RM estime (Epley, meme formule que la base) contre le 1RM connu */
   let pr=null;
-  if(row.weight_kg>0&&row.reps>0&&row.reps<=12){
-    const est=Math.round(row.weight_kg*(1+row.reps/30)*10)/10;
+  if(row.weight_kg>0&&row.reps>0&&row.reps<=10){
+    const est=msE1rm(row.weight_kg,row.reps,0);
     const prev=PRMAP?PRMAP[row.exercise_id]:null;
     if(prev!=null&&est>prev+0.05){ pr={est,prev}; PRMAP[row.exercise_id]=est; }
   }
   btn.disabled=true;
-  const { error } = await sb.from('set_logs').insert(row);
+  const { data:ins, error } = await sb.from('set_logs').insert(row).select('id').single();
   btn.disabled=false;
   if(error){ toast('Échec de l\'enregistrement'); return; }
+  MS.lastSet=(ins&&row.weight_kg>0&&row.reps>=1&&row.reps<=10)?{id:ins.id,w:row.weight_kg,r:row.reps,ex:row.exercise_id}:null;
   s.pill.classList.add('done'); s.pill.textContent='✓';
   WO_DONE++; WO_VOL+=(row.weight_kg||0)*(row.reps||0); updHud(); buzz(90); tones([[1046,.1]]);
   LAST_SET[s.wrap.dataset.ex]={reps:row.reps,kg:row.weight_kg,dur:row.duration_sec,dist:row.distance_m,cal:row.calories};
@@ -10783,6 +10798,8 @@ async function msRest(sec,nx,prev){
   if(!pts.length&&nx.ex.id&&!MS['i'+nx.ex.id]){ MS['i'+nx.ex.id]=1;
     sb.from('exercises').select('instructions_fr,instructions_en,instructions_nl').eq('id',nx.ex.id).maybeSingle().then(({data})=>{
       if(data){ Object.assign(nx.ex,data); const p2=pickList(nx.ex,'instructions'); if(p2.length&&MS&&MS.rest){ tip.textContent=p2[WO_DONE%p2.length]; tip.parentNode.hidden=false; } } }).catch(()=>{}); }
+  const rb=document.getElementById('ms-rir'); rb.hidden=!MS.lastSet;
+  rb.querySelectorAll('button').forEach(b=>{ b.classList.remove('on'); b.onclick=()=>msRir(+b.dataset.rir,b); });
   const q=MS_TX.q[WO_DONE%3]; document.getElementById('ms-quote').textContent=q[LANG]||q.fr;
   const lastSet=!msCur()||(MS.slots.filter(x=>!x.pill.classList.contains('done')).length===1);
   if(newEx) msSay(LANG==='fr'?['Récupère. Ensuite : '+msName(pick(nx.ex,'name'))+'.']:LANG==='nl'?['Herstel. Hierna: '+msName(pick(nx.ex,'name'))+'.']:['Rest. Next up: '+pick(nx.ex,'name')+'.']);
@@ -10795,6 +10812,15 @@ async function msRest(sec,nx,prev){
     if(MS.rest.left<=3&&MS.rest.left>0){ SND.tick(); buzz(40); }
     if(MS.rest.left<=0){ clearInterval(MS.rest.iv); MS.rest=null; SND.rest(); buzz(200); msWork(true); }
   },1000);
+}
+async function msRir(n,btn){
+  const L=MS&&MS.lastSet; if(!L) return;
+  btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===btn)); buzz(10);
+  const { error } = await sb.from('set_logs').update({rir:n}).eq('id',L.id);
+  if(error) return;
+  const est=msE1rm(L.w,L.r,n), prev=PRMAP?PRMAP[L.ex]:null;
+  if(est!=null&&prev!=null&&est>prev+0.05){ PRMAP[L.ex]=est; if(MS_KEEP) MS_KEEP.prs++; tones([[784,.15],[1046,.15],[1318,.3]]); buzz(200);
+    toast('🏆 '+mt('e1rm')+' : '+String(est).replace('.',',')+' kg'); }
 }
 function msEnd(){
   if(!MS) return;
