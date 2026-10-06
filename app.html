@@ -1210,6 +1210,84 @@
   .rc-srv button{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-size:20px;font-weight:700;cursor:pointer}
   .rc-srv b{min-width:40px;text-align:center;font-size:16px}
   #pane-profile:not([data-view="hub"]) #pf-back{display:flex}
+/* ---- Mode seance (Workout Player 2.0) : toujours sombre, plein ecran ---- */
+html.ms-on,html.ms-on body{overflow:hidden}
+.ms-ov{position:fixed;inset:0;z-index:58;display:none;background:#070A08;color:#EEF4EF;font-variant-numeric:tabular-nums}
+.ms-ov.show{display:block}
+.ms-scr{position:absolute;inset:0;display:flex;flex-direction:column;padding:calc(14px + env(safe-area-inset-top,0px)) 18px calc(16px + env(safe-area-inset-bottom,0px));
+  background:radial-gradient(120% 60% at 50% 0%,rgba(0,232,150,.14),transparent 60%),#070A08;max-width:560px;margin:0 auto}
+.ms-scr[hidden]{display:none!important}
+.ms-tag{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#00E896}
+.ms-big{font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-weight:800;text-transform:uppercase;line-height:.95;font-size:clamp(28px,8.5vw,36px);margin:2px 0 0;overflow-wrap:anywhere}
+.ms-big.xl{font-size:52px;margin:8px 0 2px}
+.ms-count{align-items:center;justify-content:center}
+.ms-count .ms-n{font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-weight:800;font-size:200px;line-height:1;color:#00E896;text-shadow:0 0 60px rgba(0,232,150,.55);animation:msPop .9s ease-out}
+.ms-count p{font-size:18px;font-weight:700;color:#8FA398;margin:0}
+@keyframes msPop{0%{transform:scale(1.8);opacity:0}35%{opacity:1}100%{transform:scale(.9);opacity:.15}}
+.ms-hud{display:flex;align-items:center;gap:10px}
+.ms-ic{width:40px;height:40px;flex:none;border-radius:12px;border:1px solid rgba(234,244,238,.12);background:rgba(255,255,255,.05);color:#EEF4EF;font-size:16px;cursor:pointer}
+.ms-ring{width:40px;height:40px;flex:none}
+.ms-clock{font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-size:26px;font-weight:700}
+.ms-kg{margin-left:auto;text-align:right}.ms-kg b{font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-size:24px;display:block;line-height:1}
+.ms-kg small{font-size:10px;color:#8FA398;letter-spacing:.08em;text-transform:uppercase}
+.ms-stage{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;margin:6px -6px 0}
+.ms-glow{position:absolute;inset:8% 14%;border-radius:50%;background:radial-gradient(circle,rgba(0,232,150,.18),transparent 65%);animation:msBreathe 3.6s ease-in-out infinite alternate}
+@keyframes msBreathe{from{transform:scale(.9);opacity:.6}to{transform:scale(1.08);opacity:1}}
+.ms-fig{position:relative;height:100%;width:100%;display:flex;align-items:center;justify-content:center}
+.ms-fig .anim-svg{height:100%;max-height:340px;width:auto;max-width:100%}
+.ms-thumb{max-width:92%;max-height:100%;border-radius:16px;object-fit:cover}
+.ms-ph{width:90px;height:90px;color:#00E896;opacity:.6}
+.ms-cue{color:#A9BBB1;font-size:14px;line-height:1.4;margin:5px 0 8px;min-height:2.8em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;transition:opacity .35s}
+.ms-cue.fade{opacity:0}
+.ms-tools{display:flex;gap:6px;margin:0 0 10px}
+.ms-tl{flex:1;min-width:0;padding:8px 6px;border-radius:11px;border:1px solid rgba(234,244,238,.12);background:rgba(255,255,255,.05);color:#EEF4EF;font:700 12.5px inherit;font-family:inherit;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ms-tl[hidden]{display:none}
+.ms-tl.ko{color:#FF8A8A}
+.ms-pips{display:flex;gap:6px;margin:0 0 10px}.ms-pips i{flex:1;height:7px;border-radius:7px;background:#151D18}
+.ms-pips i.on{background:#00E896}.ms-pips i.cur{background:linear-gradient(90deg,#00E896,rgba(0,232,150,.25));animation:msPulse 1.2s infinite}
+@keyframes msPulse{50%{opacity:.55}}
+.ms-target{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.ms-v{font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-weight:800;font-size:54px;line-height:1;text-align:center;flex:1;min-width:0}
+.ms-v small{font-size:22px;color:#8FA398}
+.ms-pm{width:48px;height:48px;flex:none;border-radius:14px;border:1px solid rgba(234,244,238,.12);background:#151D18;color:#EEF4EF;font:800 22px inherit;font-family:inherit;cursor:pointer}
+.ms-pm.sm{width:34px;height:34px;font-size:17px;border-radius:10px}
+.ms-rr{display:flex;align-items:center;justify-content:center;gap:12px;margin:6px 0 0;font-weight:700;color:#A9BBB1;font-size:14px}
+.ms-rr[hidden]{display:none}
+.ms-ghost{font-size:12.5px;color:#8FA398;margin:8px 0 12px;text-align:center;min-height:1.2em}.ms-ghost b{color:#EEF4EF}
+.ms-btn{border:0;border-radius:18px;padding:18px;font:800 17px inherit;font-family:inherit;cursor:pointer;width:100%;color:#03140C;background:linear-gradient(180deg,#00E896,#00B978);box-shadow:0 10px 30px rgba(0,232,150,.35)}
+.ms-btn:active{transform:scale(.98)}.ms-btn:disabled{opacity:.6}
+.ms-gh{border:1px solid rgba(234,244,238,.14);background:rgba(255,255,255,.05);color:#EEF4EF;border-radius:14px;padding:11px 16px;font:700 14px inherit;font-family:inherit;cursor:pointer}
+.ms-gh.wide{width:100%;margin-top:10px}
+.ms-rest{align-items:center;text-align:center}
+.ms-rring{position:relative;width:min(240px,62vw);aspect-ratio:1;margin:16px auto 8px}
+.ms-rring svg{width:100%;height:100%}
+.ms-rring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ms-rring .c b{font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-size:76px;line-height:1}
+.ms-rring .c span{font-size:12px;letter-spacing:.14em;color:#8FA398;text-transform:uppercase}
+.ms-row{display:flex;gap:10px;justify-content:center;margin:4px 0 14px}
+.ms-next{width:100%;display:flex;align-items:center;gap:12px;padding:10px;border-radius:16px;background:#0E1411;border:1px solid rgba(234,244,238,.1);text-align:left}
+.ms-mini{width:72px;height:72px;flex:none;border-radius:12px;background:#0B100E;overflow:hidden}
+.ms-mini .anim-svg{width:100%;height:100%}
+.ms-next small{display:block;color:#8FA398;font-size:11px;letter-spacing:.12em;text-transform:uppercase}.ms-next small.lc{letter-spacing:0;text-transform:none;font-size:12px}
+.ms-next b{display:block;font-size:16px}
+.ms-tip{width:100%;text-align:left;margin:10px 0 0;padding:10px 12px;border-radius:14px;border:1px dashed rgba(0,232,150,.35)}
+.ms-tip[hidden]{display:none}
+.ms-tip small{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#00E896;font-weight:800}.ms-tip p{margin:4px 0 0;font-size:13.5px;line-height:1.45}
+.ms-quote{margin:auto 0 0;font-size:14px;color:#E9C767;font-style:italic}
+.ms-end{align-items:center;text-align:center;overflow:auto}
+.ms-sub{color:#8FA398;margin:0}
+.ms-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin:16px 0}
+.ms-stats div{padding:12px;border-radius:14px;background:#0E1411;border:1px solid rgba(234,244,238,.1);text-align:left}
+.ms-stats b{font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-size:34px;display:block;line-height:1}.ms-stats b.gold{color:#E9C767}
+.ms-stats span{font-size:11px;color:#8FA398;letter-spacing:.08em;text-transform:uppercase}
+.ms-pr{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(6,9,8,.82);text-align:center;padding:20px}
+.ms-pr[hidden]{display:none}
+.ms-medal{width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#FFF1C2,#E9C767 45%,#8B6914);display:grid;place-items:center;font:800 42px 'Barlow Condensed','Arial Narrow',Arial,sans-serif;color:#3a2b08;box-shadow:0 0 70px rgba(233,199,103,.6);animation:msBoom .7s cubic-bezier(.2,1.6,.4,1)}
+.ms-pr h3{color:#E9C767;font-size:42px;margin:16px 0 4px}.ms-pr p{margin:0 0 18px;font-size:15.5px}
+@keyframes msBoom{from{transform:scale(.2) rotate(-30deg)}to{transform:scale(1) rotate(0)}}
+.ms-conf{position:absolute;inset:0;pointer-events:none;z-index:4}
+.ms-openb{margin-bottom:10px;background:linear-gradient(180deg,#00E896,#00B978)!important;color:#03140C!important}
+@media (prefers-reduced-motion:reduce){.ms-glow,.ms-pips i.cur,.ms-medal,.ms-count .ms-n{animation:none}}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap">
 <style>
@@ -10322,6 +10400,430 @@ function updHud(){ const f=$('#wo-fill'),c=$('#wo-count'); if(!f||!c) return;
   c.textContent=WO_DONE+'/'+WO_TOTAL;
   f.style.width=(WO_TOTAL?Math.round(WO_DONE/WO_TOTAL*100):0)+'%'; }
 
+/* =====================================================================
+   MODE SEANCE — Workout Player 2.0 (6 oct. 2026)
+   Plein ecran par-dessus la seance : 3-2-1, un exercice a la fois avec le
+   bonhomme qui bouge, la consigne du coach qui defile, la cible en grand,
+   « la derniere fois », repos anime avec l'apercu de la suite, records en
+   direct, ecran de fin. La LISTE reste la source de verite : chaque serie
+   validee ici coche la pastille correspondante et s'enregistre dans
+   set_logs exactement comme avant. Fermer le mode seance ne termine rien.
+   Voix : UNE seule voix du telephone dans la langue de l'app ; les noms
+   anglais passent par le lexique Coach DM (FR / NL) pour etre dits comme a
+   la salle. Seulement pour les seances classiques (pas AMRAP / EMOM / For
+   Time, qui gardent leur chrono WOD).
+   ===================================================================== */
+const MS_TX={
+ open:{fr:'Mode séance',en:'Workout mode',nl:'Trainingsmodus'},
+ ready:{fr:'Mets-toi en place',en:'Get in position',nl:'Neem je positie in'},
+ kgl:{fr:'kg soulevés',en:'kg lifted',nl:'kg getild'},
+ done:{fr:'✓ Série validée',en:'✓ Set done',nl:'✓ Set klaar'},
+ last:{fr:'La dernière fois',en:'Last time',nl:'Vorige keer'},
+ first:{fr:'Première fois : trouve ta charge',en:'First time: find your load',nl:'Eerste keer: zoek je gewicht'},
+ vid:{fr:'▶ Vidéo',en:'▶ Video',nl:'▶ Video'},
+ pts:{fr:'Points de perf.',en:'Key points',nl:'Aandachtspunten'},
+ err:{fr:'Erreurs',en:'Mistakes',nl:'Fouten'},
+ rest:{fr:'Récupère',en:'Rest',nl:'Herstel'},
+ restu:{fr:'repos',en:'rest',nl:'rust'},
+ skip:{fr:'Passer',en:'Skip',nl:'Overslaan'},
+ nxs:{fr:'Série suivante',en:'Next set',nl:'Volgende set'},
+ nxe:{fr:'Exercice suivant',en:'Next exercise',nl:'Volgende oefening'},
+ tip:{fr:'À retenir pour la suite',en:'Keep in mind',nl:'Onthoud'},
+ set:{fr:'Série',en:'Set',nl:'Set'},
+ pr:{fr:'Nouveau record',en:'New record',nl:'Nieuw record'},
+ pr1:{fr:'1RM estimé',en:'Estimated 1RM',nl:'Geschatte 1RM'},
+ go:{fr:'Continuer',en:'Continue',nl:'Doorgaan'},
+ fin_t:{fr:'Bien joué',en:'Well done',nl:'Goed gedaan'},
+ fin_s:{fr:'Ta meilleure heure de la journée est faite.',en:'The best hour of your day is done.',nl:'Het beste uur van je dag zit erop.'},
+ fin_b:{fr:'Terminer la séance',en:'Finish workout',nl:'Training afronden'},
+ back:{fr:'Revenir à la liste',en:'Back to the list',nl:'Terug naar de lijst'},
+ min:{fr:'minutes',en:'minutes',nl:'minuten'},
+ sets:{fr:'séries',en:'sets',nl:'sets'},
+ recs:{fr:'records',en:'records',nl:'records'},
+ side:{fr:'par côté',en:'per side',nl:'per kant'},
+ q:[{fr:'« La constance avant la performance. »',en:'“Consistency before performance.”',nl:'“Regelmaat voor prestatie.”'},
+    {fr:'« On ne brûle pas les étapes. »',en:'“Don’t skip steps.”',nl:'“Sla geen stappen over.”'},
+    {fr:'« La technique d’abord, la charge après. »',en:'“Technique first, load second.”',nl:'“Eerst techniek, dan gewicht.”'}],
+};
+const mt=k=>{const o=MS_TX[k];return o?(o[LANG]||o.fr):k;};
+const MS_LEX={"fr":{"a":"hé","b":"bi","l":"èl","v":"vi","y":"ouaille","z":"zède","m":"mètres","ab":"abe","abduction":"abdeuction","abmat":"abmatte","acceleration":"akssélérécheune","active":"aktive","adduction":"adeuction","air":"èr","and":"ènde","angel":"énnedjel","ankle":"ènnkeul","apart":"apparte","approach":"approutche","arch":"artche","archer":"artcheur","arm":"arme","assault":"assolte","assisted":"assisstède","back":"bak","backward":"bakouarde","bags":"bagz","balance":"balanns","ball":"bol","band":"bènnde","banded":"bènndède","bar":"bar","barbell":"barbèl","battle":"bateul","bear":"bèr","beat":"bite","behind":"bihaïnnde","bench":"bènntch","biceps":"bissèpse","bicycle":"baïssikeul","big":"bigue","bike":"baïk","bird":"beurde","body":"bodi","bodyweight":"bodi-ouéte","bottom":"botteum","box":"boxe","breathing":"brizinng","bridge":"bridje","brisk":"brisk","broad":"brode","bug":"beugue","build":"bilde","bulgarian":"beulguériane","burpee":"beurpi","butt":"beutte","butterfly":"beuteurflaï","cable":"kébeul","calf":"kafe","candlestick":"kènndeulstik","cardio":"kardio","carioca":"karioka","carry":"kari","cat":"katte","chest":"tchèste","child's":"tchaïldz","chin":"tchinne","circles":"seurkeulz","clamshell":"klammchèl","clean":"kline","climb":"klaïmme","climber":"klaïmeur","close":"klosse","compression":"kommprécheune","conventional":"konnevènncheunnal","copenhagen":"copenhague","cossack":"kosaque","couch":"kaoutche","cow":"kaou","crab":"krabe","crawl":"krol","cross":"krosse","crossover":"krossoveur","crow":"krô","crunch":"kreuntche","crusher":"kreucheur","cuban":"kioubeune","curl":"keurle","curtsy":"keurtsi","db":"deumbèl","dead":"dède","deadlift":"dèdlifte","deck":"dèk","deficit":"défissite","delt":"dèlte","depth":"dèpse","devil":"dèveul","diamond":"daïmonnde","dip":"dipe","dips":"dipse","dislocate":"dislokéte","dog":"dogue","donkey":"donnki","doorway":"doroué","double":"deubeul","downshift":"daoune-chifte","downward":"daoune-ouarde","drill":"drile","drive":"draïve","dual":"diouale","duck":"deuk","dumbbell":"deumbèl","duplicate":"diouplikéte","dynamic":"daïnamik","easy":"izi","eccentric":"ekssènntrik","elbows":"èlboz","elevated":"élévéttède","emom":"imom","erg":"eurgue","explosive":"explossive","extension":"extènncheune","extensor":"extènnsseur","external":"extèrnale","face":"féss","facing":"féssinng","false":"folse","farmers":"farmeurz","feet":"fite","fifa":"fifa","fire":"faïeur","flexor":"flèxeur","floor":"flor","flow":"flo","flutter":"fleuteur","fly":"flaï","foam":"fome","foot":"foute","footwork":"foute-oueurk","forearm":"forarme","freestanding":"fristènndinng","frog":"frogue","front":"freunnte","game":"guéme","german":"djeurmane","get":"guètte","ghd":"dji étche di","glute":"gloute","glutes":"gloutse","go":"go","goblet":"goblète","good":"goude","gorilla":"gorila","greatest":"gréteste","grip":"gripe","hack":"hak","half":"hafe","ham":"hamme","hamstring":"hammstrinng","handstand":"hènndstènnde","hang":"hènng","hanging":"hènnguinng","high":"haï","hill":"hile","hip":"hipe","hips":"hipse","hold":"holde","hollow":"holo","hops":"hopse","hspu":"hènndstènnde pouche-eupe","hydrant":"haïdreunnte","hyper":"haïpeur","ift":"i èf ti","inchworm":"inntch-oueurme","incline":"innklaïne","intervals":"innteurvalz","inverted":"innveurtède","iso":"isso","it":"aï ti","jacks":"djaks","jerk":"djeurke","jog":"djogue","jump":"djeummpe","jumping":"djeummpinng","jumps":"djeummpse","k2e":"nize tou èlboz","kas":"kasse","kb":"kètelbèl","kettlebell":"kètelbèl","kick":"kik","kickback":"kikbak","kicks":"kikse","kip":"kipe","kipping":"kipinng","knee":"nie","kneeling":"nilinng","knees":"nize","landmine":"lènndmaïne","lat":"latte","lateral":"latéral","lats":"lattse","leg":"lègue","legless":"lègue-lèsse","lever":"liveur","lift":"lifte","lizard":"lizeurde","loaded":"lodède","lock":"lok","long":"lonng","low":"lo","lunge":"leunndje","lunges":"leunndjize","machine":"machine","maker":"mékeur","man":"mènne","medball":"mèdbol","medicine":"mèdissine","mobility":"mobiliti","monster":"monnsteur","morning":"morninng","mountain":"maounteune","movement":"mouvmeunte","mu":"meusseul-eupe","muscle":"meusseul","neck":"nèk","negative":"négative","nordic":"nordik","oblique":"oblique","obstacle":"obstakeul","opening":"opeuninng","out":"aoute","over":"oveur","overhead":"oveurhèd","pairs":"pèrz","pallof":"paloffe","parallette":"paralète","pass":"passe","paused":"pozde","pec":"pèk","pendlay":"pènndlé","pigeon":"pidjeune","pike":"païk","pin":"pine","pirouette":"pirouette","pistol":"pisteul","planche":"planche","plank":"plènnk","plyometric":"plaïométrik","pogo":"pogo","pose":"pose","pot":"pote","power":"paoueur","preacher":"pritcheur","prep":"prèpe","press":"prèsse","primer":"praïmeur","prone":"prone","pseudo":"soudo","pull":"poule","pulldown":"pouldaoune","pullover":"pouloveur","pump":"peummpe","puppy":"peupi","push":"pouche","pushdown":"pouchdaoune","pvc":"pi vi ci","quads":"kouadz","rack":"rak","raise":"réze","rdl":"ar di èl","rear":"rir","rehearsal":"riheurssal","renegade":"rènéguéde","repeats":"ripitse","retired":"ritaïeurde","reverse":"riveurse","ring":"rinng","rock":"rok","rocks":"rokse","roll":"rol","rollout":"rolaoute","romanian":"roméniane","rope":"rope","ropes":"ropse","rotation":"rotécheune","row":"ro","rowing":"ro-inng","rto":"ar ti o","run":"reunne","russian":"reuchane","samson":"sammsonne","sandbag":"sènndbag","scale":"skéle","scapular":"skapioulaire","scorpion":"skorpionne","seated":"sitède","see":"si","sets":"sèttse","shoot":"choute","shoulder":"choldeur","shuffle":"cheufeul","shuttle":"cheuteul","side":"saïde","sided":"saïdède","single":"sinngueul","singles":"sinngueulz","sit":"sitte","skierg":"ski-eurgue","skin":"skinne","skip":"skipe","skull":"skeul","slam":"slamme","sled":"slède","slides":"slaïdz","small":"smol","snap":"snape","snatch":"snatche","snow":"sno","soldier":"soldjeur","soleus":"soliusse","sot":"sotte","spine":"spaïne","split":"splite","spoto":"spoto","sprint":"sprinnte","squat":"skouatte","stance":"stènnce","stand":"stènnde","standing":"stènndinng","static":"statik","step":"stèpe","stir":"steur","straddle":"stradeul","straight":"stréte","stretch":"strètche","strict":"strikte","strides":"straïdz","suitcase":"soutkéce","sumo":"soumo","superman":"soupeurmane","support":"seuporte","supported":"seupportède","swing":"souinng","swings":"souinngz","switch":"souitche","swivels":"souiveulz","tap":"tape","taps":"tapse","target":"targuette","tempo":"tèmmpo","the":"ze","thoracic":"toracique","through":"srou","thrust":"sreuste","thruster":"sreusteur","to":"tou","toes":"toze","top":"tope","torso":"torso","touch":"teutche","toy":"toï","transition":"trannzicheune","trap":"trape","tricep":"traïssèpe","triceps":"traïssèpse","tuck":"teuk","turkish":"teurkiche","turned":"teurnde","turnover":"teurnoveur","twist":"touiste","unbroken":"eunbrokeune","under":"eunndeur","up":"eupe","upper":"eupeur","ups":"eupse","walk":"ouok","walking":"ouokinng","wall":"ouol","weighted":"ouétède","wheel":"ouile","wide":"ouaïde","windmill":"ouinnd-mile","wod":"ouode","woodchop":"oudtchope","world's":"oueurldz","wrist":"riste","zercher":"zeurtcheur","zone":"zone","bmu":"bar meusseul-eupe","4v4":"quatre contre quatre"},"nl":{"a":"ee","b":"bie","v":"vie","y":"wai","z":"zed","m":"meter","l":"el","abduction":"abdaksjun","acceleration":"akseleree-sjun","active":"aktiv","adduction":"adaksjun","air":"eer","and":"end","angel":"eendzjel","ankle":"enkel","apart":"apaart","approach":"aprootsj","arch":"aartsj","archer":"aartsjer","assault":"asolt","assisted":"asistid","backward":"bekwerd","back":"bek","bags":"begs","balance":"belens","ball":"bool","band":"bend","banded":"bendid","barbell":"baarbel","battle":"bettel","bear":"beer","beat":"biet","behind":"biehaind","bench":"bentsj","biceps":"baiseps","bicycle":"baisikel","big":"big","bike":"baik","bird":"burd","body":"bodie","bodyweight":"bodiewee-t","bottom":"bottem","breathing":"briezing","bridge":"bridzj","broad":"brood","bug":"bag","build":"bild","bulgarian":"balgeerien","burpee":"burpie","butt":"bat","butterfly":"batterflai","cable":"keebel","calf":"kaaf","candlestick":"kendelstik","carry":"kerrie","cat":"ket","chest":"tsjest","child's":"tsjailds","chin":"tsjin","circles":"surkels","clamshell":"klemsjel","clean":"klien","climb":"klaim","climber":"klaimer","close":"kloos","conventional":"konvensjenel","cossack":"kozak","couch":"kautsj","cow":"kau","crab":"krep","crawl":"krool","crow":"kroo","crunch":"krantsj","crusher":"kraasjer","cuban":"kjoeben","curl":"kurl","curtsy":"kurtsie","db":"dambel","dead":"ded","deadlift":"dedlift","deficit":"defisit","devil":"devvel","diamond":"daimond","dislocate":"disloukeet","dog":"dog","donkey":"donkie","doorway":"doorwee","double":"dabbel","downshift":"daunsjift","downward":"daunwerd","drive":"draiv","dual":"djoeel","duck":"dak","dumbbell":"dambel","duplicate":"djoeplikeet","dynamic":"dainemik","easy":"iezie","eccentric":"eksentrik","elbows":"elbous","elevated":"elleveetid","emom":"iemom","erg":"urg","explosive":"eksploosiv","extension":"ekstensjun","extensor":"ekstenser","external":"eksturnel","face":"fees","facing":"feesing","false":"fols","farmers":"faarmers","feet":"fiet","fire":"faijer","flexor":"flekser","floor":"floor","flow":"floo","flutter":"flatter","fly":"flai","foam":"foom","foot":"foet","footwork":"foetwurk","forearm":"foorarm","freestanding":"friestending","front":"frant","game":"geem","german":"dzjurmen","get":"ghet","ghd":"dzjie eetsj die","glute":"gloet","glutes":"gloets","go":"goo","goblet":"goblet","good":"goed","gorilla":"gorilla","greatest":"greetest","grip":"grip","hack":"hek","half":"haaf","ham":"hem","hamstring":"hemstring","handstand":"hendstend","hang":"heng","hanging":"henging","high":"hai","hold":"hoold","hollow":"hollo","hspu":"hendstend poesj ap","hydrant":"haidrent","hyper":"haiper","ift":"ai ef tie","inchworm":"intsjwurm","incline":"inklain","intervals":"interfels","inverted":"invurtid","iso":"aiso","it":"ai tie","jacks":"dzjeks","jerk":"dzjurk","jog":"dzjog","jump":"dzjamp","jumping":"dzjamping","jumps":"dzjamps","k2e":"nies toe elbous","kas":"kas","kb":"kettelbel","kettlebell":"kettelbel","kickback":"kikbek","knee":"nie","kneeling":"nieling","knees":"nies","landmine":"lendmain","lat":"let","lateral":"letterel","lats":"lets","leg":"leg","legless":"leglis","lever":"liever","lizard":"lizzerd","loaded":"loodid","low":"loo","lunge":"landzj","lunges":"landzjis","machine":"masjien","maker":"meeker","man":"men","medball":"medbool","medicine":"medsin","mobility":"moobilitie","monster":"monster","morning":"morning","mountain":"mauntin","movement":"moevment","mu":"massel ap","muscle":"massel","negative":"negetiv","oblique":"obliek","obstacle":"obstekel","opening":"oopening","out":"aut","over":"oover","overhead":"ooverhed","pairs":"peers","pallof":"pellof","parallette":"perrelet","pass":"paas","paused":"poozd","pendlay":"pendlee","pigeon":"pidzjen","pike":"paik","pirouette":"pirouette","pistol":"pistel","plank":"plenk","plyometric":"plaiometrik","pogo":"poogoo","pose":"poos","power":"pauwer","preacher":"prietsjer","press":"pres","primer":"praimer","prone":"proon","pseudo":"soedoo","pull":"poel","pulldown":"poeldaun","pullover":"poeloover","pump":"pamp","puppy":"pappie","push":"poesj","pushdown":"poesjdaun","pvc":"pie vie sie","quads":"kwods","rack":"rek","raise":"rees","rdl":"aar die el","rear":"rier","rehearsal":"riehursel","renegade":"renegeed","repeats":"riepiets","retired":"ritaijerd","reverse":"rivurs","rollout":"roolaut","romanian":"romeenien","rope":"roop","ropes":"roops","rotation":"rooteesjun","row":"roo","rowing":"rooing","rto":"aar tie oo","run":"ran","russian":"rasjen","samson":"semsen","sandbag":"sendbeg","scale":"skeel","scapular":"skeppjoeler","seated":"sietid","see":"sie","shoot":"sjoet","shoulder":"sjoolder","shuffle":"sjaffel","shuttle":"sjattel","side":"said","sided":"saidid","single":"singel","singles":"singels","skierg":"skie-urg","skull":"skal","slam":"slem","sled":"sled","slides":"slaids","small":"smool","snap":"snep","snatch":"snetsj","snow":"snoo","soldier":"sooldzjer","soleus":"sooliejus","spine":"spain","spoto":"spoto","squat":"skwot","stance":"stens","stand":"stend","standing":"stending","static":"stetik","stir":"stur","straddle":"streddel","straight":"street","stretch":"stretsj","strides":"straids","suitcase":"soetkees","sumo":"soemo","superman":"soeperman","support":"suppoort","supported":"suppoortid","swing":"swing","switch":"switsj","swivels":"swivvels","tap":"tep","taps":"teps","target":"taargit","the":"de","thoracic":"thoraasik","through":"troe","thrust":"trast","thruster":"traster","to":"toe","toes":"toos","top":"top","touch":"tatsj","toy":"toi","transition":"trenzisjun","trap":"trep","tricep":"traisep","triceps":"traiseps","tuck":"tak","turkish":"turkisj","turned":"turnd","turnover":"turnoover","twist":"twist","unbroken":"anbrooken","under":"ander","up":"ap","upper":"apper","ups":"aps","walk":"wook","walking":"wooking","wall":"wool","weighted":"weetid","wheel":"wiel","wide":"waid","windmill":"windmil","wod":"wod","woodchop":"woedtsjop","world's":"wurlds","wrist":"rist","zercher":"zurtsjer","zone":"zoon","bmu":"baar massel ap","4v4":"vier tegen vier"}};
+let MS=null, MS_KEEP=null;
+const msClassic=()=>{ const f=SE_CUR&&SE_CUR.w&&SE_CUR.w.wod_format; return !f||f==='classic'; };
+
+/* ---------- voix ---------- */
+const MSV={on:true,v:null};
+try{ MSV.on=localStorage.getItem('cdm_ms_voice')!=='0'; }catch(_){}
+const MS_U=['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf'];
+const MS_T10={2:'vingt',3:'trente',4:'quarante',5:'cinquante',6:'soixante',7:'septante',8:'quatre-vingt',9:'nonante'};
+function msNum(n){ n=Math.round(n); if(LANG!=='fr') return String(n);
+  if(n<20) return MS_U[n];
+  if(n<100){ const t=Math.floor(n/10),u=n%10; if(t===8) return u?'quatre-vingt-'+MS_U[u]:'quatre-vingts'; return MS_T10[t]+(u===1?' et un':u?'-'+MS_U[u]:''); }
+  if(n<1000){ const c=Math.floor(n/100),r=n%100; return (c>1?MS_U[c]+' cent':'cent')+(r?' '+msNum(r):(c>1?'s':'')); }
+  return String(n); }
+function msKg(v){ const n=Math.floor(v), r=Math.round((v-n)*100);
+  if(LANG==='fr') return r===50?msNum(n)+' kilos et demi':r?String(v).replace('.',',')+' kilos':msNum(n)+' kilos';
+  if(LANG==='nl') return String(v).replace('.',',')+' kilo';
+  return v+' kilos'; }
+function msName(n){
+  const L=MS_LEX[LANG]; n=String(n||'').replace(/\(.*?\)/g,' ');
+  if(!L) return n;
+  return n.split(/[\s\-\/]+/).filter(Boolean).map(w=>{ const k=w.toLowerCase(); if(L[k]) return L[k]; if(/^\d+$/.test(w)) return msNum(+w); return w; }).join(' ');
+}
+const MS_CUE_EN=['squat','squats','swing','swings','kettlebell','kettlebells','rep','reps','rto','hinge','deadlift','push-up','pull-up','burpee','burpees','thrust','lockout','brace','wod','emom','amrap','hspu','rdl','tempo','rpe','core','box'];
+const MS_CUE_FR={rep:'rèpe',reps:'rèpse',hinge:'hinndje',lockout:'lokaoute',brace:'bréce',amrap:'amrape',rpe:'ar pi i',core:'kor',squats:'skouattse',kettlebells:'kètelbèlz',burpees:'beurpize','push-up':'pouche-eupe','pull-up':'poule-eupe'};
+function msCue(t){
+  t=String(t||'').replace(/\s*[—–]\s*/g,', ');
+  if(LANG==='fr') t=t.replace(/(\d+)\s*-\s*(\d+)/g,'$1 à $2').replace(/(\d+)\s*°/g,'$1 degrés').replace(/(\d+)\s*cm\b/g,'$1 centimètres').replace(/(\d+)\s*s\b/g,'$1 secondes').replace(/(\d+)\s*kg\b/g,'$1 kilos');
+  const L=MS_LEX[LANG];
+  t=t.replace(/[A-Za-zÀ-ÿ'’-]+/g,w=>{ const k=w.toLowerCase();
+    if(L&&MS_CUE_EN.indexOf(k)>=0) return (LANG==='fr'&&MS_CUE_FR[k])||L[k]||w;
+    if(w.length>1&&w===w.toUpperCase()&&/[A-ZÀ-Ý]/.test(w)) return k;
+    return w; });
+  if(LANG==='fr') t=t.replace(/\d+(,\d+)?/g,m=>m.indexOf(',')>=0?m:msNum(+m));
+  return t;
+}
+const MS_VP={fr:['Audrey','Thomas','Aurélie','Marie','Amélie','Google français','Microsoft Denise','Microsoft Henri'],
+  nl:['Ellen','Xander','Claire','Google Nederlands','Microsoft Dena','Microsoft Arnaud'],
+  en:['Samantha','Ava','Allison','Google US English','Microsoft Aria','Microsoft Jenny','Daniel']};
+function msVoice(){
+  if(!('speechSynthesis' in window)) return null;
+  const all=speechSynthesis.getVoices()||[]; const l=LANG||'fr';
+  const sc=v=>{ const n=v.name||'', g=(v.lang||'').toLowerCase(); if(!g.startsWith(l)) return -1; let s=10;
+    if(/premium|enhanced|natural|neural|wavenet/i.test(n)) s+=60;
+    const i=(MS_VP[l]||[]).findIndex(p=>n.indexOf(p)>=0); if(i>=0) s+=40-i;
+    if(g===l+'-be') s+=4; if(g==='fr-ca') s-=30; if(/compact|eloquence|novelty|whisper/i.test(n)) s-=80; return s; };
+  return all.filter(v=>sc(v)>0).sort((a,b)=>sc(b)-sc(a))[0]||null;
+}
+if('speechSynthesis' in window){ try{ speechSynthesis.onvoiceschanged=()=>{ MSV.v=msVoice(); }; }catch(_){} }
+function msSay(parts){
+  if(!MSV.on||!('speechSynthesis' in window)) return;
+  try{
+    speechSynthesis.cancel(); if(!MSV.v) MSV.v=msVoice();
+    [].concat(parts).filter(Boolean).forEach(x=>{ const u=new SpeechSynthesisUtterance(x);
+      if(MSV.v){ u.voice=MSV.v; u.lang=MSV.v.lang; } else u.lang=({fr:'fr-BE',nl:'nl-BE',en:'en-GB'})[LANG]||'fr-BE';
+      u.rate=1; speechSynthesis.speak(u); });
+  }catch(_){}
+}
+
+/* ---------- donnees ---------- */
+function msSlots(){
+  const groups=[]; let g=null;
+  (SE_ITEMS||[]).forEach(it=>{
+    const wrap=document.querySelector('#se-detail .pills[data-we="'+it.id+'"]'); if(!wrap) return;
+    const exO=it.exercise||{}; const ex=subChosen(exO.id)||exO;
+    const node={it,ex,wrap,pills:[...wrap.querySelectorAll('.pill')]};
+    if(it.superset_group&&g&&g.sg===it.superset_group) g.items.push(node);
+    else { g={sg:it.superset_group||null,items:[node]}; groups.push(g); }
+  });
+  const out=[];
+  groups.forEach(gr=>{ const n=Math.max(...gr.items.map(x=>x.pills.length));
+    for(let k=0;k<n;k++) gr.items.forEach(x=>{ if(x.pills[k]) out.push(Object.assign({},x,{pill:x.pills[k],k})); }); });
+  return out;
+}
+const msCur=()=>MS&&MS.slots.find(s=>!s.pill.classList.contains('done'));
+function msTarget(s){
+  const key=s.it.id+':'+s.k; if(MS.adj[key]) return MS.adj[key];
+  const load=s.wrap.dataset.load||'reps_only';
+  const seg=((s.wrap.dataset.plan||'').split(';')[s.k]||'').split('@');
+  let r=parseInt(seg[0],10)||null, kg=parseFloat(seg[1])||null;
+  const ls=LAST_SET&&LAST_SET[s.wrap.dataset.ex];
+  if(load==='weight'&&kg==null&&ls&&ls.kg) kg=ls.kg;
+  if(r==null&&ls&&ls.reps) r=ls.reps;
+  let v=null;
+  if(load==='time'||load==='distance'||load==='calories') v=quickVal(load,decodeURIComponent(s.wrap.dataset.rx||''));
+  return MS.adj[key]={load,r,kg,v};
+}
+async function msLastTime(exId){
+  if(MS.last[exId]!==undefined) return MS.last[exId];
+  MS.last[exId]=null;
+  try{
+    const { data } = await sb.from('set_logs').select('reps,weight_kg,duration_sec,distance_m,session_id,logged_at,workout_sessions!inner(user_id)')
+      .eq('exercise_id',exId).eq('workout_sessions.user_id',USER.id).neq('session_id',SESSION.id)
+      .order('logged_at',{ascending:false}).limit(12);
+    const rows=data||[]; if(rows.length){
+      const sid=rows[0].session_id; const same=rows.filter(r=>r.session_id===sid);
+      same.sort((a,b)=>(b.weight_kg||0)-(a.weight_kg||0)||(b.reps||0)-(a.reps||0));
+      MS.last[exId]=same[0];
+    }
+  }catch(_){}
+  return MS.last[exId];
+}
+function msLastTxt(r){
+  if(!r) return '';
+  if(r.weight_kg) return (r.reps||'—')+' × '+String(r.weight_kg).replace('.',',')+' kg';
+  if(r.duration_sec) return r.duration_sec>=90?Math.round(r.duration_sec/60)+' min':r.duration_sec+' s';
+  if(r.distance_m) return r.distance_m>=1000?(r.distance_m/1000)+' km':r.distance_m+' m';
+  return (r.reps||'—')+' reps';
+}
+
+/* ---------- ecran ---------- */
+function msMount(){
+  let ov=document.getElementById('ms-ov'); if(ov) return ov;
+  ov=document.createElement('div'); ov.id='ms-ov'; ov.className='ms-ov';
+  ov.innerHTML=`
+  <section class="ms-scr ms-count" id="ms-count" hidden><div class="ms-n" id="ms-cnum">3</div><p>${esc(mt('ready'))}</p></section>
+  <section class="ms-scr" id="ms-work" hidden>
+    <div class="ms-hud">
+      <button type="button" class="ms-ic" id="ms-x" aria-label="×">✕</button>
+      <svg class="ms-ring" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5"/><circle id="ms-ringp" cx="22" cy="22" r="18" fill="none" stroke="#00E896" stroke-width="5" stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="113.1" transform="rotate(-90 22 22)"/></svg>
+      <div class="ms-clock" id="ms-clock">0:00</div>
+      <div class="ms-kg"><b id="ms-kgv">0</b><small>${esc(mt('kgl'))}</small></div>
+      <button type="button" class="ms-ic" id="ms-snd" aria-label="voix">🔊</button>
+    </div>
+    <div class="ms-stage"><div class="ms-glow"></div><div class="ms-fig rig" id="ms-fig"></div></div>
+    <span class="ms-tag" id="ms-blk"></span>
+    <h2 class="ms-big" id="ms-name"></h2>
+    <p class="ms-cue" id="ms-cue"></p>
+    <div class="ms-tools"><button type="button" class="ms-tl" id="ms-tv">${esc(mt('vid'))}</button><button type="button" class="ms-tl" id="ms-tp">${esc(mt('pts'))}</button><button type="button" class="ms-tl ko" id="ms-te">${esc(mt('err'))}</button></div>
+    <div class="ms-pips" id="ms-pips"></div>
+    <div class="ms-target"><button type="button" class="ms-pm" id="ms-m">−</button><div class="ms-v" id="ms-tv2"></div><button type="button" class="ms-pm" id="ms-p">+</button></div>
+    <div class="ms-rr" id="ms-rr" hidden><button type="button" class="ms-pm sm" id="ms-rm">−</button><span id="ms-rv"></span><button type="button" class="ms-pm sm" id="ms-rp">+</button></div>
+    <p class="ms-ghost" id="ms-ghost"></p>
+    <button type="button" class="ms-btn" id="ms-done">${esc(mt('done'))}</button>
+  </section>
+  <section class="ms-scr ms-rest" id="ms-rest" hidden>
+    <span class="ms-tag">${esc(mt('rest'))}</span>
+    <div class="ms-rring"><svg viewBox="0 0 240 240"><circle cx="120" cy="120" r="104" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="14"/><circle id="ms-restc" cx="120" cy="120" r="104" fill="none" stroke="#00E896" stroke-width="14" stroke-linecap="round" stroke-dasharray="653.5" stroke-dashoffset="0" transform="rotate(-90 120 120)"/></svg><div class="c"><b id="ms-restt">1:30</b><span>${esc(mt('restu'))}</span></div></div>
+    <div class="ms-row"><button type="button" class="ms-gh" id="ms-r30">+30 s</button><button type="button" class="ms-gh" id="ms-rsk">${esc(mt('skip'))}</button></div>
+    <div class="ms-next"><div class="ms-mini rig" id="ms-nxf"></div><div><small id="ms-nxk"></small><b id="ms-nxn"></b><small id="ms-nxv" class="lc"></small></div></div>
+    <div class="ms-tip"><small>${esc(mt('tip'))}</small><p id="ms-tipt"></p></div>
+    <p class="ms-quote" id="ms-quote"></p>
+  </section>
+  <section class="ms-scr ms-end" id="ms-end" hidden>
+    <span class="ms-tag">✓</span>
+    <h2 class="ms-big xl">${esc(mt('fin_t'))}</h2>
+    <p class="ms-sub">${esc(mt('fin_s'))}</p>
+    <div class="ms-stats"><div><b id="ms-dmin">0</b><span>${esc(mt('min'))}</span></div><div><b id="ms-dkg">0</b><span>${esc(mt('kgl'))}</span></div><div><b id="ms-dset">0</b><span>${esc(mt('sets'))}</span></div><div><b id="ms-dpr" class="gold">0</b><span>${esc(mt('recs'))}</span></div></div>
+    <button type="button" class="ms-btn" id="ms-fin">${esc(mt('fin_b'))}</button>
+    <button type="button" class="ms-gh wide" id="ms-back">${esc(mt('back'))}</button>
+  </section>
+  <div class="ms-pr" id="ms-pr" hidden><div class="ms-medal">PR</div><h3 class="ms-big">${esc(mt('pr'))}</h3><p id="ms-prt"></p><button type="button" class="ms-gh" id="ms-prok">${esc(mt('go'))}</button></div>
+  <canvas class="ms-conf" id="ms-conf"></canvas>`;
+  document.body.appendChild(ov);
+  const g=id=>document.getElementById(id);
+  g('ms-x').onclick=()=>msClose();
+  g('ms-snd').onclick=()=>{ MSV.on=!MSV.on; try{ localStorage.setItem('cdm_ms_voice',MSV.on?'1':'0'); }catch(_){} g('ms-snd').textContent=MSV.on?'🔊':'🔇'; if(!MSV.on) try{ speechSynthesis.cancel(); }catch(_){} };
+  g('ms-done').onclick=()=>msValidate();
+  g('ms-m').onclick=()=>msAdj(-1); g('ms-p').onclick=()=>msAdj(1);
+  g('ms-rm').onclick=()=>msAdjR(-1); g('ms-rp').onclick=()=>msAdjR(1);
+  g('ms-tv').onclick=()=>{ const s=MS&&MS.cur; if(s&&s.ex.video_url) openDemo(s.ex.video_url,pick(s.ex,'name')); };
+  g('ms-tp').onclick=()=>{ const s=MS&&MS.cur; if(s) bibFicheSlug(s.ex.slug); };
+  g('ms-te').onclick=async()=>{ const s=MS&&MS.cur; if(!s) return; await bibFicheSlug(s.ex.slug); if(BIB_CUR&&BIB_CUR.slug===s.ex.slug){ BIB_MODE='ko'; bibFicheRender(); } };
+  g('ms-r30').onclick=()=>{ if(MS&&MS.rest){ MS.rest.left+=30; MS.rest.total+=30; msRestPaint(); } };
+  g('ms-rsk').onclick=()=>{ if(MS&&MS.rest) MS.rest.left=0; };
+  g('ms-prok').onclick=()=>{ g('ms-pr').hidden=true; msAfterSet(); };
+  g('ms-fin').onclick=()=>{ msClose(true); startOrFinish(); };
+  g('ms-back').onclick=()=>msClose();
+  return ov;
+}
+function msShow(id){ ['ms-count','ms-work','ms-rest','ms-end'].forEach(x=>{ const e=document.getElementById(x); if(e) e.hidden=(x!==id); }); }
+const msFmt=s=>Math.floor(s/60)+':'+String(Math.max(0,s%60)).padStart(2,'0');
+
+async function msOpen(countdown){
+  if(!SESSION||!msClassic()) return;
+  const slots=msSlots(); if(!slots.length) return;
+  /* ce qui doit survivre a une fermeture / reouverture du mode seance */
+  if(!MS_KEEP||MS_KEEP.id!==SESSION.id) MS_KEEP={id:SESSION.id,seen:{},prs:0,last:{},adj:{}};
+  MS={slots,adj:MS_KEEP.adj,last:MS_KEEP.last,seen:MS_KEEP.seen,prs:0,rest:null,cur:null,cueIv:0,clk:0,lock:null};
+  const ov=msMount(); ov.classList.add('show'); document.documentElement.classList.add('ms-on');
+  document.getElementById('ms-snd').textContent=MSV.on?'🔊':'🔇';
+  try{ if(navigator.wakeLock) MS.lock=await navigator.wakeLock.request('screen'); }catch(_){}
+  try{ const P=window.Capacitor&&window.Capacitor.Plugins; if(P&&P.KeepAwake) P.KeepAwake.keepAwake(); }catch(_){}
+  animCharger();
+  MS.clk=setInterval(()=>{ const c=document.getElementById('ms-clock'); if(c&&SESSION) c.textContent=msFmt(Math.floor((Date.now()-SESSION.started)/1000)); },500);
+  if(!msCur()){ msEnd(); return; }
+  if(countdown){
+    msShow('ms-count'); let n=3; const el=document.getElementById('ms-cnum'); el.textContent=n;
+    tones([[660,.08]]); buzz(40); msSay(LANG==='fr'?'Trois.':LANG==='nl'?'Drie.':'Three.');
+    const iv=setInterval(()=>{ n--; if(!MS){ clearInterval(iv); return; }
+      if(n>0){ el.textContent=n; el.style.animation='none'; void el.offsetWidth; el.style.animation=''; tones([[660,.08]]); buzz(40);
+        msSay(n===2?(LANG==='fr'?'Deux.':LANG==='nl'?'Twee.':'Two.'):(LANG==='fr'?'Un.':LANG==='nl'?'Eén.':'One.')); }
+      else { clearInterval(iv); tones([[1180,.3]]); buzz(120); msWork(true); } },1000);
+  } else msWork(true);
+}
+function msClose(quiet){
+  if(!MS) return;
+  const r=MS.rest; clearInterval(MS.clk); clearInterval(MS.cueIv); if(r&&r.iv) clearInterval(r.iv);
+  try{ if(MS.lock) MS.lock.release(); }catch(_){}
+  try{ const P=window.Capacitor&&window.Capacitor.Plugins; if(P&&P.KeepAwake) P.KeepAwake.allowSleep(); }catch(_){}
+  try{ speechSynthesis.cancel(); }catch(_){}
+  const ov=document.getElementById('ms-ov'); if(ov) ov.classList.remove('show');
+  document.documentElement.classList.remove('ms-on');
+  /* un repos en cours continue dans la barre de repos de la liste */
+  if(!quiet&&r&&r.left>0&&SESSION) startRest(r.left);
+  MS=null;
+}
+function msPaintHud(){
+  const p=WO_TOTAL?WO_DONE/WO_TOTAL:0; const rp=document.getElementById('ms-ringp'); if(rp) rp.setAttribute('stroke-dashoffset',(113.1*(1-p)).toFixed(1));
+  const k=document.getElementById('ms-kgv'); if(k) k.textContent=Math.round(WO_VOL).toLocaleString(LANG==='en'?'en-GB':LANG+'-BE');
+}
+function msTv(){
+  const s=MS.cur, t=msTarget(s), tv=document.getElementById('ms-tv2'), rr=document.getElementById('ms-rr');
+  const side=/unilat|par c[oô]t|par jambe|per side|each|per kant|per been/i.test(decodeURIComponent(s.wrap.dataset.rx||''));
+  rr.hidden=true;
+  if(t.load==='weight'){
+    tv.innerHTML=`${t.r!=null?t.r:'—'} <small>×</small> ${t.kg!=null?String(t.kg).replace('.',','):'—'} <small>kg</small>`;
+    rr.hidden=false; document.getElementById('ms-rv').textContent=(t.r!=null?t.r:'—')+' reps';
+  } else if(t.load==='time'){ tv.innerHTML=t.v?msFmt(t.v)+' <small>min</small>':'—'; }
+  else if(t.load==='distance'){ tv.innerHTML=t.v?(t.v>=1000?(t.v/1000).toString().replace('.',',')+' <small>km</small>':t.v+' <small>m</small>'):'—'; }
+  else if(t.load==='calories'){ tv.innerHTML=t.v?t.v+' <small>kcal</small>':'—'; }
+  else tv.innerHTML=`${t.r!=null?t.r:'—'} <small>reps</small>`;
+  s._side=side;
+}
+function msPlanKg(s,i){ const seg=((s.wrap.dataset.plan||'').split(';')[i]||'').split('@'); return parseFloat(seg[1])||null; }
+function msAdj(d){ const s=MS&&MS.cur; if(!s) return; const t=msTarget(s); t._edited=true;
+  if(t.load==='weight'){ t.kg=Math.max(0,Math.round(((t.kg||0)+2.5*d)*10)/10); }
+  else if(t.load==='time'){ t.v=Math.max(5,(t.v||30)+(t.v>=120?30:5)*d); }
+  else if(t.load==='distance'){ t.v=Math.max(10,(t.v||100)+(t.v>=1000?100:10)*d); }
+  else if(t.load==='calories'){ t.v=Math.max(1,(t.v||10)+d); }
+  else { t.r=Math.max(1,(t.r||(d>0?7:9))+d); }
+  buzz(10); msTv(); }
+function msAdjR(d){ const s=MS&&MS.cur; if(!s) return; const t=msTarget(s); t.r=Math.max(1,(t.r||(d>0?4:6))+d); buzz(10); msTv(); }
+
+async function msWork(announce){
+  if(!MS) return;
+  const s=msCur(); if(!s){ msEnd(); return; }
+  MS.cur=s; msShow('ms-work'); msPaintHud();
+  const name=pick(s.ex,'name');
+  document.getElementById('ms-blk').textContent=blockL(s.it.block)+(s.it.superset_group?' · superset '+s.it.superset_group:'');
+  document.getElementById('ms-name').textContent=name;
+  await animCharger(); if(!MS||MS.cur!==s) return;
+  const fig=document.getElementById('ms-fig'); const svg=animSVG(s.ex.slug,'ok');
+  if(svg) fig.innerHTML=svg;
+  else { const th=exThumb(s.ex); fig.innerHTML=th?`<img class="ms-thumb" src="${esc(th)}" alt="">`:`<svg class="ic ms-ph"><use href="#${MUSCLE_ICON[s.ex.primary_muscle]||'i-m-full'}"/></svg>`; }
+  document.getElementById('ms-tv').hidden=!(s.ex.video_url&&ytId(s.ex.video_url));
+  /* consigne : celle du coach pour cette seance d'abord, puis celle de la fiche */
+  const cue=[pick(s.it,'notes'),pick(s.ex,'cue')].filter(Boolean).join(' ');
+  const ph=cue?cue.split(/(?<=[.!?])\s+/).filter(Boolean):[]; let ci=0; const ce=document.getElementById('ms-cue');
+  clearInterval(MS.cueIv); ce.textContent=ph[0]||''; ce.classList.remove('fade');
+  if(ph.length>1) MS.cueIv=setInterval(()=>{ ce.classList.add('fade'); setTimeout(()=>{ ci=(ci+1)%ph.length; ce.textContent=ph[ci]; ce.classList.remove('fade'); },350); },5200);
+  const n=s.pills.length, done=s.pills.filter(p=>p.classList.contains('done')).length;
+  document.getElementById('ms-pips').innerHTML=s.pills.map((p,i)=>`<i class="${p.classList.contains('done')?'on':(i===s.k?'cur':'')}"></i>`).join('');
+  msTv();
+  const gh=document.getElementById('ms-ghost'); gh.textContent='';
+  msLastTime(s.wrap.dataset.ex).then(r=>{ if(!MS||MS.cur!==s) return; gh.innerHTML=r?`${esc(mt('last'))} : <b>${esc(msLastTxt(r))}</b>`:esc(mt('first')); });
+  if(announce){
+    const t=msTarget(s); const first=!MS.seen[s.it.id]; MS.seen[s.it.id]=1;
+    const nm=msName(name)+'.';
+    let line='';
+    if(LANG==='fr'){ line=`Série ${msNum(s.k+1)} sur ${msNum(n)}.`+(t.r?` ${msNum(t.r)} répétitions${s._side?' par côté':''}`:'')+(t.load==='weight'&&t.kg?`, à ${msKg(t.kg)}`:'')+'.'; }
+    else if(LANG==='nl'){ line=`Set ${s.k+1} van ${n}.`+(t.r?` ${t.r} herhalingen`:'')+(t.load==='weight'&&t.kg?`, ${msKg(t.kg)}`:'')+'.'; }
+    else { line=`Set ${s.k+1} of ${n}.`+(t.r?` ${t.r} reps`:'')+(t.load==='weight'&&t.kg?` at ${msKg(t.kg)}`:'')+'.'; }
+    msSay([nm,line.replace(/\.\./g,'.'),first&&cue?msCue(cue):'']);
+  }
+}
+
+async function msValidate(){
+  const s=MS&&MS.cur; if(!s||!SESSION) return;
+  const btn=document.getElementById('ms-done'); if(btn.disabled) return;
+  const t=msTarget(s);
+  const row={ session_id:SESSION.id, exercise_id:s.wrap.dataset.ex, workout_exercise_id:s.wrap.dataset.we,
+    set_number:+s.pill.dataset.set, is_completed:true, logged_at:new Date().toISOString() };
+  if(t.load==='time') row.duration_sec=t.v; else if(t.load==='distance') row.distance_m=t.v; else if(t.load==='calories') row.calories=t.v;
+  else { row.reps=t.r; if(t.load==='weight') row.weight_kg=t.kg; }
+  if((t.load==='weight'||t.load==='reps_only'||!t.load)&&!row.reps){ toast('reps : + / −'); return; }
+  if((t.load==='time'||t.load==='distance'||t.load==='calories')&&!(row.duration_sec||row.distance_m||row.calories)){ toast('+ / −'); return; }
+  /* record : 1RM estime (Epley, meme formule que la base) contre le 1RM connu */
+  let pr=null;
+  if(row.weight_kg>0&&row.reps>0&&row.reps<=12){
+    const est=Math.round(row.weight_kg*(1+row.reps/30)*10)/10;
+    const prev=PRMAP?PRMAP[row.exercise_id]:null;
+    if(prev!=null&&est>prev+0.05){ pr={est,prev}; PRMAP[row.exercise_id]=est; }
+  }
+  btn.disabled=true;
+  const { error } = await sb.from('set_logs').insert(row);
+  btn.disabled=false;
+  if(error){ toast('Échec de l\'enregistrement'); return; }
+  s.pill.classList.add('done'); s.pill.textContent='✓';
+  WO_DONE++; WO_VOL+=(row.weight_kg||0)*(row.reps||0); updHud(); buzz(90); tones([[1046,.1]]);
+  LAST_SET[s.wrap.dataset.ex]={reps:row.reps,kg:row.weight_kg,dur:row.duration_sec,dist:row.distance_m,cal:row.calories};
+  liveSave(); msPaintHud();
+  /* charge modifiee par le membre : elle devient la proposition des series
+     suivantes du meme exercice qui avaient la meme charge prevue */
+  if(t.load==='weight'&&t._edited&&t.kg!=null){
+    const base=msPlanKg(s,s.k);
+    s.pills.forEach((p,i)=>{ if(i>s.k&&!MS.adj[s.it.id+':'+i]&&msPlanKg(s,i)===base){ const t2=msTarget(Object.assign({},s,{k:i,pill:p})); t2.kg=t.kg; } });
+  }
+  if(pr){
+    MS_KEEP.prs++; const g=document.getElementById('ms-pr');
+    document.getElementById('ms-prt').textContent=pick(s.ex,'name')+' · '+String(row.weight_kg).replace('.',',')+' kg × '+row.reps+' — '+mt('pr1')+' '+String(pr.est).replace('.',',')+' kg';
+    g.hidden=false; msConfetti(); tones([[784,.15],[1046,.15],[1318,.3]]); buzz(250);
+    msSay(LANG==='fr'?'Nouveau record ! Bravo.':LANG==='nl'?'Nieuw record! Goed zo.':'New record! Well done.');
+    return;
+  }
+  msAfterSet();
+}
+function msAfterSet(){
+  if(!MS) return;
+  const prev=MS.cur, nx=msCur();
+  if(!nx){ msEnd(); return; }
+  const chain=prev&&prev.it.superset_group&&nx.it.superset_group===prev.it.superset_group&&nx.k===prev.k;
+  const restS=chain?0:(parseInt(prev.wrap.dataset.rest,10)||0);
+  if(!restS){ msWork(true); return; }
+  msRest(restS,nx,prev);
+}
+function msRestPaint(){ const r=MS&&MS.rest; if(!r) return;
+  document.getElementById('ms-restt').textContent=msFmt(Math.max(0,r.left));
+  document.getElementById('ms-restc').setAttribute('stroke-dashoffset',(653.5*(1-Math.max(0,r.left)/r.total)).toFixed(1)); }
+async function msRest(sec,nx,prev){
+  msShow('ms-rest'); clearInterval(MS.cueIv);
+  if(MS.rest&&MS.rest.iv) clearInterval(MS.rest.iv);
+  MS.rest={left:sec,total:sec};
+  const newEx=nx.it.id!==prev.it.id;
+  await animCharger();
+  document.getElementById('ms-nxf').innerHTML=animSVG(nx.ex.slug,'ok')||'';
+  document.getElementById('ms-nxk').textContent=mt(newEx?'nxe':'nxs');
+  document.getElementById('ms-nxn').textContent=pick(nx.ex,'name');
+  const t=msTarget(nx);
+  document.getElementById('ms-nxv').textContent=mt('set')+' '+(nx.k+1)+' / '+nx.pills.length+(t.r?' · '+t.r+(t.load==='weight'&&t.kg?' × '+String(t.kg).replace('.',',')+' kg':' reps'):'');
+  const pts=pickList(nx.ex,'instructions');
+  const tip=document.getElementById('ms-tipt');
+  tip.textContent=pts.length?pts[(WO_DONE)%pts.length]:(pick(nx.ex,'cue')||'');
+  if(!pts.length&&!tip.textContent) tip.parentNode.hidden=true; else tip.parentNode.hidden=false;
+  if(!pts.length&&nx.ex.id&&!MS['i'+nx.ex.id]){ MS['i'+nx.ex.id]=1;
+    sb.from('exercises').select('instructions_fr,instructions_en,instructions_nl').eq('id',nx.ex.id).maybeSingle().then(({data})=>{
+      if(data){ Object.assign(nx.ex,data); const p2=pickList(nx.ex,'instructions'); if(p2.length&&MS&&MS.rest){ tip.textContent=p2[WO_DONE%p2.length]; tip.parentNode.hidden=false; } } }).catch(()=>{}); }
+  const q=MS_TX.q[WO_DONE%3]; document.getElementById('ms-quote').textContent=q[LANG]||q.fr;
+  const lastSet=!msCur()||(MS.slots.filter(x=>!x.pill.classList.contains('done')).length===1);
+  if(newEx) msSay(LANG==='fr'?['Récupère. Ensuite : '+msName(pick(nx.ex,'name'))+'.']:LANG==='nl'?['Herstel. Hierna: '+msName(pick(nx.ex,'name'))+'.']:['Rest. Next up: '+pick(nx.ex,'name')+'.']);
+  else msSay(lastSet?(LANG==='fr'?'Dernière série après ce repos. Tu vas tout donner.':LANG==='nl'?'Laatste set na deze rust. Geef alles.':'Last set after this rest. Give it everything.')
+                    :(LANG==='fr'?'Récupère. Respire par le nez.':LANG==='nl'?'Herstel. Adem door je neus.':'Rest. Breathe through your nose.'));
+  msRestPaint();
+  MS.rest.iv=setInterval(()=>{
+    if(!MS||!MS.rest) return;
+    MS.rest.left--; msRestPaint();
+    if(MS.rest.left<=3&&MS.rest.left>0){ SND.tick(); buzz(40); }
+    if(MS.rest.left<=0){ clearInterval(MS.rest.iv); MS.rest=null; SND.rest(); buzz(200); msWork(true); }
+  },1000);
+}
+function msEnd(){
+  if(!MS) return;
+  clearInterval(MS.cueIv); msShow('ms-end');
+  const mins=Math.max(1,Math.round((Date.now()-(SESSION?SESSION.started:Date.now()))/60000));
+  const tg=[['ms-dmin',mins],['ms-dkg',Math.round(WO_VOL)],['ms-dset',WO_DONE],['ms-dpr',MS_KEEP?MS_KEEP.prs:0]]; const st=performance.now();
+  const f=now=>{ const k=Math.min(1,(now-st)/1100); tg.forEach(([id,v])=>{ const e=document.getElementById(id); if(e) e.textContent=Math.round(v*k).toLocaleString(LANG==='en'?'en-GB':LANG+'-BE'); }); if(k<1) requestAnimationFrame(f); };
+  requestAnimationFrame(f); msConfetti();
+  msSay(LANG==='fr'?'Séance terminée. Bien joué : ta meilleure heure de la journée est faite.':LANG==='nl'?'Training klaar. Goed gedaan.':'Workout complete. Well done.');
+}
+function msConfetti(){
+  const c=document.getElementById('ms-conf'); if(!c) return;
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  c.width=innerWidth; c.height=innerHeight; const x=c.getContext('2d');
+  const cols=['#E9C767','#00E896','#FFF1C2','#00B978','#FFFFFF'];
+  const P=Array.from({length:150},()=>({x:c.width/2,y:c.height*.35,vx:(Math.random()-.5)*10,vy:-Math.random()*10-3,s:Math.random()*7+3,c:cols[Math.floor(Math.random()*5)],r:Math.random()*6,vr:(Math.random()-.5)*.3}));
+  let n=0; const f=()=>{ x.clearRect(0,0,c.width,c.height); P.forEach(p=>{ p.vy+=.22; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr; x.save(); x.translate(p.x,p.y); x.rotate(p.r); x.fillStyle=p.c; x.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); x.restore(); });
+    if(++n<160) requestAnimationFrame(f); else x.clearRect(0,0,c.width,c.height); }; f();
+}
+/* bouton « Mode seance » dans la seance (pour y revenir apres l'avoir ferme) */
+function msButton(){
+  if(!SESSION||!msClassic()) return;
+  let b=document.getElementById('ms-open'); if(b) return;
+  const st=document.getElementById('se-start'); if(!st) return;
+  b=document.createElement('button'); b.type='button'; b.id='ms-open'; b.className='btn ms-openb';
+  b.textContent='▶ '+mt('open'); b.onclick=()=>msOpen(false);
+  st.parentNode.insertBefore(b,st);
+}
+
 /* ---- SEANCE EN COURS : elle ne se perd jamais (6 oct.) ----
    Avant, la seance active ne vivait qu'en memoire (SESSION). Rouvrir la seance
    (retour arriere, autre onglet, remplacement d'un exercice) ou un telephone qui
@@ -10352,10 +10854,11 @@ function armSession(resumed){
     WO_DONE=document.querySelectorAll('#se-detail .pill.done').length;
     WO_VOL=0; LAST_SET={};
     $('#wo-hud').classList.add('on'); updHud();
+    msButton();
     if(!resumed){
       SND.start();
       if(SE_CUR.w.wod_format&&SE_CUR.w.wod_format!=='classic') startWOD(SE_CUR.w);
-      toast(t('tap_hint'));
+      if(msClassic()) msOpen(true); else toast(t('tap_hint'));
     }
     liveSave();
 }
@@ -10403,6 +10906,7 @@ async function startOrFinish(){
     armSession(false);
   } else {
     btn.disabled=true;
+    msClose(true);
     stopRest();
     if(WOD&&!WOD_SCORE_SAVED&&(SE_CUR.w.score_type||'none')!=='none'){
       if(WOD.elapsed==null) WOD.elapsed=Math.min(WOD.cap||1e9,Math.floor((Date.now()-WOD.t0)/1000));
@@ -10790,6 +11294,8 @@ function navCloseTopOverlay(){
     const el=document.getElementById(id);
     if(el && el.classList.contains('show')){ close(el); return true; }
   }
+  /* Mode seance ouvert (rien au-dessus) : le retour ramene a la liste, la seance continue */
+  if(MS){ msClose(); return true; }
   return false;
 }
 
