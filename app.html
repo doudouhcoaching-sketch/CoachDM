@@ -1292,6 +1292,14 @@ html.ms-on,html.ms-on body{overflow:hidden}
 .ms-rir button{width:46px;height:40px;border-radius:12px;border:1px solid rgba(234,244,238,.14);background:rgba(255,255,255,.05);color:#EEF4EF;font:800 15px inherit;font-family:inherit;cursor:pointer}
 .ms-rir button.on{background:#00E896;color:#03140C;border-color:#00E896}
 .ms-rir em{display:block;font-style:normal;font-size:11px;color:#8FA398;margin-top:6px}
+.ms-vs{position:absolute;inset:0;z-index:5;background:rgba(3,6,5,.7);display:flex;align-items:flex-end}.ms-vs[hidden]{display:none}
+.ms-vsi{width:100%;max-width:560px;margin:0 auto;background:#0E1411;border-top:1px solid rgba(234,244,238,.12);border-radius:22px 22px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px}
+.ms-vsi h3{margin:0 0 4px;font:800 22px 'Barlow Condensed','Arial Narrow',Arial,sans-serif;text-transform:uppercase}
+.ms-vsi label{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8FA398;margin-top:6px}
+.ms-vsi select{width:100%;padding:11px 12px;border-radius:12px;border:1px solid rgba(234,244,238,.14);background:#151D18;color:#EEF4EF;font:600 15px inherit;font-family:inherit}
+.ms-vseg{display:flex;gap:6px}.ms-vseg button{flex:1;padding:10px 8px;border-radius:12px;border:1px solid rgba(234,244,238,.14);background:transparent;color:#A9BBB1;font:700 13px inherit;font-family:inherit;cursor:pointer}
+.ms-vseg button.on{background:#151D18;color:#EEF4EF;border-color:#00E896}
+.ms-vhint{font-size:12.5px;line-height:1.45;color:#8FA398;margin:4px 0}.ms-vnone{color:#FF8A8A;margin:0}
 .ms-openb{margin-bottom:10px;background:linear-gradient(180deg,#00E896,#00B978)!important;color:#03140C!important}
 @media (prefers-reduced-motion:reduce){.ms-glow,.ms-pips i.cur,.ms-medal,.ms-count .ms-n{animation:none}}
 </style>
@@ -10494,24 +10502,91 @@ function msCue(t){
 const MS_VP={fr:['Audrey','Thomas','Aurélie','Marie','Amélie','Google français','Microsoft Denise','Microsoft Henri'],
   nl:['Ellen','Xander','Claire','Google Nederlands','Microsoft Dena','Microsoft Arnaud'],
   en:['Samantha','Ava','Allison','Google US English','Microsoft Aria','Microsoft Jenny','Daniel']};
-function msVoice(){
-  if(!('speechSynthesis' in window)) return null;
-  const all=speechSynthesis.getVoices()||[]; const l=LANG||'fr';
-  const sc=v=>{ const n=v.name||'', g=(v.lang||'').toLowerCase(); if(!g.startsWith(l)) return -1; let s=10;
-    if(/premium|enhanced|natural|neural|wavenet/i.test(n)) s+=60;
+/* voix gadgets / robotiques d'iOS et macOS : jamais choisies d'office */
+const MS_BAD=/compact|eloquence|novelty|whisper|grandma|grandpa|\beddy\b|\bflo\b|\breed\b|rocko|sandy|shelley|albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|wobble|zarvox|\bfred\b|junior|kathy|ralph/i;
+function msVoices(l){
+  const all=('speechSynthesis' in window&&speechSynthesis.getVoices())||[];
+  const sc=v=>{ const n=v.name||'', g=(v.lang||'').toLowerCase().replace('_','-'); if(!g.startsWith(l)) return -1; let s=10;
+    if(/premium|enhanced|améliorée|natural|neural|wavenet|siri/i.test(n)) s+=60;
     const i=(MS_VP[l]||[]).findIndex(p=>n.indexOf(p)>=0); if(i>=0) s+=40-i;
-    if(g===l+'-be') s+=4; if(g==='fr-ca') s-=30; if(/compact|eloquence|novelty|whisper/i.test(n)) s-=80; return s; };
-  return all.filter(v=>sc(v)>0).sort((a,b)=>sc(b)-sc(a))[0]||null;
+    if(g===l+'-be') s+=4; if(g==='fr-ca') s-=30; if(MS_BAD.test(n)) s-=80; if(v.localService) s+=2; return s; };
+  return all.filter(v=>sc(v)>-1).sort((a,b)=>sc(b)-sc(a));
 }
-if('speechSynthesis' in window){ try{ speechSynthesis.onvoiceschanged=()=>{ MSV.v=msVoice(); }; }catch(_){} }
+function msPickVoice(l){ let keep=null; try{ keep=localStorage.getItem('cdm_ms_vox_'+l); }catch(_){}
+  const L=msVoices(l); return L.find(v=>v.name===keep)||L[0]||null; }
+/* Les voix arrivent parfois en retard (Safari iOS) : on attend jusqu'a 2 s avant de parler,
+   sinon le telephone lit le texte francais avec sa voix par defaut (anglaise) : incomprehensible. */
+function msLoadVoices(){ return new Promise(res=>{
+  if(!('speechSynthesis' in window)) return res();
+  let n=0; const tick=()=>{ const a=speechSynthesis.getVoices()||[];
+    if(a.length||n++>20){ MSV.v=msPickVoice(LANG); MSV.en=msPickVoice('en'); res(); } else setTimeout(tick,100); };
+  tick(); }); }
+if('speechSynthesis' in window){ try{ speechSynthesis.onvoiceschanged=()=>{ MSV.v=msPickVoice(LANG); MSV.en=msPickVoice('en'); }; }catch(_){} }
+/* Noms des exercices : par la voix ANGLAISE (iPhone, Mac : le changement de voix y est fiable)
+   ou prononces a la francaise / neerlandaise via le lexique (Android et autres). Reglable. */
+const MS_APPLE=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent||'');
+function msNamesMode(){ let m=null; try{ m=localStorage.getItem('cdm_ms_names'); }catch(_){}
+  if(m==='en'||m==='lex') return m; return MS_APPLE?'en':'lex'; }
+const msNm=n=>({t:String(n||'').replace(/\(.*?\)/g,' ').replace(/\s+/g,' ').trim(), lex:msName(n), en:1});
+function msUtter(text,v,fb){ const u=new SpeechSynthesisUtterance(text);
+  if(v){ u.voice=v; u.lang=v.lang; } else u.lang=fb; u.rate=1; return u; }
 function msSay(parts){
   if(!MSV.on||!('speechSynthesis' in window)) return;
   try{
-    speechSynthesis.cancel(); if(!MSV.v) MSV.v=msVoice();
-    [].concat(parts).filter(Boolean).forEach(x=>{ const u=new SpeechSynthesisUtterance(x);
-      if(MSV.v){ u.voice=MSV.v; u.lang=MSV.v.lang; } else u.lang=({fr:'fr-BE',nl:'nl-BE',en:'en-GB'})[LANG]||'fr-BE';
-      u.rate=1; speechSynthesis.speak(u); });
+    speechSynthesis.cancel(); if(!MSV.v) MSV.v=msPickVoice(LANG); if(MSV.en===undefined) MSV.en=msPickVoice('en');
+    const fb=({fr:'fr-FR',nl:'nl-NL',en:'en-US'})[LANG]||'fr-FR';
+    const useEn=LANG!=='en'&&msNamesMode()==='en'&&MSV.en;
+    [].concat(parts).filter(Boolean).forEach(x=>{
+      if(typeof x==='object'){
+        if(LANG==='en') speechSynthesis.speak(msUtter(x.t,MSV.v,fb));
+        else if(useEn) speechSynthesis.speak(msUtter(x.t,MSV.en,'en-US'));
+        else speechSynthesis.speak(msUtter(x.lex,MSV.v,fb));
+      } else speechSynthesis.speak(msUtter(x,MSV.v,fb));
+    });
   }catch(_){}
+}
+/* Reglages de la voix : choix de la voix, noms en anglais ou a la francaise, essai */
+const MS_VTX={
+ t:{fr:'Voix du coach',en:'Coach voice',nl:'Stem van de coach'},
+ v:{fr:'Voix',en:'Voice',nl:'Stem'},
+ n:{fr:'Noms des exercices',en:'Exercise names',nl:'Namen van de oefeningen'},
+ ne:{fr:'En anglais, voix anglaise',en:'English voice',nl:'In het Engels, Engelse stem'},
+ nl:{fr:'Prononcés à la française',en:'—',nl:'Op z’n Nederlands uitgesproken'},
+ test:{fr:'▶ Écouter',en:'▶ Listen',nl:'▶ Beluisteren'},
+ hint:{fr:'Sur iPhone, la meilleure voix est gratuite : Réglages › Accessibilité › Contenu énoncé › Voix › Français › Audrey (améliorée). Télécharge-la une fois, l’app la prend toute seule.',
+       en:'On iPhone, the best voices are free: Settings › Accessibility › Spoken Content › Voices › English. Download one once and the app uses it.',
+       nl:'Op iPhone is de beste stem gratis: Instellingen › Toegankelijkheid › Gesproken materiaal › Stemmen › Nederlands › Ellen of Xander (verbeterd). Eén keer downloaden, de app neemt ze vanzelf.'},
+ none:{fr:'Aucune voix française trouvée sur ce téléphone.',en:'No voice found on this phone.',nl:'Geen Nederlandse stem gevonden op deze telefoon.'},
+ ok:{fr:'OK',en:'OK',nl:'OK'}
+};
+const mvt=k=>{const o=MS_VTX[k];return o?(o[LANG]||o.fr):k;};
+async function msVoiceSheet(){
+  await msLoadVoices();
+  let sh=document.getElementById('ms-vs');
+  if(!sh){ sh=document.createElement('div'); sh.id='ms-vs'; sh.className='ms-vs'; document.getElementById('ms-ov').appendChild(sh);
+    sh.onclick=e=>{ if(e.target===sh) sh.hidden=true; }; }
+  const L=msVoices(LANG), cur=MSV.v, mode=msNamesMode();
+  const lab=v=>esc((v.name||'').replace(/\s*\(.*?\)\s*/g,' ').trim())+(/premium|enhanced|améliorée|natural|neural|siri/i.test(v.name)?' ★':'')+(MS_BAD.test(v.name)?' ·':'');
+  sh.innerHTML=`<div class="ms-vsi"><h3>${esc(mvt('t'))}</h3>
+    <label>${esc(mvt('v'))}</label>
+    ${L.length?`<select id="ms-vsel">${L.map(v=>`<option value="${esc(v.name)}"${cur&&v.name===cur.name?' selected':''}>${lab(v)}</option>`).join('')}</select>`:`<p class="ms-vnone">${esc(mvt('none'))}</p>`}
+    ${LANG!=='en'?`<label>${esc(mvt('n'))}</label>
+    <div class="ms-vseg"><button type="button" data-m="en" class="${mode==='en'?'on':''}">${esc(mvt('ne'))}</button><button type="button" data-m="lex" class="${mode==='lex'?'on':''}">${esc(mvt('nl'))}</button></div>`:''}
+    <button type="button" class="ms-gh wide" id="ms-vtest">${esc(mvt('test'))}</button>
+    <p class="ms-vhint">${esc(mvt('hint'))}</p>
+    <button type="button" class="ms-btn" id="ms-vok">${esc(mvt('ok'))}</button></div>`;
+  sh.hidden=false;
+  const sel=document.getElementById('ms-vsel');
+  if(sel) sel.onchange=()=>{ const v=L.find(x=>x.name===sel.value); if(v){ MSV.v=v; try{ localStorage.setItem('cdm_ms_vox_'+LANG,v.name); }catch(_){} } };
+  sh.querySelectorAll('.ms-vseg button').forEach(b=>b.onclick=()=>{ try{ localStorage.setItem('cdm_ms_names',b.dataset.m); }catch(_){}
+    sh.querySelectorAll('.ms-vseg button').forEach(x=>x.classList.toggle('on',x===b)); });
+  document.getElementById('ms-vtest').onclick=()=>{ const was=MSV.on; MSV.on=true;
+    const n=msNm('Back Squat');
+    msSay(LANG==='fr'?[n,'Série deux sur trois. Cinq répétitions, à soixante-deux kilos et demi.',msNm('Kettlebell Swing'),'Les hanches envoient la cloche, pas les bras.']
+         :LANG==='nl'?[n,'Set 2 van 3. 5 herhalingen, 62,5 kilo.',msNm('Kettlebell Swing'),'De heupen sturen de kettlebell, niet de armen.']
+         :[n,'Set 2 of 3. 5 reps at 62.5 kilos.']);
+    MSV.on=was; };
+  document.getElementById('ms-vok').onclick=()=>{ sh.hidden=true; };
 }
 
 /* 1RM estime : meme methode que la base (compute_est_1rm) — Wathan sur les reps
@@ -10581,6 +10656,7 @@ function msMount(){
       <svg class="ms-ring" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5"/><circle id="ms-ringp" cx="22" cy="22" r="18" fill="none" stroke="#00E896" stroke-width="5" stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="113.1" transform="rotate(-90 22 22)"/></svg>
       <div class="ms-clock" id="ms-clock">0:00</div>
       <div class="ms-kg"><b id="ms-kgv">0</b><small>${esc(mt('kgl'))}</small></div>
+      <button type="button" class="ms-ic" id="ms-vset" aria-label="voix">⚙</button>
       <button type="button" class="ms-ic" id="ms-snd" aria-label="voix">🔊</button>
     </div>
     <div class="ms-stage"><div class="ms-glow"></div><div class="ms-fig rig" id="ms-fig"></div></div>
@@ -10617,6 +10693,7 @@ function msMount(){
   const g=id=>document.getElementById(id);
   g('ms-x').onclick=()=>msClose();
   g('ms-snd').onclick=()=>{ MSV.on=!MSV.on; try{ localStorage.setItem('cdm_ms_voice',MSV.on?'1':'0'); }catch(_){} g('ms-snd').textContent=MSV.on?'🔊':'🔇'; if(!MSV.on) try{ speechSynthesis.cancel(); }catch(_){} };
+  g('ms-vset').onclick=()=>msVoiceSheet();
   g('ms-done').onclick=()=>msValidate();
   g('ms-m').onclick=()=>msAdj(-1); g('ms-p').onclick=()=>msAdj(1);
   g('ms-rm').onclick=()=>msAdjR(-1); g('ms-rp').onclick=()=>msAdjR(1);
@@ -10645,6 +10722,7 @@ async function msOpen(countdown){
   try{ const P=window.Capacitor&&window.Capacitor.Plugins; if(P&&P.KeepAwake) P.KeepAwake.keepAwake(); }catch(_){}
   animCharger();
   MS.clk=setInterval(()=>{ const c=document.getElementById('ms-clock'); if(c&&SESSION) c.textContent=msFmt(Math.floor((Date.now()-SESSION.started)/1000)); },500);
+  await msLoadVoices();
   if(!msCur()){ msEnd(); return; }
   if(countdown){
     msShow('ms-count'); let n=3; const el=document.getElementById('ms-cnum'); el.textContent=n;
@@ -10718,7 +10796,7 @@ async function msWork(announce){
   msLastTime(s.wrap.dataset.ex).then(r=>{ if(!MS||MS.cur!==s) return; gh.innerHTML=r?`${esc(mt('last'))} : <b>${esc(msLastTxt(r))}</b>`:esc(mt('first')); });
   if(announce){
     const t=msTarget(s); const first=!MS.seen[s.it.id]; MS.seen[s.it.id]=1;
-    const nm=msName(name)+'.';
+    const nm=msNm(name);
     let line='';
     if(LANG==='fr'){ line=`Série ${msNum(s.k+1)} sur ${msNum(n)}.`+(t.r?` ${msNum(t.r)} répétitions${s._side?' par côté':''}`:'')+(t.load==='weight'&&t.kg?`, à ${msKg(t.kg)}`:'')+'.'; }
     else if(LANG==='nl'){ line=`Set ${s.k+1} van ${n}.`+(t.r?` ${t.r} herhalingen`:'')+(t.load==='weight'&&t.kg?`, ${msKg(t.kg)}`:'')+'.'; }
@@ -10802,7 +10880,7 @@ async function msRest(sec,nx,prev){
   rb.querySelectorAll('button').forEach(b=>{ b.classList.remove('on'); b.onclick=()=>msRir(+b.dataset.rir,b); });
   const q=MS_TX.q[WO_DONE%3]; document.getElementById('ms-quote').textContent=q[LANG]||q.fr;
   const lastSet=!msCur()||(MS.slots.filter(x=>!x.pill.classList.contains('done')).length===1);
-  if(newEx) msSay(LANG==='fr'?['Récupère. Ensuite : '+msName(pick(nx.ex,'name'))+'.']:LANG==='nl'?['Herstel. Hierna: '+msName(pick(nx.ex,'name'))+'.']:['Rest. Next up: '+pick(nx.ex,'name')+'.']);
+  if(newEx) msSay(LANG==='fr'?['Récupère. Ensuite :',msNm(pick(nx.ex,'name'))]:LANG==='nl'?['Herstel. Hierna:',msNm(pick(nx.ex,'name'))]:['Rest. Next up:',msNm(pick(nx.ex,'name'))]);
   else msSay(lastSet?(LANG==='fr'?'Dernière série après ce repos. Tu vas tout donner.':LANG==='nl'?'Laatste set na deze rust. Geef alles.':'Last set after this rest. Give it everything.')
                     :(LANG==='fr'?'Récupère. Respire par le nez.':LANG==='nl'?'Herstel. Adem door je neus.':'Rest. Breathe through your nose.'));
   msRestPaint();
