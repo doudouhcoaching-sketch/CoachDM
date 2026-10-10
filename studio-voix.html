@@ -240,10 +240,15 @@ $('#rec').onclick=async()=>{
   rec.start(); $('#rec').classList.add('on'); $('#rec').textContent='STOP'; $('#warn').textContent='';
   /* arret automatique : 0,8 s de silence apres avoir parle, ou duree max */
   const maxMs=it.g==='phr'||it.g==='enc'?9000:it.g==='name'||it.g==='cue'?5000:3500;
-  const buf=new Float32Array(analyser.fftSize); let spoke=false, quietSince=0; const t0=performance.now();
+  /* seuil qui s'adapte a la piece et a la distance du telephone : avant, une voix
+     enregistree doucement n'atteignait jamais le seuil fixe et l'enregistrement
+     tournait jusqu'au bout (9 s). */
+  const buf=new Float32Array(analyser.fftSize); let spoke=false, quietSince=0, floor=0, nf=0; const t0=performance.now();
   const loop=()=>{ analyser.getFloatTimeDomainData(buf); let s=0; for(let i=0;i<buf.length;i++) s+=buf[i]*buf[i]; const rms=Math.sqrt(s/buf.length);
     $('#lvl').style.width=Math.min(100,rms*400)+'%'; const now=performance.now();
-    if(rms>0.03){ spoke=true; quietSince=0; } else if(spoke){ if(!quietSince) quietSince=now; else if(now-quietSince>800){ rec.stop(); return; } }
+    if(now-t0<350){ floor=(floor*nf+rms)/(++nf); raf=requestAnimationFrame(loop); return; }
+    const on=Math.max(floor*5,0.006), off=Math.max(floor*2.5,0.004);
+    if(rms>on){ spoke=true; quietSince=0; } else if(spoke&&rms<off){ if(!quietSince) quietSince=now; else if(now-quietSince>900){ rec.stop(); return; } } else if(spoke) quietSince=0;
     if(now-t0>maxMs){ rec.stop(); return; }
     raf=requestAnimationFrame(loop); };
   raf=requestAnimationFrame(loop);
@@ -254,14 +259,16 @@ async function analyse(blob){
   const d=audio.getChannelData(0), sr=audio.sampleRate, fr=Math.round(sr*0.01), R=[];
   for(let i=0;i+fr<=d.length;i+=fr){ let s=0; for(let j=i;j<i+fr;j++) s+=d[j]*d[j]; R.push(Math.sqrt(s/fr)); }
   const sorted=[...R].sort((a,b)=>a-b), floor=sorted[Math.floor(sorted.length*0.15)]||0;
-  const thr=Math.max(floor*3.5,0.012);
+  const thr=Math.max(floor*3.5,0.004);
   let a=R.findIndex(x=>x>thr), b=R.length-1-[...R].reverse().findIndex(x=>x>thr);
   if(a<0){ $('#warn').textContent='Je n’ai rien entendu. Rapproche le téléphone et recommence.'; return; }
-  const start=Math.max(0,a*0.01-0.06), end=Math.min(audio.duration,(b+1)*0.01+0.16);
+  const start=Math.max(0,a*0.01-0.06), end=Math.min(audio.duration,(b+1)*0.01+0.22);
   let peak=0; for(let i=Math.floor(start*sr);i<Math.floor(end*sr);i++) peak=Math.max(peak,Math.abs(d[i]));
-  const gain=Math.min(4,0.9/Math.max(peak,0.01));
+  /* volume : moyenne de la voix visee a -19 dBFS (comme dans l'app), crete max -1 dBFS */
+  let q=0,n=0; for(let k=a;k<=b;k++){ if(R[k]>thr){ q+=R[k]*R[k]; n++; } } const act=n?Math.sqrt(q/n):0.05;
+  const gain=Math.max(0.5,Math.min(10,0.112/act,0.89/Math.max(peak,1e-4)));
   const w=[]; if(peak>0.98) w.push('Ça sature : recule un peu le téléphone.');
-  else if(peak<0.06) w.push('Un peu faible : rapproche le téléphone ou parle plus fort.');
+  else if(act<0.025) w.push('Voix trop faible ('+Math.round(20*Math.log10(act))+' dB) : rapproche-toi (téléphone à 10–15 cm, MacBook à 25–30 cm, face à l’écran) et parle comme à la box.');
   if(floor>0.02) w.push('Bruit de fond élevé : cherche un endroit plus calme.');
   if(end-start>8.5) w.push('Un peu long : essaie plus sec.');
   $('#warn').textContent=w.join(' ');
