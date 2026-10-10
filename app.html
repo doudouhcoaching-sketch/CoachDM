@@ -10663,17 +10663,24 @@ const vcNameText=n=>String(n||'').replace(/\(.*?\)/g,' ').replace(/\s+/g,' ').tr
 const VC_BASE=SUPABASE_URL+'/storage/v1/object/public/coach-voice/';
 let VC_IDX=null, VC_AC=null, VC_RUN=0, VC_SRC=[];
 const VC_BUF={};
+let VC_IDX_T=0;
 async function vcIndex(force){
-  if(VC_IDX&&!force) return VC_IDX;
+  /* relu toutes les 5 min : un enregistrement fait dans le studio arrive sans nouvelle version de l'app */
+  if(VC_IDX&&!force&&Date.now()-VC_IDX_T<300000) return VC_IDX;
+  VC_IDX_T=Date.now();
   const idx={};
   try{ const { data } = await sb.from('voice_clips').select('lang,key,path,trim_start,trim_end,gain,updated_at').in('lang',[LANG,'x']).limit(3000);
     (data||[]).forEach(r=>{ (idx[r.lang]=idx[r.lang]||{})[r.key]=r; }); }catch(_){}
+  if(!Object.keys(idx).length&&VC_IDX) return VC_IDX;   /* hors ligne : on garde ce qu'on avait */
   return VC_IDX=idx;
 }
 const vcHas=(l,k)=>!!(VC_IDX&&VC_IDX[l]&&VC_IDX[l][k]);
 const VC_CORE=['w_set','w_of','w_reps','w_kg','p_rest','p_next','n1','n2','n3','n5','n10'];
 const vcReady=()=>VC_CORE.every(k=>vcHas(LANG,k));
-function vcMode(){ let m=null; try{ m=localStorage.getItem('cdm_ms_vmode'); }catch(_){} if(m==='phone') return 'phone'; return vcReady()?'coach':'phone'; }
+/* Voix de Coach DM au fur et a mesure : des qu'un morceau existe, il est utilise. Une phrase
+   dont un morceau manque passe entiere par la voix du telephone (jamais de phrase a moitie). */
+const vcAny=()=>!!(VC_IDX&&((VC_IDX[LANG]&&Object.keys(VC_IDX[LANG]).length)||(VC_IDX.x&&Object.keys(VC_IDX.x).length)));
+function vcMode(){ let m=null; try{ m=localStorage.getItem('cdm_ms_vmode'); }catch(_){} if(m==='phone') return 'phone'; return vcAny()?'coach':'phone'; }
 function vcCuesToo(){ try{ return localStorage.getItem('cdm_ms_vcues')==='1'; }catch(_){ return false; } }
 function vcCtx(){ if(!VC_AC) VC_AC=new (window.AudioContext||window.webkitAudioContext)(); if(VC_AC.state!=='running') VC_AC.resume().catch(()=>{}); return VC_AC; }
 async function vcLoad(l,k){
@@ -10815,7 +10822,7 @@ async function msVoiceSheet(){
   await vcIndex(true);
   const vm=vcMode(), nOk=Object.keys((VC_IDX&&VC_IDX[LANG])||{}).length, nX=Object.keys((VC_IDX&&VC_IDX.x)||{}).length;
   sh.innerHTML=`<div class="ms-vsi"><h3>${esc(mvt('t'))}</h3>
-    ${vcReady()?`<div class="ms-vseg" id="ms-vm"><button type="button" data-v="coach" class="${vm==='coach'?'on':''}">${esc(mvt('vc'))}</button><button type="button" data-v="phone" class="${vm==='phone'?'on':''}">${esc(mvt('vp'))}</button></div>
+    ${vcAny()?`<div class="ms-vseg" id="ms-vm"><button type="button" data-v="coach" class="${vm==='coach'?'on':''}">${esc(mvt('vc'))}</button><button type="button" data-v="phone" class="${vm==='phone'?'on':''}">${esc(mvt('vp'))}</button></div>
     <p class="ms-vhint">${esc(mvt('vcn').replace('{a}',nOk).replace('{b}',nX))}</p>`:''}
     <label class="ms-vck"><input type="checkbox" id="ms-vlive"${vcLiveOn()?' checked':''}> ${esc(mvt('vlive'))}</label>
     <label class="ms-vck"><input type="checkbox" id="ms-vcues"${vcCuesToo()?' checked':''}> ${esc(mvt('vcues'))}</label>
