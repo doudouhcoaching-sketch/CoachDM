@@ -438,7 +438,9 @@ document.querySelectorAll('.langbar button').forEach(b=>b.onclick=()=>{
    On les retire integralement du wrapper natif, dans les 3 langues. */
 (function(){
   var IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
-  if(!IS_NATIVE) return;
+  var IN_APP=IS_NATIVE||/[?&]app=1/.test(location.search);   /* navigateur in-app ouvert par l'app */
+  if(!IN_APP) return;
+  document.querySelectorAll('a[href*="tarifs"],a[href*="coaching.html"],a[href*="fondateur"],a[href*="services.html"],a[href*="checkout.stripe"],a[href*="buy.stripe"],a[href*="payhip"]').forEach(function(a){ a.replaceWith(document.createTextNode(a.textContent)); });
 
   /* Page ouverte dans la meme webview depuis l'app : il faut un retour. */
   var back=document.createElement('button');
@@ -447,7 +449,7 @@ document.querySelectorAll('.langbar button').forEach(b=>b.onclick=()=>{
     'border:0;border-bottom:1px solid #222B26;background:#070A08;color:#00E896;'+
     'font:700 15px -apple-system,system-ui,sans-serif;padding:14px 16px;text-align:left;cursor:pointer');
   back.onclick=function(){ history.back(); };
-  document.body.insertBefore(back, document.body.firstChild);
+  if(IS_NATIVE) document.body.insertBefore(back, document.body.firstChild);
 
   var PAY=/paiement|payment|betaling|annuler|cancelling|opzeggen/i;
   document.querySelectorAll('section.lang .cat').forEach(function(cat){

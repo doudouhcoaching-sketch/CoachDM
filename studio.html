@@ -1563,7 +1563,7 @@ function paintMP() {
   $$('[data-slot]', b).forEach((x) => x.onclick = () => { MP.slots = SLOTS.filter((s) => MP.slots.includes(s) || s === x.dataset.slot); re(); });
   $$('[data-addto]', b).forEach((x) => x.onclick = () => pickFood(x.dataset.addto));
   $$('[data-rm]', b).forEach((x) => x.onclick = () => { MP.items.splice(+x.dataset.rm, 1); MP.dirty = true; re(); });
-  $$('[data-q]', b).forEach((x) => x.onclick = () => { const it = MP.items[+x.dataset.q], d = +x.dataset.d;
+  $$('[data-q]', b).forEach((x) => x.onclick = () => { const it = MP.items[+x.dataset.q], d = +x.dataset.d; delete it.q0;
     if (it.kind === 'recipe') it.qty = Math.max(.25, Math.min(4, it.qty + d * .25)); else it.qty = Math.max(5, Math.min(1500, it.qty + d * (it.qty >= 100 ? 25 : 10)));
     MP.dirty = true; re(); });
   const busy = async (fn) => { try { await fn(); MP.dirty = true; re(); } catch (e) { toast(errMsg(e), true); } };
@@ -1663,17 +1663,18 @@ function nfShares() { const tot = MP.slots.reduce((a, s) => a + SLOT_SHARE[s], 0
 const nfFatty = (b) => b.f > 60;
 /* bornes d'un element : catalogue si on le connait, sinon autour de la quantite choisie par le coach */
 function nfBounds(it) {
-  if (it.kind === 'recipe') return { lo: .5, hi: 3, t: it.qty || 1, step: .25 };
+  if (it.kind === 'recipe') return { lo: .5, hi: 4, t: it.q0 || it.qty || 1, step: .25 };
   const e = it.role && [...(NF_CAT[it.role] || []), ...NF_BOOST.p, ...NF_BOOST.c, ...NF_BOOST.f].find((x) => x[0] === it.ref.name_fr);
   if (e) return { lo: e[2], hi: e[3], t: e[1], step: 5 };
-  const q = Math.max(10, +it.qty || 100);
+  const q = Math.max(10, +(it.q0 || it.qty) || 100);   /* quantite choisie par le coach, figee au debut du calcul */
   return nfFatty(it.base) ? { lo: 0, hi: 50, t: q, step: 5 } : { lo: Math.max(10, r5(q * .3)), hi: Math.max(r5(q * 3), 150), t: q, step: 5 };
 }
 const nfTot = () => MP.items.filter((i) => i.day === MP.day).reduce((a, it) => { const v = itemVals(it); a.k += v.k; a.p += v.p; a.c += v.c; a.f += v.f; return a; }, { k: 0, p: 0, c: 0, f: 0 });
 /* dose les elements du jour ; si un macro reste court et qu'on a le droit, ajoute un aliment d'appoint */
 function nfFit(T, allowBoost) {
   const shares = nfShares();
-  for (let round = 0; round < 4; round++) {
+  MP.items.forEach((i) => { if (i.day === MP.day && i.q0 == null) i.q0 = +i.qty; });
+  for (let round = 0; round < 6; round++) {
     const its = MP.items.filter((i) => i.day === MP.day);
     const vars = its.map((it) => {
       if (it.kind === 'free') return { a: itemVals(it), lo: 1, hi: 1, t: 1, step: 1, slot: it.slot, fixed: true, x: 1 };
@@ -1682,11 +1683,12 @@ function nfFit(T, allowBoost) {
     });
     const x = nfSolve(vars, T, shares);
     its.forEach((it, i) => { if (it.kind !== 'free') it.qty = Math.round(x[i] * 100) / 100; });
-    const crumbs = MP.items.filter((it) => it.day === MP.day && it.kind === 'food' && it.qty < (nfFatty(it.base) || ['nuts', 'whey', 'fat'].includes(it.role) ? 5 : 20));
+    /* seuls les aliments places par le calcul peuvent disparaitre ; ceux du coach restent */
+    const crumbs = MP.items.filter((it) => it.day === MP.day && it.kind === 'food' && it.role && it.qty < (nfFatty(it.base) || ['nuts', 'whey', 'fat'].includes(it.role) ? 5 : 20));
     if (crumbs.length) { MP.items = MP.items.filter((it) => !crumbs.includes(it)); continue; }
     const S = nfTot();
     const off = ['p', 'c', 'f'].map((m) => [m, (T[m] - S[m]) / T[m]]).filter(([, d]) => Math.abs(d) > .015).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))[0];
-    if (!off || !allowBoost || off[1] < 0) return S;
+    if (!off || !allowBoost || off[1] < 0 || round >= 4) return S;
     const m = off[0], have = new Set(MP.items.filter((i) => i.day === MP.day && i.kind === 'food').map((i) => i.ref.name_fr));
     const e = NF_BOOST[m].find((z) => !have.has(z[0]) && NF_FOODS[z[0]]); if (!e) return S;
     const slot = NF_BOOST_SLOT[m].find((z) => MP.slots.includes(z)) || MP.slots[0];

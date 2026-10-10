@@ -384,6 +384,13 @@ h1, h2, h3{ font-family:var(--font-display); letter-spacing:.012em; }
   back.onclick=function(){ history.back(); };
   document.body.insertBefore(back, document.body.firstChild);
 })();
+/* Ouvert depuis l'app (webview locale ou navigateur in-app ?app=1) : aucun lien
+   vers une offre ou un paiement hors achat integre (Apple 3.1.1 / Google Play). */
+(function(){
+  var inApp=/[?&]app=1/.test(location.search)||!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+  if(!inApp) return;
+  document.querySelectorAll('a[href*="tarifs"],a[href*="coaching.html"],a[href*="fondateur"],a[href*="services.html"],a[href*="checkout.stripe"],a[href*="buy.stripe"],a[href*="payhip"]').forEach(function(a){ a.replaceWith(document.createTextNode(a.textContent)); });
+})();
 </script>
 </body>
 </html>

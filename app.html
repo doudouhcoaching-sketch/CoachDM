@@ -5276,7 +5276,7 @@ if(IS_NATIVE){
   document.querySelectorAll('a[href^="https://coachdm.be/"]').forEach(a=>{
     const rel=a.getAttribute('href').replace('https://coachdm.be/','');
     if(!/^(aide|privacy|conditions)\.html$/.test(rel)) return;
-    a.setAttribute('href', rel);
+    a.setAttribute('href', rel+'?app=1');   /* la page retire alors tout lien vers une offre */
     a.removeAttribute('target');          /* meme webview : le fichier local n'est pas joignable en _blank */
     a.removeAttribute('rel');
   });
@@ -5716,6 +5716,7 @@ function planPrice(row){
     const p=IAP_PRODUCTS[pid];
     if(p && p.priceString) return p.priceString;
   }
+  if(IS_NATIVE) return '';                 /* pas de produit du store : aucun prix affiche dans l'app */
   return money(row.amount_cents);
 }
 
@@ -5790,7 +5791,7 @@ function iapRestoreRow(){
    n'est pas remplacee, le membre revient d'un simple "Terminer". Si le plugin
    Browser manque, on retombe sur la copie embarquee dans le bundle. */
 function openLegal(rel){
-  const url='https://coachdm.be/'+rel;
+  const url='https://coachdm.be/'+rel+(IS_NATIVE?'?app=1':'');
   if(IS_NATIVE){
     try{
       const P=window.Capacitor&&window.Capacitor.Plugins;
@@ -7666,7 +7667,7 @@ $('#sh-add').onclick = async ()=>{
       p_sugars:SELECTED.sugars, p_sat:SELECTED.sat, p_salt:SELECTED.salt,
       p_serving_g:SELECTED.default_serving_g, p_image:SELECTED.image
     });
-    if(e1||!fid){ setBtn('#sh-add',false,t('sh_add')); toast('Échec de l\'ajout'); return; }
+    if(e1||!fid){ setBtn('#sh-add',false,t('sh_add')); toast(t('save_fail')); return; }
     foodId=fid;
   }
   const row={
@@ -7678,7 +7679,7 @@ $('#sh-add').onclick = async ()=>{
   };
   const { error } = await sb.from('food_logs').insert(row);
   setBtn('#sh-add',false,t('sh_add'));
-  if(error){ toast('Échec de l\'ajout'); return; }
+  if(error){ toast(t('save_fail')); return; }
   closeSheet(); toast(t('jo_added'));
   await loadLogs(); await loadToday();
 };
@@ -8424,9 +8425,9 @@ async function sendIA(){
   try{
     const { data, error } = await sb.functions.invoke('ai-chat',{ body:{ conversation_id:CONV, message:text, locale:LANG } });
     typing.remove();
-    if(error||!data){ addBubble('ai','Petit souci de connexion. Réessaie dans un instant.'); }
+    if(error||!data){ addBubble('ai',LANG==='nl'?'Even een verbindingsprobleem. Probeer het zo opnieuw.':LANG==='en'?'Small connection issue. Try again in a moment.':'Petit souci de connexion. Réessaie dans un instant.'); }
     else { CONV = data.conversation_id || CONV; typeBubble(data.reply || '…'); }
-  }catch(e){ typing.remove(); addBubble('ai','Petit souci de connexion. Réessaie dans un instant.'); }
+  }catch(e){ typing.remove(); addBubble('ai',LANG==='nl'?'Even een verbindingsprobleem. Probeer het zo opnieuw.':LANG==='en'?'Small connection issue. Try again in a moment.':'Petit souci de connexion. Réessaie dans un instant.'); }
   BUSY=false; $('#ia-send').disabled=false;
 }
 document.querySelectorAll('#ia-chips button').forEach(b=>{
@@ -10233,12 +10234,12 @@ function buzz(ms){
 }
 function tones(seq){ try{
   const A=window.AudioContext||window.webkitAudioContext; if(!A) return;
-  const c=new A(); let t0=c.currentTime;
+  /* iOS : un contexte cree hors d'un toucher reste muet -> on reutilise celui de la voix */
+  const c=vcCtx(); let t0=c.currentTime;
   seq.forEach(p=>{ const o=c.createOscillator(),g=c.createGain(); o.type='sine'; o.frequency.value=p[0];
     o.connect(g); g.connect(c.destination);
     g.gain.setValueAtTime(.14,t0); g.gain.exponentialRampToValueAtTime(.0001,t0+p[1]);
     o.start(t0); o.stop(t0+p[1]); t0+=p[1]*.85; });
-  setTimeout(()=>{ try{c.close();}catch(e){} }, (t0-c.currentTime)*1000+400);
 }catch(e){} }
 const SND={
   start:()=>tones([[523,.15],[659,.15],[784,.28]]),
@@ -10300,7 +10301,7 @@ async function quickSet(wrap,pill){
   pill.style.opacity=.5;
   const { error } = await sb.from('set_logs').insert(row);
   pill.style.opacity='';
-  if(error){ toast('Échec de l\'enregistrement'); return; }
+  if(error){ toast(t('save_fail')); return; }
   pill.classList.add('done'); pill.textContent='✓';
   /* E#30 — la validation d'une serie merite un retour franc : buzz(15)
      declenchait un impact LIGHT, trop discret pour confirmer un acte qu'on
@@ -10620,15 +10621,15 @@ function vcNumWord(l,n){
 }
 const VC_PHR={
  fr:{p_go:"C'est parti !",p_ready:'Mets-toi en place.',p_rest:'Récupère. Respire par le nez.',p_next:'Récupère. Ensuite :',p_last:'Dernière série après ce repos. Tu vas tout donner.',
-     p_pr:'Nouveau record ! Bravo.',p_e1rm:'Nouveau 1RM estimé !',p_end:'Séance terminée. Bien joué : ta meilleure heure de la journée est faite.',p_10s:'Dix secondes.',
+     p_pr:'Nouveau record ! Bravo.',p_e1rm:'Nouveau 1RM estimé !',p_end:'Séance terminée. Bien joué : ta meilleure heure de la journée est faite.',p_10s:'Dix secondes.',p_time:'Tiiiime !',
      w_set:'Série',w_of:'sur',w_reps:'répétitions',w_side:'par côté',w_at:'à',w_kg:'kilos',w_kg5:'kilos et demi',w_sec:'secondes',w_min:'minutes',w_m:'mètres',w_cal:'calories',
      e1:'Allez, on y va !',e2:"Propre. La technique d'abord.",e3:'Gaine, respire, et pousse.',e4:'Contrôle la descente.',e5:"Encore une, tu l'as !",e6:'Regard devant, poitrine fière.',e7:'Tu es plus fort que la dernière fois.',e8:'Bien. On garde ce rythme.'},
  nl:{p_go:'Daar gaan we!',p_ready:'Neem je positie in.',p_rest:'Herstel. Adem door je neus.',p_next:'Herstel. Hierna:',p_last:'Laatste set na deze rust. Geef alles.',
-     p_pr:'Nieuw record! Goed zo.',p_e1rm:'Nieuwe geschatte 1RM!',p_end:'Training klaar. Goed gedaan: het beste uur van je dag zit erop.',p_10s:'Tien seconden.',
+     p_pr:'Nieuw record! Goed zo.',p_e1rm:'Nieuwe geschatte 1RM!',p_end:'Training klaar. Goed gedaan: het beste uur van je dag zit erop.',p_10s:'Tien seconden.',p_time:'Tiiiime!',
      w_set:'Set',w_of:'van',w_reps:'herhalingen',w_side:'per kant',w_at:'met',w_kg:'kilo',w_kg5:'en een halve kilo',w_sec:'seconden',w_min:'minuten',w_m:'meter',w_cal:'calorieën',
      e1:'Kom op, daar gaan we!',e2:'Netjes. Eerst de techniek.',e3:'Span aan, adem, en duwen.',e4:'Controleer de afdaling.',e5:'Nog eentje, je hebt hem!',e6:'Blik vooruit, borst fier.',e7:'Je bent sterker dan vorige keer.',e8:'Goed. Hou dit ritme vast.'},
  en:{p_go:"Let's go!",p_ready:'Get in position.',p_rest:'Rest. Breathe through your nose.',p_next:'Rest. Next up:',p_last:'Last set after this rest. Give it everything.',
-     p_pr:'New record! Well done.',p_e1rm:'New estimated 1RM!',p_end:'Workout complete. Well done: the best hour of your day is done.',p_10s:'Ten seconds.',
+     p_pr:'New record! Well done.',p_e1rm:'New estimated 1RM!',p_end:'Workout complete. Well done: the best hour of your day is done.',p_10s:'Ten seconds.',p_time:'Tiiiime!',
      w_set:'Set',w_of:'of',w_reps:'reps',w_side:'per side',w_at:'at',w_kg:'kilos',w_kg5:'and a half kilos',w_sec:'seconds',w_min:'minutes',w_m:'meters',w_cal:'calories',
      e1:"Let's go!",e2:'Clean reps. Technique first.',e3:'Brace, breathe, and drive.',e4:'Control the way down.',e5:'One more, you got it!',e6:'Eyes up, chest proud.',e7:"You're stronger than last time.",e8:'Good. Keep this pace.'}
 };
@@ -10649,7 +10650,7 @@ function vcKgKeys(v){
   else { const h=Math.floor(i/100)*100, r=i%100; k.push('n'+(h>300?300:h)); if(r) k.push('n'+r); }
   k.push(half?'w_kg5':'w_kg'); return k;
 }
-function vcNumKeys(i){ i=Math.round(i); if(i<=100) return ['n'+i]; const h=Math.min(300,Math.floor(i/100)*100), r=i%100; return r?['n'+h,'n'+r]:['n'+h]; }
+function vcNumKeys(i){ if(!Number.isInteger(+i)||i<0||i>399) return ['n_none']; i=+i; if(i<=100) return ['n'+i]; const h=Math.min(300,Math.floor(i/100)*100), r=i%100; return r?['n'+h,'n'+r]:['n'+h]; }
 const vcNameText=n=>String(n||'').replace(/\(.*?\)/g,' ').replace(/\s+/g,' ').trim();
 
 /* ---- VOIX ENREGISTREE DE COACH DM ----
@@ -10674,21 +10675,37 @@ const VC_CORE=['w_set','w_of','w_reps','w_kg','p_rest','p_next','n1','n2','n3','
 const vcReady=()=>VC_CORE.every(k=>vcHas(LANG,k));
 function vcMode(){ let m=null; try{ m=localStorage.getItem('cdm_ms_vmode'); }catch(_){} if(m==='phone') return 'phone'; return vcReady()?'coach':'phone'; }
 function vcCuesToo(){ try{ return localStorage.getItem('cdm_ms_vcues')==='1'; }catch(_){ return false; } }
-function vcCtx(){ if(!VC_AC) VC_AC=new (window.AudioContext||window.webkitAudioContext)(); if(VC_AC.state==='suspended') VC_AC.resume(); return VC_AC; }
+function vcCtx(){ if(!VC_AC) VC_AC=new (window.AudioContext||window.webkitAudioContext)(); if(VC_AC.state!=='running') VC_AC.resume().catch(()=>{}); return VC_AC; }
 async function vcLoad(l,k){
   const r=VC_IDX[l][k]; const id=l+'/'+k+'@'+r.updated_at; if(VC_BUF[id]) return VC_BUF[id];
   const url=VC_BASE+r.path+'?v='+encodeURIComponent(r.updated_at);
   let resp=null;
   try{ const c=await caches.open('cdm-voice-1'); resp=await c.match(url); if(!resp){ resp=await fetch(url); if(resp.ok) try{ await c.put(url,resp.clone()); }catch(_){} } }catch(_){ resp=await fetch(url); }
   const ab=await resp.arrayBuffer(); const buf=await vcCtx().decodeAudioData(ab);
-  return VC_BUF[id]={buf,r};
+  return VC_BUF[id]=Object.assign({buf,r},vcLevel(buf,r));
+}
+/* Volume identique pour tous les morceaux (sinon « Récupère » est 12 dB plus bas
+   que « Nouveau record ») et fins de mots jamais coupees : on mesure la voix
+   reellement presente et on vise -19 dBFS de moyenne, sans depasser -1 dBFS. */
+function vcLevel(buf,r){
+  const d=buf.getChannelData(0), sr=buf.sampleRate, dur=buf.duration;
+  let st=Math.max(0,(r.trim_start||0)-0.03), en=Math.min(dur,(r.trim_end||dur));
+  const fr=Math.round(sr*0.01); const rm=(a,b)=>{ let q=0,n=0; for(let i=Math.floor(a*sr);i<Math.floor(b*sr)&&i<d.length;i++){ q+=d[i]*d[i]; n++; } return n?Math.sqrt(q/n):0; };
+  const floor=rm(0.1,Math.max(0.2,st-0.1));
+  /* on prolonge la fin tant qu'il reste de la voix (le « s » de « place ») */
+  let t=en; while(t+0.01<dur&&t<en+0.35&&rm(t,t+0.01)>Math.max(floor*2.5,0.0015)) t+=0.01; en=Math.min(dur,t+0.06);
+  let pk=0, q=0, n=0; for(let i=Math.floor(st*sr);i<Math.floor(en*sr);i++){ const v=d[i]; if(Math.abs(v)>pk) pk=Math.abs(v); }
+  for(let i=Math.floor(st*sr);i+fr<Math.floor(en*sr);i+=fr){ let e=0; for(let j=i;j<i+fr;j++) e+=d[j]*d[j]; e=Math.sqrt(e/fr); if(e>Math.max(floor*3,0.002)){ q+=e*e; n++; } }
+  const act=n?Math.sqrt(q/n):0.05, target=0.112;
+  const gain=Math.min(0.89/Math.max(pk,1e-4),Math.max(0.5,Math.min(10,target/act)));
+  return {gn:gain,st,en};
 }
 /* precharge en arriere-plan tout ce dont la seance aura besoin */
 function vcPreload(keys){ keys.forEach(([l,k])=>{ if(vcHas(l,k)) vcLoad(l,k).catch(()=>{}); }); }
 function vcStop(){ VC_RUN++; VC_BUSY=0; VC_SRC.forEach(s=>{ try{ s.stop(); }catch(_){} }); VC_SRC=[]; try{ speechSynthesis.cancel(); }catch(_){} }
 function vcPlayBuf(o){ return new Promise(res=>{ const ac=vcCtx(), src=ac.createBufferSource(), g=ac.createGain();
-  g.gain.value=o.r.gain||1; src.buffer=o.buf; src.connect(g).connect(ac.destination);
-  const st=o.r.trim_start||0, en=o.r.trim_end||o.buf.duration; src.onended=()=>res();
+  g.gain.value=o.gn||o.r.gain||1; src.buffer=o.buf; src.connect(g).connect(ac.destination);
+  const st=o.st!=null?o.st:(o.r.trim_start||0), en=o.en!=null?o.en:(o.r.trim_end||o.buf.duration); src.onended=()=>res();
   VC_SRC.push(src); src.start(0,st,Math.max(.05,en-st)); setTimeout(res,(en-st)*1000+600); }); }
 function vcTts(text,en){ return new Promise(res=>{ if(!('speechSynthesis' in window)||!text) return res();
   const fb=({fr:'fr-FR',nl:'nl-NL',en:'en-US'})[LANG]||'fr-FR';
@@ -10979,15 +10996,18 @@ async function msOpen(countdown){
   /* ce qui doit survivre a une fermeture / reouverture du mode seance */
   if(!MS_KEEP||MS_KEEP.id!==SESSION.id) MS_KEEP={id:SESSION.id,seen:{},prs:0,last:{},adj:{}};
   if(!MS_KEEP.warm) MS_KEEP.warm={};
+  if(MS) msClose(true);                    /* double ouverture : on repart propre */
   MS={slots,adj:MS_KEEP.adj,last:MS_KEEP.last,seen:MS_KEEP.seen,warm:MS_KEEP.warm,prs:0,rest:null,cur:null,cueIv:0,clk:0,lock:null};
+  const my=MS;                             /* apres chaque await : si le mode seance a ete ferme ou rouvert entre-temps, on s'arrete */
   const ov=msMount(); ov.classList.add('show'); document.documentElement.classList.add('ms-on');
   document.getElementById('ms-snd').textContent=MSV.on?'🔊':'🔇';
-  try{ if(navigator.wakeLock) MS.lock=await navigator.wakeLock.request('screen'); }catch(_){}
+  try{ if(navigator.wakeLock){ const lk=await navigator.wakeLock.request('screen'); if(MS===my) MS.lock=lk; else { try{ lk.release(); }catch(_){} return; } } }catch(_){}
+  if(MS!==my) return;
   try{ const P=window.Capacitor&&window.Capacitor.Plugins; if(P&&P.KeepAwake) P.KeepAwake.keepAwake(); }catch(_){}
   animCharger();
   MS.clk=setInterval(()=>{ const c=document.getElementById('ms-clock'); if(c&&SESSION) c.textContent=msFmt(Math.floor((Date.now()-SESSION.started)/1000)); },500);
-  await msLoadVoices();
-  await Promise.all([vcIndex(), vcCueData([...new Set(slots.map(x=>x.ex.slug))])]);
+  await msLoadVoices(); if(MS!==my) return;
+  await Promise.all([vcIndex(), vcCueData([...new Set(slots.map(x=>x.ex.slug))])]); if(MS!==my) return;
   if(vcMode()==='coach'){ const pk=[];
     slots.forEach(x=>(VC_CUES.map[x.ex.slug]||[]).forEach(k=>pk.push([LANG,k])));
     ['p_go','p_rest','p_next','p_last','p_pr','p_end','p_e1rm','w_set','w_of','w_reps','w_side','w_at','w_kg','w_kg5','w_sec','w_min','w_m','w_cal','e1','e2','e3','e4','e5','e6','e7','e8'].forEach(k=>pk.push([LANG,k]));
@@ -10998,7 +11018,7 @@ async function msOpen(countdown){
   if(countdown){
     msShow('ms-count'); let n=3; const el=document.getElementById('ms-cnum'); el.textContent=n;
     tones([[660,.08]]); buzz(40); msSayC([{n:3}],LANG==='fr'?'Trois.':LANG==='nl'?'Drie.':'Three.');
-    const iv=setInterval(()=>{ n--; if(!MS){ clearInterval(iv); return; }
+    const iv=MS.cdIv=setInterval(()=>{ n--; if(MS!==my){ clearInterval(iv); return; }
       if(n>0){ el.textContent=n; el.style.animation='none'; void el.offsetWidth; el.style.animation=''; tones([[660,.08]]); buzz(40);
         msSayC([{n:n}],n===2?(LANG==='fr'?'Deux.':LANG==='nl'?'Twee.':'Two.'):(LANG==='fr'?'Un.':LANG==='nl'?'Eén.':'One.')); }
       else { clearInterval(iv); tones([[1180,.3]]); buzz(120); msWork(true); } },1000);
@@ -11007,7 +11027,8 @@ async function msOpen(countdown){
 function msClose(quiet){
   if(!MS) return;
   const r=MS.rest; clearInterval(MS.clk); clearInterval(MS.cueIv); msLiveStop(); vcStop(); if(r&&r.iv) clearInterval(r.iv);
-  if(MS.hold&&MS.hold.iv) clearInterval(MS.hold.iv); if(MS.holdPre) clearInterval(MS.holdPre); if(MS.wiv) clearInterval(MS.wiv); msNotif(0);
+  if(MS.hold&&MS.hold.iv) clearInterval(MS.hold.iv); if(MS.holdPre) clearInterval(MS.holdPre); if(MS.wiv) clearInterval(MS.wiv); if(MS.cdIv) clearInterval(MS.cdIv); msNotif(0);
+  document.querySelectorAll('.ms-shr,#ms-vs').forEach(e=>e.remove());
   try{ if(MS.lock) MS.lock.release(); }catch(_){}
   try{ const P=window.Capacitor&&window.Capacitor.Plugins; if(P&&P.KeepAwake) P.KeepAwake.allowSleep(); }catch(_){}
   try{ speechSynthesis.cancel(); }catch(_){}
@@ -11121,7 +11142,7 @@ async function msValidate(){
   btn.disabled=true;
   const { data:ins, error } = await sb.from('set_logs').insert(row).select('id').single();
   btn.disabled=false;
-  if(error){ toast('Échec de l\'enregistrement'); return; }
+  if(error){ toast(t('save_fail')); return; }
   MS.lastSet=(ins&&row.weight_kg>0&&row.reps>=1&&row.reps<=10)?{id:ins.id,w:row.weight_kg,r:row.reps,ex:row.exercise_id}:null;
   s.pill.classList.add('done'); s.pill.textContent='✓';
   WO_DONE++; WO_VOL+=(row.weight_kg||0)*(row.reps||0); updHud(); buzz(90); tones([[1046,.1]]);
@@ -11159,7 +11180,7 @@ async function msRest(sec,nx,prev){
   if(MS.rest&&MS.rest.iv) clearInterval(MS.rest.iv);
   MS.rest={left:sec,total:sec,end:Date.now()+sec*1000};
   const newEx=nx.it.id!==prev.it.id;
-  await animCharger();
+  const my=MS; await animCharger(); if(MS!==my||!MS.rest) return;
   document.getElementById('ms-nxf').innerHTML=animSVG(nx.ex.slug,'ok')||'';
   document.getElementById('ms-nxk').textContent=mt(newEx?'nxe':'nxs');
   document.getElementById('ms-nxn').textContent=pick(nx.ex,'name');
@@ -11291,6 +11312,7 @@ function msAfterSwap(){
 const ST_TX={
  kg:{fr:'KG SOULEVÉS',en:'KG LIFTED',nl:'KG GETILD'},
  reps:{fr:'RÉPÉTITIONS',en:'REPS',nl:'HERHALINGEN'},
+ sets:{fr:'SÉRIES',en:'SETS',nl:'SETS'},
  min:{fr:'MIN',en:'MIN',nl:'MIN'},
  rec:{fr:'RECORDS',en:'RECORDS',nl:'RECORDS'},
  rec1:{fr:'RECORD',en:'RECORD',nl:'RECORD'},
@@ -11356,7 +11378,7 @@ async function msStoryDraw(style,d){
     neon:{bg1:'#06120D',bg2:'#020403',ink:'#FFFFFF',mut:'#8FA398',acc:'#00E896',acc2:'#E9C767',fig:'#00FFA3',ghost:'rgba(0,232,150,.13)',card:'rgba(255,255,255,.05)',line:'rgba(234,244,238,.14)'},
     gold:{bg1:'#17120A',bg2:'#050403',ink:'#FFF6DF',mut:'#B9A77E',acc:'#E9C767',acc2:'#00E896',fig:'#F2D27A',ghost:'rgba(233,199,103,.12)',card:'rgba(233,199,103,.07)',line:'rgba(233,199,103,.28)'},
     beton:{bg1:'#EEEDE7',bg2:'#DAD8CF',ink:'#0B0F0C',mut:'#5D655F',acc:'#00B978',acc2:'#B8860B',fig:'#0B0F0C',ghost:'rgba(11,15,12,.07)',card:'rgba(11,15,12,.05)',line:'rgba(11,15,12,.16)'}
-  }[style]||null; const T=TH;
+  }; if(!TH[style]) style='neon'; const T=TH[style];
   /* fond */
   const g=x.createLinearGradient(0,0,0,H); g.addColorStop(0,T.bg1); g.addColorStop(1,T.bg2); x.fillStyle=g; x.fillRect(0,0,W,H);
   if(style!=='beton'){ const rg=x.createRadialGradient(W/2,820,30,W/2,820,760); rg.addColorStop(0,style==='gold'?'rgba(233,199,103,.30)':'rgba(0,232,150,.32)'); rg.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=rg; x.fillRect(0,0,W,H); }
@@ -11392,13 +11414,13 @@ async function msStoryDraw(style,d){
   if(d.wod&&d.wod.time!=null){ hv=Math.floor(d.wod.time/60)+':'+String(d.wod.time%60).padStart(2,'0'); hl=stt('time'); }
   else if(d.wod&&d.wod.rounds){ hv=String(d.wod.rounds); hl=stt('rounds'); }
   else if(d.kg>0){ hv=d.kg.toLocaleString(LANG==='en'?'en-GB':LANG+'-BE'); hl=stt('kg'); }
-  else { hv=String(d.reps||d.sets); hl=stt('reps'); }
+  else { hv=String(d.reps||d.sets); hl=stt(d.reps?'reps':'sets'); }
   x.fillStyle=style==='gold'?T.acc:T.ink; const hs=stFit(x,hv,'800 {s}px '+F,W-128,250); x.font='800 '+hs+'px '+F;
   if(style==='neon'){ x.save(); x.shadowColor='rgba(0,232,150,.55)'; x.shadowBlur=40; x.fillText(hv,60,1530); x.restore(); } else x.fillText(hv,60,1530);
   const hvw=x.measureText(hv).width; x.fillStyle=T.mut; x.font='800 32px '+B;
   if(hvw<W-128-300){ x.fillText(hl,60+hvw+24,1530); } else { x.fillText(hl,64,1575); }
   /* trois pastilles */
-  const pills=[[String(d.mins),stt('min')],[String(d.reps||d.sets),stt('reps')],[String(d.prs.length||(MS_KEEP?MS_KEEP.prs:0)),(d.prs.length===1?stt('rec1'):stt('rec'))]];
+  const pills=[[String(d.mins),stt('min')],[String(d.reps||d.sets),stt(d.reps?'reps':'sets')],[String(d.prs.length||(MS_KEEP?MS_KEEP.prs:0)),(d.prs.length===1?stt('rec1'):stt('rec'))]];
   const pw=(W-128-40)/3; pills.forEach((p,i)=>{ const px=64+i*(pw+20), py=1610; const gold=i===2&&+p[0]>0;
     x.fillStyle=gold?(style==='beton'?'rgba(184,134,11,.12)':'rgba(233,199,103,.14)'):T.card; stRound(x,px,py,pw,130,30); x.fill();
     x.strokeStyle=gold?T.acc2===T.acc?T.acc:(style==='gold'?T.acc:'#E9C767'):T.line; x.lineWidth=gold?3:2; x.stroke();
@@ -11455,10 +11477,13 @@ async function msWodOpen(countdown){
   if(!SESSION||!SE_CUR||!SE_CUR.w||msClassic()) return;
   const w=SE_CUR.w, f=w.wod_format;
   if(!MS_KEEP||MS_KEEP.id!==SESSION.id) MS_KEEP={id:SESSION.id,seen:{},prs:0,last:{},adj:{},warm:{}};
+  if(MS) msClose(true);
   MS={wod:true,f,items:msWodItems(),wodR:MS_KEEP.wodR||0,said:{},lastRnd:0,clk:0,wiv:0,lock:null,slots:[],adj:MS_KEEP.adj,last:{},seen:{},warm:{}};
   const ov=msMount(); ov.classList.add('show'); document.documentElement.classList.add('ms-on');
   document.getElementById('ms-wsnd').textContent=MSV.on?'🔊':'🔇';
-  try{ if(navigator.wakeLock) MS.lock=await navigator.wakeLock.request('screen'); }catch(_){}
+  const my=MS;
+  try{ if(navigator.wakeLock){ const lk=await navigator.wakeLock.request('screen'); if(MS===my) MS.lock=lk; else { try{ lk.release(); }catch(_){} return; } } }catch(_){}
+  if(MS!==my) return;
   try{ const P=window.Capacitor&&window.Capacitor.Plugins; if(P&&P.KeepAwake) P.KeepAwake.keepAwake(); }catch(_){}
   animCharger(); msLoadVoices().catch(()=>{});
   vcIndex().then(()=>{ if(vcMode()==='coach') vcPreload(['p_go','p_10s','p_time','p_end','n1','n2','n3'].map(k=>[LANG,k]).concat(MS.items.map(x=>['x',x.ex.slug]))); }).catch(()=>{});
@@ -11472,7 +11497,7 @@ async function msWodOpen(countdown){
   if(countdown&&!WOD){
     msShow('ms-count'); let n=3; const el=document.getElementById('ms-cnum'); el.textContent=n;
     tones([[660,.08]]); buzz(40); msSayC([{n:3}],LANG==='fr'?'Trois.':LANG==='nl'?'Drie.':'Three.');
-    const iv=setInterval(()=>{ n--; if(!MS||!MS.wod){ clearInterval(iv); return; }
+    const iv=MS.cdIv=setInterval(()=>{ n--; if(MS!==my||!MS.wod){ clearInterval(iv); return; }
       if(n>0){ el.textContent=n; el.style.animation='none'; void el.offsetWidth; el.style.animation=''; tones([[660,.08]]); buzz(40);
         msSayC([{n:n}],n===2?(LANG==='fr'?'Deux.':LANG==='nl'?'Twee.':'Two.'):(LANG==='fr'?'Un.':LANG==='nl'?'Eén.':'One.')); }
       else { clearInterval(iv); startWOD(w); tones([[1180,.3]]); buzz(120); msSayC(['p_go'],LANG==='fr'?"C'est parti !":LANG==='nl'?'Daar gaan we!':"Let's go!"); go(); } },1000);
@@ -11481,7 +11506,7 @@ async function msWodOpen(countdown){
 /* la fin d'un WOD comme a la box : « Dix secondes », puis 3, 2, 1… « Time ! » */
 function msWodCount(left){
   if(!MS||!MS.said) return;
-  if(left===10&&!MS.said.t10){ MS.said.t10=1; msSayC(['p_10s'],LANG==='fr'?'Dix secondes !':LANG==='nl'?'Tien seconden!':'Ten seconds!'); }
+  if(left<=10&&left>3&&!MS.said.t10){ MS.said.t10=1; msSayC(['p_10s'],LANG==='fr'?'Dix secondes !':LANG==='nl'?'Tien seconden!':'Ten seconds!'); }
   if(left>=1&&left<=3&&MS.said.c!==left){ MS.said.c=left; SND.tick(); buzz(40);
     msSayC([{n:left}],LANG==='fr'?['','Un !','Deux !','Trois !'][left]:LANG==='nl'?['','Eén!','Twee!','Drie!'][left]:['','One!','Two!','Three!'][left]); }
 }
@@ -11507,7 +11532,7 @@ function msWodPaint(){
   if(WOD.ended){ const shown=f==='amrap'||f==='emom'?0:(WOD.elapsed!=null?WOD.elapsed:el);
     clk.textContent=wodClock(shown); clk.classList.remove('warn'); sub.textContent=mt('wod_end');
     act.hidden=false; act.textContent=mt('wod_score'); act.onclick=()=>openScoreSheet(false); fin.hidden=false;
-    if(!MS.said.end){ MS.said.end=1; msSayC(['p_time'],[{t:'Time!',lex:'Taïïïme !',en:1}]); }
+    if(!MS.said.end){ MS.said.end=1; msSayC(['p_time'],[{t:'Time!',lex:LANG==='nl'?'Tajjjm!':'Taïïïme !',en:1}]); }
     return; }
   fin.hidden=true;
   let hi=-1;
@@ -11729,7 +11754,7 @@ $('#set-save').onclick=async ()=>{
   setBtn('#set-save',true,'…');
   const { error } = await sb.from('set_logs').insert(row);
   setBtn('#set-save',false,t('set_save'));
-  if(error){ toast('Échec de l\'enregistrement'); return; }
+  if(error){ toast(t('save_fail')); return; }
   SET_CTX.pill.classList.add('done'); SET_CTX.pill.textContent='✓';
   WO_DONE++; WO_VOL+=(row.weight_kg||0)*(row.reps||0); updHud(); buzz(15);
   LAST_SET[SET_CTX.exId]={reps:row.reps,kg:row.weight_kg,dur:row.duration_sec,dist:row.distance_m,cal:row.calories};
