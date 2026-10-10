@@ -1296,8 +1296,14 @@ Object.assign(TX, {
   mp_def: { fr: 'Journée type de {n}', en: '{n}’s typical day', nl: 'Typische dag van {n}' },
   mp_day: { fr: 'Une journée type', en: 'One typical day', nl: 'Eén typische dag' },
   mp_week: { fr: 'Une semaine (7 jours)', en: 'A week (7 days)', nl: 'Een week (7 dagen)' },
-  mp_auto: { fr: 'Remplir automatiquement', en: 'Fill automatically', nl: 'Automatisch vullen' },
-  mp_auto_s: { fr: 'Avec tes recettes, au plus près de son objectif', en: 'With your recipes, as close as possible to the target', nl: 'Met je recepten, zo dicht mogelijk bij het doel' },
+  mp_auto: { fr: 'Composer la journée au gramme près', en: 'Build the day to the gram', nl: 'De dag op de gram samenstellen' },
+  mp_auto_s: { fr: 'Aliments de base, quantités calculées pour ses macros. Remplace le jour affiché.', en: 'Whole foods, amounts calculated for their macros. Replaces the day shown.', nl: 'Basisvoeding, hoeveelheden berekend op de macro’s. Vervangt de getoonde dag.' },
+  mp_fit: { fr: 'Ajuster les grammes', en: 'Adjust the grams', nl: 'Grammen aanpassen' },
+  mp_fit_s: { fr: 'Garde tes choix (recettes, aliments) et recalcule les quantités pour coller aux macros', en: 'Keeps your choices (recipes, foods) and recalculates amounts to hit the macros', nl: 'Behoudt je keuzes (recepten, voeding) en herberekent de hoeveelheden voor de macro’s' },
+  mp_fit_empty: { fr: 'Ajoute d’abord des aliments ou des recettes', en: 'Add foods or recipes first', nl: 'Voeg eerst voeding of recepten toe' },
+  mp_replace: { fr: 'Remplacer les repas de ce jour ?', en: 'Replace this day’s meals?', nl: 'De maaltijden van deze dag vervangen?' },
+  mp_gap: { fr: 'Écart', en: 'Gap', nl: 'Verschil' },
+  mp_swap: { fr: 'Changer d’aliment', en: 'Swap food', nl: 'Ander voedingsmiddel' },
   mp_copyday: { fr: 'Copier ce jour sur toute la semaine', en: 'Copy this day to the whole week', nl: 'Deze dag kopiëren naar de hele week' },
   mp_add: { fr: 'Ajouter', en: 'Add', nl: 'Toevoegen' },
   mp_save: { fr: 'Envoyer à {n}', en: 'Send to {n}', nl: 'Versturen naar {n}' },
@@ -1527,8 +1533,10 @@ function paintMP() {
   if (!T) h += `<div class="help">${ic('info')}<div>${esc(t('mp_need_t'))}</div></div>`;
   h += `<div class="week" style="position:sticky;top:-16px;z-index:5;background:var(--bg2);border-color:var(--line2)">
     <div style="font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">${esc(t('mp_total'))}</div>
-    <div style="display:flex;gap:12px;flex-wrap:wrap">${gauge(t('kcal'), tot.k, T && T.k, 'var(--brand)')}${gauge(t('prot'), tot.p, T && T.p, '#FF6B6B')}${gauge(t('carb'), tot.c, T && T.c, '#5AB0FF')}${gauge(t('fat'), tot.f, T && T.f, '#B98CFF')}</div></div>
-    <button class="act" id="mp-auto" style="border-color:rgba(233,199,103,.45);margin-bottom:14px">${ic('bolt')}<div>${esc(t('mp_auto'))}<small>${esc(t('mp_auto_s'))}</small></div></button>`;
+    <div style="display:flex;gap:12px;flex-wrap:wrap">${gauge(t('kcal'), tot.k, T && T.k, 'var(--brand)')}${gauge(t('prot'), tot.p, T && T.p, '#FF6B6B')}${gauge(t('carb'), tot.c, T && T.c, '#5AB0FF')}${gauge(t('fat'), tot.f, T && T.f, '#B98CFF')}</div>
+    ${T && dayItems.length ? `<div style="font-size:12.5px;color:var(--muted);margin:8px 2px 0;font-variant-numeric:tabular-nums">${esc(t('mp_gap'))} : P ${tot.p - T.p >= 0 ? '+' : ''}${nf(tot.p - T.p)} g · G ${tot.c - T.c >= 0 ? '+' : ''}${nf(tot.c - T.c)} g · L ${tot.f - T.f >= 0 ? '+' : ''}${nf(tot.f - T.f)} g · ${tot.k - T.k >= 0 ? '+' : ''}${nf(tot.k - T.k)} kcal</div>` : ''}</div>
+    <button class="act" id="mp-auto" style="border-color:rgba(233,199,103,.45);margin-bottom:10px">${ic('bolt')}<div>${esc(t('mp_auto'))}<small>${esc(t('mp_auto_s'))}</small></div></button>
+    <button class="act" id="mp-fit" style="margin-bottom:14px">${ic('repeat')}<div>${esc(t('mp_fit'))}<small>${esc(t('mp_fit_s'))}</small></div></button>`;
   for (const s of MP.slots) {
     const its = MP.items.map((it, idx) => ({ it, idx })).filter((x) => x.it.day === MP.day && x.it.slot === s);
     h += `<section class="week"><div class="whead"><b>${esc(t('s_' + s))}${T ? `<small>≈ ${nf(r5(T.k * SLOT_SHARE[s]))} kcal</small>` : ''}</b>
@@ -1537,6 +1545,7 @@ function paintMP() {
         <div class="tx"><b>${esc(it.kind === 'recipe' ? rName(it.ref) : it.kind === 'food' ? ((LANG === 'en' && it.ref.name_en) || (LANG === 'nl' && it.ref.name_nl) || it.ref.name_fr) : it.title)}</b>
         <span>${nf(v.k)} kcal · P ${nf(v.p)} · G ${nf(v.c)} · L ${nf(v.f)}</span></div>
         ${it.kind !== 'free' ? `<div class="stepper" style="transform:scale(.82);transform-origin:right center;margin-left:auto"><button data-q="${idx}" data-d="-1">−</button><output style="font-size:15px;min-width:64px">${it.kind === 'recipe' ? nf(it.qty, 2) + '<small>' + esc(it.qty === 1 ? t('portion') : t('portions')) + '</small>' : nf(it.qty) + '<small>g</small>'}</output><button data-q="${idx}" data-d="1">+</button></div>` : ''}
+        ${it.kind === 'food' && it.role && NF_CAT[it.role] ? `<button class="iconbtn" data-swap="${idx}" aria-label="${esc(t('mp_swap'))}" title="${esc(t('mp_swap'))}" style="width:40px;height:40px">${ic('swap')}</button>` : ''}
         <button class="iconbtn" data-rm="${idx}" aria-label="${esc(t('remove'))}" style="width:40px;height:40px">${ic('x')}</button></div>`; }).join('') : `<div style="color:var(--dim);font-size:14px;padding:6px 2px">${esc(t('mp_empty'))}</div>`}
       </section>`;
   }
@@ -1557,29 +1566,159 @@ function paintMP() {
   $$('[data-q]', b).forEach((x) => x.onclick = () => { const it = MP.items[+x.dataset.q], d = +x.dataset.d;
     if (it.kind === 'recipe') it.qty = Math.max(.25, Math.min(4, it.qty + d * .25)); else it.qty = Math.max(5, Math.min(1500, it.qty + d * (it.qty >= 100 ? 25 : 10)));
     MP.dirty = true; re(); });
-  $('#mp-auto').onclick = async () => { await autoFill(); MP.dirty = true; re(); };
+  const busy = async (fn) => { try { await fn(); MP.dirty = true; re(); } catch (e) { toast(errMsg(e), true); } };
+  $('#mp-auto').onclick = () => { if (MP.items.some((i) => i.day === MP.day) && !confirm(t('mp_replace'))) return; busy(autoFill); };
+  $('#mp-fit').onclick = () => busy(nfAdjust);
+  $$('[data-swap]', b).forEach((x) => x.onclick = () => busy(() => nfSwap(+x.dataset.swap)));
   $('#mp-save').onclick = saveMP;
   const del = $('#mp-del'); if (del) del.onclick = async () => { if (!confirm(t('mp_del') + ' ?')) return; try { await rpc('coach_delete_meal_plan', { p_id: MP.id }); MP.dirty = false; closeSheet('ov2'); viewNutriClient(); } catch (e) { toast(errMsg(e), true); } };
 }
 
-/* remplissage automatique : une recette par moment vide, portion ajustee
-   pour coller a la part de calories du moment, puis on privilegie les
-   recettes riches en proteines si on est en dessous de l'objectif. */
-async function autoFill() {
-  const rec = await loadRecipes(); const T = targetsOf() || { k: 2200, p: 140, c: 250, f: 70 };
-  const usedIds = new Set(MP.items.filter((i) => i.kind === 'recipe').map((i) => i.ref.id));
-  const shares = MP.slots.reduce((a, s) => a + SLOT_SHARE[s], 0) || 1;
-  for (const s of MP.slots) {
-    if (MP.items.some((i) => i.day === MP.day && i.slot === s)) continue;
-    const want = T.k * SLOT_SHARE[s] / shares, wantP = T.p * SLOT_SHARE[s] / shares;
-    const pool = rec.filter((r) => SLOT_MT[s].includes(String(r.meal_type)) && +r.kcal_per_serving > 0 && !usedIds.has(r.id));
-    if (!pool.length) continue;
-    const scored = pool.map((r) => { let q = Math.max(.5, Math.min(2.5, Math.round(want / r.kcal_per_serving * 4) / 4));
-      const k = r.kcal_per_serving * q, p = r.protein_per_serving * q; return { r, q, sc: Math.abs(k - want) / want + .6 * Math.max(0, wantP - p) / (wantP || 1) + Math.random() * .15 }; })
-      .sort((a, b) => a.sc - b.sc);
-    const best = scored[0]; usedIds.add(best.r.id);
-    MP.items.push(recipeItem(best.r, s, best.q));
+/* ---- jour type au gramme pres : catalogue d'aliments de base + solveur ---- */
+/* role: [nom exact dans foods, portion type g, min g, max g] */
+const NF_CAT = {
+  prot: [['Blanc de poulet cuit', 150, 80, 400], ['Escalope de dinde cuite', 150, 80, 400], ['Bœuf haché 5% cuit', 150, 80, 350], ['Filet de bœuf cuit', 150, 80, 350], ['Cabillaud cuit', 180, 80, 450], ['Saumon cuit', 150, 80, 300], ['Thon au naturel', 120, 60, 300], ['Crevettes cuites', 150, 80, 400], ['Lieu noir cuit', 180, 80, 450], ['Truite cuite', 150, 80, 300], ['Tofu ferme', 150, 80, 350]],
+  starch: [['Riz basmati cuit', 200, 60, 650], ['Riz complet cuit', 200, 60, 650], ['Pâtes complètes cuites', 200, 60, 600], ['Pâtes cuites', 200, 60, 600], ['Patate douce cuite', 250, 80, 800], ['Pomme de terre cuite', 250, 80, 800], ['Quinoa cuit', 200, 60, 600], ['Semoule de couscous cuite', 200, 60, 600], ['Boulgour cuit', 200, 60, 600]],
+  veg: [['Brocoli cuit', 150, 80, 300], ['Haricots verts cuits', 150, 80, 300], ['Courgette', 150, 80, 300], ['Épinards crus', 100, 50, 250], ['Poivrons', 150, 80, 300], ['Chou-fleur cuit', 150, 80, 300], ['Asperges cuites', 150, 80, 300], ['Tomate', 150, 80, 300]],
+  fat: [['Huile d\'olive', 10, 0, 45], ['Avocat', 60, 0, 160]],
+  bprot: [['Skyr nature', 200, 0, 500], ['Œuf entier', 120, 0, 250], ['Fromage blanc 0%', 200, 0, 500], ['Yaourt grec 0%', 200, 0, 500], ['Blanc d\'œuf', 100, 0, 300]],
+  bcarb: [['Avoine flocons', 60, 20, 160], ['Pain complet', 80, 30, 220], ['Pain de seigle', 80, 30, 220]],
+  fruit: [['Banane', 120, 60, 300], ['Myrtilles', 125, 60, 300], ['Fraises', 150, 80, 350], ['Pomme', 150, 80, 300], ['Kiwi', 150, 80, 300], ['Orange', 150, 80, 300]],
+  nuts: [['Amandes', 20, 0, 50], ['Noix', 20, 0, 50], ['Beurre de cacahuète', 15, 0, 40], ['Noix de cajou', 20, 0, 50]],
+  sprot: [['Skyr nature', 200, 0, 500], ['Fromage blanc 0%', 200, 0, 500], ['Yaourt grec 0%', 200, 0, 500], ['Cottage cheese', 150, 0, 400], ['Whey isolate', 30, 0, 60]],
+  scarb: [['Banane', 120, 0, 300], ['Galettes de riz', 30, 0, 90], ['Pomme', 150, 0, 300], ['Dattes', 30, 0, 90], ['Avoine flocons', 50, 0, 120]],
+  whey: [['Whey isolate', 30, 0, 60]],
+};
+const NF_MEAL = {
+  breakfast: ['bprot', 'bcarb', 'fruit', 'nuts'],
+  lunch: ['prot', 'starch', 'veg', 'fat'], dinner: ['prot', 'starch', 'veg', 'fat'], meal: ['prot', 'starch', 'veg', 'fat'],
+  snack: ['sprot', 'scarb', 'nuts'], preworkout: ['sprot', 'scarb'], postworkout: ['whey', 'scarb', 'sprot'],
+};
+const nfPick = (arr, avoid) => { const ok = arr.filter((x) => !avoid.has(x[0])); const l = ok.length ? ok : arr; return l[Math.floor(Math.random() * l.length)]; };
+
+/* Solveur : quantites continues bornees, moindres carres ponderes (descente par coordonnees),
+   puis arrondi (5 g / quart de portion) et recherche locale pour coller au gramme pres.
+   vars: [{a:{k,p,c,f} par unite, lo, hi, t (unite typique), step, slot, fixed}] */
+function nfSolve(vars, T, shares) {
+  const n = vars.length, terms = [];
+  const add = (w, coef, target) => terms.push({ w, coef, target });
+  /* grammes de macros = priorite absolue ; repartition par repas et portions realistes = departage */
+  for (const m of ['p', 'c', 'f']) if (T[m] > 0) add(100, vars.map((v) => v.a[m] / T[m]), 1);
+  add(5, vars.map((v) => v.a.k / T.k), 1);
+  const slots = [...new Set(vars.map((v) => v.slot))];
+  for (const s of slots) if (shares[s]) add(1, vars.map((v) => v.slot === s ? v.a.k / T.k : 0), shares[s]);
+  vars.forEach((v, i) => { if (v.t > 0 && !v.fixed) add(.01, vars.map((_, j) => j === i ? 1 / v.t : 0), 1); });
+  const x = vars.map((v) => v.x != null ? v.x : v.t);
+  const res = terms.map((tm) => tm.coef.reduce((s, c, i) => s + c * x[i], 0) - tm.target);
+  const cost = () => terms.reduce((s, tm, k) => s + tm.w * res[k] * res[k], 0);
+  const setX = (i, nx) => { const d = nx - x[i]; if (!d) return; terms.forEach((tm, k) => { res[k] += tm.coef[i] * d; }); x[i] = nx; };
+  for (let it = 0; it < 3000; it++) {
+    let moved = 0;
+    for (let i = 0; i < n; i++) {
+      if (vars[i].fixed) continue;
+      let A = 0, B = 0;
+      terms.forEach((tm, k) => { const c = tm.coef[i]; if (c) { A += tm.w * c * c; B += tm.w * c * (res[k] - c * x[i]); } });
+      if (!A) continue;
+      const nx = Math.max(vars[i].lo, Math.min(vars[i].hi, -B / A));
+      moved += Math.abs(nx - x[i]) / (vars[i].t || 1); setX(i, nx);
+    }
+    if (moved < 1e-7) break;
   }
+  for (let i = 0; i < n; i++) if (!vars[i].fixed) setX(i, Math.max(vars[i].lo, Math.min(vars[i].hi, Math.round(x[i] / vars[i].step) * vars[i].step)));
+  for (let pass = 0; pass < 60; pass++) {
+    let best = cost(), bi = -1, bx = 0;
+    for (let i = 0; i < n; i++) {
+      if (vars[i].fixed) continue;
+      for (const d of [-1, 1, -2, 2]) {
+        const nx = Math.round((x[i] + d * vars[i].step) * 1000) / 1000; if (nx < vars[i].lo - 1e-9 || nx > vars[i].hi + 1e-9) continue;
+        const o = x[i]; setX(i, nx); const c = cost(); setX(i, o);
+        if (c < best - 1e-12) { best = c; bi = i; bx = nx; }
+      }
+    }
+    if (bi < 0) break; setX(bi, bx);
+  }
+  return x;
+}
+
+/* si un macro reste trop loin (combinaison tiree au hasard trop pauvre), on ajoute un aliment d'appoint et on recalcule */
+const NF_BOOST = { p: [['Whey isolate', 30, 0, 80], ['Blanc de poulet cuit', 120, 0, 300], ['Skyr nature', 200, 0, 500]], c: [['Riz basmati cuit', 150, 0, 500], ['Banane', 120, 0, 300], ['Avoine flocons', 50, 0, 150]], f: [['Huile d\'olive', 10, 0, 40], ['Amandes', 20, 0, 60]] };
+const NF_BOOST_SLOT = { p: ['snack', 'postworkout', 'breakfast', 'dinner', 'lunch', 'meal'], c: ['lunch', 'dinner', 'meal', 'preworkout', 'breakfast', 'snack'], f: ['dinner', 'lunch', 'meal', 'breakfast', 'snack'] };
+
+
+let NF_FOODS = null;
+async function nfLoadFoods() {
+  if (NF_FOODS) return NF_FOODS;
+  const names = [...new Set([...Object.values(NF_CAT), ...Object.values(NF_BOOST)].flat().map((e) => e[0]))];
+  const { data, error } = await sb.from('foods').select('id,name_fr,name_en,name_nl,brand,kcal_per_100g,protein_per_100g,carbs_per_100g,fat_per_100g,default_serving_g').in('name_fr', names).is('brand', null);
+  if (error) throw error;
+  /* doublons dans la table : on garde les valeurs qui reviennent le plus souvent */
+  const by = {};
+  for (const f of data || []) { const k = f.name_fr, sig = [f.kcal_per_100g, f.protein_per_100g, f.carbs_per_100g, f.fat_per_100g].map((v) => Math.round(+v)).join('/');
+    by[k] = by[k] || {}; by[k][sig] = by[k][sig] || { n: 0, f }; by[k][sig].n++; if (!by[k][sig].f.name_en && f.name_en) by[k][sig].f = f; }
+  const out = {}; for (const k in by) out[k] = Object.values(by[k]).sort((x, y) => y.n - x.n)[0].f;
+  NF_FOODS = out; return out;
+}
+const nfItem = (f, slot, g, role) => ({ kind: 'food', day: MP.day, slot, ref: f, qty: g, role, base: { k: +f.kcal_per_100g || 0, p: +f.protein_per_100g || 0, c: +f.carbs_per_100g || 0, f: +f.fat_per_100g || 0 } });
+function nfShares() { const tot = MP.slots.reduce((a, s) => a + SLOT_SHARE[s], 0) || 1; const o = {}; MP.slots.forEach((s) => { o[s] = SLOT_SHARE[s] / tot; }); return o; }
+const nfFatty = (b) => b.f > 60;
+/* bornes d'un element : catalogue si on le connait, sinon autour de la quantite choisie par le coach */
+function nfBounds(it) {
+  if (it.kind === 'recipe') return { lo: .5, hi: 3, t: it.qty || 1, step: .25 };
+  const e = it.role && [...(NF_CAT[it.role] || []), ...NF_BOOST.p, ...NF_BOOST.c, ...NF_BOOST.f].find((x) => x[0] === it.ref.name_fr);
+  if (e) return { lo: e[2], hi: e[3], t: e[1], step: 5 };
+  const q = Math.max(10, +it.qty || 100);
+  return nfFatty(it.base) ? { lo: 0, hi: 50, t: q, step: 5 } : { lo: Math.max(10, r5(q * .3)), hi: Math.max(r5(q * 3), 150), t: q, step: 5 };
+}
+const nfTot = () => MP.items.filter((i) => i.day === MP.day).reduce((a, it) => { const v = itemVals(it); a.k += v.k; a.p += v.p; a.c += v.c; a.f += v.f; return a; }, { k: 0, p: 0, c: 0, f: 0 });
+/* dose les elements du jour ; si un macro reste court et qu'on a le droit, ajoute un aliment d'appoint */
+function nfFit(T, allowBoost) {
+  const shares = nfShares();
+  for (let round = 0; round < 4; round++) {
+    const its = MP.items.filter((i) => i.day === MP.day);
+    const vars = its.map((it) => {
+      if (it.kind === 'free') return { a: itemVals(it), lo: 1, hi: 1, t: 1, step: 1, slot: it.slot, fixed: true, x: 1 };
+      const b = nfBounds(it), u = it.kind === 'recipe' ? 1 : 1 / 100;
+      return { a: { k: it.base.k * u, p: it.base.p * u, c: it.base.c * u, f: it.base.f * u }, ...b, slot: it.slot, x: Math.max(b.lo, Math.min(b.hi, +it.qty || b.t)) };
+    });
+    const x = nfSolve(vars, T, shares);
+    its.forEach((it, i) => { if (it.kind !== 'free') it.qty = Math.round(x[i] * 100) / 100; });
+    const crumbs = MP.items.filter((it) => it.day === MP.day && it.kind === 'food' && it.qty < (nfFatty(it.base) || ['nuts', 'whey', 'fat'].includes(it.role) ? 5 : 20));
+    if (crumbs.length) { MP.items = MP.items.filter((it) => !crumbs.includes(it)); continue; }
+    const S = nfTot();
+    const off = ['p', 'c', 'f'].map((m) => [m, (T[m] - S[m]) / T[m]]).filter(([, d]) => Math.abs(d) > .015).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))[0];
+    if (!off || !allowBoost || off[1] < 0) return S;
+    const m = off[0], have = new Set(MP.items.filter((i) => i.day === MP.day && i.kind === 'food').map((i) => i.ref.name_fr));
+    const e = NF_BOOST[m].find((z) => !have.has(z[0]) && NF_FOODS[z[0]]); if (!e) return S;
+    const slot = NF_BOOST_SLOT[m].find((z) => MP.slots.includes(z)) || MP.slots[0];
+    MP.items.push(nfItem(NF_FOODS[e[0]], slot, e[1], 'boost'));
+  }
+  return nfTot();
+}
+const nfT = () => targetsOf() || { k: 2200, p: 140, c: 250, f: 70 };
+/* bouton principal : compose la journee avec des aliments de base et dose tout au gramme pres */
+async function autoFill() {
+  const T = nfT(), F = await nfLoadFoods();
+  MP.items = MP.items.filter((i) => i.day !== MP.day);
+  const used = new Set();
+  for (const s of MP.slots) for (const role of NF_MEAL[s] || NF_MEAL.meal) {
+    const cand = NF_CAT[role].filter((e) => F[e[0]]); if (!cand.length) continue;
+    const e = nfPick(cand, used); used.add(e[0]); MP.items.push(nfItem(F[e[0]], s, e[1], role));
+  }
+  nfFit(T, true);
+}
+/* garde les choix du coach (recettes, aliments) et ne touche qu'aux quantites */
+async function nfAdjust() {
+  if (!MP.items.some((i) => i.day === MP.day && i.kind !== 'free')) { toast(t('mp_fit_empty'), true); return; }
+  await nfLoadFoods(); nfFit(nfT(), false);
+}
+/* echange un aliment contre un autre du meme role (poulet -> poisson...), puis redose */
+async function nfSwap(idx) {
+  const it = MP.items[idx]; if (!it || !it.role || !NF_CAT[it.role]) return;
+  const F = await nfLoadFoods(); const have = new Set(MP.items.filter((i) => i.day === MP.day && i.kind === 'food').map((i) => i.ref.name_fr));
+  const cand = NF_CAT[it.role].filter((e) => F[e[0]] && !have.has(e[0])); if (!cand.length) return;
+  const e = cand[Math.floor(Math.random() * cand.length)];
+  MP.items[idx] = nfItem(F[e[0]], it.slot, e[1], it.role);
+  nfFit(nfT(), false);
 }
 const recipeItem = (r, slot, q) => ({ kind: 'recipe', day: MP.day, slot, ref: r, qty: q, base: { k: +r.kcal_per_serving || 0, p: +r.protein_per_serving || 0, c: +r.carbs_per_serving || 0, f: +r.fat_per_serving || 0 } });
 
