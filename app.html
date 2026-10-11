@@ -10766,7 +10766,18 @@ function vcProcess(ac,buf,st,en){
   for(let pass=0;pass<2&&lu>-69;pass++){ const l2=vcLufs(y,sr,0,n/sr); if(l2>=VC_LUFS-0.5) break;
     const m=Math.min(2,Math.pow(10,(VC_LUFS-l2)/20)); for(let i=0;i<n;i++) y[i]*=m; vcLimit(y,sr); }
   const f=Math.min(Math.round(0.006*sr),n>>1); for(let i=0;i<f;i++){ const k=i/f; y[i]*=k; y[n-1-i]*=k; }
-  return {buf:out,gn:1,st:0,en:n/sr,lufs:lu,G};
+  const e=vcEdges(y,sr,n/sr);
+  return {buf:out,gn:1,st:e.st,en:e.en,lufs:lu,G};
+}
+/* debut et fin reels de la voix dans le morceau (pas le souffle ni le silence autour) :
+   c'est ce qui permet d'enchainer les mots comme une vraie phrase */
+function vcEdges(y,sr,dur){
+  const f=Math.max(1,Math.round(sr*0.005)), R=[];
+  for(let i=0;i+f<=y.length;i+=f){ let q=0; for(let j=i;j<i+f;j++) q+=y[j]*y[j]; R.push(Math.sqrt(q/f)); }
+  let pk=1e-6; for(const v of R) if(v>pk) pk=v;
+  let a=R.findIndex(v=>v>Math.max(pk*0.08,0.006)); if(a<0) a=0;
+  let b=R.length-1; while(b>a&&R[b]<Math.max(pk*0.03,0.003)) b--;
+  return {st:Math.max(0,a*0.005-0.02), en:Math.min(dur,(b+1)*0.005+0.06)};
 }
 
 /* precharge en arriere-plan tout ce dont la seance aura besoin */
@@ -10822,12 +10833,30 @@ async function vcRun(items,fallback){
     await vcRunIn(items,my);
   } finally { if(VC_BUSY===my) VC_BUSY=0; }
 }
+/* Les morceaux d'une phrase sont places sur l'horloge audio, bout a bout, avec un
+   chevauchement de 20 ms : plus de micro-silence ni d'attente entre « Série » et « deux ».
+   Chaque morceau entre et sort en fondu de 8 ms : aucun clic. */
+function vcSched(o,t){ const ac=vcCtx(), src=ac.createBufferSource(), g=ac.createGain(), d=Math.max(.05,o.en-o.st);
+  src.buffer=o.buf; src.connect(g).connect(ac.destination);
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(1,t+.008);
+  g.gain.setValueAtTime(1,Math.max(t+.009,t+d-.012)); g.gain.linearRampToValueAtTime(0,t+d);
+  VC_SRC.push(src); src.start(t,o.st,d); return d; }
 async function vcRunIn(items,my){
-  for(const it of items){
+  let i=0;
+  while(i<items.length){
     if(my!==VC_RUN) return;
-    if(it.pause){ await vcWait(it.pause); continue; }
-    if(it.tts){ await vcTts(it.tts,it.en); continue; }
-    try{ const o=await vcLoad(it.l,it.k); if(my!==VC_RUN) return; await vcPlayBuf(o); await vcWait(40); }catch(_){}
+    const it=items[i];
+    if(it.tts){ await vcTts(it.tts,it.en); i++; continue; }
+    const ac=vcCtx(); let t=ac.currentTime+0.05, prev=false;
+    while(i<items.length&&!items[i].tts){
+      const x=items[i]; i++;
+      if(x.pause){ t+=x.pause/1000; prev=false; continue; }
+      let o; try{ o=await vcLoad(x.l,x.k); }catch(_){ continue; }
+      if(my!==VC_RUN) return;
+      if(prev) t-=0.02;
+      t+=vcSched(o,Math.max(t,ac.currentTime+0.01)); prev=true;
+    }
+    await vcWait(Math.max(0,(t-ac.currentTime)*1000)+40);
   }
 }
 /* parle avec la voix de Coach DM si possible, sinon la voix du telephone */
@@ -10871,9 +10900,9 @@ function msLiveCues(s){
     const k=keys[(off+i)%keys.length]; i++; n++;
     if(vcMode()==='coach'&&vcHas(LANG,k)) vcRun([{l:LANG,k}]);
     else if(VC_CUES.txt[k]) msSay(VC_CUES.txt[k]);
-    if(n<3&&n<keys.length+1) MS.liveT=setTimeout(tick,9000);
+    if(n<2&&n<keys.length+1) MS.liveT=setTimeout(tick,11000);
   };
-  MS.liveT=setTimeout(tick,6000);
+  MS.liveT=setTimeout(tick,6500);
 }
 
 /* Reglages de la voix : choix de la voix, noms en anglais ou a la francaise, essai */
@@ -11199,15 +11228,22 @@ async function msWork(announce){
     if(LANG==='fr'){ line=`Série ${msNum(s.k+1)} sur ${msNum(n)}.`+(t.r?` ${msNum(t.r)} répétitions${s._side?' par côté':''}`:'')+(t.load==='weight'&&t.kg?`, à ${msKg(t.kg)}`:'')+'.'; }
     else if(LANG==='nl'){ line=`Set ${s.k+1} van ${n}.`+(t.r?` ${t.r} herhalingen`:'')+(t.load==='weight'&&t.kg?`, ${msKg(t.kg)}`:'')+'.'; }
     else { line=`Set ${s.k+1} of ${n}.`+(t.r?` ${t.r} reps`:'')+(t.load==='weight'&&t.kg?` at ${msKg(t.kg)}`:'')+'.'; }
-    const P={pause:220}, spec=[{name:s.ex.slug,text:name},P,'w_set',{n:s.k+1},'w_of',{n:n},P];
+    /* comme un coach a cote de toi : la 1re serie complete, ensuite l'essentiel.
+       Le nom seulement au debut de l'exercice, « sur N » seulement a la 1re et a la derniere
+       serie, la charge seulement si elle change. */
+    const prevKg=MS.lastKg&&MS.lastKg[s.it.id]; (MS.lastKg=MS.lastKg||{})[s.it.id]=t.kg;
+    const intro=first||s.k===0, sayOf=intro||s.k+1===n, sayKg=t.load==='weight'&&t.kg&&(intro||prevKg!==t.kg);
+    const P={pause:160}, spec=intro?[{name:s.ex.slug,text:name},P]:[];
+    spec.push('w_set',{n:s.k+1}); if(sayOf) spec.push('w_of',{n:n}); spec.push(P);
     if(t.load==='time'&&t.v){ if(t.v>=60&&t.v%60===0) spec.push({n:t.v/60},'w_min'); else spec.push({n:t.v},'w_sec'); }
     else if(t.load==='distance'&&t.v){ spec.push({n:t.v>=1000?t.v/1000:t.v},t.v>=1000?{tts:'km'}:'w_m'); }
     else if(t.load==='calories'&&t.v){ spec.push({n:t.v},'w_cal'); }
     else if(t.r){ spec.push({n:t.r},'w_reps'); if(s._side) spec.push('w_side'); }
-    if(t.load==='weight'&&t.kg){ spec.push(P); if(LANG!=='nl') spec.push('w_at'); spec.push({kg:t.kg}); }
+    if(sayKg){ spec.push({pause:90}); if(LANG!=='nl') spec.push('w_at'); spec.push({kg:t.kg}); }
     if(first&&cue&&vcCuesToo()) spec.push({pause:350},{tts:msCue(cue)});
-    else if(Math.random()<.35){ const e='e'+(1+Math.floor(Math.random()*8)); if(vcHas(LANG,e)) spec.push({pause:400},e); }
-    msSayC(spec,[nm,line.replace(/\.\./g,'.'),first&&cue&&vcCuesToo()?msCue(cue):'']);
+    else if(!intro&&Math.random()<.25){ const e='e'+(1+((MS.eN=(MS.eN||Math.floor(Math.random()*8))+1)%8)); if(vcHas(LANG,e)) spec.push({pause:350},e); }
+    if(!intro) line=line.replace(/^[^.]*\./,LANG==='fr'?`Série ${msNum(s.k+1)}${sayOf?' sur '+msNum(n):''}.`:LANG==='nl'?`Set ${s.k+1}${sayOf?' van '+n:''}.`:`Set ${s.k+1}${sayOf?' of '+n:''}.`);
+    msSayC(spec,[intro?nm:'',line.replace(/\.\./g,'.'),first&&cue&&vcCuesToo()?msCue(cue):''].filter(Boolean));
   }
   msLiveCues(s);
 }
