@@ -1308,6 +1308,7 @@ html.ms-on,html.ms-on body{overflow:hidden}
 .ms-btn.bx-red{background:linear-gradient(180deg,#FF6B6B,#E04848);color:#1A0404;box-shadow:0 10px 30px rgba(224,72,72,.35)}
 .bx-st{grid-template-columns:repeat(2,1fr)!important}
 #ms-wsteps{width:100%}
+.ms-btn{font-weight:800;font-size:17px}.ms-gh{font-weight:700;font-size:14px}
 .ms-wod .ms-wlist li{font-size:17px;padding:11px 14px;justify-content:flex-start;align-items:baseline;gap:12px}
 .ms-wod .ms-wlist li em{font-style:normal;font-weight:800;color:#FF5A5F;white-space:nowrap;min-width:3.2em}
 .ms-wlist li b{font-weight:700}
@@ -4176,8 +4177,8 @@ const T = {
  wn_1d:{fr:'Ce n’est plus une voix de robot : c’est moi, Coach DM, enregistré en français, en néerlandais et en anglais. J’annonce ta série, tes répétitions et ta charge, je te donne les consignes pendant l’effort (« Genoux dehors ! ») et je te pousse quand il faut. Réglable avec l’icône 🔊.',en:'No more robot voice: it’s me, Coach DM, recorded in English, French and Dutch. I call your set, your reps and your load, give you cues during the effort (“Knees out!”) and push you when it counts. Adjust it with the 🔊 icon.',nl:'Geen robotstem meer: ik ben het, Coach DM, opgenomen in het Nederlands, Frans en Engels. Ik kondig je set, repetities en gewicht aan, geef aanwijzingen tijdens de inspanning (“Knieën naar buiten!”) en duw je door wanneer het telt. Instelbaar via het 🔊-icoon.'},
  wn_2t:{fr:'Le nouveau Mode séance',en:'The new Workout mode',nl:'De nieuwe Trainingsmodus'},
  wn_2d:{fr:'Lance ta séance puis « ▶ Mode séance » : plein écran, un exercice à la fois, l’animation du mouvement, ta charge de la dernière fois, les disques à mettre sur la barre, le repos qui démarre tout seul. L’écran reste allumé et tu es prévenu même téléphone verrouillé.',en:'Start your workout, then “▶ Workout mode”: full screen, one exercise at a time, the movement animation, last time’s load, the plates to put on the bar, rest that starts by itself. The screen stays on and you get a heads-up even with your phone locked.',nl:'Start je training en dan “▶ Trainingsmodus”: volledig scherm, één oefening tegelijk, de animatie van de beweging, je gewicht van vorige keer, de schijven op de stang, rust die vanzelf start. Het scherm blijft aan en je wordt verwittigd, zelfs met vergrendelde telefoon.'},
- wn_3t:{fr:'Les WOD comme à la box',en:'WODs just like at the box',nl:'WOD’s zoals in de box'},
- wn_3d:{fr:'AMRAP, EMOM, For Time : un grand chrono, le compteur de tours d’un geste, et la fin comme je la fais en vrai — « Dix secondes ! », 3, 2, 1… « Time ! ».',en:'AMRAP, EMOM, For Time: a big clock, rounds counted with one tap, and the finish the way I call it for real — “Ten seconds!”, 3, 2, 1… “Time!”.',nl:'AMRAP, EMOM, For Time: een grote klok, rondes tellen met één tik, en de finish zoals ik hem echt roep — “Tien seconden!”, 3, 2, 1… “Time!”.'},
+ wn_3t:{fr:'La séance WOD comme à la box',en:'WOD sessions just like at the box',nl:'De WOD-training zoals in de box'},
+ wn_3d:{fr:'Échauffement guidé, le WOD expliqué avant le top, puis un grand chrono, le compteur de tours d’un geste, et la fin comme je la fais en vrai — « Dix secondes ! », 3, 2, 1… « Time ! ».',en:'Guided warm-up, the WOD explained before the start, then a big clock, rounds counted with one tap, and the finish the way I call it for real — “Ten seconds!”, 3, 2, 1… “Time!”.',nl:'Begeleide opwarming, de WOD uitgelegd vóór de start, dan een grote klok, rondes tellen met één tik, en de finish zoals ik hem echt roep — “Tien seconden!”, 3, 2, 1… “Time!”.'},
  wn_4t:{fr:'Ta carte story à la fin de la séance',en:'Your story card at the end of the workout',nl:'Je storykaart na de training'},
  wn_4d:{fr:'Minutes, kilos, répétitions et records sur une belle image prête pour Instagram, en trois styles. Un geste pour la partager.',en:'Minutes, kilos, reps and records on a great-looking image ready for Instagram, in three styles. One tap to share.',nl:'Minuten, kilo’s, repetities en records op een mooi beeld klaar voor Instagram, in drie stijlen. Eén tik om te delen.'},
  wn_5t:{fr:'Le mode jeu : tu t’entraînes sans compter',en:'Game mode: you train without counting',nl:'De spelmodus: je traint zonder te tellen'},
@@ -11970,7 +11971,7 @@ function bxSeg(){
   const B=MS.bt;
   if(g.t==='reps'){
     e.innerHTML=`${g.lab?`<small class="bx-lab">${esc(g.lab)}</small>`:''}<button type="button" class="ms-btn" id="bx-ok">${esc(segs.length>1?bt('set_done'):bt('done_it'))}</button>`;
-    document.getElementById('bx-ok').onclick=()=>{ buzz(60); bxAdv(); };
+    document.getElementById('bx-ok').onclick=()=>{ buzz(60); if(c.P.k==='skill') bxLogSet(c.x); bxAdv(); };
   } else {
     const left=B&&B.g===K.g?B.left:g.d, run=!!(B&&B.g===K.g&&B.run);
     const auto=g.t==='rest'||g.t==='sw';
@@ -11984,6 +11985,11 @@ function bxSeg(){
       document.getElementById('bx-15').onclick=()=>{ const b=MS.bt; if(b&&b.g===K.g){ b.left+=15; if(b.run) b.end+=15000; b.tot+=15; } else MS.bt={g:K.g,left:g.d+15,tot:g.d+15,run:false}; bxTick(true); };
     }
   }
+}
+/* serie de la phase Skill / Force : on coche la prochaine pastille de la seance -> set_logs, comme dans la liste */
+function bxLogSet(x){
+  try{ const wrap=document.querySelector('#se-detail .pills[data-we="'+x.it.id+'"]'); if(!wrap) return;
+    const p=[...wrap.querySelectorAll('.pill')].find(z=>!z.classList.contains('done')); if(p) Promise.resolve(quickSet(wrap,p)).then(()=>{ try{ stopRest(); }catch(_){} }); }catch(_){}   /* le repos est gere par l'ecran box */
 }
 function bxRun(){
   const c=bxCur(); if(!c) return; const {K,g}=c;
