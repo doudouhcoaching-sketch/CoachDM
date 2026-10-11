@@ -74,7 +74,7 @@ canvas.wave{width:100%;height:64px;border-radius:12px;background:#0A100D}
         <li>Tout ce que tu n’as pas encore enregistré est lu par la voix du téléphone : tu peux avancer petit à petit.</li>
       </ul>
     </details>
-    <div class="filt">Groupe <select id="gsel"><option value="">Tous</option><option value="phr">Phrases</option><option value="unit">Mots</option><option value="num">Nombres</option><option value="cue">Consignes</option><option value="enc">Encouragements</option></select></div>
+    <div class="filt">Groupe <select id="gsel"><option value="">Tous</option><option value="phr">Phrases</option><option value="unit">Mots</option><option value="num">Nombres</option><option value="cue">Consignes</option><option value="enc">Encouragements</option><option value="expl">Explications</option></select></div>
     <div class="filt">Afficher <select id="filt"><option value="todo">À enregistrer</option><option value="all">Tout</option><option value="done">Déjà enregistrés</option></select></div>
     <div class="card">
       <span class="grp" id="grp">—</span>
@@ -155,8 +155,8 @@ const SUPABASE_URL='https://kkcmhviyvttwpaclrjmv.supabase.co';
 const SUPABASE_KEY='sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b';
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=s=>document.querySelector(s);
-const GROUP={phr:'Phrase',unit:'Mot',num:'Nombre',cue:'Consigne',enc:'Encouragement',name:'Nom d’exercice'};
-const GORD={phr:0,unit:1,num:2,cue:3,enc:4,name:5};
+const GROUP={phr:'Phrase',unit:'Mot',num:'Nombre',cue:'Consigne',enc:'Encouragement',expl:'Explication',name:'Nom d’exercice'};
+const GORD={phr:0,unit:1,num:2,cue:3,enc:4,expl:5,name:6};
 const HINT={cue:'Court et net : partie du corps + direction, comme à la box.',phr:'Phrase complète, ton naturel de coach.',unit:'Un seul mot, net, sans montée de voix à la fin.',num:'Juste le nombre, comme dans « Série … sur … ».',enc:'Avec de l’énergie, comme pendant une vraie série.',name:'Le nom en anglais, comme à la box.'};
 let LANG='fr', ITEMS=[], DONE={}, IDX=0, FILT='todo', GSEL='';
 let AC=null, stream=null, rec=null, chunks=[], take=null, analyser=null, raf=0, autoT=0;
@@ -179,17 +179,19 @@ async function load(l){
   $('#gsel').parentNode.hidden=(l==='x');
   /* la base de donnees voice_lines : texte, ton, vitesse, note. Secours : le catalogue integre. */
   const [{ data:vl }, nm] = await Promise.all([
-    sb.from('voice_lines').select('key,text,grp,tone,pace,note,sort').eq('lang',l).order('sort').limit(2000),
+    sb.from('voice_lines').select('key,text,grp,tone,pace,note,sort,updated_at').eq('lang',l).order('sort').limit(2000),
     l==='x'?sb.rpc('voice_studio_names'):Promise.resolve({data:null}) ]);
   const uses={}; (nm.data||[]).forEach(r=>uses[r.slug]=r.uses);
   if(vl&&vl.length){
-    ITEMS=vl.map(r=>({key:r.key,text:r.text,g:r.grp,tone:r.tone,pace:r.pace,note:r.note,sort:r.sort,uses:l==='x'?(uses[r.key]??0):null}))
+    ITEMS=vl.map(r=>({key:r.key,text:r.text,up:r.updated_at,g:r.grp,tone:r.tone,pace:r.pace,note:r.note,sort:r.sort,uses:l==='x'?(uses[r.key]??0):null}))
       .sort((a,b)=>(GORD[a.g]??9)-(GORD[b.g]??9)||a.sort-b.sort);
   } else if(l==='x'){
     ITEMS=(nm.data||[]).map(r=>({key:r.slug,text:vcNameText(r.name_en),g:'name',uses:r.uses}));
   } else ITEMS=vcCatalog(l);
   const { data:rows } = await sb.from('voice_clips').select('key,path,trim_start,trim_end,gain,updated_at').eq('lang',l);
-  DONE={}; (rows||[]).forEach(r=>DONE[r.key]=r);
+  /* un texte modifie APRES l'enregistrement repasse dans « a enregistrer » */
+  const UP={}; ITEMS.forEach(i=>{ if(i.up) UP[i.key]=Date.parse(i.up); });
+  DONE={}; (rows||[]).forEach(r=>{ if(UP[r.key]&&r.updated_at&&Date.parse(r.updated_at)+5000<UP[r.key]) return; DONE[r.key]=r; });
   paint();
 }
 const shown=()=>ITEMS.filter(it=>(LANG==='x'||!GSEL||it.g===GSEL)&&(FILT==='all'||(FILT==='todo'?!DONE[it.key]:!!DONE[it.key])));
@@ -239,7 +241,7 @@ $('#rec').onclick=async()=>{
   rec.onstop=()=>{ cancelAnimationFrame(raf); clearTimeout(autoT); $('#rec').classList.remove('on'); $('#rec').textContent='REC'; $('#lvl').style.width='0'; analyse(new Blob(chunks,{type:(rec.mimeType||mt||'audio/mp4')})); };
   rec.start(); $('#rec').classList.add('on'); $('#rec').textContent='STOP'; $('#warn').textContent='';
   /* arret automatique : 0,8 s de silence apres avoir parle, ou duree max */
-  const maxMs=it.g==='phr'||it.g==='enc'?9000:it.g==='name'||it.g==='cue'?5000:3500;
+  const maxMs=it.g==='expl'?14000:it.g==='phr'||it.g==='enc'?10000:it.g==='name'||it.g==='cue'?5000:3500;
   /* seuil qui s'adapte a la piece et a la distance du telephone : avant, une voix
      enregistree doucement n'atteignait jamais le seuil fixe et l'enregistrement
      tournait jusqu'au bout (9 s). */
