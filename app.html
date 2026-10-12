@@ -10865,6 +10865,7 @@ const vcWait=ms=>new Promise(r=>setTimeout(r,ms));
    « deux cent vingt » (sans s quand un nombre suit). Si la variante n'est pas encore
    enregistree, on garde la forme de base plutot que de basculer sur la voix du telephone. */
 const VC_FEM=['w_reps','w_sec','w_min','w_cal'];
+const VC_REPS=[...Array(30).keys()].map(i=>i+1).concat([35,40,50]), VC_SECS=[5,10,15,20,25,30,35,40,45,50];
 function vcFr(keys,fem){
   if(LANG!=='fr') return keys;
   return keys.map((k,i)=>{
@@ -10872,7 +10873,11 @@ function vcFr(keys,fem){
     if(i<keys.length-1&&(k==='n200'||k==='n300')&&vcHas('fr',k+'b')) return k+'b';
     return k; });
 }
+/* phrase entiere enregistree ({full:'s_2_3', alt:[...]}) : prise telle quelle si elle existe,
+   sinon on retombe sur les morceaux (alt). Jamais de melange au milieu d'une phrase. */
+function vcFull(spec){ return spec.flatMap(t=>(t&&t.full)?(vcHas(LANG,t.full)?[t.full]:(t.alt||[])):[t]); }
 function vcPlan(spec){
+  spec=vcFull(spec);
   const items=[];
   for(let ti=0;ti<spec.length;ti++){ const t=spec[ti];
     if(typeof t==='string'){ /* « 1 rep », « 1 repetitie » : le singulier s'il est enregistre */
@@ -11023,7 +11028,7 @@ async function msVoiceSheet(){
   sh.querySelectorAll('.ms-vseg button').forEach(b=>b.onclick=()=>{ try{ localStorage.setItem('cdm_ms_names',b.dataset.m); }catch(_){}
     sh.querySelectorAll('.ms-vseg button').forEach(x=>x.classList.toggle('on',x===b)); });
   document.getElementById('ms-vtest').onclick=()=>{ const was=MSV.on; MSV.on=true; vcCtx();
-    if(vcMode()==='coach'){ msSayC([{name:'back-squat',text:'Back Squat'},{pause:220},'w_set',{n:2},'w_of',{n:3},{pause:220},{n:5},'w_reps',{pause:220},...(LANG!=='nl'?['w_at']:[]),{kg:62.5}],''); MSV.on=was; return; }
+    if(vcMode()==='coach'){ msSayC([{name:'back-squat',text:'Back Squat'},{pause:220},{full:'s_2_3',alt:['w_set',{n:2},'w_of',{n:3}]},{pause:220},{full:'r_5',alt:[{n:5},'w_reps']},{pause:220},...(LANG!=='nl'?['w_at']:[]),{kg:62.5}],''); MSV.on=was; return; }
     const n=msNm('Back Squat');
     msSay(LANG==='fr'?[n,'Série deux sur trois. Cinq répétitions, à soixante-deux kilos et demi.',msNm('Kettlebell Swing'),'Les hanches envoient la cloche, pas les bras.']
          :LANG==='nl'?[n,'Set 2 van 3. 5 repetities, 62,5 kilo.',msNm('Kettlebell Swing'),'De heupen sturen de kettlebell, niet de armen.']
@@ -11307,11 +11312,15 @@ async function msWork(announce){
     const prevKg=MS.lastKg&&MS.lastKg[s.it.id]; (MS.lastKg=MS.lastKg||{})[s.it.id]=t.kg;
     const intro=first||s.k===0, sayOf=intro||s.k+1===n, sayKg=t.load==='weight'&&t.kg&&(intro||prevKg!==t.kg);
     const P={pause:160}, spec=intro?[{name:s.ex.slug,text:name},P]:[];
-    spec.push('w_set',{n:s.k+1}); if(sayOf) spec.push('w_of',{n:n}); spec.push(P);
-    if(t.load==='time'&&t.v){ if(t.v>=60&&t.v%60===0) spec.push({n:t.v/60},'w_min'); else spec.push({n:t.v},'w_sec'); }
+    { const sk=s.k+1, alt=['w_set',{n:sk}].concat(sayOf?['w_of',{n:n}]:[]);
+      spec.push(sayOf?(n<=10&&sk<=n?{full:'s_'+sk+'_'+n,alt}:alt[0]):(sk<=10?{full:'s_'+sk,alt}:alt[0]));
+      if(!(sayOf?(n<=10&&sk<=n):(sk<=10))) spec.push(...alt.slice(1)); }
+    spec.push(P);
+    if(t.load==='time'&&t.v){ if(t.v>=60&&t.v%60===0){ const m=t.v/60; spec.push(m<=10?{full:'min_'+m,alt:[{n:m},'w_min']}:{n:m},...(m<=10?[]:['w_min'])); }
+      else { const v=t.v; spec.push(VC_SECS.includes(v)?{full:'sec_'+v,alt:[{n:v},'w_sec']}:{n:v},...(VC_SECS.includes(v)?[]:['w_sec'])); } }
     else if(t.load==='distance'&&t.v){ spec.push({n:t.v>=1000?t.v/1000:t.v},t.v>=1000?{tts:'km'}:'w_m'); }
     else if(t.load==='calories'&&t.v){ spec.push({n:t.v},'w_cal'); }
-    else if(t.r){ spec.push({n:t.r},'w_reps'); if(s._side) spec.push('w_side'); }
+    else if(t.r){ if(VC_REPS.includes(t.r)) spec.push({full:'r_'+t.r,alt:[{n:t.r},'w_reps']}); else spec.push({n:t.r},'w_reps'); if(s._side) spec.push('w_side'); }
     if(sayKg){ spec.push({pause:90}); if(LANG!=='nl') spec.push('w_at'); spec.push({kg:t.kg}); }
     const ex1=first&&vcMode()==='coach'?vcExpl(s.ex.slug):null, lastS=n>1&&s.k+1===n;
     if(ex1) spec.push({pause:350},ex1);                                   /* la 1re fois : la consigne expliquee en entier */
