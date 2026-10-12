@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Ton avis · Coach DM</title>
+<link rel="icon" href="favicon.png">
+<style>
+:root{--bg:#050807;--card:#0E1512;--line:rgba(234,244,238,.10);--ink:#EEF4EF;--mut:#8FA398;--acc:#00FFA3;--gold:#E9C767}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,"Segoe UI",Arial,sans-serif;padding:28px 16px 60px}
+.wrap{max-width:560px;margin:0 auto}
+.top{text-align:center;margin-bottom:22px}
+.top img{width:64px;height:64px;border-radius:16px}
+.top small{display:block;margin-top:8px;color:var(--gold);font-weight:700;letter-spacing:3px;font-size:11px}
+h1{font-size:26px;line-height:1.2;margin:0 0 8px;letter-spacing:-.02em;text-wrap:balance}
+.lead{color:#C9DCD3;margin:0 0 22px}
+.q{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px 16px;margin:0 0 14px}
+.q h2{font-size:16px;margin:0 0 4px}
+.q .h{color:var(--mut);font-size:13px;margin:0 0 12px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts button{font:inherit;font-size:14.5px;color:var(--ink);background:#0A100D;border:1.5px solid var(--line);border-radius:999px;padding:9px 14px;cursor:pointer}
+.opts button[aria-pressed="true"]{border-color:var(--acc);background:rgba(0,255,163,.12);color:#fff}
+.stars{display:flex;gap:8px}
+.stars button{flex:1;font-size:26px;padding:10px 0;border-radius:14px;color:#4a5a52}
+.stars button.on{color:var(--gold);border-color:rgba(233,199,103,.6);background:rgba(233,199,103,.10)}
+textarea{width:100%;min-height:110px;font:inherit;font-size:15px;color:var(--ink);background:#0A100D;border:1.5px solid var(--line);border-radius:14px;padding:12px}
+.send{display:block;width:100%;margin-top:8px;font:inherit;font-weight:800;font-size:17px;color:#04110A;background:var(--acc);border:0;border-radius:16px;padding:16px;cursor:pointer}
+.send:disabled{opacity:.5}
+.err{color:#FF8A8A;font-size:14px;min-height:20px;margin-top:8px;text-align:center}
+.done{text-align:center}
+.done .big{font-size:52px}
+.play{display:block;text-decoration:none;text-align:center;font-weight:800;font-size:17px;color:#1a1405;background:var(--gold);border-radius:16px;padding:16px;margin:18px 0 8px}
+.note{color:var(--mut);font-size:13.5px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><img src="logo-dm.png" alt="Coach DM"><small>POWER · TRANSFORM · EXCEL</small></div>
+
+  <div id="form">
+    <h1>Ton avis sur Coach DM</h1>
+    <p class="lead">Six questions, des cases à cocher, une minute. Sois franc : une réponse honnête m'aide plus qu'un compliment.</p>
+
+    <div class="q"><h2>1 · Quelle note donnes-tu à l'app aujourd'hui ?</h2>
+      <div class="opts stars" data-q="note" data-one>
+        <button type="button" data-v="1" aria-label="1 étoile">★</button><button type="button" data-v="2" aria-label="2 étoiles">★</button><button type="button" data-v="3" aria-label="3 étoiles">★</button><button type="button" data-v="4" aria-label="4 étoiles">★</button><button type="button" data-v="5" aria-label="5 étoiles">★</button>
+      </div></div>
+
+    <div class="q"><h2>2 · Qu'est-ce que tu utilises le plus ?</h2><p class="h">Plusieurs choix possibles</p>
+      <div class="opts" data-q="utilise">
+        <button type="button" data-v="seance">Le Mode Séance</button><button type="button" data-v="wod">Les WOD et le chrono</button><button type="button" data-v="programmes">Les programmes</button><button type="button" data-v="objectifs">Mes objectifs (1RM, skills)</button><button type="button" data-v="nutrition">La nutrition</button><button type="button" data-v="analyse">L'analyse vidéo</button><button type="button" data-v="jeux">Les jeux</button><button type="button" data-v="coach_ia">Le Coach IA</button><button type="button" data-v="bibliotheque">La bibliothèque</button>
+      </div></div>
+
+    <div class="q"><h2>3 · Ma voix pendant la séance, tu en penses quoi ?</h2>
+      <div class="opts" data-q="voix" data-one>
+        <button type="button" data-v="adore">J'adore</button><button type="button" data-v="utile">Utile</button><button type="button" data-v="neutre">Ça m'est égal</button><button type="button" data-v="coupe">Je la coupe</button><button type="button" data-v="pas_teste">Pas encore testé</button>
+      </div></div>
+
+    <div class="q"><h2>4 · L'app est facile à utiliser ?</h2>
+      <div class="opts" data-q="facile" data-one>
+        <button type="button" data-v="tres_simple">Très simple</button><button type="button" data-v="simple">Simple</button><button type="button" data-v="parfois_perdu">Parfois je me perds</button><button type="button" data-v="complique">Compliquée</button>
+      </div></div>
+
+    <div class="q"><h2>5 · Qu'est-ce qui te ferait l'utiliser encore plus ?</h2><p class="h">Plusieurs choix possibles</p>
+      <div class="opts" data-q="envie">
+        <button type="button" data-v="programmes">Plus de programmes</button><button type="button" data-v="videos">Plus de vidéos</button><button type="button" data-v="nutrition">Une nutrition plus simple</button><button type="button" data-v="rappels">Des rappels pour m'entraîner</button><button type="button" data-v="defis">Des défis entre amis</button><button type="button" data-v="classements">Des classements de WOD</button><button type="button" data-v="communaute">Une communauté dans l'app</button><button type="button" data-v="coach_humain">Un suivi avec un vrai coach</button>
+      </div></div>
+
+    <div class="q"><h2>6 · Tu la conseillerais à un ami ?</h2>
+      <div class="opts" data-q="reco" data-one>
+        <button type="button" data-v="oui">Oui, sans hésiter</button><button type="button" data-v="probablement">Probablement</button><button type="button" data-v="pas_sur">Pas sûr</button><button type="button" data-v="non">Non</button>
+      </div></div>
+
+    <div class="q"><h2>Bonus · Tu t'entraînes combien de fois par semaine avec l'app ?</h2>
+      <div class="opts" data-q="rythme" data-one>
+        <button type="button" data-v="rarement">Rarement</button><button type="button" data-v="1">1 fois</button><button type="button" data-v="2_3">2 à 3 fois</button><button type="button" data-v="4_plus">4 fois ou plus</button>
+      </div></div>
+
+    <div class="q"><h2>Un mot pour moi ? <span class="h">(facultatif)</span></h2>
+      <textarea id="libre" maxlength="1000" placeholder="Une idée, un bug, un mouvement qui manque, ce que tu aimes…"></textarea></div>
+
+    <button class="send" id="send" type="button">Envoyer mon avis</button>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div id="done" class="done" hidden>
+    <div class="big">🙏</div>
+    <h1>Merci, c'est noté.</h1>
+    <p class="lead">Ton avis part directement chez moi. Et il ne s'arrête pas là : réponds à mon email quand tu veux, je lis tout.</p>
+    <div id="ask">
+      <p class="lead" style="margin-bottom:0">Dernier coup de pouce : une app qui démarre vit de ses premières notes. Si Coach DM te plaît, <b>5 étoiles et quelques mots</b> sur Google Play m'aident énormément.</p>
+      <a class="play" href="https://play.google.com/store/apps/details?id=be.coachdm.app" target="_blank" rel="noopener">Noter Coach DM sur Google Play</a>
+    </div>
+    <p class="note">Tu peux revenir sur cette page pour modifier tes réponses.</p>
+  </div>
+</div>
+<script>
+(function(){
+  var FN='https://kkcmhviyvttwpaclrjmv.supabase.co/functions/v1/testeur-avis';
+  var qs=new URLSearchParams(location.search), T=qs.get('t')||'', A={};
+  var err=document.getElementById('err');
+  function paint(){
+    document.querySelectorAll('.opts').forEach(function(g){
+      var q=g.dataset.q, one=g.hasAttribute('data-one'), v=A[q];
+      g.querySelectorAll('button').forEach(function(b){
+        var on= one ? (v===b.dataset.v) : (Array.isArray(v)&&v.indexOf(b.dataset.v)>=0);
+        if(q==='note'){ on = v && +b.dataset.v<=+v; b.classList.toggle('on',!!on); b.setAttribute('aria-pressed', v===b.dataset.v?'true':'false'); }
+        else b.setAttribute('aria-pressed', on?'true':'false');
+      });
+    });
+  }
+  document.querySelectorAll('.opts').forEach(function(g){
+    var q=g.dataset.q, one=g.hasAttribute('data-one');
+    g.addEventListener('click',function(e){
+      var b=e.target.closest('button'); if(!b) return; var v=b.dataset.v;
+      if(one) A[q]=v; else { var a=Array.isArray(A[q])?A[q]:[]; var i=a.indexOf(v); if(i>=0) a.splice(i,1); else a.push(v); A[q]=a; }
+      paint();
+    });
+  });
+  if(/^[1-5]$/.test(qs.get('note')||'')) A.note=qs.get('note');
+  paint();
+  if(!/^[0-9a-f-]{36}$/i.test(T)){ err.textContent="Ce lien n'est pas complet : ouvre-le depuis l'email que je t'ai envoyé."; document.getElementById('send').disabled=true; return; }
+  fetch(FN,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({t:T,peek:true})}).then(function(r){return r.json();}).then(function(d){
+    if(d&&d.answers&&typeof d.answers==='object'){ var n=A.note; A=Object.assign({},d.answers); if(n) A.note=n; if(d.answers.libre) document.getElementById('libre').value=d.answers.libre; paint(); }
+  }).catch(function(){});
+  document.getElementById('send').addEventListener('click',function(){
+    var btn=this; err.textContent='';
+    if(!A.note){ err.textContent='Donne au moins une note (question 1).'; return; }
+    var body=Object.assign({},A,{libre:document.getElementById('libre').value});
+    btn.disabled=true; btn.textContent='Envoi…';
+    fetch(FN,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({t:T,answers:body})}).then(function(r){return r.json();}).then(function(d){
+      if(d&&d.ok){ document.getElementById('form').hidden=true; document.getElementById('done').hidden=false; window.scrollTo(0,0); }
+      else { err.textContent="L'envoi n'a pas marché. Réessaie, ou réponds simplement à mon email."; btn.disabled=false; btn.textContent='Envoyer mon avis'; }
+    }).catch(function(){ err.textContent="Pas de connexion. Réessaie dans un instant."; btn.disabled=false; btn.textContent='Envoyer mon avis'; });
+  });
+})();
+</script>
+</body>
+</html>
