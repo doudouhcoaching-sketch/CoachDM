@@ -1311,7 +1311,7 @@ html.ms-on,html.ms-on body{overflow:hidden}
 .ms-btn{font-weight:800;font-size:17px}.ms-gh{font-weight:700;font-size:14px}
 .ms-wod .ms-wlist li{font-size:17px;padding:11px 14px;justify-content:flex-start;align-items:baseline;gap:12px}
 .ms-wod .ms-wlist li em{font-style:normal;font-weight:800;color:#FF5A5F;white-space:nowrap;min-width:3.2em}
-.ms-wlist li b{font-weight:700}
+.ms-wlist li b{font-weight:700}.wsc-lv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 16px}.wsc-lv button{border:1.5px solid var(--line,rgba(127,127,127,.3));background:transparent;color:inherit;border-radius:14px;padding:10px 6px;text-align:center;cursor:pointer;font:inherit}.wsc-lv button b{display:block;font-size:15px;font-weight:800}.wsc-lv button small{display:block;font-size:11px;opacity:.7;margin-top:2px;line-height:1.25}.wsc-lv button.on{border-color:var(--brand,#00E896);background:rgba(0,232,150,.12)}.ms-wlist li[data-s]{cursor:pointer}.ms-wlist .ms-wn{flex:1;min-width:0}.ms-wlist .ms-wn small{display:block;margin-top:2px;font-size:12.5px;font-weight:500;color:#A9BBB1;line-height:1.3}.ms-wlist .ms-wi{flex:none;align-self:center;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:11px;color:#00E896;border:1px solid rgba(0,232,150,.45)}.ms-wlist li.ms-wtip{background:none;border:0;padding:2px 4px;font-size:12px;color:#8FA398;justify-content:center}.ms-wcur{cursor:pointer}
 
 .ms-wcur b{display:block;font-size:19px}.ms-wcur small{display:block;color:#00E896;font-size:13px;font-weight:700}
 .ms-wlist{width:100%;list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:6px;max-height:34vh;overflow:auto}
@@ -4104,6 +4104,12 @@ const T = {
  wsc_load:{fr:'Charge (kg)',en:'Load (kg)',nl:'Belasting (kg)'},
  wsc_capped:{fr:'Cap atteint — score enregistré comme cappé',en:'Cap reached — score saved as capped',nl:'Cap bereikt — score opgeslagen als capped'},
  wsc_rx:{fr:'RX (tel que prescrit)',en:'RX (as prescribed)',nl:'RX (zoals voorgeschreven)'},
+ wsc_lv_rx:{fr:'RX',en:'RX',nl:'RX'},
+ wsc_lv_rx_s:{fr:'tel que prescrit',en:'as prescribed',nl:'zoals voorgeschreven'},
+ wsc_lv_inter:{fr:'Intermédiaire',en:'Intermediate',nl:'Gemiddeld'},
+ wsc_lv_inter_s:{fr:'charge ou mouvement allégé',en:'lighter load or movement',nl:'lichter gewicht of beweging'},
+ wsc_lv_scaled:{fr:'Scaled',en:'Scaled',nl:'Scaled'},
+ wsc_lv_scaled_s:{fr:'version débutant',en:'beginner version',nl:'beginnersversie'},
  wsc_save:{fr:'Enregistrer le score',en:'Save score',nl:'Score opslaan'},
  wsc_saved:{fr:'Score enregistré 💪',en:'Score saved 💪',nl:'Score opgeslagen 💪'},
  wsc_fail:{fr:'Échec de l\'enregistrement',en:'Save failed',nl:'Opslaan mislukt'},
@@ -10392,7 +10398,7 @@ function startRest(sec){
 function stopRest(){ if(REST&&REST.iv) clearInterval(REST.iv); REST=null; try{ msNotif(0); }catch(_){} const b=$('#rest-bar'); if(b){ b.classList.remove('on'); b.classList.remove('ending'); } }
 
 /* ---- Moteur WOD : EMOM / AMRAP / For Time / RFT ---- */
-let WOD=null, WOD_SCORE_SAVED=false;
+let WOD=null, WOD_SCORE_SAVED=false, WOD_LEVEL=null;
 function wodClock(s){ s=Math.max(0,s); const m=Math.floor(s/60); return m+':'+String(s%60).padStart(2,'0'); }
 function wodFmtMin(s){ s=+s||0; return s%60===0 ? (s/60)+' '+t('wod_min_u') : wodClock(s); }
 function wodBanner(w){
@@ -10411,7 +10417,7 @@ function startWOD(w){
   const bar=$('#wod-bar'); if(!bar) return;
   const f=w.wod_format; if(!f||f==='classic') return;
   WOD={f, t0:Date.now(), cap:w.time_cap_seconds||0, itv:w.emom_interval_seconds||60, rounds:w.emom_rounds||0, rft:w.rft_rounds||0, ended:false, _last:0};
-  WOD_SCORE_SAVED=false;
+  WOD_SCORE_SAVED=false; WOD_LEVEL=null;
   bar.classList.add('on'); bar.classList.remove('warn');
   $('#wod-round').textContent='';
   const act=$('#wod-act');
@@ -10473,14 +10479,19 @@ function openScoreSheet(capped){
     inner+=`<div class="wsc-row"><div class="field"><label>${t('wsc_load')}</label><input id="wsc-k" type="number" inputmode="decimal" min="0" max="500" step="0.5"></div></div>`;
   }
   if(capped) inner+=`<p style="margin:0 0 12px;font-size:12.5px;color:#EF4444;font-weight:700">⏱ ${t('wsc_capped')}</p>`;
-  inner+=`<label style="display:flex;align-items:center;gap:9px;margin:4px 2px 16px;font-size:13.5px;font-weight:700"><input id="wsc-rx" type="checkbox" checked style="width:19px;height:19px;accent-color:var(--brand)"> ${t('wsc_rx')}</label>`;
+  /* 12 oct. : trois niveaux comme sur le tableau d'une box — RX, Intermediaire,
+     Scaled. Le niveau part dans wod_scores.level et sur la carte story. */
+  inner+=`<div class="wsc-lv" id="wsc-lv" role="radiogroup">${['rx','inter','scaled'].map(k=>`<button type="button" data-lv="${k}" class="${k==='rx'?'on':''}" role="radio" aria-checked="${k==='rx'}"><b>${t('wsc_lv_'+k)}</b><small>${t('wsc_lv_'+k+'_s')}</small></button>`).join('')}</div>`;
   inner+=`<button class="btn" id="wsc-save">${t('wsc_save')}</button>`;
   $('#wsc-title').textContent=t('wsc_title');
   $('#wsc-body').innerHTML=inner;
   if(MS&&MS.wod&&MS.wodR&&$('#wsc-r')) $('#wsc-r').value=MS.wodR;
   $('#wsc-ov').classList.add('show');
+  let lvl='rx';
+  document.querySelectorAll('#wsc-lv button').forEach(b=>b.onclick=()=>{ lvl=b.dataset.lv;
+    document.querySelectorAll('#wsc-lv button').forEach(o=>{ const on=o===b; o.classList.toggle('on',on); o.setAttribute('aria-checked',on); }); });
   $('#wsc-save').onclick=async()=>{
-    const row={ user_id:USER.id, workout_id:w.id, capped:!!capped, rx:$('#wsc-rx').checked };
+    const row={ user_id:USER.id, workout_id:w.id, capped:!!capped, rx:lvl==='rx', level:lvl };
     if(st==='time'){ const m=+(($('#wsc-m')||{}).value||0), s2=+(($('#wsc-s')||{}).value||0); if(!capped&&(m||s2)) row.score_time_seconds=m*60+s2; }
     if(st==='rounds_reps'){ row.score_rounds=+(($('#wsc-r')||{}).value||0); row.score_reps=+(($('#wsc-p')||{}).value||0); }
     if(st==='reps'){ row.score_reps=+(($('#wsc-p')||{}).value||0); }
@@ -10489,7 +10500,7 @@ function openScoreSheet(capped){
     const { error } = await sb.from('wod_scores').insert(row);
     btn.disabled=false;
     if(error){ toast(t('wsc_fail')); return; }
-    WOD_SCORE_SAVED=true;
+    WOD_SCORE_SAVED=true; WOD_LEVEL=lvl;
     $('#wsc-ov').classList.remove('show');
     toast(t('wsc_saved'));
   };
@@ -10559,6 +10570,7 @@ const MS_TX={
  rounds:{fr:'Tours',en:'Rounds',nl:'Rondes'},
  plus1:{fr:'+1 tour',en:'+1 round',nl:'+1 ronde'},
  wod_done:{fr:'✓ Terminé',en:'✓ Done',nl:'✓ Klaar'},
+ wod_tip:{fr:'Touche un mouvement : vidéo, points clés et erreurs à éviter',en:'Tap a movement: video, key points and mistakes to avoid',nl:'Tik op een beweging: video, kernpunten en fouten om te vermijden'},
  wod_score:{fr:'Enregistrer mon score',en:'Save my score',nl:'Mijn score opslaan'},
  wod_go:{fr:'▶ Lancer le chrono',en:'▶ Start the clock',nl:'▶ Klok starten'},
  wod_left:{fr:'restant',en:'left',nl:'resterend'},
@@ -11565,7 +11577,7 @@ async function msStoryData(){
     d.word=full.length<=12?full:(c.join(' ').length<=12?c.join(' '):(gen.includes(c[c.length-1])&&c.length>1?c[0]:c[c.length-1])); }
   if(WOD&&SE_CUR&&SE_CUR.w&&!msClassic()){
     const el=WOD.elapsed!=null?WOD.elapsed:Math.floor((Date.now()-WOD.t0)/1000);
-    d.wod={f:WOD.f, rounds:(MS_KEEP&&MS_KEEP.wodR)||0, time:(WOD.f==='for_time'||WOD.f==='rft')?el:null};
+    d.wod={f:WOD.f, rounds:(MS_KEEP&&MS_KEEP.wodR)||0, time:(WOD.f==='for_time'||WOD.f==='rft')?el:null, level:WOD_LEVEL};
   }
   return d;
 }
@@ -11620,7 +11632,7 @@ async function msStoryDraw(style,d){
   x.fillStyle=T.ink; x.textAlign='center'; x.fillText(dt,W-64-dw/2,130);
   /* titre */
   x.textAlign='left'; x.fillStyle=T.acc; x.font='800 34px '+B;
-  x.fillText((d.first?d.first.toUpperCase()+' · ':'')+stt(d.wod?'wod':'done'),64,1226);
+  x.fillText((d.first?d.first.toUpperCase()+' · ':'')+stt(d.wod?'wod':'done')+(d.wod&&d.wod.level?' · '+t('wsc_lv_'+d.wod.level).toUpperCase():''),64,1226);
   const nm=String(d.name||'Coach DM').toUpperCase(); x.fillStyle=T.ink;
   const ns=stFit(x,nm,'800 {s}px '+F,W-128,96); x.font='800 '+ns+'px '+F; x.fillText(nm,64,1316);
   /* chiffre heros */
@@ -11704,7 +11716,14 @@ async function msWodOpen(countdown){
   vcIndex().then(()=>{ if(vcMode()==='coach') vcPreload(['p_go','p_10s','p_time','p_end','n1','n2','n3'].map(k=>[LANG,k]).concat(MS.items.map(x=>['x',x.ex.slug]))); }).catch(()=>{});
   const fl=f==='amrap'?'AMRAP '+wodFmtMin(w.time_cap_seconds):f==='emom'?'EMOM '+(w.emom_rounds||0)+' × '+wodFmtMin(w.emom_interval_seconds||60):f==='rft'?(w.rft_rounds||0)+' RFT':'For Time';
   document.getElementById('ms-wfmt').textContent=fl+((f==='for_time'||f==='rft')&&w.time_cap_seconds?' · '+mt('wod_cap')+' '+wodFmtMin(w.time_cap_seconds):'');
-  document.getElementById('ms-wlist').innerHTML=MS.items.map((x,i)=>`<li data-i="${i}"><em>${esc(x.rx)}</em><b>${esc(pick(x.ex,'name')||'')}</b></li>`).join('');
+  /* 12 oct. : pendant le WOD, chaque mouvement reste ouvrable (video, points de
+     performance, erreurs) et garde sa consigne cle sous le nom — un membre qui
+     ne connait pas le mouvement ne doit jamais rester bloque devant le chrono. */
+  document.getElementById('ms-wlist').innerHTML=MS.items.map((x,i)=>{ const cue=pick(x.ex,'cue')||'';
+    return `<li data-i="${i}" data-s="${esc(x.ex.slug||'')}" role="button"><em>${esc(x.rx)}</em><div class="ms-wn"><b>${esc(pick(x.ex,'name')||'')}</b>${cue?`<small>${esc(cue)}</small>`:''}</div><span class="ms-wi" aria-hidden="true">▶</span></li>`; }).join('')
+    +`<li class="ms-wtip">${esc(mt('wod_tip'))}</li>`;
+  document.querySelectorAll('#ms-wlist li[data-s]').forEach(li=>li.onclick=()=>{ if(li.dataset.s) bibFicheSlug(li.dataset.s); });
+  { const c=document.getElementById('ms-wcur'); if(c) c.onclick=()=>{ const x=MS&&MS.items&&MS.items[MS.curI]; if(x) bibFicheSlug(x.ex.slug); }; }
   { const ph=bxPhases(), wi=ph.findIndex(p=>p.k==='wod'); MS_KEEP.box={ph:wi,i:0,g:0,t0:(MS_KEEP.box&&MS_KEEP.box.ph===wi&&MS_KEEP.box.t0)||Date.now()};
     document.getElementById('ms-wsteps').innerHTML=bxSteps(wi);
     const fb=document.getElementById('ms-wfin'); if(fb) fb.textContent=ph[wi+1]?bt('to_cool'):mt('fin_b'); }
@@ -11768,10 +11787,10 @@ function msWodPaint(){
     clk.textContent=wodClock(left); clk.classList.toggle('warn',left<=5);
     sub.textContent=mt('wod_min')+' '+rnd+' / '+WOD.rounds;
     hi=n>1?(rnd-1)%n:0;
-    if(rnd!==MS.lastRnd){ MS.lastRnd=rnd; const x=items[hi];
+    if(rnd!==MS.lastRnd){ MS.lastRnd=rnd; const x=items[hi]; MS.curI=hi;
       if(x){ msSayC([{name:x.ex.slug,text:pick(x.ex,'name')}],[(LANG==='fr'?'Minute ':LANG==='nl'?'Minuut ':'Minute ')+rnd+'.',msNm(pick(x.ex,'name'))]);
         document.getElementById('ms-wcurk').textContent=mt('wod_min')+' '+rnd; document.getElementById('ms-wcurn').textContent=pick(x.ex,'name')||'';
-        document.getElementById('ms-wcurr').textContent=x.rx; const sv=animSVG(x.ex.slug,'ok'); document.getElementById('ms-wfig').innerHTML=sv||''; cur.hidden=false; } }
+        document.getElementById('ms-wcurr').textContent=x.rx+(pick(x.ex,'cue')?' · '+pick(x.ex,'cue'):''); const sv=animSVG(x.ex.slug,'ok'); document.getElementById('ms-wfig').innerHTML=sv||''; cur.hidden=false; } }
     if(rnd===WOD.rounds) msWodCount(left); else if(left<=3&&left>0&&MS.said.t!==el){ MS.said.t=el; SND.tick(); }
     act.hidden=true;
   } else {
