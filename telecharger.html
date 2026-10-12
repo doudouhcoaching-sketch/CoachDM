@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Coach DM · Télécharger l'application</title>
-<meta name="description" content="Coach DM — entraînement, nutrition et analyse vidéo IA. Disponible sur l'App Store, bientôt sur Google Play.">
+<meta name="description" content="Coach DM — entraînement, nutrition et analyse vidéo IA. Disponible sur l'App Store et Google Play.">
 <link rel="canonical" href="https://coachdm.be/telecharger.html">
 <meta property="og:title" content="Coach DM · Télécharger l'application">
 <meta property="og:description" content="Entraînement, nutrition et analyse vidéo IA de tes mouvements. Disponible sur iPhone.">
@@ -143,23 +143,18 @@ body, p, li, td, th, input, textarea, select, label, small{ font-family:var(--fo
       </span>
     </a>
 
-    <span class="store soon" id="android">
+    <a class="store" id="android" href="https://play.google.com/store/apps/details?id=be.coachdm.app" rel="noopener">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.6 9.48l1.84-3.18a.4.4 0 00-.7-.4l-1.87 3.23a11.4 11.4 0 00-9.74 0L5.26 5.9a.4.4 0 10-.7.4L6.4 9.48A10.9 10.9 0 001 18h22a10.9 10.9 0 00-5.4-8.52zM7 15.25a1.1 1.1 0 110-2.2 1.1 1.1 0 010 2.2zm10 0a1.1 1.1 0 110-2.2 1.1 1.1 0 010 2.2z"/></svg>
       <span class="st-tx">
-        <span class="st-k" data-t="and_k">Bientôt sur</span>
+        <span class="st-k" data-t="and_k">Disponible sur</span>
         <span class="st-n">Google Play</span>
       </span>
-    </span>
+    </a>
 
   </div>
 
   <div class="inapp" id="inapp" data-t="inapp">Tu navigues depuis Instagram. Son navigateur interne n'ouvre pas l'App Store directement — appuie sur les <b>trois points en haut à droite</b>, puis sur <b>Ouvrir dans le navigateur</b>.</div>
 
-  <div class="beta">
-    <div class="bt" data-t="beta_t">Bêta Android — 12 places</div>
-    <p data-t="beta_p">La version Android est en test fermé. Je cherche 12 personnes pour l'essayer pendant deux semaines — trois mois d'accès complet offerts en échange. Il te faut un téléphone Android et une adresse Gmail.</p>
-    <p style="margin-top:10px"><a href="https://instagram.com/coachdm.be" target="_blank" rel="noopener" data-t="beta_cta">Écris-moi sur Instagram</a> <span style="color:#4a4a4a">·</span> <a href="mailto:contact@coachdm.be?subject=B%C3%AAta%20Android%20Coach%20DM">contact@coachdm.be</a></p>
-  </div>
 
   <div class="feats">
     <div class="feat">
@@ -207,10 +202,7 @@ const T = {
   en:{
     h1:"The app that trains with you",
     lead:"Training, nutrition and video analysis of your movements. Built by a certified coach, not by an algorithm.",
-    shots_c:"AI video analysis, AI coach, nutrition and 13 programs \u2014 in French, English and Dutch.", ios_k:"Available on", and_k:"Coming soon to",
-    beta_t:"Android beta — 12 spots",
-    beta_p:"The Android version is in closed testing. I'm looking for 12 people to try it for two weeks — three months of full access free in return. You need an Android phone and a Gmail address.",
-    beta_cta:"Message me on Instagram",
+    shots_c:"AI video analysis, AI coach, nutrition and 13 programs \u2014 in French, English and Dutch.", ios_k:"Available on", and_k:"Get it on",
     inapp:"You're browsing from Instagram. Its built-in browser won't open the App Store directly — tap the three dots at the top right, then Open in browser.",
     f1_t:"Training",
     f1_p:"Thirteen complete programs — strength, hypertrophy, glutes, core, fat loss, cross-training, Hyrox, running, football. Plus your own program built on your goal (a 1RM record or a gymnastics skill). Guided sessions with rest timer, audio cues and load tracking.",
@@ -225,10 +217,7 @@ const T = {
   nl:{
     h1:"De app die met je meetraint",
     lead:"Training, voeding en video-analyse van je bewegingen. Gemaakt door een gecertificeerde coach, niet door een algoritme.",
-    shots_c:"AI-videoanalyse, AI-coach, voeding en 13 programma's — in het Frans, Engels en Nederlands.", ios_k:"Beschikbaar in de", and_k:"Binnenkort op",
-    beta_t:"Android-bèta — 12 plaatsen",
-    beta_p:"De Android-versie zit in gesloten test. Ik zoek 12 mensen om hem twee weken uit te proberen — drie maanden volledige toegang gratis in ruil. Je hebt een Android-telefoon en een Gmail-adres nodig.",
-    beta_cta:"Stuur me een bericht op Instagram",
+    shots_c:"AI-videoanalyse, AI-coach, voeding en 13 programma's — in het Frans, Engels en Nederlands.", ios_k:"Beschikbaar in de", and_k:"Ontdek het op",
     inapp:"Je surft vanuit Instagram. De ingebouwde browser opent de App Store niet rechtstreeks — tik op de drie puntjes rechtsboven en dan op Openen in browser.",
     f1_t:"Training",
     f1_p:"Dertien volledige programma's — kracht, hypertrofie, bilspieren, romp, vetverlies, cross-training, Hyrox, lopen, voetbal. Plus je eigen programma op maat van je doel (een 1RM-record of een gymnastiek-skill). Begeleide sessies met rusttimer, audiosignalen en gewichten bijhouden.",
@@ -281,7 +270,7 @@ const and = document.getElementById('android');
 if(isIOS){
   ios.classList.add('primary');
 } else if(isAndroid){
-  box.insertBefore(and, ios);
+  box.insertBefore(and, ios); and.classList.add('primary'); ios.classList.remove('primary');
 }
 
 /* ── Ouverture de l'App Store ─────────────────────────────────────────────
