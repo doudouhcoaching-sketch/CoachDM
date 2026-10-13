@@ -10117,7 +10117,7 @@ async function openWorkout(id){
   window.scrollTo(0,0);
   const [{ data:items }] = await Promise.all([
     sb.from('workout_exercises')
-      .select('id,block,display_order,sets,reps,rest_sec,tempo,target_rpe,load_pct_1rm,superset_group,notes_fr,notes_en,notes_nl,exercise:exercises(id,slug,pct_ref_slug,name_fr,name_en,name_nl,primary_muscle,equipment,load_type,video_url,youtube_query,thumbnail_url,cue_fr,cue_en,cue_nl)')
+      .select('id,block,display_order,sets,reps,rest_sec,tempo,target_rpe,load_pct_1rm,superset_group,notes_fr,notes_en,notes_nl,exercise:exercises(id,slug,pct_ref_slug,category,pattern,name_fr,name_en,name_nl,primary_muscle,equipment,load_type,video_url,youtube_query,thumbnail_url,cue_fr,cue_en,cue_nl)')
       .eq('workout_id',id).order('display_order',{ascending:true}),
     loadPRMap(), loadPRSlugMap(), loadVBTDay(true)
   ]);
@@ -10754,6 +10754,52 @@ function vcPick(prefix,extra){
   if(pool.length>1&&k===VC_LAST[prefix]) k=pool[(pool.indexOf(k)+1)%pool.length];
   VC_LAST[prefix]=k; return k;
 }
+/* Le bon mot au bon moment. Un coach ne dit pas « je suis fier de toi » pendant le jog d'échauffement,
+   ni « dernière série, donne tout » à la 2e série d'un exercice d'échauffement.
+   Règle : en cas de doute, la voix se tait. Jamais d'encouragement d'effort à l'échauffement ni au retour
+   au calme, jamais une phrase qui suppose ce que l'app ne voit pas (« superbe technique », « encore une »,
+   « plus fort que la dernière fois »). */
+const VC_WARM_CAT=['warmup','mobility','activation'];
+function msPhase(s){
+  const b=s&&s.it&&s.it.block, c=s&&s.ex&&s.ex.category;
+  if(b==='recovery') return 'cool';
+  if(b==='activation'||VC_WARM_CAT.includes(c)) return 'warm';
+  if(b==='conditioning') return 'wod';
+  return 'work';
+}
+/* m : pre = à l'annonce de la série, mid = pendant l'effort. null = jamais en automatique. */
+const VC_ENC={
+ e1:{m:'pre',ph:'work wod'}, e2:{m:'pre mid',ph:'work',reps:1}, e3:{m:'pre mid',ph:'work',push:1},
+ e4:{m:'mid',ph:'work',desc:1}, e5:null, e6:{m:'mid',ph:'work',chest:1}, e7:null, e8:{m:'mid',ph:'work wod',timed:1},
+ enc_1:{m:'mid',ph:'wod work',late:1}, enc_2:{m:'pre',ph:'work',reps:1}, enc_3:{m:'mid',ph:'work wod',timed:1},
+ enc_4:{m:'mid',ph:'work wod',late:1}, enc_5:{m:'mid',ph:'wod'}, enc_6:null, enc_7:{m:'pre',ph:'work',notFirst:1},
+ enc_8:{m:'mid',ph:'work wod',reps:1}, enc_9:{m:'pre',ph:'work',notFirst:1}, enc_10:null,
+ enc_11:{m:'mid',ph:'work wod',late:1}, enc_12:{m:'mid',ph:'work wod',notFirst:1}
+};
+const VC_ENC_NEW={m:'mid',ph:'work wod',notFirst:1}; /* une phrase ajoutée plus tard dans le studio */
+const VC_PUSH=['squat','poussee_h','poussee_v','fente','charniere'];
+function msCtx(s,m,o){
+  const ex=s.ex||{}, load=(s.wrap&&s.wrap.dataset.load)||ex.load_type||'reps_only', cues=(VC_CUES&&VC_CUES.map[ex.slug])||[];
+  const n=s.n||1;
+  return Object.assign({m,ph:msPhase(s),timed:/time|distance|calories/.test(load),reps:!/time|distance|calories/.test(load),
+    desc:cues.includes('c_control'),chest:cues.includes('c_chest_up'),push:load==='weight'&&VC_PUSH.includes(ex.pattern),
+    late:n>1&&(s.k||0)+1===n,notFirst:(s.k||0)>=1},o||{});
+}
+function vcEncOk(k,c){
+  const r=k in VC_ENC?VC_ENC[k]:(k.indexOf('enc_')===0?VC_ENC_NEW:null); if(!r) return false;
+  if(r.m.split(' ').indexOf(c.m)<0||r.ph.split(' ').indexOf(c.ph)<0) return false;
+  if(c.ph==='wod') return !(r.late&&!c.late)&&!(r.notFirst&&!c.notFirst);
+  return !(r.reps&&!c.reps)&&!(r.timed&&!c.timed)&&!(r.desc&&!c.desc)&&!(r.chest&&!c.chest)&&!(r.push&&!c.push)&&!(r.late&&!c.late)&&!(r.notFirst&&!c.notFirst);
+}
+function vcPickEnc(c){
+  if(!c||c.ph==='warm'||c.ph==='cool') return null;
+  const L=VC_IDX&&VC_IDX[LANG]; if(!L) return null;
+  const pool=Object.keys(L).filter(k=>k.indexOf('#')<0&&(k.indexOf('enc_')===0||/^e[1-8]$/.test(k))&&vcEncOk(k,c));
+  if(!pool.length) return null;
+  let k=pool[Math.floor(Math.random()*pool.length)];
+  if(pool.length>1&&k===VC_LAST.enc) k=pool[(pool.indexOf(k)+1)%pool.length];
+  VC_LAST.enc=k; return k;
+}
 /* explication complete d'une consigne (cl_knees_out pour c_knees_out), si elle est enregistree */
 function vcExpl(slug){
   const keys=(VC_CUES&&VC_CUES.map[slug])||[];
@@ -10982,7 +11028,7 @@ function msLiveCues(s){
     if(!MSV.on){ MS.liveT=setTimeout(tick,4000); return; }
     if(vcSpeaking()){ MS.liveT=setTimeout(tick,1500); return; }
     let k=keys[(off+i)%keys.length]; i++; n++;
-    if(n===2&&vcMode()==='coach'&&Math.random()<.45){ const e=vcPick('enc_'); if(e) k=e; }
+    if(n===2&&vcMode()==='coach'&&Math.random()<.45){ const e=vcPickEnc(msCtx(s,'mid')); if(e) k=e; }
     if(vcMode()==='coach'&&vcHas(LANG,k)) vcRun([{l:LANG,k}]);
     else if(VC_CUES.txt[k]) msSay(VC_CUES.txt[k]);
     if(n<2&&n<keys.length+1) MS.liveT=setTimeout(tick,11000);
@@ -11337,9 +11383,10 @@ async function msWork(announce){
     const ex1=first&&vcMode()==='coach'?vcExpl(s.ex.slug):null, lastS=n>1&&s.k+1===n;
     if(ex1) spec.push({pause:350},ex1);                                   /* la 1re fois : la consigne expliquee en entier */
     else if(first&&cue&&vcCuesToo()) spec.push({pause:350},{tts:msCue(cue)});
-    else if(intro&&Math.random()<.5){ const k=vcPick('start_'); if(k) spec.push({pause:350},k); }
-    if(!intro&&lastS&&Math.random()<.6){ const k=vcPick('last_'); if(k) spec.push({pause:350},k); }
-    else if(!intro&&Math.random()<.3){ const k=vcPick('enc_',['e1','e2','e3','e4','e5','e6','e7','e8']); if(k) spec.push({pause:350},k); }
+    const cx=msCtx(Object.assign({},s,{n}),'pre'), work=cx.ph==='work';
+    if(!ex1&&!(first&&cue&&vcCuesToo())&&intro&&work&&cx.reps&&Math.random()<.5){ const k=vcPick('start_'); if(k) spec.push({pause:350},k); }
+    if(!intro&&lastS&&work&&Math.random()<.6){ const k=vcPick('last_'); if(k) spec.push({pause:350},k); }
+    else if(!intro&&Math.random()<.3){ const k=vcPickEnc(cx); if(k) spec.push({pause:350},k); }
     if(!intro) line=line.replace(/^[^.]*\./,LANG==='fr'?`Série ${msNum(s.k+1)}${sayOf?' sur '+msNum(n):''}.`:LANG==='nl'?`Set ${s.k+1}${sayOf?' van '+n:''}.`:`Set ${s.k+1}${sayOf?' of '+n:''}.`);
     msSayC(spec,[intro?nm:'',line.replace(/\.\./g,'.'),first&&cue&&vcCuesToo()?msCue(cue):''].filter(Boolean));
   }
@@ -11422,8 +11469,9 @@ async function msRest(sec,nx,prev){
   rb.querySelectorAll('button').forEach(b=>{ b.classList.remove('on'); b.onclick=()=>msRir(+b.dataset.rir,b); });
   const q=MS_TX.q[WO_DONE%3]; document.getElementById('ms-quote').textContent=q[LANG]||q.fr;
   const lastSet=!msCur()||(MS.slots.filter(x=>!x.pill.classList.contains('done')).length===1);
+  const nxWork=msPhase(nx)==='work';
   if(newEx) msSayC(['p_next',{pause:150},{name:nx.ex.slug,text:pick(nx.ex,'name')}],LANG==='fr'?['Récupère. Ensuite :',msNm(pick(nx.ex,'name'))]:LANG==='nl'?['Herstel. Hierna:',msNm(pick(nx.ex,'name'))]:['Rest. Next up:',msNm(pick(nx.ex,'name'))]);
-  else msSayC([lastSet?'p_last':'p_rest'],lastSet?(LANG==='fr'?'Dernière série après ce repos. Tu vas tout donner.':LANG==='nl'?'Laatste set na deze rust. Geef alles.':'Last set after this rest. Give it everything.')
+  else msSayC([lastSet&&nxWork?'p_last':'p_rest'],lastSet&&nxWork?(LANG==='fr'?'Dernière série après ce repos. Tu vas tout donner.':LANG==='nl'?'Laatste set na deze rust. Geef alles.':'Last set after this rest. Give it everything.')
                     :(LANG==='fr'?'Récupère. Respire par le nez.':LANG==='nl'?'Herstel. Adem door je neus.':'Rest. Breathe through your nose.'));
   msRestPaint();
   let lastL=sec;
@@ -11431,7 +11479,7 @@ async function msRest(sec,nx,prev){
     if(!MS||!MS.rest) return;
     const L=Math.max(0,Math.ceil((MS.rest.end-Date.now())/1000)); MS.rest.left=L;
     if(L===lastL) return; lastL=L; msRestPaint();
-    if(sec>=45&&L===Math.round(sec/2)&&vcMode()==='coach'&&!vcSpeaking()){ const k=vcPick('rest_'); if(k) vcRun([{l:LANG,k}]); }
+    if(sec>=45&&L===Math.round(sec/2)&&nxWork&&vcMode()==='coach'&&!vcSpeaking()){ let k=vcPick('rest_'); if(k==='rest_5'&&!msCtx(nx,'pre').push) k=vcHas(LANG,'rest_1')?'rest_1':null; if(k) vcRun([{l:LANG,k}]); }
     if(L<=3&&L>0){ SND.tick(); buzz(40); }
     if(L<=0){ clearInterval(MS.rest.iv); MS.rest=null; msNotif(0); SND.rest(); buzz(200); msWork(true); }
   },250);
@@ -12137,7 +12185,7 @@ function bxWodTalk(el,left){
   if(MS.f==='emom'||el<90||(left!=null&&left<75)) return;
   const slot=Math.floor((el-90)/150);
   if(slot>=0&&MS.said.wt!==slot&&(el-90)%150<3&&!vcSpeaking()){ MS.said.wt=slot;
-    const k=Math.random()<.5&&vcHas(LANG,'wod_move')?'wod_move':vcPick('enc_'); if(k) vcRun([{l:LANG,k}]); }
+    const k=Math.random()<.5&&vcHas(LANG,'wod_move')?'wod_move':vcPickEnc({m:'mid',ph:'wod',late:left!=null&&el>left,notFirst:el>=180}); if(k) vcRun([{l:LANG,k}]); }
 }
 /* apres le WOD : retour au calme s'il y en a un, sinon fin */
 function bxAfterWod(){
