@@ -11002,14 +11002,16 @@ function msSayC(spec,fallback){
    1re consigne ~6 s apres l'annonce, puis toutes les ~9 s, 3 maximum par serie. */
 let VC_CUES=null;
 async function vcCueData(slugs){
-  if(!VC_CUES||VC_CUES.lang!==LANG) VC_CUES={lang:LANG,map:{},txt:{}};
+  if(!VC_CUES||VC_CUES.lang!==LANG) VC_CUES={lang:LANG,map:{},meta:{},pp:{},txt:{}};
   const need=slugs.filter(x=>x&&!VC_CUES.map[x]); if(!need.length&&Object.keys(VC_CUES.txt).length) return VC_CUES;
   try{
     const [a,b]=await Promise.all([
-      need.length?sb.from('exercise_voice_cues').select('slug,cue_key,ord').in('slug',need).order('ord'):Promise.resolve({data:[]}),
-      Object.keys(VC_CUES.txt).length?Promise.resolve({data:null}):sb.from('voice_lines').select('key,text').eq('lang',LANG).eq('grp','cue').limit(500)]);
-    need.forEach(x=>VC_CUES.map[x]=[]);
-    (a.data||[]).forEach(r=>VC_CUES.map[r.slug].push(r.cue_key));
+      need.length?sb.from('exercise_voice_cues').select('slug,cue_key,ord,moment,tier').in('slug',need).order('ord'):Promise.resolve({data:[]}),
+      Object.keys(VC_CUES.txt).length?Promise.resolve({data:null}):sb.from('voice_lines').select('key,text').eq('lang',LANG).eq('grp','cue').limit(2000)]);
+    need.forEach(x=>{ VC_CUES.map[x]=[]; VC_CUES.meta[x]=[]; });
+    (a.data||[]).forEach(r=>{ VC_CUES.map[r.slug].push(r.cue_key); VC_CUES.meta[r.slug].push({k:r.cue_key,m:r.moment||'mid',t:r.tier||1}); });
+    if(need.length) sb.from('exercise_perf_map').select('slug,perf_points(fr,en,nl)').in('slug',need).then(({data})=>{
+      (data||[]).forEach(r=>{ const P=r.perf_points; if(P) VC_CUES.pp[r.slug]=P[LANG]||P.fr||[]; }); }).catch(()=>{});
     if(b.data) b.data.forEach(r=>VC_CUES.txt[r.key]=r.text);
   }catch(_){}
   return VC_CUES;
@@ -11017,9 +11019,48 @@ async function vcCueData(slugs){
 function vcLiveOn(){ try{ return localStorage.getItem('cdm_ms_vlive')!=='0'; }catch(_){ return true; } }
 const vcSpeaking=()=>!!VC_BUSY||(('speechSynthesis' in window)&&speechSynthesis.speaking);
 function msLiveStop(){ if(MS&&MS.liveT){ clearTimeout(MS.liveT); MS.liveT=0; } }
+/* ── Les consignes de Coach DM, placées comme à la box ──────────────────────
+   Une consigne = 2 à 5 mots, criée pendant l'effort, une seule à la fois, dans l'ordre
+   de priorité du coach (sécurité, amplitude, puis vitesse). Les points de performance
+   s'affichent au repos, ils ne se disent pas pendant la série.
+   Voix : jamais de mélange. Les nouvelles consignes enregistrées d'abord, sinon les
+   anciennes enregistrées, sinon le texte des nouvelles (voix du téléphone). */
+function vcCuesFor(slug,moment){
+  const all=(VC_CUES&&VC_CUES.meta&&VC_CUES.meta[slug])||[], txt=k=>VC_CUES.txt[k]||vcHas(LANG,k);
+  const lv=t=>all.filter(c=>c.t===t&&c.m===moment);
+  const rec=l=>l.filter(c=>vcHas(LANG,c.k)), withTxt=l=>l.filter(c=>txt(c.k));
+  let l=[];
+  if(vcMode()==='coach'){ l=rec(lv(2)); if(!l.length) l=rec(lv(1)); }
+  if(!l.length) l=withTxt(lv(2)); if(!l.length) l=withTxt(lv(1));
+  return l.map(c=>c.k);
+}
+function vcCueSpec(k){ return vcHas(LANG,k)?k:(VC_CUES.txt[k]?{tts:VC_CUES.txt[k]}:null); }
+function vcSayCue(k){ if(vcMode()==='coach'&&vcHas(LANG,k)) vcRun([{l:LANG,k}]); else if(VC_CUES.txt[k]) msSay(VC_CUES.txt[k]); }
+/* une serie « courte » n'a pas le temps d'une consigne pendant l'effort : on la dit juste avant */
+function msShortSet(s,t){
+  const load=(s.wrap&&s.wrap.dataset.load)||(s.ex&&s.ex.load_type)||'reps_only';
+  if(load==='time') return (t.v||0)<12;
+  if(load==='distance') return (t.v||0)>0&&t.v<=100;
+  if(load==='calories') return false;
+  return !!t.r&&t.r<=3;
+}
+/* a quelles secondes (apres la fin de l'annonce) tombent les consignes de la serie */
+function msCuePlan(s,t){
+  const ex=s.ex||{}, load=(s.wrap&&s.wrap.dataset.load)||ex.load_type||'reps_only', SET=2.5;
+  if(msShortSet(s,t)) return [];
+  if(load==='time'){ const T=t.v||0; const p=[Math.max(5,T*.4)]; if(T>=40) p.push(T*.75); return p.filter(x=>x<T-3); }
+  if(load==='distance') return (t.v||0)>=400?[10,40]:[8];
+  if(load==='calories') return (t.v||0)>=15?[8,30]:[8];
+  const r=t.r||0, spr=ex.pattern==='haltero'||ex.category==='olympic'?5:load==='weight'?3.5:2.5;
+  if(!r) return [SET+5];
+  const p=[SET+spr*1.6];                    /* pendant la 2e repetition */
+  if(r>=8) p.push(SET+spr*r*.7);            /* dans les dernieres repetitions, quand la technique lache */
+  return p;
+}
 function msLiveCues(s){
   msLiveStop();
   if(!MS||!VC_CUES||!vcLiveOn()) return;
+  if(VC_CUES.meta&&VC_CUES.meta[s.ex.slug]&&VC_CUES.meta[s.ex.slug].length) return msLiveCues2(s);
   const keys=(VC_CUES.map[s.ex.slug]||[]).filter(k=>VC_CUES.txt[k]||vcHas(LANG,k)); if(!keys.length) return;
   /* on tourne d'une serie a l'autre : la serie 2 ne recommence pas par la meme consigne */
   const off=(s.k||0)%keys.length; let i=0, n=0;
@@ -11034,6 +11075,23 @@ function msLiveCues(s){
     if(n<2&&n<keys.length+1) MS.liveT=setTimeout(tick,11000);
   };
   MS.liveT=setTimeout(tick,6500);
+}
+function msLiveCues2(s){
+  const mids=vcCuesFor(s.ex.slug,'mid'); if(!mids.length) return;
+  const t=msTarget(s), k=s.k||0, ph=msPhase(s);
+  const at=msCuePlan(s,t).map((sec,i)=>({sec,key:mids[(k+i)%mids.length]}));   /* la serie 2 commence par la 2e consigne */
+  if(ph==='warm'||ph==='cool') at.length=Math.min(at.length,1);
+  if(at[1]&&at[1].key===at[0].key) at.length=1;
+  if(at[1]&&vcMode()==='coach'&&Math.random()<.3){ const e=vcPickEnc(msCtx(s,'mid')); if(e) at[1].key=e; }
+  if(!at.length) return;
+  const alive=()=>MS&&MS.cur===s&&!document.getElementById('ms-work').hidden;
+  let t0=0;
+  const next=i=>{ const c=at[i]; if(!c) return;
+    MS.liveT=setTimeout(()=>{ if(!alive()) return;
+      if(MSV.on&&!vcSpeaking()) vcSayCue(c.key);    /* on ne parle jamais par-dessus : si la voix est occupee, la consigne saute */
+      next(i+1); },Math.max(0,t0+c.sec*1000-Date.now())); };
+  const wait=()=>{ if(!alive()) return; if(vcSpeaking()){ MS.liveT=setTimeout(wait,250); return; } t0=Date.now(); next(0); };
+  MS.liveT=setTimeout(wait,300);
 }
 
 /* Reglages de la voix : choix de la voix, noms en anglais ou a la francaise, essai */
@@ -11384,9 +11442,17 @@ async function msWork(announce){
     if(ex1) spec.push({pause:350},ex1);                                   /* la 1re fois : la consigne expliquee en entier */
     else if(first&&cue&&vcCuesToo()) spec.push({pause:350},{tts:msCue(cue)});
     const cx=msCtx(Object.assign({},s,{n}),'pre'), work=cx.ph==='work';
-    if(!ex1&&!(first&&cue&&vcCuesToo())&&intro&&work&&cx.reps&&Math.random()<.5){ const k=vcPick('start_'); if(k) spec.push({pause:350},k); }
+    let pre=null;
+    if(VC_CUES&&VC_CUES.meta&&(VC_CUES.meta[s.ex.slug]||[]).length){
+      const su=vcCuesFor(s.ex.slug,'setup'), mi=vcCuesFor(s.ex.slug,'mid'), short=msShortSet(s,t);
+      if(su.length&&(intro||short)) pre=su[s.k%su.length];             /* « Enleve le mou… » : avant de tirer */
+      else if(short&&mi.length) pre=mi[s.k%mi.length];                  /* serie lourde de 1 a 3 reps : la consigne avant */
+    }
+    const preS=pre?vcCueSpec(pre):null;
+    if(preS) spec.push({pause:300},preS);
+    if(!preS&&!ex1&&!(first&&cue&&vcCuesToo())&&intro&&work&&cx.reps&&Math.random()<.5){ const k=vcPick('start_'); if(k) spec.push({pause:350},k); }
     if(!intro&&lastS&&work&&Math.random()<.6){ const k=vcPick('last_'); if(k) spec.push({pause:350},k); }
-    else if(!intro&&Math.random()<.3){ const k=vcPickEnc(cx); if(k) spec.push({pause:350},k); }
+    else if(!intro&&!preS&&Math.random()<.3){ const k=vcPickEnc(cx); if(k) spec.push({pause:350},k); }
     if(!intro) line=line.replace(/^[^.]*\./,LANG==='fr'?`Série ${msNum(s.k+1)}${sayOf?' sur '+msNum(n):''}.`:LANG==='nl'?`Set ${s.k+1}${sayOf?' van '+n:''}.`:`Set ${s.k+1}${sayOf?' of '+n:''}.`);
     msSayC(spec,[intro?nm:'',line.replace(/\.\./g,'.'),first&&cue&&vcCuesToo()?msCue(cue):''].filter(Boolean));
   }
@@ -11458,7 +11524,8 @@ async function msRest(sec,nx,prev){
   document.getElementById('ms-nxn').textContent=pick(nx.ex,'name');
   const t=msTarget(nx);
   document.getElementById('ms-nxv').textContent=mt('set')+' '+(nx.k+1)+' / '+nx.pills.length+(t.r?' · '+t.r+(t.load==='weight'&&t.kg?' × '+String(t.kg).replace('.',',')+' kg':' reps'):'');
-  const pts=pickList(nx.ex,'instructions');
+  const pp=VC_CUES&&VC_CUES.pp&&VC_CUES.pp[nx.ex.slug];
+  const pts=pp&&pp.length?pp:pickList(nx.ex,'instructions');
   const tip=document.getElementById('ms-tipt');
   tip.textContent=pts.length?pts[(WO_DONE)%pts.length]:(pick(nx.ex,'cue')||'');
   if(!pts.length&&!tip.textContent) tip.parentNode.hidden=true; else tip.parentNode.hidden=false;
@@ -11836,9 +11903,12 @@ function msWodPaint(){
     sub.textContent=mt('wod_min')+' '+rnd+' / '+WOD.rounds;
     hi=n>1?(rnd-1)%n:0;
     if(rnd!==MS.lastRnd){ MS.lastRnd=rnd; const x=items[hi]; MS.curI=hi;
+      if(x&&vcLiveOn()&&VC_CUES){ const mi=vcCuesFor(x.ex.slug,'mid'), C=(MS.emomN=MS.emomN||{}), c=C[x.ex.slug]=(C[x.ex.slug]||0)+1;
+        MS.emomCue=mi.length&&(c<=2||c%3===0)&&WOD.itv>=40?{at:el+7,key:mi[(c-1)%mi.length]}:null; }
       if(x){ msSayC([{name:x.ex.slug,text:pick(x.ex,'name')}],[(LANG==='fr'?'Minute ':LANG==='nl'?'Minuut ':'Minute ')+rnd+'.',msNm(pick(x.ex,'name'))]);
         document.getElementById('ms-wcurk').textContent=mt('wod_min')+' '+rnd; document.getElementById('ms-wcurn').textContent=pick(x.ex,'name')||'';
         document.getElementById('ms-wcurr').textContent=x.rx+(pick(x.ex,'cue')?' · '+pick(x.ex,'cue'):''); const sv=animSVG(x.ex.slug,'ok'); document.getElementById('ms-wfig').innerHTML=sv||''; cur.hidden=false; } }
+    if(MS.emomCue&&el>=MS.emomCue.at){ const c=MS.emomCue; MS.emomCue=null; if(MSV.on&&!vcSpeaking()&&left>8) vcSayCue(c.key); }
     if(rnd===WOD.rounds) msWodCount(left); else if(left<=3&&left>0&&MS.said.t!==el){ MS.said.t=el; SND.tick(); }
     act.hidden=true;
   } else {
