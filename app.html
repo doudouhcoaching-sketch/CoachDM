@@ -10551,8 +10551,19 @@ const MS_TX={
  sets:{fr:'séries',en:'sets',nl:'sets'},
  recs:{fr:'records',en:'records',nl:'records'},
  side:{fr:'par côté',en:'per side',nl:'per kant'},
+ tp_with:{fr:'Avec moi.',en:'With me.',nl:'Met mij mee.'},
+ tp_hold:{fr:'Tiens.',en:'Hold.',nl:'Vasthouden.'},
+ vs_last:{fr:'par rapport à la dernière fois',en:'vs last time',nl:'tegenover vorige keer'},
+ sum_pr:{fr:'Et un record aujourd’hui. Bravo.',en:'And a record today. Well done.',nl:'En een record vandaag. Goed zo.'},
+ sum_up:{fr:'Plus de volume que la dernière fois : tu progresses.',en:'More volume than last time: you’re progressing.',nl:'Meer volume dan vorige keer: je gaat vooruit.'},
+ sum_same:{fr:'Même niveau que la dernière fois : la régularité paie.',en:'Same level as last time: consistency pays off.',nl:'Zelfde niveau als vorige keer: regelmaat loont.'},
+ sum_less:{fr:'Un peu moins que la dernière fois. Pas grave : l’important, c’est d’être venu.',en:'A bit less than last time. That’s fine: what matters is that you showed up.',nl:'Iets minder dan vorige keer. Geen probleem: het belangrijkste is dat je er was.'},
+ sum_next:{fr:'Pour la prochaine fois, sur',en:'Next time, on',nl:'Volgende keer, bij'},
+ al_up:{fr:'On monte à',en:'Going up to',nl:'We gaan naar'},
+ al_down:{fr:'On baisse à',en:'Dropping to',nl:'We zakken naar'},
+ al_keep:{fr:'Parfait. On garde la charge.',en:'Perfect. Same weight.',nl:'Perfect. We houden het gewicht.'},
  rir:{fr:'Il t’en restait combien ?',en:'Reps left in the tank?',nl:'Hoeveel had je nog over?'},
- rir_s:{fr:'Ça affine ton 1RM',en:'It sharpens your 1RM',nl:'Zo wordt je 1RM preciezer'},
+ rir_s:{fr:'J’ajuste ta prochaine série et ton 1RM',en:'I adjust your next set and your 1RM',nl:'Ik pas je volgende set en je 1RM aan'},
  e1rm:{fr:'Nouveau 1RM estimé',en:'New estimated 1RM',nl:'Nieuwe geschatte 1RM'},
  start:{fr:'Démarrer',en:'Start',nl:'Starten'},
  stopnow:{fr:'Terminer maintenant',en:'Finish now',nl:'Nu stoppen'},
@@ -10651,8 +10662,22 @@ function msNamesMode(){ let m=null; try{ m=localStorage.getItem('cdm_ms_names');
 const msNm=n=>({t:String(n||'').replace(/\(.*?\)/g,' ').replace(/\s+/g,' ').trim(), lex:msName(n), en:1});
 function msUtter(text,v,fb){ const u=new SpeechSynthesisUtterance(text);
   if(v){ u.voice=v; u.lang=v.lang; } else u.lang=fb; u.rate=1; return u; }
+/* ── Musique + voix : quand Coach DM parle, la musique du membre (Spotify, Apple Music…)
+   baisse, puis remonte 0,7 s apres la derniere syllabe. Comme un coach qui baisse la sono
+   pour parler. Plugin natif AudioDuck (iOS : AVAudioSession .duckOthers ; Android : focus
+   audio « transient may duck »). Sur le web, rien ne change. */
+const AD={on:false,t:0};
+function adOn(){ try{ return localStorage.getItem('cdm_ms_duck')!=='0'; }catch(_){ return true; } }
+function adPlugin(){ try{ const P=window.Capacitor&&window.Capacitor.Plugins; return P&&P.AudioDuck||null; }catch(_){ return null; } }
+function adDuck(){ const p=adPlugin(); if(!p||!adOn()) return;
+  if(!AD.on){ AD.on=true; try{ p.duck().catch(()=>{}); }catch(_){} } adWatch(); }
+function adWatch(){ clearTimeout(AD.t); AD.t=setTimeout(()=>{
+  if(vcSpeaking()){ adWatch(); return; }
+  const p=adPlugin(); AD.on=false; if(!p) return; let n=0;
+  const go=()=>{ try{ p.unduck().catch(()=>{ if(++n<4&&!AD.on) setTimeout(go,400); }); }catch(_){} }; go(); },700); }
 function msSay(parts){
   if(!MSV.on||!('speechSynthesis' in window)) return;
+  adDuck();
   try{
     speechSynthesis.cancel(); if(!MSV.v) MSV.v=msPickVoice(LANG); if(MSV.en===undefined) MSV.en=msPickVoice('en');
     const fb=({fr:'fr-FR',nl:'nl-NL',en:'en-US'})[LANG]||'fr-FR';
@@ -10689,15 +10714,15 @@ function vcNumWord(l,n){
 }
 const VC_PHR={
  fr:{p_go:"C'est parti !",p_ready:'Mets-toi en place.',p_rest:'Récupère. Respire par le nez.',p_next:'Récupère. Ensuite :',p_last:'Dernière série après ce repos. Tu vas tout donner.',
-     p_pr:'Nouveau record ! Bravo.',p_e1rm:'Nouveau 1RM estimé !',p_end:'Séance terminée. Bien joué : ta meilleure heure de la journée est faite.',p_10s:'Dix secondes.',p_time:'Tiiiime !',
+     p_pr:'Nouveau record ! Bravo.',p_e1rm:'Nouveau 1RM estimé !',p_up:'On monte à',p_t_with:'Avec moi.',p_t_hold:'Tiens.',p_half:'La moitié. Tiens bon.',p_sum_pr:'Et un record aujourd’hui. Bravo.',p_sum_up:'Plus de volume que la dernière fois : tu progresses.',p_sum_same:'Même niveau que la dernière fois : la régularité paie.',p_sum_less:'Un peu moins que la dernière fois. Pas grave : l’important, c’est d’être venu.',p_sum_next:'Pour la prochaine fois, sur',p_down:'On baisse à',p_keep:'Parfait. On garde la charge.',p_end:'Séance terminée. Bien joué : ta meilleure heure de la journée est faite.',p_10s:'Dix secondes.',p_time:'Tiiiime !',
      w_set:'Série',w_of:'sur',w_reps:'répétitions',w_side:'par côté',w_at:'à',w_kg:'kilos',w_kg5:'kilos et demi',w_sec:'secondes',w_min:'minutes',w_m:'mètres',w_cal:'calories',
      e1:'Allez, on y va !',e2:"Propre. La technique d'abord.",e3:'Gaine, respire, et pousse.',e4:'Contrôle la descente.',e5:"Encore une, tu l'as !",e6:'Regard devant, poitrine fière.',e7:'Tu es plus fort que la dernière fois.',e8:'Bien. On garde ce rythme.'},
  nl:{p_go:'Daar gaan we!',p_ready:'Neem je positie in.',p_rest:'Herstel. Adem door je neus.',p_next:'Herstel. Hierna:',p_last:'Laatste set na deze rust. Geef alles.',
-     p_pr:'Nieuw record! Goed zo.',p_e1rm:'Nieuwe geschatte 1RM!',p_end:'Training klaar. Goed gedaan: het beste uur van je dag zit erop.',p_10s:'Tien seconden.',p_time:'Tiiiime!',
+     p_pr:'Nieuw record! Goed zo.',p_e1rm:'Nieuwe geschatte 1RM!',p_up:'We gaan naar',p_t_with:'Met mij mee.',p_t_hold:'Vasthouden.',p_half:'Halverwege. Hou vol.',p_sum_pr:'En een record vandaag. Goed zo.',p_sum_up:'Meer volume dan vorige keer: je gaat vooruit.',p_sum_same:'Zelfde niveau als vorige keer: regelmaat loont.',p_sum_less:'Iets minder dan vorige keer. Geen probleem: het belangrijkste is dat je er was.',p_sum_next:'Volgende keer, bij',p_down:'We zakken naar',p_keep:'Perfect. We houden het gewicht.',p_end:'Training klaar. Goed gedaan: het beste uur van je dag zit erop.',p_10s:'Tien seconden.',p_time:'Tiiiime!',
      w_set:'Set',w_of:'van',w_reps:'repetities',w_side:'per kant',w_at:'met',w_kg:'kilo',w_kg5:'en een halve kilo',w_sec:'seconden',w_min:'minuten',w_m:'meter',w_cal:'calorieën',
      e1:'Kom op, daar gaan we!',e2:'Netjes. Eerst de techniek.',e3:'Span aan, adem, en duwen.',e4:'Controleer de afdaling.',e5:'Nog eentje, je hebt hem!',e6:'Blik vooruit, borst fier.',e7:'Je bent sterker dan vorige keer.',e8:'Goed. Hou dit ritme vast.'},
  en:{p_go:"Let's go!",p_ready:'Get in position.',p_rest:'Rest. Breathe through your nose.',p_next:'Rest. Next up:',p_last:'Last set after this rest. Give it everything.',
-     p_pr:'New record! Well done.',p_e1rm:'New estimated 1RM!',p_end:'Workout complete. Well done: the best hour of your day is done.',p_10s:'Ten seconds.',p_time:'Tiiiime!',
+     p_pr:'New record! Well done.',p_e1rm:'New estimated 1RM!',p_up:'Going up to',p_t_with:'With me.',p_t_hold:'Hold.',p_half:'Halfway. Hold on.',p_sum_pr:'And a record today. Well done.',p_sum_up:'More volume than last time: you’re progressing.',p_sum_same:'Same level as last time: consistency pays off.',p_sum_less:'A bit less than last time. That’s fine: what matters is that you showed up.',p_sum_next:'Next time, on',p_down:'Dropping to',p_keep:'Perfect. Same weight.',p_end:'Workout complete. Well done: the best hour of your day is done.',p_10s:'Ten seconds.',p_time:'Tiiiime!',
      w_set:'Set',w_of:'of',w_reps:'reps',w_side:'per side',w_at:'at',w_kg:'kilos',w_kg5:'and a half kilos',w_sec:'seconds',w_min:'minutes',w_m:'meters',w_cal:'calories',
      e1:"Let's go!",e2:'Clean reps. Technique first.',e3:'Brace, breathe, and drive.',e4:'Control the way down.',e5:'One more, you got it!',e6:'Eyes up, chest proud.',e7:"You're stronger than last time.",e8:'Good. Keep this pace.'}
 };
@@ -10954,7 +10979,7 @@ function vcPlan(spec){
 }
 let VC_BUSY=0;
 async function vcRun(items,fallback){
-  vcStop(); const my=VC_RUN; VC_BUSY=my;
+  vcStop(); const my=VC_RUN; VC_BUSY=my; adDuck();
   try{
     /* on charge toute la phrase AVANT de parler : jamais « Série … sur trois » avec un trou */
     try{ await Promise.all(items.filter(it=>it.k).map(it=>vcLoad(it.l,it.k))); }
@@ -11076,9 +11101,50 @@ function msLiveCues(s){
   };
   MS.liveT=setTimeout(tick,6500);
 }
+/* ── Tempo : « 3-1-1-0 » = 3 s de descente, 1 s de pause en bas, 1 s pour remonter, 0 en haut.
+   Comme en salle : « Avec moi. » puis le coach compte les deux premieres repetitions a voix
+   haute (« un… deux… trois… Tiens… Go ! »). Ensuite un simple bip a chaque changement de
+   phase, et sa consigne prioritaire au debut de la 3e repetition. X = explosif (1 s).
+   Pour les tirages et le soulevé de terre, la repetition commence par la montee. */
+function msTempoOf(s){
+  const raw=String((s.it&&s.it.tempo)||'').trim().toUpperCase(); if(!raw) return null;
+  const tk=raw.includes('-')?raw.split('-'):raw.replace(/\s/g,'').split('');
+  if(tk.length<3||tk.length>4||!tk.every(x=>/^(\d|X)$/.test(x))) return null;
+  const v=tk.map(x=>x==='X'?1:+x); while(v.length<4) v.push(0);
+  if(v[0]<2&&v[2]<2) return null;                                /* pas de vrai tempo a compter */
+  return {ecc:v[0],p1:v[1],con:Math.max(1,v[2]),p2:v[3],raw};
+}
+function msTempo(s,t){
+  const T=msTempoOf(s), ex=s.ex||{}, conFirst=['charniere','tirage_v','tirage_h'].includes(ex.pattern);
+  const alive=()=>MS&&MS.cur===s&&!document.getElementById('ms-work').hidden;
+  /* toute la sequence dans la meme voix : celle du coach si tous les morceaux sont enregistres */
+  const need=['p_t_with','p_go'].concat(T.p1>0?['p_t_hold']:[]).concat(Array.from({length:T.ecc},(_,i)=>'n'+(i+1)));
+  const rec=vcMode()==='coach'&&need.every(k=>vcHas(LANG,k));
+  const TX={p_t_with:mt('tp_with'),p_t_hold:mt('tp_hold'),p_go:'Go !'};
+  const say=k=>{ if(!MSV.on) return; if(rec) vcRun([{l:LANG,k}]); else { const tx=k[0]==='n'?vcNumWord(LANG,+k.slice(1)):TX[k]; if(tx) msSay(tx); } };
+  const ev=[]; let at=0;
+  const ecc=(rep)=>{ for(let i=1;i<=T.ecc;i++){ ev.push({at,k:rep<2?'n'+i:(i===1?'tick':null),rep,ph:'ecc',i}); at+=1; } };
+  const p1=(rep)=>{ if(T.p1>0){ ev.push({at,k:rep<2?'p_t_hold':'tick',rep}); at+=T.p1; } };
+  const con=(rep)=>{ ev.push({at,k:rep<2?'p_go':'tick',rep}); at+=T.con; if(T.p2>0) at+=T.p2; };
+  for(let r=0;r<t.r;r++){ if(conFirst){ con(r); ecc(r); p1(r); } else { ecc(r); p1(r); con(r); } }
+  const mids=vcLiveOn()?vcCuesFor(ex.slug,'mid'):[];
+  if(mids.length&&t.r>=4){ const e3=ev.find(e=>e.rep===2); if(e3){ e3.k='cue'; e3.cue=mids[(s.k||0)%mids.length]; } }
+  let t0=0, i=0;
+  const next=()=>{ while(i<ev.length&&!ev[i].k) i++; const e=ev[i]; if(!e) return;
+    MS.liveT=setTimeout(()=>{ if(!alive()) return;
+      if(e.k==='tick'){ SND.tick(); buzz(15); }
+      else if(e.k==='cue'){ if(MSV.on&&!vcSpeaking()) vcSayCue(e.cue); else SND.tick(); }
+      else say(e.k);
+      i++; next(); },Math.max(0,t0+(e.at*1000)-Date.now())); };
+  const wait=()=>{ if(!alive()) return; if(vcSpeaking()){ MS.liveT=setTimeout(wait,250); return; }
+    say('p_t_with'); MS.liveT=setTimeout(()=>{ if(!alive()) return; t0=Date.now()+600; next(); },1400); };
+  MS.liveT=setTimeout(wait,300);
+}
 function msLiveCues2(s){
-  const mids=vcCuesFor(s.ex.slug,'mid'); if(!mids.length) return;
   const t=msTarget(s), k=s.k||0, ph=msPhase(s);
+  if(t.load==='time') return;                                   /* gere par le chrono de la serie (msHoldStart) */
+  if(msTempoOf(s)&&t.r>=2) return msTempo(s,t);                 /* tempo : on compte avec le membre */
+  const mids=vcCuesFor(s.ex.slug,'mid'); if(!mids.length) return;
   const at=msCuePlan(s,t).map((sec,i)=>({sec,key:mids[(k+i)%mids.length]}));   /* la serie 2 commence par la 2e consigne */
   if(ph==='warm'||ph==='cool') at.length=Math.min(at.length,1);
   if(at[1]&&at[1].key===at[0].key) at.length=1;
@@ -11111,6 +11177,7 @@ const MS_VTX={
  vp:{fr:'Voix du téléphone',en:'Phone voice',nl:'Stem van de telefoon'},
  vcn:{fr:'{a} morceaux enregistrés dans ta langue, {b} noms d’exercices.',en:'{a} recorded pieces, {b} exercise names.',nl:'{a} opgenomen stukjes, {b} oefeningnamen.'},
  vcues:{fr:'Lire aussi les consignes détaillées (voix du téléphone)',en:'Also read the detailed cues (phone voice)',nl:'Ook de uitgebreide tips voorlezen (stem van de telefoon)'},
+ duck:{fr:'Baisser ma musique quand le coach parle',en:'Lower my music while the coach talks',nl:'Mijn muziek zachter zetten als de coach praat'},
  vlive:{fr:'Consignes pendant la série (« Genoux dehors ! »)',en:'Cues during the set (“Knees out!”)',nl:'Tips tijdens de set (« Knieën naar buiten! »)'}
 };
 const mvt=k=>{const o=MS_VTX[k];return o?(o[LANG]||o.fr):k;};
@@ -11127,6 +11194,7 @@ async function msVoiceSheet(){
     ${vcAny()?`<div class="ms-vseg" id="ms-vm"><button type="button" data-v="coach" class="${vm==='coach'?'on':''}">${esc(mvt('vc'))}</button><button type="button" data-v="phone" class="${vm==='phone'?'on':''}">${esc(mvt('vp'))}</button></div>
     <p class="ms-vhint">${esc(mvt('vcn').replace('{a}',nOk).replace('{b}',nX))}</p>`:''}
     <label class="ms-vck"><input type="checkbox" id="ms-vlive"${vcLiveOn()?' checked':''}> ${esc(mvt('vlive'))}</label>
+    ${adPlugin()?`<label class="ms-vck"><input type="checkbox" id="ms-vduck"${adOn()?' checked':''}> ${esc(mvt('duck'))}</label>`:''}
     <label class="ms-vck"><input type="checkbox" id="ms-vcues"${vcCuesToo()?' checked':''}> ${esc(mvt('vcues'))}</label>
     <label>${esc(mvt('v'))}</label>
     ${L.length?`<select id="ms-vsel">${L.map(v=>`<option value="${esc(v.name)}"${cur&&v.name===cur.name?' selected':''}>${lab(v)}</option>`).join('')}</select>`:`<p class="ms-vnone">${esc(mvt('none'))}</p>`}
@@ -11137,6 +11205,7 @@ async function msVoiceSheet(){
     <button type="button" class="ms-btn" id="ms-vok">${esc(mvt('ok'))}</button></div>`;
   sh.hidden=false;
   sh.querySelectorAll('#ms-vm button').forEach(b=>b.onclick=()=>{ try{ localStorage.setItem('cdm_ms_vmode',b.dataset.v); }catch(_){} sh.querySelectorAll('#ms-vm button').forEach(x=>x.classList.toggle('on',x===b)); });
+  const vdk=document.getElementById('ms-vduck'); if(vdk) vdk.onchange=()=>{ try{ localStorage.setItem('cdm_ms_duck',vdk.checked?'1':'0'); }catch(_){} };
   const vlb=document.getElementById('ms-vlive'); if(vlb) vlb.onchange=()=>{ try{ localStorage.setItem('cdm_ms_vlive',vlb.checked?'1':'0'); }catch(_){} if(!vlb.checked) msLiveStop(); };
   const vcb=document.getElementById('ms-vcues'); if(vcb) vcb.onchange=()=>{ try{ localStorage.setItem('cdm_ms_vcues',vcb.checked?'1':'0'); }catch(_){} };
   const sel=document.getElementById('ms-vsel');
@@ -11250,6 +11319,8 @@ function msMount(){
     <h2 class="ms-big xl">${esc(mt('fin_t'))}</h2>
     <p class="ms-sub">${esc(mt('fin_s'))}</p>
     <div class="ms-stats"><div><b id="ms-dmin">0</b><span>${esc(mt('min'))}</span></div><div><b id="ms-dkg">0</b><span>${esc(mt('kgl'))}</span></div><div><b id="ms-dset">0</b><span>${esc(mt('sets'))}</span></div><div><b id="ms-dpr" class="gold">0</b><span>${esc(mt('recs'))}</span></div></div>
+    <p class="ms-sub" id="ms-dcmp" hidden style="margin-top:-4px;color:#00E896;font-weight:700"></p>
+    <p class="ms-sub" id="ms-dnext" hidden style="font-size:14px"></p>
     <button type="button" class="ms-btn" id="ms-fin">${esc(mt('fin_b'))}</button>
     <button type="button" class="ms-gh wide" id="ms-shb">${esc(mt('share'))}</button>
     <button type="button" class="ms-gh wide" id="ms-back">${esc(mt('back'))}</button>
@@ -11481,7 +11552,7 @@ async function msValidate(){
   const { data:ins, error } = await sb.from('set_logs').insert(row).select('id').single();
   btn.disabled=false;
   if(error){ toast(t('save_fail')); return; }
-  MS.lastSet=(ins&&row.weight_kg>0&&row.reps>=1&&row.reps<=10)?{id:ins.id,w:row.weight_kg,r:row.reps,ex:row.exercise_id}:null;
+  MS.lastSet=(ins&&row.weight_kg>0&&row.reps>=1&&row.reps<=10&&msPhase(s)!=='warm'&&msPhase(s)!=='cool')?{id:ins.id,w:row.weight_kg,r:row.reps,ex:row.exercise_id}:null;
   s.pill.classList.add('done'); s.pill.textContent='✓';
   WO_DONE++; WO_VOL+=(row.weight_kg||0)*(row.reps||0); updHud(); buzz(90); tones([[1046,.1]]);
   LAST_SET[s.wrap.dataset.ex]={reps:row.reps,kg:row.weight_kg,dur:row.duration_sec,dist:row.distance_m,cal:row.calories};
@@ -11516,7 +11587,7 @@ function msRestPaint(){ const r=MS&&MS.rest; if(!r) return;
 async function msRest(sec,nx,prev){
   msShow('ms-rest'); clearInterval(MS.cueIv); msLiveStop();
   if(MS.rest&&MS.rest.iv) clearInterval(MS.rest.iv);
-  MS.rest={left:sec,total:sec,end:Date.now()+sec*1000};
+  MS.rest={left:sec,total:sec,end:Date.now()+sec*1000,nx};
   const newEx=nx.it.id!==prev.it.id;
   const my=MS; await animCharger(); if(MS!==my||!MS.rest) return;
   document.getElementById('ms-nxf').innerHTML=animSVG(nx.ex.slug,'ok')||'';
@@ -11557,8 +11628,34 @@ async function msRir(n,btn){
   const { error } = await sb.from('set_logs').update({rir:n}).eq('id',L.id);
   if(error) return;
   const est=msE1rm(L.w,L.r,n), prev=PRMAP?PRMAP[L.ex]:null;
+  if(MS_KEEP){ const R=(MS_KEEP.rir=MS_KEEP.rir||{}); R[L.ex]=Math.min(R[L.ex]==null?9:R[L.ex],n); }
+  const said=msAutoLoad(n,L);
   if(est!=null&&prev!=null&&est>prev+0.05){ PRMAP[L.ex]=est; if(MS_KEEP){ MS_KEEP.prs++; const cs=MS&&MS.slots&&MS.slots.find(z=>z.wrap&&z.wrap.dataset.ex===L.ex); (MS_KEEP.prList=MS_KEEP.prList||[]).push({name:cs?pick(cs.ex,'name'):'',kg:est}); } tones([[784,.15],[1046,.15],[1318,.3]]); buzz(200);
-    toast('🏆 '+mt('e1rm')+' : '+String(est).replace('.',',')+' kg'); msSayC(['p_e1rm',{pause:150},{kg:est}],''); }
+    toast('🏆 '+mt('e1rm')+' : '+String(est).replace('.',',')+' kg'); if(!said) msSayC(['p_e1rm',{pause:150},{kg:est}],''); }
+}
+/* ── Charge auto, serie apres serie ──────────────────────────────────────────
+   Apres une serie chargee, le membre dit combien de reps il lui restait (RIR). On compare a
+   l'objectif de la seance (RPE cible, 8 par defaut = 2 reps en reserve) et on ajuste les
+   series suivantes du meme exercice, comme un coach a cote du rack :
+   2 reps de trop en reserve : +5 % · 1 : +2,5 % · pile dans la cible : on garde
+   1 de moins : -2,5 % · a l'echec : -5 %. Arrondi au disque ou a l'haltere le plus proche. */
+function msAutoLoad(rir,L){
+  const nx=MS&&MS.rest&&MS.rest.nx; if(!nx||!nx.wrap||nx.wrap.dataset.ex!==L.ex||msPhase(nx)!=='work') return false;
+  const tg=msTarget(nx); if(tg.load!=='weight'||!(tg.kg>0)) return false;
+  const rpe=+nx.it.target_rpe; const goal=rpe>=5&&rpe<=10?10-rpe:2, d=rir-goal;
+  const pct=d>=2?.05:d===1?.025:d<=-2?-.05:d===-1?-.025:0;
+  const eq=nx.ex.equipment, step=eq==='dumbbell'||eq==='kettlebell'?2:eq==='machine'||eq==='cable'?2.5:2.5;
+  let kg=Math.round(tg.kg*(1+pct)/step)*step;
+  if(pct>0&&kg<=tg.kg) kg=tg.kg+step; if(pct<0&&kg>=tg.kg) kg=Math.max(step,tg.kg-step);
+  const f=v=>String(v).replace('.',',');
+  if(!pct||kg===tg.kg){ toast('👌 '+mt('al_keep')); msSayC(['p_keep'],mt('al_keep')); return true; }
+  const delta=kg-tg.kg;
+  (MS.slots||[]).forEach(z=>{ if(z.it.id===nx.it.id&&z.k>=nx.k&&!z.pill.classList.contains('done')){ const t2=msTarget(z); if(t2.load==='weight'&&t2.kg>0) MS.adj[z.it.id+':'+z.k]=Object.assign({},t2,{kg:Math.max(step,Math.round((t2.kg+delta)/step)*step)}); } });
+  const nv=document.getElementById('ms-nxv'); if(nv&&MS.rest&&MS.rest.nx===nx){ const t3=msTarget(nx); nv.textContent=mt('set')+' '+(nx.k+1)+' / '+nx.pills.length+(t3.r?' · '+t3.r+' × '+f(t3.kg)+' kg':''); }
+  const pl=eq==='barbell'?msPlates(kg):'';
+  toast((delta>0?'⬆️ ':'⬇️ ')+mt(delta>0?'al_up':'al_down')+' '+f(kg)+' kg'+(pl?' · '+pl:''));
+  msSayC([delta>0?'p_up':'p_down',{pause:120},{kg}],mt(delta>0?'al_up':'al_down')+' '+f(kg)+' kilos.');
+  return true;
 }
 function msEnd(){
   if(!MS) return;
@@ -11567,7 +11664,50 @@ function msEnd(){
   const tg=[['ms-dmin',mins],['ms-dkg',Math.round(WO_VOL)],['ms-dset',WO_DONE],['ms-dpr',MS_KEEP?MS_KEEP.prs:0]]; const st=performance.now();
   const f=now=>{ const k=Math.min(1,(now-st)/1100); tg.forEach(([id,v])=>{ const e=document.getElementById(id); if(e) e.textContent=Math.round(v*k).toLocaleString(LANG==='en'?'en-GB':LANG+'-BE'); }); if(k<1) requestAnimationFrame(f); };
   requestAnimationFrame(f); msConfetti();
-  msSayC(['p_end'],LANG==='fr'?'Séance terminée. Bien joué : ta meilleure heure de la journée est faite.':LANG==='nl'?'Training klaar. Goed gedaan.':'Workout complete. Well done.');
+  msDebrief(mins);
+}
+/* ── Le bilan du coach, a la fin ─────────────────────────────────────────────
+   Comme a la fin d'un cours : ce qui a ete fait, la comparaison avec la derniere fois,
+   un mot sur le record, et UN point a travailler pour la prochaine fois (l'exercice ou
+   le membre est alle le plus pres de l'echec, sinon le premier gros mouvement, avec sa
+   consigne prioritaire). Court : une quinzaine de secondes. */
+async function msDebrief(mins){
+  const my=MS, vol=Math.round(WO_VOL), prs=MS_KEEP?MS_KEEP.prs:0, f=v=>Math.round(v).toLocaleString(LANG==='en'?'en-GB':LANG+'-BE');
+  let prev=null;
+  try{
+    const wid=SE_CUR&&SE_CUR.w&&SE_CUR.w.id;
+    if(wid&&USER&&SESSION){
+      const q=sb.from('workout_sessions').select('id').eq('user_id',USER.id).eq('workout_id',wid).eq('status','completed').neq('id',SESSION.id).order('completed_at',{ascending:false}).limit(1);
+      const r=await Promise.race([q,new Promise(res=>setTimeout(()=>res({data:null}),1500))]);
+      const ps=r&&r.data&&r.data[0];
+      if(ps){ const r2=await Promise.race([sb.from('set_logs').select('weight_kg,reps').eq('session_id',ps.id),new Promise(res=>setTimeout(()=>res({data:null}),1500))]);
+        if(r2&&r2.data){ prev=r2.data.reduce((a,x)=>a+(+x.weight_kg||0)*(+x.reps||0),0); } }
+    }
+  }catch(_){}
+  if(MS!==my) return;
+  const pct=prev>0&&vol>0?Math.round((vol-prev)/prev*100):null;
+  const cmpK=pct==null?null:pct>=3?'p_sum_up':pct>-5?'p_sum_same':'p_sum_less';
+  const ce=document.getElementById('ms-dcmp');
+  if(ce&&pct!=null){ ce.textContent=(pct>0?'+':'')+pct+' % '+mt('vs_last'); ce.hidden=false; }
+  /* le point a travailler */
+  const slots=(MS.slots||[]).filter(z=>msPhase(z)==='work'&&z.pill&&z.pill.classList.contains('done'));
+  const R=(MS_KEEP&&MS_KEEP.rir)||{};
+  let pick1=null, lo=9; slots.forEach(z=>{ const r=R[z.wrap.dataset.ex]; if(r!=null&&r<lo){ lo=r; pick1=z; } });
+  if(!pick1||lo>1) pick1=slots[0]||null;
+  let nextSpec=[], nextTxt='';
+  if(pick1&&VC_CUES){ const mi=vcCuesFor(pick1.ex.slug,'mid'); const k=mi[0];
+    if(k){ const cs=vcCueSpec(k), nm=pick(pick1.ex,'name')||''; if(cs){ nextSpec=[{pause:350},'p_sum_next',{pause:120},{name:pick1.ex.slug,text:nm},{pause:150},cs]; nextTxt=mt('sum_next')+' '+nm+' : '+(VC_CUES.txt[k]||''); } } }
+  const ne=document.getElementById('ms-dnext'); if(ne&&nextTxt){ ne.textContent='🎯 '+nextTxt; ne.hidden=false; }
+  const spec=['p_end'];
+  if(prs>0) spec.push({pause:350},'p_sum_pr');
+  if(cmpK) spec.push({pause:350},cmpK);
+  spec.push(...nextSpec);
+  const txt=[LANG==='fr'?'Séance terminée. Bien joué.':LANG==='nl'?'Training klaar. Goed gedaan.':'Workout complete. Well done.'];
+  if(vol>0) txt.push(f(vol)+' '+mt('kgl')+'.');
+  if(prs>0) txt.push(mt('sum_pr'));
+  if(cmpK) txt.push(mt(cmpK.slice(2)));
+  if(nextTxt) txt.push(nextTxt);
+  msSayC(spec,txt.join(' '));
 }
 function msConfetti(){
   const c=document.getElementById('ms-conf'); if(!c) return;
@@ -11616,8 +11756,15 @@ function msHoldStart(){
     MS.hold.iv=setInterval(()=>{
       if(!MS||!MS.hold) return; const L=Math.max(0,Math.ceil((MS.hold.end-Date.now())/1000)); if(L===last) return; last=L;
       tv.innerHTML=msFmt(L)+' <small>/ '+msFmt(total)+'</small>';
-      const h=MS.hold.said;
-      if(total>=20&&!h.half&&L<=Math.floor(total/2)&&L>10){ h.half=1; msSayC([{tts:mt('half')}],mt('half')); }
+      const h=MS.hold.said, el=total-L;
+      /* consignes du coach pendant le maintien : a 30 % et a 70 % (si la serie dure 40 s ou plus),
+         jamais en meme temps que « la moitie » ni que les dix dernieres secondes */
+      if(!h.cues){ const mi=vcLiveOn()&&VC_CUES?vcCuesFor(s.ex.slug,'mid'):[]; const k0=s.k||0;
+        h.cues=total>=12&&mi.length?[{at:Math.max(4,Math.round(total*.3)),k:mi[k0%mi.length]}].concat(total>=40&&mi.length>1?[{at:Math.round(total*.7),k:mi[(k0+1)%mi.length]}]:[]):[];
+        if(msPhase(s)==='warm'||msPhase(s)==='cool') h.cues.length=Math.min(h.cues.length,1); }
+      for(const c of h.cues){ if(!c.done&&el>=c.at){ c.done=1; if(L>11&&MSV.on&&!vcSpeaking()) vcSayCue(c.k); } }
+      if(total>=20&&!h.half&&L<=Math.floor(total/2)&&L>10){ h.half=1;
+        if(vcMode()==='coach'){ if(vcHas(LANG,'p_half')) msSayC(['p_half'],mt('half')); } else msSayC([{tts:mt('half')}],mt('half')); }
       if(total>=20&&!h.ten&&L===10){ h.ten=1; msSayC(['p_10s'],LANG==='fr'?'Dix secondes.':LANG==='nl'?'Tien seconden.':'Ten seconds.'); }
       if(L<=3&&L>0){ SND.tick(); buzz(30); }
       if(L<=0) msHoldStop(false);
