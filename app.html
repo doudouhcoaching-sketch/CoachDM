@@ -10661,7 +10661,7 @@ function msNamesMode(){ let m=null; try{ m=localStorage.getItem('cdm_ms_names');
   if(m==='en'||m==='lex') return m; return MS_APPLE?'en':'lex'; }
 const msNm=n=>({t:String(n||'').replace(/\(.*?\)/g,' ').replace(/\s+/g,' ').trim(), lex:msName(n), en:1});
 function msUtter(text,v,fb){ const u=new SpeechSynthesisUtterance(text);
-  if(v){ u.voice=v; u.lang=v.lang; } else u.lang=fb; u.rate=1; return u; }
+  if(v){ u.voice=v; u.lang=v.lang; } else u.lang=fb; u.rate=1; u.volume=1; return u; }
 /* ── Musique + voix : quand Coach DM parle, la musique du membre (Spotify, Apple Music…)
    baisse, puis remonte 0,7 s apres la derniere syllabe. Comme un coach qui baisse la sono
    pour parler. Plugin natif AudioDuck (iOS : AVAudioSession .duckOthers ; Android : focus
@@ -10839,6 +10839,17 @@ const vcAny=()=>!!(VC_IDX&&((VC_IDX[LANG]&&Object.keys(VC_IDX[LANG]).length)||(V
 function vcMode(){ let m=null; try{ m=localStorage.getItem('cdm_ms_vmode'); }catch(_){} if(m==='phone') return 'phone'; return vcAny()?'coach':'phone'; }
 function vcCuesToo(){ try{ return localStorage.getItem('cdm_ms_vcues')==='1'; }catch(_){ return false; } }
 function vcCtx(){ if(!VC_AC) VC_AC=new (window.AudioContext||window.webkitAudioContext)(); if(VC_AC.state!=='running') VC_AC.resume().catch(()=>{}); return VC_AC; }
+/* La voix doit passer au-dessus de la musique sans agresser : environ +5 dB percus, un compresseur
+   qui remonte les fins de mots et tient les pics (comme un micro de coach en salle). */
+let VC_OUT=null;
+function vcOut(){ const ac=vcCtx(); if(VC_OUT&&VC_OUT.context===ac) return VC_OUT;
+  try{ const g=ac.createGain(); g.gain.value=1.8; const c=ac.createDynamicsCompressor();
+    c.threshold.value=-20; c.knee.value=8; c.ratio.value=4; c.attack.value=.003; c.release.value=.2;
+    const p=ac.createGain(); p.gain.value=1.6;                       /* on remonte le tout… */
+    const l=ac.createDynamicsCompressor();                           /* …et un limiteur : jamais de saturation */
+    l.threshold.value=-3; l.knee.value=0; l.ratio.value=20; l.attack.value=.001; l.release.value=.08;
+    g.connect(c).connect(p).connect(l).connect(ac.destination); VC_OUT=g; }catch(_){ VC_OUT=ac.destination; }
+  return VC_OUT; }
 async function vcLoad(l,k){
   const r=VC_IDX[l][k]; const id=l+'/'+k+'@'+r.updated_at; if(VC_BUF[id]) return VC_BUF[id];
   const url=VC_BASE+r.path+'?v='+encodeURIComponent(r.updated_at);
@@ -10992,7 +11003,7 @@ async function vcRun(items,fallback){
    chevauchement de 20 ms : plus de micro-silence ni d'attente entre « Série » et « deux ».
    Chaque morceau entre et sort en fondu de 8 ms : aucun clic. */
 function vcSched(o,t){ const ac=vcCtx(), src=ac.createBufferSource(), g=ac.createGain(), d=Math.max(.05,o.en-o.st);
-  src.buffer=o.buf; src.connect(g).connect(ac.destination);
+  src.buffer=o.buf; src.connect(g).connect(vcOut());
   g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(1,t+.008);
   g.gain.setValueAtTime(1,Math.max(t+.009,t+d-.012)); g.gain.linearRampToValueAtTime(0,t+d);
   VC_SRC.push(src); src.start(t,o.st,d); return d; }
