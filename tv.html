@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Coach DM TV</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon-32x32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap">
+<style>
+:root{--bg:#070A08;--bg2:#0C110E;--card:#101712;--line:rgba(255,255,255,.08);--fg:#F2F5F3;--mut:#8FA399;--dim:#4E5F56;
+  --g:#00E896;--gold:#D9B65C;--red:#FF5A5F;--amb:#FFB547;color-scheme:dark}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--fg);overflow:hidden;
+  font-family:'Outfit',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(90% 60% at 70% 0%,rgba(0,232,150,.07),transparent 60%),var(--bg)}
+.num{font-variant-numeric:tabular-nums}
+[hidden]{display:none!important}
+
+/* ---------- appairage ---------- */
+#pair{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;gap:6vw;padding:4vw}
+#pair .l{max-width:46vw}
+.brand{font-weight:900;letter-spacing:.32em;font-size:1.4vw;color:var(--gold)}
+#pair h1{font-size:4.2vw;line-height:1.05;margin:1.4vw 0 1.6vw;font-weight:800;text-wrap:balance}
+#pair p{font-size:1.55vw;color:var(--mut);line-height:1.45;margin-bottom:1vw}
+#pair p b{color:var(--fg)}
+.code{font-size:10vw;font-weight:900;letter-spacing:.18em;white-space:nowrap;color:var(--g);line-height:1;margin-top:2vw}
+.qr{background:#fff;padding:1.4vw;border-radius:1.4vw;width:22vw;height:22vw;display:flex;align-items:center;justify-content:center}
+.qr img,.qr canvas{width:100%!important;height:100%!important}
+.qrc{text-align:center;color:var(--mut);font-size:1.2vw;margin-top:1vw}
+
+/* ---------- ecran de cours ---------- */
+#scr{position:fixed;inset:0;display:grid;grid-template-rows:auto 1fr;padding:1.6vw 2vw 2vw}
+.top{display:flex;align-items:center;gap:2vw;padding-bottom:1.2vw;border-bottom:1px solid var(--line)}
+.top .brand{font-size:1.1vw}
+.top h2{flex:1;font-size:1.9vw;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .now{font-size:1.9vw;font-weight:700;color:var(--mut)}
+.pill{font-size:1vw;font-weight:800;letter-spacing:.14em;padding:.45vw .9vw;border-radius:99px;border:1px solid var(--line);color:var(--mut)}
+.pill.on{color:#04140C;background:var(--g);border-color:var(--g)}
+.solo .plan{display:none}.solo .main{grid-template-columns:1fr!important}
+.main{display:grid;grid-template-columns:36% 1fr;gap:2vw;min-height:0;padding-top:1.6vw}
+
+.plan{min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:1vw}
+.part{border:1px solid var(--line);border-radius:1.1vw;padding:1vw 1.3vw;background:var(--card);transition:opacity .4s}
+.part h3{font-size:1.05vw;letter-spacing:.2em;font-weight:800;color:var(--mut);display:flex;justify-content:space-between;gap:1vw}
+.part h3 span:last-child{letter-spacing:.05em;color:var(--gold)}
+.part ul{list-style:none;margin-top:.6vw;display:flex;flex-direction:column;gap:.35vw}
+.part li{font-size:1.5vw;font-weight:600;display:flex;gap:.8vw;align-items:baseline;line-height:1.2}
+.part li .q{color:var(--g);font-weight:800;min-width:5.6vw;flex:none}
+.part li .n{min-width:0}
+.part li small{color:var(--mut);font-weight:500;font-size:1.1vw;margin-left:.4vw}
+.part li.done{opacity:.4}
+.part li.cur .n{color:var(--g)}
+.part.cur{border-color:var(--g);box-shadow:0 0 0 1px var(--g) inset,0 0 2.4vw rgba(0,232,150,.15)}
+.part.done{opacity:.38}
+.part .nt{font-size:1.1vw;color:var(--mut);margin-top:.5vw;line-height:1.35}
+
+.live{min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;
+  border-radius:1.6vw;background:linear-gradient(180deg,#0B120E,#070A08);border:1px solid var(--line);padding:1.6vw;overflow:hidden}
+.lab{font-size:1.5vw;letter-spacing:.3em;font-weight:800;color:var(--gold)}
+.clk{font-size:15vw;font-weight:900;line-height:.95;letter-spacing:-.02em;margin:.6vw 0}
+.clk.warn{color:var(--amb)}.clk.go{color:var(--g)}.clk.rest{color:#7FD4FF}
+.sub{font-size:2.6vw;font-weight:700;color:var(--fg)}
+.sub2{font-size:1.6vw;color:var(--mut);margin-top:.4vw;font-weight:600}
+.mv{display:flex;align-items:center;gap:2vw;margin-top:1.4vw;max-width:100%}
+.mv .fig{width:12vw;height:12vw;flex:none}
+.mv .t{text-align:left;min-width:0}
+.mv .t b{display:block;font-size:3.4vw;font-weight:800;line-height:1.05}
+.mv .t span{display:block;font-size:1.8vw;color:var(--g);font-weight:700;margin-top:.3vw}
+.mv .t em{display:block;font-size:1.4vw;color:var(--mut);font-style:normal;margin-top:.4vw}
+.bar{position:absolute;left:0;bottom:0;height:.6vw;background:var(--g);transition:width .5s linear}
+.nx{position:absolute;right:1.6vw;bottom:1.6vw;font-size:1.3vw;color:var(--mut);text-align:right}
+.nx b{color:var(--fg);display:block;font-size:1.7vw}
+.pause{position:absolute;inset:0;background:rgba(7,10,8,.72);display:flex;align-items:center;justify-content:center;font-size:5vw;font-weight:900;letter-spacing:.2em;color:var(--amb)}
+.big3{font-size:30vw;font-weight:900;color:var(--g);line-height:1}
+
+.rig .f1,.rig .f2,.rig .f3{animation-duration:3.6s;animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-direction:alternate}
+.rig .f1{animation-name:phA}.rig .f2{animation-name:phB}.rig .f3{animation-name:phC}
+@keyframes phA{0%,18%{opacity:1}30%,100%{opacity:0}}
+@keyframes phB{0%,18%{opacity:0}30%,52%{opacity:1}64%,100%{opacity:0}}
+@keyframes phC{0%,52%{opacity:0}64%,100%{opacity:1}}
+.anim-svg{width:100%;height:100%;display:block}
+
+#snd{position:fixed;inset:0;background:rgba(7,10,8,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4vw;z-index:9}
+#snd button{font:inherit;font-size:2.4vw;font-weight:800;padding:1.4vw 3vw;border-radius:99px;border:0;background:var(--g);color:#04140C;cursor:pointer}
+#snd p{color:var(--mut);font-size:1.4vw}
+.conn{position:fixed;right:1.2vw;bottom:.8vw;font-size:.9vw;color:var(--dim)}
+
+/* telephone ou tablette en portrait : on empile */
+@media (max-aspect-ratio:1/1){
+  #pair{flex-direction:column}#pair .l{max-width:none;text-align:center}
+  #pair h1{font-size:7vw}#pair p{font-size:3.4vw}.code{font-size:18vw}.qr{width:40vw;height:40vw}.qrc{font-size:3vw}.brand{font-size:3vw}
+  .main{grid-template-columns:1fr;grid-template-rows:auto 1fr}.plan{max-height:34vh}
+  .part li{font-size:3vw}.part h3{font-size:2.2vw}.top h2,.top .now{font-size:3.4vw}
+  .clk{font-size:26vw}.sub{font-size:5vw}.lab{font-size:3vw}.mv .t b{font-size:6vw}.mv .fig{width:24vw;height:24vw}
+}
+</style>
+</head>
+<body>
+
+<section id="pair">
+  <div class="l">
+    <div class="brand">COACH DM · TV</div>
+    <h1 id="p-h"></h1>
+    <p id="p-1"></p>
+    <p id="p-2"></p>
+    <div class="code num" id="p-code">· · · · ·</div>
+  </div>
+  <div><div class="qr" id="p-qr"></div><div class="qrc" id="p-qrc"></div></div>
+</section>
+
+<section id="scr" hidden>
+  <header class="top">
+    <span class="brand">COACH DM</span>
+    <h2 id="s-title"></h2>
+    <span class="pill" id="s-mode"></span>
+    <span class="now num" id="s-now"></span>
+  </header>
+  <div class="main">
+    <aside class="plan" id="s-plan"></aside>
+    <section class="live" id="s-live"></section>
+  </div>
+</section>
+
+<div id="snd" hidden><button type="button" id="snd-b"></button><p id="snd-p"></p></div>
+<div class="conn" id="conn"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* =====================================================================
+   COACH DM TV — l'ecran de la box (cours du jour + chrono + voix du coach)
+   et l'ecran de l'athlete (miroir du Mode Seance de l'app).
+   Independant des builds : c'est une page du site. Pilotage par le
+   telephone via un canal Supabase Realtime « cdm-tv-<code> ».
+   ===================================================================== */
+var U='https://kkcmhviyvttwpaclrjmv.supabase.co', K='sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b';
+var sb=supabase.createClient(U,K,{auth:{persistSession:false},realtime:{params:{eventsPerSecond:20}}});
+var LANG=(new URLSearchParams(location.search).get('lang')||(navigator.language||'fr')).slice(0,2);
+if(['fr','en','nl'].indexOf(LANG)<0) LANG='fr';
+var G=function(id){return document.getElementById(id);};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+
+var TX={
+ h:{fr:'Ton cours sur grand écran',en:'Your class on the big screen',nl:'Je les op groot scherm'},
+ p1:{fr:'Coach : ouvre <b>coachdm.be/telecommande</b> sur ton téléphone, ou scanne le code.',en:'Coach: open <b>coachdm.be/telecommande</b> on your phone, or scan the code.',nl:'Coach: open <b>coachdm.be/telecommande</b> op je telefoon, of scan de code.'},
+ p2:{fr:'Athlète : dans l’app, Mode Séance › bouton <b>TV</b>, puis tape ce code.',en:'Athlete: in the app, Workout mode › <b>TV</b> button, then enter this code.',nl:'Atleet: in de app, Trainingsmodus › knop <b>TV</b>, typ dan deze code.'},
+ qrc:{fr:'Scanne pour piloter',en:'Scan to control',nl:'Scan om te bedienen'},
+ snd:{fr:'▶ Activer la voix du coach',en:'▶ Turn on the coach voice',nl:'▶ Stem van de coach aanzetten'},
+ sndp:{fr:'Appuie sur OK avec la télécommande de la TV (une seule fois).',en:'Press OK on the TV remote (once).',nl:'Druk op OK met de afstandsbediening (één keer).'},
+ warm:{fr:'ÉCHAUFFEMENT',en:'WARM-UP',nl:'OPWARMING'}, str:{fr:'FORCE / SKILL',en:'STRENGTH / SKILL',nl:'KRACHT / SKILL'},
+ acc:{fr:'ACCESSOIRES',en:'ACCESSORIES',nl:'ACCESSOIRES'}, plyo:{fr:'SPRINT / PLIO',en:'SPRINT / PLYO',nl:'SPRINT / PLYO'},
+ wod:{fr:'WOD',en:'WOD',nl:'WOD'}, cool:{fr:'RETOUR AU CALME',en:'COOL-DOWN',nl:'COOLING-DOWN'},
+ ready:{fr:'EN PLACE',en:'GET READY',nl:'KLAAR'}, rest:{fr:'REPOS',en:'REST',nl:'RUST'}, work:{fr:'AU TRAVAIL',en:'WORK',nl:'WERKEN'},
+ set:{fr:'Série',en:'Set',nl:'Set'}, of:{fr:'sur',en:'of',nl:'van'}, rnd:{fr:'Tour',en:'Round',nl:'Ronde'},
+ cap:{fr:'Time cap',en:'Time cap',nl:'Time cap'}, pause:{fr:'PAUSE',en:'PAUSED',nl:'PAUZE'}, next:{fr:'Ensuite',en:'Next',nl:'Daarna'},
+ time:{fr:'TIME !',en:'TIME!',nl:'TIME!'}, done:{fr:'Bravo. Note ton score.',en:'Well done. Log your score.',nl:'Goed gedaan. Noteer je score.'},
+ wait:{fr:'Le coach lance la partie',en:'The coach starts this part',nl:'De coach start dit deel'},
+ club:{fr:'COURS',en:'CLASS',nl:'LES'}, ath:{fr:'SÉANCE',en:'SESSION',nl:'TRAINING'},
+ endT:{fr:'SÉANCE TERMINÉE',en:'SESSION DONE',nl:'TRAINING KLAAR'}, conn:{fr:'connecté',en:'connected',nl:'verbonden'}
+};
+function t(k){var o=TX[k];return o?(o[LANG]||o.fr):k;}
+function fmt(s){s=Math.max(0,Math.round(s));var m=Math.floor(s/60),x=s%60;return m+':'+(x<10?'0':'')+x;}
+var BL={activation:'warm',sprint_plyo:'plyo',strength:'str',accessory:'acc',conditioning:'wod',recovery:'cool'};
+var BLV={activation:'p_warm',sprint_plyo:'p_skill',strength:'p_skill',accessory:'p_skill',conditioning:'p_wod',recovery:'p_cool'};
+
+/* ---------------- figures animees (anim.js du site, charge a la demande) ---------------- */
+var ANIM=0;
+function animLoad(){ if(ANIM) return; ANIM=1; var s=document.createElement('script'); s.src='anim.js?v=2'; s.onload=function(){ANIM=2;paint();}; document.head.appendChild(s); }
+function fig(slug){
+  var A=window.MOUV_ANIM&&window.MOUV_ANIM[slug]; if(!A) return '';
+  return '<svg class="anim-svg" viewBox="0 0 300 '+A.vh+'" preserveAspectRatio="xMidYMid meet">'+(A.dc||'')+A.ok.map(function(f,i){return '<g class="f'+(i+1)+'">'+f+'</g>';}).join('')+'</svg>';
+}
+
+/* ---------------- son : bips + voix enregistree de Coach DM ---------------- */
+var AC=null, IDX=null, BUF={}, VOICE=true, Q=Promise.resolve();
+function ac(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(AC&&AC.state!=='running') AC.resume(); return AC; }
+function tone(f,d,v){ var a=ac(); if(!a) return; var o=a.createOscillator(), g=a.createGain(); o.frequency.value=f; o.type='sine';
+  g.gain.setValueAtTime(0,a.currentTime); g.gain.linearRampToValueAtTime(v||.5,a.currentTime+.01); g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);
+  o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime+d+.05); }
+function beep(){ tone(880,.18,.55); } function bigBeep(){ tone(1320,.55,.7); }
+function vIndex(){
+  return sb.from('voice_clips').select('lang,key,path,trim_start,trim_end,updated_at').in('lang',[LANG,'x']).limit(4000).then(function(r){
+    var i={}; (r.data||[]).forEach(function(x){ (i[x.lang]=i[x.lang]||{})[x.key]=x; }); IDX=i; }).catch(function(){});
+}
+function has(l,k){ return !!(IDX&&IDX[l]&&IDX[l][k]); }
+/* meme traitement que l'app : -19 LUFS, limiteur, fondus (voir app.html vcProcess) */
+function lufs(d,sr,a,b){
+  function bq(f0,G,Q,sh){ var K=Math.tan(Math.PI*f0/sr); if(sh){ var Vh=Math.pow(10,G/20),Vb=Math.pow(Vh,.4996667741545416),a0=1+K/Q+K*K;
+    return [(Vh+Vb*K/Q+K*K)/a0,2*(K*K-Vh)/a0,(Vh-Vb*K/Q+K*K)/a0,2*(K*K-1)/a0,(1-K/Q+K*K)/a0]; } var b0=1+K/Q+K*K; return [1,-2,1,2*(K*K-1)/b0,(1-K/Q+K*K)/b0]; }
+  var S1=bq(1681.974450955533,3.999843853973347,.7071752369554196,1),S2=bq(38.13547087602444,0,.5003270373238773,0);
+  var i0=Math.max(0,Math.floor(a*sr)),i1=Math.min(d.length,Math.floor(b*sr)),n=i1-i0; if(n<64) return -70;
+  var y=new Float32Array(n),x1=0,x2=0,y1=0,y2=0,z1=0,z2=0,w1=0,w2=0,i;
+  for(i=0;i<n;i++){ var x=d[i0+i]; var s=S1[0]*x+S1[1]*x1+S1[2]*x2-S1[3]*y1-S1[4]*y2; x2=x1;x1=x;y2=y1;y1=s;
+    var q=S2[0]*s+S2[1]*z1+S2[2]*z2-S2[3]*w1-S2[4]*w2; z2=z1;z1=s;w2=w1;w1=q;y[i]=q; }
+  var bl=Math.min(n,Math.round(.4*sr)),st=Math.max(1,Math.round(.1*sr)),ms=[],p;
+  for(p=0;p+bl<=n;p+=st){ var e=0; for(i=p;i<p+bl;i++) e+=y[i]*y[i]; ms.push(e/bl); }
+  var L=function(m){return -.691+10*Math.log10(Math.max(m,1e-12));}, avg=function(a){return a.reduce(function(s,m){return s+m;},0)/a.length;};
+  var g1=ms.filter(function(m){return L(m)>-70;}); if(!g1.length) return -70;
+  var rel=L(avg(g1))-10, g2=g1.filter(function(m){return L(m)>rel;}); return L(avg(g2.length?g2:g1));
+}
+function limit(y,sr){ var n=y.length,la=Math.max(1,Math.round(.005*sr)),env=new Float32Array(n).fill(1),i,j;
+  for(i=0;i<n;i++){ var v=Math.abs(y[i]); if(v>.89){ var need=.89/v; for(j=Math.max(0,i-la);j<=i;j++){ var r=need+(1-need)*(i-j)/la; if(r<env[j]) env[j]=r; } } }
+  var rl=1-Math.exp(-1/(.06*sr)),cur=1; for(i=0;i<n;i++){ cur=Math.min(env[i],cur+(1-cur)*rl); y[i]*=cur; } }
+function load(l,k){
+  var r=IDX[l][k], id=l+'/'+k+'@'+r.updated_at; if(BUF[id]) return Promise.resolve(BUF[id]);
+  return fetch(U+'/storage/v1/object/public/coach-voice/'+r.path+'?v='+encodeURIComponent(r.updated_at)).then(function(x){return x.arrayBuffer();})
+   .then(function(ab){ return new Promise(function(res,rej){ ac().decodeAudioData(ab,res,rej); }); })
+   .then(function(buf){ var d=buf.getChannelData(0),sr=buf.sampleRate,st=Math.max(0,(r.trim_start||0)-.03),en=Math.min(buf.duration,r.trim_end||buf.duration);
+     var i0=Math.floor(st*sr),i1=Math.min(d.length,Math.ceil(en*sr)),n=Math.max(1,i1-i0),lu=lufs(d,sr,st,en);
+     var G=lu<=-69?1:Math.max(.3,Math.min(25,Math.pow(10,(-19-lu)/20))), out=ac().createBuffer(1,n,sr), y=out.getChannelData(0),i;
+     for(i=0;i<n;i++) y[i]=d[i0+i]*G; limit(y,sr); var f=Math.min(Math.round(.006*sr),n>>1); for(i=0;i<f;i++){ y[i]*=i/f; y[n-1-i]*=i/f; }
+     return BUF[id]=out; });
+}
+function play(buf){ return new Promise(function(res){ var a=ac(), s=a.createBufferSource(), g=a.createGain(); g.gain.value=1.6; s.buffer=buf;
+  s.connect(g).connect(a.destination); s.onended=res; s.start(); setTimeout(res,buf.duration*1000+400); }); }
+/* dit une suite de morceaux enregistres ; si un seul manque, on ne dit rien (jamais de demi-phrase) */
+function say(keys){ if(!VOICE||!IDX) return; keys=keys.map(function(k){return typeof k==='string'?[LANG,k]:k;});
+  if(!keys.every(function(x){return has(x[0],x[1]);})) return;
+  Q=Q.then(function(){ return Promise.all(keys.map(function(x){return load(x[0],x[1]);})); })
+     .then(function(bs){ return bs.reduce(function(p,b){ return p.then(function(){return play(b);}); },Promise.resolve()); }).catch(function(){}); }
+function preload(keys){ if(!IDX) return; keys.forEach(function(x){ x=typeof x==='string'?[LANG,x]:x; if(has(x[0],x[1])) load(x[0],x[1]).catch(function(){}); }); }
+
+/* ---------------- canal ---------------- */
+var CODE=String(Math.floor(10000+Math.random()*90000)), CH=null, MODE=null, LAST=0;
+try{ var kept=sessionStorage.getItem('cdm_tv_code'); if(kept) CODE=kept; sessionStorage.setItem('cdm_tv_code',CODE); }catch(e){}
+function send(m){ if(CH) CH.send({type:'broadcast',event:'m',payload:m}); }
+function connect(){
+  CH=sb.channel('cdm-tv-'+CODE,{config:{broadcast:{self:false}}});
+  CH.on('broadcast',{event:'m'},function(p){ onMsg(p.payload||{}); });
+  CH.subscribe(function(s){ G('conn').textContent=s==='SUBSCRIBED'?'● '+CODE:'○ '+s.toLowerCase(); if(s==='CHANNEL_ERROR'||s==='TIMED_OUT') setTimeout(function(){ sb.removeChannel(CH); connect(); },3000); });
+}
+function onMsg(m){
+  LAST=Date.now();
+  if(m.lang&&['fr','en','nl'].indexOf(m.lang)>=0&&m.lang!==LANG){ LANG=m.lang; IDX=null; vIndex(); }
+  if(m.t==='hello'){ send({t:'here',mode:MODE,st:status()}); return; }
+  if(m.t==='load'){ MODE='club'; club(m.w); return; }
+  if(m.t==='cmd'){ if(MODE==='club') cmd(m.c,m.v); return; }
+  if(m.t==='mir'){ if(MODE!=='mirror'){ MODE='mirror'; stopClub(); show(); } MIR=m.d||{}; MIR._at=Date.now(); paint(); return; }
+  if(m.t==='bye'){ MODE=null; stopClub(); G('scr').hidden=true; G('pair').hidden=false; }
+}
+function show(){ G('pair').hidden=true; G('scr').hidden=false; animLoad(); if(VOICE&&(!AC||AC.state!=='running')&&MODE==='club') G('snd').hidden=false; }
+
+/* ---------------- moteur du cours (mode club) ---------------- */
+var W=null, S=null, TK=0;
+function club(w){
+  W=w; stopClub(); S={p:0,run:false,acc:0,t0:0,phase:'idle',set:0,item:0,restEnd:0,restTot:0,said:{},cd:0};
+  show(); preload(['p_ready','p_go','p_10s','p_time','p_half','wod_half','wod_last','wod_end','p_rest','p_next','p_warm','p_skill','p_wod','p_cool','n1','n2','n3']);
+  (W.parts||[]).forEach(function(p){ p.items.forEach(function(it){ preload([['x',it.slug]]); }); });
+  TK=setInterval(tick,200); paint(); push();
+}
+function stopClub(){ if(TK) clearInterval(TK); TK=0; }
+function part(){ return W&&W.parts[S.p]; }
+function isWod(p){ return p&&p.block==='conditioning'&&['amrap','emom','for_time','rft'].indexOf(W.fmt)>=0; }
+function el(){ return S.acc+(S.run?Date.now()-S.t0:0); }
+function emomI(){ return W.emi||60; }
+function capS(){ return isWod(part())?capW():0; }
+function capW(){
+  if(W.fmt==='amrap') return W.cap||720; if(W.fmt==='emom') return emomI()*(W.emr||10); return W.cap||0; }
+function cmd(c,v){
+  var p=part();
+  if(c==='go'){ ac();
+    if(S.phase==='idle'){ startCount(); }
+    else if(!S.run&&S.phase!=='done'){ S.run=true; S.t0=Date.now(); }
+    else if(S.run){ S.acc=el(); S.run=false; }
+  }
+  else if(c==='next'||c==='prev'){ var np=S.p+(c==='next'?1:-1); if(np<0||np>=W.parts.length) return;
+    S={p:np,run:false,acc:0,t0:0,phase:'idle',set:0,item:0,restEnd:0,restTot:0,said:{},cd:0};
+    var b=W.parts[np].block; if(BLV[b]) say([BLV[b]]); }
+  else if(c==='reset'){ S.run=false; S.acc=0; S.phase='idle'; S.set=0; S.item=0; S.said={}; S.restEnd=0; }
+  else if(c==='set'){ /* serie faite : repos de l'exercice, puis on repart */
+    if(isWod(p)||S.phase==='idle') return; var it=p.items[S.item]||{};
+    var r=it.rest||90; S.phase='rest'; S.restEnd=Date.now()+r*1000; S.restTot=r; S.said={}; say(['p_rest']); }
+  else if(c==='round'){ S.rounds=Math.max(0,(S.rounds||0)+(v||1)); }
+  else if(c==='voice'){ VOICE=!!v; }
+  paint(); push();
+}
+function startCount(){ S.phase='count'; S.cd=Date.now()+10000; say(['p_ready']); }
+function tick(){
+  if(!W) return; var p=part(), now=Date.now();
+  if(S.phase==='count'){ var left=Math.ceil((S.cd-now)/1000);
+    if(left<=3&&left>=1&&!S.said['c'+left]){ S.said['c'+left]=1; beep(); say(['n'+left]); }
+    if(left<=0){ S.phase='work'; S.run=true; S.t0=now; S.acc=0; bigBeep(); say(['p_go']); } }
+  else if(S.phase==='rest'){ var rl=Math.ceil((S.restEnd-now)/1000);
+    var it=p.items[S.item]||{}, sets=it.sets||1;
+    if(rl===10&&!S.said.r10&&S.restTot>=25){ S.said.r10=1; say(['p_10s']); }
+    if(rl<=3&&rl>=1&&!S.said['r'+rl]){ S.said['r'+rl]=1; beep(); }
+    if(rl<=0){ S.set++; if(S.set>=sets){ S.set=0; S.item=Math.min(p.items.length-1,S.item+1); }
+      S.phase='work'; bigBeep(); say(['p_go']); } }
+  else if(S.phase==='work'&&S.run&&isWod(p)){ wodVoice(p); }
+  paint(); if(now-(S.pushed||0)>1000){ S.pushed=now; push(); }
+}
+function wodVoice(p){
+  var e=el()/1000, cap=capS(), f=W.fmt;
+  if(f==='emom'){ var I=emomI(), r=Math.floor(e/I), inI=e-r*I, left=I-inI;
+    if(r>=(W.emr||10)){ return finish(); }
+    if(left<=3.05&&left>2&&!S.said['e'+r+'3']){ S.said['e'+r+'3']=1; beep(); }
+    if(left<=2.05&&left>1&&!S.said['e'+r+'2']){ S.said['e'+r+'2']=1; beep(); }
+    if(left<=1.05&&left>0&&!S.said['e'+r+'1']){ S.said['e'+r+'1']=1; beep(); }
+    if(inI<.3&&r>0&&!S.said['s'+r]){ S.said['s'+r]=1; bigBeep(); var it=p.items[r%p.items.length]; if(it&&p.items.length>1) say([['x',it.slug]]); }
+    return; }
+  if(!cap) return;
+  var left2=cap-e;
+  if(cap>=240&&e>=cap/2&&!S.said.half){ S.said.half=1; say(['wod_half']); }
+  if(cap>=300&&left2<=60&&!S.said.last){ S.said.last=1; say(['wod_last']); }
+  if(left2<=10&&left2>9&&!S.said.ten){ S.said.ten=1; say(['p_10s']); }
+  if(left2<=3.05&&left2>2&&!S.said.b3){ S.said.b3=1; beep(); }
+  if(left2<=2.05&&left2>1&&!S.said.b2){ S.said.b2=1; beep(); }
+  if(left2<=1.05&&left2>0&&!S.said.b1){ S.said.b1=1; beep(); }
+  if(left2<=0) finish();
+}
+function finish(){ if(S.phase==='done') return; S.acc=capS()*1000||el(); S.run=false; S.phase='done'; bigBeep(); say(['p_time']); setTimeout(function(){ say(['wod_end']); },2200); push(); }
+function status(){ if(!W||!S) return null; var p=part();
+  return {p:S.p,n:W.parts.length,block:p&&p.block,run:S.run,phase:S.phase,clock:clockTxt(),set:S.set,item:S.item,rounds:S.rounds||0,voice:VOICE,wod:isWod(p),fmt:W.fmt,name:W.name}; }
+function push(){ if(MODE==='club') send({t:'st',st:status()}); }
+function clockTxt(){ var p=part(), e=el()/1000;
+  if(S.phase==='count') return String(Math.max(0,Math.ceil((S.cd-Date.now())/1000)));
+  if(S.phase==='rest') return fmt((S.restEnd-Date.now())/1000);
+  if(isWod(p)){ if(W.fmt==='amrap') return fmt(capS()-e); if(W.fmt==='emom'){ var I=emomI(); return fmt(I-(e%I)); } return fmt(e); }
+  return fmt(e); }
+function partLabel(p){ var l=t(BL[p.block]||'str'), capS=capW;
+  if(isWod(p)){ if(W.fmt==='amrap') l+=' · AMRAP '+Math.round(capS()/60)+"'"; else if(W.fmt==='emom') l+=' · EMOM '+Math.round(capS()/60)+"'"+(emomI()!==60?' (E'+fmt(emomI())+')':'');
+    else if(W.fmt==='for_time') l+=' · FOR TIME'+(W.cap?' · '+t('cap')+' '+Math.round(W.cap/60)+"'":''); else if(W.fmt==='rft') l+=' · '+(W.rft||'')+' RFT'+(W.cap?' · '+t('cap')+' '+Math.round(W.cap/60)+"'":''); }
+  return l; }
+function qty(it){ var q=''; if(it.sets>1) q=it.sets+' × '; q+=(it.reps||''); return q.trim(); }
+
+/* ---------------- dessin ---------------- */
+var MIR=null;
+function paint(){
+  G('s-now').textContent=new Date().toLocaleTimeString(LANG==='en'?'en-GB':LANG+'-BE',{hour:'2-digit',minute:'2-digit'});
+  if(MODE==='club') paintClub(); else if(MODE==='mirror') paintMir();
+}
+function paintClub(){
+  if(!W) return; var p=part(); G('scr').classList.remove('solo');
+  G('s-title').textContent=W.name||''; G('s-mode').textContent=t('club'); G('s-mode').className='pill on';
+  /* gauche : le cours entier */
+  setH('s-plan',W.parts.map(function(pp,i){
+    return '<div class="part'+(i===S.p?' cur':i<S.p?' done':'')+'"><h3><span>'+esc(partLabel(pp))+'</span></h3><ul>'+
+      pp.items.map(function(it,j){ var c=i===S.p&&!isWod(pp)&&S.phase!=='idle'?(j<S.item?' done':j===S.item?' cur':''):'';
+        return '<li class="'+c+'"><span class="q num">'+esc(qty(it))+'</span><span class="n">'+esc(it.name)+(it.load?'<small>'+esc(it.load)+'</small>':'')+'</span></li>'; }).join('')+
+      '</ul>'+(pp.note?'<p class="nt">'+esc(pp.note)+'</p>':'')+'</div>'; }).join(''));
+  var cur=G('s-plan').querySelector('.cur'); if(cur&&cur.scrollIntoView) cur.scrollIntoView({block:'nearest'});
+  /* droite : le chrono */
+  var h='', e=el()/1000, cap=capS(), wod=isWod(p), cls='clk num';
+  if(S.phase==='count'){ var n=Math.max(1,Math.ceil((S.cd-Date.now())/1000));
+    h='<div class="lab">'+esc(t('ready'))+'</div><div class="big3 num">'+D(n)+'</div><div class="sub">'+esc(partLabel(p))+'</div>'; }
+  else if(S.phase==='done'){ h='<div class="lab">'+esc(partLabel(p))+'</div><div class="clk num go">'+esc(t('time'))+'</div><div class="sub">'+esc(t('done'))+'</div>'; }
+  else if(S.phase==='rest'){ var rl=(S.restEnd-Date.now())/1000, it=p.items[S.item]||{}, nxt=(S.set+1>=(it.sets||1))?p.items[S.item+1]:it;
+    h='<div class="lab">'+esc(t('rest'))+'</div><div class="clk num rest">'+D(fmt(rl))+'</div>'+
+      (nxt?'<div class="sub2">'+esc(t('next'))+'</div>'+mv(nxt,nxt===it?(t('set')+' '+(S.set+2)+' '+t('of')+' '+(it.sets||1)):''):'')+
+      '<div class="bar" style="width:'+(100*(1-rl/Math.max(1,S.restTot))).toFixed(1)+'%"></div>'; }
+  else if(wod){
+    var sub='', m='';
+    if(W.fmt==='emom'){ var I=emomI(), r=Math.floor(e/I), its=p.items, ci=its[r%its.length], ni=its[(r+1)%its.length];
+      if((I-(e%I))<=3) cls+=' warn'; sub=t('rnd')+' '+Math.min(r+1,W.emr||10)+' / '+(W.emr||10);
+      m=mv(ci,'')+(its.length>1&&ni?'<div class="nx">'+esc(t('next'))+'<b>'+esc(ni.name)+'</b></div>':''); }
+    else { if(cap&&(cap-e)<=60) cls+=' warn'; else cls+=' go';
+      sub=W.fmt==='amrap'?'AMRAP':(W.fmt==='rft'?(W.rft||'')+' RFT':'FOR TIME'); if(S.rounds) sub+=' · '+S.rounds+' '+t('rnd').toLowerCase()+'s';
+      if(cap&&W.fmt!=='amrap') sub+=' · '+t('cap')+' '+fmt(cap); }
+    h='<div class="lab">'+esc(partLabel(p))+'</div><div class="'+cls+'">'+D(clockTxt())+'</div><div class="sub">'+D(sub)+'</div>'+m+
+      (cap?'<div class="bar" style="width:'+Math.min(100,100*e/cap).toFixed(1)+'%"></div>':'');
+  } else {
+    var it2=p.items[S.item]||p.items[0]||{};
+    h='<div class="lab">'+esc(partLabel(p))+'</div><div class="'+cls+(S.phase==='idle'?'':' go')+'">'+D(clockTxt())+'</div>'+
+      (S.phase==='idle'?'<div class="sub2">'+esc(t('wait'))+'</div>':'<div class="sub">'+(it2.sets>1?esc(t('set')+' '+(S.set+1)+' '+t('of')+' '+it2.sets):'')+'</div>'+mv(it2,''));
+  }
+  if(!S.run&&S.phase==='work') h+='<div class="pause">'+esc(t('pause'))+'</div>';
+  setH('s-live',h);
+}
+function mv(it,extra){ if(!it) return ''; var f=fig(it.slug);
+  return '<div class="mv">'+(f?'<div class="fig rig">'+f+'</div>':'')+'<div class="t"><b>'+esc(it.name)+'</b><span class="num">'+esc([qty(it),it.load].filter(Boolean).join(' · '))+'</span>'+(extra?'<em>'+esc(extra)+'</em>':'')+(it.tempo?'<em>Tempo '+esc(it.tempo)+'</em>':'')+'</div></div>'; }
+
+/* on ne redessine que ce qui change : sinon le bonhomme anime repartirait a zero chaque seconde */
+var KEYS={};
+function setH(id,h){ var e=G(id), k=h.replace(/(<b data-d>)[^<]*(<\/b>)/g,'$1$2').replace(/(<div class="bar" style=")[^"]*/g,'$1').replace(/class="clk[^"]*"/g,'');
+  if(KEYS[id]!==k){ KEYS[id]=k; e.innerHTML=h; return; }
+  var tmp=document.createElement('div'); tmp.innerHTML=h;
+  var a=e.querySelectorAll('[data-d]'), b=tmp.querySelectorAll('[data-d]'); for(var i=0;i<a.length&&i<b.length;i++) if(a[i].textContent!==b[i].textContent) a[i].textContent=b[i].textContent;
+  var x=e.querySelector('.bar'), y=tmp.querySelector('.bar'); if(x&&y) x.style.width=y.style.width;
+  var c1=e.querySelector('.clk'), c2=tmp.querySelector('.clk'); if(c1&&c2&&c1.className!==c2.className) c1.className=c2.className; }
+function D(x){ return '<b data-d>'+esc(x)+'</b>'; }
+
+/* ---------------- miroir du Mode Seance (athlete) ---------------- */
+function paintMir(){
+  var d=MIR||{}; G('scr').classList.toggle('solo',!(d.plan&&d.plan.length)); G('s-title').textContent=d.title||''; G('s-mode').textContent=t('ath'); G('s-mode').className='pill on';
+  setH('s-plan',(d.plan||[]).map(function(pp){
+    return '<div class="part'+(pp.cur?' cur':pp.done?' done':'')+'"><h3><span>'+esc(pp.label||'')+'</span><span>'+esc(pp.prog||'')+'</span></h3><ul>'+
+      (pp.items||[]).map(function(it){ return '<li class="'+(it.cur?'cur':it.done?'done':'')+'"><span class="q num">'+esc(it.q||'')+'</span><span class="n">'+esc(it.name||'')+'</span></li>'; }).join('')+'</ul></div>'; }).join(''));
+  var cur=G('s-plan').querySelector('.part.cur'); if(cur&&cur.scrollIntoView) cur.scrollIntoView({block:'nearest'});
+  var h='', v=d.view;
+  if(v==='count') h='<div class="lab">'+esc(t('ready'))+'</div><div class="big3 num">'+D(d.clock||'')+'</div>';
+  else if(v==='rest'){ var left=(d.restLeft||0)-(Date.now()-d._at)/1000;
+    h='<div class="lab">'+esc(t('rest'))+'</div><div class="clk num rest">'+D(fmt(left))+'</div>'+
+      (d.next?'<div class="sub2">'+esc(t('next'))+'</div>'+mv({slug:d.next.slug,name:d.next.name,reps:d.next.target},d.next.k||''):'')+
+      (d.tip?'<div class="sub2" style="max-width:80%;margin-top:1.2vw">'+esc(d.tip)+'</div>':'')+
+      '<div class="bar" style="width:'+(100*(1-left/Math.max(1,d.restTotal||1))).toFixed(1)+'%"></div>'; }
+  else if(v==='wod'){ h='<div class="lab">'+esc(d.fmt||'WOD')+'</div><div class="clk num go">'+D(d.clock||'')+'</div><div class="sub">'+D(d.sub||'')+'</div>'+
+      (d.cur?mv({slug:d.cur.slug,name:d.cur.name,reps:d.cur.target},''):''); }
+  else if(v==='end'){ h='<div class="lab">'+esc(t('endT'))+'</div><div class="clk num go">✓</div><div class="sub">'+esc(d.sub||'')+'</div>'; }
+  else if(v==='work'){ var f=fig(d.slug);
+    h='<div class="lab">'+esc(d.block||t('work'))+'</div>'+(f?'<div class="fig rig" style="height:30vh;width:30vh;max-width:100%">'+f+'</div>':'')+
+      '<div class="clk num" style="font-size:5.6vw;margin-top:1vw">'+esc(d.name||'')+'</div>'+
+      '<div class="sub num" style="font-size:4.6vw;color:var(--g)">'+esc(d.target||'')+'</div>'+
+      '<div class="sub2">'+esc(d.pips||'')+' · '+D(d.clock||'')+'</div>'+
+      (d.cue?'<div class="sub2" style="color:var(--gold);margin-top:1vw;font-size:2vw">'+esc(d.cue)+'</div>':''); }
+  else h='<div class="lab">'+esc(t('ath'))+'</div><div class="clk num">'+D(d.clock||'')+'</div>';
+  setH('s-live',h);
+}
+
+/* ---------------- demarrage ---------------- */
+function pairScreen(){
+  G('p-h').textContent=t('h'); G('p-1').innerHTML=t('p1'); G('p-2').innerHTML=t('p2'); G('p-qrc').textContent=t('qrc');
+  G('p-code').textContent=CODE;
+  G('snd-b').textContent=t('snd'); G('snd-p').textContent=t('sndp');
+  try{ G('p-qr').innerHTML=''; new QRCode(G('p-qr'),{text:'https://coachdm.be/telecommande.html?code='+CODE,width:512,height:512,correctLevel:QRCode.CorrectLevel.M}); }catch(e){}
+}
+G('snd-b').onclick=function(){ ac(); tone(660,.12,.3); G('snd').hidden=true; };
+document.addEventListener('keydown',function(e){ if(!G('snd').hidden&&(e.key==='Enter'||e.key===' ')){ G('snd-b').click(); } });
+pairScreen(); vIndex(); connect();
+setInterval(function(){ if(MODE==='mirror'){ paint(); if(Date.now()-LAST>30000){ MODE=null; G('scr').hidden=true; G('pair').hidden=false; } } else if(!MODE) G('s-now').textContent=''; },500);
+/* l'ecran ne doit pas s'eteindre pendant le cours */
+function wake(){ try{ if(navigator.wakeLock) navigator.wakeLock.request('screen').catch(function(){}); }catch(e){} }
+wake(); document.addEventListener('visibilitychange',function(){ if(!document.hidden) wake(); });
+</script>
+</body>
+</html>

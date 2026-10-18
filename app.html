@@ -6614,6 +6614,36 @@ async function fsChoose(kind){
 }
 
 /* ==========================================================================
+   Rappel du repas de midi (13 h 30) — demande du coach, 18/10/2026.
+   Une notification locale ne peut pas verifier a 13 h 30 si le repas est deja
+   note : on programme donc les 7 prochains jours a chaque ouverture de l'app,
+   et on retire celui du jour des qu'un repas est note. Jamais de nouvelle
+   demande de permission ici : si les notifications ne sont pas acceptees,
+   rien ne part. Sans ouverture de l'app pendant 7 jours, les rappels s'arretent
+   d'eux-memes (on ne harcele pas un membre qui a decroche).
+   ========================================================================== */
+const MR_TX={t:{fr:'Ton repas de midi 🍽️',en:'Your lunch 🍽️',nl:'Je middagmaal 🍽️'},
+  b:{fr:'Pense à le noter : 30 secondes et tes macros du jour sont à jour.',en:'Log it now: 30 seconds and today’s macros are up to date.',nl:'Noteer het even: 30 seconden en je macro’s van vandaag kloppen.'}};
+const MR_IDS=[7400,7401,7402,7403,7404,7405,7406];
+function mrOn(){ try{ return localStorage.getItem('cdm_meal_rem')!=='0'; }catch(_){ return true; } }
+async function mrSync(loggedToday){
+  const PN=fsPlugin(); if(!PN||!USER) return;
+  try{
+    const st=await PN.checkPermissions(); 
+    try{ await PN.cancel({notifications:MR_IDS.map(id=>({id}))}); }catch(_){}
+    if(!st||st.display!=='granted'||!mrOn()) return;
+    if(loggedToday==null){ try{ const { count }=await sb.from('food_logs').select('id',{count:'exact',head:true}).eq('user_id',USER.id).eq('logged_date',todayStr()).gte('logged_at',new Date(new Date().setHours(10,0,0,0)).toISOString()); loggedToday=(count||0)>0; }catch(_){ loggedToday=false; } }
+    const L=LANG in MR_TX.t?LANG:'fr', list=[];
+    for(let i=0;i<7;i++){ const d=new Date(); d.setDate(d.getDate()+i); d.setHours(13,30,0,0);
+      if(i===0&&(loggedToday||d.getTime()<=Date.now()+60000)) continue;
+      list.push({id:MR_IDS[i],title:MR_TX.t[L],body:MR_TX.b[L],schedule:{at:d,allowWhileIdle:true},extra:{tab:'journal'}}); }
+    if(list.length) await PN.schedule({notifications:list});
+  }catch(_){}
+}
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) setTimeout(()=>mrSync(),1500); });
+try{ const PN=fsPlugin(); if(PN&&PN.addListener) PN.addListener('localNotificationActionPerformed',e=>{ const x=e&&e.notification&&e.notification.extra; if(x&&x.tab) setTimeout(()=>{ try{ switchTab(x.tab); }catch(_){} },600); }); }catch(_){}
+
+/* ==========================================================================
    D#23 — QUIZ « TROUVE-MOI UN PROGRAMME »
    --------------------------------------------------------------------------
    4 % des membres choisissent un programme. Le probleme n'est pas qu'ils
@@ -7007,6 +7037,7 @@ async function loadActivation(){
     if(wn && wn.classList.contains('show')) return;   /* on ne superpose pas */
     fsMaybeShow();
   }catch(_){} }, 1600);
+  setTimeout(()=>mrSync(),4000);
   { const h=document.getElementById('act-hero'); if(h) h.onclick=()=>switchTab('analyse'); }
   { const hx=document.getElementById('ah-x'); if(hx) hx.onclick=(e)=>{ e.stopPropagation(); actHide(); }; }
   { const ah=document.getElementById('act-hide'); if(ah) ah.onclick=actHide; }
@@ -7744,6 +7775,7 @@ $('#sh-add').onclick = async ()=>{
   if(error){ toast(t('save_fail')); return; }
   closeSheet(); toast(t('jo_added'));
   await loadLogs(); await loadToday();
+  if(JO_DATE===todayStr()&&new Date().getHours()>=10) mrSync(true);
 };
 
 /* 04/10/2026 : demande d'un testeur. L'historique montrait l'aliment et ses
@@ -11114,7 +11146,7 @@ function msLiveCues(s){
 }
 /* ── Tempo : « 3-1-1-0 » = 3 s de descente, 1 s de pause en bas, 1 s pour remonter, 0 en haut.
    Comme en salle : « Avec moi. » puis le coach compte les deux premieres repetitions a voix
-   haute (« un… deux… trois… Tiens… Go ! »). Ensuite un simple bip a chaque changement de
+   haute (« un… deux… trois… Tiens… Pousse ! » / « Tire ! », le mot du mouvement, jamais « C'est parti »). Ensuite un simple bip a chaque changement de
    phase, et sa consigne prioritaire au debut de la 3e repetition. X = explosif (1 s).
    Pour les tirages et le soulevé de terre, la repetition commence par la montee. */
 function msTempoOf(s){
@@ -11125,18 +11157,38 @@ function msTempoOf(s){
   if(v[0]<2&&v[2]<2) return null;                                /* pas de vrai tempo a compter */
   return {ecc:v[0],p1:v[1],con:Math.max(1,v[2]),p2:v[3],raw};
 }
+/* Le mot de la phase concentrique, propre au mouvement : « Pousse ! » sur un squat, « Tire ! »
+   sur une traction, « Pousse le sol ! » sur un soulevé de terre. Jamais « C'est parti ». */
+const MS_PULL_RX=/pull-?up|chin|muscle-?up|rope|row|c2b|chest-to-bar|toes-to-bar|t2b|face-pull|lat-pull|curl|high-pull|shrug/;
+const MS_PUSH_RX=/dip|push-?up|press|hspu|handstand-push|pike|bench|jerk|thruster|squat|lunge|step-up|split/;
+function msConVerb(ex){
+  const p=ex.pattern||'', sl=String(ex.slug||'');
+  let kind=null;
+  if(p==='tirage_v'||p==='tirage_h'||MS_PULL_RX.test(sl)) kind='pull';
+  else if(p==='charniere') kind='hinge';
+  else if(['squat','fente','poussee_h','poussee_v'].includes(p)||MS_PUSH_RX.test(sl)) kind='push';
+  const C={pull:['p_t_pull','k_tire_avec_les_coudes'],
+           hinge:/thrust|bridge|swing/.test(sl)?['p_t_push']:['k_pousse_le_sol','c_push_floor','p_t_push'],
+           push:p==='poussee_v'?['p_t_push','k_pousse_le_ciel']:(p==='squat'||p==='fente')?['p_t_push','k_pousse_le_sol']:p==='poussee_h'?['p_t_push','c_press_away']:['p_t_push']}[kind];
+  if(!C) return {k:null,tx:''};             /* mouvement inconnu : un bip plutot qu'un mot faux */
+  const TXT={p_t_push:{fr:'Pousse !',en:'Push!',nl:'Duwen!'},p_t_pull:{fr:'Tire !',en:'Pull!',nl:'Trekken!'}};
+  const k=C.find(x=>vcHas(LANG,x))||C[0];
+  const tx=(TXT[k]&&(TXT[k][LANG]||TXT[k].fr))||(VC_CUES&&VC_CUES.txt[k])||(TXT[C[0]]&&TXT[C[0]][LANG])||'';
+  return {k,tx};
+}
 function msTempo(s,t){
-  const T=msTempoOf(s), ex=s.ex||{}, conFirst=['charniere','tirage_v','tirage_h'].includes(ex.pattern);
+  const T=msTempoOf(s), ex=s.ex||{}, conFirst=['charniere','tirage_v','tirage_h'].includes(ex.pattern)||(ex.pattern==='gym_skill'&&MS_PULL_RX.test(String(ex.slug||'')));
   const alive=()=>MS&&MS.cur===s&&!document.getElementById('ms-work').hidden;
+  const V=msConVerb(ex);
   /* toute la sequence dans la meme voix : celle du coach si tous les morceaux sont enregistres */
-  const need=['p_t_with','p_go'].concat(T.p1>0?['p_t_hold']:[]).concat(Array.from({length:T.ecc},(_,i)=>'n'+(i+1)));
+  const need=['p_t_with'].concat(V.k?[V.k]:[]).concat(T.p1>0?['p_t_hold']:[]).concat(Array.from({length:T.ecc},(_,i)=>'n'+(i+1)));
   const rec=vcMode()==='coach'&&need.every(k=>vcHas(LANG,k));
-  const TX={p_t_with:mt('tp_with'),p_t_hold:mt('tp_hold'),p_go:'Go !'};
+  const TX={p_t_with:mt('tp_with'),p_t_hold:mt('tp_hold')}; if(V.k) TX[V.k]=V.tx;
   const say=k=>{ if(!MSV.on) return; if(rec) vcRun([{l:LANG,k}]); else { const tx=k[0]==='n'?vcNumWord(LANG,+k.slice(1)):TX[k]; if(tx) msSay(tx); } };
   const ev=[]; let at=0;
   const ecc=(rep)=>{ for(let i=1;i<=T.ecc;i++){ ev.push({at,k:rep<2?'n'+i:(i===1?'tick':null),rep,ph:'ecc',i}); at+=1; } };
   const p1=(rep)=>{ if(T.p1>0){ ev.push({at,k:rep<2?'p_t_hold':'tick',rep}); at+=T.p1; } };
-  const con=(rep)=>{ ev.push({at,k:rep<2?'p_go':'tick',rep}); at+=T.con; if(T.p2>0) at+=T.p2; };
+  const con=(rep)=>{ ev.push({at,k:rep<2&&V.k?V.k:'tick',rep}); at+=T.con; if(T.p2>0) at+=T.p2; };
   for(let r=0;r<t.r;r++){ if(conFirst){ con(r); ecc(r); p1(r); } else { ecc(r); p1(r); con(r); } }
   const mids=vcLiveOn()?vcCuesFor(ex.slug,'mid'):[];
   if(mids.length&&t.r>=4){ const e3=ev.find(e=>e.rep===2); if(e3){ e3.k='cue'; e3.cue=mids[(s.k||0)%mids.length]; } }
@@ -11151,9 +11203,27 @@ function msTempo(s,t){
     say('p_t_with'); MS.liveT=setTimeout(()=>{ if(!alive()) return; t0=Date.now()+600; next(); },1400); };
   MS.liveT=setTimeout(wait,300);
 }
+/* Respiration 4-7-8 guidee : « Inspire… deux, trois, quatre. Retiens… deux… sept. Expire… deux… huit. »
+   Les deux premiers cycles sont comptes, ensuite seulement le mot de chaque phase. */
+function msBreath478(s,t){
+  const alive=()=>MS&&MS.cur===s&&!document.getElementById('ms-work').hidden;
+  const PH=[['p_b_in',4],['p_b_hold',7],['p_b_out',8]];
+  const TXT={p_b_in:{fr:'Inspire',en:'Breathe in',nl:'Inademen'},p_b_hold:{fr:'Retiens',en:'Hold',nl:'Vasthouden'},p_b_out:{fr:'Expire',en:'Breathe out',nl:'Uitademen'}};
+  const need=['p_b_in','p_b_hold','p_b_out'].concat(Array.from({length:7},(_,i)=>'n'+(i+2)));
+  const rec=vcMode()==='coach'&&need.every(k=>vcHas(LANG,k));
+  const say=k=>{ if(!MSV.on) return; if(rec) vcRun([{l:LANG,k}]); else msSay(k[0]==='n'?vcNumWord(LANG,+k.slice(1)):(TXT[k][LANG]||TXT[k].fr)); };
+  const cycles=Math.max(4,Math.min(10,t.r||6)), ev=[]; let at=0;
+  for(let c=0;c<cycles;c++) for(const [k,d] of PH){ ev.push({at,k}); if(c<2) for(let i=2;i<=d;i++) ev.push({at:at+i-1,k:'n'+i}); at+=d; }
+  let t0=0, i=0;
+  const next=()=>{ const e=ev[i]; if(!e) return;
+    MS.liveT=setTimeout(()=>{ if(!alive()) return; say(e.k); i++; next(); },Math.max(0,t0+e.at*1000-Date.now())); };
+  const wait=()=>{ if(!alive()) return; if(vcSpeaking()){ MS.liveT=setTimeout(wait,250); return; } t0=Date.now()+400; next(); };
+  MS.liveT=setTimeout(wait,1500);
+}
 function msLiveCues2(s){
   const t=msTarget(s), k=s.k||0, ph=msPhase(s);
   if(t.load==='time') return;                                   /* gere par le chrono de la serie (msHoldStart) */
+  if(s.ex&&s.ex.slug==='box-breathing') return msBreath478(s,t);  /* 4-7-8 : le coach guide chaque cycle */
   if(msTempoOf(s)&&t.r>=2) return msTempo(s,t);                 /* tempo : on compte avec le membre */
   const mids=vcCuesFor(s.ex.slug,'mid'); if(!mids.length) return;
   const at=msCuePlan(s,t).map((sec,i)=>({sec,key:mids[(k+i)%mids.length]}));   /* la serie 2 commence par la 2e consigne */
@@ -11300,6 +11370,7 @@ function msMount(){
       <svg class="ms-ring" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="5"/><circle id="ms-ringp" cx="22" cy="22" r="18" fill="none" stroke="#00E896" stroke-width="5" stroke-linecap="round" stroke-dasharray="113.1" stroke-dashoffset="113.1" transform="rotate(-90 22 22)"/></svg>
       <div class="ms-clock" id="ms-clock">0:00</div>
       <div class="ms-kg"><b id="ms-kgv">0</b><small>${esc(mt('kgl'))}</small></div>
+      <button type="button" class="ms-ic" id="ms-tvb" aria-label="TV">📺</button>
       <button type="button" class="ms-ic" id="ms-vset" aria-label="voix">⚙</button>
       <button type="button" class="ms-ic" id="ms-snd" aria-label="voix">🔊</button>
     </div>
@@ -11345,6 +11416,7 @@ function msMount(){
     <div class="ms-hud">
       <button type="button" class="ms-ic" id="ms-wx" aria-label="×">✕</button>
       <div class="ms-clock" id="ms-wtot"></div>
+      <button type="button" class="ms-ic" id="ms-wtvb" aria-label="TV">📺</button>
       <button type="button" class="ms-ic" id="ms-wsnd" aria-label="voix">🔊</button>
     </div>
     <p class="ms-wfmt" id="ms-wfmt"></p>
@@ -11363,6 +11435,7 @@ function msMount(){
   g('ms-x').onclick=()=>msClose();
   g('ms-snd').onclick=()=>{ MSV.on=!MSV.on; try{ localStorage.setItem('cdm_ms_voice',MSV.on?'1':'0'); }catch(_){} g('ms-snd').textContent=MSV.on?'🔊':'🔇'; if(!MSV.on) try{ speechSynthesis.cancel(); }catch(_){} };
   g('ms-vset').onclick=()=>msVoiceSheet();
+  g('ms-tvb').onclick=()=>tvSheet(); g('ms-wtvb').onclick=()=>tvSheet();
   g('ms-done').onclick=()=>{ if(MS&&(MS.hold||MS.holdPre)) msHoldStop(true); else if(MS&&MS.holdReady) msHoldStart(); else msValidate(); };
   g('ms-ts').onclick=()=>{ const s=MS&&MS.cur; if(s&&s.it.exercise) subOpen(s.it.exercise.id); };
   g('ms-shb').onclick=()=>msShareCard();
@@ -11454,6 +11527,76 @@ function msTv(){
   if(t.load!=='weight'){ const pl=document.getElementById('ms-plates'); if(pl) pl.hidden=true; }
   s._side=side;
 }
+/* ── Mode TV : la seance sur grand ecran (coachdm.be/tv). Le telephone reste la telecommande
+   (series, charges, voix, musique) ; la TV montre le plan a gauche et le travail en direct a droite.
+   Aucune nouvelle version a installer pour faire evoluer l'ecran : c'est une page du site. */
+const TVX={
+ h:{fr:'Ta séance sur la TV',en:'Your session on the TV',nl:'Je training op de tv'},
+ p:{fr:'Sur ta TV (navigateur, Chromecast ou AirPlay), ouvre coachdm.be/tv puis tape le code à 5 chiffres affiché. Ton téléphone reste la télécommande : la voix et ta musique restent sur le téléphone.',
+    en:'On your TV (browser, Chromecast or AirPlay), open coachdm.be/tv and enter the 5-digit code it shows. Your phone stays the remote: the voice and your music stay on the phone.',
+    nl:'Open coachdm.be/tv op je tv (browser, Chromecast of AirPlay) en typ de code van 5 cijfers. Je telefoon blijft de afstandsbediening: de stem en je muziek blijven op je telefoon.'},
+ go:{fr:'Connecter',en:'Connect',nl:'Verbinden'}, off:{fr:'Déconnecter la TV',en:'Disconnect the TV',nl:'Tv loskoppelen'},
+ ok:{fr:'TV connectée',en:'TV connected',nl:'Tv verbonden'}, ko:{fr:'Pas de réponse de la TV : vérifie le code.',en:'No answer from the TV: check the code.',nl:'Geen antwoord van de tv: controleer de code.'},
+ prem:{fr:'Le Mode TV est inclus dans Premium.',en:'TV mode is included in Premium.',nl:'Tv-modus zit in Premium.'},
+ set:{fr:'Série',en:'Set',nl:'Set'}
+};
+const tvt=k=>{const o=TVX[k];return o?(o[LANG]||o.fr):k;};
+let TV={ch:null,code:null,iv:0,last:'',ok:false};
+function tvSheet(){
+  if(ACCESS==='free'){ toast(tvt('prem')); return; }
+  document.querySelectorAll('#ms-tvs').forEach(e=>e.remove());
+  const sh=document.createElement('div'); sh.id='ms-tvs'; sh.className='ms-vs'; document.getElementById('ms-ov').appendChild(sh);
+  let c=''; try{ c=localStorage.getItem('cdm_tv_code')||''; }catch(_){}
+  sh.innerHTML=`<div class="ms-vsi"><h3>📺 ${esc(tvt('h'))}</h3><p class="ms-vhint" style="margin:6px 0 12px">${esc(tvt('p'))}</p>
+    <input id="tv-c" inputmode="numeric" maxlength="5" value="${esc(c)}" placeholder="•••••" style="width:100%;font-size:30px;font-weight:800;letter-spacing:.3em;text-align:center;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:#0B100D;color:#fff">
+    <p class="ms-vhint" id="tv-m" style="min-height:18px;margin:8px 0">${TV.ok?'● '+esc(tvt('ok'))+' · '+esc(TV.code):''}</p>
+    <button type="button" class="ms-btn" id="tv-go">${esc(tvt('go'))}</button>
+    ${TV.ch?`<button type="button" class="ms-gh wide" id="tv-off" style="margin-top:8px">${esc(tvt('off'))}</button>`:''}</div>`;
+  sh.onclick=e=>{ if(e.target===sh) sh.remove(); };
+  const inp=sh.querySelector('#tv-c'); inp.oninput=()=>{ inp.value=inp.value.replace(/\D/g,'').slice(0,5); };
+  sh.querySelector('#tv-go').onclick=async()=>{ const v=inp.value; if(v.length!==5) return; sh.querySelector('#tv-m').textContent='…';
+    const ok=await tvConnect(v); sh.querySelector('#tv-m').textContent=ok?'● '+tvt('ok')+' · '+v:tvt('ko'); if(ok){ buzz(30); setTimeout(()=>sh.remove(),900); } };
+  const off=sh.querySelector('#tv-off'); if(off) off.onclick=()=>{ tvStop(true); sh.remove(); };
+}
+function tvSend(m){ if(TV.ch) TV.ch.send({type:'broadcast',event:'m',payload:Object.assign({lang:LANG},m)}); }
+function tvConnect(code){
+  tvStop(false);
+  return new Promise(res=>{
+    const ch=sb.channel('cdm-tv-'+code,{config:{broadcast:{self:false}}}); TV={ch,code,iv:0,last:'',ok:false};
+    let done=false; const fin=v=>{ if(!done){ done=true; res(v); } };
+    ch.on('broadcast',{event:'m'},p=>{ const m=p.payload||{}; if(m.t==='here'){ TV.ok=true; fin(true); } });
+    ch.subscribe(st=>{ if(st==='SUBSCRIBED'){ let n=0; const hi=()=>{ if(TV.ok||TV.ch!==ch) return; if(++n>6){ tvStop(false); return fin(false); } tvSend({t:'hello',who:'app'}); setTimeout(hi,800); }; hi(); } });
+  }).then(ok=>{ if(ok){ try{ localStorage.setItem('cdm_tv_code',code); }catch(_){} TV.iv=setInterval(tvPush,700); tvPush(); } return ok; });
+}
+function tvStop(bye){ if(!TV.ch) return; if(bye) tvSend({t:'bye'}); clearInterval(TV.iv); try{ sb.removeChannel(TV.ch); }catch(_){} TV={ch:null,code:null,iv:0,last:'',ok:false}; }
+function tvTxt(id){ const e=document.getElementById(id); return e&&!e.closest('[hidden]')?(e.textContent||'').trim():''; }
+function tvVis(id){ const e=document.getElementById(id); return !!(e&&!e.hidden); }
+function tvPlan(){
+  if(!MS||!MS.slots||!MS.slots.length) return [];
+  const seen=new Map(), parts=[];
+  MS.slots.forEach(s=>{ if(seen.has(s.it.id)) return; const n=s.wrap.querySelectorAll('.pill').length, d=s.wrap.querySelectorAll('.pill.done').length;
+    const it={q:(n>1?n+' × ':'')+(s.it.reps||''),name:s.ex.name_en||pick(s.ex,'name')||'',done:d>=n,cur:!!(MS.cur&&MS.cur.it.id===s.it.id),n,d};
+    seen.set(s.it.id,it); let p=parts[parts.length-1]; if(!p||p.b!==s.it.block){ p={b:s.it.block,label:blockL(s.it.block),items:[]}; parts.push(p); } p.items.push(it); });
+  parts.forEach(p=>{ const n=p.items.reduce((a,x)=>a+x.n,0), d=p.items.reduce((a,x)=>a+x.d,0); p.prog=d+'/'+n; p.done=d>=n; p.cur=p.items.some(x=>x.cur); p.items.forEach(x=>{ delete x.n; delete x.d; }); delete p.b; });
+  return parts;
+}
+function tvSnap(){
+  const title=(SE_CUR&&SE_CUR.w&&pick(SE_CUR.w,'name'))||'';
+  const base={title,plan:tvPlan()};
+  if(!MS) return Object.assign(base,{view:'idle',clock:SESSION?msFmt(Math.floor((Date.now()-SESSION.started)/1000)):''});
+  if(tvVis('ms-count')) return Object.assign(base,{view:'count',clock:tvTxt('ms-cnum')});
+  if(tvVis('ms-rest')&&MS.rest){ const r=MS.rest, nx=msCur();
+    return Object.assign(base,{view:'rest',restLeft:Math.max(0,(r.end-Date.now())/1000),restTotal:r.total||90,tip:tvTxt('ms-tipt'),
+      next:{name:tvTxt('ms-nxn'),k:tvTxt('ms-nxk'),target:tvTxt('ms-nxv'),slug:nx&&nx.ex.slug}}); }
+  if(tvVis('ms-end')) return Object.assign(base,{view:'end',sub:[tvTxt('ms-dmin')+' min',tvTxt('ms-dkg')+' kg',tvTxt('ms-dset')+' '+mt('sets')].join(' · ')});
+  if(tvVis('ms-wod')) return Object.assign(base,{view:'wod',fmt:tvTxt('ms-wfmt'),clock:tvTxt('ms-wclk'),sub:tvTxt('ms-wsub'),cur:tvTxt('ms-wcurn')?{name:tvTxt('ms-wcurn'),target:tvTxt('ms-wcurr')}:null});
+  if(tvVis('ms-work')&&MS.cur){ const s=MS.cur, n=s.wrap.querySelectorAll('.pill').length;
+    return Object.assign(base,{view:'work',name:tvTxt('ms-name'),slug:s.ex.slug,block:tvTxt('ms-blk'),target:tvTxt('ms-tv2'),
+      pips:tvt('set')+' '+((s.k||0)+1)+' / '+n,cue:tvTxt('ms-cue'),clock:tvTxt('ms-clock')}); }
+  return Object.assign(base,{view:'idle',clock:tvTxt('ms-wclk')||tvTxt('ms-clock')});
+}
+function tvPush(){ if(!TV.ch) return; let d; try{ d=tvSnap(); }catch(_){ return; }
+  const j=JSON.stringify(d); if(j===TV.last&&Date.now()-(TV.at||0)<5000) return; TV.last=j; TV.at=Date.now(); tvSend({t:'mir',d}); }
 function msPlanKg(s,i){ const seg=((s.wrap.dataset.plan||'').split(';')[i]||'').split('@'); return parseFloat(seg[1])||null; }
 function msAdj(d){ const s=MS&&MS.cur; if(!s) return; const t=msTarget(s); t._edited=true;
   if(t.load==='weight'){ t.kg=Math.max(0,Math.round(((t.kg||0)+2.5*d)*10)/10); }
