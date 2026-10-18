@@ -33,7 +33,7 @@ body.tv{overflow:hidden}
 .tvcode{font-size:1.05vw;font-weight:800;letter-spacing:.14em;color:var(--mut);padding:.45vw .9vw;border-radius:.7vw;border:1px solid var(--line);background:rgba(255,255,255,.03);white-space:nowrap}
 .tvcode b{color:var(--fg);letter-spacing:.24em;font-size:1.25vw;margin-left:.5vw}
 .top .x{color:var(--gold);font-weight:300;font-size:2vw;line-height:1}
-.top .club{width:auto;max-width:10vw;height:3.6vw;object-fit:contain;border-radius:.5vw;box-shadow:none}
+.top .club{width:auto;max-width:9vw;height:3.4vw;object-fit:contain;border-radius:.5vw;box-shadow:none}
 .top .cn{font-weight:900;letter-spacing:.24em;font-size:1.25vw;text-transform:uppercase}
 .pill{font-size:.95vw;font-weight:800;letter-spacing:.16em;padding:.45vw 1vw;border-radius:99px;color:#1d1503;background:var(--gold-grad)}
 
@@ -708,7 +708,7 @@ function paintClub(){
 }
 /* logo du club (Reasfit…) a cote de celui de Coach DM ; sans logo, son nom */
 function clubHead(c){ var lg=c&&c.logo, nm=c&&c.name;
-  G('s-x').hidden=!(lg||nm); G('s-club').hidden=!lg; G('s-cn').hidden=!!lg||!nm;
+  G('s-x').hidden=!(lg||nm); G('s-club').hidden=!lg; G('s-cn').hidden=!nm;
   if(lg&&G('s-club').getAttribute('src')!==lg){ G('s-club').src=lg; G('s-club').alt=nm||''; }
   G('s-cn').textContent=nm||''; }
 function mv(it,extra){ if(!it) return ''; var f=fig(it.slug), q=qty(it);

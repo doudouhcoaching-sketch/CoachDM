@@ -10723,7 +10723,7 @@ function adDuck(){ const p=adPlugin(); if(!p||!adOn()) return;
 function adWatch(){ clearTimeout(AD.t); AD.t=setTimeout(()=>{
   if(vcSpeaking()){ adWatch(); return; }
   const p=adPlugin(); AD.on=false; if(!p) return; let n=0;
-  const go=()=>{ try{ p.unduck().catch(()=>{ if(++n<4&&!AD.on) setTimeout(go,400); }); }catch(_){} }; go(); },700); }
+  const go=()=>{ try{ p.unduck().catch(()=>{ if(++n<6&&!AD.on) setTimeout(go,150); }); }catch(_){} }; go(); },180); }
 function msSay(parts){
   if(!MSV.on||!('speechSynthesis' in window)) return;
   adDuck();
@@ -11116,12 +11116,12 @@ function vcCuesFor(slug,moment){
   const lv=t=>all.filter(c=>c.t===t&&c.m===moment);
   const rec=l=>l.filter(c=>vcHas(LANG,c.k)), withTxt=l=>l.filter(c=>txt(c.k));
   let l=[];
-  if(vcMode()==='coach'){ l=rec(lv(2)); if(!l.length) l=rec(lv(1)); }
+  if(vcMode()==='coach'){ l=rec(lv(2)); if(!l.length) l=rec(lv(1)); return l.map(c=>c.k); }  /* sa voix seulement : une consigne pas encore enregistree se tait */
   if(!l.length) l=withTxt(lv(2)); if(!l.length) l=withTxt(lv(1));
   return l.map(c=>c.k);
 }
-function vcCueSpec(k){ return vcHas(LANG,k)?k:(VC_CUES.txt[k]?{tts:VC_CUES.txt[k]}:null); }
-function vcSayCue(k){ if(vcMode()==='coach'&&vcHas(LANG,k)) vcRun([{l:LANG,k}]); else if(VC_CUES.txt[k]) msSay(VC_CUES.txt[k]); }
+function vcCueSpec(k){ return vcHas(LANG,k)?k:(vcMode()!=='coach'&&VC_CUES.txt[k]?{tts:VC_CUES.txt[k]}:null); }
+function vcSayCue(k){ if(vcMode()==='coach'){ if(vcHas(LANG,k)) vcRun([{l:LANG,k}]); return; } if(VC_CUES.txt[k]) msSay(VC_CUES.txt[k]); }
 /* une serie « courte » n'a pas le temps d'une consigne pendant l'effort : on la dit juste avant */
 function msShortSet(s,t){
   const load=(s.wrap&&s.wrap.dataset.load)||(s.ex&&s.ex.load_type)||'reps_only';
@@ -11147,7 +11147,7 @@ function msLiveCues(s){
   msLiveStop();
   if(!MS||!VC_CUES||!vcLiveOn()) return;
   if(VC_CUES.meta&&VC_CUES.meta[s.ex.slug]&&VC_CUES.meta[s.ex.slug].length) return msLiveCues2(s);
-  const keys=(VC_CUES.map[s.ex.slug]||[]).filter(k=>VC_CUES.txt[k]||vcHas(LANG,k)); if(!keys.length) return;
+  const keys=(VC_CUES.map[s.ex.slug]||[]).filter(k=>vcMode()==='coach'?vcHas(LANG,k):(VC_CUES.txt[k]||vcHas(LANG,k))); if(!keys.length) return;
   /* on tourne d'une serie a l'autre : la serie 2 ne recommence pas par la meme consigne */
   const off=(s.k||0)%keys.length; let i=0, n=0;
   const tick=()=>{
@@ -11156,7 +11156,7 @@ function msLiveCues(s){
     if(vcSpeaking()){ MS.liveT=setTimeout(tick,1500); return; }
     let k=keys[(off+i)%keys.length]; i++; n++;
     if(n===2&&vcMode()==='coach'&&Math.random()<.45){ const e=vcPickEnc(msCtx(s,'mid')); if(e) k=e; }
-    if(vcMode()==='coach'&&vcHas(LANG,k)) vcRun([{l:LANG,k}]);
+    if(vcMode()==='coach'){ if(vcHas(LANG,k)) vcRun([{l:LANG,k}]); }
     else if(VC_CUES.txt[k]) msSay(VC_CUES.txt[k]);
     if(n<2&&n<keys.length+1) MS.liveT=setTimeout(tick,11000);
   };
@@ -11731,7 +11731,7 @@ async function msWork(announce){
     if(sayKg){ spec.push({pause:90}); if(LANG!=='nl') spec.push('w_at'); spec.push({kg:t.kg}); }
     const ex1=first&&vcMode()==='coach'?vcExpl(s.ex.slug,!!msTempoOf(s)):null, lastS=n>1&&s.k+1===n;
     if(ex1) spec.push({pause:350},ex1);                                   /* la 1re fois : la consigne expliquee en entier */
-    else if(first&&cue&&vcCuesToo()) spec.push({pause:350},{tts:msCue(cue)});
+    else if(first&&cue&&vcCuesToo()&&vcMode()!=='coach') spec.push({pause:350},{tts:msCue(cue)});
     const cx=msCtx(Object.assign({},s,{n}),'pre'), work=cx.ph==='work';
     let pre=null;
     if(VC_CUES&&VC_CUES.meta&&(VC_CUES.meta[s.ex.slug]||[]).length){
@@ -11797,7 +11797,8 @@ function msAfterSet(){
   const prev=MS.cur, nx=msCur();
   if(!nx){ msEnd(); return; }
   const chain=prev&&prev.it.superset_group&&nx.it.superset_group===prev.it.superset_group&&nx.k===prev.k;
-  const restS=chain?0:(parseInt(prev.wrap.dataset.rest,10)||0);
+  const flow=prev&&['warm','cool'].includes(msPhase(prev));
+  const restS=chain||flow?0:(parseInt(prev.wrap.dataset.rest,10)||0);
   if(!restS){ msWork(true); return; }
   msRest(restS,nx,prev);
 }
