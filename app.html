@@ -1247,7 +1247,9 @@ html.ms-on,html.ms-on body{overflow:hidden}
 .ms-pips i.on{background:#00E896}.ms-pips i.cur{background:linear-gradient(90deg,#00E896,rgba(0,232,150,.25));animation:msPulse 1.2s infinite}
 @keyframes msPulse{50%{opacity:.55}}
 .ms-target{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.ms-tmp{margin:6px 0 0;text-align:center;font-size:14px;color:#A9BBB1}.ms-tmp b{color:#38BDF8;font-weight:800;letter-spacing:.04em}
 .ms-v{font-family:'Barlow Condensed','Arial Narrow',Arial,sans-serif;font-weight:800;font-size:54px;line-height:1;text-align:center;flex:1;min-width:0}
+#ms-tv2,#ms-rv{cursor:pointer;text-decoration:underline dotted rgba(255,255,255,.28);text-underline-offset:6px;text-decoration-thickness:2px}
 .ms-v small{font-size:22px;color:#8FA398}
 .ms-pm{width:48px;height:48px;flex:none;border-radius:14px;border:1px solid rgba(234,244,238,.12);background:#151D18;color:#EEF4EF;font:800 22px inherit;font-family:inherit;cursor:pointer}
 .ms-pm.sm{width:34px;height:34px;font-size:17px;border-radius:10px}
@@ -3740,6 +3742,9 @@ const T = {
  day_stale_ok:{fr:'Record mis à jour',en:'Record updated',nl:'Record bijgewerkt'},
  pr_lift:{fr:'Mouvement',en:'Movement',nl:'Beweging'},
  pr_kg:{fr:'1RM (kg)',en:'1RM (kg)',nl:'1RM (kg)'},
+ pr_search:{fr:'Chercher un mouvement… (ex. thruster)',en:'Search a movement… (e.g. thruster)',nl:'Zoek een beweging… (bv. thruster)'},
+ pr_g_ref:{fr:'Mouvements de référence',en:'Reference lifts',nl:'Referentiebewegingen'},
+ pr_g_all:{fr:'Tous les mouvements',en:'All movements',nl:'Alle bewegingen'},
  pr_save:{fr:'Enregistrer le record',en:'Save record',nl:'Record opslaan'},
  pr_saved:{fr:'Record enregistré',en:'Record saved',nl:'Record opgeslagen'},
  pr_invalid:{fr:'Entre un poids valide',en:'Enter a valid weight',nl:'Geef een geldig gewicht in'},
@@ -8316,9 +8321,14 @@ async function loadPRLifts(){
   await loadPRSlugMap();
   const seen={}; PR_LIFTS=[];
   Object.values(PRSLUG).forEach(p=>{ if(!seen[p.id]){ seen[p.id]=1; PR_LIFTS.push(p); } });
+  /* 18/10/2026 : TOUS les mouvements charges de l'app (pas seulement force/halterophilie),
+     pour que chaque % de 1RM d'un programme puisse se calculer. Noms officiels en anglais. */
+  PR_LIFTS.forEach(x=>x.ref=1);
   const { data } = await sb.from('exercises').select('id,slug,name_fr,name_en,name_nl')
-    .eq('is_published',true).eq('load_type','weight').in('category',['strength','olympic']).order('name_fr');
+    .eq('is_published',true).or('load_type.eq.weight,slug.in.(pull-up,strict-pull-up,ring-dip,dip)').limit(1000);
   (data||[]).forEach(x=>{ if(!seen[x.id]){ seen[x.id]=1; PR_LIFTS.push(x); } });
+  const nm=x=>(x.name_en||x.name_fr||'').toLowerCase();
+  PR_LIFTS.sort((a,b)=>(b.ref||0)-(a.ref||0)||nm(a).localeCompare(nm(b)));
   return PR_LIFTS;
 }
 /* Boucle VBT -> charge : 1RM du jour mesuré dans l'Analyse Squat.
@@ -8405,7 +8415,7 @@ async function renderPRList(){
   box.innerHTML=PRROWS.map(r=>{
     const ex=names[r.exercise_id];
     const d=r.achieved_at?new Date(r.achieved_at).toLocaleDateString(loc):'';
-    return '<div class="pr-row"><div><div class="pr-name">'+esc(ex?pick(ex,'name'):'—')+'</div><div class="pr-date">'+d+'</div></div>'
+    return '<div class="pr-row"><div><div class="pr-name">'+esc(ex?(ex.name_en||pick(ex,'name')):'—')+'</div><div class="pr-date">'+d+'</div></div>'
       +'<div style="display:flex;align-items:center;gap:10px"><span class="pr-val">'+(+r.value)+' <small>kg</small></span>'
       +'<button class="pr-edit" data-pr-edit="'+r.exercise_id+'">'+t('pr_edit')+'</button></div></div>';
   }).join('');
@@ -8414,8 +8424,15 @@ async function renderPRList(){
 async function openPRSheet(preId){
   await loadPRLifts(); await loadPRMap();
   const sel=$('#pr-lift');
-  sel.innerHTML=PR_LIFTS.map(x=>'<option value="'+x.id+'">'+esc(pick(x,'name'))+'</option>').join('');
-  if(preId) sel.value=preId;
+  const en=x=>x.name_en||pick(x,'name');
+  const opts=(q)=>{ q=(q||'').trim().toLowerCase(); const L=PR_LIFTS.filter(x=>!q||(en(x)+' '+pick(x,'name')+' '+x.slug).toLowerCase().includes(q));
+    const g=(arr,lab)=>arr.length?'<optgroup label="'+esc(lab)+'">'+arr.map(x=>'<option value="'+x.id+'">'+esc(en(x))+(PRMAP&&PRMAP[x.id]!=null?' · '+PRMAP[x.id]+' kg':'')+'</option>').join('')+'</optgroup>':'';
+    const cur=sel.value; sel.innerHTML=g(L.filter(x=>x.ref),t('pr_g_ref'))+g(L.filter(x=>!x.ref),t('pr_g_all'));
+    if(cur&&L.some(x=>x.id===cur)) sel.value=cur; };
+  let qi=$('#pr-q'); if(!qi){ qi=document.createElement('input'); qi.id='pr-q'; qi.type='search'; qi.autocomplete='off'; qi.style.marginBottom='8px';
+    sel.parentNode.insertBefore(qi,sel); }
+  qi.placeholder=t('pr_search'); qi.value=''; qi.oninput=()=>{ opts(qi.value); fill(); };
+  opts(''); if(preId) sel.value=preId;
   const fill=()=>{ const v=PRMAP?PRMAP[sel.value]:null; $('#pr-kg').value=v!=null?v:''; };
   fill(); sel.onchange=fill;
   $('#pr-msg').textContent='';
@@ -10858,9 +10875,10 @@ function vcPickEnc(c){
   VC_LAST.enc=k; return k;
 }
 /* explication complete d'une consigne (cl_knees_out pour c_knees_out), si elle est enregistree */
-function vcExpl(slug){
+function vcExpl(slug,tempo){
   const keys=(VC_CUES&&VC_CUES.map[slug])||[];
-  for(const k of keys){ const e='cl_'+k.slice(2); if(vcHas(LANG,e)) return e; }
+  /* « Controle la descente, deux secondes » : faux si la seance impose un autre tempo */
+  for(const k of keys){ const e='cl_'+k.slice(2); if(tempo&&/^cl_control/.test(e)) continue; if(vcHas(LANG,e)) return e; }
   return null;
 }
 const VC_CORE=['w_set','w_of','w_reps','w_kg','p_rest','p_next','n1','n2','n3','n5','n10'];
@@ -11152,10 +11170,11 @@ function msLiveCues(s){
 function msTempoOf(s){
   const raw=String((s.it&&s.it.tempo)||'').trim().toUpperCase(); if(!raw) return null;
   const tk=raw.includes('-')?raw.split('-'):raw.replace(/\s/g,'').split('');
-  if(tk.length<3||tk.length>4||!tk.every(x=>/^(\d|X)$/.test(x))) return null;
-  const v=tk.map(x=>x==='X'?1:+x); while(v.length<4) v.push(0);
+  /* X = explosif ; A = remontee assistee (negatives : on remonte avec aide, le coach ne dit rien) */
+  if(tk.length<3||tk.length>4||!tk.every(x=>/^(\d{1,2}|X|A)$/.test(x))) return null;
+  const v=tk.map(x=>x==='X'?1:x==='A'?2:+x); while(v.length<4) v.push(0);
   if(v[0]<2&&v[2]<2) return null;                                /* pas de vrai tempo a compter */
-  return {ecc:v[0],p1:v[1],con:Math.max(1,v[2]),p2:v[3],raw};
+  return {ecc:v[0],p1:v[1],con:Math.max(1,v[2]),p2:v[3],raw,assist:tk[2]==='A',expl:tk[2]==='X'};
 }
 /* Le mot de la phase concentrique, propre au mouvement : « Pousse ! » sur un squat, « Tire ! »
    sur une traction, « Pousse le sol ! » sur un soulevé de terre. Jamais « C'est parti ». */
@@ -11177,18 +11196,27 @@ function msConVerb(ex){
   return {k,tx};
 }
 function msTempo(s,t){
-  const T=msTempoOf(s), ex=s.ex||{}, conFirst=['charniere','tirage_v','tirage_h'].includes(ex.pattern)||(ex.pattern==='gym_skill'&&MS_PULL_RX.test(String(ex.slug||'')));
+  const T=msTempoOf(s), ex=s.ex||{}, sl=String(ex.slug||'');
+  /* la repetition commence par la montee quand on part d'en bas (soulevé de terre, tractions, rowing,
+     hip thrust) ; le RDL et le good morning partent d'en haut : descente d'abord, comme ecrit. */
+  const conFirst=!T.assist&&!/romanian|rdl|good-morning|stiff|sldl|single-leg-deadlift|nordic/.test(sl)&&
+    (['charniere','tirage_v','tirage_h'].includes(ex.pattern)||(ex.pattern==='gym_skill'&&MS_PULL_RX.test(sl)));
   const alive=()=>MS&&MS.cur===s&&!document.getElementById('ms-work').hidden;
-  const V=msConVerb(ex);
+  const V=T.assist?{k:null,tx:''}:msConVerb(ex);
+  /* on compte exactement ce qui est ecrit : chaque seconde de descente, la pause en bas
+     (« Tiens… deux »), une montee lente (« Pousse… deux… trois ») et la pause en haut. */
+  const top=Math.max(T.ecc,T.p1,V.k?T.con:0,T.p2);
   /* toute la sequence dans la meme voix : celle du coach si tous les morceaux sont enregistres */
-  const need=['p_t_with'].concat(V.k?[V.k]:[]).concat(T.p1>0?['p_t_hold']:[]).concat(Array.from({length:T.ecc},(_,i)=>'n'+(i+1)));
+  const need=['p_t_with'].concat(V.k?[V.k]:[]).concat(T.p1>0||T.p2>=2?['p_t_hold']:[]).concat(Array.from({length:top},(_,i)=>'n'+(i+1)));
   const rec=vcMode()==='coach'&&need.every(k=>vcHas(LANG,k));
   const TX={p_t_with:mt('tp_with'),p_t_hold:mt('tp_hold')}; if(V.k) TX[V.k]=V.tx;
   const say=k=>{ if(!MSV.on) return; if(rec) vcRun([{l:LANG,k}]); else { const tx=k[0]==='n'?vcNumWord(LANG,+k.slice(1)):TX[k]; if(tx) msSay(tx); } };
   const ev=[]; let at=0;
   const ecc=(rep)=>{ for(let i=1;i<=T.ecc;i++){ ev.push({at,k:rep<2?'n'+i:(i===1?'tick':null),rep,ph:'ecc',i}); at+=1; } };
-  const p1=(rep)=>{ if(T.p1>0){ ev.push({at,k:rep<2?'p_t_hold':'tick',rep}); at+=T.p1; } };
-  const con=(rep)=>{ ev.push({at,k:rep<2&&V.k?V.k:'tick',rep}); at+=T.con; if(T.p2>0) at+=T.p2; };
+  const cnt=(rep,n)=>{ for(let i=2;i<=n;i++) ev.push({at:at+i-1,k:rep<2?'n'+i:null,rep}); };
+  const p1=(rep)=>{ if(T.p1>0){ ev.push({at,k:rep<2?'p_t_hold':'tick',rep}); cnt(rep,T.p1); at+=T.p1; } };
+  const con=(rep)=>{ ev.push({at,k:rep<2&&V.k?V.k:(T.assist?null:'tick'),rep}); if(V.k) cnt(rep,T.con); at+=T.con;
+    if(T.p2>0){ if(T.p2>=2){ ev.push({at,k:rep<2?'p_t_hold':null,rep}); cnt(rep,T.p2); } at+=T.p2; } };
   for(let r=0;r<t.r;r++){ if(conFirst){ con(r); ecc(r); p1(r); } else { ecc(r); p1(r); con(r); } }
   const mids=vcLiveOn()?vcCuesFor(ex.slug,'mid'):[];
   if(mids.length&&t.r>=4){ const e3=ev.find(e=>e.rep===2); if(e3){ e3.k='cue'; e3.cue=mids[(s.k||0)%mids.length]; } }
@@ -11382,6 +11410,7 @@ function msMount(){
     <div class="ms-pips" id="ms-pips"></div>
     <div class="ms-target"><button type="button" class="ms-pm" id="ms-m">−</button><div class="ms-v" id="ms-tv2"></div><button type="button" class="ms-pm" id="ms-p">+</button></div>
     <div class="ms-rr" id="ms-rr" hidden><button type="button" class="ms-pm sm" id="ms-rm">−</button><span id="ms-rv"></span><button type="button" class="ms-pm sm" id="ms-rp">+</button></div>
+    <p class="ms-tmp" id="ms-tmp" hidden></p>
     <p class="ms-plates" id="ms-plates" hidden></p>
     <p class="ms-ghost" id="ms-ghost"></p>
     <p class="ms-warm" id="ms-warm" hidden></p>
@@ -11444,6 +11473,7 @@ function msMount(){
   g('ms-wrp').onclick=()=>msWodRound(1); g('ms-wrm').onclick=()=>msWodRound(-1);
   g('ms-wfin').onclick=()=>bxAfterWod();
   g('ms-m').onclick=()=>msAdj(-1); g('ms-p').onclick=()=>msAdj(1);
+  g('ms-tv2').onclick=()=>msTypeVal('v'); g('ms-rv').onclick=()=>msTypeVal('r');
   g('ms-rm').onclick=()=>msAdjR(-1); g('ms-rp').onclick=()=>msAdjR(1);
   g('ms-tv').onclick=()=>{ const s=MS&&MS.cur; if(s&&s.ex.video_url) openDemo(s.ex.video_url,pick(s.ex,'name')); };
   g('ms-tp').onclick=()=>{ const s=MS&&MS.cur; if(s) bibFicheSlug(s.ex.slug); };
@@ -11605,6 +11635,34 @@ function msAdj(d){ const s=MS&&MS.cur; if(!s) return; const t=msTarget(s); t._ed
   else if(t.load==='calories'){ t.v=Math.max(1,(t.v||10)+d); }
   else { t.r=Math.max(1,(t.r||(d>0?7:9))+d); }
   buzz(10); msTv(); }
+/* 18/10/2026 : taper la charge (ou les reps) directement, au lieu de 20 appuis sur « + ».
+   La nouvelle charge vaut aussi pour les series suivantes du meme exercice qui n'ont pas
+   ete reglees a la main. */
+const MS_TYPE_TX={kg:{fr:'Charge (kg)',en:'Load (kg)',nl:'Gewicht (kg)'},r:{fr:'Répétitions',en:'Reps',nl:'Herhalingen'},
+  s:{fr:'Secondes',en:'Seconds',nl:'Seconden'},m:{fr:'Mètres',en:'Metres',nl:'Meter'},c:{fr:'Calories',en:'Calories',nl:'Calorieën'},
+  ok:{fr:'Valider',en:'Confirm',nl:'Bevestigen'},all:{fr:'Aussi pour les séries suivantes',en:'Also for the next sets',nl:'Ook voor de volgende sets'}};
+const mtt=k=>{const o=MS_TYPE_TX[k];return o?(o[LANG]||o.fr):k;};
+function msTypeVal(what){
+  const s=MS&&MS.cur; if(!s) return; const t=msTarget(s);
+  const kind=what==='r'?'r':t.load==='weight'?'kg':t.load==='time'?'s':t.load==='distance'?'m':t.load==='calories'?'c':'r';
+  const cur=kind==='kg'?t.kg:kind==='r'?t.r:t.v;
+  document.querySelectorAll('#ms-tys').forEach(e=>e.remove());
+  const sh=document.createElement('div'); sh.id='ms-tys'; sh.className='ms-vs'; document.getElementById('ms-ov').appendChild(sh);
+  sh.innerHTML=`<div class="ms-vsi"><h3>${esc(mtt(kind))}</h3>
+    <input id="ty-v" type="number" inputmode="${kind==='kg'?'decimal':'numeric'}" step="${kind==='kg'?'0.5':'1'}" value="${cur!=null?cur:''}" style="width:100%;font-size:40px;font-weight:800;text-align:center;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.16);background:#0B100D;color:#fff">
+    ${kind==='kg'?`<label class="ms-vck"><input type="checkbox" id="ty-all" checked> ${esc(mtt('all'))}</label>`:''}
+    <button type="button" class="ms-btn" id="ty-ok">${esc(mtt('ok'))}</button></div>`;
+  sh.onclick=e=>{ if(e.target===sh) sh.remove(); };
+  const inp=sh.querySelector('#ty-v'); setTimeout(()=>{ try{ inp.focus(); inp.select(); }catch(_){} },60);
+  const ok=()=>{ let v=parseFloat(String(inp.value).replace(',','.')); if(!(v>=0)){ sh.remove(); return; }
+    if(kind==='kg'){ v=Math.round(v*4)/4; t.kg=v; t._edited=true;
+      const all=sh.querySelector('#ty-all'); if(all&&all.checked) MS.slots.forEach(x=>{ if(x.it.id===s.it.id&&x.k>s.k){ const tx=msTarget(x); if(!tx._edited) tx.kg=v; } }); }
+    else if(kind==='r'){ t.r=Math.max(1,Math.round(v)); t._edited=true; }
+    else { t.v=Math.max(1,Math.round(v)); t._edited=true; }
+    buzz(10); sh.remove(); msTv();
+    if(MS.holdReady&&kind==='s'){ MS.holdReady=t.v>0; document.getElementById('ms-done').textContent='▶ '+mt('start')+' · '+msFmt(t.v); } };
+  sh.querySelector('#ty-ok').onclick=ok; inp.onkeydown=e=>{ if(e.key==='Enter') ok(); };
+}
 function msAdjR(d){ const s=MS&&MS.cur; if(!s) return; const t=msTarget(s); t.r=Math.max(1,(t.r||(d>0?4:6))+d); buzz(10); msTv(); }
 
 async function msWork(announce){
@@ -11627,6 +11685,12 @@ async function msWork(announce){
   const n=s.pills.length, done=s.pills.filter(p=>p.classList.contains('done')).length;
   document.getElementById('ms-pips').innerHTML=s.pills.map((p,i)=>`<i class="${p.classList.contains('done')?'on':(i===s.k?'cur':'')}"></i>`).join('');
   msTv();
+  /* le tempo ecrit dans la seance, explique phase par phase : la voix compte exactement ca */
+  { const tp=document.getElementById('ms-tmp'), T=msTempoOf(s); tp.hidden=!T;
+    if(T){ const L={fr:['descente','en bas','montée','en haut','explosive','assistée'],en:['down','bottom','up','top','explosive','assisted'],nl:['omlaag','onderaan','omhoog','bovenaan','explosief','met hulp']}[LANG]||[];
+      const parts=[T.ecc+' s '+L[0]]; if(T.p1) parts.push(T.p1+' s '+L[1]);
+      parts.push(T.expl?L[2]+' '+L[4]:T.assist?L[2]+' '+L[5]:T.con+' s '+L[2]); if(T.p2) parts.push(T.p2+' s '+L[3]);
+      tp.innerHTML='<b>⏱ '+esc(T.raw)+'</b> · '+esc(parts.join(' · ')); } }
   /* exercice au temps : Demarrer -> compte a rebours -> serie validee seule */
   { const tt=msTarget(s), db=document.getElementById('ms-done'); if(MS.hold&&MS.hold.iv) clearInterval(MS.hold.iv); if(MS.holdPre){ clearInterval(MS.holdPre); MS.holdPre=0; } MS.hold=null; db.classList.remove('stop');
     MS.holdReady=(tt.load==='time'&&tt.v>0); db.textContent=MS.holdReady?('▶ '+mt('start')+' · '+msFmt(tt.v)):mt('done'); }
@@ -11663,7 +11727,7 @@ async function msWork(announce){
     else if(t.load==='calories'&&t.v){ spec.push({n:t.v},'w_cal'); }
     else if(t.r){ if(VC_REPS.includes(t.r)) spec.push({full:'r_'+t.r,alt:[{n:t.r},'w_reps']}); else spec.push({n:t.r},'w_reps'); if(s._side) spec.push('w_side'); }
     if(sayKg){ spec.push({pause:90}); if(LANG!=='nl') spec.push('w_at'); spec.push({kg:t.kg}); }
-    const ex1=first&&vcMode()==='coach'?vcExpl(s.ex.slug):null, lastS=n>1&&s.k+1===n;
+    const ex1=first&&vcMode()==='coach'?vcExpl(s.ex.slug,!!msTempoOf(s)):null, lastS=n>1&&s.k+1===n;
     if(ex1) spec.push({pause:350},ex1);                                   /* la 1re fois : la consigne expliquee en entier */
     else if(first&&cue&&vcCuesToo()) spec.push({pause:350},{tts:msCue(cue)});
     const cx=msCtx(Object.assign({},s,{n}),'pre'), work=cx.ph==='work';
