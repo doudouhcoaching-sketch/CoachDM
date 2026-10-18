@@ -68,6 +68,8 @@ body.tv{overflow:hidden}
 .part.cur{background:var(--card2);border-color:rgba(217,182,92,.6);box-shadow:inset .35vw 0 0 var(--gold),0 0 2.4vw rgba(217,182,92,.12)}
 .part.done{opacity:.35}
 .part .nt{font-size:1.1vw;color:var(--mut);margin-top:.5vw;line-height:1.35}
+.compact .part{padding:.7vw 1.1vw}.compact .part li{font-size:1.25vw}.compact .part li .q{font-size:1.15vw}.compact .plan{gap:.6vw}.compact .part ul{gap:.25vw}
+.tight .part li{font-size:1.05vw}.tight .part li .q{font-size:1vw}.tight .part h3{font-size:.9vw}
 .mini{display:flex;align-items:center;gap:1.2vw;padding:1vw 1.2vw;border-radius:1.1vw;background:linear-gradient(160deg,#17130A,#0F120F);border:1px solid rgba(217,182,92,.3)}
 .mini .qr{width:7vw;height:7vw;padding:.5vw;border-radius:.7vw;flex:none}
 .mini b{display:block;font-size:1.45vw;line-height:1.15}
@@ -290,7 +292,9 @@ var G=function(id){return document.getElementById(id);};
 var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
 function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
 function lsSet(k,v){ try{ if(v==null) localStorage.removeItem(k); else localStorage.setItem(k,v); }catch(e){} }
-var sb=supabase.createClient(U,K,{realtime:{params:{eventsPerSecond:20}}});
+/* l'ecran n'a pas de compte : client sans session (il ne bloque jamais celui du telephone) */
+var sb=null;
+function mkSb(screen){ sb=supabase.createClient(U,K,{auth:screen?{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}:{},realtime:{params:{eventsPerSecond:20}}}); }
 var APP_URL='https://coachdm.be/telecharger.html';
 
 var TX={
@@ -373,8 +377,8 @@ function choice(){
   document.body.className='ph'; G('rc').hidden=false; G('r-sub').textContent='';
   document.querySelectorAll('[data-t]').forEach(function(e){ e.textContent=t(e.dataset.t); });
   G('r-choice').hidden=false;
-  G('ch-rc').onclick=function(){ G('r-choice').hidden=true; startRemote(); };
-  G('ch-tv').onclick=function(){ lsSet('cdm_tv_role','screen'); G('rc').hidden=true; startScreen(); };
+  G('ch-rc').onclick=function(){ G('r-choice').hidden=true; mkSb(false); startRemote(); };
+  G('ch-tv').onclick=function(){ lsSet('cdm_tv_role','screen'); G('rc').hidden=true; mkSb(true); startScreen(); };
 }
 
 /* =====================================================================
@@ -614,6 +618,12 @@ function setH(id,h){
   var cc=/class="(clk[^"]*)"/.exec(h), c1=e.querySelector('.clk'); if(cc&&c1&&c1.className!==cc[1]) c1.className=cc[1];
 }
 function D(x){ return '<b data-d>'+esc(x)+'</b>'; }
+/* tout le cours doit tenir a gauche : on resserre, puis on retire la pub si besoin */
+function fitPlan(){ var pl=G('s-plan'), side=pl.parentNode; if(KEYS._fit===KEYS['s-plan']) return; KEYS._fit=KEYS['s-plan'];
+  side.classList.remove('compact','tight'); var mini=side.querySelector('.mini'); if(mini) mini.hidden=false;
+  if(pl.scrollHeight>pl.clientHeight+2) side.classList.add('compact');
+  if(pl.scrollHeight>pl.clientHeight+2&&mini) mini.hidden=true;
+  if(pl.scrollHeight>pl.clientHeight+2) side.classList.add('tight'); }
 function paint(){ if(MODE==='club') paintClub(); else if(MODE==='mirror') paintMir(); }
 function paintClub(){
   if(!W||!S) return; var p=part(); if(!p) return; document.body.classList.remove('solo');
@@ -623,6 +633,7 @@ function paintClub(){
       pp.items.map(function(it,j){ var c=i===S.p&&!isWod(pp)&&S.phase!=='idle'?(j<S.item?' done':j===S.item?' cur':''):'';
         return '<li class="'+c+'"><span class="q num">'+esc(qty(it))+'</span><span class="n">'+esc(it.name)+(it.load?'<small>'+esc(it.load)+'</small>':'')+'</span></li>'; }).join('')+
       '</ul>'+(pp.note?'<p class="nt">'+esc(pp.note)+'</p>':'')+'</div>'; }).join(''));
+  fitPlan();
   var cur=G('s-plan').querySelector('.part.cur'); if(cur&&cur.scrollIntoView&&KEYS._cur!==S.p){ KEYS._cur=S.p; cur.scrollIntoView({block:'nearest'}); }
   var h='', e=el()/1000, cap=capS(), wod=isWod(p), cls='clk num';
   if(S.phase==='count'){ var n=Math.max(1,Math.ceil((S.cd-Date.now())/1000));
@@ -654,7 +665,7 @@ function paintMir(){
   var d=MIR||{}; document.body.classList.toggle('solo',!(d.plan&&d.plan.length)); G('s-title').textContent=d.title||''; G('s-mode').textContent=t('ath');
   setH('s-plan',(d.plan||[]).map(function(pp){
     return '<div class="part'+(pp.cur?' cur':pp.done?' done':'')+'"><h3><span>'+esc(pp.label||'')+'</span><span>'+esc(pp.prog||'')+'</span></h3><ul>'+
-      (pp.items||[]).map(function(it){ return '<li class="'+(it.cur?'cur':it.done?'done':'')+'"><span class="q num">'+esc(it.q||'')+'</span><span class="n">'+esc(it.name||'')+'</span></li>'; }).join('')+'</ul></div>'; }).join(''));
+      (pp.items||[]).map(function(it){ return '<li class="'+(it.cur?'cur':it.done?'done':'')+'"><span class="q num">'+esc(it.q||'')+'</span><span class="n">'+esc(it.name||'')+'</span></li>'; }).join('')+'</ul></div>'; }).join('')); fitPlan();
   var h='', v=d.view;
   if(v==='count') h='<div class="lab">'+esc(t('ready'))+'</div><div class="big3 num goldtx">'+D(d.clock||'')+'</div>';
   else if(v==='rest'){ var left=(d.restLeft||0)-(Date.now()-d._at)/1000;
@@ -823,9 +834,9 @@ function rpaint(){
 /* ===== demarrage : ecran ou telephone (a la fin : tout est defini) ===== */
 var IS_RC=QS.has('remote')||QS.has('code');
 var SMALL=Math.min(screen.width,screen.height)<700&&window.matchMedia&&matchMedia('(pointer:coarse)').matches;
-if(IS_RC) startRemote();
-else if(SMALL&&!QS.has('screen')&&lsGet('cdm_tv_role')!=='screen') choice();
-else startScreen();
+if(IS_RC){ mkSb(false); startRemote(); }
+else if(SMALL&&!QS.has('screen')&&lsGet('cdm_tv_role')!=='screen'){ choice(); }
+else { mkSb(true); startScreen(); }
 setInterval(function(){ if(!G('r-ctl').hidden){ rpaint(); if(RC.ch&&Date.now()-RC.seen>4000) rsend({t:'hello',who:'remote'}); } },1000);
 </script>
 </body>
