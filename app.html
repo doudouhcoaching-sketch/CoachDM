@@ -11562,11 +11562,12 @@ function msTv(){
    Aucune nouvelle version a installer pour faire evoluer l'ecran : c'est une page du site. */
 const TVX={
  h:{fr:'Ta séance sur la TV',en:'Your session on the TV',nl:'Je training op de tv'},
- p:{fr:'Sur ta TV (navigateur, Chromecast ou AirPlay), ouvre coachdm.be/tv puis tape le code à 5 chiffres affiché. Ton téléphone reste la télécommande : la voix et ta musique restent sur le téléphone.',
-    en:'On your TV (browser, Chromecast or AirPlay), open coachdm.be/tv and enter the 5-digit code it shows. Your phone stays the remote: the voice and your music stay on the phone.',
-    nl:'Open coachdm.be/tv op je tv (browser, Chromecast of AirPlay) en typ de code van 5 cijfers. Je telefoon blijft de afstandsbediening: de stem en je muziek blijven op je telefoon.'},
+ p:{fr:'Sur ta TV (navigateur, Chromecast ou AirPlay), ouvre coachdm.be/tv puis tape le code à 6 chiffres affiché. Ton téléphone reste la télécommande : la voix et ta musique restent sur le téléphone.',
+    en:'On your TV (browser, Chromecast or AirPlay), open coachdm.be/tv and enter the 6-digit code it shows. Your phone stays the remote: the voice and your music stay on the phone.',
+    nl:'Open coachdm.be/tv op je tv (browser, Chromecast of AirPlay) en typ de code van 6 cijfers. Je telefoon blijft de afstandsbediening: de stem en je muziek blijven op je telefoon.'},
  go:{fr:'Connecter',en:'Connect',nl:'Verbinden'}, off:{fr:'Déconnecter la TV',en:'Disconnect the TV',nl:'Tv loskoppelen'},
  ok:{fr:'TV connectée',en:'TV connected',nl:'Tv verbonden'}, ko:{fr:'Pas de réponse de la TV : vérifie le code.',en:'No answer from the TV: check the code.',nl:'Geen antwoord van de tv: controleer de code.'},
+ lock:{fr:'Cet écran est réservé au coach de la salle.',en:'This screen is reserved for the gym’s coach.',nl:'Dit scherm is voorbehouden aan de coach van de zaal.'},
  prem:{fr:'Le Mode TV est inclus dans Premium.',en:'TV mode is included in Premium.',nl:'Tv-modus zit in Premium.'},
  set:{fr:'Série',en:'Set',nl:'Set'}
 };
@@ -11578,14 +11579,14 @@ function tvSheet(){
   const sh=document.createElement('div'); sh.id='ms-tvs'; sh.className='ms-vs'; document.getElementById('ms-ov').appendChild(sh);
   let c=''; try{ c=localStorage.getItem('cdm_tv_code')||''; }catch(_){}
   sh.innerHTML=`<div class="ms-vsi"><h3>📺 ${esc(tvt('h'))}</h3><p class="ms-vhint" style="margin:6px 0 12px">${esc(tvt('p'))}</p>
-    <input id="tv-c" inputmode="numeric" maxlength="5" value="${esc(c)}" placeholder="•••••" style="width:100%;font-size:30px;font-weight:800;letter-spacing:.3em;text-align:center;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:#0B100D;color:#fff">
+    <input id="tv-c" inputmode="numeric" maxlength="6" value="${esc(c)}" placeholder="••••••" style="width:100%;font-size:30px;font-weight:800;letter-spacing:.3em;text-align:center;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:#0B100D;color:#fff">
     <p class="ms-vhint" id="tv-m" style="min-height:18px;margin:8px 0">${TV.ok?'● '+esc(tvt('ok'))+' · '+esc(TV.code):''}</p>
     <button type="button" class="ms-btn" id="tv-go">${esc(tvt('go'))}</button>
     ${TV.ch?`<button type="button" class="ms-gh wide" id="tv-off" style="margin-top:8px">${esc(tvt('off'))}</button>`:''}</div>`;
   sh.onclick=e=>{ if(e.target===sh) sh.remove(); };
-  const inp=sh.querySelector('#tv-c'); inp.oninput=()=>{ inp.value=inp.value.replace(/\D/g,'').slice(0,5); };
-  sh.querySelector('#tv-go').onclick=async()=>{ const v=inp.value; if(v.length!==5) return; sh.querySelector('#tv-m').textContent='…';
-    const ok=await tvConnect(v); sh.querySelector('#tv-m').textContent=ok?'● '+tvt('ok')+' · '+v:tvt('ko'); if(ok){ buzz(30); setTimeout(()=>sh.remove(),900); } };
+  const inp=sh.querySelector('#tv-c'); inp.oninput=()=>{ inp.value=inp.value.replace(/\D/g,'').slice(0,6); };
+  sh.querySelector('#tv-go').onclick=async()=>{ const v=inp.value; if(v.length!==6) return; sh.querySelector('#tv-m').textContent='…';
+    const ok=await tvConnect(v); sh.querySelector('#tv-m').textContent=ok==='locked'?tvt('lock'):ok?'● '+tvt('ok')+' · '+v:tvt('ko'); if(ok){ buzz(30); setTimeout(()=>sh.remove(),900); } };
   const off=sh.querySelector('#tv-off'); if(off) off.onclick=()=>{ tvStop(true); sh.remove(); };
 }
 function tvSend(m){ if(TV.ch) TV.ch.send({type:'broadcast',event:'m',payload:Object.assign({lang:LANG},m)}); }
@@ -11594,9 +11595,9 @@ function tvConnect(code){
   return new Promise(res=>{
     const ch=sb.channel('cdm-tv-'+code,{config:{broadcast:{self:false}}}); TV={ch,code,iv:0,last:'',ok:false};
     let done=false; const fin=v=>{ if(!done){ done=true; res(v); } };
-    ch.on('broadcast',{event:'m'},p=>{ const m=p.payload||{}; if(m.t==='here'){ TV.ok=true; fin(true); } });
+    ch.on('broadcast',{event:'m'},p=>{ const m=p.payload||{}; if(m.t==='here'){ if(m.locked){ tvStop(false); fin('locked'); return; } TV.ok=true; fin(true); } });
     ch.subscribe(st=>{ if(st==='SUBSCRIBED'){ let n=0; const hi=()=>{ if(TV.ok||TV.ch!==ch) return; if(++n>6){ tvStop(false); return fin(false); } tvSend({t:'hello',who:'app'}); setTimeout(hi,800); }; hi(); } });
-  }).then(ok=>{ if(ok){ try{ localStorage.setItem('cdm_tv_code',code); }catch(_){} TV.iv=setInterval(tvPush,700); tvPush(); } return ok; });
+  }).then(ok=>{ if(ok===true){ try{ localStorage.setItem('cdm_tv_code',code); }catch(_){} TV.iv=setInterval(tvPush,700); tvPush(); } return ok; });
 }
 function tvStop(bye){ if(!TV.ch) return; if(bye) tvSend({t:'bye'}); clearInterval(TV.iv); try{ sb.removeChannel(TV.ch); }catch(_){} TV={ch:null,code:null,iv:0,last:'',ok:false}; }
 function tvTxt(id){ const e=document.getElementById(id); return e&&!e.closest('[hidden]')?(e.textContent||'').trim():''; }
@@ -11605,7 +11606,7 @@ function tvPlan(){
   if(!MS||!MS.slots||!MS.slots.length) return [];
   const seen=new Map(), parts=[];
   MS.slots.forEach(s=>{ if(seen.has(s.it.id)) return; const n=s.wrap.querySelectorAll('.pill').length, d=s.wrap.querySelectorAll('.pill.done').length;
-    const it={q:(n>1?n+' × ':'')+(s.it.reps||''),name:s.ex.name_en||pick(s.ex,'name')||'',done:d>=n,cur:!!(MS.cur&&MS.cur.it.id===s.it.id),n,d};
+    const rp=String(s.it.reps||'').trim(), it={q:(n>1&&!/\d\s*[×x]\s*\d/i.test(rp)?n+' × ':'')+rp,name:s.ex.name_en||pick(s.ex,'name')||'',done:d>=n,cur:!!(MS.cur&&MS.cur.it.id===s.it.id),n,d};
     seen.set(s.it.id,it); let p=parts[parts.length-1]; if(!p||p.b!==s.it.block){ p={b:s.it.block,label:blockL(s.it.block),items:[]}; parts.push(p); } p.items.push(it); });
   parts.forEach(p=>{ const n=p.items.reduce((a,x)=>a+x.n,0), d=p.items.reduce((a,x)=>a+x.d,0); p.prog=d+'/'+n; p.done=d>=n; p.cur=p.items.some(x=>x.cur); p.items.forEach(x=>{ delete x.n; delete x.d; }); delete p.b; });
   return parts;
@@ -11621,11 +11622,12 @@ function tvSnap(){
   if(tvVis('ms-end')) return Object.assign(base,{view:'end',sub:[tvTxt('ms-dmin')+' min',tvTxt('ms-dkg')+' kg',tvTxt('ms-dset')+' '+mt('sets')].join(' · ')});
   if(tvVis('ms-wod')) return Object.assign(base,{view:'wod',fmt:tvTxt('ms-wfmt'),clock:tvTxt('ms-wclk'),sub:tvTxt('ms-wsub'),cur:tvTxt('ms-wcurn')?{name:tvTxt('ms-wcurn'),target:tvTxt('ms-wcurr')}:null});
   if(tvVis('ms-work')&&MS.cur){ const s=MS.cur, n=s.wrap.querySelectorAll('.pill').length;
-    return Object.assign(base,{view:'work',name:tvTxt('ms-name'),slug:s.ex.slug,block:tvTxt('ms-blk'),target:tvTxt('ms-tv2'),
+    const T=msTempoOf(s), tg=tvTxt('ms-tv2').replace(/\s*×\s*—\s*kg/,' reps').replace(/^—\s*/,'');
+    return Object.assign(base,{view:'work',name:tvTxt('ms-name'),slug:s.ex.slug,block:tvTxt('ms-blk'),target:tg,tempo:T?T.raw:'',
       pips:tvt('set')+' '+((s.k||0)+1)+' / '+n,cue:tvTxt('ms-cue'),clock:tvTxt('ms-clock')}); }
   return Object.assign(base,{view:'idle',clock:tvTxt('ms-wclk')||tvTxt('ms-clock')});
 }
-function tvPush(){ if(!TV.ch) return; let d; try{ d=tvSnap(); }catch(_){ return; }
+function tvPush(){ if(!TV.ch||!MS) return; let d; try{ d=tvSnap(); }catch(_){ return; }
   const j=JSON.stringify(d); if(j===TV.last&&Date.now()-(TV.at||0)<5000) return; TV.last=j; TV.at=Date.now(); tvSend({t:'mir',d}); }
 function msPlanKg(s,i){ const seg=((s.wrap.dataset.plan||'').split(';')[i]||'').split('@'); return parseFloat(seg[1])||null; }
 function msAdj(d){ const s=MS&&MS.cur; if(!s) return; const t=msTarget(s); t._edited=true;
