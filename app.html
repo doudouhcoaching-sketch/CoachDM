@@ -4251,6 +4251,10 @@ const T = {
  film_set:{fr:'Filmer cette série',en:'Film this set',nl:'Deze set filmen'},
  /* H#37 — substitutions */
  swap_btn:{fr:'Remplacer',en:'Swap',nl:'Vervangen'},
+ noeq_on:{fr:'🏠  Pas de matériel ? Tout en version sans matériel',en:'🏠  No equipment? Switch everything to bodyweight',nl:'🏠  Geen materiaal? Alles zonder materiaal'},
+ noeq_off:{fr:'↺  Revenir à la séance avec matériel',en:'↺  Back to the session with equipment',nl:'↺  Terug naar de training met materiaal'},
+ noeq_done:{fr:'Séance passée en version sans matériel',en:'Session switched to no equipment',nl:'Training omgezet naar zonder materiaal'},
+ noeq_undone:{fr:'Séance avec matériel rétablie',en:'Equipment session restored',nl:'Training met materiaal hersteld'},
  swap_other:{fr:'Changer',en:'Change',nl:'Wijzigen'},
  swap_sub:{fr:'Pas le matériel, ou le mouvement est trop technique pour toi aujourd’hui ? Choisis un remplaçant.',en:'No equipment, or the movement is too technical for you today? Pick a replacement.',nl:'Geen materiaal, of is de beweging vandaag te technisch? Kies een vervanging.'},
  /* Scaling : le mot du CrossFit. On ne supprime pas un mouvement trop complexe,
@@ -6884,6 +6888,17 @@ function subOpen(exId){
   ov.dataset.ex=exId;
   ov.classList.add('show');
 }
+/* « Pas de matériel » : un seul geste pour toute la séance. Chaque mouvement qui demande du
+   matériel prend son remplaçant au poids du corps validé par le coach (le premier de la liste).
+   Le Mode Séance, la voix et la TV suivent le remplaçant comme pour un échange à la main. */
+const NOEQ=['bodyweight','none'];
+function noEqSub(ex){ return (SUBS[ex.id]||[]).find(x=>x.reason==='equipment'&&x.substitute&&NOEQ.includes(x.substitute.equipment))||null; }
+function noEqState(items){ let need=0,on=0; (items||[]).forEach(it=>{ const ex=it.exercise; if(!ex||NOEQ.includes(ex.equipment)) return; const s=noEqSub(ex); if(!s) return; need++; if(SUB_PICK[ex.id]===s.substitute.id) on++; }); return {need,on:need>0&&on===need}; }
+function noEqToggle(){ const items=SE_ITEMS||[], st=noEqState(items);
+  items.forEach(it=>{ const ex=it.exercise; if(!ex||NOEQ.includes(ex.equipment)) return; const s=noEqSub(ex); if(!s) return;
+    if(st.on){ if(SUB_PICK[ex.id]===s.substitute.id) delete SUB_PICK[ex.id]; } else SUB_PICK[ex.id]=s.substitute.id; });
+  subSave(); if(SE_CUR&&SE_CUR.w) renderDetail(SE_CUR.w,items,SE_TIPS||{});
+  try{ toast(t(st.on?'noeq_undone':'noeq_done')); }catch(_){} }
 function subClose(){ const ov=document.getElementById('swap-ov'); if(ov) ov.classList.remove('show'); }
 function subPick(exId,subId){
   if(subId) SUB_PICK[exId]=subId; else delete SUB_PICK[exId];
@@ -10194,7 +10209,7 @@ function renderDetail(w,items,tips){
       <span class="badge c" style="--c:${col}">${typeL(w.type)}</span>
       <span class="badge">${diffL(w.difficulty)}</span>
       <span class="badge">${w.estimated_duration_min||'—'} min</span>
-    </div>${wodBanner(w)}${dayBanner(items)}`;
+    </div>${wodBanner(w)}${dayBanner(items)}${(()=>{ const st=noEqState(items); return st.need?`<button type="button" class="btn subtle" id="se-noeq" style="margin-top:12px">${t(st.on?'noeq_off':'noeq_on')}</button>`:''; })()}`;
   let lastBlock=null;
   items.forEach(it=>{
     /* H#37 — si un remplacement est actif, TOUT bascule sur le remplacant :
@@ -10297,6 +10312,7 @@ function renderDetail(w,items,tips){
   $('#se-detail').innerHTML=html;
   $('#se-back').onclick=goBackSmart;
   $('#se-start').onclick=startOrFinish;
+  { const nb=document.getElementById('se-noeq'); if(nb) nb.onclick=noEqToggle; }
   liveResume().catch(()=>{});
   $('#rest-skip').onclick=()=>stopRest();
   $('#rest-plus').onclick=()=>{ if(REST){ REST.end=(REST.end||Date.now()+REST.left*1000)+30000; REST.total+=30; REST.left+=30; } };
