@@ -8,6 +8,11 @@
 <meta name="theme-color" content="#070A08">
 <link rel="icon" href="favicon-32x32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Coach DM TV">
+<link rel="manifest" href="tv-manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap">
 <style>
@@ -119,6 +124,32 @@ body.tv{overflow:hidden}
   background:var(--gold-grad);color:#1d1503;cursor:pointer;box-shadow:0 .6vw 2vw rgba(0,0,0,.5);animation:pulse 2s ease-in-out infinite}
 @keyframes pulse{50%{transform:scale(1.05)}}
 .conn{position:fixed;right:1.4vw;top:.4vw;font-size:.8vw;color:var(--dim)}
+/* taille du texte du plan (choisie depuis la telecommande) */
+body[data-ts="1"] .part li{font-size:1.85vw}body[data-ts="1"] .part li .q{font-size:1.65vw;max-width:18vw}body[data-ts="1"] .part h3{font-size:1.25vw}
+body[data-ts="2"] .part li{font-size:2.25vw}body[data-ts="2"] .part li .q{font-size:2vw;max-width:20vw}body[data-ts="2"] .part h3{font-size:1.45vw}
+body[data-ts="2"] #cls{grid-template-columns:42% 1fr}
+body.noad .mini{display:none}
+/* message du coach en grand */
+#msg{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(5,7,6,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .35s}
+#msg.on{opacity:1}
+#msg div{max-width:84vw;text-align:center;font-size:7vw;font-weight:900;line-height:1.05;background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 2vw rgba(217,182,92,.35))}
+/* aide plein ecran (iPad / navigateur) */
+#fsh{position:fixed;left:50%;bottom:1.4vw;transform:translateX(-50%);z-index:8;font-size:1.15vw;color:var(--mut);background:rgba(15,20,17,.92);border:1px solid rgba(217,182,92,.35);border-radius:99px;padding:.7vw 1.4vw;white-space:nowrap}
+#fsh b{color:var(--gold-hi)}
+@media (max-aspect-ratio:1/1){ #fsh{font-size:2.6vw;white-space:normal;width:90vw;text-align:center;border-radius:2vw} }
+/* telecommande : options */
+.ph .sec{font-size:11px;letter-spacing:.22em;font-weight:800;color:var(--gold);text-transform:uppercase;margin:6px 2px -4px}
+.ph .row4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ph .b.sm{padding:12px 6px;font-size:14px;border-radius:13px}
+.ph .chips.parts button{flex:1 1 auto}
+.ph .chips.parts button.cur{color:#04140C;background:var(--g);border-color:transparent}
+.ph .msgrow{display:grid;grid-template-columns:1fr auto;gap:8px}
+.ph .msgrow .b{width:auto;padding:12px 18px}
+.ph details.more{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:4px 14px 14px}
+.ph details.more summary{list-style:none;cursor:pointer;padding:12px 0;font-weight:800;font-size:15px;color:var(--gold-hi);display:flex;justify-content:space-between}
+.ph details.more summary::-webkit-details-marker{display:none}
+.ph details.more summary:after{content:'＋';color:var(--gold)} .ph details.more[open] summary:after{content:'－'}
+.ph details.more section{gap:10px}
 
 /* =================== TELEPHONE (telecommande) =================== */
 body.ph{min-height:100dvh;padding:calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto}
@@ -230,6 +261,8 @@ html.emb .ph .hd{margin-top:calc(46px + env(safe-area-inset-top))}
 <div class="paircode" id="paircode" hidden></div>
 <button type="button" id="snd" hidden></button>
 <div class="conn" id="conn"></div>
+<div id="msg"><div id="msg-t"></div></div>
+<div id="fsh" hidden></div>
 
 <!-- ================= TELEPHONE ================= -->
 <div id="rc" hidden>
@@ -304,7 +337,20 @@ html.emb .ph .hd{margin-top:calc(46px + env(safe-area-inset-top))}
     <div class="row" id="c-rnd" hidden><button class="b" id="c-rm">− 1</button><button class="b" id="c-rp" data-t="c_rp"></button></div>
     <div class="row"><button class="b" id="c-prev" data-t="c_prev"></button><button class="b" id="c-next" data-t="c_next"></button></div>
     <div class="row"><button class="b" id="c-reset" data-t="c_reset"></button><button class="b" id="c-voice"></button></div>
+    <div class="row" id="c-restr" hidden><button class="b" id="c-r30">+30 s</button><button class="b" id="c-rskip" data-t="c_rskip"></button></div>
+    <div class="sec" data-t="o_parts"></div>
+    <div class="chips parts" id="c-parts"></div>
     <div class="row"><button class="b" id="c-edit" data-t="c_edit"></button><button class="b" id="c-chg" data-t="c_chg"></button></div>
+    <details class="more" id="c-more"><summary data-t="o_more"></summary><section>
+      <div class="sec" data-t="o_msg"></div>
+      <div class="chips" id="c-msgp"></div>
+      <div class="msgrow"><input id="c-msgi" maxlength="60" autocomplete="off"><button class="b gold" id="c-msgs" data-t="o_send"></button></div>
+      <div class="sec" data-t="o_screen"></div>
+      <div class="row4"><button class="b sm" id="c-ts0">A</button><button class="b sm" id="c-ts1" style="font-size:17px">A</button><button class="b sm" id="c-ts2" style="font-size:21px">A</button><button class="b sm" id="c-ad" data-t="o_qr"></button></div>
+      <div class="sec" data-t="o_timer"></div>
+      <div class="row3"><select id="c-tf"><option value="amrap">AMRAP</option><option value="emom">EMOM</option><option value="for_time">For Time</option></select><input id="c-tm" type="number" inputmode="numeric" min="1" max="90" value="12"><button class="b gold sm" id="c-tgo" data-t="o_tgo"></button></div>
+      <p class="small" data-t="o_thint"></p>
+    </section></details>
     <p class="small"><span class="dot" id="c-dot"></span><span id="c-conn"></span> · <a href="#" class="lnk" id="c-quit" data-t="c_quit"></a></p>
   </section>
 </div>
@@ -383,7 +429,23 @@ var TX={
  c_go:{fr:'▶  Lancer',en:'▶  Start',nl:'▶  Start'}, c_pause:{fr:'⏸  Pause',en:'⏸  Pause',nl:'⏸  Pauze'}, c_res:{fr:'▶  Reprendre',en:'▶  Resume',nl:'▶  Verder'},
  c_set:{fr:'✓  Série faite → repos',en:'✓  Set done → rest',nl:'✓  Set klaar → rust'}, c_nx:{fr:'✓  Mouvement suivant',en:'✓  Next movement',nl:'✓  Volgende beweging'}, c_rp:{fr:'+ 1 tour',en:'+ 1 round',nl:'+ 1 ronde'},
  c_prev:{fr:'⏮  Partie',en:'⏮  Part',nl:'⏮  Deel'}, c_next:{fr:'Partie  ⏭',en:'Part  ⏭',nl:'Deel  ⏭'},
- c_reset:{fr:'↺  Recommencer',en:'↺  Restart',nl:'↺  Herstarten'}, c_von:{fr:'🔊  Voix',en:'🔊  Voice',nl:'🔊  Stem'}, c_voff:{fr:'🔇  Voix coupée',en:'🔇  Voice off',nl:'🔇  Stem uit'},
+ c_reset:{fr:'↺  Recommencer',en:'↺  Restart',nl:'↺  Herstarten'},
+ c_rskip:{fr:'⏭  Passer le repos',en:'⏭  Skip rest',nl:'⏭  Rust overslaan'},
+ o_parts:{fr:'Aller directement à',en:'Jump to',nl:'Ga direct naar'},
+ o_more:{fr:'Plus d’options',en:'More options',nl:'Meer opties'},
+ o_msg:{fr:'Message en grand sur la TV',en:'Big message on the TV',nl:'Groot bericht op de tv'},
+ o_send:{fr:'Afficher',en:'Show',nl:'Tonen'},
+ o_ph:{fr:'Ton message (8 secondes à l’écran)',en:'Your message (8 seconds on screen)',nl:'Je bericht (8 seconden op het scherm)'},
+ o_screen:{fr:'Écran : taille du texte · QR de l’app',en:'Screen: text size · app QR',nl:'Scherm: tekstgrootte · app-QR'},
+ o_qr:{fr:'QR',en:'QR',nl:'QR'},
+ o_timer:{fr:'Minuteur rapide (sans cours)',en:'Quick timer (no class)',nl:'Snelle timer (zonder les)'},
+ o_tgo:{fr:'Lancer',en:'Start',nl:'Starten'},
+ o_thint:{fr:'Minutes. Remplace le cours affiché ; « Changer de cours » pour revenir.',en:'Minutes. Replaces the class on screen; “Change class” to go back.',nl:'Minuten. Vervangt de les op het scherm; “Andere les” om terug te gaan.'},
+ m1:{fr:'💧 Pause eau',en:'💧 Water break',nl:'💧 Waterpauze'}, m2:{fr:'🔥 Dernier effort !',en:'🔥 Last push!',nl:'🔥 Laatste inspanning!'},
+ m3:{fr:'👏 Bravo à tous !',en:'👏 Great job, everyone!',nl:'👏 Goed gedaan, allemaal!'}, m4:{fr:'⏱ Encore 1 minute',en:'⏱ 1 minute left',nl:'⏱ Nog 1 minuut'},
+ m5:{fr:'🧹 On range le matériel',en:'🧹 Put the equipment away',nl:'🧹 Materiaal opruimen'},
+ fs_ios:{fr:'Plein écran : Safari › Partager › « Sur l’écran d’accueil », puis ouvre Coach DM TV depuis l’icône',en:'Full screen: Safari › Share › “Add to Home Screen”, then open Coach DM TV from the icon',nl:'Volledig scherm: Safari › Delen › “Zet op beginscherm”, open dan Coach DM TV via het icoon'},
+ fs_web:{fr:'Plein écran : touche <b>F</b> ou un clic sur l’écran',en:'Full screen: press <b>F</b> or click the screen',nl:'Volledig scherm: druk op <b>F</b> of klik op het scherm'}, c_von:{fr:'🔊  Voix',en:'🔊  Voice',nl:'🔊  Stem'}, c_voff:{fr:'🔇  Voix coupée',en:'🔇  Voice off',nl:'🔇  Stem uit'},
  c_chg:{fr:'Changer de séance',en:'Change session',nl:'Andere training'}, c_quit:{fr:'Libérer l’écran',en:'Release the screen',nl:'Scherm vrijgeven'},
  conn:{fr:'Écran connecté',en:'Screen connected',nl:'Scherm verbonden'}, lost:{fr:'Écran hors ligne',en:'Screen offline',nl:'Scherm offline'},
  idle:{fr:'Prêt — appuie sur Lancer',en:'Ready — tap Start',nl:'Klaar — tik op Start'}, count:{fr:'Mise en place…',en:'Get ready…',nl:'Klaarmaken…'},
@@ -507,6 +569,7 @@ function startScreen(){
   register().then(function(){ connect(); pull(); });
   setInterval(pull,30000);
   show();
+  scr(); setTimeout(fsHint,2500);
   setInterval(function(){
     G('s-now').textContent=new Date().toLocaleTimeString(LANG==='en'?'en-GB':LANG+'-BE',{hour:'2-digit',minute:'2-digit'});
     if(MODE==='mirror'){ paint(); if(Date.now()-LAST>45000){ MODE=W?'club':null; show(); } }
@@ -518,7 +581,17 @@ function startScreen(){
 }
 /* un seul geste sur la TV (OK de la telecommande ou un clic) : le son et le plein ecran */
 function unlock(){ ac(); setTimeout(function(){ if(soundOk()){ G('snd').hidden=true; tone(660,.12,.25); preloadAll(); } },150); fullscreen(); }
-function fullscreen(){ try{ var d=document.documentElement; if(!document.fullscreenElement&&d.requestFullscreen) d.requestFullscreen().catch(function(){}); }catch(e){} }
+function isFs(){ return !!(document.fullscreenElement||document.webkitFullscreenElement)||(window.matchMedia&&(matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches))||navigator.standalone===true||EMB; }
+function fullscreen(){ try{ var d=document.documentElement; if(isFs()) return;
+  if(d.requestFullscreen){ var r=d.requestFullscreen(); if(r&&r.catch) r.catch(function(){}); }
+  else if(d.webkitRequestFullscreen) d.webkitRequestFullscreen(); }catch(e){} setTimeout(fsHint,600); }
+var IOS=/iP(ad|hone|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function fsHint(){ var h=G('fsh'); if(!h||!document.body.classList.contains('tv')) return; if(isFs()){ h.hidden=true; return; }
+  h.innerHTML=IOS?esc(t('fs_ios')):t('fs_web'); h.hidden=false; clearTimeout(fsHint._t); fsHint._t=setTimeout(function(){ h.hidden=true; },20000); }
+document.addEventListener('fullscreenchange',fsHint); document.addEventListener('webkitfullscreenchange',fsHint);
+var TS=+(lsGet('cdm_tv_ts')||0)||0, AD=lsGet('cdm_tv_ad')!=='0';
+function scr(){ document.body.dataset.ts=String(TS); document.body.classList.toggle('noad',!AD); KEYS._fit=null; try{ if(MODE==='club') paint(); }catch(e){} }
+var MSGT=0; function showMsg(x){ x=String(x||'').slice(0,60).trim(); if(!x) return; G('msg-t').textContent=x; G('msg').classList.add('on'); beep(); clearTimeout(MSGT); MSGT=setTimeout(function(){ G('msg').classList.remove('on'); },8000); }
 function wake(){ try{ if(navigator.wakeLock) navigator.wakeLock.request('screen').catch(function(){}); }catch(e){} }
 var FI=0;
 function feats(){
@@ -610,6 +683,11 @@ function cmd(c,v){
     var r=it.rest||90; S.phase='rest'; S.restEnd=Date.now()+r*1000; S.restTot=r; S.said={}; say(['p_rest']); }
   else if(c==='round'){ S.rounds=Math.max(0,(S.rounds||0)+(v||1)); }
   else if(c==='voice'){ VOICE=!!v; }
+  else if(c==='rest'){ if(S.phase!=='rest') return; if(v==='skip'){ S.restEnd=Date.now(); } else { var add=Math.max(-60,Math.min(120,+v||0)); S.restEnd+=add*1000; S.restTot+=add; } }
+  else if(c==='part'){ var ip=+v; if(!(ip>=0&&ip<W.parts.length)||ip===S.p) return; S=fresh(ip); var bb=W.parts[ip].block; if(BLV[bb]) say([BLV[bb]]); }
+  else if(c==='ts'){ TS=Math.max(0,Math.min(2,+v||0)); lsSet('cdm_tv_ts',String(TS)); scr(); }
+  else if(c==='ad'){ AD=!!v; lsSet('cdm_tv_ad',AD?'1':'0'); scr(); }
+  else if(c==='msg'){ showMsg(v); return; }
   save(); paint(); push();
 }
 function startCount(){ S.phase='count'; S.cd=Date.now()+10000; S.said={}; say(['p_ready']); }
@@ -672,6 +750,7 @@ function D(x){ return '<b data-d>'+esc(x)+'</b>'; }
 /* tout le cours doit tenir a gauche : on resserre, puis on retire la pub si besoin */
 function fitPlan(){ var pl=G('s-plan'), side=pl.parentNode; if(KEYS._fit===KEYS['s-plan']) return; KEYS._fit=KEYS['s-plan'];
   side.classList.remove('compact','tight'); var mini=side.querySelector('.mini'); if(mini) mini.hidden=false;
+  var eff=TS; document.body.dataset.ts=String(eff); while(eff>0&&pl.scrollHeight>pl.clientHeight+2){ eff--; document.body.dataset.ts=String(eff); }
   if(pl.scrollHeight>pl.clientHeight+2) side.classList.add('compact');
   if(pl.scrollHeight>pl.clientHeight+2&&mini) mini.hidden=true;
   if(pl.scrollHeight>pl.clientHeight+2) side.classList.add('tight'); }
@@ -922,6 +1001,22 @@ G('c-prev').onclick=function(){ rcmd('prev'); }; G('c-next').onclick=function(){
 G('c-rp').onclick=function(){ rcmd('round',1); }; G('c-rm').onclick=function(){ rcmd('round',-1); };
 G('c-voice').onclick=function(){ rcmd('voice',!(RC.st&&RC.st.voice!==false)); };
 G('c-chg').onclick=function(){ tap(); rview('r-pick'); loadList(); };
+/* ---- options : repos, parties, message, ecran, minuteur ---- */
+G('c-r30').onclick=function(){ rcmd('rest',30); }; G('c-rskip').onclick=function(){ rcmd('rest','skip'); };
+var RTS=+(lsGet('cdm_tv_rts')||0)||0, RAD=lsGet('cdm_tv_rad')!=='0';
+[0,1,2].forEach(function(i){ G('c-ts'+i).onclick=function(){ RTS=i; lsSet('cdm_tv_rts',String(i)); rcmd('ts',i); rpaint(); }; });
+G('c-ad').onclick=function(){ RAD=!RAD; lsSet('cdm_tv_rad',RAD?'1':'0'); rcmd('ad',RAD); rpaint(); };
+function msgSend(x){ x=String(x||'').trim().slice(0,60); if(!x) return; rcmd('msg',x); G('c-msgi').value=''; }
+G('c-msgs').onclick=function(){ msgSend(G('c-msgi').value); };
+G('c-msgi').onkeydown=function(e){ if(e.key==='Enter'){ e.preventDefault(); msgSend(G('c-msgi').value); } };
+function rParts(){ var c=RC.cls; if(!c) return []; return tvParts(c).parts||[]; }
+G('c-tgo').onclick=function(){ tap(); var f=G('c-tf').value, mn=Math.max(1,Math.min(90,parseInt(G('c-tm').value,10)||12));
+  var lab=f==='amrap'?'AMRAP '+mn+"'":f==='emom'?'EMOM '+mn+"'":'For Time · '+t('cap')+' '+mn+"'";
+  sendClass({name:lab,fmt:f,cap:f==='emom'?0:mn*60,emi:60,emr:f==='emom'?mn:0,rft:0,parts:[{block:'conditioning',items:[{q:'',name:lab,sets:1,reps:'',rest:0}]}]}); };
+function rOpts(){
+  G('c-msgi').placeholder=t('o_ph');
+  G('c-msgp').innerHTML=['m1','m2','m3','m4','m5'].map(function(k){ return '<button type="button" data-m="'+k+'">'+esc(t(k))+'</button>'; }).join('');
+  G('c-msgp').querySelectorAll('button').forEach(function(b){ b.onclick=function(){ msgSend(t(b.dataset.m)); }; }); }
 G('c-edit').onclick=function(){ tap(); editOpen(RC.cls); };
 G('c-quit').onclick=async function(e){ e.preventDefault(); await sb.rpc('tv_release',{p_code:RC.code}); rsend({t:'sync'}); lsSet('cdm_tv_remote',null); if(RC.ch) sb.removeChannel(RC.ch); RC.ch=null; RC.st=null; RC.cls=null; rview('r-code'); };
 function rpaint(){
@@ -935,6 +1030,14 @@ function rpaint(){
   G('c-set').hidden=!!s.wod||s.phase!=='work'; G('c-set').textContent=s.flow?t('c_nx'):t('c_set');
   G('c-rnd').hidden=!(s.wod&&['amrap','rft'].indexOf(s.fmt)>=0);
   G('c-voice').textContent=s.voice===false?t('c_voff'):t('c_von');
+  G('c-restr').hidden=s.phase!=='rest';
+  var ps=rParts(), pc=G('c-parts'), key=ps.map(function(p){return p.block;}).join(',')+'|'+LANG+'|'+s.p;
+  if(pc.dataset.k!==key){ pc.dataset.k=key; pc.innerHTML=ps.map(function(p,i){ return '<button type="button" data-i="'+i+'"'+(i===s.p?' class="cur"':'')+'>'+String(i+1).padStart(2,'0')+' · '+esc(t(BL[p.block]||'str'))+'</button>'; }).join('');
+    pc.querySelectorAll('button').forEach(function(b){ b.onclick=function(){ rcmd('part',+b.dataset.i); }; }); }
+  pc.hidden=G('c-parts').previousElementSibling.hidden=ps.length<2;
+  [0,1,2].forEach(function(i){ G('c-ts'+i).className='b sm'+(RTS===i?' gold':''); });
+  G('c-ad').className='b sm'+(RAD?' gold':''); G('c-ad').textContent=(RAD?'✓ ':'')+t('o_qr');
+  if(!G('c-msgp').children.length||G('c-msgp').dataset.l!==LANG){ G('c-msgp').dataset.l=LANG; rOpts(); }
 }
 /* dans l'app Coach DM (cadre) : le lien vers l'app ferme le cadre au lieu d'ouvrir l'app dedans */
 var EMB=false; try{ EMB=window.top!==window.self; }catch(e){ EMB=true; }
