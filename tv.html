@@ -181,6 +181,7 @@ html.emb .ph .hd{margin-top:calc(46px + env(safe-area-inset-top))}
 .it{text-align:left;padding:13px 14px;border-radius:14px;background:#0B100D;border:1px solid var(--line);width:100%}
 .it b{display:block;font-size:16px}
 .it small{color:var(--mut);font-size:13px}
+.it.today{border-color:var(--g);box-shadow:0 0 0 1px var(--g) inset}.it.today b{color:var(--g)}
 .st{text-align:center}
 .st .lb{font-size:12px;letter-spacing:.22em;font-weight:800;color:var(--gold)}
 .st .ck{font-size:64px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1;margin:6px 0}
@@ -430,6 +431,7 @@ var TX={
  c_set:{fr:'✓  Série faite → repos',en:'✓  Set done → rest',nl:'✓  Set klaar → rust'}, c_nx:{fr:'✓  Mouvement suivant',en:'✓  Next movement',nl:'✓  Volgende beweging'}, c_rp:{fr:'+ 1 tour',en:'+ 1 round',nl:'+ 1 ronde'},
  c_prev:{fr:'⏮  Partie',en:'⏮  Part',nl:'⏮  Deel'}, c_next:{fr:'Partie  ⏭',en:'Part  ⏭',nl:'Deel  ⏭'},
  c_reset:{fr:'↺  Recommencer',en:'↺  Restart',nl:'↺  Herstarten'},
+ today:{fr:'Aujourd’hui',en:'Today',nl:'Vandaag'},
  c_rskip:{fr:'⏭  Passer le repos',en:'⏭  Skip rest',nl:'⏭  Rust overslaan'},
  o_parts:{fr:'Aller directement à',en:'Jump to',nl:'Ga direct naar'},
  o_more:{fr:'Plus d’options',en:'More options',nl:'Meer opties'},
@@ -667,6 +669,9 @@ function el(){ return S.acc+(S.run?Date.now()-S.t0:0); }
 function emomI(){ return W.emi||60; }
 function capW(){ if(W.fmt==='amrap') return W.cap||720; if(W.fmt==='emom') return emomI()*(W.emr||10); return W.cap||0; }
 function capS(){ return isWod(part())?capW():0; }
+/* superset : items voisins A1, A2… (meme lettre) -> on enchaine sans repos, repos apres le dernier, puis serie suivante */
+function grp(p,i){ var it=p.items[i]||{}, L=it.ss&&it.ss.charAt(0); if(!L) return [i,i]; var a=i,b=i;
+  while(a>0&&p.items[a-1].ss&&p.items[a-1].ss.charAt(0)===L) a--; while(b<p.items.length-1&&p.items[b+1].ss&&p.items[b+1].ss.charAt(0)===L) b++; return [a,b]; }
 function fresh(p){ return {p:p,run:false,acc:0,t0:0,phase:'idle',set:0,item:0,restEnd:0,restTot:0,said:{},cd:0}; }
 function cmd(c,v){
   var p=part();
@@ -679,8 +684,9 @@ function cmd(c,v){
     S=fresh(np); var b=W.parts[np].block; if(BLV[b]) say([BLV[b]]); }
   else if(c==='reset'){ S=fresh(S.p); }
   else if(c==='set'&&flow(p)){ if(S.phase!=='work') return; S.item++; if(S.item>=p.items.length){ S.item=0; S.rounds=(S.rounds||0)+1; } beep(); }
-  else if(c==='set'){ if(isWod(p)||S.phase!=='work') return; var it=p.items[S.item]||{};
-    var r=it.rest||90; S.phase='rest'; S.restEnd=Date.now()+r*1000; S.restTot=r; S.said={}; say(['p_rest']); }
+  else if(c==='set'){ if(isWod(p)||S.phase!=='work') return; var it=p.items[S.item]||{}, g=grp(p,S.item);
+    if(S.item<g[1]){ S.item++; beep(); }
+    else { var r=it.rest>0?it.rest:(it.rest===0&&!it.ss?0:90); if(r<=0){ rAdvance(p); bigBeep(); } else { S.phase='rest'; S.restEnd=Date.now()+r*1000; S.restTot=r; S.said={}; say(['p_rest']); } } }
   else if(c==='round'){ S.rounds=Math.max(0,(S.rounds||0)+(v||1)); }
   else if(c==='voice'){ VOICE=!!v; }
   else if(c==='rest'){ if(S.phase!=='rest') return; if(v==='skip'){ S.restEnd=Date.now(); } else { var add=Math.max(-60,Math.min(120,+v||0)); S.restEnd+=add*1000; S.restTot+=add; } }
@@ -690,6 +696,8 @@ function cmd(c,v){
   else if(c==='msg'){ showMsg(v); return; }
   save(); paint(); push();
 }
+function rAdvance(p){ var it=p.items[S.item]||{}, sets=it.sets||1, g=grp(p,S.item); S.set++;
+  if(S.set>=sets){ S.set=0; S.item=Math.min(p.items.length-1,g[1]+1); } else S.item=g[0]; }
 function startCount(){ S.phase='count'; S.cd=Date.now()+10000; S.said={}; say(['p_ready']); }
 function tick(){
   if(!W||!S) return; var p=part(), now=Date.now(); if(!p) return;
@@ -699,7 +707,7 @@ function tick(){
   else if(S.phase==='rest'){ var rl=Math.ceil((S.restEnd-now)/1000), it=p.items[S.item]||{}, sets=it.sets||1;
     if(rl===10&&!S.said.r10&&S.restTot>=25){ S.said.r10=1; say(['p_10s']); }
     if(rl<=3&&rl>=1&&!S.said['r'+rl]){ S.said['r'+rl]=1; beep(); }
-    if(rl<=0){ S.set++; if(S.set>=sets){ S.set=0; S.item=Math.min(p.items.length-1,S.item+1); } S.phase='work'; bigBeep(); say(['p_go']); save(); } }
+    if(rl<=0){ rAdvance(p); S.phase='work'; bigBeep(); say(['p_go']); save(); } }
   else if(S.phase==='work'&&S.run&&isWod(p)) wodVoice(p);
   if(MODE==='club') paint();
   if(now-(S.pushed||0)>1000){ S.pushed=now; push(); if(S.run) save(); }
@@ -734,7 +742,8 @@ function partLabel(p){ var l=t(BL[p.block]||'str');
     else if(W.fmt==='for_time') l+=' · For Time'+(W.cap?' · '+t('cap')+' '+Math.round(W.cap/60)+"'":''); else if(W.fmt==='rft') l+=' · '+(W.rft||'')+' RFT'+(W.cap?' · '+t('cap')+' '+Math.round(W.cap/60)+"'":''); }
   return l; }
 /* « 4 × 4×10 » : si les reps contiennent deja le schema, on ne repete pas le nombre de series */
-function qty(it){ if(it.q!=null) return it.q; var r=String(it.reps||'').trim(); if(/\d\s*[×x]\s*\d/i.test(r)||!(it.sets>1)) return r; return it.sets+' × '+r; }
+function qty(it){ var L=it.ss?it.ss+' · ':''; return L+qty0(it); }
+function qty0(it){ if(it.q!=null) return it.q; var r=String(it.reps||'').trim(); if(/\d\s*[×x]\s*\d/i.test(r)||!(it.sets>1)) return r; return it.sets+' × '+r; }
 
 /* --- dessin : on ne reconstruit la page que si sa structure change (sinon seulement les chiffres) --- */
 var KEYS={};
@@ -761,7 +770,7 @@ function paintClub(){
   setH('s-plan',W.parts.map(function(pp,i){
     return '<div class="part k-'+pp.block+(i===S.p?' cur':i<S.p?' done':'')+'"><h3><span><i class="no">'+('0'+(i+1)).slice(-2)+'</i>'+esc(partLabel(pp))+'</span></h3><ul>'+
       pp.items.map(function(it,j){ var c=i===S.p&&!isWod(pp)&&S.phase!=='idle'?(j<S.item?' done':j===S.item?' cur':''):'';
-        return '<li class="'+c+'"><span class="q num">'+esc(qty(it))+'</span><span class="n">'+esc(it.name)+(it.load?'<small>'+esc(it.load)+'</small>':'')+'</span></li>'; }).join('')+
+        return '<li class="'+c+'"><span class="q num">'+esc(qty(it))+'</span><span class="n">'+esc(it.name)+(it.load||it.tempo?'<small>'+esc([it.load,it.tempo?'⏱ '+it.tempo:''].filter(Boolean).join(' · '))+'</small>':'')+'</span></li>'; }).join('')+
       '</ul>'+(pp.note?'<p class="nt">'+esc(pp.note)+'</p>':'')+'</div>'; }).join(''));
   fitPlan();
   var cur=G('s-plan').querySelector('.part.cur'); if(cur&&cur.scrollIntoView&&KEYS._cur!==S.p){ KEYS._cur=S.p; cur.scrollIntoView({block:'nearest'}); }
@@ -769,9 +778,9 @@ function paintClub(){
   if(S.phase==='count'){ var n=Math.max(1,Math.ceil((S.cd-Date.now())/1000));
     h='<div class="lab">'+esc(t('ready'))+'</div><div class="big3 num goldtx">'+D(n)+'</div><div class="sub">'+esc(partLabel(p))+'</div>'; }
   else if(S.phase==='done'){ h='<div class="lab">'+esc(partLabel(p))+'</div><div class="clk num go">'+esc(t('time'))+'</div><div class="sub">'+esc(t('done'))+'</div>'; }
-  else if(S.phase==='rest'){ var rl=(S.restEnd-Date.now())/1000, it=p.items[S.item]||{}, nxt=(S.set+1>=(it.sets||1))?p.items[S.item+1]:it;
+  else if(S.phase==='rest'){ var rl=(S.restEnd-Date.now())/1000, it=p.items[S.item]||{}, gg=grp(p,S.item), nxt=(S.set+1>=(it.sets||1))?p.items[gg[1]+1]:p.items[gg[0]];
     h='<div class="lab">'+esc(t('rest'))+'</div><div class="clk num rest">'+D(fmt(rl))+'</div>'+
-      (nxt?'<div class="sub2">'+esc(t('next'))+'</div>'+mv(nxt,nxt===it?(t('set')+' '+(S.set+2)+' '+t('of')+' '+(it.sets||1)):''):'')+
+      (nxt?'<div class="sub2">'+esc(t('next'))+'</div>'+mv(nxt,(S.set+1<(it.sets||1))?(t('set')+' '+(S.set+2)+' '+t('of')+' '+(it.sets||1)):''):'')+
       '<div class="bar" style="width:'+(100*(1-rl/Math.max(1,S.restTot))).toFixed(1)+'%"></div>'; }
   else if(wod){ var sub='', m='';
     if(W.fmt==='emom'){ var I=emomI(), r=Math.floor(e/I), its=p.items, ci=its[r%its.length], ni=its[(r+1)%its.length];
@@ -883,11 +892,16 @@ var FMT={amrap:'AMRAP',emom:'EMOM',for_time:'For Time',rft:'RFT',classic:''};
 async function loadList(){
   var q=G('pk-q').value.trim().replace(/[%,()]/g,' '), html='';
   if(RC.tab==='cls'){
-    var r=sb.from('tv_classes').select('id,title,updated_at,data').order('updated_at',{ascending:false}).limit(40);
+    var r=sb.from('tv_classes').select('id,title,updated_at,data').order('updated_at',{ascending:false}).limit(200);
     if(q) r=r.ilike('title','%'+q+'%');
     if(RC.admin&&RC.sp) r=r.eq('space_id',RC.sp);
-    var d=(await r).data||[];
-    html=d.length?d.map(function(c){ return '<button class="it" data-c="'+c.id+'"><b>'+esc(c.title||'—')+'</b><small>'+esc([FMT[(c.data||{}).fmt]||'',new Date(c.updated_at).toLocaleDateString(LANG==='en'?'en-GB':LANG+'-BE')].filter(Boolean).join(' · '))+'</small></button>'; }).join(''):'<p>'+esc(t('none_cls'))+'</p>';
+    var d=(await r).data||[], td=new Date(), today=td.getFullYear()+'-'+('0'+(td.getMonth()+1)).slice(-2)+'-'+('0'+td.getDate()).slice(-2);
+    /* programme date : les cours a venir d'abord (le plus proche en haut), puis les autres, puis ceux deja passes */
+    function rk(c){ var dd=(c.data||{}).date; return dd?(dd>=today?0:2):1; }
+    d.sort(function(a,b){ var ra=rk(a), rb=rk(b); if(ra!==rb) return ra-rb; var da=(a.data||{}).date||'', db=(b.data||{}).date||'';
+      if(ra===0) return da<db?-1:da>db?1:((a.data.ord||0)-(b.data.ord||0)); if(ra===2) return da>db?-1:da<db?1:((a.data.ord||0)-(b.data.ord||0)); return a.updated_at<b.updated_at?1:-1; });
+    html=d.length?d.map(function(c){ var dd=(c.data||{}).date, isT=dd===today;
+      return '<button class="it'+(isT?' today':'')+'" data-c="'+c.id+'"'+(rk(c)===2?' style="opacity:.55"':'')+'><b>'+(isT?'● '+esc(t('today'))+' · ':'')+esc(c.title||'—')+'</b><small>'+esc([FMT[(c.data||{}).fmt]||'',dd?'':new Date(c.updated_at).toLocaleDateString(LANG==='en'?'en-GB':LANG+'-BE')].filter(Boolean).join(' · '))+'</small></button>'; }).join(''):'<p>'+esc(t('none_cls'))+'</p>';
     G('pk-l').innerHTML=html; G('pk-l').querySelectorAll('[data-c]').forEach(function(b){ var c=d.find(function(x){return x.id===b.dataset.c;}); b.onclick=function(){ tap(); RC.clsId=c.id; sendClass(c.data); }; });
     return;
   }
@@ -954,7 +968,7 @@ async function sendClass(c){
 
 /* ---- ecrire / modifier le cours du jour, en direct ---- */
 var BLK=[['warm','activation'],['str','strength'],['wod','conditioning'],['cool','recovery']];
-function lineOf(it){ return [qty(it),it.name].filter(Boolean).join(' ')+(it.load?' @ '+it.load:''); }
+function lineOf(it){ return [qty(it),it.name].filter(Boolean).join(' ')+(it.tempo?' tempo '+it.tempo:'')+(it.load?' @ '+it.load:''); }
 function editOpen(c){
   G('ed-e').textContent=''; G('ed-title').value=c?c.name||'':'';
   G('ed-spc').hidden=!RC.admin;
@@ -973,12 +987,16 @@ function findEx(txt){ if(!EXL) return null; var l=' '+txt.toLowerCase()+' ';
   for(var i=0;i<EXL.length;i++){ var n=EXL[i].name_en.toLowerCase(); if(l.indexOf(' '+n+' ')>=0||l.indexOf(' '+n+'s ')>=0) return EXL[i]; } return null; }
 /* « 5x5 Back Squat @ 75% » -> quantite, mouvement, charge ; le bonhomme et la voix si le mouvement est connu */
 function parseLine(line,block){
-  var s=line.trim(); if(!s) return null; var load='';
+  var s=line.trim(); if(!s) return null; var load='', ss='', tp='';
+  var sm0=s.match(/^([A-F][1-4])\s*[·.:\-]?\s+/i); if(sm0){ ss=sm0[1].toUpperCase(); s=s.slice(sm0[0].length); }
+
   var at=s.match(/\s+@\s*(.+)$/)||s.match(/\s+\(([^)]*\d[^)]*)\)\s*$/); if(at){ load=at[1].trim(); s=s.slice(0,at.index).trim(); }
+  var tm=s.match(/\s+⏱\s*([0-9X\-]+)\s*$/i)||s.match(/\s+tempo\s+([0-9X\-]+)\s*$/i); if(tm){ tp=tm[1].toUpperCase(); s=s.slice(0,tm.index).trim(); }
   var m=s.match(/^((?:\d[\d.,:'"\/-]*\s*(?:[x×]\s*\d[\d.,\/-]*)?)\s*(?:reps?|rép\.?|répétitions|cal|kcal|m|km|min|sec|s|kg|tours?|rounds?|\/côté|\/side|\/kant)?)\s+(.+)$/i);
   var q=m?m[1].trim():'', name=m?m[2].trim():s, sets=1, ex=findEx(name);
   var sm=q.match(/^(\d+)\s*[x×]\s*(.+)$/i); if(sm&&block!=='conditioning'){ sets=+sm[1]; }
-  return {q:q,name:ex?ex.name_en:name,slug:ex?ex.slug:null,load:load,sets:sets,reps:q,rest:block==='strength'?120:(block==='activation'||block==='recovery')?0:60};
+  var o={q:q,name:ex?ex.name_en:name,slug:ex?ex.slug:null,load:load,sets:sets,reps:q,rest:block==='strength'?120:(block==='activation'||block==='recovery')?0:60};
+  if(ss){ o.ss=ss; } if(tp) o.tempo=tp; return o;
 }
 G('ed-go').onclick=async function(){ tap();
   var parts=[]; BLK.forEach(function(b){ var notes=[], ls=G('ed-'+b[0]).value.split('\n').filter(function(l){ var m=l.match(/^\s*>\s*(.+)$/); if(m){ notes.push(m[1].trim()); return false; } return true; });
@@ -988,6 +1006,7 @@ G('ed-go').onclick=async function(){ tap();
   var c={name:G('ed-title').value.trim()||t('club'),fmt:f,cap:f==='emom'?0:mn*60,emi:f==='emom'&&rn&&mn?Math.round(mn*60/rn):60,emr:f==='emom'?(rn||mn||10):0,rft:f==='rft'?rn:0,parts:parts};
   /* garde le cours pour le reutiliser (prive : seul ce coach le voit) */
   var spid=RC.admin?(G('ed-sp').value||null):(RC.cls&&RC.cls.sp||null); if(spid) c.sp=spid;
+  if(RC.clsId&&RC.cls){ if(RC.cls.date) c.date=RC.cls.date; if(RC.cls.ord!=null) c.ord=RC.cls.ord; }
   var row={title:c.name,data:c,updated_at:new Date().toISOString()}; if(RC.admin) row.space_id=spid;
   var r=RC.clsId?await sb.from('tv_classes').update(row).eq('id',RC.clsId).select('id').single():await sb.from('tv_classes').insert(row).select('id').single();
   if(r.data) RC.clsId=r.data.id;
