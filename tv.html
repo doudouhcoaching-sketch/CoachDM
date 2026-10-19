@@ -125,6 +125,10 @@ body.ph{min-height:100dvh;padding:calc(16px + env(safe-area-inset-top)) 16px cal
 .ph .hd{display:flex;align-items:center;gap:12px;margin-bottom:18px}
 .ph .hd img{width:42px;height:42px;border-radius:11px}
 .ph .hd div{font-weight:900;letter-spacing:.26em;font-size:13px}
+html.emb .ph .hd{margin-top:calc(46px + env(safe-area-inset-top))}
+.ph .hd .lg{margin-left:auto;display:flex;gap:4px;padding:3px;border-radius:999px;border:1px solid rgba(217,182,92,.35);background:rgba(255,255,255,.04)}
+.ph .hd .lg button{border:0;background:transparent;color:var(--mut);font:800 12px 'Outfit',sans-serif;letter-spacing:.08em;padding:7px 10px;border-radius:999px}
+.ph .hd .lg button.on{background:var(--gold-grad);color:#2a1f05}
 .ph .hd small{display:block;letter-spacing:.08em;font-weight:600;color:var(--mut);font-size:12px;margin-top:2px}
 .ph h1{font-size:26px;font-weight:800;line-height:1.12;margin-bottom:8px}
 .ph p{color:var(--mut);font-size:15px;line-height:1.5}
@@ -229,7 +233,7 @@ body.ph{min-height:100dvh;padding:calc(16px + env(safe-area-inset-top)) 16px cal
 
 <!-- ================= TELEPHONE ================= -->
 <div id="rc" hidden>
-  <div class="hd"><img src="logo-dm.png" alt=""><div class="goldtx">COACH DM TV<small id="r-sub"></small></div></div>
+  <div class="hd"><img src="logo-dm.png" alt=""><div class="goldtx">COACH DM TV<small id="r-sub"></small></div><span class="lg" id="r-lg"><button data-l="fr">FR</button><button data-l="en">EN</button><button data-l="nl">NL</button></span></div>
 
   <section id="r-choice" hidden>
     <h1 data-t="ch_h"></h1>
@@ -561,12 +565,12 @@ function connect(){
 }
 function mine(m){ return !!(TOKEN&&m.k===TOKEN); }
 function onMsg(m){
-  if(m.t==='sync'){ PULLING=0; pull().then(function(){ if(mine(m)&&m.lang&&['fr','en','nl'].indexOf(m.lang)>=0&&m.lang!==LANG){ LANG=m.lang; lsSet('cdm_lang',LANG); IDX=null; vIndex(); startTexts(); } push(); }); return; }
+  if(m.t==='sync'){ PULLING=0; pull().then(function(){ if(mine(m)&&m.lang&&['fr','en','nl'].indexOf(m.lang)>=0&&m.lang!==LANG){ LANG=m.lang; lsSet('cdm_lang',LANG); document.documentElement.lang=LANG; IDX=null; vIndex(); startTexts(); } push(); }); return; }
   if(m.t==='hello'){ if(m.who==='remote'&&!mine(m)){ PULLING=0; pull().then(function(){ send({t:'here',to:m.id,mode:MODE,locked:OWNED,mine:mine(m),st:mine(m)?status():null}); }); return; }
     send({t:'here',to:m.id,mode:MODE,locked:OWNED,mine:mine(m),st:mine(m)?status():null}); return; }
   if(m.t==='cmd'){ if(!mine(m)||MODE!=='club') return; LAST=Date.now(); cmd(m.c,m.v); return; }
   /* miroir du Mode Seance d'un athlete : seulement sur un ecran libre (jamais sur l'ecran d'un coach) */
-  if(m.t==='mir'){ if(OWNED||MODE==='club') return; LAST=Date.now(); if(MODE!=='mirror'){ MODE='mirror'; show(); } MIR=m.d||{}; MIR._at=Date.now(); paint(); return; }
+  if(m.t==='mir'){ if(OWNED||MODE==='club') return; LAST=Date.now(); if(m.lang&&['fr','en','nl'].indexOf(m.lang)>=0&&m.lang!==LANG){ LANG=m.lang; lsSet('cdm_lang',LANG); document.documentElement.lang=LANG; IDX=null; vIndex(); startTexts(); } if(MODE!=='mirror'){ MODE='mirror'; show(); } MIR=m.d||{}; MIR._at=Date.now(); paint(); return; }
   if(m.t==='bye'){ if(MODE==='mirror'){ MODE=null; show(); } }
 }
 function startTexts(){ G('v-tag').textContent=t('tag'); G('v-ad-h').textContent=t('adh'); G('v-ad-p').textContent=t('adp'); G('m-h').textContent=t('mh'); G('m-p').textContent=t('mp'); G('snd').textContent=t('snd'); feats(); paintPair(); KEYS={}; paint(); }
@@ -749,6 +753,14 @@ var RC={ch:null,code:null,st:null,seen:0,tab:'cls',user:null,key:null,cls:null,c
 var SPACES=[];
 var EXL=null;
 function rview(v){ ['r-choice','r-login','r-deny','r-code','r-pick','r-edit','r-space','r-ctl'].forEach(function(x){ G(x).hidden=(x!==v); }); window.scrollTo(0,0); }
+/* langue du cours : choisie sur la telecommande, la TV suit (textes + voix du coach) */
+function rTexts(){ document.querySelectorAll('[data-t]').forEach(function(e){ e.textContent=t(e.dataset.t); });
+  if(G('r-sub')&&!G('r-choice').hidden){} else if(G('r-sub')) G('r-sub').textContent=t('sub');
+  if(G('pk-q')) G('pk-q').placeholder=t('q'); if(G('ed-title')) G('ed-title').placeholder=t('ed_title');
+  ['warm','str','wod','cool'].forEach(function(k){ var e=G('ed-'+k); if(e) e.placeholder=t('ph_'+k); }); if(G('ed-rnd')) G('ed-rnd').placeholder=t('rnds');
+  document.querySelectorAll('#r-lg button').forEach(function(b){ b.classList.toggle('on',b.dataset.l===LANG); }); }
+function setLang(l){ if(['fr','en','nl'].indexOf(l)<0||l===LANG) return; LANG=l; lsSet('cdm_lang',l); document.documentElement.lang=l; rTexts(); try{ if(!G('r-ctl').hidden) rpaint(); }catch(e){} if(RC.ch) rsend({t:'sync'}); tap(); }
+document.querySelectorAll('#r-lg button').forEach(function(b){ b.onclick=function(){ setLang(b.dataset.l); }; });
 function rsend(m){ if(RC.ch){ m.k=RC.key; m.id=RC.id; m.lang=LANG; RC.ch.send({type:'broadcast',event:'m',payload:m}); } }
 function tap(){ try{ navigator.vibrate&&navigator.vibrate(12); }catch(e){} }
 async function startRemote(){
@@ -756,7 +768,7 @@ async function startRemote(){
   document.querySelectorAll('[data-t]').forEach(function(e){ e.textContent=t(e.dataset.t); });
   G('pk-q').placeholder=t('q'); G('ed-title').placeholder=t('ed_title');
   ['warm','str','wod','cool'].forEach(function(k){ G('ed-'+k).placeholder=t('ph_'+k); });
-  G('ed-rnd').placeholder=t('rnds');
+  G('ed-rnd').placeholder=t('rnds'); rTexts();
   var ses=(await sb.auth.getSession()).data.session;
   if(!ses){ rview('r-login'); return; }
   RC.user=ses.user;
