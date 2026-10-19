@@ -342,7 +342,7 @@ var TX={
  adp:{fr:'Scanne avec ton téléphone : tes séances t’attendent.',en:'Scan with your phone: your sessions are waiting.',nl:'Scan met je telefoon: je trainingen wachten op je.'},
  mh:{fr:'L’app Coach DM',en:'The Coach DM app',nl:'De Coach DM-app'},
  mp:{fr:'Scanne et entraîne-toi avec ma voix, partout.',en:'Scan and train with my voice, anywhere.',nl:'Scan en train overal met mijn stem.'},
- pair:{fr:'Coach : coachdm.be/tv sur ton téléphone · code',en:'Coach: coachdm.be/tv on your phone · code',nl:'Coach: coachdm.be/tv op je telefoon · code'},
+ pair:{fr:'App Coach DM › 📺 TV · code',en:'Coach DM app › 📺 TV · code',nl:'Coach DM-app › 📺 TV · code'},
  lock:{fr:'🔒 Écran réservé à ton coach',en:'🔒 Screen reserved for your coach',nl:'🔒 Scherm voorbehouden aan je coach'},
  snd:{fr:'🔊 Appuie sur OK pour la voix du coach',en:'🔊 Press OK for the coach voice',nl:'🔊 Druk op OK voor de stem van de coach'},
  warm:{fr:'Warm up',en:'Warm up',nl:'Warm up'}, str:{fr:'Skill / Strength',en:'Skill / Strength',nl:'Skill / Strength'},
@@ -368,7 +368,7 @@ var TX={
  dn_h:{fr:'Réservé aux coachs',en:'For coaches only',nl:'Alleen voor coaches'},
  dn_p:{fr:'Athlète ? Ouvre ta séance dans l’app Coach DM, puis le bouton 📺 du Mode Séance pour l’afficher sur ta TV.',en:'Athlete? Open your session in the Coach DM app, then tap 📺 in Workout mode to show it on your TV.',nl:'Atleet? Open je training in de Coach DM-app en tik op 📺 in de Trainingsmodus om ze op je tv te tonen.'},
  cd_h:{fr:'Code de l’écran',en:'Screen code',nl:'Code van het scherm'},
- cd_p:{fr:'Ouvre coachdm.be/tv sur l’écran de la box et tape le code à 6 chiffres affiché en bas.',en:'Open coachdm.be/tv on the box screen and enter the 6-digit code shown at the bottom.',nl:'Open coachdm.be/tv op het scherm van de box en typ de code van 6 cijfers onderaan.'},
+ cd_p:{fr:'Ouvre coachdm.be/tv sur l’écran de la box et tape le code à 6 chiffres affiché en haut.',en:'Open coachdm.be/tv on the box screen and enter the 6-digit code shown at the top.',nl:'Open coachdm.be/tv op het scherm van de box en typ de code van 6 cijfers bovenaan.'},
  cd_b:{fr:'Connecter',en:'Connect',nl:'Verbinden'},
  cd_e:{fr:'Pas de réponse de l’écran. Vérifie le code et que la page est ouverte.',en:'No answer from the screen. Check the code and that the page is open.',nl:'Geen antwoord van het scherm. Controleer de code en of de pagina open staat.'},
  cd_lock:{fr:'Cet écran est déjà piloté par un autre coach.',en:'This screen is already controlled by another coach.',nl:'Dit scherm wordt al door een andere coach bediend.'},
@@ -924,6 +924,9 @@ function rpaint(){
   G('c-rnd').hidden=!(s.wod&&['amrap','rft'].indexOf(s.fmt)>=0);
   G('c-voice').textContent=s.voice===false?t('c_voff'):t('c_von');
 }
+/* dans l'app Coach DM (cadre) : le lien vers l'app ferme le cadre au lieu d'ouvrir l'app dedans */
+var EMB=false; try{ EMB=window.top!==window.self; }catch(e){ EMB=true; }
+if(EMB){ document.documentElement.classList.add('emb'); document.addEventListener('click',function(e){ var a=e.target.closest&&e.target.closest('a[href="app.html"]'); if(a){ e.preventDefault(); try{ parent.postMessage('cdm-tv-close','*'); }catch(_){} } },true); }
 /* ===== demarrage : ecran ou telephone (a la fin : tout est defini) ===== */
 var IS_RC=QS.has('remote')||QS.has('code');
 var SMALL=Math.min(screen.width,screen.height)<700&&window.matchMedia&&matchMedia('(pointer:coarse)').matches;
