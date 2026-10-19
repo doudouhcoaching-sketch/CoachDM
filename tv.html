@@ -638,12 +638,15 @@ function connect(){
   CH.on('broadcast',{event:'m'},function(p){ try{ onMsg(p.payload||{}); }catch(e){} });
   CH.subscribe(function(s){ G('conn').textContent=s==='SUBSCRIBED'?'●':'○'; if(s==='CHANNEL_ERROR'||s==='TIMED_OUT'||s==='CLOSED'){ setTimeout(function(){ try{ sb.removeChannel(CH); }catch(e){} connect(); },3000); } });
 }
+var LASTRC=0;
 function mine(m){ return !!(TOKEN&&m.k===TOKEN); }
 function onMsg(m){
   if(m.t==='sync'){ PULLING=0; pull().then(function(){ if(mine(m)&&m.lang&&['fr','en','nl'].indexOf(m.lang)>=0&&m.lang!==LANG){ LANG=m.lang; lsSet('cdm_lang',LANG); document.documentElement.lang=LANG; IDX=null; vIndex(); startTexts(); } push(); }); return; }
+  if(m.t==='hello'&&m.who==='remote'&&mine(m)) LASTRC=Date.now();
   if(m.t==='hello'){ if(m.who==='remote'&&!mine(m)){ PULLING=0; pull().then(function(){ send({t:'here',to:m.id,mode:MODE,locked:OWNED,mine:mine(m),st:mine(m)?status():null}); }); return; }
     send({t:'here',to:m.id,mode:MODE,locked:OWNED,mine:mine(m),st:mine(m)?status():null}); return; }
-  if(m.t==='cmd'){ if(!mine(m)||MODE!=='club') return; LAST=Date.now(); cmd(m.c,m.v); return; }
+  if(m.t==='ping'){ if(mine(m)){ LASTRC=Date.now(); push(); } return; }
+  if(m.t==='cmd'){ if(!mine(m)||MODE!=='club') return; LAST=Date.now(); LASTRC=LAST; cmd(m.c,m.v); return; }
   /* miroir du Mode Seance d'un athlete : seulement sur un ecran libre (jamais sur l'ecran d'un coach) */
   if(m.t==='mir'){ if(OWNED||MODE==='club') return; LAST=Date.now(); if(m.lang&&['fr','en','nl'].indexOf(m.lang)>=0&&m.lang!==LANG){ LANG=m.lang; lsSet('cdm_lang',LANG); document.documentElement.lang=LANG; IDX=null; vIndex(); startTexts(); } if(MODE!=='mirror'){ MODE='mirror'; show(); } MIR=m.d||{}; MIR._at=Date.now(); paint(); return; }
   if(m.t==='bye'){ if(MODE==='mirror'){ MODE=null; show(); } }
@@ -710,7 +713,10 @@ function tick(){
     if(rl<=0){ rAdvance(p); S.phase='work'; bigBeep(); say(['p_go']); save(); } }
   else if(S.phase==='work'&&S.run&&isWod(p)) wodVoice(p);
   if(MODE==='club') paint();
-  if(now-(S.pushed||0)>1000){ S.pushed=now; push(); if(S.run) save(); }
+  /* economie de messages : chrono chaque seconde seulement si une telecommande est ouverte (ping < 20 s),
+     sinon toutes les 3 s (l ancienne telecommande de l app 2.3.3 reste fluide), et tout de suite a chaque vrai changement (phase, partie, serie, pause, tours) */
+  var sig=[S.phase,S.p,S.item,S.set,S.run?1:0,S.rounds||0].join(','), live=now-LASTRC<20000;
+  if(sig!==S.sig||now-(S.pushed||0)>(live?1000:3000)){ S.sig=sig; S.pushed=now; push(); if(S.run) save(); }
 }
 function wodVoice(p){
   var e=el()/1000, cap=capS(), f=W.fmt;
@@ -1067,7 +1073,11 @@ var SMALL=Math.min(screen.width,screen.height)<700&&window.matchMedia&&matchMedi
 if(IS_RC){ mkSb(false); startRemote(); }
 else if(SMALL&&!QS.has('screen')&&lsGet('cdm_tv_role')!=='screen'){ choice(); }
 else { mkSb(true); startScreen(); }
-setInterval(function(){ if(!G('r-ctl').hidden){ rpaint(); if(RC.ch&&Date.now()-RC.seen>4000) rsend({t:'hello',who:'remote'}); } },1000);
+setInterval(function(){ if(!G('r-ctl').hidden){ rpaint(); var nw=Date.now();
+  /* telecommande ouverte et visible : un ping toutes les 10 s pour garder le chrono a la seconde */
+  if(RC.ch&&!document.hidden&&nw-(RC.pinged||0)>10000){ RC.pinged=nw; rsend({t:'ping'}); }
+  if(RC.ch&&nw-RC.seen>4000) rsend({t:'hello',who:'remote'}); } },1000);
+document.addEventListener('visibilitychange',function(){ if(!document.hidden&&RC.ch){ RC.pinged=0; } });
 </script>
 </body>
 </html>
