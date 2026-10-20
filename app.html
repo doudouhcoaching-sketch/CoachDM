@@ -10936,7 +10936,9 @@ function vcPickEnc(c){
 }
 /* explication complete d'une consigne (cl_knees_out pour c_knees_out), si elle est enregistree */
 function vcExpl(slug,tempo){
-  const keys=(VC_CUES&&VC_CUES.map[slug])||[];
+  /* L'explication vient d'abord des consignes propres au mouvement (tier 2), jamais d'un generique hors sujet */
+  const meta=(VC_CUES&&VC_CUES.meta&&VC_CUES.meta[slug])||[];
+  const keys=meta.length?meta.slice().sort((a,b)=>(b.t||1)-(a.t||1)).map(x=>x.k):((VC_CUES&&VC_CUES.map[slug])||[]);
   /* « Controle la descente, deux secondes » : faux si la seance impose un autre tempo */
   for(const k of keys){ const e='cl_'+k.slice(2); if(tempo&&/^cl_control/.test(e)) continue; if(vcHas(LANG,e)) return e; }
   return null;
@@ -11104,7 +11106,7 @@ async function vcRun(items,fallback){
   try{
     /* on charge toute la phrase AVANT de parler : jamais « Série … sur trois » avec un trou */
     try{ await Promise.all(items.filter(it=>it.k).map(it=>vcLoad(it.l,it.k))); }
-    catch(_){ if(my===VC_RUN&&fallback!=null) msSay(fallback); return; }
+    catch(_){ if(my===VC_RUN&&fallback!=null&&vcMode()!=='coach') msSay(fallback); return; }
     if(my!==VC_RUN) return;
     await vcRunIn(items,my);
   } finally { if(VC_BUSY===my) VC_BUSY=0; }
@@ -11138,9 +11140,39 @@ async function vcRunIn(items,my){
 /* parle avec la voix de Coach DM si possible, sinon la voix du telephone */
 function msSayC(spec,fallback){
   if(!MSV.on) return;
-  if(vcMode()==='coach'){ const it=vcPlan(spec); if(it){ vcRun(it,fallback); return; } }
+  if(vcMode()==='coach'){
+    /* Mode « voix de Coach DM » : UNIQUEMENT sa voix enregistree. Si un morceau manque, on le
+       retire (avec son unite) plutot que de laisser la voix du telephone parler a sa place.
+       Rien d'enregistre = silence. */
+    let it=vcPlan(spec); if(!it||it.some(x=>x.tts)) it=vcPlanLoose(spec); if(it&&it.some(x=>x.k)) vcRun(it,null); return; }
   vcStop(); msSay(fallback);
 }
+/* plan « sans trou » : garde seulement ce qui est enregistre. Un nombre (ou des kilos) dont un
+   morceau manque part avec son unite (« répétitions », « secondes », « à »…). Jamais de {tts}. */
+const VC_UNITS=['w_reps','w_sec','w_min','w_cal','w_m','w_side','w_of'];
+function vcPlanLoose(spec){
+  spec=vcFull(spec); const out=[]; const miss=[];
+  const okNum=t=>{ const ks=t.n!=null?vcFr(vcNumKeys(t.n),!!t.f):(()=>{ const kk=vcKgKeys(t.kg); return vcFr(kk.slice(0,-1),false).concat(kk.slice(-1)); })();
+    const bad=ks.filter(k=>!vcHas(LANG,k)); bad.forEach(k=>miss.push(k)); return bad.length?null:ks; };
+  for(let i=0;i<spec.length;i++){ const t=spec[i];
+    if(t==null) continue;
+    if(t.pause){ out.push({pause:t.pause}); continue; }
+    if(t.tts) continue;
+    if(t.name){ if(vcHas('x',t.name)) out.push({l:'x',k:t.name}); continue; }
+    if(t.n!=null||t.kg!=null){ const ks=okNum(t);
+      if(!ks){ /* on retire aussi l'unite qui suit et le « à » qui precede */
+        while(i+1<spec.length&&(typeof spec[i+1]==='string'&&VC_UNITS.includes(spec[i+1])||(spec[i+1]&&spec[i+1].tts))) i++;
+        if(out.length&&out[out.length-1].k==='w_at') out.pop(); continue; }
+      ks.forEach(k=>out.push({l:LANG,k})); continue; }
+    if(typeof t==='string'){ if(vcHas(LANG,t)) out.push({l:LANG,k:t}); else miss.push(t); }
+  }
+  if(miss.length) vcNoteMissing(miss);
+  while(out.length&&out[out.length-1].pause) out.pop();
+  return out;
+}
+/* ce qui manque dans le studio : garde la liste sur le telephone (vue dans le studio voix) */
+function vcNoteMissing(keys){ try{ const K='cdm_vc_missing', m=JSON.parse(localStorage.getItem(K)||'{}');
+  keys.forEach(k=>{ const id=LANG+':'+k; m[id]=(m[id]||0)+1; }); localStorage.setItem(K,JSON.stringify(m)); }catch(_){} }
 
 /* ---- Consignes courtes PENDANT la serie (« Genoux dehors ! ») ----
    Base : exercise_voice_cues (exercice -> consignes, dans l'ordre) + voice_lines (texte, ton,
@@ -11270,7 +11302,7 @@ function msTempo(s,t){
   const need=['p_t_with'].concat(V.k?[V.k]:[]).concat(T.p1>0||T.p2>=2?['p_t_hold']:[]).concat(Array.from({length:top},(_,i)=>'n'+(i+1)));
   const rec=vcMode()==='coach'&&need.every(k=>vcHas(LANG,k));
   const TX={p_t_with:mt('tp_with'),p_t_hold:mt('tp_hold')}; if(V.k) TX[V.k]=V.tx;
-  const say=k=>{ if(!MSV.on) return; if(rec) vcRun([{l:LANG,k}]); else { const tx=k[0]==='n'?vcNumWord(LANG,+k.slice(1)):TX[k]; if(tx) msSay(tx); } };
+  const say=k=>{ if(!MSV.on) return; if(rec) vcRun([{l:LANG,k}]); else if(vcMode()==='coach'){ if(vcHas(LANG,k)) vcRun([{l:LANG,k}]); else SND.tick(); } else { const tx=k[0]==='n'?vcNumWord(LANG,+k.slice(1)):TX[k]; if(tx) msSay(tx); } };
   const ev=[]; let at=0;
   const ecc=(rep)=>{ for(let i=1;i<=T.ecc;i++){ ev.push({at,k:rep<2?'n'+i:(i===1?'tick':null),rep,ph:'ecc',i}); at+=1; } };
   const cnt=(rep,n)=>{ for(let i=2;i<=n;i++) ev.push({at:at+i-1,k:rep<2?'n'+i:null,rep}); };
@@ -11299,7 +11331,7 @@ function msBreath478(s,t){
   const TXT={p_b_in:{fr:'Inspire',en:'Breathe in',nl:'Inademen'},p_b_hold:{fr:'Retiens',en:'Hold',nl:'Vasthouden'},p_b_out:{fr:'Expire',en:'Breathe out',nl:'Uitademen'}};
   const need=['p_b_in','p_b_hold','p_b_out'].concat(Array.from({length:7},(_,i)=>'n'+(i+2)));
   const rec=vcMode()==='coach'&&need.every(k=>vcHas(LANG,k));
-  const say=k=>{ if(!MSV.on) return; if(rec) vcRun([{l:LANG,k}]); else msSay(k[0]==='n'?vcNumWord(LANG,+k.slice(1)):(TXT[k][LANG]||TXT[k].fr)); };
+  const say=k=>{ if(!MSV.on) return; if(rec) vcRun([{l:LANG,k}]); else if(vcMode()==='coach'){ if(vcHas(LANG,k)) vcRun([{l:LANG,k}]); else SND.tick(); } else msSay(k[0]==='n'?vcNumWord(LANG,+k.slice(1)):(TXT[k][LANG]||TXT[k].fr)); };
   const cycles=Math.max(4,Math.min(10,t.r||6)), ev=[]; let at=0;
   for(let c=0;c<cycles;c++) for(const [k,d] of PH){ ev.push({at,k}); if(c<2) for(let i=2;i<=d;i++) ev.push({at:at+i-1,k:'n'+i}); at+=d; }
   let t0=0, i=0;
@@ -11650,7 +11682,7 @@ const TVX={
  set:{fr:'Série',en:'Set',nl:'Set'}
 };
 const tvt=k=>{const o=TVX[k];return o?(o[LANG]||o.fr):k;};
-let TV={ch:null,code:null,iv:0,last:'',ok:false};
+let TV={ch:null,code:null,iv:0,last:'',ok:false,k:null};
 function tvFrame(mode){
   document.querySelectorAll('#tvf').forEach(e=>e.remove());
   const f=document.createElement('div'); f.id='tvf'; f.className='tvf'+(mode==='screen'?' scr':'');
@@ -11662,7 +11694,7 @@ function tvFrame(mode){
   if(mode==='screen'){ let to=0; const show=()=>{ x.classList.add('on'); clearTimeout(to); to=setTimeout(()=>x.classList.remove('on'),3500); }; f.addEventListener('pointerdown',show,true); show();}
   document.querySelectorAll('#ms-tvs').forEach(e=>e.remove());
 }
-document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('#p-tv-go')) tvSheet(IS_COACH?'c':'m'); });
+document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('#p-tv-go')) tvSheet(IS_PAID_COACH?'c':'m'); });
 window.addEventListener('message',e=>{ if(e.data==='cdm-tv-close') document.querySelectorAll('#tvf').forEach(x=>x.remove()); });
 let TV_COACH=null;
 function tvSheet(tab){
@@ -11671,7 +11703,7 @@ function tvSheet(tab){
   const sh=document.createElement('div'); sh.id='ms-tvs'; sh.className='tvh'; document.body.appendChild(sh);
   let c=''; try{ c=localStorage.getItem('cdm_tv_code')||''; }catch(_){}
   const step=(n,k)=>`<li><b class="tvh-n">${n}</b><div><strong>${esc(tvt(k+'t'))}</strong><span>${esc(tvt(k+'d'))}</span></div></li>`;
-  const coach=IS_COACH||TV_COACH===true;
+  const coach=IS_PAID_COACH||TV_COACH===true;
   sh.innerHTML=`<div class="tvh-c" role="dialog" aria-modal="true">
     <button type="button" class="tvh-x" aria-label="${esc(tvt('cls'))}">✕</button>
     <div class="tvh-hd"><img src="logo-dm.png" alt="Coach DM"><div><div class="tvh-k">COACH DM</div><div class="tvh-t">TV</div></div>
@@ -11697,26 +11729,29 @@ function tvSheet(tab){
   const pane=k=>{ sh.querySelectorAll('[data-pane]').forEach(x=>x.hidden=x.dataset.pane!==k); sh.querySelectorAll('.tvh-seg button').forEach(x=>x.classList.toggle('on',x.dataset.p===k)); };
   sh.querySelectorAll('.tvh-seg button').forEach(b=>b.onclick=()=>{ buzz(8); pane(b.dataset.p); });
   pane(tab==='c'&&coach?'c':'m');
-  if(!IS_COACH&&TV_COACH===null&&USER){ TV_COACH=false; sb.rpc('tv_is_coach').then(r=>{ TV_COACH=!r.error&&r.data===true; if(TV_COACH){ const sg=sh.querySelector('.tvh-seg'); if(sg) sg.hidden=false; } }).catch(()=>{}); }
+  if(!IS_PAID_COACH&&TV_COACH===null&&USER){ TV_COACH=false; sb.rpc('tv_is_coach').then(r=>{ TV_COACH=!r.error&&r.data===true; if(TV_COACH){ const sg=sh.querySelector('.tvh-seg'); if(sg) sg.hidden=false; } }).catch(()=>{}); }
   const inp=sh.querySelector('#tv-c'); inp.oninput=()=>{ inp.value=inp.value.replace(/\D/g,'').slice(0,6); if(inp.value.length===6) sh.querySelector('#tv-go').focus(); };
   sh.querySelector('#tv-go').onclick=async()=>{ if(ACCESS==='free'){ toast(tvt('prem')); return; } const v=inp.value; if(v.length!==6){ inp.focus(); return; } const m=sh.querySelector('#tv-m'); m.textContent='…';
-    const ok=await tvConnect(v); m.textContent=ok==='locked'?tvt('lock'):ok?'● '+tvt('ok')+' · '+v:tvt('ko'); m.classList.toggle('ok',ok===true);
+    const ok=await tvConnect(v); m.textContent=ok==='locked'?tvt('lock'):ok==='prem'?tvt('prem'):ok===true?'● '+tvt('ok')+' · '+v:tvt('ko'); m.classList.toggle('ok',ok===true);
     if(ok===true){ buzz(30); const l=sh.querySelector('.tvh-live'); if(l){ l.classList.add('on'); l.textContent='● '+v; } setTimeout(close,1100); } };
   const off=sh.querySelector('#tv-off'); if(off) off.onclick=()=>{ tvStop(true); close(); };
   sh.querySelector('#tv-rc').onclick=()=>tvFrame('remote');
   sh.querySelector('#tv-me').onclick=()=>tvFrame('screen');
 }
-function tvSend(m){ if(TV.ch) TV.ch.send({type:'broadcast',event:'m',payload:Object.assign({lang:LANG},m)}); }
-function tvConnect(code){
+function tvSend(m){ if(TV.ch) TV.ch.send({type:'broadcast',event:'m',payload:Object.assign({lang:LANG,k:TV.k},m)}); }
+async function tvConnect(code){
   tvStop(false);
+  /* verrou serveur : la base verifie l'abonnement premium et donne un jeton propre a cet ecran */
+  let k=null; try{ const r=await sb.rpc('tv_mirror',{p_code:code}); if(r.error){ const e=String(r.error.message||''); return /locked/.test(e)?'locked':/premium/.test(e)?'prem':false; } k=r.data; }catch(_){ return false; }
+  if(!k) return false;
   return new Promise(res=>{
-    const ch=sb.channel('cdm-tv-'+code,{config:{broadcast:{self:false}}}); TV={ch,code,iv:0,last:'',ok:false};
+    const ch=sb.channel('cdm-tv-'+code,{config:{broadcast:{self:false}}}); TV={ch,code,iv:0,last:'',ok:false,k};
     let done=false; const fin=v=>{ if(!done){ done=true; res(v); } };
     ch.on('broadcast',{event:'m'},p=>{ const m=p.payload||{}; if(m.t==='here'){ if(m.locked){ tvStop(false); fin('locked'); return; } TV.ok=true; fin(true); } });
     ch.subscribe(st=>{ if(st==='SUBSCRIBED'){ let n=0; const hi=()=>{ if(TV.ok||TV.ch!==ch) return; if(++n>6){ tvStop(false); return fin(false); } tvSend({t:'hello',who:'app'}); setTimeout(hi,800); }; hi(); } });
   }).then(ok=>{ if(ok===true){ try{ localStorage.setItem('cdm_tv_code',code); }catch(_){} TV.iv=setInterval(tvPush,700); tvPush(); } return ok; });
 }
-function tvStop(bye){ if(!TV.ch) return; if(bye) tvSend({t:'bye'}); clearInterval(TV.iv); try{ sb.removeChannel(TV.ch); }catch(_){} TV={ch:null,code:null,iv:0,last:'',ok:false}; }
+function tvStop(bye){ if(!TV.ch) return; if(bye) tvSend({t:'bye'}); clearInterval(TV.iv); try{ sb.removeChannel(TV.ch); }catch(_){} TV={ch:null,code:null,iv:0,last:'',ok:false,k:null}; }
 function tvTxt(id){ const e=document.getElementById(id); return e&&!e.closest('[hidden]')?(e.textContent||'').trim():''; }
 function tvVis(id){ const e=document.getElementById(id); return !!(e&&!e.hidden); }
 function tvPlan(){

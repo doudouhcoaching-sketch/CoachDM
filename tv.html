@@ -557,7 +557,7 @@ function rnd(n){ var a=new Uint8Array(n); try{ crypto.getRandomValues(a); }catch
 var CODE=lsGet('cdm_tv_code'), SECRET=lsGet('cdm_tv_secret');
 function newCode(){ CODE=String(Math.floor(100000+Math.random()*900000)); SECRET=rnd(24); lsSet('cdm_tv_code',CODE); lsSet('cdm_tv_secret',SECRET); }
 if(!/^\d{6}$/.test(CODE||'')||!SECRET) newCode();
-var OWNED=false, TOKEN=null, CLASS_AT=null, PULLING=0;
+var OWNED=false, TOKEN=null, CLASS_AT=null, PULLING=0, MTOK=null, MPULL=0;
 var CH=null, MODE=null, LAST=0, W=null, S=null, TK=0, MIR=null;
 
 function startScreen(){
@@ -610,7 +610,7 @@ async function register(){
 async function pull(){
   if(PULLING&&Date.now()-PULLING<1500) return; PULLING=Date.now();
   var r=await sb.rpc('tv_pull',{p_code:CODE,p_secret:SECRET}); if(r.error||!r.data) return;
-  var d=r.data; OWNED=!!d.owned; TOKEN=d.token||null; paintPair();
+  var d=r.data; OWNED=!!d.owned; TOKEN=d.token||null; MTOK=d.mtok||null; paintPair();
   if(d.class&&d.class.parts){
     if(d.class_at!==CLASS_AT){ CLASS_AT=d.class_at;
       var keep=null; try{ var s=JSON.parse(lsGet('cdm_tv_s')||'null'); if(s&&s.at===CLASS_AT) keep=s; }catch(e){}
@@ -648,8 +648,11 @@ function onMsg(m){
   if(m.t==='ping'){ if(mine(m)){ LASTRC=Date.now(); push(); } return; }
   if(m.t==='cmd'){ if(!mine(m)||MODE!=='club') return; LAST=Date.now(); LASTRC=LAST; cmd(m.c,m.v); return; }
   /* miroir du Mode Seance d'un athlete : seulement sur un ecran libre (jamais sur l'ecran d'un coach) */
-  if(m.t==='mir'){ if(OWNED||MODE==='club') return; LAST=Date.now(); if(m.lang&&['fr','en','nl'].indexOf(m.lang)>=0&&m.lang!==LANG){ LANG=m.lang; lsSet('cdm_lang',LANG); document.documentElement.lang=LANG; IDX=null; vIndex(); startTexts(); } if(MODE!=='mirror'){ MODE='mirror'; show(); } MIR=m.d||{}; MIR._at=Date.now(); paint(); return; }
-  if(m.t==='bye'){ if(MODE==='mirror'){ MODE=null; show(); } }
+  /* verrou serveur : seul le jeton donne par tv_mirror (membre premium, verifie dans la base) est accepte */
+  if(m.t==='mir'){ if(OWNED||MODE==='club'||!m.k) return;
+    if(m.k!==MTOK){ if(Date.now()-MPULL>3000){ MPULL=Date.now(); PULLING=0; pull().then(function(){ if(MTOK&&m.k===MTOK) onMsg(m); }); } return; }
+    LAST=Date.now(); if(m.lang&&['fr','en','nl'].indexOf(m.lang)>=0&&m.lang!==LANG){ LANG=m.lang; lsSet('cdm_lang',LANG); document.documentElement.lang=LANG; IDX=null; vIndex(); startTexts(); } if(MODE!=='mirror'){ MODE='mirror'; show(); } MIR=m.d||{}; MIR._at=Date.now(); paint(); return; }
+  if(m.t==='bye'){ if(MODE==='mirror'&&m.k&&m.k===MTOK){ MODE=null; show(); } }
 }
 function startTexts(){ G('v-tag').textContent=t('tag'); G('v-ad-h').textContent=t('adh'); G('v-ad-p').textContent=t('adp'); G('m-h').textContent=t('mh'); G('m-p').textContent=t('mp'); G('snd').textContent=t('snd'); feats(); paintPair(); KEYS={}; paint(); }
 
