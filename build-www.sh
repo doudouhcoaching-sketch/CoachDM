@@ -18,12 +18,15 @@ cp app.html www/index.html
 
 # conditions.html : exige par Apple 3.1.2(a) — un lien vers les CGU doit etre
 # joignable au point d'achat. Embarque pour rester lisible meme hors connexion.
-PAGES="app.html coach.html saut.html squat.html barre.html course.html hyrox.html aide.html privacy.html conditions.html admin.html"
+# admin-subs.html : ecran d approbation des substitutions, ouvert par un href
+# relatif depuis le profil admin de app.html. Meme piege que admin.html : hors
+# du bundle, le clic donnait un 404 silencieux sous capacitor://.
+PAGES="app.html coach.html saut.html squat.html barre.html course.html hyrox.html aide.html privacy.html conditions.html admin.html admin-subs.html tv.html studio.html"
 for f in $PAGES; do
   if [ -f "$f" ]; then cp "$f" www/; fi
 done
 
-ASSETS="logo.png logodm.png logo-dm.png favicons.png manifest.json"
+ASSETS="logo.png logodm.png logo-dm.png favicons.png manifest.json anim.js"
 for f in $ASSETS; do
   if [ -f "$f" ]; then cp "$f" www/; fi
 done

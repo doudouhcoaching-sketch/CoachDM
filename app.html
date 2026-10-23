@@ -317,6 +317,39 @@
   .sheet .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 16px}
   .sheet h3{margin:0 0 4px;font-size:18px}
   .sheet .fk{color:var(--muted);font-size:13px;margin-bottom:16px}
+  /* Retention 23/10/2026 : boucle du jour et rappels */
+  .lp{padding:16px}
+  .lp-top{display:flex;gap:16px;align-items:stretch}
+  .lp-st{flex:0 0 96px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:16px;
+    background:linear-gradient(160deg,rgba(212,175,55,.16),rgba(212,175,55,.04));border:1px solid rgba(212,175,55,.35);padding:10px 6px}
+  .lp-st b{font-size:38px;line-height:1;font-weight:800;letter-spacing:-.04em;color:var(--gold-ink,#D4AF37)}
+  .lp-k{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .lp-u{font-size:12px;font-weight:600;color:var(--muted);margin-top:2px}
+  .lp-goal{flex:1;display:flex;flex-direction:column;gap:7px;min-width:0}
+  .lp-c{display:flex;align-items:center;gap:9px;width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;
+    padding:9px 11px;font:inherit;font-size:13.5px;font-weight:600;color:var(--text);text-align:left;cursor:pointer}
+  .lp-c i{flex:0 0 20px;height:20px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;color:transparent}
+  .lp-c i svg{width:12px;height:12px}
+  .lp-c.ok i{background:var(--brand);border-color:var(--brand);color:#04140d}
+  .lp-c small{margin-left:auto;font-size:11.5px;font-weight:600;color:var(--muted)}
+  .lp-sub{margin:12px 2px 0;font-size:12.5px;color:var(--muted);line-height:1.45}
+  .lp-ft{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+  .lp-ft span{font-size:11.5px;color:var(--muted);line-height:1.4}
+  .lp-rest{align-self:flex-start;background:none;border:1px solid var(--line);border-radius:999px;padding:7px 13px;font:inherit;font-size:12.5px;font-weight:600;color:var(--text);cursor:pointer}
+  .lp-all .lp-st{border-color:var(--brand)}
+  .rem-hd{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .rem-hd img{width:34px;height:34px;border-radius:10px}
+  .rem-hd h3{margin:0}
+  .rem-r{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line);font-size:14px}
+  .rem-r span{flex:1}
+  .rem-r input[type=checkbox]{width:20px;height:20px;accent-color:var(--brand)}
+  .rem-r input[type=time]{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:6px 8px;color:var(--text);font:inherit}
+  .sheet.rem .btn{margin-top:14px}
+  .iai{list-style:none;padding:0;margin:6px 0 4px;display:flex;flex-direction:column;gap:11px}
+  .iai li{display:flex;gap:10px;font-size:14px;line-height:1.45}
+  .iai b{flex:0 0 22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px}
+  .iai-y{background:var(--brand-soft,rgba(0,232,150,.15));color:var(--brand)}
+  .iai-n{background:rgba(255,90,90,.14);color:#ff6b6b}
   /* --- Abonnement Stripe --- */
   .sub-toggle{display:flex;gap:6px;background:color-mix(in srgb,var(--surface) 60%, black);border:1px solid var(--line);border-radius:14px;padding:5px;margin-bottom:16px}
   .sub-toggle button{flex:1;border:0;background:transparent;color:var(--muted);font:inherit;font-size:14px;padding:9px 0;border-radius:10px}
@@ -1630,6 +1663,7 @@ h1, h2,
          console. Pas d'apercu, pas de zone de reponse : lire et repondre est
          le travail de la console, pas de l'accueil. Vide quand rien n'attend. -->
     <div id="coach-sig"></div>
+    <div id="home-loop"></div>
     <!-- B#9 : l'anneau affichait les calories du jour sans qu'on puisse rien
          en faire. C'est pourtant l'element le plus regarde de l'accueil, et la
          reaction naturelle devant « 480 / 2100 kcal » est de vouloir completer.
@@ -2131,6 +2165,7 @@ h1, h2,
       <h3 data-i18n="prof_account">Compte</h3>
       <div class="empty" style="text-align:left;padding:0 0 12px" id="p-email"></div>
       <a class="btn subtle" id="p-coach-console" href="coach.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_coach_console">Console Coach</a>
+      <a class="btn subtle" id="p-studio" href="studio.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_studio">Studio coach</a>
       <a class="btn subtle" id="p-admin-console" href="admin.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_admin_console">Console Admin</a>
       <a class="btn subtle" id="p-admin-subs" href="admin-subs.html" style="display:none;text-align:center;text-decoration:none;margin-bottom:9px" data-i18n="btn_admin_subs">Substitutions d'exercices</a>
       <!-- Changer son mot de passe une fois connecte : l'app ne le permettait
@@ -3963,6 +3998,7 @@ const T = {
  chat_video_plus:{fr:"Les vidéos nécessitent l'offre Coach+ de ton coach.",en:'Videos require your coach\u2019s Coach+ plan.',nl:'Video\u2019s vereisen het Coach+ abonnement van je coach.'},
  chat_media_na:{fr:'Média indisponible',en:'Media unavailable',nl:'Media niet beschikbaar'},
  btn_admin_console:{fr:'Console Admin',en:'Admin Console',nl:'Admin Console'},
+ btn_studio:{fr:'Studio coach',en:'Coach Studio',nl:'Coach Studio'},
  btn_admin_subs:{fr:'Substitutions d’exercices',en:'Exercise substitutions',nl:'Oefeningvervangingen'},
  contact_coach:{fr:'Contacter le coach',en:'Contact the coach',nl:'Contacteer de coach'},
  prof_options:{fr:'Options',en:'Options',nl:'Opties'},
@@ -4865,6 +4901,7 @@ async function loadProfileInfo(user){
     /* Symétrique : ce lien doit aussi DISPARAÎTRE si la personne quitte le
        rôle coach, sinon elle garde un raccourci vers une console fermée. */
     { const cc=$('#p-coach-console'); if(cc) cc.style.display=(role==='coach'||role==='admin')?'block':'none'; }
+    { const st=$('#p-studio'); if(st) st.style.display=(role==='coach'||role==='admin')?'block':'none'; }
     { const ac=$('#p-admin-console'); if(ac) ac.style.display=(role==='admin')?'block':'none'; }
     { const as=$('#p-admin-subs');    if(as) as.style.display=(role==='admin')?'block':'none'; }
     /* Badge Coach : uniquement si le rôle est coach ET que le badge doré
@@ -7836,7 +7873,7 @@ $('#sh-add').onclick = async ()=>{
   setBtn('#sh-add',false,t('sh_add'));
   if(error){ toast(t('save_fail')); return; }
   closeSheet(); toast(t('jo_added'));
-  await loadLogs(); await loadToday();
+  await loadLogs(); await loadToday(); retAfter();
   if(JO_DATE===todayStr()&&new Date().getHours()>=10) mrSync(true);
 };
 
@@ -8750,7 +8787,7 @@ function switchTab(tab, quiet){
   if(tab==='cours') loadCours();
   if(tab==='boutique') loadBoutique();
   if(tab==='profile'){ renderPRList(); if(typeof pfShow==='function') pfShow('hub'); }
-  if(tab==='ia'){ if(!PREMIUM){ renderIALock(); return; } if(!IA_LOADED){ IA_LOADED=true; loadConversation(); } setTimeout(()=>$('#ia-input').focus(),100); }
+  if(tab==='ia'){ iaIntroMaybe(); if(!PREMIUM){ renderIALock(); return; } if(!IA_LOADED){ IA_LOADED=true; loadConversation(); } setTimeout(()=>$('#ia-input').focus(),100); }
   window.scrollTo(0,0);
 }
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
@@ -9246,6 +9283,7 @@ async function loadHome(){
   $('#home-hi').textContent = t(_gk) + (_n ? ' '+_n : '');
   $('#home-date').textContent = new Date().toLocaleDateString(locale(),{weekday:'long',day:'numeric',month:'long'});
   await loadToday();
+  loopLoad();
   loadMyPlan();
   loadWod();
   loadInsight();
@@ -12884,7 +12922,7 @@ async function startOrFinish(){
     stopWOD();
     const mins=Math.max(1,Math.round((Date.now()-SESSION.started)/60000));
     await sb.from('workout_sessions').update({status:'completed',completed_at:new Date().toISOString(),duration_min:mins}).eq('id',SESSION.id);
-    SESSION=null; liveClear(); btn.disabled=false;
+    SESSION=null; liveClear(); btn.disabled=false; retAfter();
     /* Un record bat pendant la seance a deja mis a jour le 1RM en base (trigger) :
        on vide le cache pour que la seance suivante calcule ses % sur le nouveau 1RM. */
     PRMAP=null;
@@ -13309,7 +13347,7 @@ const AN_BACK_KEY = 'cdm_return_tab';
    reviennent par href="app.html". Meme cause, meme symptome : on partait du
    Profil et on revenait sur l'Accueil. Le portail Stripe, lui, n'a pas besoin
    de ce traitement — il est bloque en natif par le garde-fou Apple 3.1.1. */
-document.querySelectorAll('#p-coach-console, #p-admin-console, #p-admin-subs, [data-i18n="cfree_ok_go"]').forEach(a=>{
+document.querySelectorAll('#p-coach-console, #p-studio, #p-admin-console, #p-admin-subs, [data-i18n="cfree_ok_go"]').forEach(a=>{
   a.addEventListener('click', ()=>{ try{ localStorage.setItem(AN_BACK_KEY,'profile'); }catch(_){} });
 });
 
@@ -13407,8 +13445,10 @@ function pushWire(){
 
   /* Le membre a tape la notification : on l'emmene la ou elle pointe plutot
      que de le laisser sur l'accueil. Un push message doit ouvrir le fil. */
-  PN.addListener('pushNotificationActionPerformed', async ()=>{
+  PN.addListener('pushNotificationActionPerformed', async (a)=>{
     try{
+      const kind=a&&a.notification&&a.notification.data&&a.notification.data.t;
+      if(kind&&retOnTap(kind)) return;
       if(typeof switchTab==='function') switchTab('home');
       if(typeof loadCoachCard==='function') await loadCoachCard();
       if(COACH_THREAD && typeof openCoachChat==='function') CDMLock.guard(openCoachChat);
@@ -13455,6 +13495,168 @@ async function pushInit(opts){
   return PUSH_STATE;
 }
 
+
+/* ==========================================================================
+   RETENTION — PHASE 1 (23/10/2026) : boucle du jour, rappels, Coach IA
+   --------------------------------------------------------------------------
+   Ce qui nous distingue : le rappel vient du coach (sa voix enregistree a
+   l'ouverture, muette tant qu'elle n'est pas enregistree), et la serie est
+   une regularite de coach — un repos planifie (2 par semaine) la garde.
+   Le serveur decide de tout : day_loop() / set_rest_today() pour la carte,
+   fn_reminders_tick() (cron 15 min) pour les rappels, 1 par jour max,
+   jamais entre 21 h et 8 h.
+   ========================================================================== */
+const RT={
+  streak:{fr:'Série',en:'Streak',nl:'Reeks'},
+  day1:{fr:'jour',en:'day',nl:'dag'}, days:{fr:'jours',en:'days',nl:'dagen'},
+  keep:{fr:'Une séance, un repas ou un repos planifié aujourd’hui et elle continue.',en:'A session, a meal or a planned rest today and it keeps going.',nl:'Een training, een maaltijd of een geplande rustdag vandaag en ze loopt door.'},
+  start:{fr:'Ta série commence avec ta première action du jour.',en:'Your streak starts with your first action of the day.',nl:'Je reeks begint met je eerste actie van de dag.'},
+  goal:{fr:'Objectif du jour',en:'Today’s goal',nl:'Doel van vandaag'},
+  session:{fr:'Séance',en:'Session',nl:'Training'}, rest:{fr:'Repos planifié',en:'Planned rest',nl:'Geplande rust'},
+  meal:{fr:'Repas noté',en:'Meal logged',nl:'Maaltijd genoteerd'}, water:{fr:'Eau',en:'Water',nl:'Water'},
+  rest_btn:{fr:'Aujourd’hui, repos planifié',en:'Today is a planned rest day',nl:'Vandaag geplande rustdag'},
+  rest_undo:{fr:'Annuler le repos',en:'Cancel rest day',nl:'Rustdag annuleren'},
+  rest_note:{fr:'Le repos fait partie de l’entraînement : 2 par semaine gardent ta série.',en:'Rest is part of training: 2 per week keep your streak.',nl:'Rust hoort bij training: 2 per week houden je reeks in stand.'},
+  rest_full:{fr:'Tes 2 repos de la semaine sont déjà pris.',en:'Your 2 rest days this week are already used.',nl:'Je 2 rustdagen van deze week zijn al gebruikt.'},
+  rem_t:{fr:'Coach DM te rappelle',en:'Coach DM reminds you',nl:'Coach DM herinnert je'},
+  rem_p:{fr:'Je te rappelle ta séance à l’heure que tu choisis. Jamais plus d’une fois par jour, et jamais entre 21 h et 8 h.',en:'I’ll remind you of your session at the time you choose. Never more than once a day, and never between 9 pm and 8 am.',nl:'Ik herinner je aan je training op het uur dat jij kiest. Nooit meer dan één keer per dag, en nooit tussen 21 u en 8 u.'},
+  rem_ses:{fr:'Rappel de séance',en:'Session reminder',nl:'Trainingsherinnering'},
+  rem_meal:{fr:'Rappel repas à 14 h si rien n’est noté',en:'Meal reminder at 2 pm if nothing is logged',nl:'Maaltijdherinnering om 14 u als er niets genoteerd is'},
+  rem_recap:{fr:'Récap de ta semaine le dimanche à 18 h',en:'Your weekly recap on Sunday at 6 pm',nl:'Je weekoverzicht op zondag om 18 u'},
+  rem_go:{fr:'Activer mes rappels',en:'Turn on my reminders',nl:'Mijn herinneringen aanzetten'},
+  rem_save:{fr:'Enregistrer',en:'Save',nl:'Opslaan'},
+  rem_later:{fr:'Plus tard',en:'Later',nl:'Later'},
+  rem_cancel:{fr:'Annuler',en:'Cancel',nl:'Annuleren'},
+  rem_saved:{fr:'Rappels enregistrés',en:'Reminders saved',nl:'Herinneringen opgeslagen'},
+  rem_set:{fr:'Régler',en:'Settings',nl:'Instellen'},
+  ia_t:{fr:'Ton Coach IA, formé par Coach DM',en:'Your AI Coach, trained by Coach DM',nl:'Je AI-coach, opgeleid door Coach DM'},
+  ia_y1:{fr:'Il adapte ta séance Coach DM à ta fatigue, ton matériel et ton temps.',en:'It adapts your Coach DM session to your fatigue, equipment and time.',nl:'Hij past je Coach DM-training aan je vermoeidheid, materiaal en tijd aan.'},
+  ia_y2:{fr:'Il répond à tes questions d’entraînement et de nutrition, avec la méthode Coach DM.',en:'It answers your training and nutrition questions with the Coach DM method.',nl:'Hij beantwoordt je vragen over training en voeding volgens de Coach DM-methode.'},
+  ia_y3:{fr:'Il voit tes repas, tes séances et tes records pour te répondre juste.',en:'It sees your meals, sessions and records to answer you accurately.',nl:'Hij ziet je maaltijden, trainingen en records om je juist te antwoorden.'},
+  ia_n1:{fr:'Il ne fabrique pas un programme à la carte comme ChatGPT : tes programmes viennent de Coach DM.',en:'It doesn’t make up a custom program like ChatGPT: your programs come from Coach DM.',nl:'Hij verzint geen programma op maat zoals ChatGPT: je programma’s komen van Coach DM.'},
+  ia_n2:{fr:'Il ne remplace pas un médecin.',en:'It doesn’t replace a doctor.',nl:'Hij vervangt geen arts.'},
+  ia_ok:{fr:'Compris',en:'Got it',nl:'Begrepen'}
+};
+const rt=k=>(RT[k]&&(RT[k][LANG]||RT[k].fr))||k;
+function rtEsc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+/* la voix du coach, ou le silence : jamais la voix du telephone */
+async function retSay(k){ try{ await vcIndex(); if(vcHas(LANG,k)) vcRun([{l:LANG,k}],null); }catch(_){} }
+
+let LOOP=null;
+async function loopLoad(){
+  const box=document.getElementById('home-loop'); if(!box||!USER) return;
+  try{ const r=await sb.rpc('day_loop'); if(r.error) throw r.error; LOOP=r.data; }catch(_){ box.innerHTML=''; return; }
+  loopRender();
+}
+function loopRender(){
+  const box=document.getElementById('home-loop'); if(!box||!LOOP) return;
+  const L0=LOOP, k=+L0.streak||0, tick='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
+  const c1=L0.session||L0.rest, all=c1&&L0.meal&&L0.water;
+  const sub=k===0?rt('start'):(!L0.today_active?rt('keep'):'');
+  let rb='';
+  if(!L0.session){ if(L0.rest) rb=`<button type="button" class="lp-rest" data-rest="0">${rtEsc(rt('rest_undo'))}</button>`;
+    else if((L0.rest_left|0)>0) rb=`<button type="button" class="lp-rest" data-rest="1">${rtEsc(rt('rest_btn'))}</button>`; }
+  const w=((+L0.water_ml||0)/1000).toFixed(1).replace('.',LANG==='en'?'.':','), wt=((+L0.water_target||2000)/1000).toFixed(1).replace('.',LANG==='en'?'.':',');
+  box.innerHTML=`<div class="block lp${all?' lp-all':''}">
+    <div class="lp-top">
+      <div class="lp-st"><span class="lp-k">${rtEsc(rt('streak'))}</span><b>${k}</b><span class="lp-u">${rtEsc(k===1?rt('day1'):rt('days'))}</span></div>
+      <div class="lp-goal"><div class="lp-k">${rtEsc(rt('goal'))}</div>
+        <button type="button" class="lp-c${c1?' ok':''}" data-go="seances"><i>${tick}</i>${rtEsc(L0.rest?rt('rest'):rt('session'))}</button>
+        <button type="button" class="lp-c${L0.meal?' ok':''}" data-go="journal"><i>${tick}</i>${rtEsc(rt('meal'))}</button>
+        <button type="button" class="lp-c${L0.water?' ok':''}" data-go="journal"><i>${tick}</i>${rtEsc(rt('water'))}<small>${w} / ${wt} L</small></button>
+      </div>
+    </div>
+    ${sub?`<p class="lp-sub">${rtEsc(sub)}</p>`:''}
+    ${rb?`<div class="lp-ft">${rb}<span>${rtEsc(rt('rest_note'))}</span></div>`:''}
+  </div>`;
+  box.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{ try{ buzz(8); }catch(_){} switchTab(b.dataset.go); });
+  box.querySelectorAll('[data-rest]').forEach(b=>b.onclick=async()=>{
+    b.disabled=true;
+    const r=await sb.rpc('set_rest_today',{p_on:b.dataset.rest==='1'});
+    if(r.error){ toast(/rest_limit/.test(r.error.message||'')?rt('rest_full'):t('save_fail')); b.disabled=false; return; }
+    LOOP=r.data; loopRender();
+  });
+  /* objectif complet : une seule fois par jour, ta voix (ou rien) */
+  if(all){ const d=todayStr(); let seen=null; try{ seen=localStorage.getItem('cdm_loop_cele'); }catch(_){}
+    if(seen!==d){ try{ localStorage.setItem('cdm_loop_cele',d); }catch(_){} retSay('n_streak'); } }
+}
+/* apres un repas note ou une seance terminee : carte a jour, et c'est le bon moment pour proposer les rappels */
+function retAfter(){ try{ loopLoad(); }catch(_){} setTimeout(()=>{ try{ remMaybeAsk(true); }catch(_){} },1200); }
+
+/* --- rappels : ecran maison avant la demande systeme --- */
+let REM=null;
+async function remPrefs(){ if(REM) return REM; try{ const r=await sb.from('member_reminders').select('session_on,session_time,meal_on,recap_on').eq('user_id',USER.id).maybeSingle(); REM=r.data||null; }catch(_){ REM=null; } return REM; }
+async function remSheet(mode){
+  document.querySelectorAll('#rem-ov').forEach(e=>e.remove());
+  const p=(await remPrefs())||{session_on:true,session_time:null,meal_on:true,recap_on:true};
+  const tm=(p.session_time||'18:00').slice(0,5);
+  const ov=document.createElement('div'); ov.className='overlay show'; ov.id='rem-ov';
+  ov.innerHTML=`<div class="sheet rem"><div class="grab"></div>
+    <div class="rem-hd"><img src="logo-dm.png" alt="Coach DM"><h3>${rtEsc(rt('rem_t'))}</h3></div>
+    <div class="fk">${rtEsc(rt('rem_p'))}</div>
+    <label class="rem-r"><input type="checkbox" id="rem-ses" ${p.session_on!==false?'checked':''}><span>${rtEsc(rt('rem_ses'))}</span><input type="time" id="rem-tm" value="${tm}" step="900"></label>
+    <label class="rem-r"><input type="checkbox" id="rem-meal" ${p.meal_on!==false?'checked':''}><span>${rtEsc(rt('rem_meal'))}</span></label>
+    <label class="rem-r"><input type="checkbox" id="rem-rec" ${p.recap_on!==false?'checked':''}><span>${rtEsc(rt('rem_recap'))}</span></label>
+    <button type="button" class="btn" id="rem-go">${rtEsc(rt(mode==='ask'?'rem_go':'rem_save'))}</button>
+    <button type="button" class="btn subtle" id="rem-no" style="margin-top:9px">${rtEsc(rt(mode==='ask'?'rem_later':'rem_cancel'))}</button>
+  </div>`;
+  document.body.appendChild(ov);
+  const close=()=>ov.remove();
+  ov.onclick=e=>{ if(e.target===ov){ if(mode==='ask') remLater(); close(); } };
+  ov.querySelector('#rem-no').onclick=()=>{ if(mode==='ask') remLater(); close(); };
+  ov.querySelector('#rem-go').onclick=async()=>{
+    const b=ov.querySelector('#rem-go'); b.disabled=true;
+    const row={user_id:USER.id,session_on:ov.querySelector('#rem-ses').checked,session_time:(ov.querySelector('#rem-tm').value||'18:00')+':00',
+      meal_on:ov.querySelector('#rem-meal').checked,recap_on:ov.querySelector('#rem-rec').checked,updated_at:new Date().toISOString()};
+    const r=await sb.from('member_reminders').upsert(row,{onConflict:'user_id'});
+    if(r.error){ b.disabled=false; toast(t('save_fail')); return; }
+    REM=row; close();
+    if(IS_NATIVE&&pushPlugin()&&PUSH_STATE!=='granted'){ const st=await pushInit({ask:true}); pushRenderRow(); toast(st==='granted'?t('notif_ok_toast'):t('notif_ko_toast')); }
+    else toast(rt('rem_saved'));
+  };
+  if(mode==='ask') retSay('n_notif_why');
+}
+function remLater(){ try{ localStorage.setItem('cdm_rem_later',String(Date.now())); localStorage.setItem('cdm_rem_pre',String((+localStorage.getItem('cdm_rem_pre')||0)+1)); }catch(_){} }
+/* Une seule demande systeme (iOS ne redemande jamais) ; notre ecran au plus 2 fois, espacees de 3 jours.
+   On propose apres une premiere action : un repas note, une seance faite — ou si un coach suit le membre. */
+async function remMaybeAsk(hadAction){
+  if(!IS_NATIVE||!pushPlugin()||!USER) return;
+  await pushSyncState();
+  if(PUSH_STATE==='granted'||PUSH_STATE==='denied') return;
+  try{ if(localStorage.getItem(PUSH_ASKED_KEY)==='1') return;
+    if((+localStorage.getItem('cdm_rem_pre')||0)>=2) return;
+    if(Date.now()-(+localStorage.getItem('cdm_rem_later')||0)<3*864e5) return; }catch(_){}
+  if(!hadAction){
+    try{ const [a,b]=await Promise.all([
+      sb.from('food_logs').select('id',{count:'exact',head:true}).eq('user_id',USER.id),
+      sb.from('workout_sessions').select('id',{count:'exact',head:true}).eq('user_id',USER.id).not('completed_at','is',null)]);
+      if(!((a.count||0)+(b.count||0))) return; }catch(_){ return; }
+  }
+  if(document.querySelector('.overlay.show')) { setTimeout(()=>remMaybeAsk(hadAction),4000); return; }
+  remSheet('ask');
+}
+/* le membre a tape un rappel : on l'emmene au bon endroit, avec ta voix */
+function retOnTap(kind){
+  if(kind==='rem_session'){ switchTab('seances'); retSay('n_rem_session'); return true; }
+  if(kind==='rem_meal'){ switchTab('journal'); retSay('n_rem_meal'); return true; }
+  if(kind==='recap_week'){ switchTab('analyse'); retSay('n_recap'); return true; }
+  return false;
+}
+/* --- Coach IA : ce qu'il fait, ce qu'il ne fait pas, a la premiere ouverture --- */
+function iaIntroMaybe(){
+  try{ if(localStorage.getItem('cdm_ia_intro')==='1') return; }catch(_){}
+  document.querySelectorAll('#iai-ov').forEach(e=>e.remove());
+  const y='<b class="iai-y">✓</b>', n='<b class="iai-n">✕</b>';
+  const ov=document.createElement('div'); ov.className='overlay show'; ov.id='iai-ov';
+  ov.innerHTML=`<div class="sheet rem"><div class="grab"></div>
+    <div class="rem-hd"><img src="logo-dm.png" alt="Coach DM"><h3>${rtEsc(rt('ia_t'))}</h3></div>
+    <ul class="iai">${['ia_y1','ia_y2','ia_y3'].map(k=>`<li>${y}<span>${rtEsc(rt(k))}</span></li>`).join('')}${['ia_n1','ia_n2'].map(k=>`<li>${n}<span>${rtEsc(rt(k))}</span></li>`).join('')}</ul>
+    <button type="button" class="btn" id="iai-ok">${rtEsc(rt('ia_ok'))}</button></div>`;
+  document.body.appendChild(ov);
+  const ok=()=>{ try{ localStorage.setItem('cdm_ia_intro','1'); }catch(_){} ov.remove(); };
+  ov.querySelector('#iai-ok').onclick=ok; ov.onclick=e=>{ if(e.target===ov) ok(); };
+}
+
 /* Moment choisi pour demander : apres le boot complet, et seulement si le
    membre a un lien coach (invitation en attente, coach actif, ou lui-meme
    coach). C'est le seul cas ou une notification a un contenu reel a livrer
@@ -13468,7 +13670,8 @@ async function pushMaybeAsk(){
   let asked = false;
   try{ asked = localStorage.getItem(PUSH_ASKED_KEY)==='1'; }catch(_){}
   const pertinent = HAS_COACH || IS_COACH || (Array.isArray(COACH_INVITES) && COACH_INVITES.length>0);
-  if(!asked && pertinent) await pushInit({ask:true});
+  /* 23/10/2026 : rappels pour tous, precedes de l'ecran Coach DM (remMaybeAsk) */
+  if(!asked) remMaybeAsk(pertinent);
   pushRenderRow();
 }
 
@@ -13481,9 +13684,9 @@ function pushRenderRow(){
   if(!IS_NATIVE || !pushPlugin()){ row.style.display='none'; return; }
   row.style.display='';
   if(PUSH_STATE === 'granted'){
-    btn.textContent = t('notif_on');
-    btn.disabled = true;
-    btn.style.opacity = '.6';
+    btn.textContent = rt('rem_set');
+    btn.disabled = false;
+    btn.style.opacity = '1';
   } else if(PUSH_STATE === 'denied'){
     btn.textContent = t('notif_blocked');
     btn.disabled = false;
@@ -13502,9 +13705,8 @@ function pushRenderRow(){
       toast(t('notif_ko_toast'));
       return;
     }
-    const st = await pushInit({ask:true});
-    pushRenderRow();
-    toast(st === 'granted' ? t('notif_ok_toast') : t('notif_ko_toast'));
+    /* reglage des rappels (heure, repas, recap) ; la demande systeme passe par l'ecran Coach DM */
+    remSheet(PUSH_STATE === 'granted' ? 'edit' : 'ask');
   };
 }
 
