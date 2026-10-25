@@ -218,6 +218,16 @@ html.emb .ph .hd{margin-top:calc(46px + env(safe-area-inset-top))}
   .top h2,.top .now{font-size:3.4vw}.top .logo{width:7vw;height:7vw}.top .br{display:none}
   .clk{font-size:26vw}.sub{font-size:5vw}.lab{font-size:3vw}.mv .t b{font-size:6vw}.mv .fig{width:24vw;height:24vw}
 }
+
+/* 2.4 : demo video en boucle sans son + consignes courtes */
+.vd{position:relative;width:30vw;aspect-ratio:16/9;border-radius:1.4vw;overflow:hidden;background:#000;flex:none}
+.vd.big{width:min(46vw,64vh);margin:1vw auto .4vw}
+.vd iframe{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none}
+.vd .vfig{position:absolute;right:.6vw;bottom:.6vw;width:7vw;height:7vw;background:rgba(0,0,0,.55);border-radius:1vw}
+.mv.hasv{flex-direction:column;gap:1vw}
+.mv.hasv .t{text-align:center}
+.tvcue{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:3.4vw;letter-spacing:.02em;color:var(--gold-hi);-webkit-line-clamp:1}
+@media (max-aspect-ratio:1/1){.vd,.vd.big{width:86vw}.tvcue{font-size:7vw}.vd .vfig{width:16vw;height:16vw}}
 </style>
 </head>
 <body>
@@ -628,7 +638,8 @@ function show(){
   G('vit').hidden=cls; G('cls').hidden=!cls; G('paircode').hidden=cls;
   G('s-mode').hidden=!cls; G('s-title').textContent=cls?G('s-title').textContent:''; if(!cls) clubHead(null);
   G('snd').hidden=soundOk()||MODE!=='club';
-  KEYS={}; paint();
+  KEYS={}; try{ if(W&&W.parts){ var sl=[]; W.parts.forEach(function(pp){ (pp.items||[]).forEach(function(it){ if(it.slug) sl.push(it.slug); }); }); exLoad(sl); } }catch(e){}
+  paint();
 }
 
 /* --- canal temps reel --- */
@@ -789,12 +800,12 @@ function paintClub(){
   else if(S.phase==='done'){ h='<div class="lab">'+esc(partLabel(p))+'</div><div class="clk num go">'+esc(t('time'))+'</div><div class="sub">'+esc(t('done'))+'</div>'; }
   else if(S.phase==='rest'){ var rl=(S.restEnd-Date.now())/1000, it=p.items[S.item]||{}, gg=grp(p,S.item), nxt=(S.set+1>=(it.sets||1))?p.items[gg[1]+1]:p.items[gg[0]];
     h='<div class="lab">'+esc(t('rest'))+'</div><div class="clk num rest">'+D(fmt(rl))+'</div>'+
-      (nxt?'<div class="sub2">'+esc(t('next'))+'</div>'+mv(nxt,(S.set+1<(it.sets||1))?(t('set')+' '+(S.set+2)+' '+t('of')+' '+(it.sets||1)):''):'')+
+      (nxt?'<div class="sub2">'+esc(t('next'))+'</div>'+mv(nxt,(S.set+1<(it.sets||1))?(t('set')+' '+(S.set+2)+' '+t('of')+' '+(it.sets||1)):'',1):'')+
       '<div class="bar" style="width:'+(100*(1-rl/Math.max(1,S.restTot))).toFixed(1)+'%"></div>'; }
   else if(wod){ var sub='', m='';
     if(W.fmt==='emom'){ var I=emomI(), r=Math.floor(e/I), its=p.items, ci=its[r%its.length], ni=its[(r+1)%its.length];
       cls+=((I-(e%I))<=3&&S.run)?' warn':' go'; sub=t('rnd')+' '+Math.min(r+1,W.emr||10)+' / '+(W.emr||10);
-      m=mv(ci,'')+(its.length>1&&ni?'<div class="nx">'+esc(t('next'))+'<b>'+esc(ni.name)+'</b></div>':''); }
+      m=mv(ci,'',1)+(its.length>1&&ni?'<div class="nx">'+esc(t('next'))+'<b>'+esc(ni.name)+'</b></div>':''); }
     else { cls+=(cap&&(cap-e)<=60)?' warn':(S.phase==='idle'?' idle':' go');
       sub=W.fmt==='amrap'?'AMRAP':(W.fmt==='rft'?(W.rft||'')+' RFT':'For Time'); if(S.rounds) sub+=' · '+S.rounds+' '+t('rnds');
       if(cap&&W.fmt!=='amrap') sub+=' · '+t('cap')+' '+fmt(cap); }
@@ -803,7 +814,7 @@ function paintClub(){
       (cap?'<div class="bar" style="width:'+Math.min(100,100*e/cap).toFixed(1)+'%"></div>':''); }
   else { var it2=p.items[S.item]||p.items[0]||{};
     h='<div class="lab">'+esc(partLabel(p))+'</div><div class="'+cls+(S.phase==='idle'?' idle':' go')+'">'+D(clockTxt())+'</div>'+
-      (S.phase==='idle'?'<div class="sub2">'+esc(t('wait'))+'</div>':'<div class="sub">'+(flow(p)&&S.rounds?esc(t('rnd')+' '+(S.rounds+1)):it2.sets>1?esc(t('set')+' '+(S.set+1)+' '+t('of')+' '+it2.sets):'')+'</div>'+mv(it2,'')); }
+      (S.phase==='idle'?'<div class="sub2">'+esc(t('wait'))+'</div>':'<div class="sub">'+(flow(p)&&S.rounds?esc(t('rnd')+' '+(S.rounds+1)):it2.sets>1?esc(t('set')+' '+(S.set+1)+' '+t('of')+' '+it2.sets):'')+'</div>'+mv(it2,'',1)); }
   if(!S.run&&S.phase==='work') h+='<div class="pause">'+esc(t('pause'))+'</div>';
   G('s-live').dataset.k=p.block; setH('s-live',h);
 }
@@ -812,8 +823,30 @@ function clubHead(c){ var lg=c&&c.logo, nm=c&&c.name;
   G('s-x').hidden=!(lg||nm); G('s-club').hidden=!lg; G('s-cn').hidden=!nm;
   if(lg&&G('s-club').getAttribute('src')!==lg){ G('s-club').src=lg; G('s-club').alt=nm||''; }
   G('s-cn').textContent=nm||''; }
-function mv(it,extra){ if(!it) return ''; var f=fig(it.slug), q=qty(it);
-  return '<div class="mv">'+(f?'<div class="fig rig">'+f+'</div>':'')+'<div class="t"><b>'+esc(it.name)+'</b><span class="num">'+esc([q,it.load].filter(Boolean).join(' · '))+'</span>'+(extra?'<em>'+esc(extra)+'</em>':'')+(it.tempo?'<em>Tempo '+esc(it.tempo)+'</em>':'')+'</div></div>'; }
+function mv(it,extra,big){ if(!it) return ''; var f=fig(it.slug), q=qty(it), x=exd(it.slug), vid=x&&x.vid;
+  var head=vid?'<div class="vd'+(big?' big':'')+'"><iframe src="https://coachdm.be/demo.html?v='+vid+'" allow="autoplay; encrypted-media" tabindex="-1"></iframe>'+(f?'<div class="fig rig vfig">'+f+'</div>':'')+'</div>':(f?'<div class="fig rig">'+f+'</div>':'');
+  return '<div class="mv'+(vid?' hasv':'')+'">'+head+'<div class="t"><b>'+esc(it.name)+'</b><span class="num">'+esc([q,it.load].filter(Boolean).join(' · '))+'</span>'+(extra?'<em>'+esc(extra)+'</em>':'')+(it.tempo?'<em>Tempo '+esc(it.tempo)+'</em>':'')+'</div></div>'+(big?cueLine(it.slug):''); }
+/* 2.4 : pour chaque mouvement, la demo YouTube en boucle, sans son, et les consignes
+   courtes de Coach DM (2 a 5 mots, celles qu'il crie en salle), une a la fois. */
+var EXD={}, EXQ={};
+function exd(slug){ if(!slug) return null; if(EXD[slug]!==undefined) return EXD[slug]; exLoad([slug]); return null; }
+function exLoad(slugs){
+  slugs=slugs.filter(function(x){ return x&&EXD[x]===undefined&&!EXQ[x]; }); if(!slugs.length||!sb) return;
+  slugs.forEach(function(x){ EXQ[x]=1; });
+  Promise.all([sb.from('exercises').select('slug,video_url').in('slug',slugs),
+    sb.from('exercise_voice_cues').select('slug,cue_key,ord,moment,tier').in('slug',slugs).order('ord')]).then(function(r){
+    var V={}, C={}; (r[0].data||[]).forEach(function(e){ var m=String(e.video_url||'').match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/); V[e.slug]=m?m[1]:null; });
+    (r[1].data||[]).forEach(function(c){ if((c.moment||'mid')!=='mid') return; (C[c.slug]=C[c.slug]||[]).push(c); });
+    var keys=[]; Object.keys(C).forEach(function(k){ C[k].sort(function(a,b){ return (b.tier||1)-(a.tier||1)||(a.ord||0)-(b.ord||0); }); C[k].forEach(function(c){ keys.push(c.cue_key); }); });
+    var done=function(T){ slugs.forEach(function(sl){ var L=(C[sl]||[]).map(function(c){ return T[c.cue_key]; }).filter(function(t){ return t&&t.split(/\s+/).length<=6; });
+        var seen={}; L=L.filter(function(t){ if(seen[t]) return false; seen[t]=1; return true; }).slice(0,4);
+        EXD[sl]={vid:V[sl]||null,cues:L}; delete EXQ[sl]; }); KEYS={}; paint(); };
+    if(!keys.length) return done({});
+    sb.from('voice_lines').select('key,text').eq('lang',LANG).in('key',keys).then(function(q){ var T={}; (q.data||[]).forEach(function(l){ T[l.key]=l.text; }); done(T); });
+  }).catch(function(){ slugs.forEach(function(x){ delete EXQ[x]; }); });
+}
+function cueLine(slug){ var x=EXD[slug]; if(!x||!x.cues||!x.cues.length) return ''; var c=x.cues[Math.floor(Date.now()/7000)%x.cues.length];
+  return '<div class="cue tvcue">'+D(c)+'</div>'; }
 function paintMir(){
   var d=MIR||{}; document.body.classList.toggle('solo',!(d.plan&&d.plan.length)); G('s-title').textContent=d.title||''; G('s-mode').textContent=t('ath'); clubHead(null);
   setH('s-plan',(d.plan||[]).map(function(pp){
@@ -823,19 +856,18 @@ function paintMir(){
   if(v==='count') h='<div class="lab">'+esc(t('ready'))+'</div><div class="big3 num goldtx">'+D(d.clock||'')+'</div>';
   else if(v==='rest'){ var left=(d.restLeft||0)-(Date.now()-d._at)/1000;
     h='<div class="lab">'+esc(t('rest'))+'</div><div class="clk num rest">'+D(fmt(left))+'</div>'+
-      (d.next?'<div class="sub2">'+esc(t('next'))+'</div>'+mv({slug:d.next.slug,name:d.next.name,q:d.next.target},d.next.k||''):'')+
-      (d.tip?'<div class="cue">'+esc(d.tip)+'</div>':'')+
+      (d.next?'<div class="sub2">'+esc(t('next'))+'</div>'+mv({slug:d.next.slug,name:d.next.name,q:d.next.target},d.next.k||'',1):'')+
       '<div class="bar" style="width:'+(100*(1-left/Math.max(1,d.restTotal||1))).toFixed(1)+'%"></div>'; }
   else if(v==='wod'){ h='<div class="lab">'+esc(d.fmt||'WOD')+'</div><div class="clk num go">'+D(d.clock||'')+'</div><div class="sub">'+D(d.sub||'')+'</div>'+
-      (d.cur?mv({slug:d.cur.slug,name:d.cur.name,q:d.cur.target},''):''); }
+      (d.cur?mv({slug:d.cur.slug,name:d.cur.name,q:d.cur.target},'',1):''); }
   else if(v==='end'){ h='<div class="lab">'+esc(t('endT'))+'</div><div class="clk num go">✓</div><div class="sub">'+esc(d.sub||'')+'</div>'; }
-  else if(v==='work'){ var f=fig(d.slug);
-    h='<div class="lab">'+esc(d.block||t('work'))+'</div>'+(f?'<div class="fig rig" style="height:28vh;width:28vh;max-width:100%">'+f+'</div>':'')+
+  else if(v==='work'){ var f=fig(d.slug), xw=exd(d.slug), vw=xw&&xw.vid;
+    h='<div class="lab">'+esc(d.block||t('work'))+'</div>'+(vw?'<div class="vd big"><iframe src="https://coachdm.be/demo.html?v='+vw+'" allow="autoplay; encrypted-media" tabindex="-1"></iframe>'+(f?'<div class="fig rig vfig">'+f+'</div>':'')+'</div>':(f?'<div class="fig rig" style="height:28vh;width:28vh;max-width:100%">'+f+'</div>':''))+
       '<div class="clk num" style="font-size:5.2vw;margin-top:1vw">'+esc(d.name||'')+'</div>'+
       (d.target?'<div class="sub num" style="font-size:4.4vw;color:var(--g)">'+esc(d.target)+'</div>':'')+
       (d.tempo?'<div class="sub2" style="color:var(--ice)">⏱ '+esc(d.tempo)+'</div>':'')+
       '<div class="sub2">'+esc(d.pips||'')+' · '+D(d.clock||'')+'</div>'+
-      (d.cue?'<div class="cue">'+esc(d.cue)+'</div>':''); }
+      cueLine(d.slug); }
   else h='<div class="lab">'+esc(t('ath'))+'</div><div class="clk num">'+D(d.clock||'')+'</div>';
   setH('s-live',h);
 }

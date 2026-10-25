@@ -1,0 +1,27 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Coach DM — Démo</title>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}#p,iframe{position:fixed;inset:0;width:100%;height:100%;border:0;pointer-events:none}</style>
+</head><body><div id="p"></div>
+<script>
+/* Demo du mouvement dans le Mode Seance de l'app Coach DM : lecture automatique,
+   son coupe, en boucle, sans commandes. Le parent (l'app) recoit l'etat du lecteur
+   pour savoir si la video tourne. Page hebergee ici parce que YouTube exige une
+   vraie origine https, que l'app embarquee n'a pas. */
+(function(){
+  var q=new URLSearchParams(location.search), v=(q.get('v')||'').trim();
+  function say(s){ try{ parent.postMessage({nxDemo:s,v:v},'*'); }catch(e){} }
+  if(!/^[\w-]{11}$/.test(v)){ say('error'); return; }
+  window.onYouTubeIframeAPIReady=function(){
+    new YT.Player('p',{videoId:v,host:'https://www.youtube-nocookie.com',
+      playerVars:{autoplay:1,mute:1,playsinline:1,loop:1,playlist:v,controls:0,rel:0,modestbranding:1,iv_load_policy:3,disablekb:1,fs:0},
+      events:{
+        onReady:function(e){ e.target.mute(); e.target.playVideo(); say('ready'); },
+        onStateChange:function(e){ if(e.data===1) say('playing'); if(e.data===0){ e.target.seekTo(0); e.target.playVideo(); } },
+        onError:function(){ say('error'); }
+      }});
+  };
+  var s=document.createElement('script'); s.src='https://www.youtube.com/iframe_api'; document.head.appendChild(s);
+})();
+</script></body></html>
