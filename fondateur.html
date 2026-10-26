@@ -155,6 +155,10 @@ const T = {
   f_msg_checkins:{fr:"Messagerie et check-ins",en:"Messaging and check-ins",nl:"Berichten en check-ins"},
   f_featured:{fr:"Mis en avant dans l'app",en:"Featured in the app",nl:"Uitgelicht in de app"},
   f_onboarding:{fr:"Onboarding direct avec Coach DM",en:"Direct onboarding with Coach DM",nl:"Directe onboarding met Coach DM"},
+  f_unlimited:{fr:"Clients illimités",en:"Unlimited clients",nl:"Onbeperkt klanten"},
+  f_library:{fr:"Les programmes Coach DM pour tes clients",en:"Coach DM programs for your clients",nl:"De Coach DM-programma's voor je klanten"},
+  f_assistant:{fr:"L'assistant qui crée les programmes",en:"The assistant that builds programs",nl:"De assistent die programma's bouwt"},
+  f_nutri_gram:{fr:"Plans repas calculés au gramme près",en:"Meal plans calculated to the gram",nl:"Maaltijdplannen tot op de gram berekend"},
   f_all_coach_ext:{fr:"Tout Coach, capacité étendue",en:"Everything in Coach, extended capacity",nl:"Alles van Coach, uitgebreide capaciteit"},
   f_video_clients:{fr:"Appels vidéo avec tes clients",en:"Video calls with your clients",nl:"Videogesprekken met je klanten"},
   f_gyms:{fr:"Idéal salles & gros volumes",en:"Ideal for gyms & high volume",nl:"Ideaal voor sportscholen & grote volumes"},
@@ -214,10 +218,9 @@ function card(tier,badge,feats){
 function render(){
   const wrap=$('#founder-cards');
   if(KIND==='coach'){
-    wrap.className='cards two';
+    wrap.className='cards';
     wrap.innerHTML =
-      card('coach',t('tier_coach_f'),[t('f_client_mgmt'),t('f_msg_checkins'),t('f_featured'),t('f_onboarding')])
-    + card('coach_plus',t('tier_coachplus_f'),[t('f_all_coach_ext'),t('f_video_clients'),t('f_gyms')]);
+      card('coach',t('tier_coach_f'),[t('f_unlimited'),t('f_library'),t('f_assistant'),t('f_nutri_gram'),t('f_msg_checkins'),t('f_video_clients'),t('f_onboarding')]);
   } else {
     wrap.className='cards';
     wrap.innerHTML = card('membre',t('tier_membre_f'),[t('f_all_member'),t('f_4analyses'),t('f_ai_photo'),t('f_badge')]);

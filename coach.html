@@ -284,7 +284,7 @@ h1, h2,
   <div class="topbar">
     <div class="row">
       <div class="tb-id"><img src="/logo-dm.png" alt="Coach DM"><div><div class="tb-kick">Power · Transform · Excel</div><h2 data-i18n="c_title">Console Coach</h2></div></div>
-      <button type="button" id="c-theme" class="themebtn" aria-label="Mode clair / sombre" title="Mode clair / sombre">☀️</button><div id="c-lang" class="langsw" style="display:flex;gap:4px;margin-right:8px"><button type="button" data-lang="fr">FR</button><button type="button" data-lang="en">EN</button><button type="button" data-lang="nl">NL</button></div><button class="btn subtle sm" id="logout" data-i18n="c_logout">Déconnexion</button>
+      <button type="button" id="c-theme" class="themebtn" aria-label="Mode clair / sombre" title="Mode clair / sombre"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.16em" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg></button><div id="c-lang" class="langsw" style="display:flex;gap:4px;margin-right:8px"><button type="button" data-lang="fr">FR</button><button type="button" data-lang="en">EN</button><button type="button" data-lang="nl">NL</button></div><button class="btn subtle sm" id="logout" data-i18n="c_logout">Déconnexion</button>
     </div>
     <div class="tabs">
       <button class="on" data-tab="clients" data-i18n="c_tab_clients">Clients</button>
@@ -1557,14 +1557,14 @@ const T = {
  p_paused:{fr:'En pause',en:'Paused',nl:'Gepauzeerd'},
  b_dup_7d:{fr:'⧉ Dupliquer en décalant de 7 jours',en:'⧉ Duplicate shifted by 7 days',nl:'⧉ Dupliceren met 7 dagen verschuiving'},
  b_schedule_wk:{fr:'＋ Programmer une séance',en:'＋ Schedule a session',nl:'＋ Sessie plannen'},
- b_autodate:{fr:'📅 Dater auto (1×/semaine depuis le début)',en:'📅 Auto-date (1×/week from the start)',nl:'📅 Auto-datum (1×/week vanaf het begin)'},
+ b_autodate:{fr:'Dater auto (1×/semaine depuis le début)',en:'Auto-date (1×/week from the start)',nl:'Auto-datum (1×/week vanaf het begin)'},
  b_slot_used:{fr:'Ta <b>place offerte</b> est utilisée',en:'Your <b>free slot</b> is in use',nl:'Je <b>gratis plaats</b> is in gebruik'},
  b_slot_free:{fr:'Tu as <b>1 place offerte</b> pour découvrir la console',en:'You have <b>1 free slot</b> to try the console',nl:'Je hebt <b>1 gratis plaats</b> om de console te ontdekken'},
  b_end_to_end:{fr:'Tu as géré un client de bout en bout : programmes, macros, messages, analyses.',en:'You have managed a client end to end: programs, macros, messages, analyses.',nl:'Je hebt een klant van begin tot eind begeleid: programma\'s, macro\'s, berichten, analyses.'},
  q_archive:{fr:'Archiver {0} ? Le compte est conservé, le slot est libéré.',en:'Archive {0}? The account is kept, the slot is freed.',nl:'{0} archiveren? Het account blijft, de plaats komt vrij.'},
  b_nodata:{fr:'Pas encore de données pour ce client. Elles apparaîtront dès qu\'il utilisera l\'app.',en:'No data for this client yet. It will appear once they use the app.',nl:'Nog geen gegevens voor deze klant. Ze verschijnen zodra hij de app gebruikt.'},
- m_calls_plus:{fr:'Les appels vidéo nécessitent l\'offre Coach+.',en:'Video calls require the Coach+ plan.',nl:'Videogesprekken vereisen de Coach+ formule.'},
- m_videos_plus:{fr:'Les vidéos nécessitent l\'offre Coach+.',en:'Videos require the Coach+ plan.',nl:'Video\'s vereisen de Coach+ formule.'},
+ m_calls_plus:{fr:'Les appels vidéo font partie de l\'offre Coach.',en:'Video calls are part of the Coach plan.',nl:'Videogesprekken horen bij het Coach-abonnement.'},
+ m_videos_plus:{fr:'Les vidéos font partie de l\'offre Coach.',en:'Videos are part of the Coach plan.',nl:'Video\'s horen bij het Coach-abonnement.'},
  m_meals_failed:{fr:'Repas non enregistrés : ',en:'Meals not saved: ',nl:'Maaltijden niet opgeslagen: '},
  m_request_sent:{fr:'Demande envoyée — en attente de l\'accord du membre',en:'Request sent — waiting for the member to accept',nl:'Verzoek verstuurd — wacht op akkoord van het lid'},
  b_proposed_on:{fr:'Proposé le',en:'Proposed on',nl:'Voorgesteld op'},
@@ -1591,7 +1591,7 @@ const T = {
  q_replace_dates:{fr:'Remplacer les dates déjà saisies par un rythme d\'une séance par semaine ?',en:'Replace the dates already entered with one session per week?',nl:'De reeds ingevoerde datums vervangen door één sessie per week?'},
  m_lib_paid:{fr:'La bibliothèque Coach DM est incluse dans l\'offre Coach. Tes propres séances restent assignables.',en:'The Coach DM library is included in the Coach plan. Your own workouts remain assignable.',nl:'De Coach DM-bibliotheek zit in de Coach-formule. Je eigen trainingen blijven toewijsbaar.'},
  m_wk_not_yours:{fr:'Une séance choisie n\'est ni publiée ni à toi.',en:'One selected workout is neither published nor yours.',nl:'Een gekozen training is niet gepubliceerd en niet van jou.'},
- b_assign_own:{fr:'Tu assignes tes propres séances. La bibliothèque Coach DM est incluse dans l\'offre Coach.',en:'You assign your own workouts. The Coach DM library is included in the Coach plan.',nl:'Je wijst je eigen trainingen toe. De Coach DM-bibliotheek zit in de Coach-formule.'},
+ b_assign_own:{fr:'Tu assignes tes propres séances. Les programmes Coach DM, l\'assistant et la nutrition au gramme près font partie de l\'offre Coach.',en:'You assign your own workouts. Coach DM programs, the assistant and nutrition to the gram are part of the Coach plan.',nl:'Je wijst je eigen trainingen toe. De Coach DM-programma\'s, de assistent en voeding tot op de gram horen bij het Coach-abonnement.'},
  b_no_wk_avail:{fr:'Aucune séance disponible. Crée-la dans l\'onglet Séances.',en:'No workout available. Create one in the Workouts tab.',nl:'Geen training beschikbaar. Maak er een aan bij Trainingen.'},
  m_waitlist:{fr:'Ajouté (liste d\'attente)',en:'Added (waiting list)',nl:'Toegevoegd (wachtlijst)'},
  b_sessions_30d:{fr:'{0} séance(s) / 30j',en:'{0} session(s) / 30d',nl:'{0} sessie(s) / 30d'},
@@ -1639,9 +1639,10 @@ const T = {
  g_save_macros:{fr:'Enregistrer les macros',en:'Save the macros',nl:'Macro\'s opslaan'},
  g_qr:{fr:'Fais scanner ce QR au client en présentiel.',en:'Have the client scan this QR in person.',nl:'Laat de klant deze QR ter plaatse scannen.'},
  g_typical_day:{fr:'Journée type',en:'Typical day',nl:'Typische dag'},
+ g_coach_all:{fr:'Clients illimités · bibliothèque de programmes Coach DM · assistant programmes · nutrition au gramme près · visios et vidéos',en:'Unlimited clients · Coach DM program library · program assistant · nutrition to the gram · video calls and videos',nl:'Onbeperkt klanten · Coach DM-programmabibliotheek · programma-assistent · voeding tot op de gram · videogesprekken en video’s'},
  g_upto20:{fr:'Jusqu\'à 20 clients · bibliothèque Coach DM incluse',en:'Up to 20 clients · Coach DM library included',nl:'Tot 20 klanten · Coach DM-bibliotheek inbegrepen'},
  g_upto50:{fr:'Jusqu\'à 50 clients · visios planifiées · vidéo dans la messagerie',en:'Up to 50 clients · scheduled video calls · video in messaging',nl:'Tot 50 klanten · geplande videogesprekken · video in berichten'},
- g_msg_incl:{fr:'La messagerie est incluse dans l\'offre Coach. Ton offre actuelle couvre 1 client, avec tes propres programmes, les macros et le suivi.',en:'Messaging is included in the Coach plan. Your current plan covers 1 client, with your own programs, macros and tracking.',nl:'Berichten zitten in de Coach-formule. Je huidige formule dekt 1 klant, met je eigen programma\'s, macro\'s en opvolging.'},
+ g_msg_incl:{fr:'La messagerie est incluse dans l\'offre Coach. Ton offre actuelle couvre 3 clients, avec tes propres programmes, les macros et le suivi.',en:'Messaging is included in the Coach plan. Your current plan covers 3 clients, with your own programs, macros and tracking.',nl:'Berichten zitten in de Coach-formule. Je huidige formule dekt 3 klanten, met je eigen programma\'s, macro\'s en opvolging.'},
  g_invite_qr:{fr:'Le client reçoit une invitation par email + un QR à scanner pour créer son compte lui-même.',en:'The client gets an email invitation plus a QR code to create their own account.',nl:'De klant krijgt een uitnodiging per e-mail plus een QR-code om zelf een account aan te maken.'},
  g_account_exists:{fr:'Le compte doit déjà exister. Une',en:'The account must already exist. A',nl:'Het account moet al bestaan. Een'},
  g_hidden:{fr:'Masqué',en:'Hidden',nl:'Verborgen'},
@@ -1661,7 +1662,7 @@ const T = {
  g_wk_done:{fr:'Séances complétées',en:'Completed sessions',nl:'Voltooide sessies'},
  g_wk_of_prog:{fr:'Séances du programme',en:'Sessions in the program',nl:'Sessies van het programma'},
  g_wk_recent:{fr:'Séances récentes complétées',en:'Recently completed sessions',nl:'Recent voltooide sessies'},
- g_plan_covers1:{fr:'Ton offre actuelle couvre 1 client. Tes clients, programmes, macros et messages sont conservés.',en:'Your current plan covers 1 client. Your clients, programs, macros and messages are kept.',nl:'Je huidige formule dekt 1 klant. Je klanten, programma\'s, macro\'s en berichten blijven bewaard.'},
+ g_plan_covers1:{fr:'Ton offre actuelle couvre 3 clients. Tes clients, programmes, macros et messages sont conservés.',en:'Your current plan covers 3 clients. Your clients, programs, macros and messages are kept.',nl:'Je huidige formule dekt 3 klanten. Je klanten, programma\'s, macro\'s en berichten blijven bewaard.'},
  g_tap_select:{fr:'Touche pour sélectionner. Eux seuls verront ce cours privé dans leur calendrier.',en:'Tap to select. Only they will see this private class in their calendar.',nl:'Tik om te selecteren. Alleen zij zien deze privéles in hun agenda.'},
  g_all_coach:{fr:'Tout Coach · vidéo dans la messagerie · visios planifiées · 50 clients',en:'Everything in Coach · video in messaging · scheduled video calls · 50 clients',nl:'Alles van Coach · video in berichten · geplande videogesprekken · 50 klanten'},
  g_nothing_added:{fr:'Tu n\'as encore rien ajouté. Un exercice qui te manque ou un aliment que tes clients mangent souvent ? Ajoute-le : il te sert tout de suite, et rejoint la bibliothèque commune une fois validé.',en:'You have not added anything yet. An exercise you are missing, or a food your clients eat often? Add it: you can use it right away.',nl:'Je hebt nog niets toegevoegd. Een oefening die je mist of een voedingsmiddel dat je klanten vaak eten? Voeg het toe: je gebruikt het meteen.'},
@@ -1673,7 +1674,7 @@ const T = {
  g_see_offers:{fr:'Voir les offres',en:'See the plans',nl:'Bekijk de formules'},
  g_before_link:{fr:'avant d\'être lié à toi.',en:'before being linked to you.',nl:'voordat hij aan jou gekoppeld wordt.'},
  g_invite_sent_to:{fr:'lui est envoyée : le membre doit l\'',en:'is sent to them: the member must',nl:'wordt naar hem gestuurd: het lid moet ze'},
- g_msg_desc:{fr:'Échange avec tes clients directement dans la console : texte, photos, et vidéo avec Coach+.',en:'Talk with your clients straight from the console: text, photos, and video with Coach+.',nl:'Praat met je klanten rechtstreeks in de console: tekst, foto\'s en video met Coach+.'},
+ g_msg_desc:{fr:'Échange avec tes clients directement dans la console : texte et photos, et la vidéo avec l\'offre Coach.',en:'Talk with your clients straight from the console: text and photos, and video with the Coach plan.',nl:'Praat met je klanten rechtstreeks in de console: tekst en foto\'s, en video met het Coach-abonnement.'},
  g_edit:{fr:'Éditer',en:'Edit',nl:'Bewerken'},
  g_state:{fr:'État',en:'Status',nl:'Status'},
  g_unchanged:{fr:'— inchangé —',en:'— unchanged —',nl:'— ongewijzigd —'},
@@ -1818,7 +1819,7 @@ async function enter(user){
 const isPaid = ()=> !PLAN_INFO || PLAN_INFO.paid !== false;
 
 /* ---- MODE CLAIR / SOMBRE (choix gardé sur cet appareil) ---- */
-function paintThemeBtn(){ const b=document.getElementById('c-theme'); if(b) b.textContent=document.documentElement.getAttribute('data-theme')==='light'?'🌙':'☀️'; }
+function paintThemeBtn(){ const b=document.getElementById('c-theme'); if(b) b.innerHTML=document.documentElement.getAttribute('data-theme')==='light'?'<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.16em" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>':'<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.16em" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>'; }
 { const b=document.getElementById('c-theme'); if(b) b.onclick=()=>{ const m=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light'; try{ localStorage.setItem('cdm_console_theme',m); }catch(_){} document.documentElement.setAttribute('data-theme',m); paintThemeBtn(); }; paintThemeBtn(); }
 /* ---- TABS ---- */
 function switchTab(t){
@@ -1890,7 +1891,7 @@ function renderCap(){
   if(!unlimited && CAP.max<=1){
     const used = CAP.active>=CAP.max;
     $('#cl-cap').innerHTML = `<div class="freebar">
-      <span style="font-size:17px">${used?'🔒':'🎁'}</span>
+      <span style="font-size:17px">${used?'<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.16em" aria-hidden="true"><rect x="4.5" y="11" width="15" height="10" rx="2.5"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg>':'<svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.16em" aria-hidden="true"><rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v8.5h14V12M12 8v12.5M12 8S10.5 3.5 8 4.5 9 8 12 8zM12 8s1.5-4.5 4-3.5S15 8 12 8z"/></svg>'}</span>
       <div class="fb-t">${used
         ? tr('b_slot_used')
         : tr('b_slot_free')}</div>
@@ -1972,7 +1973,7 @@ function renderClientList(){
       <div class="meta">${bits.map(esc).join(' · ')}</div>
       <div class="acts">
         <button class="btn subtle sm" data-open="${c.client_id}">${tr('b_sheet')}</button>
-        <button class="btn subtle sm" data-chat="${c.client_id}">${tr('b_messages')}${isPaid()?'':' 🔒'}</button>
+        <button class="btn subtle sm" data-chat="${c.client_id}">${tr('b_messages')}</button>
         ${c.link_status==='pending'?`<button class="btn subtle sm" data-resend="${c.client_id}">${tr('inv_resend')}</button>`:''}
         ${ROLE==='coach'?`<button class="btn danger sm" data-arch="${c.client_id}">${tr('b_archive')}</button>`:''}
       </div>
@@ -2209,7 +2210,7 @@ async function openClientDetail(cid){
   h+=`<div class="cd-sec"><div class="mini"><span data-i18n="b_video_calls">Appels vidéo</span></div><div id="cd-calls"><div class="spin"></div></div></div>`;
   h+='<button class="btn" id="cd-macro" style="margin-top:18px">Calories & macros</button>';
   h+='<button class="btn" id="cd-meal" style="margin-top:9px">Plans nutrition</button>';
-  h+=`<button class="btn${isPaid()?'':' subtle'}" id="cd-chat" style="margin-top:9px">Messages${isPaid()?'':' 🔒'}</button>`;
+  h+=`<button class="btn${isPaid()?'':' subtle'}" id="cd-chat" style="margin-top:9px">Messages</button>`;
   h+='<button class="btn subtle" id="cd-close" style="margin-top:9px"><span data-i18n="b_close">Fermer</span></button>';
   $('#cd-body').innerHTML=h;
   $('#cd-close').onclick=closeCd;
@@ -2747,34 +2748,27 @@ async function signMedia(list){
    Web : on présente l'offre. Natif : constat neutre, sans prix ni lien —
    la vente se fait par email (Apple 3.1.1). */
 function openChatGated(cid,name){
-  if(!isPaid()){ openMsgUpsell(); return; }
+  /* 25/10/2026 : la messagerie est ouverte au palier gratuit (3 clients). */
   CDMLock.guard(()=>openChat(cid,name));
 }
 function openMsgUpsell(){
   let h = `<h3 style="margin:0 0 4px">Messagerie</h3>
-    <p class="sub" style="text-align:left;margin:0 0 16px"><span data-i18n="g_msg_desc">Échange avec tes clients directement dans la console : texte, photos, et vidéo avec Coach+.</span></p>`;
+    <p class="sub" style="text-align:left;margin:0 0 16px"><span data-i18n="g_msg_desc">Échange avec tes clients directement dans la console : texte et photos, et la vidéo avec l'offre Coach.</span></p>`;
   if(IS_NATIVE){
     /* Strictement descriptif : aucun montant, aucun lien, aucun verbe d'action
        vers un paiement extérieur. */
-    h += `<div class="item"><div class="meta" style="line-height:1.6"><span data-i18n="g_msg_incl">La messagerie est incluse dans l'offre Coach. Ton offre actuelle couvre 1 client, avec tes propres programmes, les macros et le suivi.</span></div></div>
+    h += `<div class="item"><div class="meta" style="line-height:1.6"><span data-i18n="g_msg_incl">La messagerie est incluse dans l'offre Coach. Ton offre actuelle couvre 3 clients, avec tes propres programmes, les macros et le suivi.</span></div></div>
       <button class="btn subtle" id="up-close" style="margin-top:14px"><span data-i18n="b_close">Fermer</span></button>`;
   }else{
     h += `<div class="card" style="border-color:var(--gold)">
         <div style="display:flex;align-items:baseline;gap:8px">
           <div style="flex:1"><div class="nm">Coach</div>
-            <div class="meta"><span data-i18n="g_msg_20">Messagerie · jusqu'à 20 clients · bibliothèque Coach DM incluse</span></div></div>
+            <div class="meta"><span data-i18n="g_coach_all">Clients illimités · bibliothèque de programmes Coach DM · assistant programmes · nutrition au gramme près · visios et vidéos</span></div></div>
           <div style="font-weight:800;color:var(--gold);white-space:nowrap">39,99 €<span style="font-size:12px;font-weight:600">/mois</span></div>
         </div>
       </div>
-      <div class="card" style="border-color:var(--brand)">
-        <div style="display:flex;align-items:baseline;gap:8px">
-          <div style="flex:1"><div class="nm">Coach+</div>
-            <div class="meta"><span data-i18n="g_all_coach">Tout Coach · vidéo dans la messagerie · visios planifiées · 50 clients</span></div></div>
-          <div style="font-weight:800;color:var(--brand);white-space:nowrap">59,99 €<span style="font-size:12px;font-weight:600">/mois</span></div>
-        </div>
-      </div>
       <p class="sub" style="text-align:left;margin:10px 0 0"><span data-i18n="g_no_commit">Sans engagement, résiliable en un clic.</span></p>
-      <a class="btn" href="https://coachdm.be/tarifs.html" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:14px">Activer la messagerie</a>
+      <a class="btn" href="https://coachdm.be/offre-coach.html" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:14px">Activer la messagerie</a>
       <button class="btn subtle" id="up-close" style="margin-top:9px">Plus tard</button>`;
   }
   $('#up-body').innerHTML=h;
@@ -2887,9 +2881,9 @@ $('#ch-file').onchange=async ev=>{
    envoie dans le bucket prive coaching-media sous <relation>/..., puis
    msg_send_media(kind 'audio'). Rien ne part sans le bouton « Envoyer ». */
 const VN_L = {
-  fr:{rec:'Note vocale',recording:'Enregistrement…',cancel:'Annuler',send:'Envoyer',denied:'Micro refusé. Autorise-le dans les réglages.',short:'Trop court.',fail:'Échec de l’envoi',na:'Note vocale indisponible',voice:'🎤 Note vocale'},
-  en:{rec:'Voice note',recording:'Recording…',cancel:'Cancel',send:'Send',denied:'Microphone blocked. Allow it in settings.',short:'Too short.',fail:'Sending failed',na:'Voice note unavailable',voice:'🎤 Voice note'},
-  nl:{rec:'Spraakbericht',recording:'Opnemen…',cancel:'Annuleren',send:'Versturen',denied:'Microfoon geweigerd. Sta hem toe in de instellingen.',short:'Te kort.',fail:'Versturen mislukt',na:'Spraakbericht niet beschikbaar',voice:'🎤 Spraakbericht'},
+  fr:{rec:'Note vocale',recording:'Enregistrement…',cancel:'Annuler',send:'Envoyer',denied:'Micro refusé. Autorise-le dans les réglages.',short:'Trop court.',fail:'Échec de l’envoi',na:'Note vocale indisponible',voice:'Note vocale'},
+  en:{rec:'Voice note',recording:'Recording…',cancel:'Cancel',send:'Send',denied:'Microphone blocked. Allow it in settings.',short:'Too short.',fail:'Sending failed',na:'Voice note unavailable',voice:'Voice note'},
+  nl:{rec:'Spraakbericht',recording:'Opnemen…',cancel:'Annuleren',send:'Versturen',denied:'Microfoon geweigerd. Sta hem toe in de instellingen.',short:'Te kort.',fail:'Versturen mislukt',na:'Spraakbericht niet beschikbaar',voice:'Spraakbericht'},
 };
 const vnL = (k)=>{ const l=(typeof LANG!=='undefined'&&VN_L[LANG])?LANG:'fr'; return VN_L[l][k]; };
 function vnSetup(o){
@@ -2985,25 +2979,18 @@ function openUpgrade(){
        extérieur : constat factuel uniquement (Apple 3.1.1). */
     /* Strictement descriptif : aucune mention d'un ailleurs où payer, aucun
        verbe d'action. On constate la limite, on rassure sur les données. */
-    h += `<div class="item"><div class="meta" style="line-height:1.6"><span data-i18n="g_plan_covers1">Ton offre actuelle couvre 1 client. Tes clients, programmes, macros et messages sont conservés.</span></div></div>
+    h += `<div class="item"><div class="meta" style="line-height:1.6"><span data-i18n="g_plan_covers1">Ton offre actuelle couvre 3 clients. Tes clients, programmes, macros et messages sont conservés.</span></div></div>
       <button class="btn subtle" id="up-close" style="margin-top:14px"><span data-i18n="b_close">Fermer</span></button>`;
   }else{
     h += `<div class="card" style="border-color:var(--gold)">
         <div style="display:flex;align-items:baseline;gap:8px">
           <div style="flex:1"><div class="nm">Coach</div>
-            <div class="meta"><span data-i18n="g_upto20">Jusqu'à 20 clients · bibliothèque Coach DM incluse</span></div></div>
+            <div class="meta"><span data-i18n="g_coach_all">Clients illimités · bibliothèque de programmes Coach DM · assistant programmes · nutrition au gramme près · visios et vidéos</span></div></div>
           <div style="font-weight:800;color:var(--gold);white-space:nowrap">39,99 €<span style="font-size:12px;font-weight:600">/mois</span></div>
         </div>
       </div>
-      <div class="card" style="border-color:var(--brand)">
-        <div style="display:flex;align-items:baseline;gap:8px">
-          <div style="flex:1"><div class="nm">Coach+</div>
-            <div class="meta"><span data-i18n="g_upto50">Jusqu'à 50 clients · visios planifiées · vidéo dans la messagerie</span></div></div>
-          <div style="font-weight:800;color:var(--brand);white-space:nowrap">59,99 €<span style="font-size:12px;font-weight:600">/mois</span></div>
-        </div>
-      </div>
       <p class="sub" style="text-align:left;margin:10px 0 0"><span data-i18n="g_no_commit2">Sans engagement, résiliable en un clic. Un seul client suffit généralement à couvrir l'abonnement.</span></p>
-      <a class="btn" href="https://coachdm.be/tarifs.html" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:14px"><span data-i18n="g_see_offers">Voir les offres</span></a>
+      <a class="btn" href="https://coachdm.be/offre-coach.html" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;margin-top:14px"><span data-i18n="g_see_offers">Voir les offres</span></a>
       <button class="btn subtle" id="up-close" style="margin-top:9px">Plus tard</button>`;
   }
   $('#up-body').innerHTML=h;
@@ -3619,7 +3606,7 @@ async function tpEdit(id){
     <div class="mini" style="margin:14px 0 6px"><span data-i18n="g_wk_of_prog">Séances du programme</span></div>
     <div id="tp-items"></div>
     <button class="btn subtle" id="tp-add" style="margin-top:4px"><span data-i18n="g_add_wk">＋ Ajouter une séance</span></button>
-    ${TP_ITEMS.length?'<button class="btn subtle" id="tp-auto" style="margin-top:9px"><span data-i18n="b_autodate">📅 Dater auto (1×/semaine depuis le début)</span></button>':''}
+    ${TP_ITEMS.length?'<button class="btn subtle" id="tp-auto" style="margin-top:9px"><span data-i18n="b_autodate">Dater auto (1×/semaine depuis le début)</span></button>':''}
     ${TP_ITEMS.length?'<button class="btn subtle" id="tp-week" style="margin-top:9px"><span data-i18n="b_dup_7d">⧉ Dupliquer en décalant de 7 jours</span></button>':''}
     <button class="btn" id="tp-save" style="margin-top:14px">Enregistrer</button>
     ${id?'<button class="btn danger" id="tp-del" style="margin-top:9px"><span data-i18n="b_delete">Supprimer</span></button>':''}

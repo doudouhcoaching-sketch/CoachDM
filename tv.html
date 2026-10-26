@@ -223,11 +223,20 @@ html.emb .ph .hd{margin-top:calc(46px + env(safe-area-inset-top))}
 .vd{position:relative;width:30vw;aspect-ratio:16/9;border-radius:1.4vw;overflow:hidden;background:#000;flex:none}
 .vd.big{width:min(46vw,64vh);margin:1vw auto .4vw}
 .vd iframe{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none}
-.vd .vfig{position:absolute;right:.6vw;bottom:.6vw;width:7vw;height:7vw;background:rgba(0,0,0,.55);border-radius:1vw}
+.mv.hasv .sfig{width:6vw;height:6vw;flex:none}
+.live.hv{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:2vw;align-items:center;padding:1.4vw 1.6vw}
+.live.hv .vcol{display:flex;flex-direction:column;gap:.6vw;min-width:0}
+.live.hv .vd,.live.hv .vd.big{width:100%;margin:0}
+.ytc{font-size:.85vw;line-height:1.35;color:var(--mut);text-align:left;opacity:.85}
+.live.hv .icol{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;text-align:center}
+.live.hv .clk{font-size:7.2vw}.live.hv .big3{font-size:12vw}.live.hv .lab{font-size:1.5vw}.live.hv .sub{font-size:1.9vw}
+.live.hv .mv.hasv{margin-top:1vw;gap:.8vw}.live.hv .mv .t b{font-size:2.8vw}.live.hv .mv .t span{font-size:1.7vw}
+.live.hv .tvcue{font-size:2.3vw;-webkit-line-clamp:2}
 .mv.hasv{flex-direction:column;gap:1vw}
 .mv.hasv .t{text-align:center}
 .tvcue{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:3.4vw;letter-spacing:.02em;color:var(--gold-hi);-webkit-line-clamp:1}
-@media (max-aspect-ratio:1/1){.vd,.vd.big{width:86vw}.tvcue{font-size:7vw}.vd .vfig{width:16vw;height:16vw}}
+@media (max-aspect-ratio:1/1){.vd,.vd.big{width:86vw}.tvcue{font-size:7vw}.mv.hasv .sfig{width:14vw;height:14vw}
+  .live.hv{grid-template-columns:1fr}.live.hv .clk{font-size:20vw}.ytc{font-size:2.4vw}.live.hv .mv .t b{font-size:6vw}}
 </style>
 </head>
 <body>
@@ -413,6 +422,9 @@ var TX={
  set:{fr:'Série',en:'Set',nl:'Set'}, of:{fr:'sur',en:'of',nl:'van'}, rnd:{fr:'Tour',en:'Round',nl:'Ronde'}, rnds:{fr:'tours',en:'rounds',nl:'rondes'},
  cap:{fr:'Time cap',en:'Time cap',nl:'Time cap'}, pause:{fr:'PAUSE',en:'PAUSED',nl:'PAUZE'}, next:{fr:'Ensuite',en:'Next',nl:'Daarna'},
  time:{fr:'TIME !',en:'TIME!',nl:'TIME!'}, done:{fr:'Bravo. Note ton score.',en:'Well done. Log your score.',nl:'Goed gedaan. Noteer je score.'},
+ yt:{fr:'Vid\u00e9o \u00a9 sa cha\u00eene YouTube \u2014 lue via le lecteur officiel YouTube. Coach DM ne copie ni n\u2019h\u00e9berge aucune vid\u00e9o.',en:'Video \u00a9 its YouTube channel \u2014 played via the official YouTube player. Coach DM does not copy or host any video.',nl:'Video \u00a9 het YouTube-kanaal \u2014 afgespeeld via de offici\u00eble YouTube-speler. Coach DM kopieert of host geen enkele video.'},
+ ytby:{fr:'Vid\u00e9o \u00a9 ',en:'Video \u00a9 ',nl:'Video \u00a9 '},
+ yt2:{fr:' (YouTube) \u2014 lue via le lecteur officiel YouTube. Coach DM ne copie ni n\u2019h\u00e9berge aucune vid\u00e9o.',en:' (YouTube) \u2014 played via the official YouTube player. Coach DM does not copy or host any video.',nl:' (YouTube) \u2014 afgespeeld via de offici\u00eble YouTube-speler. Coach DM kopieert of host geen enkele video.'},
  wait:{fr:'Le coach lance la partie',en:'The coach starts this part',nl:'De coach start dit deel'},
  club:{fr:'COURS DU JOUR',en:'TODAY’S CLASS',nl:'LES VAN VANDAAG'}, ath:{fr:'SÉANCE',en:'SESSION',nl:'TRAINING'},
  endT:{fr:'Séance terminée',en:'Session done',nl:'Training klaar'},
@@ -427,7 +439,7 @@ var TX={
  lg_p:{fr:'La télécommande est réservée aux coachs Coach DM. Connecte-toi dans l’app web, puis reviens sur coachdm.be/tv.',en:'The remote is for Coach DM coaches. Sign in to the web app, then come back to coachdm.be/tv.',nl:'De afstandsbediening is voor Coach DM-coaches. Log in op de web-app en kom dan terug naar coachdm.be/tv.'},
  lg_b:{fr:'Me connecter',en:'Sign in',nl:'Inloggen'},
  dn_h:{fr:'Réservé aux coachs',en:'For coaches only',nl:'Alleen voor coaches'},
- dn_p:{fr:'Athlète ? Ouvre ta séance dans l’app Coach DM, puis le bouton 📺 du Mode Séance pour l’afficher sur ta TV.',en:'Athlete? Open your session in the Coach DM app, then tap 📺 in Workout mode to show it on your TV.',nl:'Atleet? Open je training in de Coach DM-app en tik op 📺 in de Trainingsmodus om ze op je tv te tonen.'},
+ dn_p:{fr:'Piloter l’écran de la box est réservé aux coachs avec l’offre Coach. Athlète ? Ouvre ta séance dans l’app Coach DM, puis le bouton TV du Mode Séance pour l’afficher sur ta TV.',en:'Driving the box screen is for coaches with the Coach plan. Athlete? Open your session in the Coach DM app, then tap the TV button in Workout mode to show it on your TV.',nl:'Het scherm van de box besturen is voorbehouden aan coaches met het Coach-abonnement. Atleet? Open je training in de Coach DM-app en tik op de TV-knop in de Trainingsmodus om ze op je tv te tonen.'},
  cd_h:{fr:'Code de l’écran',en:'Screen code',nl:'Code van het scherm'},
  cd_p:{fr:'Ouvre coachdm.be/tv sur l’écran de la box et tape le code à 6 chiffres affiché en haut.',en:'Open coachdm.be/tv on the box screen and enter the 6-digit code shown at the top.',nl:'Open coachdm.be/tv op het scherm van de box en typ de code van 6 cijfers bovenaan.'},
  cd_b:{fr:'Connecter',en:'Connect',nl:'Verbinden'},
@@ -769,13 +781,19 @@ function qty0(it){ if(it.q!=null) return it.q; var r=String(it.reps||'').trim();
 var KEYS={};
 function setH(id,h){
   var e=G(id), k=h.replace(/<b data-d>[^<]*<\/b>/g,'').replace(/(<div class="bar" style=")[^"]*/g,'$1').replace(/class="clk[^"]*"/g,'');
-  if(KEYS[id]!==k){ KEYS[id]=k; e.innerHTML=h; return; }
+  if(KEYS[id]!==k){ KEYS[id]=k; e.innerHTML=h; vSplit(e); return; }
   var vals=[], re=/<b data-d>([^<]*)<\/b>/g, mm; while((mm=re.exec(h))) vals.push(mm[1]);
   var a=e.querySelectorAll('[data-d]'); for(var i=0;i<a.length&&i<vals.length;i++){ var v=vals[i].replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"'); if(a[i].textContent!==v) a[i].textContent=v; }
   var bw=/<div class="bar" style="width:([^"]*)"/.exec(h), x=e.querySelector('.bar'); if(bw&&x) x.style.width=bw[1].replace(/;$/,'');
   var cc=/class="(clk[^"]*)"/.exec(h), c1=e.querySelector('.clk'); if(cc&&c1&&c1.className!==cc[1]) c1.className=cc[1];
 }
 function D(x){ return '<b data-d>'+esc(x)+'</b>'; }
+/* une video dans le panneau -> 2 colonnes : la video (et sa mention) a gauche, le reste a droite */
+function vSplit(e){ var v=e.querySelector('.vd'); e.classList.toggle('hv',!!v); if(!v) return;
+  var L=document.createElement('div'), R=document.createElement('div'); L.className='vcol'; R.className='icol';
+  var c=document.createElement('div'); c.className='ytc'; c.dataset.v=v.dataset.v; c.textContent=ytCap(v.dataset.v);
+  v.parentNode.removeChild(v); L.appendChild(v); L.appendChild(c);
+  while(e.firstChild) R.appendChild(e.firstChild); e.appendChild(L); e.appendChild(R); }
 /* tout le cours doit tenir a gauche : on resserre, puis on retire la pub si besoin */
 function fitPlan(){ var pl=G('s-plan'), side=pl.parentNode; if(KEYS._fit===KEYS['s-plan']) return; KEYS._fit=KEYS['s-plan'];
   side.classList.remove('compact','tight'); var mini=side.querySelector('.mini'); if(mini) mini.hidden=false;
@@ -808,13 +826,14 @@ function paintClub(){
       m=mv(ci,'',1)+(its.length>1&&ni?'<div class="nx">'+esc(t('next'))+'<b>'+esc(ni.name)+'</b></div>':''); }
     else { cls+=(cap&&(cap-e)<=60)?' warn':(S.phase==='idle'?' idle':' go');
       sub=W.fmt==='amrap'?'AMRAP':(W.fmt==='rft'?(W.rft||'')+' RFT':'For Time'); if(S.rounds) sub+=' · '+S.rounds+' '+t('rnds');
-      if(cap&&W.fmt!=='amrap') sub+=' · '+t('cap')+' '+fmt(cap); }
+      if(cap&&W.fmt!=='amrap') sub+=' · '+t('cap')+' '+fmt(cap);
+      var wi=p.items||[]; if(wi.length){ var k=Math.floor(Date.now()/20000)%wi.length; m=mv(wi[k],wi.length>1?(k+1)+' / '+wi.length:'',1); } }
     h='<div class="lab">'+esc(partLabel(p))+'</div><div class="'+cls+'">'+D(clockTxt())+'</div><div class="sub">'+D(sub)+'</div>'+m+
       (S.phase==='idle'?'<div class="sub2">'+esc(t('wait'))+'</div>':'')+
       (cap?'<div class="bar" style="width:'+Math.min(100,100*e/cap).toFixed(1)+'%"></div>':''); }
   else { var it2=p.items[S.item]||p.items[0]||{};
     h='<div class="lab">'+esc(partLabel(p))+'</div><div class="'+cls+(S.phase==='idle'?' idle':' go')+'">'+D(clockTxt())+'</div>'+
-      (S.phase==='idle'?'<div class="sub2">'+esc(t('wait'))+'</div>':'<div class="sub">'+(flow(p)&&S.rounds?esc(t('rnd')+' '+(S.rounds+1)):it2.sets>1?esc(t('set')+' '+(S.set+1)+' '+t('of')+' '+it2.sets):'')+'</div>'+mv(it2,'',1)); }
+      (S.phase==='idle'?'<div class="sub2">'+esc(t('wait'))+'</div>'+mv(it2,'',1):'<div class="sub">'+(flow(p)&&S.rounds?esc(t('rnd')+' '+(S.rounds+1)):it2.sets>1?esc(t('set')+' '+(S.set+1)+' '+t('of')+' '+it2.sets):'')+'</div>'+mv(it2,'',1)); }
   if(!S.run&&S.phase==='work') h+='<div class="pause">'+esc(t('pause'))+'</div>';
   G('s-live').dataset.k=p.block; setH('s-live',h);
 }
@@ -823,9 +842,16 @@ function clubHead(c){ var lg=c&&c.logo, nm=c&&c.name;
   G('s-x').hidden=!(lg||nm); G('s-club').hidden=!lg; G('s-cn').hidden=!nm;
   if(lg&&G('s-club').getAttribute('src')!==lg){ G('s-club').src=lg; G('s-club').alt=nm||''; }
   G('s-cn').textContent=nm||''; }
+/* lecteur YouTube : rien n'est pose par-dessus (regles YouTube), la mention de la chaine juste dessous */
+function vdH(vid,big){ return '<div class="vd'+(big?' big':'')+'" data-v="'+vid+'"><iframe src="https://coachdm.be/demo.html?v='+vid+'" allow="autoplay; encrypted-media" tabindex="-1"></iframe></div>'; }
+function ytCap(vid){ var a=YTA[vid]; return a?t('ytby')+a+t('yt2'):t('yt'); }
+var YTA={};
+window.addEventListener('message',function(e){ if(e.origin!=='https://coachdm.be'||!e.data||!e.data.nxDemo||!e.data.v) return;
+  if(e.data.author){ YTA[e.data.v]=String(e.data.author).slice(0,60); document.querySelectorAll('.ytc[data-v="'+e.data.v+'"]').forEach(function(c){ c.textContent=ytCap(e.data.v); }); } });
 function mv(it,extra,big){ if(!it) return ''; var f=fig(it.slug), q=qty(it), x=exd(it.slug), vid=x&&x.vid;
-  var head=vid?'<div class="vd'+(big?' big':'')+'"><iframe src="https://coachdm.be/demo.html?v='+vid+'" allow="autoplay; encrypted-media" tabindex="-1"></iframe>'+(f?'<div class="fig rig vfig">'+f+'</div>':'')+'</div>':(f?'<div class="fig rig">'+f+'</div>':'');
-  return '<div class="mv'+(vid?' hasv':'')+'">'+head+'<div class="t"><b>'+esc(it.name)+'</b><span class="num">'+esc([q,it.load].filter(Boolean).join(' · '))+'</span>'+(extra?'<em>'+esc(extra)+'</em>':'')+(it.tempo?'<em>Tempo '+esc(it.tempo)+'</em>':'')+'</div></div>'+(big?cueLine(it.slug):''); }
+  var head=vid?vdH(vid,big):(f?'<div class="fig rig">'+f+'</div>':'');
+  var sf=vid&&f?'<div class="fig rig sfig">'+f+'</div>':'';
+  return '<div class="mv'+(vid?' hasv':'')+'">'+head+sf+'<div class="t"><b>'+esc(it.name)+'</b><span class="num">'+esc([q,it.load].filter(Boolean).join(' · '))+'</span>'+(extra?'<em>'+esc(extra)+'</em>':'')+(it.tempo?'<em>Tempo '+esc(it.tempo)+'</em>':'')+'</div></div>'+(big?cueLine(it.slug):''); }
 /* 2.4 : pour chaque mouvement, la demo YouTube en boucle, sans son, et les consignes
    courtes de Coach DM (2 a 5 mots, celles qu'il crie en salle), une a la fois. */
 var EXD={}, EXQ={};
@@ -862,7 +888,7 @@ function paintMir(){
       (d.cur?mv({slug:d.cur.slug,name:d.cur.name,q:d.cur.target},'',1):''); }
   else if(v==='end'){ h='<div class="lab">'+esc(t('endT'))+'</div><div class="clk num go">✓</div><div class="sub">'+esc(d.sub||'')+'</div>'; }
   else if(v==='work'){ var f=fig(d.slug), xw=exd(d.slug), vw=xw&&xw.vid;
-    h='<div class="lab">'+esc(d.block||t('work'))+'</div>'+(vw?'<div class="vd big"><iframe src="https://coachdm.be/demo.html?v='+vw+'" allow="autoplay; encrypted-media" tabindex="-1"></iframe>'+(f?'<div class="fig rig vfig">'+f+'</div>':'')+'</div>':(f?'<div class="fig rig" style="height:28vh;width:28vh;max-width:100%">'+f+'</div>':''))+
+    h='<div class="lab">'+esc(d.block||t('work'))+'</div>'+(vw?vdH(vw,1)+(f?'<div class="fig rig sfig">'+f+'</div>':''):(f?'<div class="fig rig" style="height:28vh;width:28vh;max-width:100%">'+f+'</div>':''))+
       '<div class="clk num" style="font-size:5.2vw;margin-top:1vw">'+esc(d.name||'')+'</div>'+
       (d.target?'<div class="sub num" style="font-size:4.4vw;color:var(--g)">'+esc(d.target)+'</div>':'')+
       (d.tempo?'<div class="sub2" style="color:var(--ice)">⏱ '+esc(d.tempo)+'</div>':'')+

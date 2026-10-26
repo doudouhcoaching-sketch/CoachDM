@@ -143,6 +143,11 @@
   .toast.show{opacity:1}
 
   /* ===== Apports coach (modération) ===== */
+  .xchips{display:flex;gap:8px;overflow-x:auto;margin:0 0 12px;padding-bottom:4px}
+  .xchips button{flex:none;padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-weight:700;font-size:13px;white-space:nowrap}
+  .xchips button.on{background:var(--gold);color:#0B0B0A;border-color:var(--gold)}
+  .wkh{margin:16px 0 6px;font-weight:800;color:var(--gold);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+  #pane-msgs textarea{background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:10px;font:inherit}
   #pane-apports .asub,#pane-ia .asub{display:flex;gap:8px;margin-bottom:14px}
   #pane-apports .asub button,#pane-ia .asub button{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-weight:700;font-size:14px}
   #pane-apports .asub button.on,#pane-ia .asub button.on{background:var(--brand);color:#04120a;border-color:var(--brand)}
@@ -299,6 +304,9 @@ h1, h2,
       <button data-tab="prospects">Prospects</button>
       <button data-tab="founders">Fondateurs</button>
       <button data-tab="ia">IA</button>
+      <button data-tab="progs">Programmes</button>
+      <button data-tab="defis">Défis</button>
+      <button data-tab="msgs">Messages</button>
     </div>
   </div>
 
@@ -419,10 +427,10 @@ h1, h2,
         <div class="row2">
           <div class="field"><label>Offre</label>
             <!-- « coach » ouvre les DEUX tarifs fondateur coach : une seule
-                 invitation suffit, la personne choisit ensuite Coach ou Coach+. -->
+                 invitation suffit, la personne prend ensuite l'offre Coach (illimitée). -->
             <select id="fo-kind">
               <option value="membre">Membre — 9,99 €/mois au lieu de 14,99 €</option>
-              <option value="coach">Coach — 29,99 € et Coach+ 44,99 €/mois</option>
+              <option value="coach">Coach — prix fondateur (clients illimités)</option>
             </select>
           </div>
           <div class="field"><label>Note (facultatif)</label><input id="fo-note" type="text" placeholder="ami de la salle, ambassadeur…" /></div>
@@ -433,6 +441,53 @@ h1, h2,
       <div class="toolbar"><div class="sub" style="text-align:left;margin:0" id="fo-count">—</div>
         <button class="btn subtle sm" id="fo-refresh">↻ Actualiser</button></div>
       <div id="fo-list"><div class="spin"></div></div>
+    </div>
+
+    <!-- PROGRAMMES : les 13 programmes, semaine par semaine ; un clic ouvre l'editeur de seance (reps, series, repos) -->
+    <div class="pane" id="pane-progs">
+      <div class="sub" style="text-align:left;margin:0 0 12px">Choisis un programme, puis une séance : tu modifies les répétitions, les séries, le repos ou les exercices. C'est en ligne tout de suite, sans nouveau build.</div>
+      <div id="pg-chips" class="xchips"></div>
+      <div id="pg-list"><div class="spin"></div></div>
+    </div>
+
+    <!-- DEFIS : les defis Coach DM du Club, ouverts a tous les membres -->
+    <div class="pane" id="pane-defis">
+      <div class="card" style="margin-bottom:14px">
+        <h3 style="margin:0 0 10px;font-size:16px" id="df-h">Nouveau défi</h3>
+        <div class="row2"><div class="field"><label>Titre (FR)</label><input id="df-tfr" type="text" placeholder="12 séances en 30 jours"></div>
+          <div class="field"><label>Mesure</label><select id="df-metric">
+            <option value="workout_count">Séances terminées</option><option value="active_days">Jours actifs</option><option value="total_volume_kg">Kilos soulevés</option>
+            <option value="water_total_ml">Eau (ml)</option><option value="cardio_distance_m">Distance cardio (m)</option><option value="cardio_duration_s">Durée cardio (s)</option>
+            <option value="habit_completions">Habitudes cochées</option></select></div></div>
+        <div class="row2"><div class="field"><label>Titre (EN)</label><input id="df-ten" type="text"></div><div class="field"><label>Titre (NL)</label><input id="df-tnl" type="text"></div></div>
+        <div class="field"><label>Explication (FR)</label><input id="df-dfr" type="text" placeholder="Trois séances par semaine pendant un mois."></div>
+        <div class="row2"><div class="field"><label>Explication (EN)</label><input id="df-den" type="text"></div><div class="field"><label>Explication (NL)</label><input id="df-dnl" type="text"></div></div>
+        <div class="row2"><div class="field"><label>Objectif (nombre)</label><input id="df-target" type="number" min="1" placeholder="12"></div>
+          <div class="field"><label>Début</label><input id="df-start" type="date"></div><div class="field"><label>Fin</label><input id="df-end" type="date"></div></div>
+        <p class="sub" style="text-align:left;margin:0 0 10px">Si EN ou NL est vide, le texte FR est utilisé. Eau : 60 litres = 60000.</p>
+        <button class="btn" id="df-save">Publier le défi</button> <button class="btn subtle" id="df-cancel" style="display:none">Annuler</button>
+        <div class="msg" id="df-msg"></div>
+      </div>
+      <div id="df-list"><div class="spin"></div></div>
+    </div>
+
+    <!-- MESSAGES IN-APP : une annonce a tous ou a une personne, affichee en grand a l'ouverture de l'app -->
+    <div class="pane" id="pane-msgs">
+      <div class="card" style="margin-bottom:14px">
+        <h3 style="margin:0 0 10px;font-size:16px">Nouveau message</h3>
+        <div class="row2"><div class="field"><label>Pour qui</label><select id="mg-who"><option value="all">Tout le monde</option><option value="one">Une personne</option></select></div>
+          <div class="field"><label>Langue</label><select id="mg-lang"><option value="">Toutes</option><option value="fr">Français</option><option value="en">English</option><option value="nl">Nederlands</option></select></div></div>
+        <div class="field" id="mg-one" style="display:none"><label>Chercher (email ou nom)</label><input id="mg-q" type="text" placeholder="sophie@…"><div id="mg-res"></div></div>
+        <div class="field"><label>Titre</label><input id="mg-title" type="text" maxlength="80" placeholder="Nouveau défi dans le Club"></div>
+        <div class="field"><label>Message</label><textarea id="mg-body" rows="4" maxlength="600" placeholder="Ton message…" style="width:100%"></textarea></div>
+        <div class="row2"><div class="field"><label>Bouton (facultatif)</label><input id="mg-cta" type="text" maxlength="30" placeholder="Voir le défi"></div>
+          <div class="field"><label>Le bouton ouvre</label><select id="mg-tab"><option value="">—</option><option value="home">Accueil</option><option value="seances">S'entraîner</option><option value="cours">Club</option><option value="journal">Manger</option><option value="profile">Moi</option><option value="premium">Premium</option></select></div></div>
+        <div class="field"><label>À partir du</label><input id="mg-start" type="datetime-local" style="max-width:100%"></div><div class="field"><label>Jusqu'au (facultatif)</label><input id="mg-end" type="datetime-local" style="max-width:100%"></div>
+        <p class="sub" style="text-align:left;margin:0 0 10px">Le message s'affiche en grand à la prochaine ouverture de l'app, une seule fois par personne. Aucun lien vers un paiement extérieur (règles Apple et Google) : le bouton ouvre seulement un espace de l'app.</p>
+        <button class="btn" id="mg-send">Envoyer</button>
+        <div class="msg" id="mg-msg"></div>
+      </div>
+      <div id="mg-list"><div class="spin"></div></div>
     </div>
   </div>
 </div>
@@ -655,6 +710,9 @@ function switchTab(t){
   if(t==='founders'){ loadFounders(); }
   if(t==='apports'){ loadApports(); }
   if(t==='ia'){ loadIA(); }
+  if(t==='progs'){ if(!window.__wkLoaded){ window.__wkLoaded=true; loadExercises(); loadWorkouts(); } loadProgs(); }
+  if(t==='defis'){ loadDefis(); }
+  if(t==='msgs'){ loadMsgs(); }
 }
 
 /* ===================================================================
@@ -855,7 +913,7 @@ async function loadFounders(){
     const mail = f.mail_sent_at
       ? '<span class="pill ok">Prévenu ' + esc(fd(f.mail_sent_at)) + '</span>'
       : '<span class="pill verif">Email non envoyé</span>';
-    const offre = f.kind==='coach' ? 'Coach & Coach+' : 'Membre';
+    const offre = f.kind==='coach' ? 'Coach' : 'Membre';
     return '<div class="item">'+
       '<div class="nm">'+esc(f.email)+' '+st+' '+mail+'</div>'+
       '<div class="meta">'+esc(offre)+(f.note?' · '+esc(f.note):'')+' · invité '+esc(fd(f.invited_at))+'</div>'+
@@ -1094,7 +1152,7 @@ function renderUsers(){
       <div class="actgrp"><span class="agl">Rôle / Plan</span>
         <button class="btn subtle sm" data-role="client" data-u="${u.user_id}"${on(u.role==='client')}>Membre</button>
         <button class="btn subtle sm" data-coach="coach" data-u="${u.user_id}"${on(u.role==='coach'&&u.coach_plan!=='coach_plus')}>Coach</button>
-        <button class="btn subtle sm" data-coach="coach_plus" data-u="${u.user_id}"${on(u.role==='coach'&&u.coach_plan==='coach_plus')}>Coach+</button>
+        ${u.coach_plan==='coach_plus'?`<button class="btn subtle sm" data-coach="coach_plus" data-u="${u.user_id}"${on(u.role==='coach')}>Coach+ (ancien)</button>`:''}
         <button class="btn subtle sm" data-coachunlim="${u.user_id}"${on(u.role==='coach'&&u.max_clients!=null&&u.max_clients>=100000)}>Clients ∞</button>
       </div>
       <div class="actgrp"><span class="agl">Accès</span>
@@ -1151,7 +1209,7 @@ async function setCoach(uid,plan){
   if(r.error){ toast('Échec rôle : '+(r.error.message||'')); return; }
   r = await sb.rpc('admin_set_coach_plan',{ p_coach:uid, p_plan:plan });
   if(r.error){ toast('Échec plan : '+(r.error.message||'')); return; }
-  toast(plan==='coach_plus'?'Promu Coach+ (50 clients)':'Promu Coach (20 clients)'); loadUsers();
+  toast('Promu Coach (clients illimités s’il est abonné)'); loadUsers();
 }
 async function setCoachUnlimited(uid){
   const { error } = await sb.rpc('admin_set_coach_limit',{ p_coach:uid, p_max:2147483647 });
@@ -2086,6 +2144,104 @@ function iaEngines(g,E,usd,k){
     <label>Crédit Mistral / mois ($)<input id="ia-lim-m" type="number" step="0.5" min="0" value="${bud||''}"></label><button id="ia-lim-save">Enregistrer</button></div>
   <p class="ia-note" style="margin-top:6px">Ni Google ni Mistral ne donnent le « restant » du palier gratuit : ces compteurs viennent de nos propres journaux. La limite exacte se lit dans Google AI Studio › Rate limits ; Gemini et Mistral ne sont jamais facturés tant que tu restes en gratuit.</p>`;
 }
+
+/* ===================================================================
+   PROGRAMMES — les 13 programmes, semaine par semaine (26 oct.)
+=================================================================== */
+let PG=[], PG_CUR=null;
+async function loadProgs(){
+  const { data, error } = await sb.rpc('admin_list_programs');
+  if(error){ $('#pg-list').innerHTML='<p class="empty">Erreur (accès admin requis).</p>'; return; }
+  PG=(data||[]).filter(p=>p.program_slug && !/^(goal_|plan_|skill_)/.test(p.program_slug));
+  if(!PG_CUR&&PG.length) PG_CUR=PG[0].program_slug;
+  $('#pg-chips').innerHTML=PG.map(p=>`<button class="${p.program_slug===PG_CUR?'on':''}" data-pg="${esc(p.program_slug)}">${esc(p.source||p.program_slug)}</button>`).join('');
+  document.querySelectorAll('#pg-chips [data-pg]').forEach(b=>b.onclick=()=>{ PG_CUR=b.dataset.pg; loadProgs(); });
+  if(!PG_CUR){ $('#pg-list').innerHTML='<p class="empty">Aucun programme.</p>'; return; }
+  $('#pg-list').innerHTML='<div class="spin"></div>';
+  const r=await sb.rpc('admin_program_workouts',{ p_program:PG_CUR });
+  const L=r.data||[]; let h='', wk=null;
+  L.forEach(w=>{ if(w.week_number!==wk){ wk=w.week_number; h+=`<div class="wkh">Semaine ${wk||'—'}</div>`; }
+    h+=`<div class="item" data-wk="${w.id}"><div class="nm">J${w.day_number||'—'} · ${esc(w.name_fr)} ${w.is_published?'':'<span class="pill no">Brouillon</span>'}</div><div class="meta">${w.exercise_count||0} exercice(s) · toucher pour modifier</div></div>`; });
+  $('#pg-list').innerHTML=h||'<p class="empty">Aucune séance.</p>';
+  document.querySelectorAll('#pg-list .item').forEach(el=>el.onclick=()=>openWkEditor(el.dataset.wk));
+}
+
+/* ===================================================================
+   DEFIS — Club, ouverts a tous (26 oct.)
+=================================================================== */
+let DF_EDIT=null;
+const dfYmd=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
+const DF_M={workout_count:'séances',active_days:'jours',total_volume_kg:'kg',water_total_ml:'ml',cardio_distance_m:'m',cardio_duration_s:'s',habit_completions:'habitudes'};
+function dfReset(){ DF_EDIT=null; ['df-tfr','df-ten','df-tnl','df-dfr','df-den','df-dnl','df-target'].forEach(i=>$('#'+i).value='');
+  const d=new Date(), e=new Date(Date.now()+29*864e5), f=dfYmd; $('#df-start').value=f(d); $('#df-end').value=f(e);
+  $('#df-h').textContent='Nouveau défi'; $('#df-save').textContent='Publier le défi'; $('#df-cancel').style.display='none'; setMsg('df-msg','',''); }
+async function loadDefis(){
+  if(!$('#df-start').value) dfReset();
+  const { data, error } = await sb.rpc('admin_challenges');
+  if(error){ $('#df-list').innerHTML='<p class="empty">Erreur (accès admin requis).</p>'; return; }
+  const L=data||[];
+  $('#df-list').innerHTML=L.length?L.map(c=>{ const st=c.status==='active'?'<span class="pill ok">En cours</span>':c.status==='upcoming'?'<span class="pill">À venir</span>':'<span class="pill no">Terminé</span>';
+    return `<div class="item"><div class="nm">${esc(c.title_fr)} ${st}</div>
+      <div class="meta">${esc(String(c.target_value))} ${DF_M[c.metric]||''} · du ${esc(c.start_date)} au ${esc(c.end_date)} · ${c.participants} participant(s)</div>
+      <div style="display:flex;gap:8px;margin-top:8px"><button class="btn subtle sm" data-dfe="${c.id}">Modifier</button>${c.status!=='completed'?`<button class="btn subtle sm" data-dfx="${c.id}">Clore</button>`:''}</div></div>`; }).join(''):'<p class="empty">Aucun défi.</p>';
+  document.querySelectorAll('[data-dfe]').forEach(b=>b.onclick=()=>{ const c=L.find(x=>x.id===b.dataset.dfe); if(!c) return; DF_EDIT=c.id;
+    $('#df-tfr').value=c.title_fr||''; $('#df-ten').value=c.title_en||''; $('#df-tnl').value=c.title_nl||''; $('#df-dfr').value=c.desc_fr||''; $('#df-den').value=c.desc_en||''; $('#df-dnl').value=c.desc_nl||'';
+    $('#df-metric').value=c.metric; $('#df-target').value=c.target_value; $('#df-start').value=c.start_date; $('#df-end').value=c.end_date;
+    $('#df-h').textContent='Modifier le défi'; $('#df-save').textContent='Enregistrer'; $('#df-cancel').style.display=''; window.scrollTo(0,0); });
+  document.querySelectorAll('[data-dfx]').forEach(b=>b.onclick=async()=>{ if(!confirm('Clore ce défi ? Il disparaît du Club.')) return;
+    const { error } = await sb.from('community_challenges').update({ status:'completed', updated_at:new Date().toISOString() }).eq('id',b.dataset.dfx);
+    if(error) toast('Erreur'); else { toast('Défi clos'); loadDefis(); } });
+}
+$('#df-cancel').onclick=dfReset;
+$('#df-save').onclick=async()=>{
+  const fr=$('#df-tfr').value.trim(), tg=parseFloat($('#df-target').value), st=$('#df-start').value, en=$('#df-end').value;
+  if(fr.length<3||!(tg>0)||!st||!en||en<st){ setMsg('df-msg','Titre, objectif et dates obligatoires (fin après début).','err'); return; }
+  const today=dfYmd(new Date());
+  const row={ title_fr:fr, title_en:$('#df-ten').value.trim()||fr, title_nl:$('#df-tnl').value.trim()||fr,
+    desc_fr:$('#df-dfr').value.trim()||null, desc_en:$('#df-den').value.trim()||$('#df-dfr').value.trim()||null, desc_nl:$('#df-dnl').value.trim()||$('#df-dfr').value.trim()||null,
+    metric:$('#df-metric').value, target_value:tg, start_date:st, end_date:en, status: st<=today?'active':'upcoming', updated_at:new Date().toISOString() };
+  $('#df-save').disabled=true;
+  const q = DF_EDIT ? sb.from('community_challenges').update(row).eq('id',DF_EDIT) : sb.from('community_challenges').insert({ ...row, coach_id:(await sb.auth.getUser()).data.user.id });
+  const { error } = await q; $('#df-save').disabled=false;
+  if(error){ setMsg('df-msg','Erreur : '+error.message,'err'); return; }
+  toast(DF_EDIT?'Défi mis à jour':'Défi publié'); dfReset(); loadDefis();
+};
+
+/* ===================================================================
+   MESSAGES IN-APP (26 oct.) — a tous ou a une personne, sans nouveau build
+=================================================================== */
+let MG_TARGET=null;
+$('#mg-who').onchange=()=>{ $('#mg-one').style.display=$('#mg-who').value==='one'?'':'none'; MG_TARGET=null; $('#mg-res').innerHTML=''; };
+let MG_T=0;
+$('#mg-q').oninput=()=>{ clearTimeout(MG_T); MG_T=setTimeout(async()=>{ const { data }=await sb.rpc('admin_find_member',{ p_q:$('#mg-q').value });
+  $('#mg-res').innerHTML=(data||[]).map(u=>`<div class="item" data-u="${u.id}" data-e="${esc(u.email)}" style="padding:10px;margin-top:6px"><div class="nm">${esc(u.full_name||'—')}</div><div class="meta">${esc(u.email)}</div></div>`).join('')||'<p class="empty">Personne.</p>';
+  document.querySelectorAll('#mg-res [data-u]').forEach(el=>el.onclick=()=>{ MG_TARGET=el.dataset.u; $('#mg-res').innerHTML=`<p class="sub" style="text-align:left;margin:6px 0 0">Pour : <b>${esc(el.dataset.e)}</b></p>`; }); },250); };
+async function loadMsgs(){
+  if(!$('#mg-start').value){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); $('#mg-start').value=d.toISOString().slice(0,16); }
+  const { data, error } = await sb.rpc('admin_app_messages');
+  if(error){ $('#mg-list').innerHTML='<p class="empty">Erreur (accès admin requis).</p>'; return; }
+  const L=data||[];
+  $('#mg-list').innerHTML=L.length?L.map(m=>`<div class="item"><div class="nm">${esc(m.title)} ${m.active?'<span class="pill ok">Actif</span>':'<span class="pill no">Arrêté</span>'}</div>
+     <div class="meta">${m.target_email?'Pour '+esc(m.target_email):'Tout le monde'}${m.lang?' · '+m.lang.toUpperCase():''} · vu par ${m.seen} · ${new Date(m.created_at).toLocaleString('fr-BE')}</div>
+     <div class="meta" style="margin-top:4px">${esc(m.body)}</div>
+     ${m.active?`<div style="margin-top:8px"><button class="btn subtle sm" data-mgx="${m.id}">Arrêter</button></div>`:''}</div>`).join(''):'<p class="empty">Aucun message envoyé.</p>';
+  document.querySelectorAll('[data-mgx]').forEach(b=>b.onclick=async()=>{ const { error }=await sb.from('app_messages').update({ active:false }).eq('id',b.dataset.mgx); if(error) toast('Erreur'); else loadMsgs(); });
+}
+$('#mg-send').onclick=async()=>{
+  const title=$('#mg-title').value.trim(), body=$('#mg-body').value.trim(), who=$('#mg-who').value;
+  if(title.length<2||body.length<2){ setMsg('mg-msg','Titre et message obligatoires.','err'); return; }
+  if(who==='one'&&!MG_TARGET){ setMsg('mg-msg','Choisis la personne dans la liste.','err'); return; }
+  const cta=$('#mg-cta').value.trim(), tab=$('#mg-tab').value;
+  const st=$('#mg-start').value?new Date($('#mg-start').value).toISOString():new Date().toISOString(), en=$('#mg-end').value?new Date($('#mg-end').value).toISOString():null;
+  if(!confirm(who==='all'?'Envoyer ce message à tout le monde ?':'Envoyer ce message à cette personne ?')) return;
+  $('#mg-send').disabled=true;
+  const { error } = await sb.from('app_messages').insert({ target: who==='one'?MG_TARGET:null, lang:$('#mg-lang').value||null, title, body,
+    cta_label: cta&&tab?cta:null, cta_tab: cta&&tab?tab:null, starts_at:st, ends_at:en });
+  $('#mg-send').disabled=false;
+  if(error){ setMsg('mg-msg','Erreur : '+error.message,'err'); return; }
+  ['mg-title','mg-body','mg-cta','mg-q'].forEach(i=>$('#'+i).value=''); MG_TARGET=null; $('#mg-res').innerHTML='';
+  setMsg('mg-msg','Envoyé. Il s’affichera à la prochaine ouverture de l’app.','ok'); loadMsgs();
+};
 </script>
 <a id="cdm-voice" href="studio-voix.html" style="position:fixed;left:96px;bottom:14px;z-index:9999;background:#0c1210;color:#E9C767;border:1px solid #1e2a25;border-radius:999px;padding:10px 16px;font:600 14px/1 -apple-system,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.4)">&#127897; Studio voix</a>
 <a id="cdm-backapp" href="app.html" style="position:fixed;left:14px;bottom:14px;z-index:9999;background:#0c1210;color:#00E896;border:1px solid #1e2a25;border-radius:999px;padding:10px 16px;font:600 14px/1 -apple-system,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.4)">&#8249; App</a>
