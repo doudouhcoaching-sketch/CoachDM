@@ -693,7 +693,7 @@ async function viewHome() {
     <button class="bigadd ai" id="h-ai"><div class="plus">✨</div><div><b>${esc(t('as_btn'))}</b><span>${esc(t('as_btn_s'))}</span></div></button></div>
     <div class="sect">${esc(t('in_progress'))}</div><div id="h-list"><div class="load" style="min-height:120px"><div class="spin"></div></div></div><div id="h-tpl"></div>`;
   paintTplSection();
-  $('#h-new').onclick = () => startWizard(null); $('#h-ai').onclick = () => startAssistant(null); bindHomeTabs();
+  $('#h-new').onclick = () => startWizard(null); $('#h-ai').onclick = async () => { if (!(await coachPaid())) return coachOffer('ai'); startAssistant(null); }; bindHomeTabs();
   if (!CLIENTS.length) { $('#h-list').innerHTML = `<div class="empty">${esc(t('no_client'))}</div>`; return; }
   const res = await Promise.all(CLIENTS.map((c) => rpc('coach_list_plans', { p_client: c.client_id }).then((p) => (p || []).map((x) => ({ ...x, client: c }))).catch(() => [])));
   HOME_PLANS = res.flat().filter((p) => p.status !== 'archived').sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
@@ -749,7 +749,7 @@ function viewWizard() {
     <div class="choice"><button data-f="blank" class="${WZ.from === 'blank' ? 'on' : ''}"><b>${esc(t('blank'))}</b><span>${esc(t('blank_s'))}</span></button>
     <button data-f="lib" class="${WZ.from === 'lib' ? 'on' : ''}"><b>${esc(t('fromlib'))}</b><span>${esc(t('fromlib_s'))}</span></button>
     <button data-f="tpl" class="${WZ.from === 'tpl' ? 'on' : ''}"><b>${esc(t('tp_from'))}</b><span>${esc(t('tp_from_s'))}</span></button></div><div id="wz-progs"></div>`;
-  $$('.choice button', v).forEach((b) => b.onclick = () => { WZ.from = b.dataset.f; $$('.choice button', v).forEach((x) => x.classList.toggle('on', x === b)); paintProgs(); });
+  $$('.choice button', v).forEach((b) => b.onclick = async () => { if (b.dataset.f === 'lib' && !(await coachPaid())) return coachOffer('lib'); WZ.from = b.dataset.f; $$('.choice button', v).forEach((x) => x.classList.toggle('on', x === b)); paintProgs(); });
   async function paintProgs() {
     const el = $('#wz-progs');
     if (WZ.from === 'tpl') {
@@ -1567,9 +1567,9 @@ function paintMP() {
     if (it.kind === 'recipe') it.qty = Math.max(.25, Math.min(4, it.qty + d * .25)); else it.qty = Math.max(5, Math.min(1500, it.qty + d * (it.qty >= 100 ? 25 : 10)));
     MP.dirty = true; re(); });
   const busy = async (fn) => { try { await fn(); MP.dirty = true; re(); } catch (e) { toast(errMsg(e), true); } };
-  $('#mp-auto').onclick = () => { if (MP.items.some((i) => i.day === MP.day) && !confirm(t('mp_replace'))) return; busy(autoFill); };
-  $('#mp-fit').onclick = () => busy(nfAdjust);
-  $$('[data-swap]', b).forEach((x) => x.onclick = () => busy(() => nfSwap(+x.dataset.swap)));
+  $('#mp-auto').onclick = async () => { if (!(await coachPaid())) return coachOffer('nutri'); if (MP.items.some((i) => i.day === MP.day) && !confirm(t('mp_replace'))) return; busy(autoFill); };
+  $('#mp-fit').onclick = async () => { if (!(await coachPaid())) return coachOffer('nutri'); busy(nfAdjust); };
+  $$('[data-swap]', b).forEach((x) => x.onclick = async () => { if (!(await coachPaid())) return coachOffer('nutri'); busy(() => nfSwap(+x.dataset.swap)); });
   $('#mp-save').onclick = saveMP;
   const del = $('#mp-del'); if (del) del.onclick = async () => { if (!confirm(t('mp_del') + ' ?')) return; try { await rpc('coach_delete_meal_plan', { p_id: MP.id }); MP.dirty = false; closeSheet('ov2'); viewNutriClient(); } catch (e) { toast(errMsg(e), true); } };
 }
@@ -2243,7 +2243,7 @@ async function viewAssistant() {
   setTitle(t('as_title'), AS.client ? firstName(AS.client) : ''); dock('');
   const v = $('#view');
   if (COACH_PAID === null) { try { const pi = await rpc('coach_my_plan_info'); COACH_PAID = !pi || pi.paid !== false; } catch (_) { COACH_PAID = true; } }
-  if (!COACH_PAID && !(ME && ME.role === 'admin')) { v.innerHTML = `<div class="gate"><h2>✨ ${esc(t('as_title'))}</h2><p>${esc(t('as_premium'))}</p></div>`; return; }
+  if (!COACH_PAID && !(ME && ME.role === 'admin')) { v.innerHTML = `<div class="gate"><h2>${esc(t('as_title'))}</h2><p>${esc(t('pw_ai'))}</p></div>`; coachOffer('ai'); return; }
 
   if (AS.stage === 'ask') {
     v.innerHTML = (AS.client ? '' : `<h2 class="q">${esc(t('as_who'))}</h2><div class="fchips wrap" id="as-cl" style="margin-bottom:22px">${asClients().map((c, i) => `<button data-i="${i}">${esc(firstName(c) || c.email)}</button>`).join('')}</div>`) +
@@ -2318,7 +2318,7 @@ async function asBuild() {
   try {
     const r = await rpc('studio_ai_program', { p_client: AS.client.client_id, p_goal: P.goal, p_level: P.level, p_days: P.weekdays.length, p_weeks: P.weeks,
       p_equipment: AS_EQ[P.equipment], p_constraints: P.constraints, p_session_min: P.session_min, p_start: P.start, p_weekdays: P.weekdays, p_title: (P.title || '').trim() || null });
-    if (r && r.error) { AS.stage = 'set'; viewAssistant(); return toast(r.error === 'pool_insuffisant' ? t('as_pool') : r.error === 'daily_limit' ? t('as_limit', { m: r.limit || 20 }) : (r.message || t('err')), true); }
+    if (r && r.error) { AS.stage = 'set'; viewAssistant(); return toast(r.error === 'coach_plan_required' ? t('pw_ai') : r.error === 'pool_insuffisant' ? t('as_pool') : r.error === 'daily_limit' ? t('as_limit', { m: r.limit || 20 }) : (r.message || t('err')), true); }
     AS.result = r; AS.stage = 'done'; HOME_PLANS = null; viewAssistant();
   } catch (e) { AS.stage = 'set'; viewAssistant(); toast(errMsg(e), true); }
 }
@@ -3258,6 +3258,37 @@ async function groupReport(g, days, lg, note) {
 boot().catch((e) => { console.error(e); $('#view').innerHTML = `<div class="gate"><h2>${esc(t('err'))}</h2><p>${esc(String(e && e.message || e))}</p></div>`; });
 
 
+
+/* =====================================================================
+   OFFRE COACH (25 oct.) — le palier gratuit garde : 3 clients, la messagerie,
+   ses propres seances, programmes et plans repas faits a la main.
+   La bibliotheque Coach DM, l'assistant qui cree les programmes et la nutrition
+   calculee au gramme pres font partie de l'offre Coach (clients illimites).
+   iOS : aucun prix, aucun lien d'achat (regle Apple 3.1.1) : constat neutre.
+   ===================================================================== */
+Object.assign(TX, {
+  pw_h: { fr: 'Offre Coach', en: 'Coach plan', nl: 'Coach-abonnement' },
+  pw_lib: { fr: 'Les programmes Coach DM font partie de l’offre Coach. Avec ton palier gratuit, tu crées tes propres séances et programmes.', en: 'Coach DM programs are part of the Coach plan. On the free tier, you build your own sessions and programs.', nl: 'De Coach DM-programma’s horen bij het Coach-abonnement. Met je gratis niveau maak je je eigen trainingen en programma’s.' },
+  pw_ai: { fr: 'L’assistant qui crée les programmes fait partie de l’offre Coach. Avec ton palier gratuit, tu construis tes programmes toi-même.', en: 'The assistant that builds programs is part of the Coach plan. On the free tier, you build your programs yourself.', nl: 'De assistent die programma’s bouwt hoort bij het Coach-abonnement. Met je gratis niveau bouw je je programma’s zelf.' },
+  pw_nutri: { fr: 'La nutrition calculée au gramme près fait partie de l’offre Coach. Avec ton palier gratuit, tu composes les repas et les quantités toi-même.', en: 'Nutrition calculated to the gram is part of the Coach plan. On the free tier, you set the meals and amounts yourself.', nl: 'Voeding tot op de gram berekend hoort bij het Coach-abonnement. Met je gratis niveau stel je de maaltijden en hoeveelheden zelf samen.' },
+  pw_list: { fr: 'Clients illimités · bibliothèque de programmes Coach DM · assistant programmes · nutrition au gramme près · visios et vidéos', en: 'Unlimited clients · Coach DM program library · program assistant · nutrition to the gram · video calls and videos', nl: 'Onbeperkt klanten · Coach DM-programmabibliotheek · programma-assistent · voeding tot op de gram · videogesprekken en video’s' },
+  pw_see: { fr: 'Voir l’offre Coach', en: 'See the Coach plan', nl: 'Bekijk het Coach-abonnement' },
+  pw_later: { fr: 'Plus tard', en: 'Later', nl: 'Later' },
+});
+const ST_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+async function coachPaid() {
+  if (ME && ME.role === 'admin') return true;
+  if (COACH_PAID === null) { try { const pi = await rpc('coach_my_plan_info'); COACH_PAID = !pi || pi.paid !== false; } catch (_) { COACH_PAID = true; } }
+  return COACH_PAID;
+}
+function coachOffer(what) {
+  const msg = t(what === 'ai' ? 'pw_ai' : what === 'nutri' ? 'pw_nutri' : 'pw_lib');
+  const sh = openSheet('ov3', `<h2 style="margin:0 0 8px">${esc(t('pw_h'))}</h2><p style="margin:0 0 14px;color:var(--muted);line-height:1.5">${esc(msg)}</p>
+    <div style="padding:14px 16px;border-radius:16px;margin-bottom:14px;line-height:1.55;background:rgba(233,199,103,.08);color:var(--gold,#E9C767)">${esc(t('pw_list'))}</div>
+    ${ST_NATIVE ? '' : `<a class="btn main" href="https://coachdm.be/offre-coach.html" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none">${esc(t('pw_see'))}</a>`}
+    <button class="btn" id="pw-x" style="margin-top:9px;width:100%">${esc(t('pw_later'))}</button>`);
+  $('#pw-x', sh).onclick = () => closeSheet('ov3');
+}
 </script>
 </body>
 </html>

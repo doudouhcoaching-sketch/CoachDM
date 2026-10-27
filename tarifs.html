@@ -136,7 +136,7 @@ h1, h2, h3{ font-family:var(--font-display); letter-spacing:.012em; }
     <b data-i18n="public_pricing">Tarifs publics</b>
   </div>
 
-  <div class="cards three" id="public-cards"><p class="note" data-i18n="loading">Chargement des tarifs…</p></div>
+  <div class="cards" id="public-cards"><p class="note" data-i18n="loading">Chargement des tarifs…</p></div>
 
   <!-- ===================== POURQUOI ===================== -->
   <div class="why">
@@ -146,7 +146,7 @@ h1, h2, h3{ font-family:var(--font-display); letter-spacing:.012em; }
         <li data-i18n-html="why_1"><b>Expertise vérifiable</b> — coach certifié (12 certifications), méthodes science-based avec références.</li>
         <li data-i18n-html="why_2"><b>Tout inclus</b> — nutrition, séances, Coach IA, analyses vidéo IA, suivi : pas d'add-ons facturés en plus.</li>
         <li data-i18n-html="why_3"><b>Trilingue FR / EN / NL</b> — pensé pour la Belgique et au-delà.</li>
-        <li data-i18n-html="why_4"><b>Coachs : clients gratuits</b> — tu paies l'outil, pas tes clients ; quota d'actifs clair.</li>
+        <li data-i18n-html="why_4"><b>Coachs : clients illimités</b> — tu paies l'outil, pas tes clients. Gratuit jusqu'à 3 clients.</li>
       </ul>
     </div>
   </div>
@@ -238,7 +238,7 @@ const T = {
   why_1:{fr:"<b>Expertise vérifiable</b> — coach certifié (12 certifications), méthodes science-based avec références.",en:"<b>Verifiable expertise</b> — certified coach (12 certifications), science-based methods with references.",nl:"<b>Verifieerbare expertise</b> — gecertificeerde coach (12 certificeringen), wetenschappelijk onderbouwde methodes met bronnen."},
   why_2:{fr:"<b>Tout inclus</b> — nutrition, séances, Coach IA, analyses vidéo IA, suivi : pas d'add-ons facturés en plus.",en:"<b>All included</b> — nutrition, workouts, AI Coach, AI video analysis, tracking: no add-ons billed on top.",nl:"<b>Alles inbegrepen</b> — voeding, trainingen, AI-coach, AI-video-analyse, opvolging: geen extra add-ons."},
   why_3:{fr:"<b>Trilingue FR / EN / NL</b> — pensé pour la Belgique et au-delà.",en:"<b>Trilingual FR / EN / NL</b> — built for Belgium and beyond.",nl:"<b>Drietalig FR / EN / NL</b> — gemaakt voor België en daarbuiten."},
-  why_4:{fr:"<b>Coachs : clients gratuits</b> — tu paies l'outil, pas tes clients ; quota d'actifs clair.",en:"<b>Coaches: free clients</b> — you pay for the tool, not your clients; a clear active-client quota.",nl:"<b>Coaches: gratis klanten</b> — je betaalt voor de tool, niet voor je klanten; een duidelijk quotum actieve klanten."},
+  why_4:{fr:"<b>Coachs : clients illimités</b> — tu paies l'outil, pas tes clients. Gratuit jusqu'à 3 clients.",en:"<b>Coaches: unlimited clients</b> — you pay for the tool, not your clients. Free up to 3 clients.",nl:"<b>Coaches: onbeperkt klanten</b> — je betaalt voor de tool, niet voor je klanten. Gratis tot 3 klanten."},
   vat_line:{fr:"Non assujetti à la TVA. TVA non applicable.",en:"Not subject to VAT. VAT not applicable.",nl:"Niet btw-plichtig. Btw niet van toepassing."},
   /* ── Checkout ── */
   ck_close:{fr:"Fermer",en:"Close",nl:"Sluiten"},
@@ -249,9 +249,9 @@ const T = {
   note_month:{fr:"Sans engagement · résiliable à tout moment",en:"No commitment · cancel anytime",nl:"Zonder verplichting · altijd opzegbaar"},
   note_year:{fr:"Facturé à l'année · deux mois offerts",en:"Billed yearly · two months free",nl:"Jaarlijks gefactureerd · twee maanden gratis"},
   locked_life:{fr:"Tarif bloqué à vie",en:"Price locked for life",nl:"Tarief levenslang vast"},
-  cap_coach_f:{fr:"30 clients actifs (au lieu de 20)",en:"30 active clients (instead of 20)",nl:"30 actieve klanten (i.p.v. 20)"},
+  cap_coach_f:{fr:"Clients illimités",en:"Unlimited clients",nl:"Onbeperkt klanten"},
   cap_coachplus_f:{fr:"60 clients actifs (au lieu de 50)",en:"60 active clients (instead of 50)",nl:"60 actieve klanten (i.p.v. 50)"},
-  cap_coach:{fr:"20 clients actifs · tout inclus",en:"20 active clients · all included",nl:"20 actieve klanten · alles inbegrepen"},
+  cap_coach:{fr:"Clients illimités · tout inclus",en:"Unlimited clients · all included",nl:"Onbeperkt klanten · alles inbegrepen"},
   cap_coachplus:{fr:"50 clients actifs · tout inclus",en:"50 active clients · all included",nl:"50 actieve klanten · alles inbegrepen"},
   soldout:{fr:"Complet",en:"Sold out",nl:"Volzet"},
   reserve:{fr:"Réserver ma place",en:"Reserve my spot",nl:"Reserveer mijn plaats"},
@@ -279,7 +279,11 @@ const T = {
   f_tracking:{fr:"Suivi & progression",en:"Tracking & progression",nl:"Opvolging & progressie"},
   f_clients_free:{fr:"Tes clients ne paient rien",en:"Your clients pay nothing",nl:"Je klanten betalen niets"},
   f_planning:{fr:"Planning, réservations, présences",en:"Scheduling, bookings, attendance",nl:"Planning, reserveringen, aanwezigheden"},
-  f_video:{fr:"Appels vidéo",en:"Video calls",nl:"Videogesprekken"},
+  f_video:{fr:"Appels vidéo et vidéos dans la messagerie",en:"Video calls and videos in messaging",nl:"Videogesprekken en video's in berichten"},
+  f_unlimited:{fr:"Clients illimités",en:"Unlimited clients",nl:"Onbeperkt klanten"},
+  f_library:{fr:"Les programmes Coach DM pour tes clients",en:"Coach DM programs for your clients",nl:"De Coach DM-programma's voor je klanten"},
+  f_assistant:{fr:"L'assistant qui crée les programmes",en:"The assistant that builds programs",nl:"De assistent die programma's bouwt"},
+  f_nutri_gram:{fr:"Plans repas calculés au gramme près",en:"Meal plans calculated to the gram",nl:"Maaltijdplannen tot op de gram berekend"},
   f_no_addons:{fr:"Sans add-ons à empiler",en:"No add-ons to stack",nl:"Geen op te stapelen add-ons"}
 };
 const t = k => (T[k] ? (T[k][LANG] ?? T[k].fr) : k);
@@ -369,18 +373,13 @@ function render(){
           feats:[t('f_all_member'),t('f_4analyses'),t('f_ai_photo'),t('f_badge')]})
   + card({tier:'coach',founder:true,badge:t('tier_coach_f'),
           note:t('locked_life')+' · '+t('cap_coach_f'),hl:true,capKind:'coach',
-          feats:[t('f_client_mgmt'),t('f_msg_checkins'),t('f_featured'),t('f_onboarding')]})
-  + card({tier:'coach_plus',founder:true,badge:t('tier_coachplus_f'),
-          note:t('locked_life')+' · '+t('cap_coachplus_f'),hl:true,capKind:'coach',
-          feats:[t('f_all_coach_ext'),t('f_video_clients'),t('f_gyms')]});
+          feats:[t('f_unlimited'),t('f_library'),t('f_assistant'),t('f_nutri_gram'),t('f_video_clients'),t('f_featured'),t('f_onboarding')]});
 
   $('#public-cards').innerHTML =
     card({tier:'membre',founder:false,badge:t('tier_membre'),note:yearNote,
           feats:[t('f_nutrition'),t('f_sessions_ai'),t('f_4analyses_short'),t('f_tracking')]})
   + card({tier:'coach',founder:false,badge:t('tier_coach'),note:t('cap_coach'),
-          feats:[t('f_clients_free'),t('f_planning'),t('f_msg_checkins')]})
-  + card({tier:'coach_plus',founder:false,badge:t('tier_coachplus'),note:t('cap_coachplus'),
-          feats:[t('f_all_coach_ext'),t('f_video'),t('f_no_addons')]});
+          feats:[t('f_unlimited'),t('f_library'),t('f_assistant'),t('f_nutri_gram'),t('f_msg_checkins'),t('f_video'),t('f_clients_free')]});
 
   document.querySelectorAll('[data-lk]').forEach(b=>{ b.onclick=()=>onChoose(b.dataset.lk); });
 }
