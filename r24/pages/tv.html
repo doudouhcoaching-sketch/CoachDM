@@ -1,0 +1,1197 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Coach DM TV</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0B0B0A">
+<link rel="icon" href="favicon-32x32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Coach DM TV">
+<link rel="manifest" href="tv-manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap">
+<style>
+:root{--bg:#070908;--card:#0F1411;--card2:#131A16;--line:rgba(255,255,255,.08);--fg:#F4F2EC;--mut:#9AA69F;--dim:#56625B;
+  --g:#DCBB72;--gold:#D9B65C;--gold-hi:#F3E3AE;--gold-deep:#8B6914;--red:#FF5A5F;--amb:#FFB547;--ice:#7FD4FF;
+  --gold-grad:linear-gradient(176deg,#F3E3AE 4%,#D9B65C 34%,#B8963F 58%,#F3E3AE 98%);color-scheme:dark}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--fg);font-family:'Outfit',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(70% 55% at 85% -10%,rgba(217,182,92,.10),transparent 60%),radial-gradient(60% 50% at 0% 110%,rgba(220,187,114,.06),transparent 60%),var(--bg)}
+body.tv{overflow:hidden}
+.num{font-variant-numeric:tabular-nums}
+[hidden]{display:none!important}
+.goldtx{background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo{border-radius:22%;box-shadow:0 0 0 1px rgba(217,182,92,.35),0 .6vw 2.4vw rgba(0,0,0,.5)}
+
+/* =================== ECRAN =================== */
+#tv{position:fixed;inset:0;padding:2vw 2.4vw;display:grid;grid-template-rows:auto 1fr;gap:1.4vw}
+.top{display:flex;align-items:center;gap:1.4vw;min-width:0}
+.top .logo{width:3.6vw;height:3.6vw}
+.top .br{font-weight:900;letter-spacing:.3em;font-size:1.25vw}
+.top h2{flex:1;min-width:0;font-size:2vw;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:1.4vw;border-left:1px solid var(--line)}
+.top .now{font-size:2vw;font-weight:700;color:var(--mut)}
+.tvcode{font-size:1.05vw;font-weight:800;letter-spacing:.14em;color:var(--mut);padding:.45vw .9vw;border-radius:.7vw;border:1px solid var(--line);background:rgba(255,255,255,.03);white-space:nowrap}
+.tvcode b{color:var(--fg);letter-spacing:.24em;font-size:1.25vw;margin-left:.5vw}
+.top .x{color:var(--gold);font-weight:300;font-size:2vw;line-height:1}
+.top .club{width:auto;max-width:9vw;height:3.4vw;object-fit:contain;border-radius:.5vw;box-shadow:none}
+.top .cn{font-weight:900;letter-spacing:.24em;font-size:1.25vw;text-transform:uppercase}
+.pill{font-size:.95vw;font-weight:800;letter-spacing:.16em;padding:.45vw 1vw;border-radius:99px;color:#1d1503;background:var(--gold-grad)}
+
+/* vitrine (aucun cours) */
+#vit{display:grid;grid-template-columns:1.25fr 1fr;gap:4vw;align-items:center;padding:0 2vw}
+.vt .logo{width:13vw;height:13vw}
+.vt h1{font-size:6.4vw;line-height:.95;font-weight:900;letter-spacing:-.01em;margin:2.4vw 0 1vw}
+.vt .tag{font-size:2vw;color:var(--mut);font-weight:600}
+.feats{margin-top:2.6vw;display:flex;flex-direction:column;gap:1vw;min-height:9vw}
+.feat{font-size:2.1vw;font-weight:700;display:flex;gap:1vw;align-items:center;opacity:0;transform:translateY(.6vw);transition:opacity .7s,transform .7s}
+.feat.on{opacity:1;transform:none}
+.feat i{font-style:normal;color:var(--gold);font-size:2.4vw}
+.ad{background:linear-gradient(160deg,#17130A,#0E110F 60%);border:1px solid rgba(217,182,92,.35);border-radius:2vw;padding:2.4vw;text-align:center}
+.ad h3{font-size:2.3vw;font-weight:800;line-height:1.15}
+.ad p{font-size:1.35vw;color:var(--mut);margin:.8vw 0 1.6vw}
+.qr{background:#fff;padding:1vw;border-radius:1.2vw;display:inline-flex}
+.qr img,.qr canvas{display:block;width:100%!important;height:100%!important}
+.ad .qr{width:17vw;height:17vw}
+.stores{margin-top:1.4vw;font-size:1.2vw;color:var(--gold);font-weight:700;letter-spacing:.06em}
+.paircode{position:fixed;left:2.4vw;bottom:1.4vw;font-size:1.05vw;color:var(--dim)}
+.paircode b{color:var(--mut);letter-spacing:.2em;font-size:1.3vw}
+
+/* cours */
+#cls{display:grid;grid-template-columns:35% 1fr;gap:1.8vw;min-height:0}
+.side{display:flex;flex-direction:column;gap:1vw;min-height:0}
+.plan{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:.9vw}
+.part{border-radius:1.1vw;padding:1vw 1.3vw;background:var(--card);border:1px solid var(--line);transition:opacity .4s}
+.part h3{font-size:1.05vw;letter-spacing:.22em;font-weight:800;color:var(--gold);display:flex;justify-content:space-between;gap:1vw;text-transform:uppercase}
+.part h3 span+span{letter-spacing:.04em;color:var(--mut)}
+.part ul{list-style:none;margin-top:.6vw;display:flex;flex-direction:column;gap:.45vw}
+.part li{font-size:1.5vw;font-weight:600;display:grid;grid-template-columns:minmax(6vw,max-content) 1fr;column-gap:1vw;align-items:baseline;line-height:1.2}
+.part li .q{color:var(--g);font-weight:800;font-size:1.35vw;max-width:15vw}
+.part li .n{min-width:0}
+.part li small{color:var(--mut);font-weight:500;font-size:1.05vw;margin-left:.5vw}
+.part li.done{opacity:.38}
+.part li.cur .n{color:var(--gold-hi)}
+.part.cur{background:var(--card2);border-color:rgba(217,182,92,.6);box-shadow:inset .35vw 0 0 var(--gold),0 0 2.4vw rgba(217,182,92,.12)}
+.part.done{opacity:.35}
+.part h3 .no{font-style:normal;display:inline-flex;align-items:center;justify-content:center;min-width:2.2vw;height:2.2vw;margin-right:.9vw;border-radius:.6vw;font-size:1.1vw;letter-spacing:0;color:#08100C;background:var(--kc,var(--gold))}
+.part h3 span:first-child{display:flex;align-items:center;color:var(--kc,var(--gold))}
+.k-activation{--kc:#7FD4FF}.k-strength,.k-accessory,.k-sprint_plyo{--kc:#E9C46A}.k-conditioning{--kc:#DCBB72}
+.part.cur{border-color:var(--kc,var(--gold));box-shadow:inset .35vw 0 0 var(--kc,var(--gold)),0 0 2.6vw color-mix(in srgb,var(--kc,#D9B65C) 22%,transparent)}
+.live[data-k=activation]{--kc:#7FD4FF}.live[data-k=strength]{--kc:#E9C46A}.live[data-k=conditioning]{--kc:#DCBB72}
+.live .lab{color:var(--kc,var(--gold));font-size:1.9vw}
+.live:before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 50% at 50% 0%,color-mix(in srgb,var(--kc,#D9B65C) 14%,transparent),transparent 70%)}
+.part .nt{font-size:1.1vw;color:var(--mut);margin-top:.5vw;line-height:1.35}
+.compact .part{padding:.7vw 1.1vw}.compact .part li{font-size:1.25vw}.compact .part li .q{font-size:1.15vw}.compact .plan{gap:.6vw}.compact .part ul{gap:.25vw}
+.tight .part li{font-size:1.05vw}.tight .part li .q{font-size:1vw}.tight .part h3{font-size:.9vw}
+.mini{display:flex;align-items:center;gap:1.2vw;padding:1vw 1.2vw;border-radius:1.1vw;background:linear-gradient(160deg,#17130A,#0F120F);border:1px solid rgba(217,182,92,.3)}
+.mini .qr{width:7vw;height:7vw;padding:.5vw;border-radius:.7vw;flex:none}
+.mini b{display:block;font-size:1.45vw;line-height:1.15}
+.mini span{display:block;font-size:1.05vw;color:var(--mut);margin-top:.3vw}
+
+.live{min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;
+  border-radius:1.8vw;background:linear-gradient(180deg,#0D120F,#070908);border:1px solid var(--line);padding:1.6vw 2vw;overflow:hidden}
+.lab{font-size:1.5vw;letter-spacing:.3em;font-weight:800;color:var(--gold);text-transform:uppercase}
+.clk{font-size:15vw;font-weight:900;line-height:.95;letter-spacing:-.02em;margin:.6vw 0}
+.clk.warn{color:var(--amb)}.clk.go{color:var(--g)}.clk.rest{color:var(--ice)}.clk.idle{color:var(--fg)}
+.sub{font-size:2.6vw;font-weight:700}
+.sub2{font-size:1.6vw;color:var(--mut);margin-top:.4vw;font-weight:600}
+.mv{display:flex;align-items:center;gap:2vw;margin-top:1.4vw;max-width:100%}
+.mv .fig{width:12vw;height:12vw;flex:none}
+.mv .t{text-align:left;min-width:0}
+.mv .t b{display:block;font-size:3.4vw;font-weight:800;line-height:1.05}
+.mv .t span{display:block;font-size:1.9vw;color:var(--g);font-weight:700;margin-top:.3vw}
+.mv .t em{display:block;font-size:1.4vw;color:var(--mut);font-style:normal;margin-top:.4vw}
+.bar{position:absolute;left:0;bottom:0;height:.6vw;background:var(--gold-grad);transition:width .5s linear}
+.nx{position:absolute;right:1.6vw;bottom:1.6vw;font-size:1.3vw;color:var(--mut);text-align:right}
+.nx b{color:var(--fg);display:block;font-size:1.7vw}
+.pause{position:absolute;inset:0;background:rgba(7,9,8,.72);display:flex;align-items:center;justify-content:center;font-size:5vw;font-weight:900;letter-spacing:.2em;color:var(--amb)}
+.big3{font-size:30vw;font-weight:900;line-height:1}
+.cue{font-size:2vw;color:var(--gold-hi);margin-top:1vw;max-width:90%;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.solo #cls{grid-template-columns:1fr}.solo .plan{display:none}.solo .side{display:none}
+
+.rig .f1,.rig .f2,.rig .f3{animation-duration:3.6s;animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-direction:alternate}
+.rig .f1{animation-name:phA}.rig .f2{animation-name:phB}.rig .f3{animation-name:phC}
+@keyframes phA{0%,18%{opacity:1}30%,100%{opacity:0}}
+@keyframes phB{0%,18%{opacity:0}30%,52%{opacity:1}64%,100%{opacity:0}}
+@keyframes phC{0%,52%{opacity:0}64%,100%{opacity:1}}
+.anim-svg{width:100%;height:100%;display:block}
+
+#snd{position:fixed;right:1.6vw;bottom:1.4vw;z-index:9;font:inherit;font-size:1.3vw;font-weight:800;padding:.9vw 1.6vw;border-radius:99px;border:0;
+  background:var(--gold-grad);color:#1d1503;cursor:pointer;box-shadow:0 .6vw 2vw rgba(0,0,0,.5);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.05)}}
+.conn{position:fixed;right:1.4vw;top:.4vw;font-size:.8vw;color:var(--dim)}
+/* taille du texte du plan (choisie depuis la telecommande) */
+body[data-ts="1"] .part li{font-size:1.85vw}body[data-ts="1"] .part li .q{font-size:1.65vw;max-width:18vw}body[data-ts="1"] .part h3{font-size:1.25vw}
+body[data-ts="2"] .part li{font-size:2.25vw}body[data-ts="2"] .part li .q{font-size:2vw;max-width:20vw}body[data-ts="2"] .part h3{font-size:1.45vw}
+body[data-ts="2"] #cls{grid-template-columns:42% 1fr}
+body.noad .mini{display:none}
+/* message du coach en grand */
+#msg{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(5,7,6,.82);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .35s}
+#msg.on{opacity:1}
+#msg div{max-width:84vw;text-align:center;font-size:7vw;font-weight:900;line-height:1.05;background:var(--gold-grad);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 2vw rgba(217,182,92,.35))}
+/* aide plein ecran (iPad / navigateur) */
+#fsh{position:fixed;left:50%;bottom:1.4vw;transform:translateX(-50%);z-index:8;font-size:1.15vw;color:var(--mut);background:rgba(15,20,17,.92);border:1px solid rgba(217,182,92,.35);border-radius:99px;padding:.7vw 1.4vw;white-space:nowrap}
+#fsh b{color:var(--gold-hi)}
+@media (max-aspect-ratio:1/1){ #fsh{font-size:2.6vw;white-space:normal;width:90vw;text-align:center;border-radius:2vw} }
+/* telecommande : options */
+.ph .sec{font-size:11px;letter-spacing:.22em;font-weight:800;color:var(--gold);text-transform:uppercase;margin:6px 2px -4px}
+.ph .row4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ph .b.sm{padding:12px 6px;font-size:14px;border-radius:13px}
+.ph .chips.parts button{flex:1 1 auto}
+.ph .chips.parts button.cur{color:#04140C;background:var(--g);border-color:transparent}
+.ph .msgrow{display:grid;grid-template-columns:1fr auto;gap:8px}
+.ph .msgrow .b{width:auto;padding:12px 18px}
+.ph details.more{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:4px 14px 14px}
+.ph details.more summary{list-style:none;cursor:pointer;padding:12px 0;font-weight:800;font-size:15px;color:var(--gold-hi);display:flex;justify-content:space-between}
+.ph details.more summary::-webkit-details-marker{display:none}
+.ph details.more summary:after{content:'＋';color:var(--gold)} .ph details.more[open] summary:after{content:'－'}
+.ph details.more section{gap:10px}
+
+/* =================== TELEPHONE (telecommande) =================== */
+body.ph{min-height:100dvh;padding:calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto}
+.ph .hd{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.ph .hd img{width:42px;height:42px;border-radius:11px}
+.ph .hd div{font-weight:900;letter-spacing:.26em;font-size:13px}
+html.emb .ph .hd{margin-top:calc(46px + env(safe-area-inset-top))}
+.ph .hd .lg{margin-left:auto;display:flex;gap:4px;padding:3px;border-radius:999px;border:1px solid rgba(217,182,92,.35);background:rgba(255,255,255,.04)}
+.ph .hd .lg button{border:0;background:transparent;color:var(--mut);font:800 12px 'Outfit',sans-serif;letter-spacing:.08em;padding:7px 10px;border-radius:999px}
+.ph .hd .lg button.on{background:var(--gold-grad);color:#2a1f05}
+.ph .hd small{display:block;letter-spacing:.08em;font-weight:600;color:var(--mut);font-size:12px;margin-top:2px}
+.ph h1{font-size:26px;font-weight:800;line-height:1.12;margin-bottom:8px}
+.ph p{color:var(--mut);font-size:15px;line-height:1.5}
+.ph section{display:flex;flex-direction:column;gap:12px}
+.ph input{width:100%;font:inherit;font-size:16px;color:var(--fg);background:#0B100D;border:1px solid var(--line);border-radius:14px;padding:14px;outline:none}
+.ph input:focus{border-color:var(--gold)}
+.ph .code{font-size:38px;font-weight:900;letter-spacing:.28em;text-align:center;font-variant-numeric:tabular-nums}
+.ph button{font:inherit;cursor:pointer;color:inherit;border:0;background:none}.ph a.b{text-decoration:none;color:inherit}
+.ph .b{background:#151C18;border:1px solid var(--line)}.ph .b.gold{background:var(--gold-grad);color:#1d1503;border:0}.ph .b.p{background:var(--g);color:#04140C;border:0}.ph .b.am{background:var(--amb);color:#231500}.ph .it{background:#0B100D;border:1px solid var(--line)}.ph .tabs button{border:1px solid var(--line)}.ph .tabs button.on{background:var(--gold-grad);border-color:transparent}
+.b{display:block;width:100%;padding:16px;border-radius:16px;font-weight:800;font-size:17px;background:#151C18;border:1px solid var(--line);text-align:center}
+.b.gold{background:var(--gold-grad);color:#1d1503;border:0}
+.b.p{background:var(--g);color:#04140C;border:0;font-size:22px;padding:22px}
+.b.am{background:var(--amb);color:#231500}
+.b:active{transform:scale(.98)}
+.b:disabled{opacity:.4}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px}
+.list{display:flex;flex-direction:column;gap:8px;max-height:54vh;overflow:auto}
+.it{text-align:left;padding:13px 14px;border-radius:14px;background:#0B100D;border:1px solid var(--line);width:100%}
+.it b{display:block;font-size:16px}
+.it small{color:var(--mut);font-size:13px}
+.it.today{border-color:var(--g);box-shadow:0 0 0 1px var(--g) inset}.it.today b{color:var(--g)}
+.st{text-align:center}
+.st .lb{font-size:12px;letter-spacing:.22em;font-weight:800;color:var(--gold)}
+.st .ck{font-size:64px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1;margin:6px 0}
+.st .pz{font-size:14px;color:var(--mut)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:6px;vertical-align:middle}
+.dot.on{background:var(--g)}
+.small{font-size:13px;color:var(--mut);text-align:center}
+.lnk{color:var(--gold);text-decoration:underline;font-weight:700}
+.tabs{display:flex;gap:6px}
+.tabs button{flex:1;padding:10px;border-radius:12px;border:1px solid var(--line);font-weight:700;font-size:14px;color:var(--mut)}
+.tabs button.on{color:#1d1503;background:var(--gold-grad);border-color:transparent}
+.ed{display:flex;flex-direction:column;gap:8px}.ed label{font-size:12px;letter-spacing:.2em;font-weight:800;color:var(--gold);text-transform:uppercase}
+.ph textarea,.ph select{width:100%;font:inherit;font-size:16px;color:var(--fg);background:#0B100D;border:1px solid var(--line);border-radius:12px;padding:12px;outline:none;resize:vertical;line-height:1.45}
+.row3{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px}
+.err{color:var(--red);font-size:14px;text-align:center;min-height:18px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.ph .chips button{padding:8px 14px;border-radius:99px;border:1px solid var(--line);font-weight:700;font-size:14px;color:var(--mut)}
+.ph .chips button.on{color:#1d1503;background:var(--gold-grad);border-color:transparent}
+.sprow{display:flex;gap:12px;align-items:center}
+.sprow img,.sprow .ph0{width:64px;height:64px;flex:none;object-fit:contain;border-radius:12px;background:#0B100D;border:1px solid var(--line)}
+.sprow .ph0{display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:11px}
+.ph .file{font-size:14px;padding:10px}
+.choice{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.choice .b{padding:20px;text-align:left}
+.choice .b small{display:block;font-weight:500;color:var(--mut);font-size:14px;margin-top:4px}
+.choice .b.gold small{color:#3a2b08}
+
+@media (max-aspect-ratio:1/1){
+  body.tv #vit{grid-template-columns:1fr;gap:6vw}
+  .vt h1{font-size:12vw}.vt .tag,.feat{font-size:4vw}.vt .logo{width:24vw;height:24vw}
+  .ad h3{font-size:5vw}.ad p{font-size:3vw}.ad .qr{width:40vw;height:40vw}.stores{font-size:3vw}
+  #cls{grid-template-columns:1fr;grid-template-rows:auto 1fr}.side{max-height:34vh}.mini{display:none}
+  .part li{font-size:3vw}.part li .q{font-size:2.8vw;max-width:none}.part h3{font-size:2.2vw}
+  .top h2,.top .now{font-size:3.4vw}.top .logo{width:7vw;height:7vw}.top .br{display:none}
+  .clk{font-size:26vw}.sub{font-size:5vw}.lab{font-size:3vw}.mv .t b{font-size:6vw}.mv .fig{width:24vw;height:24vw}
+}
+
+/* 2.4 : demo video en boucle sans son + consignes courtes */
+.vd{position:relative;width:30vw;aspect-ratio:16/9;border-radius:1.4vw;overflow:hidden;background:#000;flex:none}
+.vd.big{width:min(46vw,64vh);margin:1vw auto .4vw}
+.vd iframe{position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none}
+.mv.hasv .sfig{width:6vw;height:6vw;flex:none}
+.live.hv{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:2vw;align-items:center;padding:1.4vw 1.6vw}
+.live.hv .vcol{display:flex;flex-direction:column;gap:.6vw;min-width:0}
+.live.hv .vd,.live.hv .vd.big{width:100%;margin:0}
+.ytc{font-size:.85vw;line-height:1.35;color:var(--mut);text-align:left;opacity:.85}
+.live.hv .icol{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;text-align:center}
+.live.hv .clk{font-size:7.2vw}.live.hv .big3{font-size:12vw}.live.hv .lab{font-size:1.5vw}.live.hv .sub{font-size:1.9vw}
+.live.hv .mv.hasv{margin-top:1vw;gap:.8vw}.live.hv .mv .t b{font-size:2.8vw}.live.hv .mv .t span{font-size:1.7vw}
+.live.hv .tvcue{font-size:2.3vw;-webkit-line-clamp:2}
+.mv.hasv{flex-direction:column;gap:1vw}
+.mv.hasv .t{text-align:center}
+.tvcue{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:3.4vw;letter-spacing:.02em;color:var(--gold-hi);-webkit-line-clamp:1}
+@media (max-aspect-ratio:1/1){.vd,.vd.big{width:86vw}.tvcue{font-size:7vw}.mv.hasv .sfig{width:14vw;height:14vw}
+  .live.hv{grid-template-columns:1fr}.live.hv .clk{font-size:20vw}.ytc{font-size:2.4vw}.live.hv .mv .t b{font-size:6vw}}
+</style>
+<style id="nx-page">
+/* ==========================================================================
+   COACH DM 2.4 — charte noir et or (refonte, TestFlight)
+   Une seule source : couleurs, polices, surfaces. Aucun contour.
+   Les polices sont embarquees (dossier fonts/) : rien ne depend de Google.
+   ========================================================================== */
+@font-face{font-family:'Barlow Condensed';font-weight:500;font-display:swap;src:url(fonts/barlow-condensed-latin-500-normal.woff2) format('woff2'),url(fonts/barlow-condensed-latin-ext-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:600;font-display:swap;src:url(fonts/barlow-condensed-latin-600-normal.woff2) format('woff2'),url(fonts/barlow-condensed-latin-ext-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:700;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format('woff2'),url(fonts/barlow-condensed-latin-ext-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:800 900;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:300 400;font-display:swap;src:url(fonts/inter-latin-400-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:500;font-display:swap;src:url(fonts/inter-latin-500-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:600;font-display:swap;src:url(fonts/inter-latin-600-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:700 900;font-display:swap;src:url(fonts/inter-latin-700-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-700-normal.woff2) format('woff2')}
+/* l'ancienne police est remplacee partout ou elle est nommee */
+@font-face{font-family:'Outfit';font-weight:300 400;src:url(fonts/inter-latin-400-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Outfit';font-weight:500;src:url(fonts/inter-latin-500-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Outfit';font-weight:600;src:url(fonts/inter-latin-600-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Outfit';font-weight:700 900;src:url(fonts/inter-latin-700-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-700-normal.woff2) format('woff2')}
+
+:root,:root[data-theme="light"],:root[data-theme="dark"]{
+  --bg:#0B0B0A; --bg-2:#0B0B0A;
+  --surface:#151513; --surface-2:#1D1C19; --surface-3:#262420; --line:rgba(255,255,255,.06);
+  --text:#F4F1E9; --muted:#8F8B80; --muted-2:#5F5C55;
+  --brand:#DCBB72; --brand-2:#C49E4C; --brand-soft:rgba(220,187,114,.13); --brand-ink:#DCBB72; --go:#DCBB72;
+  --gold-hi:#EBD49A; --gold:#DCBB72; --gold-mid:#C49E4C; --gold-deep:#8B6914; --bronze:#6E4E12;
+  --gold-soft:rgba(220,187,114,.13); --on-gold:#1B1405; --gold-ink:#DCBB72;
+  --gold-grad:linear-gradient(180deg,#E6C783,#C9A24E);
+  --prot:#E0574F; --carb:#5B9AD6; --fat:#DCBB72; --fiber:#8FB573;
+  --ok:#DCBB72; --warn:#E0574F;
+  --shadow:none; --shadow-soft:none; --glow:none;
+  --radius:22px; --radius-sm:14px;
+  --font-d:'Barlow Condensed','Arial Narrow',sans-serif; --font-display:'Barlow Condensed','Arial Narrow',sans-serif;
+  --font-t:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;
+  --ink:#1B1405; --red:#E0574F; --blue:#5B9AD6;
+  color-scheme:dark;
+}
+html,body{background:#0B0B0A!important}
+body{font-family:var(--font-t)!important;background:#0B0B0A!important;color:var(--text)}
+/* aucun contour, aucune lueur : les blocs se lisent par le fond et l'espace */
+*:not(input):not(textarea):not(select){border-color:transparent!important}
+*{text-shadow:none!important;text-transform:none!important}
+*::before,*::after{border-color:transparent!important}
+.block,.card,.sheet,.blk,[class*="-card"],[class*="tile"],.an-card,.insight,.hero-w{box-shadow:none!important}
+input,textarea,select{background:var(--surface-2)!important;border:0!important;border-radius:14px!important;color:var(--text)!important;box-shadow:none!important;outline:none}
+input::placeholder,textarea::placeholder{color:var(--muted-2)!important}
+/* pages a part : boutons en pilule, cartes sur fond, titres en Barlow */
+body[data-nx] button,body[data-nx] .btn,body[data-nx] a.btn{border-radius:999px;box-shadow:none!important}
+body[data-nx] h1,body[data-nx] h2{font-family:var(--font-d)!important;font-weight:600!important;letter-spacing:.01em}
+@media(max-width:1039px){.detail-void{display:none!important}}
+@media(max-width:760px){.tb-kick{display:none!important}.tb-id img{width:34px!important;height:34px!important}}
+
+</style>
+</head>
+<body data-nx="1">
+
+<!-- ================= ECRAN ================= -->
+<div id="tv" hidden>
+  <header class="top">
+    <img class="logo" src="logo-dm.png" alt="">
+    <span class="br goldtx">COACH DM</span>
+    <span class="x" id="s-x" hidden>×</span>
+    <img class="logo club" id="s-club" hidden alt="">
+    <span class="cn goldtx" id="s-cn" hidden></span>
+    <h2 id="s-title"></h2>
+    <span class="pill" id="s-mode" hidden></span>
+    <span class="tvcode num" id="s-code"></span>
+    <span class="now num" id="s-now"></span>
+  </header>
+
+  <section id="vit">
+    <div class="vt">
+      <img class="logo" src="logo-dm.png" alt="Coach DM">
+      <h1><span class="goldtx">COACH DM</span></h1>
+      <div class="tag" id="v-tag"></div>
+      <div class="feats" id="v-feats"></div>
+    </div>
+    <div class="ad">
+      <h3 id="v-ad-h"></h3>
+      <p id="v-ad-p"></p>
+      <div class="qr" id="v-qr"></div>
+      <div class="stores">App Store · Google Play</div>
+    </div>
+  </section>
+
+  <section id="cls" hidden>
+    <aside class="side">
+      <div class="plan" id="s-plan"></div>
+      <div class="mini"><div class="qr" id="m-qr"></div><div><b id="m-h"></b><span id="m-p"></span></div></div>
+    </aside>
+    <section class="live" id="s-live"></section>
+  </section>
+</div>
+<div class="paircode" id="paircode" hidden></div>
+<button type="button" id="snd" hidden></button>
+<div class="conn" id="conn"></div>
+<div id="msg"><div id="msg-t"></div></div>
+<div id="fsh" hidden></div>
+
+<!-- ================= TELEPHONE ================= -->
+<div id="rc" hidden>
+  <div class="hd"><img src="logo-dm.png" alt=""><div class="goldtx">COACH DM TV<small id="r-sub"></small></div><span class="lg" id="r-lg"><button data-l="fr">FR</button><button data-l="en">EN</button><button data-l="nl">NL</button></span></div>
+
+  <section id="r-choice" hidden>
+    <h1 data-t="ch_h"></h1>
+    <div class="choice">
+      <button class="b gold" id="ch-rc"><span data-t="ch_rc"></span><small data-t="ch_rc_s"></small></button>
+      <button class="b" id="ch-tv"><span data-t="ch_tv"></span><small data-t="ch_tv_s"></small></button>
+    </div>
+  </section>
+
+  <section id="r-login" hidden>
+    <h1 data-t="lg_h"></h1>
+    <p data-t="lg_p"></p>
+    <a class="b gold" href="app.html" data-t="lg_b"></a>
+  </section>
+
+  <section id="r-deny" hidden>
+    <h1 data-t="dn_h"></h1>
+    <p data-t="dn_p"></p>
+  </section>
+
+  <section id="r-code" hidden>
+    <h1 data-t="cd_h"></h1>
+    <p data-t="cd_p"></p>
+    <input id="cd-i" class="code" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="••••••">
+    <button class="b gold" id="cd-b" data-t="cd_b"></button>
+    <p class="err" id="cd-e"></p>
+  </section>
+
+  <section id="r-pick" hidden>
+    <h1 data-t="pk_h"></h1>
+    <button class="b gold" id="pk-new" data-t="pk_new"></button>
+    <div class="chips" id="pk-sp" hidden></div>
+    <div class="tabs"><button id="tb-cls" class="on" data-t="tb_cls"></button><button id="tb-me" data-t="tb_me"></button></div>
+    <input id="pk-q" type="search" autocomplete="off">
+    <div class="list" id="pk-l"></div>
+  </section>
+
+  <section id="r-edit" hidden>
+    <h1 data-t="ed_h"></h1>
+    <p data-t="ed_p"></p>
+    <input id="ed-title" autocomplete="off">
+    <div class="card ed" id="ed-spc" hidden><label data-t="ed_sp"></label><select id="ed-sp"></select></div>
+    <div class="card ed"><label data-t="warm"></label><textarea id="ed-warm" rows="4"></textarea></div>
+    <div class="card ed"><label data-t="str"></label><textarea id="ed-str" rows="4"></textarea></div>
+    <div class="card ed"><label>WOD</label>
+      <div class="row3"><select id="ed-fmt"><option value="classic">—</option><option value="amrap">AMRAP</option><option value="emom">EMOM</option><option value="for_time">For Time</option><option value="rft">RFT</option></select>
+        <input id="ed-min" inputmode="numeric" placeholder="min"><input id="ed-rnd" inputmode="numeric" placeholder="tours"></div>
+      <textarea id="ed-wod" rows="5"></textarea></div>
+    <div class="card ed" hidden><label data-t="cool"></label><textarea id="ed-cool" rows="3"></textarea></div>
+    <button class="b gold" id="ed-go" data-t="ed_go"></button>
+    <button class="b" id="ed-back" data-t="ed_back"></button>
+    <p class="err" id="ed-e"></p>
+  </section>
+
+  <section id="r-space" hidden>
+    <h1 data-t="sp_h"></h1>
+    <p data-t="sp_p"></p>
+    <div id="sp-l" class="list" style="max-height:none"></div>
+    <button class="b" id="sp-new" data-t="sp_new"></button>
+    <button class="b gold" id="sp-back" data-t="ed_back"></button>
+    <p class="err" id="sp-e"></p>
+  </section>
+
+  <section id="r-ctl" hidden>
+    <div class="card st"><div class="lb" id="c-lab"></div><div class="ck" id="c-clk">0:00</div><div class="pz" id="c-ph"></div></div>
+    <button class="b p" id="c-go"></button>
+    <button class="b" id="c-set" hidden data-t="c_set"></button>
+    <div class="row" id="c-rnd" hidden><button class="b" id="c-rm">− 1</button><button class="b" id="c-rp" data-t="c_rp"></button></div>
+    <div class="row"><button class="b" id="c-prev" data-t="c_prev"></button><button class="b" id="c-next" data-t="c_next"></button></div>
+    <div class="row"><button class="b" id="c-reset" data-t="c_reset"></button><button class="b" id="c-voice"></button></div>
+    <div class="row" id="c-restr" hidden><button class="b" id="c-r30">+30 s</button><button class="b" id="c-rskip" data-t="c_rskip"></button></div>
+    <div class="sec" data-t="o_parts"></div>
+    <div class="chips parts" id="c-parts"></div>
+    <div class="row"><button class="b" id="c-edit" data-t="c_edit"></button><button class="b" id="c-chg" data-t="c_chg"></button></div>
+    <details class="more" id="c-more"><summary data-t="o_more"></summary><section>
+      <div class="sec" data-t="o_msg"></div>
+      <div class="chips" id="c-msgp"></div>
+      <div class="msgrow"><input id="c-msgi" maxlength="60" autocomplete="off"><button class="b gold" id="c-msgs" data-t="o_send"></button></div>
+      <div class="sec" data-t="o_screen"></div>
+      <div class="row4"><button class="b sm" id="c-ts0">A</button><button class="b sm" id="c-ts1" style="font-size:17px">A</button><button class="b sm" id="c-ts2" style="font-size:21px">A</button><button class="b sm" id="c-ad" data-t="o_qr"></button></div>
+      <div class="sec" data-t="o_timer"></div>
+      <div class="row3"><select id="c-tf"><option value="amrap">AMRAP</option><option value="emom">EMOM</option><option value="for_time">For Time</option></select><input id="c-tm" type="number" inputmode="numeric" min="1" max="90" value="12"><button class="b gold sm" id="c-tgo" data-t="o_tgo"></button></div>
+      <p class="small" data-t="o_thint"></p>
+    </section></details>
+    <p class="small"><span class="dot" id="c-dot"></span><span id="c-conn"></span> · <a href="#" class="lnk" id="c-quit" data-t="c_quit"></a></p>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* =====================================================================
+   COACH DM TV — une seule adresse : coachdm.be/tv
+   - Sur la TV : la vitrine Coach DM (pub de l'app) puis le cours du jour,
+     chrono et voix du coach. Le cours tourne SUR LA TV : le telephone peut
+     s'eteindre, le cours reste a l'ecran (et revient meme apres un rechargement).
+   - Sur le telephone du coach : la telecommande (compte coach obligatoire).
+   - Securite : le premier telephone coach qui lance un cours devient le
+     proprietaire de l'ecran ; les autres sont refuses tant qu'il ne l'a pas libere.
+   ===================================================================== */
+var U='https://kkcmhviyvttwpaclrjmv.supabase.co', K='sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b';
+var QS=new URLSearchParams(location.search);
+var LANG=(QS.get('lang')||lsGet('cdm_lang')||(navigator.language||'fr')).slice(0,2);
+if(['fr','en','nl'].indexOf(LANG)<0) LANG='fr';
+document.documentElement.lang=LANG;
+var G=function(id){return document.getElementById(id);};
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});};
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ if(v==null) localStorage.removeItem(k); else localStorage.setItem(k,v); }catch(e){} }
+/* l'ecran n'a pas de compte : client sans session (il ne bloque jamais celui du telephone) */
+var sb=null;
+function mkSb(screen){ sb=supabase.createClient(U,K,{auth:screen?{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}:{},realtime:{params:{eventsPerSecond:20}}}); }
+var APP_URL='https://coachdm.be/telecharger.html';
+
+var TX={
+ tag:{fr:'Coaching CrossFit · Force · Nutrition',en:'CrossFit coaching · Strength · Nutrition',nl:'CrossFit-coaching · Kracht · Voeding'},
+ f1:{fr:'La voix du coach pendant ta séance',en:'The coach’s voice during your session',nl:'De stem van de coach tijdens je training'},
+ f2:{fr:'13 programmes, du débutant à la compétition',en:'13 programs, from beginner to competition',nl:'13 programma’s, van beginner tot wedstrijd'},
+ f3:{fr:'Charges calculées sur ton 1RM',en:'Loads worked out from your 1RM',nl:'Gewichten berekend op je 1RM'},
+ f4:{fr:'Nutrition et macros au gramme près',en:'Nutrition and macros to the gram',nl:'Voeding en macro’s tot op de gram'},
+ f5:{fr:'Analyse IA de tes mouvements',en:'AI analysis of your movements',nl:'AI-analyse van je bewegingen'},
+ adh:{fr:'Télécharge l’app Coach DM',en:'Get the Coach DM app',nl:'Download de Coach DM-app'},
+ adp:{fr:'Scanne avec ton téléphone : tes séances t’attendent.',en:'Scan with your phone: your sessions are waiting.',nl:'Scan met je telefoon: je trainingen wachten op je.'},
+ mh:{fr:'L’app Coach DM',en:'The Coach DM app',nl:'De Coach DM-app'},
+ mp:{fr:'Scanne et entraîne-toi avec ma voix, partout.',en:'Scan and train with my voice, anywhere.',nl:'Scan en train overal met mijn stem.'},
+ pair:{fr:'App Coach DM › TV · code',en:'Coach DM app › TV · code',nl:'Coach DM-app › TV · code'},
+ lock:{fr:'Écran réservé à ton coach',en:'Screen reserved for your coach',nl:'Scherm voorbehouden aan je coach'},
+ snd:{fr:'Appuie sur OK pour la voix du coach',en:'Press OK for the coach voice',nl:'Druk op OK voor de stem van de coach'},
+ warm:{fr:'Warm up',en:'Warm up',nl:'Warm up'}, str:{fr:'Skill / Strength',en:'Skill / Strength',nl:'Skill / Strength'},
+ acc:{fr:'Accessoires',en:'Accessories',nl:'Accessoires'}, plyo:{fr:'Sprint / Plio',en:'Sprint / Plyo',nl:'Sprint / Plyo'},
+ wod:{fr:'WOD',en:'WOD',nl:'WOD'}, cool:{fr:'Retour au calme',en:'Cool-down',nl:'Cooling-down'},
+ ready:{fr:'En place',en:'Get ready',nl:'Klaar'}, rest:{fr:'Repos',en:'Rest',nl:'Rust'}, work:{fr:'Au travail',en:'Work',nl:'Werken'},
+ set:{fr:'Série',en:'Set',nl:'Set'}, of:{fr:'sur',en:'of',nl:'van'}, rnd:{fr:'Tour',en:'Round',nl:'Ronde'}, rnds:{fr:'tours',en:'rounds',nl:'rondes'},
+ cap:{fr:'Time cap',en:'Time cap',nl:'Time cap'}, pause:{fr:'PAUSE',en:'PAUSED',nl:'PAUZE'}, next:{fr:'Ensuite',en:'Next',nl:'Daarna'},
+ time:{fr:'TIME !',en:'TIME!',nl:'TIME!'}, done:{fr:'Bravo. Note ton score.',en:'Well done. Log your score.',nl:'Goed gedaan. Noteer je score.'},
+ yt:{fr:'Vid\u00e9o \u00a9 sa cha\u00eene YouTube \u2014 lue via le lecteur officiel YouTube. Coach DM ne copie ni n\u2019h\u00e9berge aucune vid\u00e9o.',en:'Video \u00a9 its YouTube channel \u2014 played via the official YouTube player. Coach DM does not copy or host any video.',nl:'Video \u00a9 het YouTube-kanaal \u2014 afgespeeld via de offici\u00eble YouTube-speler. Coach DM kopieert of host geen enkele video.'},
+ ytby:{fr:'Vid\u00e9o \u00a9 ',en:'Video \u00a9 ',nl:'Video \u00a9 '},
+ yt2:{fr:' (YouTube) \u2014 lue via le lecteur officiel YouTube. Coach DM ne copie ni n\u2019h\u00e9berge aucune vid\u00e9o.',en:' (YouTube) \u2014 played via the official YouTube player. Coach DM does not copy or host any video.',nl:' (YouTube) \u2014 afgespeeld via de offici\u00eble YouTube-speler. Coach DM kopieert of host geen enkele video.'},
+ wait:{fr:'Le coach lance la partie',en:'The coach starts this part',nl:'De coach start dit deel'},
+ club:{fr:'COURS DU JOUR',en:'TODAY’S CLASS',nl:'LES VAN VANDAAG'}, ath:{fr:'SÉANCE',en:'SESSION',nl:'TRAINING'},
+ endT:{fr:'Séance terminée',en:'Session done',nl:'Training klaar'},
+ /* telephone */
+ sub:{fr:'Télécommande',en:'Remote',nl:'Afstandsbediening'},
+ ch_h:{fr:'Que veux-tu faire ?',en:'What do you want to do?',nl:'Wat wil je doen?'},
+ ch_rc:{fr:'Piloter l’écran de la box',en:'Control the box screen',nl:'Het scherm van de box bedienen'},
+ ch_rc_s:{fr:'Pour le coach : lancer le cours, le chrono, la voix.',en:'For the coach: start the class, the clock, the voice.',nl:'Voor de coach: de les, de chrono en de stem starten.'},
+ ch_tv:{fr:'Utiliser cet appareil comme écran',en:'Use this device as the screen',nl:'Dit toestel als scherm gebruiken'},
+ ch_tv_s:{fr:'Tablette ou ordinateur branché sur la TV.',en:'Tablet or computer plugged into the TV.',nl:'Tablet of computer aangesloten op de tv.'},
+ lg_h:{fr:'Connecte-toi d’abord',en:'Sign in first',nl:'Log eerst in'},
+ lg_p:{fr:'La télécommande est réservée aux coachs Coach DM. Connecte-toi dans l’app web, puis reviens sur coachdm.be/tv.',en:'The remote is for Coach DM coaches. Sign in to the web app, then come back to coachdm.be/tv.',nl:'De afstandsbediening is voor Coach DM-coaches. Log in op de web-app en kom dan terug naar coachdm.be/tv.'},
+ lg_b:{fr:'Me connecter',en:'Sign in',nl:'Inloggen'},
+ dn_h:{fr:'Réservé aux coachs',en:'For coaches only',nl:'Alleen voor coaches'},
+ dn_p:{fr:'Piloter l’écran de la box est réservé aux coachs avec l’offre Coach. Athlète ? Ouvre ta séance dans l’app Coach DM, puis le bouton TV du Mode Séance pour l’afficher sur ta TV.',en:'Driving the box screen is for coaches with the Coach plan. Athlete? Open your session in the Coach DM app, then tap the TV button in Workout mode to show it on your TV.',nl:'Het scherm van de box besturen is voorbehouden aan coaches met het Coach-abonnement. Atleet? Open je training in de Coach DM-app en tik op de TV-knop in de Trainingsmodus om ze op je tv te tonen.'},
+ cd_h:{fr:'Code de l’écran',en:'Screen code',nl:'Code van het scherm'},
+ cd_p:{fr:'Ouvre coachdm.be/tv sur l’écran de la box et tape le code à 6 chiffres affiché en haut.',en:'Open coachdm.be/tv on the box screen and enter the 6-digit code shown at the top.',nl:'Open coachdm.be/tv op het scherm van de box en typ de code van 6 cijfers bovenaan.'},
+ cd_b:{fr:'Connecter',en:'Connect',nl:'Verbinden'},
+ cd_e:{fr:'Pas de réponse de l’écran. Vérifie le code et que la page est ouverte.',en:'No answer from the screen. Check the code and that the page is open.',nl:'Geen antwoord van het scherm. Controleer de code en of de pagina open staat.'},
+ cd_lock:{fr:'Cet écran est déjà piloté par un autre coach.',en:'This screen is already controlled by another coach.',nl:'Dit scherm wordt al door een andere coach bediend.'},
+ pk_h:{fr:'Le cours du jour',en:'Today’s class',nl:'De les van vandaag'},
+ tb_me:{fr:'Mes séances',en:'My sessions',nl:'Mijn trainingen'}, tb_all:{fr:'Bibliothèque',en:'Library',nl:'Bibliotheek'},
+ q:{fr:'Chercher une séance…',en:'Search a session…',nl:'Zoek een training…'},
+ none:{fr:'Aucune séance. Crée ton cours dans la console coach (échauffement, force, WOD…).',en:'No sessions. Build your class in the coach console (warm-up, strength, WOD…).',nl:'Geen trainingen. Maak je les in de coachconsole (opwarming, kracht, WOD…).'},
+ c_go:{fr:'▶  Lancer',en:'▶  Start',nl:'▶  Start'}, c_pause:{fr:'⏸  Pause',en:'⏸  Pause',nl:'⏸  Pauze'}, c_res:{fr:'▶  Reprendre',en:'▶  Resume',nl:'▶  Verder'},
+ c_set:{fr:'✓  Série faite → repos',en:'✓  Set done → rest',nl:'✓  Set klaar → rust'}, c_nx:{fr:'✓  Mouvement suivant',en:'✓  Next movement',nl:'✓  Volgende beweging'}, c_rp:{fr:'+ 1 tour',en:'+ 1 round',nl:'+ 1 ronde'},
+ c_prev:{fr:'⏮  Partie',en:'⏮  Part',nl:'⏮  Deel'}, c_next:{fr:'Partie  ⏭',en:'Part  ⏭',nl:'Deel  ⏭'},
+ c_reset:{fr:'↺  Recommencer',en:'↺  Restart',nl:'↺  Herstarten'},
+ today:{fr:'Aujourd’hui',en:'Today',nl:'Vandaag'},
+ c_rskip:{fr:'⏭  Passer le repos',en:'⏭  Skip rest',nl:'⏭  Rust overslaan'},
+ o_parts:{fr:'Aller directement à',en:'Jump to',nl:'Ga direct naar'},
+ o_more:{fr:'Plus d’options',en:'More options',nl:'Meer opties'},
+ o_msg:{fr:'Message en grand sur la TV',en:'Big message on the TV',nl:'Groot bericht op de tv'},
+ o_send:{fr:'Afficher',en:'Show',nl:'Tonen'},
+ o_ph:{fr:'Ton message (8 secondes à l’écran)',en:'Your message (8 seconds on screen)',nl:'Je bericht (8 seconden op het scherm)'},
+ o_screen:{fr:'Écran : taille du texte · QR de l’app',en:'Screen: text size · app QR',nl:'Scherm: tekstgrootte · app-QR'},
+ o_qr:{fr:'QR',en:'QR',nl:'QR'},
+ o_timer:{fr:'Minuteur rapide (sans cours)',en:'Quick timer (no class)',nl:'Snelle timer (zonder les)'},
+ o_tgo:{fr:'Lancer',en:'Start',nl:'Starten'},
+ o_thint:{fr:'Minutes. Remplace le cours affiché ; « Changer de cours » pour revenir.',en:'Minutes. Replaces the class on screen; “Change class” to go back.',nl:'Minuten. Vervangt de les op het scherm; “Andere les” om terug te gaan.'},
+ m1:{fr:'Pause eau',en:'Water break',nl:'Waterpauze'}, m2:{fr:'Dernier effort !',en:'Last push!',nl:'Laatste inspanning!'},
+ m3:{fr:'Bravo à tous !',en:'Great job, everyone!',nl:'Goed gedaan, allemaal!'}, m4:{fr:'⏱ Encore 1 minute',en:'⏱ 1 minute left',nl:'⏱ Nog 1 minuut'},
+ m5:{fr:'On range le matériel',en:'Put the equipment away',nl:'Materiaal opruimen'},
+ fs_ios:{fr:'Plein écran : Safari › Partager › « Sur l’écran d’accueil », puis ouvre Coach DM TV depuis l’icône',en:'Full screen: Safari › Share › “Add to Home Screen”, then open Coach DM TV from the icon',nl:'Volledig scherm: Safari › Delen › “Zet op beginscherm”, open dan Coach DM TV via het icoon'},
+ fs_web:{fr:'Plein écran : touche <b>F</b> ou un clic sur l’écran',en:'Full screen: press <b>F</b> or click the screen',nl:'Volledig scherm: druk op <b>F</b> of klik op het scherm'}, c_von:{fr:'Voix',en:'Voice',nl:'Stem'}, c_voff:{fr:'Voix coupée',en:'Voice off',nl:'Stem uit'},
+ c_chg:{fr:'Changer de séance',en:'Change session',nl:'Andere training'}, c_quit:{fr:'Libérer l’écran',en:'Release the screen',nl:'Scherm vrijgeven'},
+ conn:{fr:'Écran connecté',en:'Screen connected',nl:'Scherm verbonden'}, lost:{fr:'Écran hors ligne',en:'Screen offline',nl:'Scherm offline'},
+ idle:{fr:'Prêt — appuie sur Lancer',en:'Ready — tap Start',nl:'Klaar — tik op Start'}, count:{fr:'Mise en place…',en:'Get ready…',nl:'Klaarmaken…'},
+ run:{fr:'En cours',en:'Running',nl:'Bezig'}, paused:{fr:'En pause',en:'Paused',nl:'Gepauzeerd'}, fin:{fr:'Terminé',en:'Done',nl:'Klaar'},
+ part:{fr:'Partie',en:'Part',nl:'Deel'},
+ pk_new:{fr:'Écrire le cours du jour',en:'Write today’s class',nl:'De les van vandaag schrijven'},
+ tb_cls:{fr:'Mes cours',en:'My classes',nl:'Mijn lessen'},
+ none_cls:{fr:'Pas encore de cours écrit. Appuie sur « Écrire le cours du jour ».',en:'No class written yet. Tap “Write today’s class”.',nl:'Nog geen les geschreven. Tik op « De les van vandaag schrijven ».'},
+ ed_h:{fr:'Le cours du jour',en:'Today’s class',nl:'De les van vandaag'},
+ ed_p:{fr:'Un mouvement par ligne, comme au tableau : « 5x5 Back Squat @ 75% », « 10 Thruster @ 43/30 kg ». Ce que tu écris s’affiche tel quel à l’écran.',en:'One movement per line, like on the whiteboard: “5x5 Back Squat @ 75%”, “10 Thruster @ 43/30 kg”.',nl:'Eén beweging per lijn, zoals op het bord: « 5x5 Back Squat @ 75% », « 10 Thruster @ 43/30 kg ».'},
+ ed_title:{fr:'Titre (ex. Mardi · Force & WOD)',en:'Title (e.g. Tuesday · Strength & WOD)',nl:'Titel (bv. Dinsdag · Kracht & WOD)'},
+ ph_warm:{fr:'5 min Row\n10 Air Squat\n10 Push-up',en:'5 min Row\n10 Air Squat\n10 Push-up',nl:'5 min Row\n10 Air Squat\n10 Push-up'},
+ ph_str:{fr:'5x5 Back Squat @ 75%',en:'5x5 Back Squat @ 75%',nl:'5x5 Back Squat @ 75%'},
+ ph_wod:{fr:'10 Thruster @ 43/30 kg\n10 Pull-up\n15 Box Jump',en:'10 Thruster @ 43/30 kg\n10 Pull-up\n15 Box Jump',nl:'10 Thruster @ 43/30 kg\n10 Pull-up\n15 Box Jump'},
+ ph_cool:{fr:'2 min Couch Stretch /côté',en:'2 min Couch Stretch /side',nl:'2 min Couch Stretch /kant'},
+ ed_go:{fr:'Afficher sur l’écran',en:'Show on the screen',nl:'Op het scherm tonen'},
+ ed_back:{fr:'Retour',en:'Back',nl:'Terug'},
+ ed_empty:{fr:'Écris au moins un mouvement.',en:'Write at least one movement.',nl:'Schrijf minstens één beweging.'},
+ c_edit:{fr:'Modifier',en:'Edit',nl:'Wijzigen'},
+ sp_all:{fr:'Tous',en:'All',nl:'Alle'}, sp_mng:{fr:'Espaces',en:'Spaces',nl:'Ruimtes'},
+ sp_h:{fr:'Mes espaces',en:'My spaces',nl:'Mijn ruimtes'},
+ sp_p:{fr:'Un espace par club ou par client PT. Son logo s’affiche à côté du tien sur l’écran. Réservé à toi (admin).',en:'One space per club or PT client. Its logo shows next to yours on the screen. Admin only.',nl:'Eén ruimte per club of PT-klant. Het logo verschijnt naast het jouwe op het scherm. Alleen voor jou (admin).'},
+ sp_new:{fr:'＋  Nouvel espace',en:'＋  New space',nl:'＋  Nieuwe ruimte'}, sp_name:{fr:'Nom (ex. Reasfit, PT Julie)',en:'Name (e.g. Reasfit, PT Julie)',nl:'Naam (bv. Reasfit, PT Julie)'},
+ sp_logo:{fr:'Choisir le logo',en:'Choose the logo',nl:'Logo kiezen'}, sp_save:{fr:'Enregistrer',en:'Save',nl:'Opslaan'}, sp_ok:{fr:'Enregistré ✓',en:'Saved ✓',nl:'Opgeslagen ✓'},
+ sp_nolg:{fr:'pas de logo',en:'no logo',nl:'geen logo'}, sp_none:{fr:'— Aucun espace —',en:'— No space —',nl:'— Geen ruimte —'},
+ ed_sp:{fr:'Espace (club / PT)',en:'Space (club / PT)',nl:'Ruimte (club / PT)'},
+ sp_err:{fr:'Échec. Réessaie.',en:'Failed. Try again.',nl:'Mislukt. Probeer opnieuw.'}
+};
+function t(k){var o=TX[k];return o?(o[LANG]||o.fr):k;}
+function fmt(s){s=Math.max(0,Math.round(s));var m=Math.floor(s/60),x=s%60;return m+':'+(x<10?'0':'')+x;}
+var BL={activation:'warm',sprint_plyo:'plyo',strength:'str',accessory:'acc',conditioning:'wod',recovery:'cool'};
+var BLV={activation:'p_warm',sprint_plyo:'p_skill',strength:'p_skill',accessory:'p_skill',conditioning:'p_wod',recovery:'p_cool'};
+function qr(el,text,size){ try{ el.innerHTML=''; new QRCode(el,{text:text,width:size||512,height:size||512,correctLevel:QRCode.CorrectLevel.M}); }catch(e){} }
+
+
+function choice(){
+  document.body.className='ph'; G('rc').hidden=false; G('r-sub').textContent='';
+  document.querySelectorAll('[data-t]').forEach(function(e){ e.textContent=t(e.dataset.t); });
+  G('r-choice').hidden=false;
+  G('ch-rc').onclick=function(){ G('r-choice').hidden=true; mkSb(false); startRemote(); };
+  G('ch-tv').onclick=function(){ lsSet('cdm_tv_role','screen'); G('rc').hidden=true; mkSb(true); startScreen(); };
+}
+
+/* =====================================================================
+   ECRAN
+   ===================================================================== */
+var ANIM=0;
+function animLoad(){ if(ANIM) return; ANIM=1; var s=document.createElement('script'); s.src='anim.js?v=2'; s.onload=function(){ANIM=2; KEYS={}; paint();}; document.head.appendChild(s); }
+function fig(slug){
+  var A=window.MOUV_ANIM&&window.MOUV_ANIM[slug]; if(!A) return '';
+  return '<svg class="anim-svg" viewBox="0 0 300 '+A.vh+'" preserveAspectRatio="xMidYMid meet">'+(A.dc||'')+A.ok.map(function(f,i){return '<g class="f'+(i+1)+'">'+f+'</g>';}).join('')+'</svg>';
+}
+
+/* --- son : bips + voix enregistree de Coach DM (meme traitement que l'app) --- */
+var AC=null, IDX=null, BUF={}, VOICE=true, Q=Promise.resolve();
+function ac(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(AC&&AC.state!=='running'){ try{ AC.resume(); }catch(e){} } return AC; }
+function soundOk(){ return AC&&AC.state==='running'; }
+function tone(f,d,v){ var a=ac(); if(!a||!soundOk()) return; var o=a.createOscillator(), g=a.createGain(); o.frequency.value=f; o.type='sine';
+  g.gain.setValueAtTime(0,a.currentTime); g.gain.linearRampToValueAtTime(v||.5,a.currentTime+.01); g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);
+  o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime+d+.05); }
+function beep(){ tone(880,.18,.55); } function bigBeep(){ tone(1320,.55,.7); }
+function vIndex(){
+  return sb.from('voice_clips').select('lang,key,path,trim_start,trim_end,updated_at').in('lang',[LANG,'x']).limit(4000).then(function(r){
+    var i={}; (r.data||[]).forEach(function(x){ (i[x.lang]=i[x.lang]||{})[x.key]=x; }); IDX=i; }).catch(function(){});
+}
+function has(l,k){ return !!(IDX&&IDX[l]&&IDX[l][k]); }
+function lufs(d,sr,a,b){
+  function bq(f0,G,Q,sh){ var K=Math.tan(Math.PI*f0/sr); if(sh){ var Vh=Math.pow(10,G/20),Vb=Math.pow(Vh,.4996667741545416),a0=1+K/Q+K*K;
+    return [(Vh+Vb*K/Q+K*K)/a0,2*(K*K-Vh)/a0,(Vh-Vb*K/Q+K*K)/a0,2*(K*K-1)/a0,(1-K/Q+K*K)/a0]; } var b0=1+K/Q+K*K; return [1,-2,1,2*(K*K-1)/b0,(1-K/Q+K*K)/b0]; }
+  var S1=bq(1681.974450955533,3.999843853973347,.7071752369554196,1),S2=bq(38.13547087602444,0,.5003270373238773,0);
+  var i0=Math.max(0,Math.floor(a*sr)),i1=Math.min(d.length,Math.floor(b*sr)),n=i1-i0; if(n<64) return -70;
+  var y=new Float32Array(n),x1=0,x2=0,y1=0,y2=0,z1=0,z2=0,w1=0,w2=0,i;
+  for(i=0;i<n;i++){ var x=d[i0+i]; var s=S1[0]*x+S1[1]*x1+S1[2]*x2-S1[3]*y1-S1[4]*y2; x2=x1;x1=x;y2=y1;y1=s;
+    var q=S2[0]*s+S2[1]*z1+S2[2]*z2-S2[3]*w1-S2[4]*w2; z2=z1;z1=s;w2=w1;w1=q;y[i]=q; }
+  var bl=Math.min(n,Math.round(.4*sr)),st=Math.max(1,Math.round(.1*sr)),ms=[],p;
+  for(p=0;p+bl<=n;p+=st){ var e=0; for(i=p;i<p+bl;i++) e+=y[i]*y[i]; ms.push(e/bl); }
+  var L=function(m){return -.691+10*Math.log10(Math.max(m,1e-12));}, avg=function(a){return a.reduce(function(s,m){return s+m;},0)/a.length;};
+  var g1=ms.filter(function(m){return L(m)>-70;}); if(!g1.length) return -70;
+  var rel=L(avg(g1))-10, g2=g1.filter(function(m){return L(m)>rel;}); return L(avg(g2.length?g2:g1));
+}
+function limit(y,sr){ var n=y.length,la=Math.max(1,Math.round(.005*sr)),env=new Float32Array(n).fill(1),i,j;
+  for(i=0;i<n;i++){ var v=Math.abs(y[i]); if(v>.89){ var need=.89/v; for(j=Math.max(0,i-la);j<=i;j++){ var r=need+(1-need)*(i-j)/la; if(r<env[j]) env[j]=r; } } }
+  var rl=1-Math.exp(-1/(.06*sr)),cur=1; for(i=0;i<n;i++){ cur=Math.min(env[i],cur+(1-cur)*rl); y[i]*=cur; } }
+function load(l,k){
+  var r=IDX[l][k], id=l+'/'+k+'@'+r.updated_at; if(BUF[id]) return Promise.resolve(BUF[id]);
+  return fetch(U+'/storage/v1/object/public/coach-voice/'+r.path+'?v='+encodeURIComponent(r.updated_at)).then(function(x){return x.arrayBuffer();})
+   .then(function(ab){ return new Promise(function(res,rej){ ac().decodeAudioData(ab,res,rej); }); })
+   .then(function(buf){ var d=buf.getChannelData(0),sr=buf.sampleRate,st=Math.max(0,(r.trim_start||0)-.03),en=Math.min(buf.duration,r.trim_end||buf.duration);
+     var i0=Math.floor(st*sr),i1=Math.min(d.length,Math.ceil(en*sr)),n=Math.max(1,i1-i0),lu=lufs(d,sr,st,en);
+     var G=lu<=-69?1:Math.max(.3,Math.min(25,Math.pow(10,(-19-lu)/20))), out=ac().createBuffer(1,n,sr), y=out.getChannelData(0),i;
+     for(i=0;i<n;i++) y[i]=d[i0+i]*G; limit(y,sr); var f=Math.min(Math.round(.006*sr),n>>1); for(i=0;i<f;i++){ y[i]*=i/f; y[n-1-i]*=i/f; }
+     return BUF[id]=out; });
+}
+function play(buf){ return new Promise(function(res){ var a=ac(), s=a.createBufferSource(), g=a.createGain(); g.gain.value=1.6; s.buffer=buf;
+  s.connect(g).connect(a.destination); s.onended=res; s.start(); setTimeout(res,buf.duration*1000+400); }); }
+/* une suite de morceaux enregistres ; s'il en manque un, on ne dit rien (jamais de demi-phrase) */
+function say(keys){ if(!VOICE||!IDX||!soundOk()) return; keys=keys.map(function(k){return typeof k==='string'?[LANG,k]:k;});
+  if(!keys.every(function(x){return has(x[0],x[1]);})) return;
+  Q=Q.then(function(){ return Promise.all(keys.map(function(x){return load(x[0],x[1]);})); })
+     .then(function(bs){ return bs.reduce(function(p,b){ return p.then(function(){return play(b);}); },Promise.resolve()); }).catch(function(){}); }
+function preload(keys){ if(!IDX||!AC) return; keys.forEach(function(x){ x=typeof x==='string'?[LANG,x]:x; if(has(x[0],x[1])) load(x[0],x[1]).catch(function(){}); }); }
+
+/* --- etat de l'ecran. Securite : l'ecran a un secret que lui seul connait ; le serveur
+   (tv_pull) lui donne le jeton du coach proprietaire. Seuls les messages signes de ce
+   jeton pilotent l'ecran. Le cours est lu dans la base, il ne passe jamais par le canal. --- */
+function rnd(n){ var a=new Uint8Array(n); try{ crypto.getRandomValues(a); }catch(e){ for(var i=0;i<n;i++) a[i]=Math.random()*256; } return Array.from(a).map(function(b){return ('0'+b.toString(16)).slice(-2);}).join(''); }
+var CODE=lsGet('cdm_tv_code'), SECRET=lsGet('cdm_tv_secret');
+function newCode(){ CODE=String(Math.floor(100000+Math.random()*900000)); SECRET=rnd(24); lsSet('cdm_tv_code',CODE); lsSet('cdm_tv_secret',SECRET); }
+if(!/^\d{6}$/.test(CODE||'')||!SECRET) newCode();
+var OWNED=false, TOKEN=null, CLASS_AT=null, PULLING=0, MTOK=null, MPULL=0;
+var CH=null, MODE=null, LAST=0, W=null, S=null, TK=0, MIR=null;
+
+function startScreen(){
+  document.body.className='tv'; G('tv').hidden=false; G('rc').hidden=true;
+  G('v-tag').textContent=t('tag'); G('v-ad-h').textContent=t('adh'); G('v-ad-p').textContent=t('adp');
+  G('m-h').textContent=t('mh'); G('m-p').textContent=t('mp'); G('snd').textContent=t('snd');
+  qr(G('v-qr'),APP_URL); qr(G('m-qr'),APP_URL,256);
+  feats(); paintPair();
+  vIndex(); animLoad();
+  /* le cours du jour revient tout seul apres un rechargement ou une coupure (lu dans la base) */
+  register().then(function(){ connect(); pull(); });
+  setInterval(pull,30000);
+  show();
+  scr(); setTimeout(fsHint,2500);
+  setInterval(function(){
+    G('s-now').textContent=new Date().toLocaleTimeString(LANG==='en'?'en-GB':LANG+'-BE',{hour:'2-digit',minute:'2-digit'});
+    if(MODE==='mirror'){ paint(); if(Date.now()-LAST>45000){ MODE=W?'club':null; show(); } }
+  },500);
+  G('snd').onclick=unlock;
+  document.addEventListener('click',unlock);
+  document.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '||e.key==='OK') unlock(); if(e.key==='f'||e.key==='F') fullscreen(); });
+  wake(); document.addEventListener('visibilitychange',function(){ if(!document.hidden) wake(); });
+}
+/* un seul geste sur la TV (OK de la telecommande ou un clic) : le son et le plein ecran */
+function unlock(){ ac(); setTimeout(function(){ if(soundOk()){ G('snd').hidden=true; tone(660,.12,.25); preloadAll(); } },150); fullscreen(); }
+function isFs(){ return !!(document.fullscreenElement||document.webkitFullscreenElement)||(window.matchMedia&&(matchMedia('(display-mode: fullscreen)').matches||matchMedia('(display-mode: standalone)').matches))||navigator.standalone===true||EMB; }
+function fullscreen(){ try{ var d=document.documentElement; if(isFs()) return;
+  if(d.requestFullscreen){ var r=d.requestFullscreen(); if(r&&r.catch) r.catch(function(){}); }
+  else if(d.webkitRequestFullscreen) d.webkitRequestFullscreen(); }catch(e){} setTimeout(fsHint,600); }
+var IOS=/iP(ad|hone|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function fsHint(){ var h=G('fsh'); if(!h||!document.body.classList.contains('tv')) return; if(isFs()){ h.hidden=true; return; }
+  h.innerHTML=IOS?esc(t('fs_ios')):t('fs_web'); h.hidden=false; clearTimeout(fsHint._t); fsHint._t=setTimeout(function(){ h.hidden=true; },20000); }
+document.addEventListener('fullscreenchange',fsHint); document.addEventListener('webkitfullscreenchange',fsHint);
+var TS=+(lsGet('cdm_tv_ts')||0)||0, AD=lsGet('cdm_tv_ad')!=='0';
+function scr(){ document.body.dataset.ts=String(TS); document.body.classList.toggle('noad',!AD); KEYS._fit=null; try{ if(MODE==='club') paint(); }catch(e){} }
+var MSGT=0; function showMsg(x){ x=String(x||'').slice(0,60).trim(); if(!x) return; G('msg-t').textContent=x; G('msg').classList.add('on'); beep(); clearTimeout(MSGT); MSGT=setTimeout(function(){ G('msg').classList.remove('on'); },8000); }
+function wake(){ try{ if(navigator.wakeLock) navigator.wakeLock.request('screen').catch(function(){}); }catch(e){} }
+var FI=0;
+function feats(){
+  var L=['f1','f2','f3','f4','f5'], box=G('v-feats');
+  box.innerHTML=L.map(function(k){ return '<div class="feat"><i>◆</i>'+esc(t(k))+'</div>'; }).join('');
+  var els=box.children; clearInterval(FI);
+  var k=0; function step(){ for(var i=0;i<els.length;i++) els[i].classList.toggle('on',i>=k&&i<k+3); k=(k+1)%els.length; if(k>els.length-3) k=0; }
+  step(); FI=setInterval(step,3500);
+}
+function paintPair(){ G('s-code').innerHTML=(OWNED?'<svg viewBox="0 0 24 24" width="1.15em" height="1.15em" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.2em" aria-hidden="true"><rect x="4.5" y="11" width="15" height="10" rx="2.5"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg> ':'')+'CODE<b>'+CODE+'</b>'; G('paircode').innerHTML=OWNED?esc(t('lock'))+' · <b>'+CODE+'</b>':esc(t('pair'))+' <b>'+CODE+'</b>'; }
+async function register(){
+  for(var i=0;i<5;i++){ var r=await sb.rpc('tv_register',{p_code:CODE,p_secret:SECRET}); if(r.data===true) return; if(r.error) return; newCode(); }
+}
+async function pull(){
+  if(PULLING&&Date.now()-PULLING<1500) return; PULLING=Date.now();
+  var r=await sb.rpc('tv_pull',{p_code:CODE,p_secret:SECRET}); if(r.error||!r.data) return;
+  var d=r.data; OWNED=!!d.owned; TOKEN=d.token||null; MTOK=d.mtok||null; paintPair();
+  if(d.class&&d.class.parts){
+    if(d.class_at!==CLASS_AT){ CLASS_AT=d.class_at;
+      var keep=null; try{ var s=JSON.parse(lsGet('cdm_tv_s')||'null'); if(s&&s.at===CLASS_AT) keep=s; }catch(e){}
+      /* cours modifie en direct : on garde la partie en cours et le chrono si le plan a le meme nombre de parties */
+      d.class=tvParts(d.class);
+      if(!keep&&S&&W&&W.parts.length===d.class.parts.length) keep=S;
+      if(MODE==='mirror') MODE=null;
+      MODE='club'; club(d.class,keep); if(S) S.at=CLASS_AT; save(); show(); }
+  } else if(MODE==='club'){ stopClub(); W=null; S=null; CLASS_AT=null; lsSet('cdm_tv_s',null); MODE=null; show(); }
+}
+/* a l'ecran : Warm up, Skill / Strength, WOD — le retour au calme n'est pas affiche */
+function tvParts(c){ var o={}; for(var k in c) o[k]=c[k]; o.parts=(c.parts||[]).filter(function(p){ return p.block!=='recovery'&&p.items&&p.items.length; }); if(!o.parts.length) o.parts=c.parts||[]; return o; }
+function show(){
+  var cls=MODE==='club'||MODE==='mirror';
+  G('vit').hidden=cls; G('cls').hidden=!cls; G('paircode').hidden=cls;
+  G('s-mode').hidden=!cls; G('s-title').textContent=cls?G('s-title').textContent:''; if(!cls) clubHead(null);
+  G('snd').hidden=soundOk()||MODE!=='club';
+  KEYS={}; try{ if(W&&W.parts){ var sl=[]; W.parts.forEach(function(pp){ (pp.items||[]).forEach(function(it){ if(it.slug) sl.push(it.slug); }); }); exLoad(sl); } }catch(e){}
+  paint();
+}
+
+/* --- canal temps reel --- */
+function send(m){ if(CH) CH.send({type:'broadcast',event:'m',payload:m}); }
+function connect(){
+  CH=sb.channel('cdm-tv-'+CODE,{config:{broadcast:{self:false}}});
+  CH.on('broadcast',{event:'m'},function(p){ try{ onMsg(p.payload||{}); }catch(e){} });
+  CH.subscribe(function(s){ G('conn').textContent=s==='SUBSCRIBED'?'●':'○'; if(s==='CHANNEL_ERROR'||s==='TIMED_OUT'||s==='CLOSED'){ setTimeout(function(){ try{ sb.removeChannel(CH); }catch(e){} connect(); },3000); } });
+}
+var LASTRC=0;
+function mine(m){ return !!(TOKEN&&m.k===TOKEN); }
+function onMsg(m){
+  if(m.t==='sync'){ PULLING=0; pull().then(function(){ if(mine(m)&&m.lang&&['fr','en','nl'].indexOf(m.lang)>=0&&m.lang!==LANG){ LANG=m.lang; lsSet('cdm_lang',LANG); document.documentElement.lang=LANG; IDX=null; vIndex(); startTexts(); } push(); }); return; }
+  if(m.t==='hello'&&m.who==='remote'&&mine(m)) LASTRC=Date.now();
+  if(m.t==='hello'){ if(m.who==='remote'&&!mine(m)){ PULLING=0; pull().then(function(){ send({t:'here',to:m.id,mode:MODE,locked:OWNED,mine:mine(m),st:mine(m)?status():null}); }); return; }
+    send({t:'here',to:m.id,mode:MODE,locked:OWNED,mine:mine(m),st:mine(m)?status():null}); return; }
+  if(m.t==='ping'){ if(mine(m)){ LASTRC=Date.now(); push(); } return; }
+  if(m.t==='cmd'){ if(!mine(m)||MODE!=='club') return; LAST=Date.now(); LASTRC=LAST; cmd(m.c,m.v); return; }
+  /* miroir du Mode Seance d'un athlete : seulement sur un ecran libre (jamais sur l'ecran d'un coach) */
+  /* verrou serveur : seul le jeton donne par tv_mirror (membre premium, verifie dans la base) est accepte */
+  if(m.t==='mir'){ if(OWNED||MODE==='club'||!m.k) return;
+    if(m.k!==MTOK){ if(Date.now()-MPULL>3000){ MPULL=Date.now(); PULLING=0; pull().then(function(){ if(MTOK&&m.k===MTOK) onMsg(m); }); } return; }
+    LAST=Date.now(); if(m.lang&&['fr','en','nl'].indexOf(m.lang)>=0&&m.lang!==LANG){ LANG=m.lang; lsSet('cdm_lang',LANG); document.documentElement.lang=LANG; IDX=null; vIndex(); startTexts(); } if(MODE!=='mirror'){ MODE='mirror'; show(); } MIR=m.d||{}; MIR._at=Date.now(); paint(); return; }
+  if(m.t==='bye'){ if(MODE==='mirror'&&m.k&&m.k===MTOK){ MODE=null; show(); } }
+}
+function startTexts(){ G('v-tag').textContent=t('tag'); G('v-ad-h').textContent=t('adh'); G('v-ad-p').textContent=t('adp'); G('m-h').textContent=t('mh'); G('m-p').textContent=t('mp'); G('snd').textContent=t('snd'); feats(); paintPair(); KEYS={}; paint(); }
+
+/* --- moteur du cours (il tourne sur la TV, le telephone n'est qu'une telecommande) --- */
+function club(w,s){
+  W=w; stopClub(); S=s&&typeof s.p==='number'?s:{p:0,run:false,acc:0,t0:0,phase:'idle',set:0,item:0,restEnd:0,restTot:0,said:{},cd:0};
+  if(S.phase==='count'&&Date.now()>S.cd+3000){ S.phase='idle'; }
+  if(S.p>=W.parts.length) S=fresh(0);
+  save();
+  preloadAll(); TK=setInterval(tick,250); KEYS={}; paint(); push();
+}
+function preloadAll(){ if(!W) return; preload(['p_ready','p_go','p_10s','p_time','wod_half','wod_last','wod_end','p_rest','p_warm','p_skill','p_wod','p_cool','n1','n2','n3']);
+  (W.parts||[]).forEach(function(p){ p.items.forEach(function(it){ preload([['x',it.slug]]); }); }); }
+function save(){ if(W&&S) lsSet('cdm_tv_s',JSON.stringify(S)); }
+function stopClub(){ if(TK) clearInterval(TK); TK=0; }
+function part(){ return W&&W.parts[S.p]; }
+function flow(p){ return !!p&&(p.block==='activation'||p.block==='recovery'); }
+function isWod(p){ return !!p&&p.block==='conditioning'&&['amrap','emom','for_time','rft'].indexOf(W.fmt)>=0; }
+function el(){ return S.acc+(S.run?Date.now()-S.t0:0); }
+function emomI(){ return W.emi||60; }
+function capW(){ if(W.fmt==='amrap') return W.cap||720; if(W.fmt==='emom') return emomI()*(W.emr||10); return W.cap||0; }
+function capS(){ return isWod(part())?capW():0; }
+/* superset : items voisins A1, A2… (meme lettre) -> on enchaine sans repos, repos apres le dernier, puis serie suivante */
+function grp(p,i){ var it=p.items[i]||{}, L=it.ss&&it.ss.charAt(0); if(!L) return [i,i]; var a=i,b=i;
+  while(a>0&&p.items[a-1].ss&&p.items[a-1].ss.charAt(0)===L) a--; while(b<p.items.length-1&&p.items[b+1].ss&&p.items[b+1].ss.charAt(0)===L) b++; return [a,b]; }
+function fresh(p){ return {p:p,run:false,acc:0,t0:0,phase:'idle',set:0,item:0,restEnd:0,restTot:0,said:{},cd:0}; }
+function cmd(c,v){
+  var p=part();
+  if(c==='go'){
+    if(S.phase==='idle') startCount();
+    else if(S.phase==='work'&&!S.run){ S.run=true; S.t0=Date.now(); }
+    else if(S.phase==='work'&&S.run){ S.acc=el(); S.run=false; }
+  }
+  else if(c==='next'||c==='prev'){ var np=S.p+(c==='next'?1:-1); if(np<0||np>=W.parts.length) return;
+    S=fresh(np); var b=W.parts[np].block; if(BLV[b]) say([BLV[b]]); }
+  else if(c==='reset'){ S=fresh(S.p); }
+  else if(c==='set'&&flow(p)){ if(S.phase!=='work') return; S.item++; if(S.item>=p.items.length){ S.item=0; S.rounds=(S.rounds||0)+1; } beep(); }
+  else if(c==='set'){ if(isWod(p)||S.phase!=='work') return; var it=p.items[S.item]||{}, g=grp(p,S.item);
+    if(S.item<g[1]){ S.item++; beep(); }
+    else { var r=it.rest>0?it.rest:(it.rest===0&&!it.ss?0:90); if(r<=0){ rAdvance(p); bigBeep(); } else { S.phase='rest'; S.restEnd=Date.now()+r*1000; S.restTot=r; S.said={}; say(['p_rest']); } } }
+  else if(c==='round'){ S.rounds=Math.max(0,(S.rounds||0)+(v||1)); }
+  else if(c==='voice'){ VOICE=!!v; }
+  else if(c==='rest'){ if(S.phase!=='rest') return; if(v==='skip'){ S.restEnd=Date.now(); } else { var add=Math.max(-60,Math.min(120,+v||0)); S.restEnd+=add*1000; S.restTot+=add; } }
+  else if(c==='part'){ var ip=+v; if(!(ip>=0&&ip<W.parts.length)||ip===S.p) return; S=fresh(ip); var bb=W.parts[ip].block; if(BLV[bb]) say([BLV[bb]]); }
+  else if(c==='ts'){ TS=Math.max(0,Math.min(2,+v||0)); lsSet('cdm_tv_ts',String(TS)); scr(); }
+  else if(c==='ad'){ AD=!!v; lsSet('cdm_tv_ad',AD?'1':'0'); scr(); }
+  else if(c==='msg'){ showMsg(v); return; }
+  save(); paint(); push();
+}
+function rAdvance(p){ var it=p.items[S.item]||{}, sets=it.sets||1, g=grp(p,S.item); S.set++;
+  if(S.set>=sets){ S.set=0; S.item=Math.min(p.items.length-1,g[1]+1); } else S.item=g[0]; }
+function startCount(){ S.phase='count'; S.cd=Date.now()+10000; S.said={}; say(['p_ready']); }
+function tick(){
+  if(!W||!S) return; var p=part(), now=Date.now(); if(!p) return;
+  if(S.phase==='count'){ var left=Math.ceil((S.cd-now)/1000);
+    if(left<=3&&left>=1&&!S.said['c'+left]){ S.said['c'+left]=1; beep(); say(['n'+left]); }
+    if(left<=0){ S.phase='work'; S.run=true; S.t0=now; S.acc=0; bigBeep(); say(['p_go']); save(); } }
+  else if(S.phase==='rest'){ var rl=Math.ceil((S.restEnd-now)/1000), it=p.items[S.item]||{}, sets=it.sets||1;
+    if(rl===10&&!S.said.r10&&S.restTot>=25){ S.said.r10=1; say(['p_10s']); }
+    if(rl<=3&&rl>=1&&!S.said['r'+rl]){ S.said['r'+rl]=1; beep(); }
+    if(rl<=0){ rAdvance(p); S.phase='work'; bigBeep(); say(['p_go']); save(); } }
+  else if(S.phase==='work'&&S.run&&isWod(p)) wodVoice(p);
+  if(MODE==='club') paint();
+  /* economie de messages : chrono chaque seconde seulement si une telecommande est ouverte (ping < 20 s),
+     sinon toutes les 3 s (l ancienne telecommande de l app 2.3.3 reste fluide), et tout de suite a chaque vrai changement (phase, partie, serie, pause, tours) */
+  var sig=[S.phase,S.p,S.item,S.set,S.run?1:0,S.rounds||0].join(','), live=now-LASTRC<20000;
+  if(sig!==S.sig||now-(S.pushed||0)>(live?1000:3000)){ S.sig=sig; S.pushed=now; push(); if(S.run) save(); }
+}
+function wodVoice(p){
+  var e=el()/1000, cap=capS(), f=W.fmt;
+  if(f==='emom'){ var I=emomI(), r=Math.floor(e/I), inI=e-r*I, left=I-inI;
+    if(r>=(W.emr||10)) return finish();
+    [3,2,1].forEach(function(n){ if(left<=n+.05&&left>n-1&&!S.said['e'+r+n]){ S.said['e'+r+n]=1; beep(); } });
+    if(inI<.4&&r>0&&!S.said['s'+r]){ S.said['s'+r]=1; bigBeep(); var it=p.items[r%p.items.length]; if(it&&p.items.length>1) say([['x',it.slug]]); }
+    return; }
+  if(!cap) return;
+  var l2=cap-e;
+  if(cap>=240&&e>=cap/2&&!S.said.half){ S.said.half=1; say(['wod_half']); }
+  if(cap>=300&&l2<=60&&!S.said.last){ S.said.last=1; say(['wod_last']); }
+  if(l2<=10&&l2>9&&!S.said.ten){ S.said.ten=1; say(['p_10s']); }
+  [3,2,1].forEach(function(n){ if(l2<=n+.05&&l2>n-1&&!S.said['b'+n]){ S.said['b'+n]=1; beep(); } });
+  if(l2<=0) finish();
+}
+function finish(){ if(S.phase==='done') return; S.acc=capS()*1000||el(); S.run=false; S.phase='done'; bigBeep(); say(['p_time']); setTimeout(function(){ say(['wod_end']); },2200); save(); push(); }
+function status(){ if(!W||!S) return null; var p=part();
+  return {flow:flow(p),p:S.p,n:W.parts.length,block:p&&p.block,run:S.run,phase:S.phase,clock:clockTxt(),rounds:S.rounds||0,voice:VOICE,wod:isWod(p),fmt:W.fmt,name:W.name}; }
+function push(){ if(MODE==='club'&&OWNED) send({t:'st',st:status()}); }
+function clockTxt(){ var p=part(), e=el()/1000;
+  if(S.phase==='count') return String(Math.max(0,Math.ceil((S.cd-Date.now())/1000)));
+  if(S.phase==='rest') return fmt((S.restEnd-Date.now())/1000);
+  if(isWod(p)){ if(W.fmt==='amrap') return fmt(capS()-e); if(W.fmt==='emom'){ var I=emomI(); return fmt(I-(e%I)); } return fmt(e); }
+  return fmt(e); }
+function partLabel(p){ var l=t(BL[p.block]||'str');
+  if(isWod(p)){ var c=capW();
+    if(W.fmt==='amrap') l+=' · AMRAP '+Math.round(c/60)+"'"; else if(W.fmt==='emom') l+=' · EMOM '+Math.round(c/60)+"'"+(emomI()!==60?' (E'+fmt(emomI())+')':'');
+    else if(W.fmt==='for_time') l+=' · For Time'+(W.cap?' · '+t('cap')+' '+Math.round(W.cap/60)+"'":''); else if(W.fmt==='rft') l+=' · '+(W.rft||'')+' RFT'+(W.cap?' · '+t('cap')+' '+Math.round(W.cap/60)+"'":''); }
+  return l; }
+/* « 4 × 4×10 » : si les reps contiennent deja le schema, on ne repete pas le nombre de series */
+function qty(it){ var L=it.ss?it.ss+' · ':''; return L+qty0(it); }
+function qty0(it){ if(it.q!=null) return it.q; var r=String(it.reps||'').trim(); if(/\d\s*[×x]\s*\d/i.test(r)||!(it.sets>1)) return r; return it.sets+' × '+r; }
+
+/* --- dessin : on ne reconstruit la page que si sa structure change (sinon seulement les chiffres) --- */
+var KEYS={};
+function setH(id,h){
+  var e=G(id), k=h.replace(/<b data-d>[^<]*<\/b>/g,'').replace(/(<div class="bar" style=")[^"]*/g,'$1').replace(/class="clk[^"]*"/g,'');
+  if(KEYS[id]!==k){ KEYS[id]=k; e.innerHTML=h; vSplit(e); return; }
+  var vals=[], re=/<b data-d>([^<]*)<\/b>/g, mm; while((mm=re.exec(h))) vals.push(mm[1]);
+  var a=e.querySelectorAll('[data-d]'); for(var i=0;i<a.length&&i<vals.length;i++){ var v=vals[i].replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"'); if(a[i].textContent!==v) a[i].textContent=v; }
+  var bw=/<div class="bar" style="width:([^"]*)"/.exec(h), x=e.querySelector('.bar'); if(bw&&x) x.style.width=bw[1].replace(/;$/,'');
+  var cc=/class="(clk[^"]*)"/.exec(h), c1=e.querySelector('.clk'); if(cc&&c1&&c1.className!==cc[1]) c1.className=cc[1];
+}
+function D(x){ return '<b data-d>'+esc(x)+'</b>'; }
+/* une video dans le panneau -> 2 colonnes : la video (et sa mention) a gauche, le reste a droite */
+function vSplit(e){ var v=e.querySelector('.vd'); e.classList.toggle('hv',!!v); if(!v) return;
+  var L=document.createElement('div'), R=document.createElement('div'); L.className='vcol'; R.className='icol';
+  var c=document.createElement('div'); c.className='ytc'; c.dataset.v=v.dataset.v; c.textContent=ytCap(v.dataset.v);
+  v.parentNode.removeChild(v); L.appendChild(v); L.appendChild(c);
+  while(e.firstChild) R.appendChild(e.firstChild); e.appendChild(L); e.appendChild(R); }
+/* tout le cours doit tenir a gauche : on resserre, puis on retire la pub si besoin */
+function fitPlan(){ var pl=G('s-plan'), side=pl.parentNode; if(KEYS._fit===KEYS['s-plan']) return; KEYS._fit=KEYS['s-plan'];
+  side.classList.remove('compact','tight'); var mini=side.querySelector('.mini'); if(mini) mini.hidden=false;
+  var eff=TS; document.body.dataset.ts=String(eff); while(eff>0&&pl.scrollHeight>pl.clientHeight+2){ eff--; document.body.dataset.ts=String(eff); }
+  if(pl.scrollHeight>pl.clientHeight+2) side.classList.add('compact');
+  if(pl.scrollHeight>pl.clientHeight+2&&mini) mini.hidden=true;
+  if(pl.scrollHeight>pl.clientHeight+2) side.classList.add('tight'); }
+function paint(){ if(MODE==='club') paintClub(); else if(MODE==='mirror') paintMir(); }
+function paintClub(){
+  if(!W||!S) return; var p=part(); if(!p) return; document.body.classList.remove('solo');
+  G('s-title').textContent=W.name||''; G('s-mode').textContent=t('club'); clubHead(W.club);
+  setH('s-plan',W.parts.map(function(pp,i){
+    return '<div class="part k-'+pp.block+(i===S.p?' cur':i<S.p?' done':'')+'"><h3><span><i class="no">'+('0'+(i+1)).slice(-2)+'</i>'+esc(partLabel(pp))+'</span></h3><ul>'+
+      pp.items.map(function(it,j){ var c=i===S.p&&!isWod(pp)&&S.phase!=='idle'?(j<S.item?' done':j===S.item?' cur':''):'';
+        return '<li class="'+c+'"><span class="q num">'+esc(qty(it))+'</span><span class="n">'+esc(it.name)+(it.load||it.tempo?'<small>'+esc([it.load,it.tempo?'⏱ '+it.tempo:''].filter(Boolean).join(' · '))+'</small>':'')+'</span></li>'; }).join('')+
+      '</ul>'+(pp.note?'<p class="nt">'+esc(pp.note)+'</p>':'')+'</div>'; }).join(''));
+  fitPlan();
+  var cur=G('s-plan').querySelector('.part.cur'); if(cur&&cur.scrollIntoView&&KEYS._cur!==S.p){ KEYS._cur=S.p; cur.scrollIntoView({block:'nearest'}); }
+  var h='', e=el()/1000, cap=capS(), wod=isWod(p), cls='clk num';
+  if(S.phase==='count'){ var n=Math.max(1,Math.ceil((S.cd-Date.now())/1000));
+    h='<div class="lab">'+esc(t('ready'))+'</div><div class="big3 num goldtx">'+D(n)+'</div><div class="sub">'+esc(partLabel(p))+'</div>'; }
+  else if(S.phase==='done'){ h='<div class="lab">'+esc(partLabel(p))+'</div><div class="clk num go">'+esc(t('time'))+'</div><div class="sub">'+esc(t('done'))+'</div>'; }
+  else if(S.phase==='rest'){ var rl=(S.restEnd-Date.now())/1000, it=p.items[S.item]||{}, gg=grp(p,S.item), nxt=(S.set+1>=(it.sets||1))?p.items[gg[1]+1]:p.items[gg[0]];
+    h='<div class="lab">'+esc(t('rest'))+'</div><div class="clk num rest">'+D(fmt(rl))+'</div>'+
+      (nxt?'<div class="sub2">'+esc(t('next'))+'</div>'+mv(nxt,(S.set+1<(it.sets||1))?(t('set')+' '+(S.set+2)+' '+t('of')+' '+(it.sets||1)):'',1):'')+
+      '<div class="bar" style="width:'+(100*(1-rl/Math.max(1,S.restTot))).toFixed(1)+'%"></div>'; }
+  else if(wod){ var sub='', m='';
+    if(W.fmt==='emom'){ var I=emomI(), r=Math.floor(e/I), its=p.items, ci=its[r%its.length], ni=its[(r+1)%its.length];
+      cls+=((I-(e%I))<=3&&S.run)?' warn':' go'; sub=t('rnd')+' '+Math.min(r+1,W.emr||10)+' / '+(W.emr||10);
+      m=mv(ci,'',1)+(its.length>1&&ni?'<div class="nx">'+esc(t('next'))+'<b>'+esc(ni.name)+'</b></div>':''); }
+    else { cls+=(cap&&(cap-e)<=60)?' warn':(S.phase==='idle'?' idle':' go');
+      sub=W.fmt==='amrap'?'AMRAP':(W.fmt==='rft'?(W.rft||'')+' RFT':'For Time'); if(S.rounds) sub+=' · '+S.rounds+' '+t('rnds');
+      if(cap&&W.fmt!=='amrap') sub+=' · '+t('cap')+' '+fmt(cap);
+      var wi=p.items||[]; if(wi.length){ var k=Math.floor(Date.now()/20000)%wi.length; m=mv(wi[k],wi.length>1?(k+1)+' / '+wi.length:'',1); } }
+    h='<div class="lab">'+esc(partLabel(p))+'</div><div class="'+cls+'">'+D(clockTxt())+'</div><div class="sub">'+D(sub)+'</div>'+m+
+      (S.phase==='idle'?'<div class="sub2">'+esc(t('wait'))+'</div>':'')+
+      (cap?'<div class="bar" style="width:'+Math.min(100,100*e/cap).toFixed(1)+'%"></div>':''); }
+  else { var it2=p.items[S.item]||p.items[0]||{};
+    h='<div class="lab">'+esc(partLabel(p))+'</div><div class="'+cls+(S.phase==='idle'?' idle':' go')+'">'+D(clockTxt())+'</div>'+
+      (S.phase==='idle'?'<div class="sub2">'+esc(t('wait'))+'</div>'+mv(it2,'',1):'<div class="sub">'+(flow(p)&&S.rounds?esc(t('rnd')+' '+(S.rounds+1)):it2.sets>1?esc(t('set')+' '+(S.set+1)+' '+t('of')+' '+it2.sets):'')+'</div>'+mv(it2,'',1)); }
+  if(!S.run&&S.phase==='work') h+='<div class="pause">'+esc(t('pause'))+'</div>';
+  G('s-live').dataset.k=p.block; setH('s-live',h);
+}
+/* logo du club (Reasfit…) a cote de celui de Coach DM ; sans logo, son nom */
+function clubHead(c){ var lg=c&&c.logo, nm=c&&c.name;
+  G('s-x').hidden=!(lg||nm); G('s-club').hidden=!lg; G('s-cn').hidden=!nm;
+  if(lg&&G('s-club').getAttribute('src')!==lg){ G('s-club').src=lg; G('s-club').alt=nm||''; }
+  G('s-cn').textContent=nm||''; }
+/* lecteur YouTube : rien n'est pose par-dessus (regles YouTube), la mention de la chaine juste dessous */
+function vdH(vid,big){ return '<div class="vd'+(big?' big':'')+'" data-v="'+vid+'"><iframe src="https://coachdm.be/demo.html?v='+vid+'" allow="autoplay; encrypted-media" tabindex="-1"></iframe></div>'; }
+function ytCap(vid){ var a=YTA[vid]; return a?t('ytby')+a+t('yt2'):t('yt'); }
+var YTA={};
+window.addEventListener('message',function(e){ if(e.origin!=='https://coachdm.be'||!e.data||!e.data.nxDemo||!e.data.v) return;
+  if(e.data.author){ YTA[e.data.v]=String(e.data.author).slice(0,60); document.querySelectorAll('.ytc[data-v="'+e.data.v+'"]').forEach(function(c){ c.textContent=ytCap(e.data.v); }); } });
+function mv(it,extra,big){ if(!it) return ''; var f=fig(it.slug), q=qty(it), x=exd(it.slug), vid=x&&x.vid;
+  var head=vid?vdH(vid,big):(f?'<div class="fig rig">'+f+'</div>':'');
+  var sf=vid&&f?'<div class="fig rig sfig">'+f+'</div>':'';
+  return '<div class="mv'+(vid?' hasv':'')+'">'+head+sf+'<div class="t"><b>'+esc(it.name)+'</b><span class="num">'+esc([q,it.load].filter(Boolean).join(' · '))+'</span>'+(extra?'<em>'+esc(extra)+'</em>':'')+(it.tempo?'<em>Tempo '+esc(it.tempo)+'</em>':'')+'</div></div>'+(big?cueLine(it.slug):''); }
+/* 2.4 : pour chaque mouvement, la demo YouTube en boucle, sans son, et les consignes
+   courtes de Coach DM (2 a 5 mots, celles qu'il crie en salle), une a la fois. */
+var EXD={}, EXQ={};
+function exd(slug){ if(!slug) return null; if(EXD[slug]!==undefined) return EXD[slug]; exLoad([slug]); return null; }
+function exLoad(slugs){
+  slugs=slugs.filter(function(x){ return x&&EXD[x]===undefined&&!EXQ[x]; }); if(!slugs.length||!sb) return;
+  slugs.forEach(function(x){ EXQ[x]=1; });
+  Promise.all([sb.from('exercises').select('slug,video_url').in('slug',slugs),
+    sb.from('exercise_voice_cues').select('slug,cue_key,ord,moment,tier').in('slug',slugs).order('ord')]).then(function(r){
+    var V={}, C={}; (r[0].data||[]).forEach(function(e){ var m=String(e.video_url||'').match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/); V[e.slug]=m?m[1]:null; });
+    (r[1].data||[]).forEach(function(c){ if((c.moment||'mid')!=='mid') return; (C[c.slug]=C[c.slug]||[]).push(c); });
+    var keys=[]; Object.keys(C).forEach(function(k){ C[k].sort(function(a,b){ return (b.tier||1)-(a.tier||1)||(a.ord||0)-(b.ord||0); }); C[k].forEach(function(c){ keys.push(c.cue_key); }); });
+    var done=function(T){ slugs.forEach(function(sl){ var L=(C[sl]||[]).map(function(c){ return T[c.cue_key]; }).filter(function(t){ return t&&t.split(/\s+/).length<=6; });
+        var seen={}; L=L.filter(function(t){ if(seen[t]) return false; seen[t]=1; return true; }).slice(0,4);
+        EXD[sl]={vid:V[sl]||null,cues:L}; delete EXQ[sl]; }); KEYS={}; paint(); };
+    if(!keys.length) return done({});
+    sb.from('voice_lines').select('key,text').eq('lang',LANG).in('key',keys).then(function(q){ var T={}; (q.data||[]).forEach(function(l){ T[l.key]=l.text; }); done(T); });
+  }).catch(function(){ slugs.forEach(function(x){ delete EXQ[x]; }); });
+}
+function cueLine(slug){ var x=EXD[slug]; if(!x||!x.cues||!x.cues.length) return ''; var c=x.cues[Math.floor(Date.now()/7000)%x.cues.length];
+  return '<div class="cue tvcue">'+D(c)+'</div>'; }
+function paintMir(){
+  var d=MIR||{}; document.body.classList.toggle('solo',!(d.plan&&d.plan.length)); G('s-title').textContent=d.title||''; G('s-mode').textContent=t('ath'); clubHead(null);
+  setH('s-plan',(d.plan||[]).map(function(pp){
+    return '<div class="part'+(pp.cur?' cur':pp.done?' done':'')+'"><h3><span>'+esc(pp.label||'')+'</span><span>'+esc(pp.prog||'')+'</span></h3><ul>'+
+      (pp.items||[]).map(function(it){ return '<li class="'+(it.cur?'cur':it.done?'done':'')+'"><span class="q num">'+esc(it.q||'')+'</span><span class="n">'+esc(it.name||'')+'</span></li>'; }).join('')+'</ul></div>'; }).join('')); fitPlan();
+  var h='', v=d.view;
+  if(v==='count') h='<div class="lab">'+esc(t('ready'))+'</div><div class="big3 num goldtx">'+D(d.clock||'')+'</div>';
+  else if(v==='rest'){ var left=(d.restLeft||0)-(Date.now()-d._at)/1000;
+    h='<div class="lab">'+esc(t('rest'))+'</div><div class="clk num rest">'+D(fmt(left))+'</div>'+
+      (d.next?'<div class="sub2">'+esc(t('next'))+'</div>'+mv({slug:d.next.slug,name:d.next.name,q:d.next.target},d.next.k||'',1):'')+
+      '<div class="bar" style="width:'+(100*(1-left/Math.max(1,d.restTotal||1))).toFixed(1)+'%"></div>'; }
+  else if(v==='wod'){ h='<div class="lab">'+esc(d.fmt||'WOD')+'</div><div class="clk num go">'+D(d.clock||'')+'</div><div class="sub">'+D(d.sub||'')+'</div>'+
+      (d.cur?mv({slug:d.cur.slug,name:d.cur.name,q:d.cur.target},'',1):''); }
+  else if(v==='end'){ h='<div class="lab">'+esc(t('endT'))+'</div><div class="clk num go">✓</div><div class="sub">'+esc(d.sub||'')+'</div>'; }
+  else if(v==='work'){ var f=fig(d.slug), xw=exd(d.slug), vw=xw&&xw.vid;
+    h='<div class="lab">'+esc(d.block||t('work'))+'</div>'+(vw?vdH(vw,1)+(f?'<div class="fig rig sfig">'+f+'</div>':''):(f?'<div class="fig rig" style="height:28vh;width:28vh;max-width:100%">'+f+'</div>':''))+
+      '<div class="clk num" style="font-size:5.2vw;margin-top:1vw">'+esc(d.name||'')+'</div>'+
+      (d.target?'<div class="sub num" style="font-size:4.4vw;color:var(--g)">'+esc(d.target)+'</div>':'')+
+      (d.tempo?'<div class="sub2" style="color:var(--ice)">⏱ '+esc(d.tempo)+'</div>':'')+
+      '<div class="sub2">'+esc(d.pips||'')+' · '+D(d.clock||'')+'</div>'+
+      cueLine(d.slug); }
+  else h='<div class="lab">'+esc(t('ath'))+'</div><div class="clk num">'+D(d.clock||'')+'</div>';
+  setH('s-live',h);
+}
+
+/* =====================================================================
+   TELEPHONE : la telecommande du coach
+   Securite : le serveur verifie que c'est un compte COACH (tv_claim) et donne le jeton
+   de pilotage. Un membre, meme Premium, est refuse. Le cours est ecrit dans la base
+   (tv_set_class) : il ne circule jamais en clair sur le canal.
+   ===================================================================== */
+var RC={ch:null,code:null,st:null,seen:0,tab:'cls',user:null,key:null,cls:null,clsId:null,id:rnd(8),admin:false,sp:lsGet('cdm_tv_sp')||null};
+var SPACES=[];
+var EXL=null;
+function rview(v){ ['r-choice','r-login','r-deny','r-code','r-pick','r-edit','r-space','r-ctl'].forEach(function(x){ G(x).hidden=(x!==v); }); window.scrollTo(0,0); }
+/* langue du cours : choisie sur la telecommande, la TV suit (textes + voix du coach) */
+function rTexts(){ document.querySelectorAll('[data-t]').forEach(function(e){ e.textContent=t(e.dataset.t); });
+  if(G('r-sub')&&!G('r-choice').hidden){} else if(G('r-sub')) G('r-sub').textContent=t('sub');
+  if(G('pk-q')) G('pk-q').placeholder=t('q'); if(G('ed-title')) G('ed-title').placeholder=t('ed_title');
+  ['warm','str','wod','cool'].forEach(function(k){ var e=G('ed-'+k); if(e) e.placeholder=t('ph_'+k); }); if(G('ed-rnd')) G('ed-rnd').placeholder=t('rnds');
+  document.querySelectorAll('#r-lg button').forEach(function(b){ b.classList.toggle('on',b.dataset.l===LANG); }); }
+function setLang(l){ if(['fr','en','nl'].indexOf(l)<0||l===LANG) return; LANG=l; lsSet('cdm_lang',l); document.documentElement.lang=l; rTexts(); try{ if(!G('r-ctl').hidden) rpaint(); }catch(e){} if(RC.ch) rsend({t:'sync'}); tap(); }
+document.querySelectorAll('#r-lg button').forEach(function(b){ b.onclick=function(){ setLang(b.dataset.l); }; });
+function rsend(m){ if(RC.ch){ m.k=RC.key; m.id=RC.id; m.lang=LANG; RC.ch.send({type:'broadcast',event:'m',payload:m}); } }
+function tap(){ try{ navigator.vibrate&&navigator.vibrate(12); }catch(e){} }
+async function startRemote(){
+  document.body.className='ph'; G('rc').hidden=false; G('tv').hidden=true; G('r-sub').textContent=t('sub');
+  document.querySelectorAll('[data-t]').forEach(function(e){ e.textContent=t(e.dataset.t); });
+  G('pk-q').placeholder=t('q'); G('ed-title').placeholder=t('ed_title');
+  ['warm','str','wod','cool'].forEach(function(k){ G('ed-'+k).placeholder=t('ph_'+k); });
+  G('ed-rnd').placeholder=t('rnds'); rTexts();
+  var ses=(await sb.auth.getSession()).data.session;
+  if(!ses){ rview('r-login'); return; }
+  RC.user=ses.user;
+  var ok=await sb.rpc('tv_is_coach'); if(ok.error||ok.data!==true){ rview('r-deny'); return; }
+  var ad=await sb.rpc('is_admin'); RC.admin=!ad.error&&ad.data===true; if(RC.admin) await loadSpaces();
+  var c=QS.get('code')||lsGet('cdm_tv_remote');
+  rview('r-code'); if(c&&/^\d{6}$/.test(c)){ G('cd-i').value=c; G('cd-b').click(); }
+}
+function rconnect(code){
+  return new Promise(function(res){
+    if(RC.ch) sb.removeChannel(RC.ch);
+    RC.code=code; var ch=RC.ch=sb.channel('cdm-tv-'+code,{config:{broadcast:{self:false}}}); var done=false;
+    ch.on('broadcast',{event:'m'},function(p){ var m=p.payload||{}; if(m.to&&m.to!==RC.id) return;
+      RC.seen=Date.now();
+      if(m.t==='here'&&!done){ done=true; res(m); }
+      if((m.t==='st'||m.t==='here')&&m.st){ RC.st=m.st; rpaint(); } });
+    ch.subscribe(function(s){ if(s==='SUBSCRIBED'){ var n=0; (function hi(){ if(done) return; if(++n>8){ done=true; return res(null); } rsend({t:'hello',who:'remote'}); setTimeout(hi,900); })(); } });
+  });
+}
+G('cd-i').oninput=function(e){ e.target.value=e.target.value.replace(/\D/g,'').slice(0,6); };
+G('cd-b').onclick=async function(){ tap(); var c=G('cd-i').value; if(c.length!==6) return; G('cd-e').textContent='…';
+  var cl=await sb.rpc('tv_claim',{p_code:c});
+  if(cl.error){ var em=cl.error.message||''; G('cd-e').textContent=/locked/.test(em)?t('cd_lock'):/coach_only/.test(em)?t('dn_h'):t('cd_e'); return; }
+  RC.key=cl.data;
+  var h=await rconnect(c); if(!h){ G('cd-e').textContent=t('cd_e'); return; }
+  G('cd-e').textContent=''; lsSet('cdm_tv_remote',c);
+  try{ RC.cls=JSON.parse(lsGet('cdm_tv_cls_'+c)||'null'); }catch(e){}
+  if(h.mine&&h.st){ rview('r-ctl'); rpaint(); } else { rview('r-pick'); loadList(); } };
+
+/* ---- choisir : mes cours ecrits, ou mes seances de la console ---- */
+function nm(w){ return w['name_'+LANG]||w.name_fr||w.name_en||''; }
+var FMT={amrap:'AMRAP',emom:'EMOM',for_time:'For Time',rft:'RFT',classic:''};
+async function loadList(){
+  var q=G('pk-q').value.trim().replace(/[%,()]/g,' '), html='';
+  if(RC.tab==='cls'){
+    var r=sb.from('tv_classes').select('id,title,updated_at,data').order('updated_at',{ascending:false}).limit(200);
+    if(q) r=r.ilike('title','%'+q+'%');
+    if(RC.admin&&RC.sp) r=r.eq('space_id',RC.sp);
+    var d=(await r).data||[], td=new Date(), today=td.getFullYear()+'-'+('0'+(td.getMonth()+1)).slice(-2)+'-'+('0'+td.getDate()).slice(-2);
+    /* programme date : les cours a venir d'abord (le plus proche en haut), puis les autres, puis ceux deja passes */
+    function rk(c){ var dd=(c.data||{}).date; return dd?(dd>=today?0:2):1; }
+    d.sort(function(a,b){ var ra=rk(a), rb=rk(b); if(ra!==rb) return ra-rb; var da=(a.data||{}).date||'', db=(b.data||{}).date||'';
+      if(ra===0) return da<db?-1:da>db?1:((a.data.ord||0)-(b.data.ord||0)); if(ra===2) return da>db?-1:da<db?1:((a.data.ord||0)-(b.data.ord||0)); return a.updated_at<b.updated_at?1:-1; });
+    html=d.length?d.map(function(c){ var dd=(c.data||{}).date, isT=dd===today;
+      return '<button class="it'+(isT?' today':'')+'" data-c="'+c.id+'"'+(rk(c)===2?' style="opacity:.55"':'')+'><b>'+(isT?'● '+esc(t('today'))+' · ':'')+esc(c.title||'—')+'</b><small>'+esc([FMT[(c.data||{}).fmt]||'',dd?'':new Date(c.updated_at).toLocaleDateString(LANG==='en'?'en-GB':LANG+'-BE')].filter(Boolean).join(' · '))+'</small></button>'; }).join(''):'<p>'+esc(t('none_cls'))+'</p>';
+    G('pk-l').innerHTML=html; G('pk-l').querySelectorAll('[data-c]').forEach(function(b){ var c=d.find(function(x){return x.id===b.dataset.c;}); b.onclick=function(){ tap(); RC.clsId=c.id; sendClass(c.data); }; });
+    return;
+  }
+  var r2=sb.from('workouts').select('id,name_fr,name_en,name_nl,wod_format,time_cap_seconds,emom_rounds,updated_at').eq('created_by',RC.user.id).order('updated_at',{ascending:false}).limit(40);
+  if(q) r2=r2.or('name_fr.ilike.%'+q+'%,name_en.ilike.%'+q+'%,name_nl.ilike.%'+q+'%');
+  var data=(await r2).data||[];
+  G('pk-l').innerHTML=data.length?data.map(function(w){ return '<button class="it" data-id="'+w.id+'"><b>'+esc(nm(w))+'</b><small>'+esc([FMT[w.wod_format]||'',w.time_cap_seconds?Math.round(w.time_cap_seconds/60)+' min':'',w.emom_rounds?w.emom_rounds+' rounds':'',new Date(w.updated_at).toLocaleDateString(LANG==='en'?'en-GB':LANG+'-BE')].filter(Boolean).join(' · '))+'</small></button>'; }).join(''):'<p>'+esc(t('none'))+'</p>';
+  G('pk-l').querySelectorAll('[data-id]').forEach(function(b){ b.onclick=function(){ tap(); pick(b.dataset.id); }; });
+}
+/* ---- espaces (clubs, clients PT) : admin uniquement, protege par le serveur (RLS is_admin) ---- */
+async function loadSpaces(){ var r=await sb.from('tv_spaces').select('id,name,kind,logo_url,created_at').order('created_at');
+  SPACES=r.data||[]; if(RC.sp&&!SPACES.some(function(x){return x.id===RC.sp;})) RC.sp=null; chips(); }
+function spOf(id){ return SPACES.find(function(x){return x.id===id;})||null; }
+function chips(){ var b=G('pk-sp'); b.hidden=!RC.admin; if(!RC.admin) return;
+  b.innerHTML='<button data-s="" class="'+(RC.sp?'':'on')+'">'+esc(t('sp_all'))+'</button>'+
+    SPACES.map(function(x){ return '<button data-s="'+x.id+'" class="'+(RC.sp===x.id?'on':'')+'">'+esc(x.name)+'</button>'; }).join('')+
+    '<button data-m="1">'+esc(t('sp_mng'))+'</button>';
+  b.querySelectorAll('[data-s]').forEach(function(x){ x.onclick=function(){ tap(); RC.sp=x.dataset.s||null; lsSet('cdm_tv_sp',RC.sp); chips(); loadList(); }; });
+  b.querySelector('[data-m]').onclick=function(){ tap(); spOpen(); }; }
+function spOpen(){ G('sp-e').textContent=''; var l=G('sp-l');
+  l.innerHTML=SPACES.map(function(x){ return '<div class="card ed" data-id="'+x.id+'"><div class="sprow">'+(x.logo_url?'<img src="'+esc(x.logo_url)+'" alt="">':'<div class="ph0">'+esc(t('sp_nolg'))+'</div>')+
+    '<input class="spn" value="'+esc(x.name)+'" placeholder="'+esc(t('sp_name'))+'"></div>'+
+    '<label class="b file">'+esc(t('sp_logo'))+'<input type="file" accept="image/*" hidden class="spf"></label>'+
+    '<button class="b gold sps">'+esc(t('sp_save'))+'</button></div>'; }).join('');
+  l.querySelectorAll('[data-id]').forEach(function(c){ var id=c.dataset.id;
+    c.querySelector('.spf').onchange=function(e){ var f=e.target.files[0]; if(f) spLogo(id,f); };
+    c.querySelector('.sps').onclick=async function(){ tap(); var n=c.querySelector('.spn').value.trim(); if(!n) return;
+      var r=await sb.from('tv_spaces').update({name:n}).eq('id',id); G('sp-e').textContent=r.error?t('sp_err'):t('sp_ok'); await loadSpaces(); }; });
+  rview('r-space'); }
+async function spLogo(id,f){ G('sp-e').textContent='…';
+  var ext=(f.type.split('/')[1]||'png').replace('jpeg','jpg').replace(/[^a-z0-9]/g,''), path=id+'/logo-'+Date.now()+'.'+ext;
+  var up=await sb.storage.from('tv-logos').upload(path,f,{contentType:f.type||'image/png',upsert:true});
+  if(up.error){ G('sp-e').textContent=t('sp_err'); return; }
+  var url=sb.storage.from('tv-logos').getPublicUrl(path).data.publicUrl;
+  var r=await sb.from('tv_spaces').update({logo_url:url}).eq('id',id);
+  if(r.error){ G('sp-e').textContent=t('sp_err'); return; }
+  await loadSpaces(); spOpen(); G('sp-e').textContent=t('sp_ok');
+  if(RC.cls&&RC.cls.sp===id) sendClass(RC.cls); }
+G('sp-new').onclick=async function(){ tap(); var r=await sb.from('tv_spaces').insert({name:t('sp_name').split(' (')[0]}).select('id').single();
+  if(r.error){ G('sp-e').textContent=t('sp_err'); return; } await loadSpaces(); spOpen(); };
+G('sp-back').onclick=function(){ tap(); rview('r-pick'); loadList(); };
+var qT=0; G('pk-q').oninput=function(){ clearTimeout(qT); qT=setTimeout(loadList,300); };
+G('tb-cls').onclick=function(){ RC.tab='cls'; G('tb-cls').className='on'; G('tb-me').className=''; loadList(); };
+G('tb-me').onclick=function(){ RC.tab='me'; G('tb-me').className='on'; G('tb-cls').className=''; loadList(); };
+G('pk-new').onclick=function(){ tap(); RC.clsId=null; editOpen(null); };
+async function pick(id){
+  var a=await Promise.all([sb.from('workouts').select('*').eq('id',id).single(),
+    sb.from('workout_exercises').select('block,display_order,sets,reps,rest_sec,tempo,load_pct_1rm,exercises(slug,name_en,name_fr)').eq('workout_id',id).order('display_order')]);
+  var w=a[0].data, items=a[1].data||[]; if(!w) return;
+  var parts=[], cur=null;
+  items.forEach(function(r){ var ex=r.exercises||{};
+    if(!cur||cur.block!==r.block){ cur={block:r.block,items:[]}; parts.push(cur); }
+    cur.items.push({slug:ex.slug,name:ex.name_en||ex.name_fr||'',sets:r.sets||1,reps:r.reps||'',rest:r.rest_sec||0,tempo:r.tempo||'',load:r.load_pct_1rm?Math.round(r.load_pct_1rm)+'% 1RM':''}); });
+  RC.clsId=null;
+  sendClass({name:nm(w),fmt:w.wod_format||'classic',cap:w.time_cap_seconds||0,emi:w.emom_interval_seconds||60,emr:w.emom_rounds||0,rft:w.rft_rounds||0,parts:parts});
+}
+async function sendClass(c){
+  var sp=c.sp&&spOf(c.sp); if(sp) c.club={name:sp.name,logo:sp.logo_url||''}; else if(!RC.admin||!c.sp) delete c.club;
+  var r=await sb.rpc('tv_set_class',{p_code:RC.code,p_class:c});
+  if(r.error||r.data!==true){ G('ed-e').textContent=t('cd_lock'); G('cd-e').textContent=t('cd_lock'); rview('r-code'); return false; }
+  RC.cls=c; lsSet('cdm_tv_cls_'+RC.code,JSON.stringify(c));
+  rsend({t:'sync'}); RC.st=null; rview('r-ctl'); rpaint(); return true;
+}
+
+/* ---- ecrire / modifier le cours du jour, en direct ---- */
+var BLK=[['warm','activation'],['str','strength'],['wod','conditioning'],['cool','recovery']];
+function lineOf(it){ return [qty(it),it.name].filter(Boolean).join(' ')+(it.tempo?' tempo '+it.tempo:'')+(it.load?' @ '+it.load:''); }
+function editOpen(c){
+  G('ed-e').textContent=''; G('ed-title').value=c?c.name||'':'';
+  G('ed-spc').hidden=!RC.admin;
+  if(RC.admin){ G('ed-sp').innerHTML='<option value="">'+esc(t('sp_none'))+'</option>'+SPACES.map(function(x){ return '<option value="'+x.id+'">'+esc(x.name)+'</option>'; }).join('');
+    G('ed-sp').value=c?(c.sp||''):(RC.sp||''); }
+  BLK.forEach(function(b){ var lines=[]; (c&&c.parts||[]).forEach(function(p){ var k=p.block==='conditioning'?'wod':p.block==='recovery'?'cool':p.block==='activation'?'warm':'str'; if(k===b[0]){ p.items.forEach(function(it){ lines.push(lineOf(it)); }); if(p.note) lines.push('> '+p.note); } });
+    G('ed-'+b[0]).value=lines.join('\n'); });
+  G('ed-fmt').value=c&&c.fmt||'classic';
+  var f=G('ed-fmt').value; G('ed-min').value=c?(f==='emom'?Math.round((c.emi||60)*(c.emr||0)/60)||'':c.cap?Math.round(c.cap/60):''):'';
+  G('ed-rnd').value=c?(f==='emom'?(c.emr||''):f==='rft'?(c.rft||''):''):'';
+  rview('r-edit'); loadEx();
+}
+async function loadEx(){ if(EXL) return; var r=await sb.from('exercises').select('slug,name_en').eq('is_published',true).limit(2000);
+  EXL=(r.data||[]).filter(function(x){return x.name_en&&x.name_en.length>2;}).sort(function(a,b){ return b.name_en.length-a.name_en.length; }); }
+function findEx(txt){ if(!EXL) return null; var l=' '+txt.toLowerCase()+' ';
+  for(var i=0;i<EXL.length;i++){ var n=EXL[i].name_en.toLowerCase(); if(l.indexOf(' '+n+' ')>=0||l.indexOf(' '+n+'s ')>=0) return EXL[i]; } return null; }
+/* « 5x5 Back Squat @ 75% » -> quantite, mouvement, charge ; le bonhomme et la voix si le mouvement est connu */
+function parseLine(line,block){
+  var s=line.trim(); if(!s) return null; var load='', ss='', tp='';
+  var sm0=s.match(/^([A-F][1-4])\s*[·.:\-]?\s+/i); if(sm0){ ss=sm0[1].toUpperCase(); s=s.slice(sm0[0].length); }
+
+  var at=s.match(/\s+@\s*(.+)$/)||s.match(/\s+\(([^)]*\d[^)]*)\)\s*$/); if(at){ load=at[1].trim(); s=s.slice(0,at.index).trim(); }
+  var tm=s.match(/\s+⏱\s*([0-9X\-]+)\s*$/i)||s.match(/\s+tempo\s+([0-9X\-]+)\s*$/i); if(tm){ tp=tm[1].toUpperCase(); s=s.slice(0,tm.index).trim(); }
+  var m=s.match(/^((?:\d[\d.,:'"\/-]*\s*(?:[x×]\s*\d[\d.,\/-]*)?)\s*(?:reps?|rép\.?|répétitions|cal|kcal|m|km|min|sec|s|kg|tours?|rounds?|\/côté|\/side|\/kant)?)\s+(.+)$/i);
+  var q=m?m[1].trim():'', name=m?m[2].trim():s, sets=1, ex=findEx(name);
+  var sm=q.match(/^(\d+)\s*[x×]\s*(.+)$/i); if(sm&&block!=='conditioning'){ sets=+sm[1]; }
+  var o={q:q,name:ex?ex.name_en:name,slug:ex?ex.slug:null,load:load,sets:sets,reps:q,rest:block==='strength'?120:(block==='activation'||block==='recovery')?0:60};
+  if(ss){ o.ss=ss; } if(tp) o.tempo=tp; return o;
+}
+G('ed-go').onclick=async function(){ tap();
+  var parts=[]; BLK.forEach(function(b){ var notes=[], ls=G('ed-'+b[0]).value.split('\n').filter(function(l){ var m=l.match(/^\s*>\s*(.+)$/); if(m){ notes.push(m[1].trim()); return false; } return true; });
+    var items=ls.map(function(l){ return parseLine(l,b[1]); }).filter(Boolean); if(items.length){ var pp={block:b[1],items:items}; if(notes.length) pp.note=notes.join(' '); parts.push(pp); } });
+  if(!parts.length){ G('ed-e').textContent=t('ed_empty'); return; }
+  var f=G('ed-fmt').value, mn=parseInt(G('ed-min').value,10)||0, rn=parseInt(G('ed-rnd').value,10)||0;
+  var c={name:G('ed-title').value.trim()||t('club'),fmt:f,cap:f==='emom'?0:mn*60,emi:f==='emom'&&rn&&mn?Math.round(mn*60/rn):60,emr:f==='emom'?(rn||mn||10):0,rft:f==='rft'?rn:0,parts:parts};
+  /* garde le cours pour le reutiliser (prive : seul ce coach le voit) */
+  var spid=RC.admin?(G('ed-sp').value||null):(RC.cls&&RC.cls.sp||null); if(spid) c.sp=spid;
+  if(RC.clsId&&RC.cls){ if(RC.cls.date) c.date=RC.cls.date; if(RC.cls.ord!=null) c.ord=RC.cls.ord; }
+  var row={title:c.name,data:c,updated_at:new Date().toISOString()}; if(RC.admin) row.space_id=spid;
+  var r=RC.clsId?await sb.from('tv_classes').update(row).eq('id',RC.clsId).select('id').single():await sb.from('tv_classes').insert(row).select('id').single();
+  if(r.data) RC.clsId=r.data.id;
+  await sendClass(c); };
+G('ed-back').onclick=function(){ tap(); rview(RC.cls?'r-ctl':'r-pick'); if(!RC.cls) loadList(); };
+
+/* ---- pilotage ---- */
+function rcmd(c,v){ tap(); rsend({t:'cmd',c:c,v:v}); }
+G('c-go').onclick=function(){ rcmd('go'); }; G('c-set').onclick=function(){ rcmd('set'); };
+G('c-prev').onclick=function(){ rcmd('prev'); }; G('c-next').onclick=function(){ rcmd('next'); }; G('c-reset').onclick=function(){ rcmd('reset'); };
+G('c-rp').onclick=function(){ rcmd('round',1); }; G('c-rm').onclick=function(){ rcmd('round',-1); };
+G('c-voice').onclick=function(){ rcmd('voice',!(RC.st&&RC.st.voice!==false)); };
+G('c-chg').onclick=function(){ tap(); rview('r-pick'); loadList(); };
+/* ---- options : repos, parties, message, ecran, minuteur ---- */
+G('c-r30').onclick=function(){ rcmd('rest',30); }; G('c-rskip').onclick=function(){ rcmd('rest','skip'); };
+var RTS=+(lsGet('cdm_tv_rts')||0)||0, RAD=lsGet('cdm_tv_rad')!=='0';
+[0,1,2].forEach(function(i){ G('c-ts'+i).onclick=function(){ RTS=i; lsSet('cdm_tv_rts',String(i)); rcmd('ts',i); rpaint(); }; });
+G('c-ad').onclick=function(){ RAD=!RAD; lsSet('cdm_tv_rad',RAD?'1':'0'); rcmd('ad',RAD); rpaint(); };
+function msgSend(x){ x=String(x||'').trim().slice(0,60); if(!x) return; rcmd('msg',x); G('c-msgi').value=''; }
+G('c-msgs').onclick=function(){ msgSend(G('c-msgi').value); };
+G('c-msgi').onkeydown=function(e){ if(e.key==='Enter'){ e.preventDefault(); msgSend(G('c-msgi').value); } };
+function rParts(){ var c=RC.cls; if(!c) return []; return tvParts(c).parts||[]; }
+G('c-tgo').onclick=function(){ tap(); var f=G('c-tf').value, mn=Math.max(1,Math.min(90,parseInt(G('c-tm').value,10)||12));
+  var lab=f==='amrap'?'AMRAP '+mn+"'":f==='emom'?'EMOM '+mn+"'":'For Time · '+t('cap')+' '+mn+"'";
+  sendClass({name:lab,fmt:f,cap:f==='emom'?0:mn*60,emi:60,emr:f==='emom'?mn:0,rft:0,parts:[{block:'conditioning',items:[{q:'',name:lab,sets:1,reps:'',rest:0}]}]}); };
+function rOpts(){
+  G('c-msgi').placeholder=t('o_ph');
+  G('c-msgp').innerHTML=['m1','m2','m3','m4','m5'].map(function(k){ return '<button type="button" data-m="'+k+'">'+esc(t(k))+'</button>'; }).join('');
+  G('c-msgp').querySelectorAll('button').forEach(function(b){ b.onclick=function(){ msgSend(t(b.dataset.m)); }; }); }
+G('c-edit').onclick=function(){ tap(); editOpen(RC.cls); };
+G('c-quit').onclick=async function(e){ e.preventDefault(); await sb.rpc('tv_release',{p_code:RC.code}); rsend({t:'sync'}); lsSet('cdm_tv_remote',null); if(RC.ch) sb.removeChannel(RC.ch); RC.ch=null; RC.st=null; RC.cls=null; rview('r-code'); };
+function rpaint(){
+  var s=RC.st||{}, live=Date.now()-RC.seen<5000;
+  G('c-dot').className='dot'+(live?' on':''); G('c-conn').textContent=(live?t('conn'):t('lost'))+' · '+(RC.code||'');
+  G('c-lab').textContent=(s.block?t(BL[s.block]||'str').toUpperCase():'')+(s.n?'  ·  '+t('part')+' '+(s.p+1)+'/'+s.n:'');
+  G('c-clk').textContent=s.clock||'0:00';
+  G('c-ph').textContent=(s.name?s.name+' · ':'')+(({idle:t('idle'),count:t('count'),rest:t('rest'),done:t('fin')})[s.phase]||((s.run?t('run'):t('paused'))+(s.rounds?' · '+s.rounds+' '+t('rnds'):'')));
+  var go=G('c-go'); go.textContent=s.phase==='idle'?t('c_go'):s.run?t('c_pause'):t('c_res'); go.className='b p'+(s.run?' am':'');
+  go.disabled=s.phase==='count'||s.phase==='done'||s.phase==='rest';
+  G('c-set').hidden=!!s.wod||s.phase!=='work'; G('c-set').textContent=s.flow?t('c_nx'):t('c_set');
+  G('c-rnd').hidden=!(s.wod&&['amrap','rft'].indexOf(s.fmt)>=0);
+  G('c-voice').textContent=s.voice===false?t('c_voff'):t('c_von');
+  G('c-restr').hidden=s.phase!=='rest';
+  var ps=rParts(), pc=G('c-parts'), key=ps.map(function(p){return p.block;}).join(',')+'|'+LANG+'|'+s.p;
+  if(pc.dataset.k!==key){ pc.dataset.k=key; pc.innerHTML=ps.map(function(p,i){ return '<button type="button" data-i="'+i+'"'+(i===s.p?' class="cur"':'')+'>'+String(i+1).padStart(2,'0')+' · '+esc(t(BL[p.block]||'str'))+'</button>'; }).join('');
+    pc.querySelectorAll('button').forEach(function(b){ b.onclick=function(){ rcmd('part',+b.dataset.i); }; }); }
+  pc.hidden=G('c-parts').previousElementSibling.hidden=ps.length<2;
+  [0,1,2].forEach(function(i){ G('c-ts'+i).className='b sm'+(RTS===i?' gold':''); });
+  G('c-ad').className='b sm'+(RAD?' gold':''); G('c-ad').textContent=(RAD?'✓ ':'')+t('o_qr');
+  if(!G('c-msgp').children.length||G('c-msgp').dataset.l!==LANG){ G('c-msgp').dataset.l=LANG; rOpts(); }
+}
+/* dans l'app Coach DM (cadre) : le lien vers l'app ferme le cadre au lieu d'ouvrir l'app dedans */
+var EMB=false; try{ EMB=window.top!==window.self; }catch(e){ EMB=true; }
+if(EMB){ document.documentElement.classList.add('emb'); document.addEventListener('click',function(e){ var a=e.target.closest&&e.target.closest('a[href="app.html"]'); if(a){ e.preventDefault(); try{ parent.postMessage('cdm-tv-close','*'); }catch(_){} } },true); }
+/* ===== demarrage : ecran ou telephone (a la fin : tout est defini) ===== */
+var IS_RC=QS.has('remote')||QS.has('code');
+var SMALL=Math.min(screen.width,screen.height)<700&&window.matchMedia&&matchMedia('(pointer:coarse)').matches;
+if(IS_RC){ mkSb(false); startRemote(); }
+else if(SMALL&&!QS.has('screen')&&lsGet('cdm_tv_role')!=='screen'){ choice(); }
+else { mkSb(true); startScreen(); }
+setInterval(function(){ if(!G('r-ctl').hidden){ rpaint(); var nw=Date.now();
+  /* telecommande ouverte et visible : un ping toutes les 10 s pour garder le chrono a la seconde */
+  if(RC.ch&&!document.hidden&&nw-(RC.pinged||0)>10000){ RC.pinged=nw; rsend({t:'ping'}); }
+  if(RC.ch&&nw-RC.seen>4000) rsend({t:'hello',who:'remote'}); } },1000);
+document.addEventListener('visibilitychange',function(){ if(!document.hidden&&RC.ch){ RC.pinged=0; } });
+</script>
+</body>
+</html>

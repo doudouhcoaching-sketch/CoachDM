@@ -1,0 +1,2114 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#0B0B0A" />
+<meta name="robots" content="noindex" />
+<title>Analyse Squat — Coach DM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0B0A; --surface:#151513; --surface2:#1A221D; --line:rgba(255,255,255,.08);
+    --gold:#D9B65C; --neon:#DCBB72; --txt:#F5F5F4; --muted:#9CA3AF; --ok:#DCBB72; --danger:#EF4444;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--txt)}
+  body{
+    font-family:'Outfit',-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    letter-spacing:-0.02em;-webkit-font-smoothing:antialiased;
+    min-height:100dvh;padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 28px);
+    max-width:560px;margin:0 auto;
+  }
+  button{font-family:inherit;cursor:pointer;border:none;color:inherit;background:transparent;-webkit-appearance:none;appearance:none}
+
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px}
+  .backapp{flex:0 0 auto;display:grid;place-items:center;width:36px;height:36px;border-radius:12px;border:1px solid rgba(255,255,255,.14);color:#D9B65C;text-decoration:none;font-size:20px;font-weight:800;line-height:1;margin-right:2px}
+  .backapp:active{transform:scale(.94)}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:18px;letter-spacing:-0.02em}
+  .brandlogo{width:26px;height:26px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px rgba(217,182,92,.55)}
+  .brand em{font-style:normal;background:linear-gradient(135deg,#F6E27A 0%,#D9B65C 45%,#A47F1E 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:12.5px;font-weight:500;margin-top:2px}
+  .lang{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .lang button{font-size:11.5px;font-weight:700;color:var(--muted);padding:5px 9px;border-radius:999px}
+  .lang button.on{color:#0B0B0A;background:var(--neon)}
+
+  .stage{
+    position:relative;border-radius:22px;overflow:hidden;background:#000;
+    border:1px solid var(--line);aspect-ratio:3/4;transition:box-shadow .15s ease;
+  }
+  .stage.deep{box-shadow:0 0 0 2px var(--neon),0 0 34px rgba(220,187,114,.35)}
+  .stage video,.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+  .stage.mirror video,.stage.mirror canvas{transform:scaleX(-1)}
+  .hud{position:absolute;left:0;right:0;top:0;display:flex;justify-content:center;padding:12px;pointer-events:none}
+  .pill{
+    font-size:13px;font-weight:700;padding:8px 14px;border-radius:999px;
+    background:rgba(7,10,8,.72);border:1px solid var(--line);backdrop-filter:blur(8px);
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .pill.ok .dot{background:var(--neon);box-shadow:0 0 10px var(--neon)}
+  .pill.warn .dot{background:var(--gold)}
+  .pill.err .dot{background:var(--danger)}
+  .angle-chip{
+    position:absolute;right:10px;bottom:10px;pointer-events:none;
+    font-size:13px;font-weight:800;color:var(--txt);font-variant-numeric:tabular-nums;
+    background:rgba(7,10,8,.72);border:1px solid var(--line);border-radius:12px;padding:8px 11px;
+  }
+  .angle-chip small{color:var(--muted);font-weight:600;font-size:10px;display:block;letter-spacing:.05em;text-transform:uppercase}
+  .speed-chip{
+    position:absolute;right:10px;bottom:74px;pointer-events:none;
+    font-size:13px;font-weight:800;color:var(--neon);font-variant-numeric:tabular-nums;
+    background:rgba(7,10,8,.72);border:1px solid rgba(220,187,114,.35);border-radius:12px;padding:8px 11px;
+  }
+  .speed-chip small{color:var(--muted);font-weight:600;font-size:10px;display:block;letter-spacing:.05em;text-transform:uppercase}
+  .dbg{
+    position:absolute;left:10px;bottom:10px;pointer-events:none;
+    font-size:10px;font-weight:600;color:rgba(220,187,114,.9);
+    font-variant-numeric:tabular-nums;letter-spacing:0;
+    background:rgba(7,10,8,.65);border-radius:8px;padding:5px 8px;line-height:1.45;white-space:pre;
+  }
+  .splash{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;text-align:center;padding:24px;background:radial-gradient(120% 90% at 50% 0%,#161616 0%,#0B0B0A 70%);
+  }
+  .splash p{color:var(--muted);font-size:13.5px;line-height:1.55;max-width:300px}
+  .squatter{width:54px;height:54px;stroke:var(--neon);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+  .controls{display:flex;gap:10px;margin-top:12px}
+  .btn{
+    flex:1;font-size:15px;font-weight:700;padding:14px 12px;border-radius:16px;
+    background:var(--neon);color:#062A1D;letter-spacing:-0.02em;transition:transform .08s ease,opacity .15s;
+  }
+  .btn:active{transform:scale(.97)}
+  .btn.ghost{background:var(--surface);color:var(--txt);border:1px solid var(--line)}
+  .btn[disabled]{opacity:.45;pointer-events:none}
+  .btn.rec-on{background:#EF4444;color:#fff;border:none;animation:recpulse 1.2s ease-in-out infinite}
+  @keyframes recpulse{0%,100%{opacity:1}50%{opacity:.72}}
+
+  .result{
+    margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;
+    padding:18px 18px 16px;text-align:center;
+  }
+  .result .lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .big{
+    font-size:64px;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums;
+    background:linear-gradient(135deg,#F6E27A 0%,#D9B65C 45%,#A47F1E 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .meta{display:flex;justify-content:center;gap:18px;margin-top:8px;color:var(--muted);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+  .meta b{color:var(--txt)}
+  .meta .g{color:var(--ok)}
+
+  .card{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px 18px}
+  .card h3{font-size:14.5px;font-weight:700;margin-bottom:10px}
+  .card.pro{border-color:rgba(217,182,92,.45)}
+  .gatep{color:var(--muted);font-size:13px;line-height:1.55;margin:0 0 14px}
+  .goldbtn{display:block;text-decoration:none;font-size:15px;font-weight:700;padding:14px;border-radius:16px;background:linear-gradient(135deg,#F6E27A 0%,#D9B65C 55%,#A47F1E 100%);color:#0B0B0A;text-align:center}
+  .protag{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.06em;color:#0B0B0A;background:linear-gradient(135deg,#F6E27A 0%,#D9B65C 55%,#A47F1E 100%);border-radius:6px;padding:2px 7px;vertical-align:2px;margin-left:6px}
+
+  .vrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .vfield{display:flex;flex-direction:column;gap:5px}
+  .vfield label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .vfield input{background:var(--surface2);border:1px solid var(--line);border-radius:12px;color:var(--txt);font-family:inherit;font-size:16px;font-weight:700;padding:12px;width:100%;font-variant-numeric:tabular-nums}
+  .vfield input:focus{outline:none;border-color:rgba(217,182,92,.6)}
+  .vres{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .vres .m{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:11px 4px;text-align:center}
+  .vres .m .v{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--txt)}
+  .vres .m .v small{font-size:10px;font-weight:700;color:var(--muted)}
+  .vres .m .k{font-size:9.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:3px}
+  .vbar{position:relative;height:12px;border-radius:999px;background:var(--surface2);overflow:hidden;margin-top:14px}
+  .vbar i{display:block;height:100%;width:0;border-radius:999px;background:var(--neon);transition:width .3s ease}
+  .vbar.warn i{background:var(--gold)}
+  .vbar.stop i{background:var(--danger)}
+  .vmark{position:absolute;top:-2px;left:50%;width:2px;height:16px;background:rgba(255,255,255,.55)}
+  .vscale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);font-weight:700;margin-top:5px;font-variant-numeric:tabular-nums}
+  .vneedh{margin-top:12px;background:rgba(217,182,92,.12);border:1px solid rgba(217,182,92,.5);color:#D9B65C;font-size:13px;font-weight:700;border-radius:12px;padding:11px 13px;line-height:1.5}
+  .vstop{margin-top:12px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.5);color:#EF4444;font-size:13px;font-weight:700;border-radius:12px;padding:11px 13px;line-height:1.5}
+  .vnote{margin-top:10px;font-size:11.5px;color:var(--muted);line-height:1.5}
+
+  .rlist{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .rlist li{
+    background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;
+    font-variant-numeric:tabular-nums;font-size:13.5px;font-weight:600;
+    display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;
+  }
+  .rlist .n{color:var(--muted);font-size:12.5px;min-width:30px}
+  .badge{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid var(--line)}
+  .b-ok{color:var(--ok);border-color:rgba(16,185,129,.4)}
+  .b-no{color:var(--danger);border-color:rgba(239,68,68,.4)}
+  .b-warn{color:var(--gold);border-color:rgba(217,182,92,.4)}
+  .b-mut{color:var(--muted)}
+  .b-spd{color:var(--neon);border-color:rgba(220,187,114,.4)}
+  .empty{color:var(--muted);font-size:13px}
+  /* Bandeau live : en bas de l'image, sur toute la largeur, gros et contraste.
+     17 px gras sur fond opaque se lit a un bras de distance ; c'est la
+     contrainte reelle du coach en salle, pas l'esthetique. */
+  .livecue{position:absolute;left:8px;right:8px;bottom:8px;z-index:3;
+    background:rgba(8,8,8,.92);border-left:4px solid var(--gold);border-radius:12px;
+    padding:11px 13px;color:#F6E7B4;font-size:17px;font-weight:800;line-height:1.32;
+    letter-spacing:-.01em;pointer-events:none;
+    animation:cuein .18s ease-out}
+  .livecue.ok{border-left-color:var(--neon);color:#B9FFE2;font-size:15px}
+  .livecue b{color:var(--gold);font-weight:900}
+  .livecue.ok b{color:var(--neon)}
+  @keyframes cuein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  /* Assez pour etre lu d'un coup d'oeil pendant la serie, pas assez pour
+     manger l'ecran : une ligne, coupee proprement si elle deborde. */
+  .cue{flex-basis:100%;margin-top:7px;padding:8px 10px;border-radius:10px;
+    background:rgba(217,182,92,.10);border-left:3px solid var(--gold);
+    color:#E8D9A0;font-size:12.5px;font-weight:600;line-height:1.45}
+  .cue-fix{display:inline-block;margin-left:4px;color:var(--gold);font-weight:800;
+    text-decoration:underline;white-space:nowrap;cursor:pointer;background:none;border:0;
+    font-family:inherit;font-size:inherit;padding:0}
+  /* Lecteur video, identique a celui de l'app : la demo ne doit jamais faire
+     sortir de la page d'analyse. */
+  .yt-ov{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.92);display:none;
+    align-items:center;justify-content:center;padding:16px}
+  .yt-ov.show{display:flex}
+  .yt-box{width:100%;max-width:520px}
+  .yt-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .yt-name{font-size:14px;font-weight:700;color:#fff;min-width:0;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .yt-close{flex:0 0 36px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.25);
+    background:rgba(255,255,255,.08);color:#fff;font-size:16px;display:grid;place-items:center}
+  .yt-frame{position:relative;width:100%;padding-top:56.25%;border-radius:14px;overflow:hidden;
+    background:#000;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+  .yt-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .yt-fb{display:none;width:100%;margin-top:10px;padding:12px 14px;border-radius:12px;
+    background:var(--surface2);border:1px solid var(--line);color:var(--txt);
+    font-size:13.5px;font-weight:600;text-align:center}
+  .pro-note{margin-top:12px;font-size:12px;font-weight:700;color:var(--gold);display:flex;align-items:center;gap:7px}
+  #day-card{border:1px solid rgba(217,182,92,.45);background:linear-gradient(180deg,rgba(217,182,92,.10),rgba(217,182,92,.03))}
+  #day-card h3{color:var(--gold)}
+  .dbig{font-size:38px;font-weight:800;line-height:1.05;letter-spacing:-.5px}
+  .dbig small{font-size:16px;font-weight:700;color:var(--muted)}
+  .ddelta{font-size:15px;font-weight:800;margin-top:4px}
+  .ddelta.up{color:var(--ok)} .ddelta.dn{color:var(--gold)} .ddelta.flat{color:var(--muted)}
+  .dsub{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:10px}
+  .dstale{margin-top:10px;padding:9px 11px;border-radius:10px;border:1px solid rgba(217,182,92,.4);background:rgba(217,182,92,.08);font-size:12.5px;font-weight:700;color:var(--gold);line-height:1.45}
+
+  details{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:14px 18px}
+  summary{font-size:14.5px;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:'+';color:var(--muted);font-size:18px;font-weight:600}
+  details[open] summary::after{content:'−'}
+  .help{margin-top:10px;color:var(--muted);font-size:13.5px;line-height:1.6}
+  .help li{margin:0 0 6px 16px}
+  .pdiag{width:100%;max-width:300px;display:block;margin:8px auto 2px}
+  .e1warn{grid-column:1/-1;margin-top:8px;font-size:12.5px;line-height:1.5;color:var(--muted);
+    background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .note{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5}
+
+  footer{margin-top:22px;text-align:center;color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.02em}
+  footer b{color:var(--gold)}
+
+  .plans{display:grid;gap:10px;text-align:left}
+  .pcoach{font-size:12.5px;color:var(--muted);text-align:center;padding:10px 4px 2px;line-height:1.5}
+  .pcoach a{color:var(--gold);font-weight:800;text-decoration:none;border-bottom:1px solid rgba(217,182,92,.4)}
+  .plan{border:1px solid rgba(217,182,92,.45);border-radius:16px;padding:14px;background:rgba(217,182,92,.06)}
+  .plan .pb{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#0B0B0A;background:linear-gradient(135deg,#F6E27A 0%,#D9B65C 55%,#A47F1E 100%);border-radius:999px;padding:4px 10px;margin-bottom:8px}
+  .plan .pp{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+  .plan .pp small{font-size:13px;color:var(--muted);font-weight:600}
+  .plan .old{font-size:14px;color:var(--muted);text-decoration:line-through;margin-left:8px;font-weight:600}
+  .plan .pn{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.4}
+  .plan .pcta{margin-top:11px;width:100%;font-size:14px;font-weight:700;padding:12px;border-radius:13px;background:linear-gradient(135deg,#F6E27A 0%,#D9B65C 55%,#A47F1E 100%);color:#0B0B0A}
+  .plan .pcta:active{transform:scale(.98)}
+  .pwov{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:14px}
+  .pwov.show{display:flex}
+  .pwbox{position:relative;width:100%;max-width:480px;max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:14px}
+  .pwclose{position:absolute;top:10px;right:10px;z-index:2;background:#eee;color:#333;width:32px;height:32px;border-radius:50%;font-size:15px;line-height:1}
+  @media (prefers-reduced-motion:reduce){.stage{transition:none}.btn{transition:none}.vbar i{transition:none}}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+/* === Coach DM - typographie unifiee : titres condenses comme sur coachdm.be === */
+:root{ --font-display:'Barlow Condensed','Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+h1, h2,
+.hh-hello, .hero-name, .sp-name, .wod-name, .wod-num,
+.kcal, .plan-price, .rest-num, .qz-res-n, .se-d-title{
+  font-family: var(--font-display);
+  letter-spacing: .012em;
+}
+</style>
+<style id="nx-page">
+/* ==========================================================================
+   COACH DM 2.4 — charte noir et or (refonte, TestFlight)
+   Une seule source : couleurs, polices, surfaces. Aucun contour.
+   Les polices sont embarquees (dossier fonts/) : rien ne depend de Google.
+   ========================================================================== */
+@font-face{font-family:'Barlow Condensed';font-weight:500;font-display:swap;src:url(fonts/barlow-condensed-latin-500-normal.woff2) format('woff2'),url(fonts/barlow-condensed-latin-ext-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:600;font-display:swap;src:url(fonts/barlow-condensed-latin-600-normal.woff2) format('woff2'),url(fonts/barlow-condensed-latin-ext-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:700;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format('woff2'),url(fonts/barlow-condensed-latin-ext-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:800 900;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:300 400;font-display:swap;src:url(fonts/inter-latin-400-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:500;font-display:swap;src:url(fonts/inter-latin-500-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:600;font-display:swap;src:url(fonts/inter-latin-600-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:700 900;font-display:swap;src:url(fonts/inter-latin-700-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-700-normal.woff2) format('woff2')}
+/* l'ancienne police est remplacee partout ou elle est nommee */
+@font-face{font-family:'Outfit';font-weight:300 400;src:url(fonts/inter-latin-400-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Outfit';font-weight:500;src:url(fonts/inter-latin-500-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Outfit';font-weight:600;src:url(fonts/inter-latin-600-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Outfit';font-weight:700 900;src:url(fonts/inter-latin-700-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-700-normal.woff2) format('woff2')}
+
+:root,:root[data-theme="light"],:root[data-theme="dark"]{
+  --bg:#0B0B0A; --bg-2:#0B0B0A;
+  --surface:#151513; --surface-2:#1D1C19; --surface-3:#262420; --line:rgba(255,255,255,.06);
+  --text:#F4F1E9; --muted:#8F8B80; --muted-2:#5F5C55;
+  --brand:#DCBB72; --brand-2:#C49E4C; --brand-soft:rgba(220,187,114,.13); --brand-ink:#DCBB72; --go:#DCBB72;
+  --gold-hi:#EBD49A; --gold:#DCBB72; --gold-mid:#C49E4C; --gold-deep:#8B6914; --bronze:#6E4E12;
+  --gold-soft:rgba(220,187,114,.13); --on-gold:#1B1405; --gold-ink:#DCBB72;
+  --gold-grad:linear-gradient(180deg,#E6C783,#C9A24E);
+  --prot:#E0574F; --carb:#5B9AD6; --fat:#DCBB72; --fiber:#8FB573;
+  --ok:#DCBB72; --warn:#E0574F;
+  --shadow:none; --shadow-soft:none; --glow:none;
+  --radius:22px; --radius-sm:14px;
+  --font-d:'Barlow Condensed','Arial Narrow',sans-serif; --font-display:'Barlow Condensed','Arial Narrow',sans-serif;
+  --font-t:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;
+  --ink:#1B1405; --red:#E0574F; --blue:#5B9AD6;
+  color-scheme:dark;
+}
+html,body{background:#0B0B0A!important}
+body{font-family:var(--font-t)!important;background:#0B0B0A!important;color:var(--text)}
+/* aucun contour, aucune lueur : les blocs se lisent par le fond et l'espace */
+*:not(input):not(textarea):not(select){border-color:transparent!important}
+*{text-shadow:none!important;text-transform:none!important}
+*::before,*::after{border-color:transparent!important}
+.block,.card,.sheet,.blk,[class*="-card"],[class*="tile"],.an-card,.insight,.hero-w{box-shadow:none!important}
+input,textarea,select{background:var(--surface-2)!important;border:0!important;border-radius:14px!important;color:var(--text)!important;box-shadow:none!important;outline:none}
+input::placeholder,textarea::placeholder{color:var(--muted-2)!important}
+/* pages a part : boutons en pilule, cartes sur fond, titres en Barlow */
+body[data-nx] button,body[data-nx] .btn,body[data-nx] a.btn{border-radius:999px;box-shadow:none!important}
+body[data-nx] h1,body[data-nx] h2{font-family:var(--font-d)!important;font-weight:600!important;letter-spacing:.01em}
+@media(max-width:1039px){.detail-void{display:none!important}}
+@media(max-width:760px){.tb-kick{display:none!important}.tb-id img{width:34px!important;height:34px!important}}
+
+</style>
+</head>
+<body data-nx="1">
+
+<header>
+  <a class="backapp" href="app.html" aria-label="Coach DM App">‹</a>
+  <div>
+    <div class="brand"><img class="brandlogo" src="/logo-dm.png" alt="" onerror="this.remove()"><span>COACH <em>DM</em></span></div>
+    <div class="sub" id="subline"></div>
+  </div>
+  <div class="lang" id="lang">
+    <button data-lang="fr">FR</button><button data-lang="en">EN</button><button data-lang="nl">NL</button>
+  </div>
+</header>
+
+<div class="stage" id="stage">
+  <video id="cam" playsinline muted autoplay></video>
+  <canvas id="overlay"></canvas>
+  <div class="hud"><span class="pill" id="pill"><span class="dot"></span><span id="pill-txt"></span></span></div>
+  <div class="speed-chip" id="spd" hidden><small>m/s</small><span id="spd-val">—</span></div>
+  <div class="angle-chip" id="chip" hidden><small id="chip-lbl"></small><span id="chip-val">—</span></div>
+  <!-- Bandeau de coaching. Le coach tient le telephone (ou il est sur trepied
+       a 2-4 m) et lit la phrase a voix haute pendant que l'athlete travaille.
+       Il doit donc etre lisible sans se pencher, et rester assez longtemps
+       pour etre lu ET dit. -->
+  <div class="livecue" id="livecue" hidden></div>
+
+  <div class="dbg" id="cdm-dbg" hidden></div>
+  <div class="splash" id="splash">
+    <svg class="squatter" viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><path d="M12 6.5v3.5M12 10l-3.5 3 .5 4M12 10l3.5 3-.5 4M7 9.5l5 .5 5-.5"/><path d="M4 21h16" stroke-dasharray="2 3"/></svg>
+    <p id="splash-p"></p>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn" id="b-start"></button>
+  <button class="btn ghost" id="b-flip" disabled>⇄</button>
+  <button class="btn ghost" id="b-reset" disabled></button>
+  <button class="btn ghost" id="b-rec" disabled style="flex:0 0 92px">⏺ REC</button>
+</div>
+
+<div class="result">
+  <div class="lbl" id="res-lbl"></div>
+  <div class="big" id="res-reps">0</div>
+  <div class="meta">
+    <span><span id="m-par"></span> <b class="g" id="res-par">—</b></span>
+    <span><span id="m-depth"></span> <b id="res-depth">—</b></span>
+  </div>
+</div>
+
+<div class="controls" id="save-row" style="display:none">
+  <button class="btn" id="b-save"></button>
+  <button class="btn ghost" id="b-share" style="flex:0 0 56px;font-size:19px"><svg viewBox="0 0 24 24" width="22px" height="22px" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.2em" aria-hidden="true"><path d="M12 15V3.5M7.5 8 12 3.5 16.5 8"/><path d="M5 12.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6.5"/></svg></button>
+</div>
+
+<!-- ══ 1RM du jour — boucle VBT → charge ══ -->
+<div class="card" id="day-card" style="display:none">
+  <h3><span id="day-h"></span><span class="protag">PRO</span></h3>
+  <div class="dbig"><span id="day-val">—</span><small> kg</small></div>
+  <div class="ddelta" id="day-delta"></div>
+  <div class="dsub" id="day-sub"></div>
+  <div class="dstale" id="day-stale" style="display:none"></div>
+  <div class="vnote" id="day-note"></div>
+</div>
+
+<!-- ══ Analyse Pro (VBT) — verrou Premium ══ -->
+<div class="card pro" id="vbt-gate" style="display:none;text-align:center">
+  <h3 id="vbt-gate-h" style="margin-bottom:8px"></h3>
+  <p class="gatep" id="vbt-gate-p"></p>
+  <div class="plans" id="gate-plans"></div>
+  <!-- Chemin de sortie pour qui est deconnecte : sans ce lien, la page dit
+       « connecte-toi » sans dire ou, et on tourne en rond. -->
+  <a class="goldbtn" id="gate-login" href="app.html" style="display:none;margin-top:4px"></a>
+</div>
+
+<!-- ══ Analyse Pro (VBT) — panneau Premium ══ -->
+<div class="card pro" id="vbt-card" style="display:none">
+  <h3><span id="vbt-h"></span><span class="protag">PRO</span></h3>
+  <p class="gatep" id="vbt-hint" style="margin-bottom:12px"></p>
+  <div class="vrow">
+    <div class="vfield"><label id="l-vh"></label><input id="in-vh" type="number" inputmode="decimal" min="120" max="220" step="0.5" placeholder="180"></div>
+    <div class="vfield"><label id="l-vl"></label><input id="in-vl" type="number" inputmode="decimal" min="0" max="400" step="0.5" placeholder="100"></div>
+  </div>
+  <!-- Sans taille, la vitesse n'a aucune echelle : les quatre chiffres
+       restent a « — » et rien n'explique pourquoi. On le dit. -->
+  <div class="vneedh" id="v-needh" style="display:none"></div>
+  <div class="vres">
+    <div class="m"><div class="v"><span id="v-last">—</span><small> m/s</small></div><div class="k" id="k-last"></div></div>
+    <div class="m"><div class="v"><span id="v-best">—</span><small> m/s</small></div><div class="k" id="k-best"></div></div>
+    <div class="m"><div class="v"><span id="v-vl">—</span></div><div class="k" id="k-vl"></div></div>
+    <div class="m"><div class="v"><span id="v-e1">—</span></div><div class="k">1RM est.</div></div>
+    <div class="e1warn" id="e1-warn" style="display:none"></div>
+  </div>
+  <div class="vbar" id="v-bar"><i id="v-fill"></i><span class="vmark"></span></div>
+  <div class="vscale"><span>0%</span><span>−20%</span><span>−40%</span></div>
+  <div class="vstop" id="v-stop" style="display:none"></div>
+  <div class="vnote" id="vbt-note"></div>
+</div>
+
+<div class="card">
+  <h3 id="list-h"></h3>
+  <ul class="rlist" id="rlist"></ul>
+  <div class="empty" id="rempty"></div>
+  <div class="pro-note" id="pro-note" style="display:none">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    <span id="pro-note-txt"></span>
+  </div>
+</div>
+
+<details>
+  <summary id="place-h"></summary>
+  <svg class="pdiag" viewBox="0 0 320 190" aria-hidden="true">
+    <ellipse cx="150" cy="62" rx="30" ry="11" fill="none" stroke="#9CA3AF" stroke-width="2"/>
+    <circle cx="150" cy="62" r="7.5" fill="#F5F5F4"/>
+    <line x1="188" y1="62" x2="252" y2="62" stroke="rgba(220,187,114,.45)" stroke-width="2" stroke-dasharray="5 5"/>
+    <rect x="258" y="49" width="17" height="27" rx="4.5" fill="none" stroke="#DCBB72" stroke-width="2.5"/>
+    <text x="266" y="97" fill="#DCBB72" font-size="12" font-weight="800" text-anchor="middle">90° ✓</text>
+    <line x1="150" y1="80" x2="150" y2="128" stroke="rgba(220,187,114,.45)" stroke-width="2" stroke-dasharray="5 5"/>
+    <rect x="141" y="134" width="17" height="27" rx="4.5" fill="none" stroke="#DCBB72" stroke-width="2.5"/>
+    <text x="150" y="182" fill="#DCBB72" font-size="12" font-weight="800" text-anchor="middle">0° ✓</text>
+    <line x1="176" y1="80" x2="222" y2="122" stroke="rgba(239,68,68,.45)" stroke-width="2" stroke-dasharray="5 5"/>
+    <rect x="226" y="126" width="17" height="27" rx="4.5" fill="none" stroke="#EF4444" stroke-width="2.5"/>
+    <text x="235" y="174" fill="#EF4444" font-size="12" font-weight="800" text-anchor="middle">45° ✗</text>
+  </svg>
+  <ol class="help" id="place-ol"></ol>
+</details>
+
+<details>
+  <summary id="help-h"></summary>
+  <ol class="help" id="help-ol"></ol>
+  <div class="note" id="help-note"></div>
+</details>
+
+<!-- ══ Paiement Stripe sur place — Coach & Coach+ ══ -->
+<div class="pwov" id="pw-ov">
+  <div class="pwbox">
+    <button class="pwclose" id="pw-close" aria-label="Fermer">✕</button>
+    <div id="ck-mount" style="min-height:40px"></div>
+  </div>
+</div>
+
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">squat v3.4</span></footer>
+
+<script type="module">
+/* Shim: MediaPipe's WASM glue references bare globals (dbg/out/err). If any DOM element
+   shadows them via named access, force real functions so the glue never crashes. */
+try{window.dbg=function(){};window.out=window.out&&typeof window.out==='function'?window.out:function(){};window.err=window.err&&typeof window.err==='function'?window.err:function(){};}catch(_){}
+
+/* ═════════ BANC D'ESSAI MEDIAPIPE ═════════
+   Le runtime et le modele sont pilotables par l'URL, sans rebuild :
+     squat.html                      -> 0.10.21 + lite   (production)
+     squat.html?mp=1.0.1             -> runtime 1.0.1
+     squat.html?model=full           -> modele full
+     squat.html?mp=1.0.1&model=full  -> les deux
+   Deux variables separees, donc on peut isoler laquelle cause quoi. Les
+   valeurs par defaut restent celles de production : un membre qui ouvre la
+   page normalement n'est jamais expose au banc d'essai. */
+/* Quelle version viser ? Il n'existe aucune note de version chez Google pour
+   la 1.0.x, et les telechargements npm de la semaine sont sans appel :
+
+       0.10.17   2 890 312   77,9 %   (dependance transitive, pas un choix)
+       0.10.35     295 126    8,0 %   <- la plus utilisee des versions recentes
+       1.0.1        64 443    1,7 %   <- pourtant taguee « latest »
+       0.10.21      16 579    0,4 %   <- la notre
+
+   La 1.0.1 est ce qu'un « npm install » nu installe par defaut, et elle ne
+   represente quand meme que 1,7 % : l'ecosysteme s'en detourne activement.
+   La 0.10.35 fait 4,6 fois mieux tout en restant dans la meme ligne majeure.
+   C'est donc elle le prochain candidat, pas la 1.0.1.
+
+   Un seul endroit a changer le jour ou le test tranche. */
+const MP_DEFAULT_VER   = '0.10.21';
+const MP_DEFAULT_MODEL = 'lite';
+const MPQ = new URLSearchParams(location.search);
+const MP_VER   = /^[0-9]+\.[0-9]+\.[0-9]+$/.test(MPQ.get('mp')||'') ? MPQ.get('mp') : MP_DEFAULT_VER;
+const MP_MODEL = ['lite','full','heavy'].includes(MPQ.get('model')||'') ? MPQ.get('model') : MP_DEFAULT_MODEL;
+const MP_TEST  = MP_VER!==MP_DEFAULT_VER || MP_MODEL!==MP_DEFAULT_MODEL;
+const { PoseLandmarker, FilesetResolver, DrawingUtils } =
+  await import(`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}`);
+
+/* Mesures. Le but n'est pas de faire joli mais de trancher : est-ce que
+   « full » tient la cadence sur un iPhone 11, oui ou non.
+   - fps      : images reellement traitees par seconde
+   - infer    : temps passe DANS detectForVideo, en ms (le cout du modele)
+   - p95      : le 95e centile de ce temps — c'est lui qui fait saccader,
+                pas la moyenne, qu'une seule image lente ne bouge pas
+   - jsHeap   : tas JS quand le navigateur l'expose (Chrome/Brave, pas iOS) */
+const MPSTAT={delegate:'—',loadMs:0,frames:0,fps:0,infer:0,p95:0,_lat:[],_t0:performance.now(),_n:0};
+function mpNote(ms){
+  MPSTAT._n++; MPSTAT.frames++;
+  MPSTAT._lat.push(ms); if(MPSTAT._lat.length>150) MPSTAT._lat.shift();
+  const el=performance.now()-MPSTAT._t0;
+  if(el>=1000){
+    MPSTAT.fps=Math.round(MPSTAT._n*1000/el); MPSTAT._n=0; MPSTAT._t0=performance.now();
+    const a=[...MPSTAT._lat].sort((x,y)=>x-y);
+    MPSTAT.infer=Math.round(a.reduce((s,v)=>s+v,0)/a.length*10)/10;
+    MPSTAT.p95=Math.round(a[Math.floor(a.length*0.95)]*10)/10;
+    mpPanelUpdate();
+  }
+}
+let mpPanel=null;
+function mpPanelUpdate(){
+  if(!MP_TEST) return;                     /* invisible en production */
+  if(!mpPanel){
+    mpPanel=document.createElement('div');
+    mpPanel.setAttribute('style','position:fixed;left:8px;bottom:8px;z-index:9999;'+
+      'background:rgba(0,0,0,.82);color:#DCBB72;font:600 11px/1.5 ui-monospace,Menlo,monospace;'+
+      'padding:8px 10px;border-radius:9px;border:1px solid rgba(220,187,114,.35);pointer-events:none;'+
+      'white-space:pre;-webkit-backdrop-filter:blur(4px)');
+    document.body.appendChild(mpPanel);
+  }
+  const mem=(performance.memory&&performance.memory.usedJSHeapSize)
+    ? '\njsHeap    '+Math.round(performance.memory.usedJSHeapSize/1048576)+' Mo' : '';
+  mpPanel.textContent =
+    'runtime   '+MP_VER+
+    '\nmodele    '+MP_MODEL+
+    '\ndelegate  '+MPSTAT.delegate+
+    '\nchargt    '+MPSTAT.loadMs+' ms'+
+    '\nfps       '+MPSTAT.fps+
+    '\ninfer moy '+MPSTAT.infer+' ms'+
+    '\ninfer p95 '+MPSTAT.p95+' ms'+
+    '\nimages    '+MPSTAT.frames+mem;
+}
+
+/* ───────── i18n ───────── */
+const I18N = {
+  subline:{fr:'Analyse Squat — reps gratuits · VBT en Pro',en:'Squat Analysis — free reps · VBT in Pro',nl:'Squatanalyse — gratis reps · VBT in Pro'},
+  splash:{fr:'Téléphone stable à 2–4 m, corps entier visible. Profil (90°) = profondeur & vitesse · Face (0°) = valgus. Évite le 45°.',en:'Stable phone at 2–4 m, full body visible. Side (90°) = depth & speed · Front (0°) = valgus. Avoid 45°.',nl:'Stabiele telefoon op 2–4 m, hele lichaam zichtbaar. Zijkant (90°) = diepte & snelheid · Voorkant (0°) = valgus. Vermijd 45°.'},
+  start:{fr:'Lancer la caméra',en:'Start camera',nl:'Camera starten'},
+  stop:{fr:'Arrêter',en:'Stop',nl:'Stoppen'},
+  reset:{fr:'Remettre à zéro',en:'Reset',nl:'Resetten'},
+  st_loading:{fr:'Chargement du modèle IA…',en:'Loading AI model…',nl:'AI-model laden…'},
+  st_ready:{fr:'Prêt — squatte quand tu veux',en:'Ready — squat whenever you want',nl:'Klaar — squat wanneer je wilt'},
+  st_down:{fr:'DESCENTE…',en:'GOING DOWN…',nl:'DALEN…'},
+  st_deep:{fr:'PARALLÈLE CASSÉE ✓',en:'BELOW PARALLEL ✓',nl:'ONDER PARALLEL ✓'},
+  st_up:{fr:'REMONTÉE…',en:'COMING UP…',nl:'OMHOOG…'},
+  st_noperson:{fr:'Corps entier non visible — recule',en:'Full body not visible — step back',nl:'Lichaam niet volledig zichtbaar — stap achteruit'},
+  st_err_cam:{fr:'Caméra refusée — autorise l\'accès dans Réglages',en:'Camera denied — allow access in Settings',nl:'Camera geweigerd — sta toegang toe in Instellingen'},
+  st_err_model:{fr:'Modèle IA indisponible — vérifie ta connexion',en:'AI model unavailable — check your connection',nl:'AI-model niet beschikbaar — controleer je verbinding'},
+  chip_lbl:{fr:'Genou',en:'Knee',nl:'Knie'},
+  res_lbl:{fr:'Répétitions',en:'Repetitions',nl:'Herhalingen'},
+  m_par:{fr:'Sous la parallèle',en:'Below parallel',nl:'Onder parallel'},
+  m_depth:{fr:'Meilleure profondeur',en:'Best depth',nl:'Beste diepte'},
+  list_h:{fr:'Reps de la série',en:'Set reps',nl:'Reps deze set'},
+  list_empty:{fr:'Aucune rep détectée pour l\'instant.',en:'No reps detected yet.',nl:'Nog geen reps gedetecteerd.'},
+  save:{fr:'Enregistrer la série',en:'Save set',nl:'Set opslaan'},
+  saving:{fr:'Enregistrement…',en:'Saving…',nl:'Opslaan…'},
+  saved:{fr:'✓ Série enregistrée',en:'✓ Set saved',nl:'✓ Set opgeslagen'},
+  save_fail:{fr:'Échec — vérifie ta connexion',en:'Failed — check your connection',nl:'Mislukt — controleer je verbinding'},
+  save_login:{fr:'Connecte-toi dans l\'app pour enregistrer tes séries.',en:'Log in to the app to save your sets.',nl:'Log in in de app om je sets op te slaan.'},
+  sh_squat_t:{fr:'ANALYSE SQUAT',en:'SQUAT ANALYSIS',nl:'SQUATANALYSE'},
+  sh_reps:{fr:'RÉPÉTITIONS',en:'REPS',nl:'HERHALINGEN'},
+  rec_hint:{fr:'⏺ REC',en:'⏺ REC',nl:'⏺ REC'},
+  rec_stop:{fr:'■ {t}',en:'■ {t}',nl:'■ {t}'},
+  rec_fail:{fr:'Enregistrement vidéo non supporté sur ce navigateur.',en:'Video recording not supported on this browser.',nl:'Video-opname wordt niet ondersteund in deze browser.'},
+  rec_dl:{fr:'Partage indisponible — vidéo téléchargée.',en:'Sharing unavailable — video downloaded.',nl:'Delen niet beschikbaar — video gedownload.'},
+  rec_cap:{fr:'⬇ Enregistrer (10 min atteintes)',en:'⬇ Save (10 min reached)',nl:'⬇ Bewaren (10 min bereikt)'},
+  rec_cap_msg:{fr:'Limite de 10 minutes atteinte — appuie sur ⬇ pour enregistrer ta vidéo.',en:'10-minute limit reached — tap ⬇ to save your video.',nl:'Limiet van 10 minuten bereikt — tik op ⬇ om je video te bewaren.'},
+  sh_par:{fr:'sous la parallèle',en:'below parallel',nl:'onder parallel'},
+  sh_depth:{fr:'Meilleure profondeur',en:'Best depth',nl:'Beste diepte'},
+  sh_vl:{fr:'PERTE VITESSE',en:'VELOCITY LOSS',nl:'SNELH.VERLIES'},
+  sh_e1:{fr:'1RM EST. (kg)',en:'EST. 1RM (kg)',nl:'GESCH. 1RM (kg)'},
+  sh_fail:{fr:'Partage impossible sur ce navigateur — image téléchargée.',en:'Sharing unavailable on this browser — image downloaded.',nl:'Delen niet beschikbaar in deze browser — afbeelding gedownload.'},
+  b_par:{fr:'Sous la parallèle ✓',en:'Below parallel ✓',nl:'Onder parallel ✓'},
+  b_high:{fr:'Pas cassée ✗',en:'Not below ✗',nl:'Niet onder ✗'},
+  b_torso:{fr:'Buste penché',en:'Torso lean',nl:'Rompheling'},
+  b_torso_w:{fr:'⚠ Buste très penché',en:'⚠ Excessive lean',nl:'⚠ Sterk voorovergebogen'},
+  yt_fb:{fr:'La vidéo ne démarre pas ? Ouvrir le lecteur',en:'Video not playing? Open the player',nl:'Video start niet? Open de speler'},
+  cue_shallow:{fr:'Rep non comptée — tu n’es pas descendu assez bas',en:'Rep not counted — you didn’t go low enough',nl:'Rep niet geteld — je ging niet diep genoeg'},
+  cue_tooquick:{fr:'Rep non comptée — mouvement trop bref pour être mesuré',en:'Rep not counted — movement too brief to measure',nl:'Rep niet geteld — beweging te kort om te meten'},
+  cue_clean:{fr:'Propre — rien à corriger',en:'Clean — nothing to fix',nl:'Zuiver — niets te corrigeren'},
+  b_flex_ok:{fr:'Dos gainé ✓',en:'Back braced ✓',nl:'Rug gespannen ✓'},
+  b_flex_m:{fr:'⚠ Dos qui s’arrondit',en:'⚠ Back starting to round',nl:'⚠ Rug begint te ronden'},
+  b_flex_w:{fr:'⚠ Dos rond',en:'⚠ Rounded back',nl:'⚠ Ronde rug'},
+  b_torso_na:{fr:'Buste : non mesurable de face',en:'Torso: not measurable front-on',nl:'Romp: niet meetbaar vooraan'},
+  b_flex_na:{fr:'Dos : non mesurable de face',en:'Back: not measurable front-on',nl:'Rug: niet meetbaar vooraan'},
+  b_flex_cal:{fr:'Dos : pas calibré — reste debout 2 s de profil',en:'Back: not calibrated — stand still 2 s side-on',nl:'Rug: niet gekalibreerd — sta 2 s stil in zijaanzicht'},
+  b_flex_nd:{fr:'Dos : détection incomplète sur cette rep',en:'Back: incomplete detection on this rep',nl:'Rug: onvolledige detectie bij deze rep'},
+  b_valgus:{fr:'⚠ Genoux qui rentrent',en:'⚠ Knees caving in',nl:'⚠ Knieën naar binnen'},
+  b_knees_ok:{fr:'Genoux ✓',en:'Knees ✓',nl:'Knieën ✓'},
+  view_side:{fr:'profil',en:'side',nl:'zijkant'},
+  view_front:{fr:'face',en:'front',nl:'voorkant'},
+  gate_login_btn:{fr:'Ouvrir l’app et me connecter',en:'Open the app and log in',nl:'Open de app en log in'},
+  gate_anon_h:{fr:'Connecte-toi pour l’Analyse Pro',en:'Log in for Pro Analysis',nl:'Log in voor Pro-analyse'},
+  gate_anon_p:{fr:'Le compteur de reps et la profondeur marchent sans compte. Le dos, le valgus et la vitesse (VBT) ont besoin de savoir qui tu es : ouvre l’app Coach DM et connecte-toi, puis reviens sur cette page. Si tu es déjà abonné, rien de plus à payer.',en:'Rep counting and depth work without an account. Back, valgus and speed (VBT) need to know who you are: open the Coach DM app and log in, then come back to this page. If you already subscribe, there is nothing more to pay.',nl:'Reps tellen en diepte werken zonder account. Rug, valgus en snelheid (VBT) moeten weten wie je bent: open de Coach DM-app en log in, kom dan terug op deze pagina. Ben je al geabonneerd, dan betaal je niets extra.'},
+  vbt_gate_h:{fr:'Analyse Pro (VBT) — fonctionnalité Premium',en:'Pro Analysis (VBT) — Premium feature',nl:'Pro-analyse (VBT) — Premium functie'},
+  vbt_gate_p:{fr:'Le compteur de reps et la profondeur (parallèle cassée) sont gratuits pour tous. L\'Analyse Pro — inclinaison du dos, valgus des genoux, vitesse de chaque rep (VBT), perte de vitesse et 1RM estimé en direct — est incluse dans l’abonnement. Abonne-toi directement ici, sans quitter la page.',en:'Rep counting and depth (below parallel) are free for everyone. Pro Analysis — torso lean, knee valgus, per-rep bar speed (VBT), velocity loss and live estimated 1RM — is for the subscription. Subscribe right here, without leaving the page.',nl:'Reps tellen en de diepte (onder parallel) zijn gratis voor iedereen. Pro-analyse — romphelling, knievalgus, snelheid per rep (VBT), snelheidsverlies en live geschatte 1RM — is voor de abonnement. Abonneer je hier, zonder de pagina te verlaten.'},
+  pw_native:{fr:'Les abonnements ne sont pas disponibles dans cette version de l\u2019app.',en:'Subscriptions are not available in this version of the app.',nl:'Abonnementen zijn niet beschikbaar in deze versie van de app.'},
+  pw_year:{fr:'/an',en:'/year',nl:'/jaar'},
+  pw_membre_f:{fr:'Membre Fondateur',en:'Founding Member',nl:'Oprichtend lid'},
+  pw_membre:{fr:'Membre',en:'Member',nl:'Lid'},
+  pw_note_m:{fr:'Toutes les analyses Pro, le Coach IA, la photo-calories et les 13 programmes. Sans engagement.',en:'All Pro analyses, the AI Coach, photo-calories and all 13 programs. Cancel anytime.',nl:'Alle Pro-analyses, de AI-coach, foto-calorie\u00ebn en de 13 programma\u2019s. Maandelijks opzegbaar.'},
+  pw_note_y:{fr:'La m\u00eame chose, factur\u00e9e \u00e0 l\u2019ann\u00e9e : deux mois offerts.',en:'Same thing, billed yearly: two months free.',nl:'Hetzelfde, jaarlijks gefactureerd: twee maanden gratis.'},
+  pw_coach_link:{fr:'Tu es coach et tu g\u00e8res des clients ?',en:'Are you a coach managing clients?',nl:'Ben je coach met klanten?'},
+  pw_coach_link_a:{fr:'Voir les offres Coach',en:'See Coach plans',nl:'Bekijk Coach-abonnementen'},
+  pw_choose:{fr:'Choisir cette offre',en:'Choose this plan',nl:'Kies dit abonnement'},
+  pw_month:{fr:'/mois',en:'/month',nl:'/maand'},
+  pw_note20:{fr:'Jusqu\'à 20 clients actifs',en:'Up to 20 active clients',nl:'Tot 20 actieve klanten'},
+  pw_note30:{fr:'Jusqu\'à 30 clients actifs — exclusivité fondateur',en:'Up to 30 active clients — founder exclusive',nl:'Tot 30 actieve klanten — exclusief voor oprichters'},
+  pw_note50:{fr:'Jusqu\'à 50 clients actifs',en:'Up to 50 active clients',nl:'Tot 50 actieve klanten'},
+  pw_note60:{fr:'Jusqu\'à 60 clients actifs — exclusivité fondateur',en:'Up to 60 active clients — founder exclusive',nl:'Tot 60 actieve klanten — exclusief voor oprichters'},
+  pw_coach_f:{fr:'Coach Fondateur',en:'Founding Coach',nl:'Oprichtende coach'},
+  pw_coachp_f:{fr:'Coach+ Fondateur',en:'Founding Coach+',nl:'Oprichtend Coach+'},
+  pw_left:{fr:'Plus que {n} places fondateur',en:'Only {n} founder spots left',nl:'Nog {n} oprichtersplaatsen'},
+  pw_consent_h:{fr:'Avant de payer',en:'Before you pay',nl:'Voor je betaalt'},
+  pw_consent:{fr:'Je demande l\'accès immédiat au service et je reconnais qu\'en démarrant maintenant, je renonce à mon droit de rétractation de 14 jours dès l\'ouverture de mon accès premium (art. VI.53 du Code de droit économique).',en:'I request immediate access to the service and acknowledge that by starting now, I waive my 14-day right of withdrawal as soon as my premium access is opened (art. VI.53 of the Belgian Code of Economic Law).',nl:'Ik vraag onmiddellijke toegang tot de dienst en erken dat ik, door nu te starten, afstand doe van mijn herroepingsrecht van 14 dagen zodra mijn premium-toegang wordt geopend (art. VI.53 van het Wetboek van economisch recht).'},
+  pw_continue:{fr:'Continuer vers le paiement',en:'Continue to payment',nl:'Doorgaan naar betaling'},
+  pw_fail:{fr:'Paiement indisponible. Réessaie dans un instant.',en:'Payment unavailable. Try again shortly.',nl:'Betaling niet beschikbaar. Probeer straks opnieuw.'},
+
+  day_h:{fr:'1RM du jour',en:'Daily 1RM',nl:'1RM van vandaag'},
+  e1_fast:{fr:'Charge trop légère pour estimer un 1RM. L\u2019équation de référence est calibrée sur la vitesse propulsive moyenne ; au-delà de 0,65 m/s la phase de décélération fausse le calcul. Ajoute du poids : la vitesse et la perte de vitesse restent valables telles quelles.',en:'Load too light to estimate a 1RM. The reference equation is calibrated on mean propulsive velocity; above 0.65 m/s the deceleration phase distorts the result. Add weight — velocity and velocity loss remain valid as they are.',nl:'Belasting te licht om een 1RM te schatten. De referentievergelijking is gekalibreerd op gemiddelde propulsieve snelheid; boven 0,65 m/s vertekent de vertragingsfase het resultaat. Voeg gewicht toe — snelheid en snelheidsverlies blijven gewoon geldig.'},
+  day_up:{fr:'{d} % au-dessus de ta référence — bonne journée, les charges de ta séance montent.',en:'{d}% above your reference — good day, today\u2019s loads go up.',nl:'{d}% boven je referentie — goede dag, je belastingen gaan omhoog.'},
+  day_dn:{fr:'{d} % sous ta référence — journée moyenne, les charges de ta séance s\u2019allègent automatiquement.',en:'{d}% below your reference — off day, today\u2019s loads are automatically reduced.',nl:'{d}% onder je referentie — mindere dag, je belastingen worden automatisch verlaagd.'},
+  day_flat:{fr:'Pile sur ta référence — charges nominales aujourd\u2019hui.',en:'Right on your reference — nominal loads today.',nl:'Precies op je referentie — nominale belastingen vandaag.'},
+  day_sub_i:{fr:'Calculé sur <b>ton profil charge-vitesse personnel</b> (au moins 3 charges différentes mesurées). Ouvre ta séance : toutes les charges en %1RM sont recalculées sur ce chiffre, pas sur ton vieux record.',en:'Computed from <b>your personal load-velocity profile</b> (at least 3 different loads measured). Open your session: every %1RM load is recalculated on this figure, not on your old record.',nl:'Berekend op <b>je persoonlijke belasting-snelheidsprofiel</b> (minstens 3 verschillende belastingen gemeten). Open je sessie: elke %1RM-belasting wordt op dit cijfer herberekend, niet op je oude record.'},
+  day_sub_g:{fr:'Calculé sur le profil charge-vitesse générique (Sánchez-Medina et al. 2017). Mesure 3 séries à des charges différentes et l\u2019app bascule sur <b>ton profil personnel</b>, bien plus précis.',en:'Computed from the generic load-velocity profile (Sánchez-Medina et al. 2017). Measure 3 sets at different loads and the app switches to <b>your personal profile</b>, far more accurate.',nl:'Berekend op het generieke belasting-snelheidsprofiel (Sánchez-Medina 2010). Meet 3 sets met verschillende belastingen en de app schakelt over naar <b>je persoonlijke profiel</b>, veel nauwkeuriger.'},
+  day_stale:{fr:'⚠ Ton profil vitesse estime ton 1RM à <b>{p} kg</b>, mais ton record enregistré dit <b>{r} kg</b>. Mets ton record à jour dans l\u2019app (Profil → Mes records) : sinon tu t\u2019entraînes trop léger.',en:'⚠ Your velocity profile estimates your 1RM at <b>{p} kg</b>, but your saved record says <b>{r} kg</b>. Update it in the app (Profile → My records): otherwise you are training too light.',nl:'⚠ Je snelheidsprofiel schat je 1RM op <b>{p} kg</b>, maar je opgeslagen record zegt <b>{r} kg</b>. Werk het bij in de app (Profiel → Mijn records): anders train je te licht.'},
+  day_clamp:{fr:'Valeur bornée à ±15 % : la force fluctue, elle ne double pas d\u2019un jour à l\u2019autre (Jovanović & Flanagan 2014).',en:'Value capped at ±15%: strength fluctuates, it does not double overnight (Jovanović & Flanagan 2014).',nl:'Waarde begrensd op ±15%: kracht schommelt, maar verdubbelt niet van de ene dag op de andere (Jovanović & Flanagan 2014).'},
+  day_note:{fr:'Le 1RM du jour vaut pour aujourd\u2019hui seulement. Il repart de zéro demain — c\u2019est le principe : on prescrit sur ta forme réelle, pas sur un chiffre figé.',en:'The daily 1RM applies to today only. It resets tomorrow — that is the point: we prescribe on your actual readiness, not on a frozen number.',nl:'De 1RM van vandaag geldt alleen voor vandaag. Morgen begint hij opnieuw — dat is het principe: we schrijven voor op je werkelijke vorm, niet op een vast getal.'},
+  vbt_h:{fr:'Analyse Pro — Vitesse (VBT)',en:'Pro Analysis — Bar speed (VBT)',nl:'Pro-analyse — Snelheid (VBT)'},
+  vbt_needh:{fr:'⚠ Entre ta taille ci-dessus : sans elle, l’app ne peut pas convertir les pixels en mètres, donc pas de vitesse ni de 1RM estimé. La profondeur, le dos et le valgus fonctionnent déjà sans.',en:'⚠ Enter your height above: without it the app cannot convert pixels into metres, so no velocity and no estimated 1RM. Depth, back and valgus already work without it.',nl:'⚠ Vul hierboven je lengte in: zonder die kan de app pixels niet naar meters omrekenen, dus geen snelheid en geen geschatte 1RM. Diepte, rug en valgus werken al zonder.'},
+  vbt_hint:{fr:'Entre ta taille (une fois) et la charge sur la barre. Chaque rep : vitesse concentrique moyenne, perte de vitesse et 1RM estimé. Coupe ta série à −20% de vitesse : tu gagnes autant de force avec moins de fatigue (Pareja-Blanco 2017).',en:'Enter your height (once) and the load on the bar. Every rep: mean concentric velocity, velocity loss and estimated 1RM. Cut your set at −20% velocity: same strength gains with less fatigue (Pareja-Blanco 2017).',nl:'Vul één keer je lengte in en de belasting op de bar. Elke rep: gemiddelde concentrische snelheid, snelheidsverlies en geschatte 1RM. Stop je set bij −20% snelheid: evenveel krachtwinst met minder vermoeidheid (Pareja-Blanco 2017).'},
+  vbt_height:{fr:'Taille (cm)',en:'Height (cm)',nl:'Lengte (cm)'},
+  vbt_load:{fr:'Charge barre (kg)',en:'Bar load (kg)',nl:'Bar belasting (kg)'},
+  vbt_last:{fr:'Dernière rep',en:'Last rep',nl:'Laatste rep'},
+  vbt_best:{fr:'Meilleure',en:'Best',nl:'Beste'},
+  vbt_loss:{fr:'Perte vitesse',en:'Velocity loss',nl:'Snelheidsverlies'},
+  vbt_stop:{fr:'Perte de vitesse ≥ 20% — arrête ta série : les reps suivantes ne construisent que de la fatigue, pas de la force.',en:'Velocity loss ≥ 20% — end your set: further reps only build fatigue, not strength.',nl:'Snelheidsverlies ≥ 20% — stop je set: verdere reps bouwen alleen vermoeidheid op, geen kracht.'},
+  vbt_note:{fr:'Vitesse mesurée sur la hanche, calibrée sur ta taille. Sans taille renseignée, la vitesse reste vide. 1RM estimé : indication, pas une vérité absolue.',en:'Velocity measured at the hip, calibrated on your height. Without a height, velocity stays empty. Estimated 1RM is an indication, not an absolute truth.',nl:'Snelheid gemeten op de heup, gekalibreerd op je lengte. Zonder lengte blijft de snelheid leeg. Geschatte 1RM is een indicatie, geen absolute waarheid.'},
+  pro_note:{fr:'Analyse Pro \u2014 incluse dans l\u2019abonnement',en:'Pro Analysis \u2014 included with your subscription',nl:'Pro-analyse \u2014 inbegrepen in je abonnement'},
+  help_h:{fr:'Comment ça marche',en:'How it works',nl:'Hoe het werkt'},
+  help_1:{fr:'Téléphone posé ou sur trépied, stable, à 2–4 m. Corps entier + pieds dans le cadre, bonne lumière.',en:'Phone resting or on a tripod, stable, 2–4 m away. Full body + feet in frame, good lighting.',nl:'Telefoon neergezet of op statief, stabiel, op 2–4 m. Hele lichaam + voeten in beeld, goed licht.'},
+  help_2:{fr:'Gratuit : reps comptées + parallèle cassée (crête de la hanche sous le genou). Pro : dos, valgus (de face) et vitesse VBT.',en:'Free: rep counting + below parallel (hip crease below the knee). Pro: torso, valgus (front view) and VBT speed.',nl:'Gratis: reps tellen + onder parallel (heupplooi onder de knie). Pro: romp, valgus (vooraanzicht) en VBT-snelheid.'},
+  help_3:{fr:'Squatte à ton rythme : chaque rep est comptée et analysée automatiquement.',en:'Squat at your own pace: every rep is counted and analysed automatically.',nl:'Squat op je eigen tempo: elke rep wordt automatisch geteld en geanalyseerd.'},
+  help_4:{fr:'Le cadre s\'illumine quand tu casses la parallèle. Bip aigu = rep valide, bip grave = trop haute.',en:'The frame lights up when you break parallel. High beep = valid rep, low beep = too high.',nl:'Het kader licht op wanneer je parallel breekt. Hoge piep = geldige rep, lage piep = te hoog.'},
+  st_view:{fr:'Angle 45° détecté — mets-toi de face ou de profil',en:'45° angle detected — face the camera or go side-on',nl:'45°-hoek gedetecteerd — ga frontaal of zijwaarts staan'},
+  place_h:{fr:'Placement caméra — précision maximale',en:'Camera placement — maximum accuracy',nl:'Cameraplaatsing — maximale nauwkeurigheid'},
+  place_1:{fr:'De profil (90°) : la vue la plus précise — profondeur, parallèle cassée, inclinaison du dos et vitesse VBT.',en:'Side-on (90°): the most accurate view — depth, below parallel, torso lean and VBT speed.',nl:'Zijaanzicht (90°): het nauwkeurigst — diepte, onder parallel, romphelling en VBT-snelheid.'},
+  place_2:{fr:'De face (0°) : indispensable pour détecter le valgus (genoux qui rentrent).',en:'Front-on (0°): required to detect valgus (knees caving in).',nl:'Vooraanzicht (0°): nodig om valgus te detecteren (knieën naar binnen).'},
+  place_3:{fr:'Évite le 45° : les angles sont déformés, ni la profondeur ni le valgus ne sont fiables — la page te prévient en direct.',en:'Avoid 45°: angles get distorted, neither depth nor valgus is reliable — the page warns you live.',nl:'Vermijd 45°: de hoeken vervormen, diepte noch valgus is betrouwbaar — de pagina waarschuwt je live.'},
+  place_4:{fr:'Téléphone posé ou sur trépied à hauteur de hanche, 2–4 m, corps entier + pieds dans le cadre.',en:'Phone resting or on a tripod at hip height, 2–4 m, full body + feet in frame.',nl:'Telefoon neergezet of op statief op heuphoogte, 2–4 m, hele lichaam + voeten in beeld.'},
+  place_5:{fr:'Lumière de face — jamais de fenêtre derrière toi — et tenue contrastée avec le fond.',en:'Light facing you — never a window behind you — and clothing that contrasts with the background.',nl:'Licht van voren — nooit een raam achter je — en kleding die contrasteert met de achtergrond.'},
+  help_note:{fr:'Angles calculés en 3D (MediaPipe Pose). Parallèle cassée = crête de la hanche sous le sommet du genou, standard CrossFit (Schoenfeld, 2010). VBT : perte de vitesse comme index de fatigue (Sánchez-Medina & González-Badillo, 2011 ; Pareja-Blanco, 2017). Estimation du 1RM : équation full back squat de Sánchez-Medina et al. (2017), calibrée sur la vitesse propulsive moyenne ; la mesure caméra donne une vitesse concentrique moyenne, donc l\'estimation n\'est proposée qu\'en dessous de 0,65 m/s, là où les deux convergent. 100% sur ton téléphone — aucune vidéo n\'est envoyée ni enregistrée. Outil d\'aide au coaching, ne remplace pas l\'œil du coach.',en:'Angles computed in 3D (MediaPipe Pose). Below parallel = hip crease below top of knee, CrossFit standard (Schoenfeld, 2010). VBT: velocity loss as fatigue index (Sánchez-Medina & González-Badillo, 2011; Pareja-Blanco, 2017). 1RM estimation: full back squat equation from Sánchez-Medina et al. (2017), calibrated on mean propulsive velocity; the camera measures mean concentric velocity, so the estimate is only offered below 0.65 m/s, where the two converge. Runs 100% on your phone — no video is uploaded or stored. A coaching aid, not a replacement for the coach\'s eye.',nl:'Hoeken berekend in 3D (MediaPipe Pose). Onder parallel = heupplooi onder de bovenkant van de knie, CrossFit-standaard (Schoenfeld, 2010). VBT: snelheidsverlies als vermoeidheidsindex (Sánchez-Medina & González-Badillo, 2011; Pareja-Blanco, 2017). Draait 100% op je telefoon — er wordt geen video verstuurd of opgeslagen. Een coachingshulpmiddel, geen vervanging voor het oog van de coach.'}
+};
+/* ── diagnostic: surface every error on screen ── */
+function showErr(msg){
+  try{
+    let b=document.getElementById('errbar');
+    if(!b){
+      b=document.createElement('div');
+      b.id='errbar';
+      b.style.cssText='margin-top:10px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.5);color:#EF4444;font-size:12px;font-weight:600;border-radius:12px;padding:10px 12px;word-break:break-word;';
+      document.querySelector('.controls').after(b);
+    }
+    b.textContent='⚠ '+msg;
+  }catch(_){}
+}
+const VER='squat v3.4';
+window.addEventListener('error',e=>showErr((e.message||'Erreur JS')+(e.lineno?' (ligne '+e.lineno+')':'')+' ['+VER+']'));
+window.addEventListener('unhandledrejection',e=>showErr('Promise: '+(e.reason&&e.reason.message||e.reason||'?')+' ['+VER+']'));
+
+const LANGS=['fr','en','nl'];
+let LANG=localStorage.getItem('cdm_lang')||'fr'; if(!LANGS.includes(LANG)) LANG='fr';
+const t=k=>{const e=I18N[k];return e?(e[LANG]||e.fr):k;};
+
+/* ───────── DOM ───────── */
+const $=s=>document.querySelector(s);
+/* Les phrases de correction viennent de la base et sont ecrites par le coach :
+   elles passent donc par innerHTML et doivent etre echappees. Cette fonction
+   existait dans app.html, pas ici — j'ai recopie l'idiome sans la fonction, et
+   chaque fin de rep levait « Can't find variable: esc », ce qui tuait le
+   comptage ET la boucle video. */
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const video=$('#cam'), canvas=$('#overlay'), stage=$('#stage'), splash=$('#splash');
+const pill=$('#pill'), pillTxt=$('#pill-txt'), chip=$('#chip'), spdChip=$('#spd');
+const bStart=$('#b-start'), bFlip=$('#b-flip'), bReset=$('#b-reset');
+const inVH=$('#in-vh'), inVL=$('#in-vl');
+const ctx=canvas.getContext('2d');
+let du=null;
+let SB=null,UIDG=null;
+
+/* ── Phrases de correction ────────────────────────────────────────────────
+   Les defauts sont deja detectes rep par rep. Ce qui manquait, c'est de dire
+   QUOI FAIRE. Les phrases vivent en base pour que le coach les reecrive dans
+   ses mots sans attendre un redeploiement.
+
+   Regle : UNE phrase par rep, celle de plus faible « priority ». Le dos passe
+   avant tout le reste parce que c'est le seul defaut qui blesse sous charge,
+   et parce que regler le gainage corrige souvent la profondeur dans la
+   foulee. Une rep qui reproche quatre choses n'est lue par personne. */
+/* On garde les TROIS langues et on choisit au moment d'afficher, jamais au
+   chargement. Figer la langue au fetch marchait tant qu'on ne touchait pas au
+   selecteur — et cassait des qu'un membre passait en NL en cours de seance :
+   toute l'interface basculait sauf les conseils, restes en francais. */
+let CUES={};   /* fault -> {priority, fr, en, nl, fix} */
+const cueText = c => (c && (c[LANG] || c.fr)) || '';
+const fixName = f => (f && (f['name_'+LANG] || f.name_fr)) || '';
+async function cuesLoad(sbClient){
+  try{
+    const { data } = await sbClient.from('analysis_cues')
+      .select('fault,priority,cue_fr,cue_en,cue_nl,fix:exercises(slug,name_fr,name_en,name_nl,video_url,youtube_query)')
+      .eq('page','squat').eq('active',true).order('priority',{ascending:true});
+    const m={};
+    (data||[]).forEach(r=>{ m[r.fault]={priority:r.priority, fr:r.cue_fr, en:r.cue_en, nl:r.cue_nl, fix:r.fix||null}; });
+    CUES=m;
+    renderReps(); /* les reps deja faites recuperent leur phrase */
+  }catch(_){ CUES={}; }
+}
+/* ── Lecteur video ────────────────────────────────────────────────────────
+   Le lien pointait vers « ../app.html#ex/<slug> ». Deux fautes : squat.html
+   est a la racine, donc « ../ » sort du site ; et app.html n'a aucune route
+   « #ex/ ». Le membre quittait la page d'analyse pour atterrir nulle part.
+   On ouvre desormais la video sur place, avec le meme lecteur que l'app. */
+const YT_PLAYER='https://coachdm.be/player.html';
+function ytId(u){ if(!u) return null; const m=String(u).match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/); return m?m[1]:null; }
+function exDemoUrl(ex){
+  if(!ex) return null;
+  if(ex.video_url) return ex.video_url;
+  if(ex.youtube_query) return 'https://www.youtube.com/results?search_query='+encodeURIComponent(ex.youtube_query);
+  return null;
+}
+/* Repli : navigateur in-app sous Capacitor, on ne quitte jamais l'app. */
+async function ytExternal(url){
+  try{
+    const P=window.Capacitor&&window.Capacitor.Plugins;
+    if(P&&P.Browser){ await P.Browser.open({url, presentationStyle:'popover'}); return; }
+  }catch(_){}
+  window.open(url,'_blank','noopener');
+}
+function ytOpen(url,name){
+  const id=ytId(url);
+  /* Pas d'identifiant YouTube exploitable (recherche, lien tiers) : on ouvre
+     en navigateur in-app plutot que d'afficher un cadre noir vide. */
+  if(!id){ if(url) ytExternal(url); return; }
+  const ov=document.getElementById('yt-ov'), slot=document.getElementById('yt-slot');
+  if(!ov||!slot) return;
+  const nm=document.getElementById('yt-name'); if(nm) nm.textContent=name||'';
+  slot.innerHTML='<iframe src="'+YT_PLAYER+'?v='+encodeURIComponent(id)+'" title="'+String(name||'').replace(/"/g,'')+'"'
+    +' referrerpolicy="strict-origin-when-cross-origin"'
+    +' allow="autoplay; encrypted-media; picture-in-picture; fullscreen"'
+    +' allowfullscreen webkitallowfullscreen playsinline></iframe>';
+  const fb=document.getElementById('yt-fallback');
+  if(fb){ fb.textContent=t('yt_fb'); fb.style.display='block';
+          fb.onclick=()=>ytExternal(YT_PLAYER+'?v='+encodeURIComponent(id)); }
+  ov.classList.add('show');
+}
+function ytClose(){
+  const ov=document.getElementById('yt-ov'); if(!ov) return;
+  ov.classList.remove('show');
+  /* Vider l'iframe coupe le son : sinon la video continue derriere l'analyse. */
+  const slot=document.getElementById('yt-slot'); if(slot) slot.innerHTML='';
+  const fb=document.getElementById('yt-fallback'); if(fb){ fb.style.display='none'; fb.onclick=null; }
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest && (e.target.closest('#yt-close') || e.target.id==='yt-ov')) ytClose();
+  const b=e.target.closest && e.target.closest('[data-fix]');
+  if(b){ e.preventDefault(); ytOpen(b.dataset.fix, b.dataset.fixName||''); }
+});
+
+/* Affichage live pour le coach en salle. 7 secondes : le temps de lire la
+   phrase ET de la dire. Une rep suivante remplace immediatement — on ne veut
+   jamais que le coach lise un conseil qui ne correspond plus a ce qu'il voit. */
+let CUE_T=0;
+function liveCue(n,cue,ok){
+  const el=document.getElementById('livecue'); if(!el) return;
+  clearTimeout(CUE_T);
+  if(!cue && !ok){ el.hidden=true; return; }
+  el.className='livecue'+(ok?' ok':'');
+  /* Une rep rejetee n'a pas de numero : afficher « #— » ferait croire a un
+     bug. On n'affiche alors aucun prefixe. */
+  const tag = (n==null||n==='—') ? '' : `<b>#${n}</b> `;
+  el.innerHTML = ok ? `${tag}${t('cue_clean')}` : `${tag}${esc(cue)}`;
+  el.hidden=false;
+  /* Une rep propre disparait vite, un defaut reste : ce n'est pas la meme
+     information et elle n'a pas la meme duree de vie utile. */
+  CUE_T=setTimeout(()=>{ el.hidden=true; }, ok?2500:7000);
+}
+/* Quel defaut retenir pour cette rep ? Le plus prioritaire present. */
+function cueForRep(r){
+  const faults=[];
+  if(r.flexWarn) faults.push('flex_w');
+  else if(r.flexMild) faults.push('flex_m');
+  if(r.valgus) faults.push('valgus');
+  if(!r.parallel) faults.push('depth');
+  if(r.torsoWarn) faults.push('torso');
+  let best=null;
+  faults.forEach(f=>{ const c=CUES[f];
+    if(c && (!best || c.priority<best.priority)) best=c; });
+  return best;
+}
+
+/* ───────── Accès (freemium) ─────────
+   Gratuit pour tous : compteur de reps + parallèle + profondeur.
+   Pro (fn_can_analyze) : dos, valgus, VBT (vitesse, perte, e1RM). */
+const ENT={known:false,ok:false,auth:false};
+let ACCT=null; /* e-mail du compte connecte, affiche dans le panneau de debug */
+let PRO=false;
+
+function applyLang(){
+  document.documentElement.lang=LANG;
+  $('#subline').textContent=t('subline');
+  $('#splash-p').textContent=t('splash');
+  bStart.textContent=running?t('stop'):t('start');
+  bReset.textContent=t('reset');
+  $('#chip-lbl').textContent=t('chip_lbl');
+  $('#res-lbl').textContent=t('res_lbl');
+  $('#m-par').textContent=t('m_par');
+  $('#m-depth').textContent=t('m_depth');
+  $('#list-h').textContent=t('list_h');
+  $('#vbt-gate-h').textContent=t('vbt_gate_h');
+  $('#vbt-gate-p').textContent=t('vbt_gate_p');
+  const pwch=document.getElementById('pw-consent-h'); if(pwch)pwch.textContent=t('pw_consent_h');
+  const pwct=document.getElementById('pw-consent-txt'); if(pwct)pwct.textContent=t('pw_consent');
+  const pwco=document.getElementById('pw-continue'); if(pwco)pwco.textContent=t('pw_continue');
+  if(typeof pwRender==='function')pwRender();
+  $('#vbt-h').textContent=t('vbt_h');
+  $('#vbt-hint').textContent=t('vbt_hint');
+  $('#l-vh').textContent=t('vbt_height');
+  $('#l-vl').textContent=t('vbt_load');
+  $('#k-last').textContent=t('vbt_last');
+  $('#k-best').textContent=t('vbt_best');
+  $('#k-vl').textContent=t('vbt_loss');
+  $('#v-stop').textContent=t('vbt_stop');
+  $('#vbt-note').textContent=t('vbt_note');
+  $('#pro-note-txt').textContent=t('pro_note');
+  $('#help-h').textContent=t('help_h');
+  $('#help-ol').innerHTML='';
+  ['help_1','help_2','help_3','help_4'].forEach(k=>{
+    const li=document.createElement('li'); li.textContent=t(k); $('#help-ol').appendChild(li);
+  });
+  $('#help-note').textContent=t('help_note');
+  $('#place-h').textContent=t('place_h');
+  $('#place-ol').innerHTML='';
+  ['place_1','place_2','place_3','place_4','place_5'].forEach(k=>{
+    const li=document.createElement('li'); li.textContent=t(k); $('#place-ol').appendChild(li);
+  });
+  document.querySelectorAll('#lang button').forEach(b=>b.classList.toggle('on',b.dataset.lang===LANG));
+  renderReps(); setStatus(lastStatus,true);
+}
+document.querySelectorAll('#lang button').forEach(b=>{
+  b.onclick=()=>{LANG=b.dataset.lang;localStorage.setItem('cdm_lang',LANG);applyLang();};
+});
+
+/* ───────── Status ───────── */
+let lastStatus='';
+function setStatus(key,force){
+  if(!key||(key===lastStatus&&!force))return;
+  lastStatus=key;
+  pillTxt.textContent=t(key);
+  pill.classList.remove('ok','warn','err');
+  if(key==='st_ready'||key==='st_deep'||key==='st_up')pill.classList.add('ok');
+  else if(key==='st_down'||key==='st_loading'||key==='st_view')pill.classList.add('warn');
+  else if(key.startsWith('st_err')||key==='st_noperson')pill.classList.add('err');
+}
+
+/* ───────── Audio ───────── */
+let AC=null;
+/* Deverrouillage audio iOS. resume() seul ne suffit pas : Safari n'ouvre
+   reellement la sortie qu'apres qu'un son ait ete JOUE pendant le geste
+   utilisateur. Un buffer muet d'une frame fait l'affaire. */
+/* ---- Retour tactile ----------------------------------------------------
+   iOS n'implemente pas navigator.vibrate : ni Safari ni la WKWebView. Tous les
+   appels ci-dessous ne faisaient donc strictement rien sur iPhone, alors que
+   c'est precisement pendant une analyse que le membre ne regarde pas l'ecran.
+   Le plugin Haptics de Capacitor, lui, pilote le Taptic Engine. On garde
+   navigator.vibrate en repli pour Android et le web. */
+function buzz(kind){
+  try{
+    var P=window.Capacitor&&window.Capacitor.Plugins, H=P&&P.Haptics;
+    if(H){
+      if(kind==='ok'){ H.impact({style:'MEDIUM'}); }
+      else if(kind==='no'){ H.notification({type:'WARNING'}); }
+      else { H.notification({type:'ERROR'}); }
+      return;
+    }
+  }catch(_){}
+  try{
+    if(navigator.vibrate){
+      navigator.vibrate(kind==='ok'?55:(kind==='no'?[45,55,45]:[90,60,90]));
+    }
+  }catch(_){}
+}
+function audioUnlock(){
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.resume)AC.resume();
+    const b=AC.createBuffer(1,1,22050), src=AC.createBufferSource();
+    src.buffer=b; src.connect(AC.destination); src.start(0);
+  }catch(_){}
+}
+function audioState(){ try{ return AC?AC.state:'absent'; }catch(_){ return 'erreur'; } }
+function beep(freq,ms,type,gain){
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    /* iOS resuspend le contexte des que la session audio change, et
+       getUserMedia le fait au demarrage de la camera. On le reveille donc
+       avant CHAQUE son et pas seulement au premier tap : l'appel est
+       idempotent et sans cout quand le contexte tourne deja. */
+    if(AC.state!=='running'&&AC.resume)AC.resume();
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.frequency.value=freq;o.type=type||'sine';
+    g.gain.setValueAtTime(gain||0.12,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+ms/1000);
+    o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+ms/1000);
+  }catch(_){}
+}
+/* Trois retours distincts, reconnaissables sans regarder l'ecran — c'est tout
+   l'interet : en pleine serie on ne lit pas, on entend.
+     parfaite  : deux notes qui MONTENT, claires
+     a ameliorer : deux notes plates, ni recompense ni sanction
+     ne compte pas : une note grave qui DESCEND, sans ambiguite */
+function sndPerfect(){beep(880,90,'sine',0.18);setTimeout(()=>beep(1340,150,'sine',0.19),80);}
+function sndImprove(){beep(620,110,'triangle',0.16);setTimeout(()=>beep(620,150,'triangle',0.14),130);}
+function sndReject(){beep(300,180,'square',0.15);setTimeout(()=>beep(170,260,'square',0.15),110);}
+/* Anciens noms conserves : d'autres endroits du fichier les appellent. */
+function sndGood(){sndPerfect();}
+function sndBad(){sndImprove();}
+
+/* ───────── VBT (Pro) : calibration & état ─────────
+   Échelle métrique : hauteur du grand trochanter ≈ 0.53 × stature (anthropométrie).
+   scale (m / unité normalisée) = (0.53 × taille_m) / (ankleY − hipY) debout. */
+const VBT={heightCm:null,loadKg:0,hip0:null,an0:null,scale:null,best:null,last:null,vl:null,e1:null,stop:false};
+try{
+  const st=JSON.parse(localStorage.getItem('cdm_vbt')||'{}');
+  if(st.h)inVH.value=st.h; if(st.l)inVL.value=st.l;
+}catch(_){}
+/* Au-dela de cette vitesse, la phase de deceleration devient longue et la MCV
+   s'ecarte trop de la MPV pour que l'equation reste valable. */
+const MCV_MAX_E1=0.65;
+
+function vbtE1(){
+  VBT.e1=null; VBT.e1Blocked=false;
+  if(VBT.best==null||VBT.loadKg<=0) return;
+
+  /* ⚠️ L'equation %1RM = -5,961·V² - 50,71·V + 117 (Sanchez-Medina et al. 2017,
+     full back squat) est calibree sur la VITESSE PROPULSIVE MOYENNE (MPV), qui
+     exclut la phase de deceleration. Ici on mesure une VITESSE CONCENTRIQUE
+     MOYENNE (MCV = deplacement/duree), qui l'inclut donc MCV < MPV.
+     Injecter une MCV dans cette equation surestime le %1RM, donc SOUS-ESTIME
+     le 1RM — de l'ordre de 10 % vers 0,80 m/s, et l'ecart croit quand la charge
+     s'allege.
+     A charge lourde en revanche, la deceleration est quasi nulle : MPV ≈ MCV et
+     l'equation redevient exploitable. On borne donc l'estimation aux vitesses
+     lentes plutot que d'afficher un chiffre faux. */
+  const v=VBT.best;
+  if(v>MCV_MAX_E1){ VBT.e1Blocked=true; return; }
+
+  let pct=-5.96*v*v-50.71*v+117;
+  pct=Math.min(105,Math.max(40,pct));
+  VBT.e1=VBT.loadKg*100/pct;
+}
+function vbtInputs(){
+  VBT.heightCm=parseFloat(inVH.value)||null;
+  VBT.loadKg=parseFloat(inVL.value)||0;
+  try{localStorage.setItem('cdm_vbt',JSON.stringify({h:inVH.value,l:inVL.value}));}catch(_){}
+  vbtE1(); renderVBT();
+}
+inVH.oninput=vbtInputs; inVL.oninput=vbtInputs;
+function vbtCalib(lm,side){
+  const hy=lm[side.hip].y, ay=lm[side.ankle].y;
+  if(VBT.hip0==null){VBT.hip0=hy;VBT.an0=ay;}
+  else{VBT.hip0=VBT.hip0*0.9+hy*0.1;VBT.an0=VBT.an0*0.9+ay*0.1;}
+  if(VBT.heightCm){
+    const d=VBT.an0-VBT.hip0;
+    if(d>0.05)VBT.scale=(0.53*VBT.heightCm/100)/d;
+  }else VBT.scale=null;
+}
+function vbtOnRep(mcv){
+  if(mcv==null){renderVBT();return;}
+  VBT.last=mcv;
+  if(VBT.best==null||mcv>VBT.best)VBT.best=mcv;
+  VBT.vl=VBT.best>0?Math.max(0,(1-VBT.last/VBT.best)*100):null;
+  vbtE1();
+  if(VBT.vl!=null&&VBT.vl>=20&&!VBT.stop){
+    VBT.stop=true;
+    beep(300,180);setTimeout(()=>beep(300,180),230);setTimeout(()=>beep(240,320),460);
+    buzz('alert');
+  }
+  renderVBT();
+}
+function vbtResetSet(){VBT.best=null;VBT.last=null;VBT.vl=null;VBT.e1=null;VBT.e1Blocked=false;VBT.stop=false;renderVBT();}
+function renderVBT(){
+  if(!PRO)return;
+  /* La taille ne debloque QUE la vitesse et le 1RM : elle sert d'echelle
+     pour convertir des pixels en metres. Le dos, le valgus et la profondeur
+     n'en dependent pas. */
+  { const nh=$('#v-needh');
+    if(nh){ const miss=!VBT.heightCm; nh.style.display=miss?'':'none';
+            if(miss)nh.textContent=t('vbt_needh'); } }
+  const f=x=>x==null?'—':x.toFixed(2);
+  $('#v-last').textContent=f(VBT.last);
+  $('#v-best').textContent=f(VBT.best);
+  $('#v-vl').textContent=VBT.vl==null?'—':('−'+VBT.vl.toFixed(0)+'%');
+  $('#v-e1').textContent=VBT.e1?(Math.round(VBT.e1/2.5)*2.5+' kg'):(VBT.e1Blocked?'—':'—');
+  { const w=$('#e1-warn'); if(w){ w.style.display=VBT.e1Blocked?'':'none'; w.textContent=t('e1_fast'); } }
+  const bar=$('#v-bar');
+  const vl=VBT.vl==null?0:Math.min(40,VBT.vl);
+  $('#v-fill').style.width=(vl/40*100)+'%';
+  bar.classList.toggle('warn',VBT.vl!=null&&VBT.vl>=10&&VBT.vl<20);
+  bar.classList.toggle('stop',VBT.vl!=null&&VBT.vl>=20);
+  $('#v-stop').style.display=VBT.stop?'':'none';
+  if(VBT.last!=null){spdChip.hidden=false;$('#spd-val').textContent=VBT.last.toFixed(2);}
+}
+function renderDay(d){
+  const c=$('#day-card'); if(!c)return;
+  $('#day-h').textContent=t('day_h');
+  $('#day-val').textContent=(Math.round(d.e1rm_today/2.5)*2.5).toFixed(1).replace(/\.0$/,'');
+  const dl=d.delta_pct==null?null:+d.delta_pct, el=$('#day-delta');
+  if(dl==null||Math.abs(dl)<1){el.className='ddelta flat';el.textContent=t('day_flat');}
+  else if(dl>0){el.className='ddelta up';el.textContent=t('day_up').replace('{d}','+'+dl.toFixed(1));}
+  else{el.className='ddelta dn';el.textContent=t('day_dn').replace('{d}',dl.toFixed(1));}
+  let sub=t(d.source==='individual'?'day_sub_i':'day_sub_g');
+  if(d.clamped)sub+=' '+t('day_clamp');
+  $('#day-sub').innerHTML=sub;
+  const st=$('#day-stale');
+  if(d.pr_stale&&d.e1rm_profile!=null&&d.e1rm_ref!=null){
+    st.innerHTML=t('day_stale').replace('{p}',Math.round(d.e1rm_profile)).replace('{r}',Math.round(d.e1rm_ref));
+    st.style.display='';
+  }else st.style.display='none';
+  $('#day-note').textContent=t('day_note');
+  c.style.display='';
+  c.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function proUI(){
+  $('#vbt-gate').style.display=(ENT.known&&!PRO)?'':'none';
+  /* Non connecte et non abonne, ce n'est pas la meme chose. Afficher un
+     paywall a quelqu'un qui a deja l'abonnement mais dont la session n'est
+     pas ouverte sur cette page, c'est le meilleur moyen de lui faire croire
+     que l'app est cassee — c'est arrive. */
+  if(ENT.known&&!PRO){
+    const anon=!ENT.auth;
+    $('#vbt-gate-h').textContent=t(anon?'gate_anon_h':'vbt_gate_h');
+    $('#vbt-gate-p').textContent=t(anon?'gate_anon_p':'vbt_gate_p');
+    const gp=$('#gate-plans'); if(gp)gp.style.display=anon?'none':'';
+    const gl=$('#gate-login');
+    if(gl){ gl.style.display=anon?'':'none'; gl.textContent=t('gate_login_btn'); }
+    if(!anon)pwLoad();
+  }
+  $('#vbt-card').style.display=PRO?'':'none';
+  $('#pro-note').style.display=(ENT.known&&!PRO)?'':'none';
+  if(PRO){vbtInputs();}
+  renderReps();
+}
+
+/* ───────── Squat engine (3D angles + rep state machine) ───────── */
+const STAND=160, DOWN_TRIG=150, REP_MIN=130, BELOW_PARALLEL_ANGLE=90, TORSO_WARN=55, KASR_WARN=0.85;
+/* MIN_REP_MS etait a 900 ms. C'est un plafond de 67 reps/min : au-dela, CHAQUE
+   rep etait jetee en silence. Or des air squats en metcon tournent a 70-90
+   reps/min — autrement dit le travail le plus rapide etait invisible, et le
+   compteur affichait zero sans rien dire.
+   300 ms = 200 reps/min. Aucun etre humain ne descend et ne remonte d'un squat
+   en moins de 300 ms : le garde-fou anti-bruit reste, le plafond artificiel
+   disparait. */
+const MIN_REP_MS=300;
+/* Seuils de l'indice de flexion du tronc, en % de raccourcissement de la
+   corde epaule-hanche. Correspondance calculee sur une colonne de 50 cm
+   flechie en arc de cercle :
+        30 deg de flexion totale -> 1,1 %      60 deg -> 4,5 %
+        40 deg                   -> 2,0 %      70 deg -> 6,1 %
+        50 deg                   -> 3,1 %      80 deg -> 7,9 %
+   Un dos visiblement rond sous la barre, c'est 40 a 60 deg. D'ou 2 % pour
+   l'alerte douce et 4 % pour l'alerte franche. Ces deux chiffres sont a
+   recaler sur des videos reelles : le panneau de debug affiche le % en
+   direct exactement pour ca. */
+const FLEX_MILD=2.0, FLEX_WARN=4.0;
+const WARMUP_FRAMES=15;
+let LAST_REP_MS=0; /* affiche dans le panneau de debug : sert a verifier qu'aucune rep rapide n'est rejetee */
+const S={mode:'idle',knee:180,rep:null,lastGoodTs:0,good:0};
+let reps=[],bestDepth=180;
+
+function resetSet(){reps=[];bestDepth=180;S.mode='ready';S.knee=180;S.rep=null;vbtResetSet();renderReps();updateSummary();}
+
+function vis(p){return p?(p.visibility??1):0;}
+function angle3(a,b,c){
+  const v1={x:a.x-b.x,y:a.y-b.y,z:a.z-b.z},v2={x:c.x-b.x,y:c.y-b.y,z:c.z-b.z};
+  const dot=v1.x*v2.x+v1.y*v2.y+v1.z*v2.z;
+  const n=Math.hypot(v1.x,v1.y,v1.z)*Math.hypot(v2.x,v2.y,v2.z)||1e-9;
+  return Math.acos(Math.min(1,Math.max(-1,dot/n)))*180/Math.PI;
+}
+function bodyVisible(lm){
+  // chaîne complète requise (épaule+hanche+genou+cheville) avec confiance élevée sur au moins un côté
+  const chain=(sh,hip,kn,an)=>Math.min(vis(lm[sh]),vis(lm[hip]),vis(lm[kn]),vis(lm[an]));
+  return Math.max(chain(11,23,25,27),chain(12,24,26,28))>0.6;
+}
+/* Choix du cote suivi.
+
+   L'ancienne version comparait les visibilites SANS marge et rechoisissait a
+   chaque image. De profil, une jambe est franchement plus visible que
+   l'autre : le choix etait stable. DE FACE, les deux jambes ont des
+   visibilites quasi identiques — le cote basculait d'une image a l'autre au
+   gre du bruit.
+
+   Or tout l'etat de la rep en cours est attache a un cote : angle du genou
+   lisse, hanche la plus basse, « hanche sous le genou ». Un basculement en
+   plein mouvement corrompt ces trois valeurs d'un coup. Plus on va vite,
+   plus il y a d'images ambigues par rep — d'ou une rep sur deux perdue de
+   face, et aucune de profil.
+
+   Deux verrous : une marge de 0,12 pour changer d'avis, et surtout aucun
+   changement TANT QU'UNE REP EST EN COURS. */
+const SIDE_L={hip:23,knee:25,ankle:27,sh:11};
+const SIDE_R={hip:24,knee:26,ankle:28,sh:12};
+let SIDE_CUR=null;
+function pickSide(lm, locked){
+  if(locked && SIDE_CUR) return SIDE_CUR;
+  const L=(vis(lm[23])+vis(lm[25])+vis(lm[27]))/3;
+  const R=(vis(lm[24])+vis(lm[26])+vis(lm[28]))/3;
+  if(!SIDE_CUR){ SIDE_CUR = L>=R?SIDE_L:SIDE_R; return SIDE_CUR; }
+  const curIsL = SIDE_CUR===SIDE_L;
+  const cur = curIsL?L:R, alt = curIsL?R:L;
+  if(alt > cur + 0.12) SIDE_CUR = curIsL?SIDE_R:SIDE_L;
+  return SIDE_CUR;
+}
+
+/* Second detecteur, fiable quelle que soit la vue : la CHUTE DE HANCHE.
+   L'angle du genou se calcule en 3D ; de face sa flexion se joue surtout en
+   profondeur, l'axe que MediaPipe estime le plus mal. La hauteur de hanche,
+   elle, est verticale dans l'image — donc mesuree dans le meilleur axe,
+   quel que soit l'angle de prise de vue.
+   On la normalise par la longueur de jambe debout : le rapport devient
+   independant de la taille et de la distance au telephone. */
+const HIPCAL={hip0:null,an0:null};
+function hipCalib(lm,side){
+  const hy=lm[side.hip].y, ay=lm[side.ankle].y;
+  if(!(ay>hy)) return;                 /* cheville sous la hanche, sinon aberrant */
+  if(HIPCAL.hip0==null){HIPCAL.hip0=hy;HIPCAL.an0=ay;}
+  else{HIPCAL.hip0=HIPCAL.hip0*0.9+hy*0.1;HIPCAL.an0=HIPCAL.an0*0.9+ay*0.1;}
+}
+function hipDrop(lm,side){
+  if(HIPCAL.hip0==null) return null;
+  const leg=HIPCAL.an0-HIPCAL.hip0;
+  if(leg<0.05) return null;            /* sujet trop petit dans l'image */
+  return (lm[side.hip].y-HIPCAL.hip0)/leg;
+}
+/* Anthropometrie : debout, la hanche est a ~0,53 de la stature ; cuisse a
+   l'horizontale, elle descend a ~0,25. La chute vaut donc ~0,55 de la
+   longueur de jambe a la parallele. Les seuils restent prudents, et le
+   panneau de debug affiche la valeur en direct pour les recaler sur du reel. */
+const DROP_REP=0.30, DROP_PAR=0.45;
+function kneeAngle(w,side){return angle3(w[side.hip],w[side.knee],w[side.ankle]);}
+/* ── Indice de flexion du tronc ──────────────────────────────────────────
+   A dire clairement : MediaPipe Pose n'a AUCUN point entre les epaules et
+   les hanches. Il n'existe donc aucun moyen de VOIR la courbure de la
+   colonne. L'ancienne mesure « Dos » etait l'angle epaule-hanche par rapport
+   a la verticale : c'est une INCLINAISON, elle ne bouge pas d'un degre quand
+   on arrondit le dos en gardant le meme angle de buste. D'ou le « ca va »
+   sur un dos volontairement rond.
+
+   Ce qui est reellement mesurable : la CORDE epaule->hanche. Quand le dos
+   s'arrondit, les epaules se rapprochent des hanches et cette corde
+   raccourcit. On la normalise par le femur (hanche->genou), segment rigide
+   vu dans la meme image : le rapport devient independant de la distance au
+   telephone et de la morphologie.
+
+   Limites, honnetement : valable de PROFIL uniquement (de face ou a 45 deg
+   les deux segments se raccourcissent differemment et le rapport ne veut
+   plus rien dire), et capable de voir un arrondi franc, pas un butt wink de
+   deux degres. C'est un indice, pas un verdict medical. */
+/* MediaPipe normalise x par la LARGEUR de l'image et y par la HAUTEUR. Sur une
+   video 720x960, un pas de 0,01 en x vaut 7,2 px et le meme pas en y vaut
+   9,6 px. Les melanger dans un hypot() ne mesure aucune longueur reelle.
+
+   C'etait le bug. Pendant un squat le femur passe de la verticale a
+   l'horizontale : en coordonnees deformees sa longueur mesuree gonflait de
+   33 % au point bas, pendant que le tronc, lui, ne gonflait que de 18 %. Le
+   rapport tronc/femur chutait donc d'environ 12 % a chaque rep — un dos
+   parfaitement gaine aurait ete annonce « rond ». Et en portrait ou en
+   paysage le chiffre n'aurait meme pas ete le meme.
+
+   On repasse en pixels avant toute mesure de longueur. */
+function pxLen(a,b){
+  const W=canvas.width||720, H=canvas.height||960;
+  return Math.hypot((a.x-b.x)*W,(a.y-b.y)*H);
+}
+function trunkRatio(lm,side){
+  const sh=lm[side.sh],hip=lm[side.hip],kn=lm[side.knee];
+  if(vis(sh)<0.5||vis(hip)<0.5||vis(kn)<0.5)return null;
+  const tr=pxLen(sh,hip);
+  const fem=pxLen(hip,kn);
+  if(fem<20)return null; /* moins de 20 px de femur = detection inexploitable */
+  const r=tr/fem;
+  return (r>0.4&&r<3)?r:null;
+}
+/* Reference = mediane des ratios debout, de profil. Mediane et pas moyenne :
+   une seule frame ou MediaPipe perd une epaule suffirait a fausser une
+   moyenne, et fausser la reference fausse TOUTES les reps qui suivent. */
+const FLEXCAL={buf:[],ref:null};
+function flexCalib(lm,side){
+  if(viewOf(lm,side)!=='side')return;
+  const r=trunkRatio(lm,side); if(r==null)return;
+  FLEXCAL.buf.push(r); if(FLEXCAL.buf.length>90)FLEXCAL.buf.shift();
+  /* 20 images, c'est 0,7 s d'immobilite parfaite. Sur une vraie serie
+     personne ne fait ca : tes 4 premieres reps sont sorties avec « pas
+     calibre ». 12 images suffisent pour une mediane fiable, et la reference
+     continue de s'affiner entre chaque rep. */
+  if(FLEXCAL.buf.length>=12){
+    const s=[...FLEXCAL.buf].sort((a,b)=>a-b);
+    FLEXCAL.ref=s[s.length>>1];
+  }
+}
+/* On ne prend PAS le minimum de la rep. Le minimum, c'est la frame ou
+   MediaPipe a le plus mal place l'epaule — prendre le minimum revient a
+   mesurer le bruit et a hurler au dos rond sur une rep propre. On prend le
+   20e percentile des ratios du bas de la rep : le creux reel survit, le
+   decrochage d'une frame isolee est ecrase. */
+function flexPct(samples){
+  if(FLEXCAL.ref==null||!samples||samples.length<5)return null;
+  const s=[...samples].sort((a,b)=>a-b);
+  const low=s[Math.floor(s.length*0.20)];
+  return Math.max(0,(1-low/FLEXCAL.ref)*100);
+}
+function torsoLean(w,side){
+  const sh=w[side.sh],hip=w[side.hip];
+  const dx=sh.x-hip.x,dy=sh.y-hip.y,dz=sh.z-hip.z;
+  const n=Math.hypot(dx,dy,dz)||1e-9;
+  // world y increases downward → "up" component is -dy
+  return Math.acos(Math.min(1,Math.max(-1,(-dy)/n)))*180/Math.PI;
+}
+function kasr(lm){
+  const kn=Math.abs(lm[25].x-lm[26].x),an=Math.abs(lm[27].x-lm[28].x);
+  return an>0.01?kn/an:null;
+}
+/* Meme correction ici : l'ancien calcul comparait une largeur normalisee par
+   la largeur d'image a une longueur normalisee surtout par la hauteur. Le
+   verdict « profil / face » dependait donc de l'orientation du telephone.
+   En pixels, le rapport a un sens physique : largeur d'epaules sur longueur
+   de tronc vaut environ 0,75 de face et tombe sous 0,2 de profil, quand les
+   deux epaules se superposent. */
+function viewRatio(lm,side){
+  const W=canvas.width||720;
+  const shw=Math.abs(lm[11].x-lm[12].x)*W;
+  const torso=pxLen(lm[side.sh],lm[side.hip])||1e-9;
+  return shw/torso;
+}
+function viewOf(lm,side){
+  const r=viewRatio(lm,side);
+  return r>0.55?'front':(r<0.35?'side':'mixed');
+}
+
+function handle(lm,w,ts){
+  if(!lm||!w||!bodyVisible(lm)){
+    S.good=0;
+    if(ts-S.lastGoodTs>800){
+      setStatus('st_noperson');chip.hidden=true;
+      if(S.mode==='down'||S.mode==='up'){S.mode='ready';S.rep=null;stage.classList.remove('deep');} // rep en cours annulée
+    }
+    return;
+  }
+  S.lastGoodTs=ts;
+  const side=pickSide(lm, S.mode==='down'||S.mode==='up');
+  const raw=kneeAngle(w,side);
+  S.knee=S.knee*0.6+raw*0.4; // EMA smoothing
+  const k=S.knee;
+  if(S.good<WARMUP_FRAMES){S.good++;if(PRO)vbtCalib(lm,side);updateDbg(ts,k,side,lm);return;} // ~0.75 s de présence stable avant d'armer
+  chip.hidden=false;
+  $('#chip-val').textContent=Math.round(k)+'°';
+
+  if(S.mode==='ready'){
+    if(PRO)vbtCalib(lm,side); // référence debout + échelle, mise à jour en continu
+    /* 160 deg, ce n'est pas « debout » : le genou est deja legerement flechi
+       et le femur commence a tourner. La reference se prenait donc dans une
+       position variable, d'ou des ecarts negatifs (« flex: -10,7 % »).
+       On exige une jambe franchement tendue. */
+    if(k>168){ flexCalib(lm,side); hipCalib(lm,side); } // références debout, jamais en descente
+    setStatus(viewOf(lm,side)==='mixed'?'st_view':'st_ready'); // coaching placement en direct
+    if(k<DOWN_TRIG){
+      S.mode='down';
+      S.rep={t0:ts,minKnee:raw,torsoMax:0,kasrMin:99,flexBuf:[],hipBelowKnee:false,
+             vCnt:{side:0,front:0,mixed:0},view:'side',refAtEnd:null,
+             hipMax:lm[side.hip].y,hipMaxT:ts,dropMax:0};
+      setStatus('st_down');
+    }
+  }else if(S.mode==='down'||S.mode==='up'){
+    const r=S.rep;
+    const hy=lm[side.hip].y;
+    if(hy>r.hipMax){r.hipMax=hy;r.hipMaxT=ts;} // point bas de la hanche = début du concentrique
+    /* La profondeur se lit sur l'angle BRUT, jamais sur le lisse.
+       Le lissage (EMA a 0,4) sert a stabiliser la machine a etats — sans lui
+       elle re-declencherait sur le bruit. Mais il traine : environ 83 ms a
+       30 fps. Sur une rep de 2 s c'est 1 degre, sur une rep de 0,5 s c'est
+       11 degres perdus. Concretement, a cette vitesse il fallait descendre a
+       80 deg reels pour etre credite d'une parallele cassee a 90 deg — la
+       rep etait bonne, l'app disait non.
+       Mesurer sur le brut supprime l'erreur entierement. Le bruit de MediaPipe
+       sur un angle de genou est de l'ordre du degre, sans commune mesure avec
+       les 11 degres que coutait le lissage. */
+    if(raw<r.minKnee)r.minKnee=raw;
+    const tl=torsoLean(w,side);
+    if(tl>r.torsoMax)r.torsoMax=tl;
+    const ka=kasr(lm);
+    if(ka!=null&&k<DOWN_TRIG&&ka<r.kasrMin)r.kasrMin=ka;
+    /* On ne retient le tronc que sous DOWN_TRIG : au-dessus on est encore
+       quasi debout, le ratio y vaut la reference et ecraserait le minimum. */
+    { const dr=hipDrop(lm,side); if(dr!=null&&dr>r.dropMax)r.dropMax=dr; }
+    if(k<DOWN_TRIG){
+      const rt=trunkRatio(lm,side);
+      if(rt!=null){ r.flexBuf.push(rt); if(r.flexBuf.length>240)r.flexBuf.shift(); }
+    }
+    if(lm[side.hip].y>lm[side.knee].y+0.01)r.hipBelowKnee=true; // crête de hanche SOUS le genou (standard CrossFit)
+    /* La vue etait relevee a la DERNIERE image de la rep. Une seule frame ou
+       MediaPipe hesite, et toute la rep basculait en « de face » — donc plus
+       aucune mesure de dos. On vote sur l'ensemble des images de la rep. */
+    /* Vote sur TOUTES les images de la rep.
+       J'avais restreint ce vote au haut du mouvement en croyant a un faux
+       « de face » au fond du squat. C'etait une erreur de diagnostic : le
+       coach changeait reellement de position entre les series. Restreindre
+       le vote reduisait l'echantillon sans rien corriger, et le repli sur
+       « profil » quand aucune image n'etait votee aurait pu masquer un vrai
+       valgus. On revient a la mesure honnete. */
+    r.vCnt[viewOf(lm,side)]++;
+
+    const deep=r.hipBelowKnee||r.minKnee<=BELOW_PARALLEL_ANGLE||r.dropMax>=DROP_PAR;
+    stage.classList.toggle('deep',deep&&k<DOWN_TRIG);
+    if(S.mode==='down'){
+      setStatus(deep?'st_deep':'st_down');
+      if(k>r.minKnee+12&&k>REP_MIN-10){S.mode='up';setStatus('st_up');}
+    }
+    if(k>STAND){
+      stage.classList.remove('deep');
+      LAST_REP_MS=Math.round(ts-r.t0);
+      /* Une rep rejetee ne produisait AUCUN signal : ni son, ni message. On
+         relevait simplement d'un squat trop haut sans jamais savoir qu'il
+         n'avait pas compte. C'est le pire des trois cas a laisser muet. */
+      const deepEnough = r.minKnee<REP_MIN || r.dropMax>=DROP_REP;
+      if(!(deepEnough&&ts-r.t0>=MIN_REP_MS)){
+        try{ sndReject(); buzz('alert');
+             liveCue('—', t(r.minKnee>=REP_MIN?'cue_shallow':'cue_tooquick'), false); }catch(_){}
+      }
+      if(deepEnough&&ts-r.t0>=MIN_REP_MS){
+        let mcv=null;
+        if(PRO&&VBT.scale){ // vitesse concentrique moyenne = déplacement vertical hanche / durée montée
+          const dur=(ts-r.hipMaxT)/1000;
+          const disp=(r.hipMax-hy)*VBT.scale;
+          if(dur>0.15&&dur<4&&disp>0.10&&disp<1.2)mcv=disp/dur;
+        }
+        finishRep(r,mcv); // rep < 900 ms = bruit, rejetée
+      }
+      S.mode='ready';S.rep=null;setStatus('st_ready');
+    }
+  }
+  updateDbg(ts,k,side,lm);
+}
+
+function finishRep(r,mcv){
+  const parallel=r.hipBelowKnee||r.minKnee<=BELOW_PARALLEL_ANGLE||r.dropMax>=DROP_PAR;
+  /* La flexion n'a de sens que de profil, et seulement si le tronc debout a
+     eu le temps d'etre calibre. Sinon on n'affiche RIEN plutot qu'un chiffre
+     invente — c'est exactement ce genre de chiffre qui fait perdre confiance. */
+  const vTot=r.vCnt.side+r.vCnt.front+r.vCnt.mixed;
+  r.view = vTot ? Object.keys(r.vCnt).reduce((a,b)=>r.vCnt[a]>=r.vCnt[b]?a:b,'side') : 'side';
+  r.refAtEnd=FLEXCAL.ref;
+  const fx=(r.view==='side')?flexPct(r.flexBuf):null;
+  reps.push({
+    minKnee:Math.round(r.minKnee),
+    parallel,
+    torso:Math.round(r.torsoMax),
+    /* L'inclinaison du buste se calcule sur le vecteur epaule->hanche en 3D.
+       De profil il vit dans le plan de l'image : mesure fiable. DE FACE, il
+       se joue presque entierement en profondeur — l'axe que MediaPipe estime
+       le plus mal. C'est de la que sortent les 86 degres sur une rep normale.
+       On ne l'annonce donc plus hors profil, exactement comme le dos. */
+    torsoWarn:(r.view==='side') && r.torsoMax>TORSO_WARN,
+    torsoNA:(r.view!=='side'),
+    flex:fx!=null?+fx.toFixed(1):null,
+    flexWhy: fx!=null ? null
+           : (r.view!=='side' ? 'na' : (r.refAtEnd==null ? 'cal' : 'nd')),
+    flexWarn:fx!=null&&fx>=FLEX_WARN,
+    flexMild:fx!=null&&fx>=FLEX_MILD&&fx<FLEX_WARN,
+    valgus:r.view!=='side'&&r.kasrMin<KASR_WARN,
+    view:r.view,
+    mcv:mcv!=null?+mcv.toFixed(3):null
+  });
+  if(r.minKnee<bestDepth)bestDepth=r.minKnee;
+  /* Le bandeau live part sur la rep qu'on vient de terminer, pas sur la
+     derniere de la liste : le coach doit voir ce qu'il vient de regarder. */
+  /* Tout ce qui suit est de l'AFFICHAGE. Une erreur ici ne doit jamais
+     empecher de compter une rep ni arreter la camera — c'est exactement ce
+     qui vient de se produire : un `esc` manquant dans le bandeau a fait
+     tomber le compteur a zero et fige l'image. Le calcul est deja fait et
+     stocke plus haut ; le reste est decoratif. */
+  try{
+    const last=reps[reps.length-1];
+    const c=cueForRep(last);
+    liveCue(reps.length, c?cueText(c):null, !c);
+  }catch(e){ try{ console.warn('cue',e); }catch(_){} }
+  /* Le son se decide sur la rep complete, pas sur la seule profondeur : une
+     rep sous la parallele avec le dos rond n'est pas une rep parfaite. */
+  try{
+    const last=reps[reps.length-1];
+    const flawless = parallel && !cueForRep(last);
+    if(flawless){ sndPerfect(); buzz('ok'); }
+    else{ sndImprove(); buzz('no'); }
+  }catch(_){ try{ parallel?sndPerfect():sndImprove(); }catch(__){} }
+  try{ if(PRO)vbtOnRep(mcv); }catch(_){}
+  try{ renderReps();updateSummary(); }catch(e){ try{ console.warn('render',e); }catch(_){} }
+}
+
+/* ───────── Results UI ───────── */
+function updateSummary(){
+  $('#res-reps').textContent=reps.length;
+  const sr=$('#save-row'),sb2=$('#b-save');
+  if(sr)sr.style.display=reps.length?'flex':'none';
+  if(sb2&&reps.length&&sb2.textContent!==t('saving')){sb2.disabled=false;sb2.textContent=t('save');}
+  const par=reps.filter(r=>r.parallel).length;
+  $('#res-par').textContent=reps.length?par+'/'+reps.length:'—';
+  $('#res-depth').textContent=reps.length?Math.round(bestDepth)+'°':'—';
+}
+function renderReps(){
+  const ul=$('#rlist');ul.innerHTML='';
+  $('#rempty').textContent=reps.length?'':t('list_empty');
+  [...reps].reverse().forEach((r,i)=>{
+    const li=document.createElement('li');
+    const badges=[];
+    badges.push(`<span class="badge ${r.parallel?'b-ok':'b-no'}">${t(r.parallel?'b_par':'b_high')} · ${r.minKnee}°</span>`);
+    if(PRO){
+      badges.push(r.torsoNA
+        ? `<span class="badge b-mut">${t('b_torso_na')}</span>`
+        : `<span class="badge ${r.torsoWarn?'b-warn':'b-mut'}">${r.torsoWarn?t('b_torso_w'):t('b_torso')} ${r.torso}°</span>`);
+      if(r.flex!=null){
+        const cls=r.flexWarn?'b-no':(r.flexMild?'b-warn':'b-ok');
+        const lbl=r.flexWarn?t('b_flex_w'):(r.flexMild?t('b_flex_m'):t('b_flex_ok'));
+        badges.push(`<span class="badge ${cls}">${lbl} ${r.flex.toFixed(1)}%</span>`);
+      }else{
+        /* Jamais muet. Un badge absent sans explication, c'est ce qui fait
+           croire que l'app n'a rien vu alors qu'elle n'a pas pu voir. */
+        badges.push(`<span class="badge b-mut">${t('b_flex_'+(r.flexWhy||'nd'))}</span>`);
+      }
+      if(r.view!=='side')badges.push(`<span class="badge ${r.valgus?'b-no':'b-ok'}">${t(r.valgus?'b_valgus':'b_knees_ok')}</span>`);
+      if(r.mcv!=null)badges.push(`<span class="badge b-spd">${r.mcv.toFixed(2)} m/s</span>`);
+    }
+    /* La phrase passe sous les badges : les badges disent CE QUI ne va pas,
+       la phrase dit QUOI FAIRE. Une ligne, pas deux. */
+    const cue=cueForRep(r);
+    const fixUrl = cue && cue.fix ? exDemoUrl(cue.fix) : null;
+    const cueEl = cue ? `<div class="cue">${esc(cueText(cue))}${
+        fixUrl ? ` <button type="button" class="cue-fix" data-fix="${esc(fixUrl)}" data-fix-name="${esc(fixName(cue.fix))}">▶ ${esc(fixName(cue.fix))}</button>` : ''
+      }</div>` : '';
+    li.innerHTML=`<span class="n">#${reps.length-i}</span>${badges.join('')}${cueEl}`;
+    ul.appendChild(li);
+  });
+}
+
+/* ───────── Drawing ───────── */
+function draw(res){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  /* « Rien » : l'image reste nue. On sort AVANT de tracer quoi que ce soit —
+     squelette comme reperes. La mesure, elle, a deja eu lieu ailleurs : ce
+     reglage ne touche que ce qui est peint par-dessus la camera. */
+  if(window.CDM_AFF==='rien') return;
+  const lm=res&&res.landmarks&&res.landmarks[0];
+  if(lm&&du){
+    if(window.cdmAffSquelette&&window.cdmAffSquelette()){ du.drawConnectors(lm,PoseLandmarker.POSE_CONNECTIONS,{color:'rgba(220,187,114,.55)',lineWidth:3}); }
+    if(window.cdmAffSquelette&&window.cdmAffSquelette()){ du.drawLandmarks(lm,{color:'#DCBB72',fillColor:'#DCBB72',radius:2.5}); }
+    // hip↔knee depth guide (gold) on the tracked side
+    const side=pickSide(lm);
+    const hip=lm[side.hip],knee=lm[side.knee];
+    if(vis(hip)>0.2&&vis(knee)>0.2){
+      const yk=knee.y*canvas.height;
+      ctx.save();
+      ctx.strokeStyle='rgba(217,182,92,.85)';ctx.lineWidth=2;ctx.setLineDash([10,8]);
+      ctx.beginPath();ctx.moveTo(0,yk);ctx.lineTo(canvas.width,yk);ctx.stroke();
+      ctx.fillStyle=hip.y>=knee.y-0.005?'#DCBB72':'#D9B65C';
+      ctx.beginPath();ctx.arc(hip.x*canvas.width,hip.y*canvas.height,7,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
+  }
+}
+
+/* live debug HUD */
+const dbgEl=document.getElementById('cdm-dbg');
+let dbgFrames=0,dbgFpsT=0,dbgFps=0;
+function updateDbg(ts,k,side,lm){
+  dbgFrames++;
+  if(ts-dbgFpsT>=1000){dbgFps=dbgFrames;dbgFrames=0;dbgFpsT=ts;}
+  dbgEl.hidden=false;
+  /* Le panneau sert a diagnostiquer sur le terrain. « pro » et « compte » y
+     figurent parce qu'une analyse muette sans raison affichee, on ne sait pas
+     si c'est un bug ou un droit manquant. */
+  const rt=trunkRatio(lm,side);
+  const fx=(FLEXCAL.ref!=null&&rt!=null)?((1-rt/FLEXCAL.ref)*100):null;
+  dbgEl.textContent=
+    'état: '+S.mode+'  fps: '+dbgFps+'\n'+
+    'genou: '+k.toFixed(0)+'°  vue: '+viewOf(lm,side)+' ('+viewRatio(lm,side).toFixed(2)+')\n'+
+    'chute: '+((d=>d==null?'—':d.toFixed(2))(hipDrop(lm,side)))+'  côté: '+(side===SIDE_L?'G':'D')+'\n'+
+    'tronc: '+(rt!=null?rt.toFixed(3):'—')+
+      '  réf: '+(FLEXCAL.ref!=null?FLEXCAL.ref.toFixed(3):'—')+
+      '  flex: '+(fx!=null?fx.toFixed(1)+'%':'—')+'\n'+
+    'pro: '+(ENT.known?(PRO?'oui':'non'):'…')+'  son: '+audioState()+'\n'+
+    'compte: '+(ACCT||'déconnecté')+'\n'+
+    'reps: '+reps.length+'  dernière: '+(LAST_REP_MS?LAST_REP_MS+' ms':'—')+
+      '  cadence max: '+Math.round(60000/MIN_REP_MS)+'/min'+
+      (PRO&&VBT.scale?'  éch: '+VBT.scale.toFixed(2):'');
+}
+
+/* ───────── Camera + loop ───────── */
+let landmarker=null,stream=null,running=false,facing='environment',lastTs=-1,wakeLock=null;
+
+async function loadModel(){
+  if(landmarker)return;
+  setStatus('st_loading');
+  /* Runtime 0.10.21 : derniere version de la ligne 0.10 publiee sur npm.
+     Meme API que 0.10.14, sept correctifs de plus, aucune migration.
+     La ligne 1.0.x existe mais c'est un changement majeur : on la garde pour
+     un chantier a part, une variable a la fois.
+     A savoir : passer de 0.10.14 a 0.10.21 ne change PAS la precision des
+     points detectes. Celle-ci depend du MODELE (.task), pas du runtime. */
+  const base=`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VER}/wasm`;
+  const model=`https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_${MP_MODEL}/float16/1/pose_landmarker_${MP_MODEL}.task`;
+  const _t0=performance.now();
+  const vision=await FilesetResolver.forVisionTasks(base);
+  const opts=d=>({baseOptions:{modelAssetPath:model,delegate:d},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:0.6,minPosePresenceConfidence:0.6,minTrackingConfidence:0.6});
+  try{landmarker=await PoseLandmarker.createFromOptions(vision,opts('GPU'));MPSTAT.delegate='GPU';}
+  catch(_){landmarker=await PoseLandmarker.createFromOptions(vision,opts('CPU'));MPSTAT.delegate='CPU';}
+  MPSTAT.loadMs=Math.round(performance.now()-_t0);
+  mpPanelUpdate();
+  du=new DrawingUtils(ctx);
+}
+
+async function startCam(){
+  stream=await navigator.mediaDevices.getUserMedia({
+    video:{facingMode:facing,width:{ideal:1280},height:{ideal:720}},audio:false
+  });
+  video.srcObject=stream;
+  await video.play();
+  canvas.width=video.videoWidth||720;
+  canvas.height=video.videoHeight||960;
+  stage.style.aspectRatio=(canvas.width/canvas.height).toString();
+  stage.classList.toggle('mirror',facing==='user');
+  try{wakeLock=await navigator.wakeLock?.request('screen');}catch(_){}
+}
+
+function scheduleFrame(){
+  if(!running)return;
+  if(video.requestVideoFrameCallback){
+    video.requestVideoFrameCallback((now,meta)=>onFrame(meta&&meta.mediaTime?meta.mediaTime*1000:performance.now()));
+  }else{
+    requestAnimationFrame(()=>onFrame(performance.now()));
+  }
+}
+function onFrame(ts){
+  if(!running)return;
+  if(ts<=lastTs)ts=lastTs+1;
+  lastTs=ts;
+  let res=null;
+  /* On chronometre l'inference seule, pas le dessin : c'est le cout du modele
+     qu'on veut comparer entre lite et full, pas celui du reste de la page. */
+  const _i0=performance.now();
+  try{res=landmarker.detectForVideo(video,ts);}catch(_){}
+  mpNote(performance.now()-_i0);
+  if(res)handle(res.landmarks&&res.landmarks[0],res.worldLandmarks&&res.worldLandmarks[0],ts);
+  draw(res);
+  scheduleFrame();
+}
+
+async function start(){
+  bStart.disabled=true;
+  audioUnlock();
+  try{await startCam();
+       /* La camera vient de reconfigurer la session audio d'iOS et a
+          resuspendu le contexte. On le rouvre ici, sinon tous les bips
+          suivants restent silencieux alors que le code les emet bien. */
+       audioUnlock();}
+  catch(e){setStatus('st_err_cam');showErr('Caméra: '+(e&&e.name||'')+' '+(e&&e.message||e)+' ['+VER+']');bStart.disabled=false;return;}
+  splash.style.display='none';
+  try{await loadModel();}
+  catch(e){
+    setStatus('st_err_model');showErr('Modèle: '+(e&&e.message||e)+' ['+VER+']');
+    /* Arreter les pistes ne suffit pas : tant que l'element video garde une
+     reference au MediaStream, WebKit conserve ses tampons de decodage. */
+  if(stream){stream.getTracks().forEach(tr=>tr.stop());stream=null;}
+  try{ video.srcObject=null; }catch(_){}
+    splash.style.display='flex';bStart.disabled=false;return;
+  }
+  running=true;lastTs=-1;
+  bStart.textContent=t('stop');bStart.disabled=false;
+  bFlip.disabled=false;bReset.disabled=false;bRec.disabled=false;bRec.textContent=t('rec_hint');
+  S.mode='ready';S.knee=180;S.rep=null;S.lastGoodTs=0;S.good=0;
+  VBT.hip0=null;VBT.an0=null;VBT.scale=null;
+  setStatus('st_ready',true);
+  scheduleFrame();
+}
+function stop(){
+  running=false;
+  recStop();bRec.disabled=true;
+  if(stream){stream.getTracks().forEach(tr=>tr.stop());stream=null;}
+  try{wakeLock&&wakeLock.release();}catch(_){}
+  wakeLock=null;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  splash.style.display='flex';
+  stage.classList.remove('deep');
+  chip.hidden=true;spdChip.hidden=true;dbgEl.hidden=true;
+  S.mode='idle';S.rep=null;
+  bStart.textContent=t('start');
+  bFlip.disabled=true;bReset.disabled=true;
+  pillTxt.textContent='';pill.classList.remove('ok','warn','err');lastStatus='';
+}
+bStart.onclick=()=>{running?stop():start();};
+bReset.onclick=()=>{if(running)resetSet();};
+bFlip.onclick=async()=>{
+  if(!running)return;
+  facing=facing==='environment'?'user':'environment';
+  if(stream)stream.getTracks().forEach(tr=>tr.stop());
+  VBT.hip0=null;VBT.an0=null;VBT.scale=null;
+  try{await startCam();}
+  catch(e){setStatus('st_err_cam');}
+};
+/* Le PoseLandmarker detient un tas WebAssembly de plusieurs dizaines de Mo.
+   Il n'etait jamais libere : en quittant la page, WKWebView tarde a le
+   reclamer et iOS le compte toujours contre l'app. On le ferme
+   explicitement au depart — pagehide couvre le retour vers app.html, la
+   fermeture d'onglet et la mise en arriere-plan sur iOS. */
+addEventListener('pagehide',()=>{
+  try{ if(running) stop(); }catch(_){}
+  try{ if(landmarker&&landmarker.close){ landmarker.close(); landmarker=null; } }catch(_){}
+});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&running)stop();
+});
+
+/* ═════════ Paywall Coach & Coach+ — Stripe embarqué sur place ═════════ */
+const STRIPE_PK='pk_live_51TpzX7J0YSDZQQHK1pZpLyBD1QX0c95OWwdhGO1BpTvs3vb99GAq8D9JA9voqURFI5GpkfeQmORt8fnwWaipMLGq00re93zamr';
+let STRIPE=null,CKI=null;
+const PW={prices:null,slots:null,pending:null,loading:false};
+function pwLocale(){return LANG==='fr'?'fr-BE':(LANG==='nl'?'nl-BE':'en-GB');}
+function pwMoney(c){return (c/100).toLocaleString(pwLocale(),{style:'currency',currency:'EUR'});}
+async function stripeJs(){
+  if(window.Stripe)return window.Stripe;
+  await new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://js.stripe.com/v3/';sc.onload=res;sc.onerror=rej;document.head.appendChild(sc);});
+  return window.Stripe;
+}
+const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+function pwSlotsLeft(kind){const r=(PW.slots||[]).find(x=>x.kind===kind);return r?+r.left_count:null;}
+async function pwLoad(){
+  if(!SB||PW.loading)return;
+  if(PW.prices){pwRender();return;}
+  PW.loading=true;
+  try{const {data}=await SB.from('billing_prices').select('*').eq('audience','client').eq('active',true);PW.prices=data||[];}catch(_){PW.prices=[];}
+  try{const {data}=await SB.rpc('founder_slots');PW.slots=data||[];}catch(_){PW.slots=[];}
+  try{const {data}=await SB.rpc('founder_can_buy',{p_kind:'membre'});PW.canF=(data===true);}catch(_){PW.canF=false;}
+  PW.loading=false;
+  pwRender();
+}
+function pwRender(){
+  const box=document.getElementById('gate-plans');
+  if(!box||!PW.prices)return;
+  if(IS_NATIVE){box.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center;padding:10px 4px">'+t('pw_native')+'</p>';return;}
+  const left=pwSlotsLeft('membre');
+  /* ⚠️ Tarif fondateur NOMINATIF : réservé aux personnes invitées par email.
+     L'ancienne condition l'ouvrait dès qu'une place restait libre, donc à
+     tout le monde. Le checkout, lui, refusait (founder_can_buy_for) : un prix
+     annoncé que le paiement ne tenait pas. Seule l'invitation fait foi.
+     Un fondateur verrouillé garde son tarif : founder_can_buy_for le prévoit. */
+  const fOpen=PW.canF===true;
+  const pickIv=(iv)=>{
+    const ps=PW.prices.filter(p=>p.billing_interval===iv&&p.tier==='membre');
+    const f=!fOpen?null:ps.find(p=>p.founder);
+    const r=ps.find(p=>!p.founder);
+    return {off:f||r, reg:r};
+  };
+  const mk=(o,iv)=>{
+    if(!o.off)return '';
+    const isF=!!o.off.founder;
+    let h='<div class="plan"><span class="pb">'+(isF?t('pw_membre_f'):t('pw_membre'))+'</span>';
+    h+='<div class="pp">'+pwMoney(o.off.amount_cents)+'<small>'+t(iv==='year'?'pw_year':'pw_month')+'</small>';
+    if(isF&&o.reg)h+='<span class="old">'+pwMoney(o.reg.amount_cents)+'</span>';
+    h+='</div><div class="pn">'+t(iv==='year'?'pw_note_y':'pw_note_m')+'</div>';
+    if(isF&&left!==null&&left>0&&left<=15)h+='<div class="pn" style="color:var(--neon)">'+t('pw_left').replace('{n}',left)+'</div>';
+    h+='<button class="pcta" data-lk="'+o.off.lookup_key+'">'+t('pw_choose')+'</button></div>';
+    return h;
+  };
+  box.innerHTML=mk(pickIv('month'),'month')+mk(pickIv('year'),'year')
+    +'<div class="pcoach">'+t('pw_coach_link')+' <a href="https://coachdm.be/tarifs.html" target="_blank" rel="noopener">'+t('pw_coach_link_a')+'</a></div>';
+  box.querySelectorAll('[data-lk]').forEach(b=>{b.onclick=()=>pwOpen(b.dataset.lk);});
+}
+function pwReset(){
+  const c=document.getElementById('pw-consent'),m=document.getElementById('ck-mount');
+  const a=document.getElementById('pw-agree'),k=document.getElementById('pw-continue');
+  if(c)c.style.display='';
+  if(m){m.style.display='none';m.innerHTML='';}
+  if(a)a.checked=false;
+  if(k)k.disabled=true;
+}
+function pwOpen(lk){
+  if(IS_NATIVE)return;
+  if(!UIDG){alert(t('save_login'));return;}
+  PW.pending=lk;
+  if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
+  pwReset();
+  document.getElementById('pw-ov').classList.add('show');
+  pwMount();
+}
+function pwClose(){
+  document.getElementById('pw-ov').classList.remove('show');
+  if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
+  pwReset();PW.pending=null;
+}
+async function pwMount(){
+  if(!PW.pending||!SB)return;
+  const lk=PW.pending;
+  const m=document.getElementById('ck-mount');m.style.display='';m.innerHTML='';
+  try{
+    const Sj=await stripeJs();
+    if(!STRIPE)STRIPE=Sj(STRIPE_PK);
+    if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
+    CKI=await STRIPE.initEmbeddedCheckout({fetchClientSecret:async()=>{
+      const {data,error}=await SB.functions.invoke('stripe-checkout',{body:{action:'checkout',lookup_key:lk,locale:LANG}});
+      if(error||!data||!data.client_secret)throw new Error((data&&data.error)||'checkout');
+      return data.client_secret;
+    }});
+    CKI.mount('#ck-mount');
+  }catch(_){pwClose();alert(t('pw_fail'));}
+}
+(function(){
+  const ov=document.getElementById('pw-ov');
+  const x=document.getElementById('pw-close');
+  if(x)x.onclick=pwClose;
+  if(ov)ov.addEventListener('click',e=>{if(e.target===ov)pwClose();});
+})();
+
+/* ═════════ Carte partageable (story 1080×1920) — vrai logo Coach DM ═════════ */
+let LOGO=null,LOGO_TRIED=false;
+function loadLogo(){
+  return new Promise(res=>{
+    if(LOGO)return res(LOGO);
+    if(LOGO_TRIED)return res(null);
+    const im=new Image();
+    const done=ok=>{LOGO_TRIED=true;if(ok)LOGO=im;res(ok?im:null);};
+    im.onload=()=>done(true);
+    im.onerror=()=>done(false);
+    im.src='/logo-dm.png';
+    setTimeout(()=>{if(!LOGO&&!LOGO_TRIED)done(false);},2000);
+  });
+}
+function shGoldGrad(c,x0,y0,x1,y1){
+  const g=c.createLinearGradient(x0,y0,x1,y1);
+  g.addColorStop(0,'#F6E27A');g.addColorStop(.45,'#D9B65C');g.addColorStop(1,'#A47F1E');
+  return g;
+}
+function shBase(c,W,H,title,logo){
+  c.fillStyle='#0B0B0A';c.fillRect(0,0,W,H);
+  const rg=c.createRadialGradient(W/2,0,0,W/2,0,H*.8);
+  rg.addColorStop(0,'rgba(217,182,92,.10)');rg.addColorStop(1,'rgba(217,182,92,0)');
+  c.fillStyle=rg;c.fillRect(0,0,W,H);
+  c.textAlign='center';
+  if(logo){
+    const r=88,cx=W/2,cy=150;
+    c.save();
+    c.beginPath();c.arc(cx,cy,r,0,Math.PI*2);c.closePath();c.clip();
+    c.fillStyle='#0B0B0A';c.fillRect(cx-r,cy-r,r*2,r*2);
+    c.drawImage(logo,cx-r,cy-r,r*2,r*2);
+    c.restore();
+    c.lineWidth=6;c.strokeStyle=shGoldGrad(c,cx-r,cy-r,cx+r,cy+r);
+    c.beginPath();c.arc(cx,cy,r+4,0,Math.PI*2);c.stroke();
+  }else{
+    c.font='800 78px Outfit';c.fillStyle='#F5F5F4';
+    c.fillText('COACH ',W/2-92,170);
+    c.fillStyle=shGoldGrad(c,W/2,110,W/2+240,190);
+    c.fillText('DM',W/2+158,170);
+  }
+  c.font='700 40px Outfit';c.fillStyle='#9CA3AF';
+  c.fillText(title,W/2,logo?312:255);
+  c.strokeStyle='rgba(217,182,92,.5)';c.lineWidth=3;
+  const dy=logo?352:295;
+  c.beginPath();c.moveTo(W/2-130,dy);c.lineTo(W/2+130,dy);c.stroke();
+  c.font='700 42px Outfit';c.fillStyle=shGoldGrad(c,W/2-220,H-150,W/2+220,H-110);
+  c.fillText('Power · Transform · Excel',W/2,H-150);
+  c.font='600 36px Outfit';c.fillStyle='#9CA3AF';
+  c.fillText('coachdm.be  ·  @coachdm.be',W/2,H-85);
+}
+function shCardSquat(logo){
+  const W=1080,H=1920,cv=document.createElement('canvas');
+  cv.width=W;cv.height=H;const c=cv.getContext('2d');
+  shBase(c,W,H,t('sh_squat_t'),logo);
+  c.textAlign='center';
+  const par=reps.filter(r=>r.parallel).length;
+  c.font='700 44px Outfit';c.fillStyle='#9CA3AF';c.fillText(t('sh_reps'),W/2,620);
+  c.font='800 300px Outfit';c.fillStyle=shGoldGrad(c,W/2-320,700,W/2+320,960);
+  c.fillText(String(reps.length),W/2,940);
+  c.font='800 66px Outfit';c.fillStyle='#DCBB72';
+  c.fillText(par+'/'+reps.length+' '+t('sh_par'),W/2,1100);
+  c.font='700 44px Outfit';c.fillStyle='#9CA3AF';
+  c.fillText(t('sh_depth')+' : '+Math.round(bestDepth)+'°',W/2,1185);
+  if(PRO&&VBT.best!=null){
+    const mets=[
+      [VBT.best.toFixed(2),'m/s · VBT'],
+      [VBT.vl!=null?('−'+VBT.vl.toFixed(0)+'%'):'—',t('sh_vl')],
+      [VBT.e1?String(Math.round(VBT.e1/2.5)*2.5):'—',t('sh_e1')]
+    ];
+    mets.forEach((mm,i)=>{
+      const x=W/6+(i*W/3);
+      c.font='800 92px Outfit';c.fillStyle='#F5F5F4';c.fillText(mm[0],x,1420);
+      c.font='700 32px Outfit';c.fillStyle='#9CA3AF';c.fillText(mm[1],x,1482);
+    });
+  }
+  return cv;
+}
+async function shShare(cv,name){
+  const blob=await new Promise(res=>cv.toBlob(res,'image/png'));
+  const file=new File([blob],name,{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:'Coach DM'});return;}catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  alert(t('sh_fail'));
+}
+async function shGo(){
+  /* iOS : navigator.share doit rester dans la fenêtre du geste utilisateur —
+     zéro attente ici, logo & polices préchargés au démarrage de la page. */
+  await shShare(shCardSquat(LOGO),'coachdm-squat.png');
+}
+document.getElementById('b-share').onclick=()=>{if(reps.length)shGo();};
+
+/* ═════════ REC — vidéo watermarkée, 100% locale ═════════
+   Canvas composite (caméra + squelette overlay + compteur + watermark Coach DM),
+   MediaRecorder mp4/webm, partage natif → galerie. Rien n'est envoyé. */
+/* Plafond memoire de l'enregistrement.
+   MediaRecorder empile ses fragments en RAM : il n'existe pas d'ecriture en
+   flux vers le disque depuis une webview iOS. La duree utile ne se gagne donc
+   pas en levant le plafond, mais en baissant le DEBIT.
+   5 Mbit/s etait surdimensionne pour du 720p avec incrustation : a 2,5 Mbit/s
+   la difference est invisible sur une video d'analyse technique, et on passe
+   de 5 a 10 minutes pour la meme empreinte memoire.
+   10 min couvre 100 wall balls (~4 min) avec une marge confortable. */
+const REC_BITRATE=2_500_000;
+const REC_MAX_BYTES=180*1024*1024;   /* ~10 min a 2,5 Mbit/s */
+const REC_MAX_MS=10*60*1000;
+const RECST={on:false,auto:false,pending:null,mr:null,chunks:[],bytes:0,cv:null,ctx:null,raf:0,t0:0,timer:0,maxTimer:0,mime:'',ext:'mp4'};
+const bRec=$('#b-rec');
+function recMime(){
+  const c=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm'];
+  for(const m of c){ if(window.MediaRecorder&&MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(m)) return m; }
+  return '';
+}
+function recFmtT(){const s=Math.max(0,Math.round((performance.now()-RECST.t0)/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function recDrawFrame(){
+  if(!RECST.on)return;
+  const c=RECST.ctx,W=RECST.cv.width,H=RECST.cv.height;
+  c.save();
+  if(facing==='user'){c.translate(W,0);c.scale(-1,1);}
+  try{c.drawImage(video,0,0,W,H);}catch(_){}
+  try{c.drawImage(canvas,0,0,W,H);}catch(_){}
+  c.restore();
+  /* filigrane diagonal répété (anti-recadrage, discret) */
+  c.save();
+  c.globalAlpha=0.055;
+  c.translate(W/2,H/2);c.rotate(-28*Math.PI/180);c.translate(-W/2,-H/2);
+  const wm='COACH DM · coachdm.be';
+  c.font='800 '+Math.round(H*0.024)+'px Outfit, sans-serif';
+  c.fillStyle='#FFFFFF';c.textAlign='left';c.textBaseline='middle';
+  const stepX=c.measureText(wm).width+Math.round(W*0.15), stepY=Math.round(H*0.182);
+  let row=0;
+  for(let y=-H*0.35;y<H*1.35;y+=stepY,row++){
+    const off=(row%2)?stepX/2:0;
+    for(let x=-W*0.35-off;x<W*1.35;x+=stepX){c.fillText(wm,x,y);}
+  }
+  c.restore();
+  /* reps (haut gauche) */
+  const done=reps.length;
+  const fs=Math.round(H*0.058);
+  c.textAlign='left';c.textBaseline='top';
+  c.fillStyle='rgba(7,10,8,.55)';
+  c.fillRect(Math.round(W*0.025),Math.round(H*0.025),Math.round(W*0.42),Math.round(fs*2.0));
+  c.font='800 '+fs+'px Outfit, sans-serif';c.fillStyle='#F5F5F4';
+  c.fillText(String(done),Math.round(W*0.045),Math.round(H*0.032));
+  c.font='700 '+Math.round(fs*0.40)+'px Outfit, sans-serif';c.fillStyle='#9CA3AF';
+  c.fillText(t('sh_reps').toUpperCase(),Math.round(W*0.045),Math.round(H*0.032)+fs+2);
+  /* timer (haut droite) */
+  const tstr='⏱ '+recFmtT();
+  const tfs=Math.round(H*0.042);
+  c.font='800 '+tfs+'px Outfit, sans-serif';c.textAlign='right';c.textBaseline='top';
+  const tw=c.measureText(tstr).width, tpad=Math.round(tfs*0.5);
+  c.fillStyle='rgba(7,10,8,.55)';
+  c.fillRect(W-Math.round(W*0.03)-tw-tpad,Math.round(H*0.028),tw+tpad*2,Math.round(tfs*1.7));
+  c.fillStyle='#F5F5F4';
+  c.fillText(tstr,W-Math.round(W*0.03)-tpad,Math.round(H*0.028)+Math.round(tfs*0.35));
+  /* branding groupé sur UNE ligne (bas, centré) */
+  const bh=Math.round(H*0.078);
+  const p1='COACH DM', p2='   ·   coachdm.be';
+  const lfs=Math.round(bh*0.42);
+  c.textAlign='left';c.textBaseline='middle';
+  c.font='800 '+lfs+'px Outfit, sans-serif';const w1=c.measureText(p1).width;
+  c.font='700 '+lfs+'px Outfit, sans-serif';const w2=c.measureText(p2).width;
+  const lr=Math.round(bh*0.60), gp=Math.round(bh*0.22);
+  const totalW=lr+gp+w1+w2, bx=Math.round((W-totalW)/2), cyc=H-bh/2;
+  c.fillStyle='rgba(7,10,8,.62)';
+  c.fillRect(bx-Math.round(bh*0.34),H-bh+Math.round(bh*0.12),totalW+Math.round(bh*0.68),Math.round(bh*0.76));
+  let cx=bx;
+  if(LOGO){
+    c.save();c.beginPath();c.arc(cx+lr/2,cyc,lr/2,0,Math.PI*2);c.closePath();c.clip();
+    c.drawImage(LOGO,cx,cyc-lr/2,lr,lr);c.restore();
+    c.lineWidth=2;c.strokeStyle='rgba(217,182,92,.9)';
+    c.beginPath();c.arc(cx+lr/2,cyc,lr/2+1,0,Math.PI*2);c.stroke();
+  }
+  cx+=lr+gp;
+  c.font='800 '+lfs+'px Outfit, sans-serif';
+  const gg=c.createLinearGradient(cx,0,cx+w1,0);
+  gg.addColorStop(0,'#F6E27A');gg.addColorStop(.5,'#D9B65C');gg.addColorStop(1,'#A47F1E');
+  c.fillStyle=gg;c.fillText(p1,cx,cyc);
+  c.font='700 '+lfs+'px Outfit, sans-serif';c.fillStyle='#C9CDD3';
+  c.fillText(p2,cx+w1,cyc);
+  RECST.raf=requestAnimationFrame(recDrawFrame);
+}
+function recStart(){
+  if(RECST.on||!running)return;
+  const mime=recMime();
+  if(!mime){alert(t('rec_fail'));return;}
+  RECST.mime=mime;RECST.ext=mime.indexOf('mp4')>=0?'mp4':'webm';
+  RECST.cv=document.createElement('canvas');
+  RECST.cv.width=canvas.width||720;RECST.cv.height=canvas.height||960;
+  RECST.ctx=RECST.cv.getContext('2d');
+  let strm=null;
+  try{strm=RECST.cv.captureStream(30);}catch(_){alert(t('rec_fail'));return;}
+  RECST.chunks=[];
+  try{RECST.mr=new MediaRecorder(strm,{mimeType:mime,videoBitsPerSecond:REC_BITRATE});}
+  catch(_){try{RECST.mr=new MediaRecorder(strm);}catch(__){alert(t('rec_fail'));return;}}
+  /* Garde-fou memoire. A 5 Mbit/s, chaque minute enregistree pese ~37 Mo
+     conserves en RAM : 10 minutes suffisent a faire tuer la webview par iOS.
+     On compte les octets au fil de l'eau et on coupe net a 120 Mo, ce qui
+     laisse environ 3 minutes — largement au-dela d'une serie filmee. */
+  RECST.bytes=0;
+  RECST.mr.ondataavailable=e=>{
+    if(!e.data||!e.data.size) return;
+    RECST.chunks.push(e.data);
+    RECST.bytes+=e.data.size;
+    if(RECST.bytes>REC_MAX_BYTES){ try{ RECST.auto=true; recStop(); }catch(_){} }
+  };
+  RECST.mr.onstop=recFinish;
+  RECST.on=true;RECST.auto=false;RECST.t0=performance.now();
+  RECST.mr.start(1000);
+  /* Second filet : une coupure au temps, au cas ou le debit reel serait plus
+     bas que prevu et repousserait le plafond d'octets trop loin. */
+  RECST.maxTimer=setTimeout(()=>{ try{ RECST.auto=true; recStop(); }catch(_){} }, REC_MAX_MS);
+  recDrawFrame();
+  bRec.classList.add('rec-on');
+  RECST.timer=setInterval(()=>{
+    const sec=Math.round((performance.now()-RECST.t0)/1000);
+    /* La video s'accumule en MEMOIRE : iOS n'offre aucun moyen d'ecrire au fil
+       de l'eau depuis une WebView. C'est le seul poste qui grossit vraiment
+       pendant une seance, et il etait invisible. On l'affiche : un chiffre
+       qu'on voit monter est un risque qu'on peut arreter a temps. */
+    const mo=RECST.bytes/1048576;
+    bRec.textContent=t('rec_stop').replace('{t}',Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'))
+      +(mo>=1?'  '+mo.toFixed(0)+' Mo':'');
+  },500);
+}
+function recStop(){
+  if(!RECST.on)return;
+  RECST.on=false;
+  cancelAnimationFrame(RECST.raf);
+  clearInterval(RECST.timer);
+  clearTimeout(RECST.maxTimer);
+  bRec.classList.remove('rec-on');
+  bRec.textContent=t('rec_hint');
+  try{RECST.mr.stop();}catch(_){}
+}
+async function recFinish(){
+  const blob=new Blob(RECST.chunks,{type:RECST.mime||'video/mp4'});
+  /* Coupure automatique (plafond memoire ou 3 min) : on N'APPELLE PAS
+     navigator.share ici. iOS n'autorise le partage que dans la fenetre du
+     geste utilisateur — un partage declenche par un minuteur est rejete, et
+     la video serait perdue alors qu'on vient justement de l'enregistrer.
+     On la garde de cote et on transforme le bouton REC en bouton
+     d'enregistrement : le prochain appui EST un geste utilisateur. */
+  if(RECST.auto){
+    RECST.auto=false;
+    RECST.chunks=[]; RECST.bytes=0; RECST.cv=null; RECST.ctx=null;
+    if(!blob.size) return;
+    RECST.pending=blob;
+    bRec.textContent=t('rec_cap');
+    bRec.classList.add('rec-on');
+    bRec.onclick=()=>{ const b=RECST.pending; RECST.pending=null;
+      bRec.classList.remove('rec-on'); bRec.textContent=t('rec_hint');
+      bRec.onclick=()=>{RECST.on?recStop():recStart();};
+      recShareBlob(b); };
+    try{ alert(t('rec_cap_msg')); }catch(_){}
+    return;
+  }
+  RECST.chunks=[]; RECST.bytes=0;
+  /* Le canvas d'enregistrement fait la taille de la video : le garder
+     apres coup retient plusieurs Mo pour rien. */
+  RECST.cv=null; RECST.ctx=null;
+  if(!blob.size)return;
+  return recShareBlob(blob);
+}
+
+async function recShareBlob(blob){
+  if(!blob||!blob.size) return;
+  const file=new File([blob],'coachdm-squat.'+RECST.ext,{type:blob.type});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:'Coach DM'});return;}catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=file.name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),6000);
+  alert(t('rec_dl'));
+}
+
+bRec.onclick=()=>{RECST.on?recStop():recStart();};
+
+/* ───────── Sauvegarde Supabase (session partagée avec l'app) ───────── */
+import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient})=>{
+  const sbClient=createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
+  SB=sbClient;
+  /* Les phrases se chargent sans attendre la session : elles sont publiques,
+     et un coach qui filme un prospect non connecte doit les avoir aussi. */
+  cuesLoad(sbClient);
+  let UID=null;
+  sbClient.auth.getSession().then(async({data})=>{
+    UID=data?.session?.user?.id||null;
+    UIDG=UID;
+    ACCT=data?.session?.user?.email||null;
+    ENT.auth=!!UID;
+    if(UID){
+      try{
+        const {data:ok}=await sbClient.rpc('fn_can_analyze',{p_user:UID});
+        ENT.known=true;ENT.ok=!!ok;
+      }catch(_){ENT.known=true;ENT.ok=false;}
+    }else{ENT.known=true;ENT.ok=false;}
+    PRO=ENT.ok;
+    proUI();
+  });
+  const btn=$('#b-save');
+  btn.textContent=t('save');
+  btn.onclick=async()=>{
+    if(!reps.length||btn.disabled)return;
+    if(!UID){alert(t('save_login'));return;}
+    btn.disabled=true;btn.textContent=t('saving');
+    const row={
+      user_id:UID,
+      rep_count:reps.length,
+      parallel_count:reps.filter(r=>r.parallel).length,
+      best_depth_deg:Math.round(bestDepth),
+      torso_warn_count:reps.filter(r=>r.torsoWarn).length,
+      valgus_count:reps.filter(r=>r.valgus).length,
+      reps:reps
+    };
+    if(PRO&&VBT.best!=null){
+      row.load_kg=VBT.loadKg>0?VBT.loadKg:null;
+      row.mcv_best=+VBT.best.toFixed(3);
+      row.mcv_last=VBT.last!=null?+VBT.last.toFixed(3):null;
+      row.velocity_loss_pct=VBT.vl!=null?+VBT.vl.toFixed(1):null;
+      row.est_1rm_kg=VBT.e1?Math.round(VBT.e1):null;
+    }
+    const {error}=await sbClient.from('squat_sets').insert(row);
+    if(error){btn.disabled=false;btn.textContent=t('save');alert(t('save_fail'));return;}
+    btn.textContent=t('saved');
+    /* Boucle VBT → charge : la charge + la vitesse du jour deviennent le 1RM du jour. */
+    if(PRO&&VBT.best!=null&&VBT.loadKg>20&&VBT.best>=0.10&&VBT.best<=1.50){
+      try{
+        const {data:d}=await sbClient.rpc('vbt_log_day',{p_ref_slug:'back-squat',p_load:VBT.loadKg,p_velocity:+VBT.best.toFixed(3)});
+        if(d)renderDay(d);
+      }catch(_){}
+    }
+  };
+}).catch(()=>{ENT.known=true;ENT.ok=false;PRO=false;proUI();});
+
+applyLang();
+proUI();
+/* Préchargement partage : logo + polices prêts avant le premier tap */
+loadLogo();
+try{document.fonts.load('800 300px Outfit');document.fonts.load('700 44px Outfit');document.fonts.load('700 40px Outfit');}catch(_){}
+</script>
+<!-- Lecteur video, pose en fin de body pour passer au-dessus de tout. -->
+<div class="yt-ov" id="yt-ov">
+  <div class="yt-box">
+    <div class="yt-top">
+      <div class="yt-name" id="yt-name"></div>
+      <button class="yt-close" id="yt-close" aria-label="Fermer">&#10005;</button>
+    </div>
+    <div class="yt-frame" id="yt-slot"></div>
+    <button class="yt-fb" id="yt-fallback"></button>
+  </div>
+</div>
+
+
+<!-- ─────────── CE QU'ON VOIT SUR SOI ───────────────────────────────────────
+   Le squelette vert rassure au debut : on voit que la machine suit. Passe ce
+   moment, il gene — on regarde les points au lieu de regarder son geste, et
+   certains le trouvent simplement laid sur leur video. D'autres ne veulent que
+   le chiffre a la fin.
+   Trois niveaux, memorises dans le navigateur et PARTAGES avec le Mode jeu
+   (meme cle cdm_aff) : ce qu'il choisit une fois vaut partout.
+     complet  le squelette entier, comme avant
+     repere   plus de squelette, on garde seulement le repere de mesure
+              (la ligne doree, le point de hanche) : ce qui sert a comprendre
+     rien     rien du tout sur l'image, il ne reste que le resultat
+   Le calcul ne change pas d'un iota : c'est de l'affichage, pas de la mesure.
+─────────────────────────────────────────────────────────────────────────── -->
+<style>
+  #cdm-aff{position:fixed;right:10px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:60;display:flex;gap:6px;
+    background:rgba(0,0,0,.62);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px;backdrop-filter:blur(8px)}
+  #cdm-aff button{appearance:none;border:0;background:transparent;color:#cfd8d4;font:800 11px/1 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;
+    letter-spacing:.7px;padding:8px 11px;border-radius:999px;cursor:pointer}
+  #cdm-aff button.on{background:#DCBB72;color:#1B1405}
+  @media print{#cdm-aff{display:none}}
+</style>
+<div id="cdm-aff" role="group" aria-label="Ce qu'on voit sur soi">
+  <button type="button" data-aff="complet">Squelette</button>
+  <button type="button" data-aff="repere">Repères</button>
+  <button type="button" data-aff="rien">Rien</button>
+</div>
+<script>
+(function(){
+  var K='cdm_aff';
+  function lu(){ try{ var v=localStorage.getItem(K); return (v==='repere'||v==='rien')?v:'complet'; }catch(e){ return 'complet'; } }
+  window.CDM_AFF = lu();
+  window.cdmAffSquelette = function(){ return window.CDM_AFF === 'complet'; };
+  window.cdmAffReperes   = function(){ return window.CDM_AFF !== 'rien'; };
+  function peindre(){
+    var bs=document.querySelectorAll('#cdm-aff button');
+    for(var i=0;i<bs.length;i++) bs[i].classList.toggle('on', bs[i].getAttribute('data-aff')===window.CDM_AFF);
+  }
+  var bs=document.querySelectorAll('#cdm-aff button');
+  for(var i=0;i<bs.length;i++)(function(b){
+    b.onclick=function(){
+      window.CDM_AFF=b.getAttribute('data-aff');
+      try{ localStorage.setItem(K, window.CDM_AFF); }catch(e){}
+      peindre();
+    };
+  })(bs[i]);
+  peindre();
+})();
+</script>
+</body>
+</html>

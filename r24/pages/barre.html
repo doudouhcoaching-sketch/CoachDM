@@ -1,0 +1,1738 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#0B0B0A" />
+<meta name="robots" content="noindex" />
+<title>Analyse Barre — Bar Path & VBT — Coach DM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0B0A; --surface:#151513; --surface2:#1A221D; --line:rgba(255,255,255,.08);
+    --gold:#D9B65C; --neon:#DCBB72; --txt:#F5F5F4; --muted:#9CA3AF; --ok:#DCBB72; --danger:#EF4444;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--txt)}
+  body{
+    font-family:'Outfit',-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    letter-spacing:-0.02em;-webkit-font-smoothing:antialiased;
+    min-height:100dvh;padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 28px);
+    max-width:560px;margin:0 auto;
+  }
+  button{font-family:inherit;cursor:pointer;border:none;color:inherit;background:transparent;-webkit-appearance:none;appearance:none}
+
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px}
+  .backapp{flex:0 0 auto;display:grid;place-items:center;width:36px;height:36px;border-radius:12px;border:1px solid rgba(255,255,255,.14);color:#D9B65C;text-decoration:none;font-size:20px;font-weight:800;line-height:1;margin-right:2px}
+  .backapp:active{transform:scale(.94)}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:18px;letter-spacing:-0.02em}
+  .brandlogo{width:26px;height:26px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px rgba(217,182,92,.55)}
+  .brand em{font-style:normal;background:linear-gradient(135deg,#F6E27A 0%,#D9B65C 45%,#A47F1E 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--muted);font-size:12.5px;font-weight:500;margin-top:2px}
+  .lang{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+  .lang button{font-size:11.5px;font-weight:700;color:var(--muted);padding:5px 9px;border-radius:999px}
+  .lang button.on{color:#0B0B0A;background:var(--neon)}
+
+  .stage{
+    position:relative;border-radius:22px;overflow:hidden;background:#000;
+    border:1px solid var(--line);aspect-ratio:3/4;transition:box-shadow .15s ease;
+  }
+  .stage.deep{box-shadow:0 0 0 2px var(--neon),0 0 34px rgba(220,187,114,.35)}
+  .stage video,.stage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+  .stage.mirror video,.stage.mirror canvas{transform:scaleX(-1)}
+  .hud{position:absolute;left:0;right:0;top:0;display:flex;justify-content:center;padding:12px;pointer-events:none}
+  .pill{
+    font-size:13px;font-weight:700;padding:8px 14px;border-radius:999px;
+    background:rgba(7,10,8,.72);border:1px solid var(--line);backdrop-filter:blur(8px);
+    display:inline-flex;align-items:center;gap:8px;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .pill.ok .dot{background:var(--neon);box-shadow:0 0 10px var(--neon)}
+  .pill.warn .dot{background:var(--gold)}
+  .pill.err .dot{background:var(--danger)}
+  .angle-chip{
+    position:absolute;right:10px;bottom:10px;pointer-events:none;
+    font-size:13px;font-weight:800;color:var(--txt);font-variant-numeric:tabular-nums;
+    background:rgba(7,10,8,.72);border:1px solid var(--line);border-radius:12px;padding:8px 11px;
+  }
+  .angle-chip small{color:var(--muted);font-weight:600;font-size:10px;display:block;letter-spacing:.05em;text-transform:uppercase}
+  .speed-chip{
+    position:absolute;right:10px;bottom:74px;pointer-events:none;
+    font-size:13px;font-weight:800;color:var(--neon);font-variant-numeric:tabular-nums;
+    background:rgba(7,10,8,.72);border:1px solid rgba(220,187,114,.35);border-radius:12px;padding:8px 11px;
+  }
+  .speed-chip small{color:var(--muted);font-weight:600;font-size:10px;display:block;letter-spacing:.05em;text-transform:uppercase}
+  .dbg{
+    position:absolute;left:10px;bottom:10px;pointer-events:none;
+    font-size:10px;font-weight:600;color:rgba(220,187,114,.9);
+    font-variant-numeric:tabular-nums;letter-spacing:0;
+    background:rgba(7,10,8,.65);border-radius:8px;padding:5px 8px;line-height:1.45;white-space:pre;
+  }
+  .splash{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;text-align:center;padding:24px;background:radial-gradient(120% 90% at 50% 0%,#161616 0%,#0B0B0A 70%);
+  }
+  .splash p{color:var(--muted);font-size:13.5px;line-height:1.55;max-width:300px}
+  .squatter{width:54px;height:54px;stroke:var(--neon);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+  .controls{display:flex;gap:10px;margin-top:12px}
+  .btn{
+    flex:1;font-size:15px;font-weight:700;padding:14px 12px;border-radius:16px;
+    background:var(--neon);color:#062A1D;letter-spacing:-0.02em;transition:transform .08s ease,opacity .15s;
+  }
+  .btn:active{transform:scale(.97)}
+  .btn.ghost{background:var(--surface);color:var(--txt);border:1px solid var(--line)}
+  .btn[disabled]{opacity:.45;pointer-events:none}
+  .btn.rec-on{background:#EF4444;color:#fff;border:none;animation:recpulse 1.2s ease-in-out infinite}
+  @keyframes recpulse{0%,100%{opacity:1}50%{opacity:.72}}
+
+  .result{
+    margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;
+    padding:18px 18px 16px;text-align:center;
+  }
+  .result .lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .big{
+    font-size:64px;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums;
+    background:linear-gradient(135deg,#F6E27A 0%,#D9B65C 45%,#A47F1E 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .meta{display:flex;justify-content:center;gap:18px;margin-top:8px;color:var(--muted);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+  .meta b{color:var(--txt)}
+  .meta .g{color:var(--ok)}
+
+  .card{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px 18px}
+  .card h3{font-size:14.5px;font-weight:700;margin-bottom:10px}
+  .card.pro{border-color:rgba(217,182,92,.45)}
+  .gatep{color:var(--muted);font-size:13px;line-height:1.55;margin:0 0 14px}
+  .goldbtn{display:block;text-decoration:none;font-size:15px;font-weight:700;padding:14px;border-radius:16px;background:linear-gradient(135deg,#F6E27A 0%,#D9B65C 55%,#A47F1E 100%);color:#0B0B0A;text-align:center}
+  .protag{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.06em;color:#0B0B0A;background:linear-gradient(135deg,#F6E27A 0%,#D9B65C 55%,#A47F1E 100%);border-radius:6px;padding:2px 7px;vertical-align:2px;margin-left:6px}
+
+  .vrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .vfield{display:flex;flex-direction:column;gap:5px}
+  .vfield label{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .vfield input{background:var(--surface2);border:1px solid var(--line);border-radius:12px;color:var(--txt);font-family:inherit;font-size:16px;font-weight:700;padding:12px;width:100%;font-variant-numeric:tabular-nums}
+  .vfield input:focus{outline:none;border-color:rgba(217,182,92,.6)}
+  .vres{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .vres .m{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:11px 4px;text-align:center}
+  .vres .m .v{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--txt)}
+  .vres .m .v small{font-size:10px;font-weight:700;color:var(--muted)}
+  .vres .m .k{font-size:9.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:3px}
+  .vbar{position:relative;height:12px;border-radius:999px;background:var(--surface2);overflow:hidden;margin-top:14px}
+  .vbar i{display:block;height:100%;width:0;border-radius:999px;background:var(--neon);transition:width .3s ease}
+  .vbar.warn i{background:var(--gold)}
+  .vbar.stop i{background:var(--danger)}
+  .vmark{position:absolute;top:-2px;left:50%;width:2px;height:16px;background:rgba(255,255,255,.55)}
+  .vscale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);font-weight:700;margin-top:5px;font-variant-numeric:tabular-nums}
+  .vstop{margin-top:12px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.5);color:#EF4444;font-size:13px;font-weight:700;border-radius:12px;padding:11px 13px;line-height:1.5}
+  .vnote{margin-top:10px;font-size:11.5px;color:var(--muted);line-height:1.5}
+
+  .rlist{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .rlist li{
+    background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;
+    font-variant-numeric:tabular-nums;font-size:13.5px;font-weight:600;
+    display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;
+  }
+  .rlist .n{color:var(--muted);font-size:12.5px;min-width:30px}
+  .badge{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid var(--line)}
+  .b-ok{color:var(--ok);border-color:rgba(16,185,129,.4)}
+  .b-no{color:var(--danger);border-color:rgba(239,68,68,.4)}
+  .b-warn{color:var(--gold);border-color:rgba(217,182,92,.4)}
+  .b-mut{color:var(--muted)}
+  .b-spd{color:var(--neon);border-color:rgba(220,187,114,.4)}
+  .empty{color:var(--muted);font-size:13px}
+  .pro-note{margin-top:12px;font-size:12px;font-weight:700;color:var(--gold);display:flex;align-items:center;gap:7px}
+
+  details{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:14px 18px}
+  summary{font-size:14.5px;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:'+';color:var(--muted);font-size:18px;font-weight:600}
+  details[open] summary::after{content:'−'}
+  .help{margin-top:10px;color:var(--muted);font-size:13.5px;line-height:1.6}
+  .help li{margin:0 0 6px 16px}
+  .pdiag{width:100%;max-width:300px;display:block;margin:8px auto 2px}
+  .note{margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5}
+
+  footer{margin-top:22px;text-align:center;color:var(--muted);font-size:11.5px;font-weight:600;letter-spacing:.02em}
+  footer b{color:var(--gold)}
+
+  .plans{display:grid;gap:10px;text-align:left}
+  .pcoach{font-size:12.5px;color:var(--muted);text-align:center;padding:10px 4px 2px;line-height:1.5}
+  .pcoach a{color:var(--gold);font-weight:800;text-decoration:none;border-bottom:1px solid rgba(217,182,92,.4)}
+  .plan{border:1px solid rgba(217,182,92,.45);border-radius:16px;padding:14px;background:rgba(217,182,92,.06)}
+  .plan .pb{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#0B0B0A;background:linear-gradient(135deg,#F6E27A 0%,#D9B65C 55%,#A47F1E 100%);border-radius:999px;padding:4px 10px;margin-bottom:8px}
+  .plan .pp{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}
+  .plan .pp small{font-size:13px;color:var(--muted);font-weight:600}
+  .plan .old{font-size:14px;color:var(--muted);text-decoration:line-through;margin-left:8px;font-weight:600}
+  .plan .pn{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.4}
+  .plan .pcta{margin-top:11px;width:100%;font-size:14px;font-weight:700;padding:12px;border-radius:13px;background:linear-gradient(135deg,#F6E27A 0%,#D9B65C 55%,#A47F1E 100%);color:#0B0B0A}
+  .plan .pcta:active{transform:scale(.98)}
+  .pwov{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:14px}
+  .pwov.show{display:flex}
+  .pwbox{position:relative;width:100%;max-width:480px;max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:14px}
+  .pwclose{position:absolute;top:10px;right:10px;z-index:2;background:#eee;color:#333;width:32px;height:32px;border-radius:50%;font-size:15px;line-height:1}
+  .mvseg{display:flex;gap:7px;margin:0 0 12px}
+  .mvseg button{flex:1;padding:10px 4px;border-radius:13px;font-size:13.5px;font-weight:800;letter-spacing:.02em;background:rgba(255,255,255,.05);color:var(--muted);border:1px solid rgba(255,255,255,.09)}
+  .mvseg button.on{background:linear-gradient(135deg,rgba(217,182,92,.22),rgba(217,182,92,.10));color:var(--gold);border-color:rgba(217,182,92,.55)}
+  @media (prefers-reduced-motion:reduce){.stage{transition:none}.btn{transition:none}.vbar i{transition:none}}
+
+  /* ── Conseils de correction (moteur commun aux 5 analyses) ── */
+  .cue{flex-basis:100%;margin-top:7px;padding:8px 10px;border-radius:10px;
+    background:rgba(217,182,92,.10);border-left:3px solid var(--gold);
+    color:#E8D9A0;font-size:12.5px;font-weight:600;line-height:1.45}
+  .cue-fix{display:inline-block;margin-left:4px;color:var(--gold);font-weight:800;
+    text-decoration:underline;white-space:nowrap;cursor:pointer;background:none;border:0;
+    font-family:inherit;font-size:inherit;padding:0}
+  .livecue{position:absolute;left:8px;right:8px;bottom:8px;z-index:3;
+    background:rgba(8,8,8,.92);border-left:4px solid var(--gold);border-radius:12px;
+    padding:11px 13px;color:#F6E7B4;font-size:17px;font-weight:800;line-height:1.32;
+    letter-spacing:-.01em;pointer-events:none;animation:cuein .18s ease-out}
+  .livecue.ok{border-left-color:var(--neon);color:#B9FFE2;font-size:15px}
+  .livecue b{color:var(--gold);font-weight:900}
+  .livecue.ok b{color:var(--neon)}
+  @keyframes cuein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .yt-ov{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.92);display:none;
+    align-items:center;justify-content:center;padding:16px}
+  .yt-ov.show{display:flex}
+  .yt-box{width:100%;max-width:520px}
+  .yt-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .yt-name{font-size:14px;font-weight:700;color:#fff;min-width:0;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .yt-close{flex:0 0 36px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.25);
+    background:rgba(255,255,255,.08);color:#fff;font-size:16px;display:grid;place-items:center}
+  .yt-frame{position:relative;width:100%;padding-top:56.25%;border-radius:14px;overflow:hidden;
+    background:#000;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+  .yt-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .yt-fb{display:none;width:100%;margin-top:10px;padding:12px 14px;border-radius:12px;
+    background:var(--surface2);border:1px solid var(--line);color:var(--txt);
+    font-size:13.5px;font-weight:600;text-align:center}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+/* === Coach DM - typographie unifiee : titres condenses comme sur coachdm.be === */
+:root{ --font-display:'Barlow Condensed','Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+h1, h2,
+.hh-hello, .hero-name, .sp-name, .wod-name, .wod-num,
+.kcal, .plan-price, .rest-num, .qz-res-n, .se-d-title{
+  font-family: var(--font-display);
+  letter-spacing: .012em;
+}
+</style>
+<style id="nx-page">
+/* ==========================================================================
+   COACH DM 2.4 — charte noir et or (refonte, TestFlight)
+   Une seule source : couleurs, polices, surfaces. Aucun contour.
+   Les polices sont embarquees (dossier fonts/) : rien ne depend de Google.
+   ========================================================================== */
+@font-face{font-family:'Barlow Condensed';font-weight:500;font-display:swap;src:url(fonts/barlow-condensed-latin-500-normal.woff2) format('woff2'),url(fonts/barlow-condensed-latin-ext-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:600;font-display:swap;src:url(fonts/barlow-condensed-latin-600-normal.woff2) format('woff2'),url(fonts/barlow-condensed-latin-ext-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:700;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format('woff2'),url(fonts/barlow-condensed-latin-ext-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Barlow Condensed';font-weight:800 900;font-display:swap;src:url(fonts/barlow-condensed-latin-700-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:300 400;font-display:swap;src:url(fonts/inter-latin-400-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:500;font-display:swap;src:url(fonts/inter-latin-500-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:600;font-display:swap;src:url(fonts/inter-latin-600-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Inter';font-weight:700 900;font-display:swap;src:url(fonts/inter-latin-700-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-700-normal.woff2) format('woff2')}
+/* l'ancienne police est remplacee partout ou elle est nommee */
+@font-face{font-family:'Outfit';font-weight:300 400;src:url(fonts/inter-latin-400-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-400-normal.woff2) format('woff2')}
+@font-face{font-family:'Outfit';font-weight:500;src:url(fonts/inter-latin-500-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Outfit';font-weight:600;src:url(fonts/inter-latin-600-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-600-normal.woff2) format('woff2')}
+@font-face{font-family:'Outfit';font-weight:700 900;src:url(fonts/inter-latin-700-normal.woff2) format('woff2'),url(fonts/inter-latin-ext-700-normal.woff2) format('woff2')}
+
+:root,:root[data-theme="light"],:root[data-theme="dark"]{
+  --bg:#0B0B0A; --bg-2:#0B0B0A;
+  --surface:#151513; --surface-2:#1D1C19; --surface-3:#262420; --line:rgba(255,255,255,.06);
+  --text:#F4F1E9; --muted:#8F8B80; --muted-2:#5F5C55;
+  --brand:#DCBB72; --brand-2:#C49E4C; --brand-soft:rgba(220,187,114,.13); --brand-ink:#DCBB72; --go:#DCBB72;
+  --gold-hi:#EBD49A; --gold:#DCBB72; --gold-mid:#C49E4C; --gold-deep:#8B6914; --bronze:#6E4E12;
+  --gold-soft:rgba(220,187,114,.13); --on-gold:#1B1405; --gold-ink:#DCBB72;
+  --gold-grad:linear-gradient(180deg,#E6C783,#C9A24E);
+  --prot:#E0574F; --carb:#5B9AD6; --fat:#DCBB72; --fiber:#8FB573;
+  --ok:#DCBB72; --warn:#E0574F;
+  --shadow:none; --shadow-soft:none; --glow:none;
+  --radius:22px; --radius-sm:14px;
+  --font-d:'Barlow Condensed','Arial Narrow',sans-serif; --font-display:'Barlow Condensed','Arial Narrow',sans-serif;
+  --font-t:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;
+  --ink:#1B1405; --red:#E0574F; --blue:#5B9AD6;
+  color-scheme:dark;
+}
+html,body{background:#0B0B0A!important}
+body{font-family:var(--font-t)!important;background:#0B0B0A!important;color:var(--text)}
+/* aucun contour, aucune lueur : les blocs se lisent par le fond et l'espace */
+*:not(input):not(textarea):not(select){border-color:transparent!important}
+*{text-shadow:none!important;text-transform:none!important}
+*::before,*::after{border-color:transparent!important}
+.block,.card,.sheet,.blk,[class*="-card"],[class*="tile"],.an-card,.insight,.hero-w{box-shadow:none!important}
+input,textarea,select{background:var(--surface-2)!important;border:0!important;border-radius:14px!important;color:var(--text)!important;box-shadow:none!important;outline:none}
+input::placeholder,textarea::placeholder{color:var(--muted-2)!important}
+/* pages a part : boutons en pilule, cartes sur fond, titres en Barlow */
+body[data-nx] button,body[data-nx] .btn,body[data-nx] a.btn{border-radius:999px;box-shadow:none!important}
+body[data-nx] h1,body[data-nx] h2{font-family:var(--font-d)!important;font-weight:600!important;letter-spacing:.01em}
+@media(max-width:1039px){.detail-void{display:none!important}}
+@media(max-width:760px){.tb-kick{display:none!important}.tb-id img{width:34px!important;height:34px!important}}
+
+</style>
+</head>
+<body data-nx="1">
+
+<header>
+  <a class="backapp" href="app.html" aria-label="Coach DM App">‹</a>
+  <div>
+    <div class="brand"><img class="brandlogo" src="/logo-dm.png" alt="" onerror="this.remove()"><span>COACH <em>DM</em></span></div>
+    <div class="sub" id="subline"></div>
+  </div>
+  <div class="lang" id="lang">
+    <button data-lang="fr">FR</button><button data-lang="en">EN</button><button data-lang="nl">NL</button>
+  </div>
+</header>
+
+<div class="mvseg" id="mvseg">
+  <button data-mv="snatch">Snatch</button><button data-mv="clean">Clean</button><button data-mv="jerk">Jerk</button>
+</div>
+
+<div class="stage" id="stage">
+  <video id="cam" playsinline muted autoplay></video>
+  <canvas id="overlay"></canvas>
+  <div class="hud"><span class="pill" id="pill"><span class="dot"></span><span id="pill-txt"></span></span></div>
+  <div class="speed-chip" id="spd" hidden><small>m/s</small><span id="spd-val">—</span></div>
+  <div class="angle-chip" id="chip" hidden><small id="chip-lbl"></small><span id="chip-val">—</span></div>
+  <div class="livecue" id="livecue" hidden></div>
+  <div class="dbg" id="cdm-dbg" hidden></div>
+  <div class="splash" id="splash">
+    <svg class="squatter" viewBox="0 0 24 24"><circle cx="12" cy="7" r="2"/><path d="M12 9v4M12 13l-3 4M12 13l3 4M12 10l-5-4M12 10l5-4"/><path d="M4.5 6v0M19.5 6v0"/><rect x="3" y="4.5" width="2.6" height="3" rx=".6"/><rect x="18.4" y="4.5" width="2.6" height="3" rx=".6"/></svg>
+    <p id="splash-p"></p>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn" id="b-start"></button>
+  <button class="btn ghost" id="b-flip" disabled>⇄</button>
+  <button class="btn ghost" id="b-reset" disabled></button>
+  <button class="btn ghost" id="b-rec" disabled style="flex:0 0 92px">⏺ REC</button>
+</div>
+
+<div class="result">
+  <div class="lbl" id="res-lbl"></div>
+  <div class="big" id="res-reps">0</div>
+  <div class="meta">
+    <span><span id="m-par"></span> <b class="g" id="res-par">—</b></span>
+    <span><span id="m-depth"></span> <b id="res-depth">—</b></span>
+  </div>
+</div>
+
+<div class="controls" id="save-row" style="display:none">
+  <button class="btn" id="b-save"></button>
+  <button class="btn ghost" id="b-share" style="flex:0 0 56px;font-size:19px"><svg viewBox="0 0 24 24" width="22px" height="22px" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-.2em" aria-hidden="true"><path d="M12 15V3.5M7.5 8 12 3.5 16.5 8"/><path d="M5 12.5V19a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-6.5"/></svg></button>
+</div>
+
+<!-- ══ Analyse Pro (VBT) — verrou Premium ══ -->
+<div class="card pro" id="vbt-gate" style="display:none;text-align:center">
+  <h3 id="vbt-gate-h" style="margin-bottom:8px"></h3>
+  <p class="gatep" id="vbt-gate-p"></p>
+  <div class="plans" id="gate-plans"></div>
+</div>
+
+<!-- ══ Analyse Pro (VBT) — panneau Premium ══ -->
+<div class="card pro" id="vbt-card" style="display:none">
+  <h3><span id="vbt-h"></span><span class="protag">PRO</span></h3>
+  <p class="gatep" id="vbt-hint" style="margin-bottom:12px"></p>
+  <div class="vrow">
+    <div class="vfield"><label id="l-vh"></label><input id="in-vh" type="number" inputmode="decimal" min="120" max="220" step="0.5" placeholder="180"></div>
+    <div class="vfield"><label id="l-vl"></label><input id="in-vl" type="number" inputmode="decimal" min="0" max="400" step="0.5" placeholder="100"></div>
+  </div>
+  <div class="vres">
+    <div class="m"><div class="v"><span id="v-last">—</span><small> m/s</small></div><div class="k" id="k-last"></div></div>
+    <div class="m"><div class="v"><span id="v-best">—</span><small> m/s</small></div><div class="k" id="k-best"></div></div>
+    <div class="m"><div class="v"><span id="v-vl">—</span></div><div class="k" id="k-vl"></div></div>
+    <div class="m"><div class="v"><span id="v-dev">—</span><small> cm</small></div><div class="k" id="k-dev"></div></div>
+  </div>
+  <div class="vbar" id="v-bar"><i id="v-fill"></i><span class="vmark"></span></div>
+  <div class="vscale"><span>0%</span><span>−10%</span><span>−20%</span></div>
+  <div class="vstop" id="v-stop" style="display:none"></div>
+  <div class="vnote" id="vbt-note"></div>
+</div>
+
+<div class="card">
+  <h3 id="list-h"></h3>
+  <ul class="rlist" id="rlist"></ul>
+  <div class="empty" id="rempty"></div>
+  <div class="pro-note" id="pro-note" style="display:none">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    <span id="pro-note-txt"></span>
+  </div>
+</div>
+
+<details>
+  <summary id="place-h"></summary>
+  <svg class="pdiag" viewBox="0 0 320 190" aria-hidden="true">
+    <ellipse cx="150" cy="62" rx="30" ry="11" fill="none" stroke="#9CA3AF" stroke-width="2"/>
+    <circle cx="150" cy="62" r="7.5" fill="#F5F5F4"/>
+    <line x1="188" y1="62" x2="252" y2="62" stroke="rgba(220,187,114,.45)" stroke-width="2" stroke-dasharray="5 5"/>
+    <rect x="258" y="49" width="17" height="27" rx="4.5" fill="none" stroke="#DCBB72" stroke-width="2.5"/>
+    <text x="266" y="97" fill="#DCBB72" font-size="12" font-weight="800" text-anchor="middle">90° ✓</text>
+    <line x1="150" y1="80" x2="150" y2="128" stroke="rgba(220,187,114,.45)" stroke-width="2" stroke-dasharray="5 5"/>
+    <rect x="141" y="134" width="17" height="27" rx="4.5" fill="none" stroke="#DCBB72" stroke-width="2.5"/>
+    <text x="150" y="182" fill="#DCBB72" font-size="12" font-weight="800" text-anchor="middle">0° ✓</text>
+    <line x1="176" y1="80" x2="222" y2="122" stroke="rgba(239,68,68,.45)" stroke-width="2" stroke-dasharray="5 5"/>
+    <rect x="226" y="126" width="17" height="27" rx="4.5" fill="none" stroke="#EF4444" stroke-width="2.5"/>
+    <text x="235" y="174" fill="#EF4444" font-size="12" font-weight="800" text-anchor="middle">45° ✗</text>
+  </svg>
+  <ol class="help" id="place-ol"></ol>
+</details>
+
+<details>
+  <summary id="help-h"></summary>
+  <ol class="help" id="help-ol"></ol>
+  <div class="note" id="help-note"></div>
+</details>
+
+<!-- ══ Paiement Stripe sur place — Coach & Coach+ ══ -->
+<div class="pwov" id="pw-ov">
+  <div class="pwbox">
+    <button class="pwclose" id="pw-close" aria-label="Fermer">✕</button>
+    <div id="ck-mount" style="min-height:40px"></div>
+  </div>
+</div>
+
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">barre v1.0</span></footer>
+
+<script type="module">
+/* Shim: MediaPipe's WASM glue references bare globals (dbg/out/err). If any DOM element
+   shadows them via named access, force real functions so the glue never crashes. */
+try{window.dbg=function(){};window.out=window.out&&typeof window.out==='function'?window.out:function(){};window.err=window.err&&typeof window.err==='function'?window.err:function(){};}catch(_){}
+
+import { PoseLandmarker, FilesetResolver, DrawingUtils } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21";
+
+/* ───────── i18n ───────── */
+const I18N = {
+
+
+  st_walking:{fr:'Tu te déplaces — pose-toi de profil pour mesurer',en:'You are moving — stand still, side-on, to measure',nl:'Je beweegt — sta stil in zijaanzicht om te meten'},
+  cue_clean:{fr:'Propre — rien à corriger',en:'Clean — nothing to fix',nl:'Zuiver — niets te corrigeren'},
+  yt_fb:{fr:'La vidéo ne démarre pas ? Ouvrir le lecteur',en:'Video not playing? Open the player',nl:'Video start niet? Open de speler'},
+  subline:{fr:'Analyse Barre — reps & bar path gratuits · VBT en Pro',en:'Barbell Analysis — free reps & bar path · VBT in Pro',nl:'Barbell-analyse — gratis reps & bar path · VBT in Pro'},
+  splash:{fr:'Téléphone stable à 3–5 m, DE PROFIL (90°), corps entier + barre dans le cadre. Le tracé de la barre se dessine en direct.',en:'Stable phone at 3–5 m, SIDE-ON (90°), full body + bar in frame. The bar path draws live.',nl:'Stabiele telefoon op 3–5 m, ZIJWAARTS (90°), hele lichaam + bar in beeld. Het bar path tekent live.'},
+  start:{fr:'Lancer la caméra',en:'Start camera',nl:'Camera starten'},
+  stop:{fr:'Arrêter',en:'Stop',nl:'Stoppen'},
+  reset:{fr:'Remettre à zéro',en:'Reset',nl:'Resetten'},
+  st_loading:{fr:'Chargement du modèle IA…',en:'Loading AI model…',nl:'AI-model laden…'},
+  st_ready:{fr:'Prêt — lifte quand tu veux',en:'Ready — lift whenever you want',nl:'Klaar — lift wanneer je wilt'},
+  st_pull:{fr:'TIRAGE…',en:'PULL…',nl:'TREKKEN…'},
+  st_lock:{fr:'RÉCEPTION ✓',en:'CATCH ✓',nl:'RECEPTIE ✓'},
+  st_noperson:{fr:'Corps entier non visible — recule',en:'Full body not visible — step back',nl:'Lichaam niet volledig zichtbaar — stap achteruit'},
+  st_err_cam:{fr:'Caméra refusée — autorise l\'accès dans Réglages',en:'Camera denied — allow access in Settings',nl:'Camera geweigerd — sta toegang toe in Instellingen'},
+  st_err_model:{fr:'Modèle IA indisponible — vérifie ta connexion',en:'AI model unavailable — check your connection',nl:'AI-model niet beschikbaar — controleer je verbinding'},
+  chip_lbl:{fr:'Barre',en:'Bar',nl:'Bar'},
+  res_lbl:{fr:'Répétitions',en:'Repetitions',nl:'Herhalingen'},
+  m_par:{fr:'Vitesse pic max',en:'Best peak velocity',nl:'Beste pieksnelheid'},
+  m_depth:{fr:'Déviation mini',en:'Smallest deviation',nl:'Kleinste afwijking'},
+  list_h:{fr:'Reps de la série',en:'Set reps',nl:'Reps deze set'},
+  list_empty:{fr:'Aucune rep détectée pour l\'instant.',en:'No reps detected yet.',nl:'Nog geen reps gedetecteerd.'},
+  save:{fr:'Enregistrer la série',en:'Save set',nl:'Set opslaan'},
+  saving:{fr:'Enregistrement…',en:'Saving…',nl:'Opslaan…'},
+  saved:{fr:'✓ Série enregistrée',en:'✓ Set saved',nl:'✓ Set opgeslagen'},
+  save_fail:{fr:'Échec — vérifie ta connexion',en:'Failed — check your connection',nl:'Mislukt — controleer je verbinding'},
+  save_login:{fr:'Connecte-toi dans l\'app pour enregistrer tes séries.',en:'Log in to the app to save your sets.',nl:'Log in in de app om je sets op te slaan.'},
+  sh_bar_t:{fr:'ANALYSE BARRE',en:'BARBELL ANALYSIS',nl:'BARBELL-ANALYSE'},
+  sh_reps:{fr:'RÉPÉTITIONS',en:'REPS',nl:'HERHALINGEN'},
+  sh_path:{fr:'BAR PATH',en:'BAR PATH',nl:'BAR PATH'},
+  sh_peak:{fr:'PIC (m/s)',en:'PEAK (m/s)',nl:'PIEK (m/s)'},
+  sh_vl:{fr:'PERTE VITESSE',en:'VELOCITY LOSS',nl:'SNELH.VERLIES'},
+  sh_dev:{fr:'DÉVIATION (cm)',en:'DEVIATION (cm)',nl:'AFWIJKING (cm)'},
+  sh_fail:{fr:'Partage impossible sur ce navigateur — image téléchargée.',en:'Sharing unavailable on this browser — image downloaded.',nl:'Delen niet beschikbaar in deze browser — afbeelding gedownload.'},
+  rec_hint:{fr:'⏺ REC',en:'⏺ REC',nl:'⏺ REC'},
+  rec_stop:{fr:'■ {t}',en:'■ {t}',nl:'■ {t}'},
+  rec_fail:{fr:'Enregistrement vidéo non supporté sur ce navigateur.',en:'Video recording not supported on this browser.',nl:'Video-opname wordt niet ondersteund in deze browser.'},
+  rec_dl:{fr:'Partage indisponible — vidéo téléchargée.',en:'Sharing unavailable — video downloaded.',nl:'Delen niet beschikbaar — video gedownload.'},
+  rec_cap:{fr:'⬇ Enregistrer (10 min atteintes)',en:'⬇ Save (10 min reached)',nl:'⬇ Bewaren (10 min bereikt)'},
+  rec_cap_msg:{fr:'Limite de 10 minutes atteinte — appuie sur ⬇ pour enregistrer ta vidéo.',en:'10-minute limit reached — tap ⬇ to save your video.',nl:'Limiet van 10 minuten bereikt — tik op ⬇ om je video te bewaren.'},
+  b_over:{fr:'Overhead ✓',en:'Overhead ✓',nl:'Overhead ✓'},
+  b_shoulder:{fr:'Épaules ✓',en:'Shoulders ✓',nl:'Schouders ✓'},
+  b_dev_w:{fr:'⚠ Barre qui s\'éloigne',en:'⚠ Bar drifting away',nl:'⚠ Bar wijkt af'},
+  mv_snatch:{fr:'Snatch',en:'Snatch',nl:'Snatch'},
+  mv_clean:{fr:'Clean',en:'Clean',nl:'Clean'},
+  mv_jerk:{fr:'Jerk',en:'Jerk',nl:'Jerk'},
+  vbt_gate_h:{fr:'Analyse Pro (Bar Path + VBT) — fonctionnalité Premium',en:'Pro Analysis (Bar Path + VBT) — Premium feature',nl:'Pro-analyse (Bar Path + VBT) — Premium functie'},
+  vbt_gate_p:{fr:'Le compteur de reps et le tracé de la barre en direct sont gratuits pour tous. L\'Analyse Pro — vitesse pic de chaque rep (m/s), perte de vitesse avec alerte, déviation horizontale de la barre en cm — est incluse dans l’abonnement. Abonne-toi directement ici, sans quitter la page.',en:'Rep counting and the live bar path trace are free for everyone. Pro Analysis — per-rep peak bar velocity (m/s), velocity loss with alert, horizontal bar deviation in cm — is for the subscription. Subscribe right here, without leaving the page.',nl:'Reps tellen en het live bar path zijn gratis voor iedereen. Pro-analyse — pieksnelheid per rep (m/s), snelheidsverlies met waarschuwing, horizontale afwijking van de bar in cm — is voor de abonnement. Abonneer je hier, zonder de pagina te verlaten.'},
+  pw_year:{fr:'/an',en:'/year',nl:'/jaar'},
+  pw_membre_f:{fr:'Membre Fondateur',en:'Founding Member',nl:'Oprichtend lid'},
+  pw_membre:{fr:'Membre',en:'Member',nl:'Lid'},
+  pw_note_m:{fr:'Toutes les analyses Pro, le Coach IA, la photo-calories et les 13 programmes. Sans engagement.',en:'All Pro analyses, the AI Coach, photo-calories and all 13 programs. Cancel anytime.',nl:'Alle Pro-analyses, de AI-coach, foto-calorie\u00ebn en de 13 programma\u2019s. Maandelijks opzegbaar.'},
+  pw_note_y:{fr:'La m\u00eame chose, factur\u00e9e \u00e0 l\u2019ann\u00e9e : deux mois offerts.',en:'Same thing, billed yearly: two months free.',nl:'Hetzelfde, jaarlijks gefactureerd: twee maanden gratis.'},
+  pw_coach_link:{fr:'Tu es coach et tu g\u00e8res des clients ?',en:'Are you a coach managing clients?',nl:'Ben je coach met klanten?'},
+  pw_coach_link_a:{fr:'Voir les offres Coach',en:'See Coach plans',nl:'Bekijk Coach-abonnementen'},
+  pw_choose:{fr:'Choisir cette offre',en:'Choose this plan',nl:'Kies dit abonnement'},
+  pw_month:{fr:'/mois',en:'/month',nl:'/maand'},
+  pw_native:{fr:'Les abonnements ne sont pas disponibles dans cette version de l\u2019app.',en:'Subscriptions are not available in this version of the app.',nl:'Abonnementen zijn niet beschikbaar in deze versie van de app.'},
+  pw_note20:{fr:'Jusqu\'à 20 clients actifs',en:'Up to 20 active clients',nl:'Tot 20 actieve klanten'},
+  pw_note30:{fr:'Jusqu\'à 30 clients actifs — exclusivité fondateur',en:'Up to 30 active clients — founder exclusive',nl:'Tot 30 actieve klanten — exclusief voor oprichters'},
+  pw_note50:{fr:'Jusqu\'à 50 clients actifs',en:'Up to 50 active clients',nl:'Tot 50 actieve klanten'},
+  pw_note60:{fr:'Jusqu\'à 60 clients actifs — exclusivité fondateur',en:'Up to 60 active clients — founder exclusive',nl:'Tot 60 actieve klanten — exclusief voor oprichters'},
+  pw_coach_f:{fr:'Coach Fondateur',en:'Founding Coach',nl:'Oprichtende coach'},
+  pw_coachp_f:{fr:'Coach+ Fondateur',en:'Founding Coach+',nl:'Oprichtend Coach+'},
+  pw_left:{fr:'Plus que {n} places fondateur',en:'Only {n} founder spots left',nl:'Nog {n} oprichtersplaatsen'},
+  pw_consent_h:{fr:'Avant de payer',en:'Before you pay',nl:'Voor je betaalt'},
+  pw_consent:{fr:'Je demande l\'accès immédiat au service et je reconnais qu\'en démarrant maintenant, je renonce à mon droit de rétractation de 14 jours dès l\'ouverture de mon accès premium (art. VI.53 du Code de droit économique).',en:'I request immediate access to the service and acknowledge that by starting now, I waive my 14-day right of withdrawal as soon as my premium access is opened (art. VI.53 of the Belgian Code of Economic Law).',nl:'Ik vraag onmiddellijke toegang tot de dienst en erken dat ik, door nu te starten, afstand doe van mijn herroepingsrecht van 14 dagen zodra mijn premium-toegang wordt geopend (art. VI.53 van het Wetboek van economisch recht).'},
+  pw_continue:{fr:'Continuer vers le paiement',en:'Continue to payment',nl:'Doorgaan naar betaling'},
+  pw_fail:{fr:'Paiement indisponible. Réessaie dans un instant.',en:'Payment unavailable. Try again shortly.',nl:'Betaling niet beschikbaar. Probeer straks opnieuw.'},
+
+  vbt_h:{fr:'Analyse Pro — Bar Path & Vitesse (VBT)',en:'Pro Analysis — Bar Path & Velocity (VBT)',nl:'Pro-analyse — Bar Path & Snelheid (VBT)'},
+  vbt_hint:{fr:'Entre ta taille (une fois) et la charge sur la barre. Chaque rep : vitesse pic de la barre, perte de vitesse et déviation horizontale. En haltérophilie, coupe ta série dès −10% de vitesse pic : au-delà, la technique se dégrade plus vite que la force ne progresse (Weakley 2021).',en:'Enter your height (once) and the load on the bar. Every rep: peak bar velocity, velocity loss and horizontal deviation. In weightlifting, cut your set at −10% peak velocity: beyond that, technique degrades faster than strength improves (Weakley 2021).',nl:'Vul één keer je lengte in en de belasting op de bar. Elke rep: pieksnelheid van de bar, snelheidsverlies en horizontale afwijking. Stop je set bij −10% pieksnelheid: daarboven verslechtert de techniek sneller dan de kracht toeneemt (Weakley 2021).'},
+  vbt_height:{fr:'Taille (cm)',en:'Height (cm)',nl:'Lengte (cm)'},
+  vbt_load:{fr:'Charge barre (kg)',en:'Bar load (kg)',nl:'Bar belasting (kg)'},
+  vbt_last:{fr:'Dernière rep',en:'Last rep',nl:'Laatste rep'},
+  vbt_best:{fr:'Meilleure',en:'Best',nl:'Beste'},
+  vbt_loss:{fr:'Perte vitesse',en:'Velocity loss',nl:'Snelheidsverlies'},
+  vbt_dev:{fr:'Déviation',en:'Deviation',nl:'Afwijking'},
+  vbt_stop:{fr:'Perte de vitesse ≥ 10% — arrête ta série : en haltérophilie, la qualité du geste prime, les reps lentes détruisent la technique.',en:'Velocity loss ≥ 10% — end your set: in weightlifting movement quality comes first, slow reps destroy technique.',nl:'Snelheidsverlies ≥ 10% — stop je set: in gewichtheffen komt bewegingskwaliteit eerst, trage reps breken de techniek af.'},
+  vbt_note:{fr:'Vitesse et déviation mesurées sur la barre (point milieu des poignets), calibrées sur ta taille. Sans taille renseignée, les mesures en m/s et cm restent vides. Repères vitesse pic au max : Snatch ≈ 1,6–2,0 m/s · Clean ≈ 1,4–1,8 m/s (Garhammer 1985).',en:'Velocity and deviation measured on the bar (wrist midpoint), calibrated on your height. Without a height, m/s and cm stay empty. Peak velocity references at max: Snatch ≈ 1.6–2.0 m/s · Clean ≈ 1.4–1.8 m/s (Garhammer 1985).',nl:'Snelheid en afwijking gemeten op de bar (middenpunt polsen), gekalibreerd op je lengte. Zonder lengte blijven m/s en cm leeg. Referenties pieksnelheid op max: Snatch ≈ 1,6–2,0 m/s · Clean ≈ 1,4–1,8 m/s (Garhammer 1985).'},
+  pro_note:{fr:'Analyse Pro \u2014 incluse dans l\u2019abonnement',en:'Pro Analysis \u2014 included with your subscription',nl:'Pro-analyse \u2014 inbegrepen in je abonnement'},
+  help_h:{fr:'Comment ça marche',en:'How it works',nl:'Hoe het werkt'},
+  help_1:{fr:'Téléphone posé ou sur trépied, stable, à 3–5 m, DE PROFIL. Corps entier + barre dans le cadre, bonne lumière.',en:'Phone resting or on a tripod, stable, 3–5 m away, SIDE-ON. Full body + bar in frame, good lighting.',nl:'Telefoon neergezet of op statief, stabiel, op 3–5 m, ZIJWAARTS. Hele lichaam + bar in beeld, goed licht.'},
+  help_2:{fr:'Choisis ton mouvement (Snatch / Clean / Jerk). Gratuit : reps comptées + tracé de la barre en direct. Pro : vitesse pic, perte de vitesse et déviation en cm.',en:'Pick your movement (Snatch / Clean / Jerk). Free: rep counting + live bar path. Pro: peak velocity, velocity loss and deviation in cm.',nl:'Kies je beweging (Snatch / Clean / Jerk). Gratis: reps tellen + live bar path. Pro: pieksnelheid, snelheidsverlies en afwijking in cm.'},
+  help_3:{fr:'La barre est suivie via tes poignets : garde les mains sur la barre du départ à la fin de la rep.',en:'The bar is tracked via your wrists: keep your hands on the bar from start to finish of the rep.',nl:'De bar wordt gevolgd via je polsen: houd je handen op de bar van begin tot einde van de rep.'},
+  help_4:{fr:'Le cadre s\'illumine à la réception (overhead pour snatch/jerk, épaules pour clean). Bip aigu = rep validée.',en:'The frame lights up at the catch (overhead for snatch/jerk, shoulders for clean). High beep = valid rep.',nl:'Het kader licht op bij de receptie (overhead voor snatch/jerk, schouders voor clean). Hoge piep = geldige rep.'},
+  st_view:{fr:'Mets-toi bien de profil (90°) pour un bar path fiable',en:'Go fully side-on (90°) for a reliable bar path',nl:'Ga volledig zijwaarts (90°) voor een betrouwbaar bar path'},
+  place_h:{fr:'Placement caméra — précision maximale',en:'Camera placement — maximum accuracy',nl:'Cameraplaatsing — maximale nauwkeurigheid'},
+  place_1:{fr:'De profil (90°) obligatoire : le bar path est un tracé vu de côté — c\'est la seule vue valable pour la trajectoire et la vitesse.',en:'Side-on (90°) is mandatory: the bar path is a side-view trace — the only valid view for trajectory and velocity.',nl:'Zijaanzicht (90°) is verplicht: het bar path is een zijaanzicht — de enige geldige hoek voor traject en snelheid.'},
+  place_2:{fr:'Téléphone à hauteur de hanche, à 3–5 m : la barre doit rester dans le cadre du sol jusqu\'au-dessus de la tête.',en:'Phone at hip height, 3–5 m away: the bar must stay in frame from the floor to overhead.',nl:'Telefoon op heuphoogte, 3–5 m ver: de bar moet in beeld blijven van de vloer tot boven het hoofd.'},
+  place_3:{fr:'Évite la face et le 45° : la trajectoire est écrasée, ni la déviation ni la vitesse ne sont fiables — la page te prévient en direct.',en:'Avoid front-on and 45°: the trajectory gets flattened, neither deviation nor velocity is reliable — the page warns you live.',nl:'Vermijd frontaal en 45°: het traject wordt platgedrukt, afwijking noch snelheid is betrouwbaar — de pagina waarschuwt je live.'},
+  place_4:{fr:'Plateforme dégagée : personne d\'autre dans le cadre, la barre chargée bien visible.',en:'Clear platform: nobody else in frame, the loaded bar clearly visible.',nl:'Vrij platform: niemand anders in beeld, de geladen bar goed zichtbaar.'},
+  place_5:{fr:'Lumière de face — jamais de fenêtre derrière toi — et tenue contrastée avec le fond.',en:'Light facing you — never a window behind you — and clothing that contrasts with the background.',nl:'Licht van voren — nooit een raam achter je — en kleding die contrasteert met de achtergrond.'},
+  help_note:{fr:'Barre suivie par le point milieu des poignets (MediaPipe Pose), méthode validée pour l\'analyse de trajectoire en haltérophilie (Garhammer 1985 ; Kipp 2019). VBT : perte de vitesse comme index de fatigue (Weakley 2021). 100% sur ton téléphone — aucune vidéo n\'est envoyée ni enregistrée. Outil d\'aide au coaching, ne remplace pas l\'œil du coach.',en:'Bar tracked at the wrist midpoint (MediaPipe Pose), a validated approach for barbell trajectory analysis in weightlifting (Garhammer 1985; Kipp 2019). VBT: velocity loss as fatigue index (Weakley 2021). Runs 100% on your phone — no video is uploaded or stored. A coaching aid, not a replacement for the coach\'s eye.',nl:'Bar gevolgd via het middenpunt van de polsen (MediaPipe Pose), een gevalideerde aanpak voor trajectanalyse in gewichtheffen (Garhammer 1985; Kipp 2019). VBT: snelheidsverlies als vermoeidheidsindex (Weakley 2021). Draait 100% op je telefoon — er wordt geen video verstuurd of opgeslagen. Een coachingshulpmiddel, geen vervanging voor het oog van de coach.'}
+};
+/* ── diagnostic: surface every error on screen ── */
+function showErr(msg){
+  try{
+    let b=document.getElementById('errbar');
+    if(!b){
+      b=document.createElement('div');
+      b.id='errbar';
+      b.style.cssText='margin-top:10px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.5);color:#EF4444;font-size:12px;font-weight:600;border-radius:12px;padding:10px 12px;word-break:break-word;';
+      document.querySelector('.controls').after(b);
+    }
+    b.textContent='⚠ '+msg;
+  }catch(_){}
+}
+const VER='barre v1.0';
+window.addEventListener('error',e=>showErr((e.message||'Erreur JS')+(e.lineno?' (ligne '+e.lineno+')':'')+' ['+VER+']'));
+window.addEventListener('unhandledrejection',e=>showErr('Promise: '+(e.reason&&e.reason.message||e.reason||'?')+' ['+VER+']'));
+
+const LANGS=['fr','en','nl'];
+let LANG=localStorage.getItem('cdm_lang')||'fr'; if(!LANGS.includes(LANG)) LANG='fr';
+const t=k=>{const e=I18N[k];return e?(e[LANG]||e.fr):k;};
+
+/* ───────── DOM ───────── */
+const $=s=>document.querySelector(s);
+/* Les phrases viennent de la base et sont ecrites par le coach : elles passent
+   par innerHTML et doivent etre echappees. */
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ── Moteur de conseils, commun aux 5 analyses ────────────────────────────
+   Les defauts sont deja detectes par chaque page ; ce moteur ne fait que
+   dire QUOI FAIRE. Une seule phrase par rep, celle de plus faible priority :
+   une rep qui reproche quatre choses n'est lue par personne.
+   Les trois langues sont conservees et choisies A L'AFFICHAGE, jamais au
+   chargement — sinon un changement de langue en cours de seance laisserait
+   les conseils dans l'ancienne. */
+const CUE_PAGE='barre';
+let CUES={};
+const cueText = c => (c && (c[LANG] || c.fr)) || '';
+const fixName = f => (f && (f['name_'+LANG] || f.name_fr)) || '';
+async function cuesLoad(sbClient){
+  try{
+    const { data } = await sbClient.from('analysis_cues')
+      .select('fault,priority,cue_fr,cue_en,cue_nl,fix:exercises(slug,name_fr,name_en,name_nl,video_url,youtube_query)')
+      .eq('page',CUE_PAGE).eq('active',true).order('priority',{ascending:true});
+    const m={};
+    (data||[]).forEach(r=>{ m[r.fault]={priority:r.priority,fr:r.cue_fr,en:r.cue_en,nl:r.cue_nl,fix:r.fix||null}; });
+    CUES=m;
+    try{ renderReps(); }catch(_){}
+  }catch(_){ CUES={}; }
+}
+function cuePick(faults){
+  let best=null;
+  (faults||[]).forEach(f=>{ const c=CUES[f];
+    if(c && (!best || c.priority<best.priority)) best=c; });
+  return best;
+}
+function cueHtml(cue){
+  if(!cue) return '';
+  const url=cue.fix?exDemoUrl(cue.fix):null;
+  return `<div class="cue">${esc(cueText(cue))}${
+    url ? ` <button type="button" class="cue-fix" data-fix="${esc(url)}" data-fix-name="${esc(fixName(cue.fix))}">&#9654; ${esc(fixName(cue.fix))}</button>` : ''
+  }</div>`;
+}
+
+/* ── Lecteur video : la demo ne doit jamais faire quitter l'analyse ── */
+const YT_PLAYER='https://coachdm.be/player.html';
+function ytId(u){ if(!u) return null; const m=String(u).match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/); return m?m[1]:null; }
+function exDemoUrl(ex){
+  if(!ex) return null;
+  if(ex.video_url) return ex.video_url;
+  if(ex.youtube_query) return 'https://www.youtube.com/results?search_query='+encodeURIComponent(ex.youtube_query);
+  return null;
+}
+async function ytExternal(url){
+  try{ const P=window.Capacitor&&window.Capacitor.Plugins;
+    if(P&&P.Browser){ await P.Browser.open({url, presentationStyle:'popover'}); return; } }catch(_){}
+  window.open(url,'_blank','noopener');
+}
+function ytOpen(url,name){
+  const id=ytId(url);
+  if(!id){ if(url) ytExternal(url); return; }
+  const ov=document.getElementById('yt-ov'), slot=document.getElementById('yt-slot');
+  if(!ov||!slot) return;
+  const nm=document.getElementById('yt-name'); if(nm) nm.textContent=name||'';
+  slot.innerHTML='<iframe src="'+YT_PLAYER+'?v='+encodeURIComponent(id)+'" title="'+String(name||'').replace(/"/g,'')+'"'
+    +' referrerpolicy="strict-origin-when-cross-origin"'
+    +' allow="autoplay; encrypted-media; picture-in-picture; fullscreen"'
+    +' allowfullscreen webkitallowfullscreen playsinline></iframe>';
+  const fb=document.getElementById('yt-fallback');
+  if(fb){ fb.textContent=t('yt_fb'); fb.style.display='block';
+          fb.onclick=()=>ytExternal(YT_PLAYER+'?v='+encodeURIComponent(id)); }
+  ov.classList.add('show');
+}
+function ytClose(){
+  const ov=document.getElementById('yt-ov'); if(!ov) return;
+  ov.classList.remove('show');
+  /* Vider l'iframe coupe le son, sinon la video tourne derriere l'analyse. */
+  const slot=document.getElementById('yt-slot'); if(slot) slot.innerHTML='';
+  const fb=document.getElementById('yt-fallback'); if(fb){ fb.style.display='none'; fb.onclick=null; }
+}
+document.addEventListener('click',e=>{
+  if(e.target.closest && (e.target.closest('#yt-close') || e.target.id==='yt-ov')) ytClose();
+  const b=e.target.closest && e.target.closest('[data-fix]');
+  if(b){ e.preventDefault(); ytOpen(b.dataset.fix, b.dataset.fixName||''); }
+});
+
+/* ── Bandeau live : le coach tient le telephone et lit a voix haute. ── */
+let CUE_T=0;
+function liveCue(n,cue,ok){
+  const el=document.getElementById('livecue'); if(!el) return;
+  clearTimeout(CUE_T);
+  if(!cue && !ok){ el.hidden=true; return; }
+  el.className='livecue'+(ok?' ok':'');
+  const tag=(n==null||n==='\u2014')?'':`<b>#${n}</b> `;
+  el.innerHTML = ok ? `${tag}${t('cue_clean')}` : `${tag}${esc(cue)}`;
+  el.hidden=false;
+  /* Un defaut reste 7 s — le temps de lire ET de dire. Une rep propre part
+     vite : ce n'est pas la meme information ni la meme duree de vie utile. */
+  CUE_T=setTimeout(()=>{ el.hidden=true; }, ok?2500:7000);
+}
+const video=$('#cam'), canvas=$('#overlay'), stage=$('#stage'), splash=$('#splash');
+const pill=$('#pill'), pillTxt=$('#pill-txt'), chip=$('#chip'), spdChip=$('#spd');
+const bStart=$('#b-start'), bFlip=$('#b-flip'), bReset=$('#b-reset');
+const inVH=$('#in-vh'), inVL=$('#in-vl');
+const ctx=canvas.getContext('2d');
+let du=null;
+let SB=null,UIDG=null;
+
+/* ───────── Accès (freemium) ─────────
+   Gratuit pour tous : compteur de reps + bar path en direct.
+   Pro (fn_can_analyze) : vitesse pic, perte de vitesse, déviation. */
+const ENT={known:false,ok:false};
+let PRO=false;
+
+function applyLang(){
+  document.documentElement.lang=LANG;
+  $('#subline').textContent=t('subline');
+  $('#splash-p').textContent=t('splash');
+  bStart.textContent=running?t('stop'):t('start');
+  bReset.textContent=t('reset');
+  $('#chip-lbl').textContent=t('chip_lbl');
+  $('#res-lbl').textContent=t('res_lbl');
+  $('#m-par').textContent=t('m_par');
+  $('#m-depth').textContent=t('m_depth');
+  $('#list-h').textContent=t('list_h');
+  $('#vbt-gate-h').textContent=t('vbt_gate_h');
+  $('#vbt-gate-p').textContent=t('vbt_gate_p');
+  const pwch=document.getElementById('pw-consent-h'); if(pwch)pwch.textContent=t('pw_consent_h');
+  const pwct=document.getElementById('pw-consent-txt'); if(pwct)pwct.textContent=t('pw_consent');
+  const pwco=document.getElementById('pw-continue'); if(pwco)pwco.textContent=t('pw_continue');
+  if(typeof pwRender==='function')pwRender();
+  $('#vbt-h').textContent=t('vbt_h');
+  $('#vbt-hint').textContent=t('vbt_hint');
+  $('#l-vh').textContent=t('vbt_height');
+  $('#l-vl').textContent=t('vbt_load');
+  $('#k-last').textContent=t('vbt_last');
+  $('#k-best').textContent=t('vbt_best');
+  $('#k-vl').textContent=t('vbt_loss');
+  const kd=document.getElementById('k-dev'); if(kd)kd.textContent=t('vbt_dev');
+  $('#v-stop').textContent=t('vbt_stop');
+  $('#vbt-note').textContent=t('vbt_note');
+  $('#pro-note-txt').textContent=t('pro_note');
+  $('#help-h').textContent=t('help_h');
+  $('#help-ol').innerHTML='';
+  ['help_1','help_2','help_3','help_4'].forEach(k=>{
+    const li=document.createElement('li'); li.textContent=t(k); $('#help-ol').appendChild(li);
+  });
+  $('#help-note').textContent=t('help_note');
+  $('#place-h').textContent=t('place_h');
+  $('#place-ol').innerHTML='';
+  ['place_1','place_2','place_3','place_4','place_5'].forEach(k=>{
+    const li=document.createElement('li'); li.textContent=t(k); $('#place-ol').appendChild(li);
+  });
+  document.querySelectorAll('#lang button').forEach(b=>b.classList.toggle('on',b.dataset.lang===LANG));
+  renderReps(); setStatus(lastStatus,true);
+}
+document.querySelectorAll('#lang button').forEach(b=>{
+  b.onclick=()=>{LANG=b.dataset.lang;localStorage.setItem('cdm_lang',LANG);applyLang();};
+});
+
+/* ───────── Status ───────── */
+let lastStatus='';
+function setStatus(key,force){
+  if(!key||(key===lastStatus&&!force))return;
+  lastStatus=key;
+  pillTxt.textContent=t(key);
+  pill.classList.remove('ok','warn','err');
+  if(key==='st_ready'||key==='st_lock')pill.classList.add('ok');
+  else if(key==='st_pull'||key==='st_loading'||key==='st_view')pill.classList.add('warn');
+  else if(key.startsWith('st_err')||key==='st_noperson')pill.classList.add('err');
+}
+
+/* ───────── Audio ───────── */
+let AC=null;
+/* Deverrouillage audio iOS. resume() seul ne suffit pas : Safari n'ouvre
+   reellement la sortie qu'apres qu'un son ait ete JOUE pendant le geste
+   utilisateur. Un buffer muet d'une frame fait l'affaire. */
+/* ---- Retour tactile ----------------------------------------------------
+   iOS n'implemente pas navigator.vibrate : ni Safari ni la WKWebView. Tous les
+   appels ci-dessous ne faisaient donc strictement rien sur iPhone, alors que
+   c'est precisement pendant une analyse que le membre ne regarde pas l'ecran.
+   Le plugin Haptics de Capacitor, lui, pilote le Taptic Engine. On garde
+   navigator.vibrate en repli pour Android et le web. */
+function buzz(kind){
+  try{
+    var P=window.Capacitor&&window.Capacitor.Plugins, H=P&&P.Haptics;
+    if(H){
+      if(kind==='ok'){ H.impact({style:'MEDIUM'}); }
+      else if(kind==='no'){ H.notification({type:'WARNING'}); }
+      else { H.notification({type:'ERROR'}); }
+      return;
+    }
+  }catch(_){}
+  try{
+    if(navigator.vibrate){
+      navigator.vibrate(kind==='ok'?55:(kind==='no'?[45,55,45]:[90,60,90]));
+    }
+  }catch(_){}
+}
+function audioUnlock(){
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.resume)AC.resume();
+    const b=AC.createBuffer(1,1,22050), src=AC.createBufferSource();
+    src.buffer=b; src.connect(AC.destination); src.start(0);
+  }catch(_){}
+}
+function audioState(){ try{ return AC?AC.state:'absent'; }catch(_){ return 'erreur'; } }
+function beep(freq,ms,type,gain){
+  try{
+    AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    /* iOS resuspend le contexte des que la session audio change, et
+       getUserMedia le fait au demarrage de la camera. On le reveille donc
+       avant CHAQUE son et pas seulement au premier tap : l'appel est
+       idempotent et sans cout quand le contexte tourne deja. */
+    if(AC.state!=='running'&&AC.resume)AC.resume();
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.frequency.value=freq;o.type=type||'sine';
+    g.gain.setValueAtTime(gain||0.12,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+ms/1000);
+    o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+ms/1000);
+  }catch(_){}
+}
+function sndGood(){beep(880,90,'sine',0.16);setTimeout(()=>beep(1340,150,'sine',0.17),80);}
+function sndBad(){beep(300,200,'square',0.13);setTimeout(()=>beep(185,240,'square',0.13),95);}
+
+/* ───────── VBT (Pro) : calibration & état ─────────
+   Échelle métrique : hauteur du grand trochanter ≈ 0.53 × stature (anthropométrie).
+   scale (m / unité normalisée Y) = (0.53 × taille_m) / (ankleY − hipY) DEBOUT.
+   Calibration uniquement quand l'athlète est debout (genou > 160°) — jamais en position de départ. */
+const VBT={heightCm:null,loadKg:0,hip0:null,an0:null,scale:null,best:null,last:null,vl:null,devLast:null,devBest:null,stop:false};
+const VL_STOP=10; /* haltérophilie : seuil pic −10% (Weakley 2021) */
+try{
+  const st=JSON.parse(localStorage.getItem('cdm_vbt')||'{}');
+  if(st.h)inVH.value=st.h; if(st.l)inVL.value=st.l;
+}catch(_){}
+function vbtInputs(){
+  VBT.heightCm=parseFloat(inVH.value)||null;
+  VBT.loadKg=parseFloat(inVL.value)||0;
+  try{localStorage.setItem('cdm_vbt',JSON.stringify({h:inVH.value,l:inVL.value}));}catch(_){}
+  renderVBT();
+}
+inVH.oninput=vbtInputs; inVL.oninput=vbtInputs;
+function vbtCalib(lm,side){
+  const hy=lm[side.hip].y, ay=lm[side.ankle].y;
+  if(VBT.hip0==null){VBT.hip0=hy;VBT.an0=ay;}
+  else{VBT.hip0=VBT.hip0*0.9+hy*0.1;VBT.an0=VBT.an0*0.9+ay*0.1;}
+  if(VBT.heightCm){
+    const d=VBT.an0-VBT.hip0;
+    if(d>0.05)VBT.scale=(0.53*VBT.heightCm/100)/d;
+  }else VBT.scale=null;
+}
+function vbtOnRep(pv,dev){
+  if(pv!=null){
+    VBT.last=pv;
+    if(VBT.best==null||pv>VBT.best)VBT.best=pv;
+    VBT.vl=VBT.best>0?Math.max(0,(1-VBT.last/VBT.best)*100):null;
+    if(VBT.vl!=null&&VBT.vl>=VL_STOP&&!VBT.stop){
+      VBT.stop=true;
+      beep(300,180);setTimeout(()=>beep(300,180),230);setTimeout(()=>beep(240,320),460);
+      buzz('alert');
+    }
+  }
+  if(dev!=null){
+    VBT.devLast=dev;
+    if(VBT.devBest==null||dev<VBT.devBest)VBT.devBest=dev;
+  }
+  renderVBT();
+}
+function vbtResetSet(){VBT.best=null;VBT.last=null;VBT.vl=null;VBT.devLast=null;VBT.devBest=null;VBT.stop=false;renderVBT();}
+function renderVBT(){
+  if(!PRO)return;
+  const f=x=>x==null?'—':x.toFixed(2);
+  $('#v-last').textContent=f(VBT.last);
+  $('#v-best').textContent=f(VBT.best);
+  $('#v-vl').textContent=VBT.vl==null?'—':('−'+VBT.vl.toFixed(0)+'%');
+  $('#v-dev').textContent=VBT.devLast==null?'—':VBT.devLast.toFixed(0);
+  const bar=$('#v-bar');
+  const vl=VBT.vl==null?0:Math.min(20,VBT.vl);
+  $('#v-fill').style.width=(vl/20*100)+'%';
+  bar.classList.toggle('warn',VBT.vl!=null&&VBT.vl>=5&&VBT.vl<VL_STOP);
+  bar.classList.toggle('stop',VBT.vl!=null&&VBT.vl>=VL_STOP);
+  $('#v-stop').style.display=VBT.stop?'':'none';
+  if(VBT.last!=null){spdChip.hidden=false;$('#spd-val').textContent=VBT.last.toFixed(2);}
+}
+function proUI(){
+  $('#vbt-gate').style.display=(ENT.known&&!PRO)?'':'none';
+  if(ENT.known&&!PRO)pwLoad();
+  $('#vbt-card').style.display=PRO?'':'none';
+  $('#pro-note').style.display=(ENT.known&&!PRO)?'':'none';
+  if(PRO){vbtInputs();}
+  renderReps();
+}
+
+/* ───────── Bar engine (poignets = barre, machine à états par mouvement) ─────────
+   Barre = point milieu des poignets (15/16). Rep valide si la barre part de la ligne
+   de base (hanche — ou épaules pour le jerk), atteint le niveau requis (épaules pour
+   clean, au-dessus du nez pour snatch/jerk) et revient à la base. */
+/* MIN_REP_MS : 600 ms plafonnait a 100 reps/min. Un cycle d'arrache leger en
+   touch-and-go peut s'en approcher, et une rep plus rapide etait jetee sans
+   un mot. 250 ms = 240 reps/min, hors de portee humaine sur un mouvement
+   olympique : le filtre anti-bruit reste, le plafond artificiel saute. */
+const WARMUP_FRAMES=15, MIN_REP_MS=250, TRAIL_MAX=260, DEV_WARN_CM=15;
+const MV_REQ={snatch:2,clean:1,jerk:2}; /* 1=épaules, 2=overhead */
+/* Le mouvement peut arriver depuis la seance : « Filmer cette serie » sur un
+   squat clean ouvre ?mv=clean. Sans ca on tombait sur le dernier mouvement
+   choisi — un membre qui filme une epaulee et voit « Snatch » selectionne ne
+   comprend pas ce qu'il regarde. Le parametre gagne sur la memoire locale. */
+const MV_URL=(new URLSearchParams(location.search).get('mv')||'').toLowerCase();
+let MV = MV_REQ[MV_URL] ? MV_URL : (localStorage.getItem('cdm_mv')||'snatch');
+if(!MV_REQ[MV]) MV='snatch';
+if(MV_REQ[MV_URL]){ try{ localStorage.setItem('cdm_mv',MV); }catch(_){} }
+const S={mode:'idle',rep:null,lastGoodTs:0,good:0,by:null,bx:null,pv:null,pt:null,vel:0};
+let reps=[],bestPeak=null,bestDev=null,lastPath=null;
+
+document.querySelectorAll('#mvseg button').forEach(b=>{
+  b.classList.toggle('on',b.dataset.mv===MV);
+  b.onclick=()=>{
+    MV=b.dataset.mv;localStorage.setItem('cdm_mv',MV);
+    document.querySelectorAll('#mvseg button').forEach(x=>x.classList.toggle('on',x===b));
+    if(running)resetSet();
+  };
+});
+
+function resetSet(){reps=[];bestPeak=null;bestDev=null;lastPath=null;S.mode='ready';S.rep=null;S.by=null;S.bx=null;S.pv=null;S.pt=null;S.vel=0;vbtResetSet();renderReps();updateSummary();}
+
+function vis(p){return p?(p.visibility??1):0;}
+function angle3(a,b,c){
+  const v1={x:a.x-b.x,y:a.y-b.y,z:a.z-b.z},v2={x:c.x-b.x,y:c.y-b.y,z:c.z-b.z};
+  const dot=v1.x*v2.x+v1.y*v2.y+v1.z*v2.z;
+  const n=Math.hypot(v1.x,v1.y,v1.z)*Math.hypot(v2.x,v2.y,v2.z)||1e-9;
+  return Math.acos(Math.min(1,Math.max(-1,dot/n)))*180/Math.PI;
+}
+function bodyVisible(lm){
+  // chaîne épaule+hanche+poignet requise avec confiance élevée sur au moins un côté
+  const chain=(sh,hip,wr)=>Math.min(vis(lm[sh]),vis(lm[hip]),vis(lm[wr]));
+  return Math.max(chain(11,23,15),chain(12,24,16))>0.6;
+}
+function pickSide(lm){
+  const L=(vis(lm[23])+vis(lm[25])+vis(lm[27]))/3;
+  const R=(vis(lm[24])+vis(lm[26])+vis(lm[28]))/3;
+  return L>=R?{hip:23,knee:25,ankle:27,sh:11}:{hip:24,knee:26,ankle:28,sh:12};
+}
+function kneeAngle(w,side){return angle3(w[side.hip],w[side.knee],w[side.ankle]);}
+function avgY(lm,a,b){
+  const va=vis(lm[a]),vb=vis(lm[b]);
+  if(va>0.5&&vb>0.5)return (lm[a].y+lm[b].y)/2;
+  if(va>0.5)return lm[a].y;
+  if(vb>0.5)return lm[b].y;
+  return null;
+}
+/* Detecteur de deplacement.
+
+   Le moteur suit le milieu des poignets. Il ne se demandait jamais si la
+   personne etait en train de SOULEVER : marcher vers le telephone fait monter
+   les poignets par rapport a la hanche et leur donne une vitesse verticale —
+   assez pour armer une « tirade ». Le balancement des bras remplit alors
+   xmin/xmax, et la rep se termine sur « barre trop loin de toi » alors que la
+   barre n'a jamais bouge.
+
+   On ne souleve pas en marchant. On mesure donc le deplacement horizontal des
+   chevilles sur la derniere seconde : au-dela d'un seuil, la personne se
+   deplace, le moteur se met en pause et annule la rep en cours. */
+const FEET=[];              /* {t, x} sur ~1 s */
+const WALK_X=0.035;         /* amplitude horizontale des chevilles tolerée */
+function feetTrack(lm,ts){
+  const a=vis(lm[27])>0.5?lm[27].x:null, b=vis(lm[28])>0.5?lm[28].x:null;
+  const x = (a!=null&&b!=null)?(a+b)/2 : (a!=null?a:b);
+  if(x==null) return;
+  FEET.push({t:ts,x});
+  while(FEET.length && ts-FEET[0].t>1000) FEET.shift();
+}
+function walking(){
+  if(FEET.length<8) return false;
+  let lo=Infinity, hi=-Infinity;
+  FEET.forEach(f=>{ if(f.x<lo)lo=f.x; if(f.x>hi)hi=f.x; });
+  return (hi-lo) > WALK_X;
+}
+function barPoint(lm){
+  const vl=vis(lm[15]),vr=vis(lm[16]);
+  if(vl>0.5&&vr>0.5)return {x:(lm[15].x+lm[16].x)/2,y:(lm[15].y+lm[16].y)/2};
+  if(vl>0.5)return {x:lm[15].x,y:lm[15].y};
+  if(vr>0.5)return {x:lm[16].x,y:lm[16].y};
+  return null;
+}
+function viewOf(lm,side){
+  const shw=Math.abs(lm[11].x-lm[12].x);
+  const torso=Math.hypot(lm[side.sh].x-lm[side.hip].x,lm[side.sh].y-lm[side.hip].y)||1e-9;
+  const r=shw/torso;
+  return r>0.5?'front':(r<0.35?'side':'mixed');
+}
+/* déviation horizontale en cm : dx normalisé × ratio d'aspect × échelle métrique */
+const DEV_ABSURD_CM=60;
+function devCm(dx){
+  if(!VBT.scale||!canvas.height)return null;
+  const cm=dx*(canvas.width/canvas.height)*VBT.scale*100;
+  /* Personne ne deplace une barre de 60 cm a l'horizontale pendant un tirage.
+     Au-dela, c'est le suivi qui a decroche — on prefere ne rien annoncer
+     plutot que d'accuser l'athlete d'une faute qu'il n'a pas commise. */
+  return (cm>=0 && cm<DEV_ABSURD_CM) ? cm : null;
+}
+
+function handle(lm,w,ts){
+  if(!lm||!bodyVisible(lm)){
+    S.good=0;S.pv=null;S.pt=null;
+    if(ts-S.lastGoodTs>800){
+      setStatus('st_noperson');chip.hidden=true;
+      if(S.mode==='pull'){S.mode='ready';S.rep=null;stage.classList.remove('deep');} // rep en cours annulée
+    }
+    return;
+  }
+  S.lastGoodTs=ts;
+  const side=pickSide(lm);
+  feetTrack(lm,ts);
+  const bp=barPoint(lm);
+  if(!bp){updateDbg(ts,side,lm);return;}
+  if(walking()){
+    /* En deplacement : on annule la rep en cours plutot que de la finir sur
+       une mesure de trajectoire qui ne veut rien dire. */
+    if(S.mode==='pull'){ S.mode='ready'; S.rep=null; stage.classList.remove('deep'); }
+    setStatus('st_walking'); chip.hidden=true;
+    updateDbg(ts,side,lm); return;
+  }
+
+  // lissage léger (mouvement balistique : réactivité > filtrage)
+  S.by=S.by==null?bp.y:S.by*0.45+bp.y*0.55;
+  S.bx=S.bx==null?bp.x:S.bx*0.45+bp.x*0.55;
+
+  // vitesse verticale de la barre (unités normalisées / s, positif = vers le haut), EMA
+  if(S.pv!=null&&S.pt!=null){
+    const dt=(ts-S.pt)/1000;
+    if(dt>0.005&&dt<0.5){
+      const v=(S.pv-S.by)/dt;
+      S.vel=S.vel*0.5+v*0.5;
+    }
+  }
+  S.pv=S.by;S.pt=ts;
+
+  // calibration métrique : uniquement debout (genou > 160°), jamais en position de départ
+  if(w){
+    const k=kneeAngle(w,side);
+    if(k>160)vbtCalib(lm,side);
+  }
+
+  if(S.good<WARMUP_FRAMES){S.good++;updateDbg(ts,side,lm);return;} // ~0.75 s de présence stable avant d'armer
+
+  const hipY=avgY(lm,23,24),shY=avgY(lm,11,12),noseY=vis(lm[0])>0.5?lm[0].y:null;
+  if(hipY==null||shY==null){updateDbg(ts,side,lm);return;}
+  const baseY=MV==='jerk'?(shY+0.04):hipY;
+
+  if(PRO&&VBT.scale&&S.vel*VBT.scale>0.15){spdChip.hidden=false;$('#spd-val').textContent=(S.vel*VBT.scale).toFixed(2);}
+
+  if(S.mode==='ready'){
+    setStatus(viewOf(lm,side)!=='side'?'st_view':'st_ready'); // profil obligatoire pour un bar path fiable
+    /* Une trajectoire de barre mesuree de face ne veut rien dire : les
+       ecarts horizontaux qu'on lit sont de la perspective, pas de la
+       technique. On n'arme donc pas la rep hors du profil — meme logique que
+       le dos au squat, qu'on refuse de mesurer de face. */
+    if(viewOf(lm,side)==='side' && S.by<baseY-0.04 && S.vel>0.15){
+      S.mode='pull';
+      S.rep={t0:ts,x0:S.bx,pts:[{x:S.bx,y:S.by}],topY:S.by,level:0,xmin:S.bx,xmax:S.bx,peakV:0,view:viewOf(lm,side)};
+      setStatus('st_pull');
+    }
+  }else if(S.mode==='pull'){
+    const r=S.rep;
+    if(r.pts.length<TRAIL_MAX)r.pts.push({x:S.bx,y:S.by});
+    if(S.by<r.topY){ // nouvelle hauteur = phase montante : déviation mesurée ici
+      r.topY=S.by;
+      if(S.bx<r.xmin)r.xmin=S.bx;
+      if(S.bx>r.xmax)r.xmax=S.bx;
+    }
+    if(S.vel>r.peakV)r.peakV=S.vel;
+    if(shY!=null&&S.by<shY&&r.level<1)r.level=1;
+    if(noseY!=null&&S.by<noseY-0.02&&r.level<2)r.level=2;
+    r.view=viewOf(lm,side);
+    const ok=r.level>=MV_REQ[MV];
+    stage.classList.toggle('deep',ok);
+    if(ok)setStatus('st_lock');
+    if(S.by>baseY-0.02){ // retour à la base : fin de rep
+      stage.classList.remove('deep');
+      if(ok&&ts-r.t0>=MIN_REP_MS){
+        const pv=(PRO&&VBT.scale)?+(r.peakV*VBT.scale).toFixed(3):null;
+        const dv=PRO?devCm(r.xmax-r.xmin):null;
+        finishRep(r,pv,dv==null?null:+dv.toFixed(1));
+      }
+      S.mode='ready';S.rep=null;setStatus('st_ready');
+    }
+  }
+  updateDbg(ts,side,lm);
+}
+
+function finishRep(r,pv,dev){
+  reps.push({level:r.level,peakV:pv,devCm:dev,view:r.view});sndGood();
+  /* Seul defaut que cette page mesure vraiment : l'ecart de trajectoire.
+     Les autres conseils « barre » attendent en base qu'une detection existe —
+     je prefere un bandeau muet a un conseil invente. */
+  try{
+    const f=[]; if(dev!=null&&dev>DEV_WARN_CM) f.push('path_forward');
+    const c=cuePick(f);
+    liveCue(reps.length, c?cueText(c):null, !c);
+  }catch(_){}
+  lastPath=r.pts.filter((_,i)=>i%2===0); // ~130 points max pour la carte de partage
+  if(pv!=null&&(bestPeak==null||pv>bestPeak))bestPeak=pv;
+  if(dev!=null&&(bestDev==null||dev<bestDev))bestDev=dev;
+  beep(1320,140);
+  buzz('ok');
+  if(PRO)vbtOnRep(pv,dev);
+  renderReps();updateSummary();
+}
+
+/* ───────── Results UI ───────── */
+function updateSummary(){
+  $('#res-reps').textContent=reps.length;
+  const sr=$('#save-row'),sb2=$('#b-save');
+  if(sr)sr.style.display=reps.length?'flex':'none';
+  if(sb2&&reps.length&&sb2.textContent!==t('saving')){sb2.disabled=false;sb2.textContent=t('save');}
+  $('#res-par').textContent=(PRO&&bestPeak!=null)?bestPeak.toFixed(2)+' m/s':'—';
+  $('#res-depth').textContent=(PRO&&bestDev!=null)?bestDev.toFixed(0)+' cm':'—';
+}
+function renderReps(){
+  const ul=$('#rlist');ul.innerHTML='';
+  $('#rempty').textContent=reps.length?'':t('list_empty');
+  [...reps].reverse().forEach((r,i)=>{
+    const li=document.createElement('li');
+    const badges=[];
+    badges.push(`<span class="badge b-ok">${t(r.level>=2?'b_over':'b_shoulder')}</span>`);
+    if(PRO){
+      if(r.peakV!=null)badges.push(`<span class="badge b-spd">${r.peakV.toFixed(2)} m/s</span>`);
+      if(r.devCm!=null)badges.push(`<span class="badge ${r.devCm>DEV_WARN_CM?'b-warn':'b-mut'}">${r.devCm>DEV_WARN_CM?t('b_dev_w')+' ':''}${r.devCm.toFixed(0)} cm</span>`);
+    }
+    const c=cuePick(r.devCm!=null&&r.devCm>DEV_WARN_CM?['path_forward']:[]);
+    li.innerHTML=`<span class="n">#${reps.length-i}</span>${badges.join('')}${cueHtml(c)}`;
+    ul.appendChild(li);
+  });
+}
+
+/* ───────── Drawing : squelette + barre + tracé + ligne de référence ───────── */
+function draw(res){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  /* « Rien » : l'image reste nue. On sort AVANT de tracer quoi que ce soit —
+     squelette comme reperes. La mesure, elle, a deja eu lieu ailleurs : ce
+     reglage ne touche que ce qui est peint par-dessus la camera. */
+  if(window.CDM_AFF==='rien') return;
+  const lm=res&&res.landmarks&&res.landmarks[0];
+  if(lm&&du){
+    if(window.cdmAffSquelette&&window.cdmAffSquelette()){ du.drawConnectors(lm,PoseLandmarker.POSE_CONNECTIONS,{color:'rgba(220,187,114,.35)',lineWidth:2.5}); }
+    if(window.cdmAffSquelette&&window.cdmAffSquelette()){ du.drawLandmarks(lm,{color:'rgba(220,187,114,.8)',fillColor:'rgba(220,187,114,.8)',radius:2}); }
+  }
+  const pts=(S.mode==='pull'&&S.rep)?S.rep.pts:lastPath;
+  if(pts&&pts.length>1){
+    ctx.save();
+    // ligne verticale de référence au point de départ
+    const x0=((S.mode==='pull'&&S.rep)?S.rep.x0:pts[0].x)*canvas.width;
+    ctx.strokeStyle='rgba(255,255,255,.28)';ctx.lineWidth=1.5;ctx.setLineDash([8,8]);
+    ctx.beginPath();ctx.moveTo(x0,0);ctx.lineTo(x0,canvas.height);ctx.stroke();
+    // tracé or de la barre
+    ctx.setLineDash([]);ctx.lineWidth=4;ctx.lineJoin='round';ctx.lineCap='round';
+    const g=ctx.createLinearGradient(0,canvas.height,0,0);
+    g.addColorStop(0,'rgba(164,127,30,.9)');g.addColorStop(.5,'rgba(217,182,92,.95)');g.addColorStop(1,'#F6E27A');
+    ctx.strokeStyle=g;
+    ctx.beginPath();
+    pts.forEach((p,i)=>{const X=p.x*canvas.width,Y=p.y*canvas.height;i?ctx.lineTo(X,Y):ctx.moveTo(X,Y);});
+    ctx.stroke();
+    ctx.restore();
+  }
+  // point barre (or) en direct
+  if(S.by!=null&&S.mode!=='idle'){
+    ctx.save();
+    ctx.fillStyle='#D9B65C';ctx.strokeStyle='rgba(246,226,122,.9)';ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.arc(S.bx*canvas.width,S.by*canvas.height,8,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.restore();
+  }
+}
+
+/* live debug HUD */
+const dbgEl=document.getElementById('cdm-dbg');
+let dbgFrames=0,dbgFpsT=0,dbgFps=0;
+function updateDbg(ts,side,lm){
+  dbgFrames++;
+  if(ts-dbgFpsT>=1000){dbgFps=dbgFrames;dbgFrames=0;dbgFpsT=ts;}
+  dbgEl.hidden=false;
+  dbgEl.textContent=
+    'état: '+S.mode+'  fps: '+dbgFps+'\n'+
+    'barre y: '+(S.by==null?'—':S.by.toFixed(2))+'  vue: '+viewOf(lm,side)+'\n'+
+    'reps: '+reps.length+(PRO&&VBT.scale?'  éch: '+VBT.scale.toFixed(2):'');
+}
+
+/* ───────── Camera + loop ───────── */
+let landmarker=null,stream=null,running=false,facing='environment',lastTs=-1,wakeLock=null;
+
+async function loadModel(){
+  if(landmarker)return;
+  setStatus('st_loading');
+  /* Runtime 0.10.21 : derniere version de la ligne 0.10 publiee sur npm.
+     Meme API que 0.10.14, sept correctifs de plus, aucune migration.
+     La ligne 1.0.x existe mais c'est un changement majeur : on la garde pour
+     un chantier a part, une variable a la fois.
+     A savoir : passer de 0.10.14 a 0.10.21 ne change PAS la precision des
+     points detectes. Celle-ci depend du MODELE (.task), pas du runtime. */
+  const base='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm';
+  const model='https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
+  const vision=await FilesetResolver.forVisionTasks(base);
+  const opts=d=>({baseOptions:{modelAssetPath:model,delegate:d},runningMode:'VIDEO',numPoses:1,minPoseDetectionConfidence:0.6,minPosePresenceConfidence:0.6,minTrackingConfidence:0.6});
+  try{landmarker=await PoseLandmarker.createFromOptions(vision,opts('GPU'));}
+  catch(_){landmarker=await PoseLandmarker.createFromOptions(vision,opts('CPU'));}
+  du=new DrawingUtils(ctx);
+}
+
+async function startCam(){
+  stream=await navigator.mediaDevices.getUserMedia({
+    video:{facingMode:facing,width:{ideal:1280},height:{ideal:720}},audio:false
+  });
+  video.srcObject=stream;
+  await video.play();
+  canvas.width=video.videoWidth||720;
+  canvas.height=video.videoHeight||960;
+  stage.style.aspectRatio=(canvas.width/canvas.height).toString();
+  stage.classList.toggle('mirror',facing==='user');
+  try{wakeLock=await navigator.wakeLock?.request('screen');}catch(_){}
+}
+
+function scheduleFrame(){
+  if(!running)return;
+  if(video.requestVideoFrameCallback){
+    video.requestVideoFrameCallback((now,meta)=>onFrame(meta&&meta.mediaTime?meta.mediaTime*1000:performance.now()));
+  }else{
+    requestAnimationFrame(()=>onFrame(performance.now()));
+  }
+}
+function onFrame(ts){
+  if(!running)return;
+  if(ts<=lastTs)ts=lastTs+1;
+  lastTs=ts;
+  let res=null;
+  try{res=landmarker.detectForVideo(video,ts);}catch(_){}
+  if(res)handle(res.landmarks&&res.landmarks[0],res.worldLandmarks&&res.worldLandmarks[0],ts);
+  draw(res);
+  scheduleFrame();
+}
+
+async function start(){
+  bStart.disabled=true;
+  audioUnlock();
+  try{await startCam();
+       /* La camera vient de reconfigurer la session audio d'iOS et a
+          resuspendu le contexte. On le rouvre ici, sinon tous les bips
+          suivants restent silencieux alors que le code les emet bien. */
+       audioUnlock();}
+  catch(e){setStatus('st_err_cam');showErr('Caméra: '+(e&&e.name||'')+' '+(e&&e.message||e)+' ['+VER+']');bStart.disabled=false;return;}
+  splash.style.display='none';
+  try{await loadModel();}
+  catch(e){
+    setStatus('st_err_model');showErr('Modèle: '+(e&&e.message||e)+' ['+VER+']');
+    /* Arreter les pistes ne suffit pas : tant que l'element video garde une
+     reference au MediaStream, WebKit conserve ses tampons de decodage. */
+  if(stream){stream.getTracks().forEach(tr=>tr.stop());stream=null;}
+  try{ video.srcObject=null; }catch(_){}
+    splash.style.display='flex';bStart.disabled=false;return;
+  }
+  running=true;lastTs=-1;
+  bStart.textContent=t('stop');bStart.disabled=false;
+  bFlip.disabled=false;bReset.disabled=false;bRec.disabled=false;bRec.textContent=t('rec_hint');
+  S.mode='ready';S.rep=null;S.lastGoodTs=0;S.good=0;S.by=null;S.bx=null;S.pv=null;S.pt=null;S.vel=0;
+  VBT.hip0=null;VBT.an0=null;VBT.scale=null;
+  setStatus('st_ready',true);
+  scheduleFrame();
+}
+function stop(){
+  running=false;
+  recStop();bRec.disabled=true;
+  if(stream){stream.getTracks().forEach(tr=>tr.stop());stream=null;}
+  try{wakeLock&&wakeLock.release();}catch(_){}
+  wakeLock=null;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  splash.style.display='flex';
+  stage.classList.remove('deep');
+  chip.hidden=true;spdChip.hidden=true;dbgEl.hidden=true;
+  S.mode='idle';S.rep=null;
+  bStart.textContent=t('start');
+  bFlip.disabled=true;bReset.disabled=true;
+  pillTxt.textContent='';pill.classList.remove('ok','warn','err');lastStatus='';
+}
+bStart.onclick=()=>{running?stop():start();};
+bReset.onclick=()=>{if(running)resetSet();};
+bFlip.onclick=async()=>{
+  if(!running)return;
+  facing=facing==='environment'?'user':'environment';
+  if(stream)stream.getTracks().forEach(tr=>tr.stop());
+  VBT.hip0=null;VBT.an0=null;VBT.scale=null;
+  try{await startCam();}
+  catch(e){setStatus('st_err_cam');}
+};
+/* Le PoseLandmarker detient un tas WebAssembly de plusieurs dizaines de Mo.
+   Il n'etait jamais libere : en quittant la page, WKWebView tarde a le
+   reclamer et iOS le compte toujours contre l'app. On le ferme
+   explicitement au depart — pagehide couvre le retour vers app.html, la
+   fermeture d'onglet et la mise en arriere-plan sur iOS. */
+addEventListener('pagehide',()=>{
+  try{ if(running) stop(); }catch(_){}
+  try{ if(landmarker&&landmarker.close){ landmarker.close(); landmarker=null; } }catch(_){}
+});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&running)stop();
+});
+
+/* ═════════ Paywall Coach & Coach+ — Stripe embarqué sur place ═════════ */
+const STRIPE_PK='pk_live_51TpzX7J0YSDZQQHK1pZpLyBD1QX0c95OWwdhGO1BpTvs3vb99GAq8D9JA9voqURFI5GpkfeQmORt8fnwWaipMLGq00re93zamr';
+let STRIPE=null,CKI=null;
+const PW={prices:null,slots:null,pending:null,loading:false};
+function pwLocale(){return LANG==='fr'?'fr-BE':(LANG==='nl'?'nl-BE':'en-GB');}
+function pwMoney(c){return (c/100).toLocaleString(pwLocale(),{style:'currency',currency:'EUR'});}
+async function stripeJs(){
+  if(window.Stripe)return window.Stripe;
+  await new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://js.stripe.com/v3/';sc.onload=res;sc.onerror=rej;document.head.appendChild(sc);});
+  return window.Stripe;
+}
+const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+function pwSlotsLeft(kind){const r=(PW.slots||[]).find(x=>x.kind===kind);return r?+r.left_count:null;}
+async function pwLoad(){
+  if(!SB||PW.loading)return;
+  if(PW.prices){pwRender();return;}
+  PW.loading=true;
+  try{const {data}=await SB.from('billing_prices').select('*').eq('audience','client').eq('active',true);PW.prices=data||[];}catch(_){PW.prices=[];}
+  try{const {data}=await SB.rpc('founder_slots');PW.slots=data||[];}catch(_){PW.slots=[];}
+  try{const {data}=await SB.rpc('founder_can_buy',{p_kind:'membre'});PW.canF=(data===true);}catch(_){PW.canF=false;}
+  PW.loading=false;
+  pwRender();
+}
+function pwRender(){
+  const box=document.getElementById('gate-plans');
+  if(!box||!PW.prices)return;
+  if(IS_NATIVE){box.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center;padding:10px 4px">'+t('pw_native')+'</p>';return;}
+  const left=pwSlotsLeft('membre');
+  /* ⚠️ Tarif fondateur NOMINATIF : réservé aux personnes invitées par email.
+     L'ancienne condition l'ouvrait dès qu'une place restait libre, donc à
+     tout le monde. Le checkout, lui, refusait (founder_can_buy_for) : un prix
+     annoncé que le paiement ne tenait pas. Seule l'invitation fait foi.
+     Un fondateur verrouillé garde son tarif : founder_can_buy_for le prévoit. */
+  const fOpen=PW.canF===true;
+  const pickIv=(iv)=>{
+    const ps=PW.prices.filter(p=>p.billing_interval===iv&&p.tier==='membre');
+    const f=!fOpen?null:ps.find(p=>p.founder);
+    const r=ps.find(p=>!p.founder);
+    return {off:f||r, reg:r};
+  };
+  const mk=(o,iv)=>{
+    if(!o.off)return '';
+    const isF=!!o.off.founder;
+    let h='<div class="plan"><span class="pb">'+(isF?t('pw_membre_f'):t('pw_membre'))+'</span>';
+    h+='<div class="pp">'+pwMoney(o.off.amount_cents)+'<small>'+t(iv==='year'?'pw_year':'pw_month')+'</small>';
+    if(isF&&o.reg)h+='<span class="old">'+pwMoney(o.reg.amount_cents)+'</span>';
+    h+='</div><div class="pn">'+t(iv==='year'?'pw_note_y':'pw_note_m')+'</div>';
+    if(isF&&left!==null&&left>0&&left<=15)h+='<div class="pn" style="color:var(--neon)">'+t('pw_left').replace('{n}',left)+'</div>';
+    h+='<button class="pcta" data-lk="'+o.off.lookup_key+'">'+t('pw_choose')+'</button></div>';
+    return h;
+  };
+  box.innerHTML=mk(pickIv('month'),'month')+mk(pickIv('year'),'year')
+    +'<div class="pcoach">'+t('pw_coach_link')+' <a href="https://coachdm.be/tarifs.html" target="_blank" rel="noopener">'+t('pw_coach_link_a')+'</a></div>';
+  box.querySelectorAll('[data-lk]').forEach(b=>{b.onclick=()=>pwOpen(b.dataset.lk);});
+}
+function pwReset(){
+  const c=document.getElementById('pw-consent'),m=document.getElementById('ck-mount');
+  const a=document.getElementById('pw-agree'),k=document.getElementById('pw-continue');
+  if(c)c.style.display='';
+  if(m){m.style.display='none';m.innerHTML='';}
+  if(a)a.checked=false;
+  if(k)k.disabled=true;
+}
+function pwOpen(lk){
+  if(IS_NATIVE)return;
+  if(!UIDG){alert(t('save_login'));return;}
+  PW.pending=lk;
+  if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
+  pwReset();
+  document.getElementById('pw-ov').classList.add('show');
+  pwMount();
+}
+function pwClose(){
+  document.getElementById('pw-ov').classList.remove('show');
+  if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
+  pwReset();PW.pending=null;
+}
+async function pwMount(){
+  if(!PW.pending||!SB)return;
+  const lk=PW.pending;
+  const m=document.getElementById('ck-mount');m.style.display='';m.innerHTML='';
+  try{
+    const Sj=await stripeJs();
+    if(!STRIPE)STRIPE=Sj(STRIPE_PK);
+    if(CKI){try{CKI.destroy();}catch(_){}CKI=null;}
+    CKI=await STRIPE.initEmbeddedCheckout({fetchClientSecret:async()=>{
+      const {data,error}=await SB.functions.invoke('stripe-checkout',{body:{action:'checkout',lookup_key:lk,locale:LANG}});
+      if(error||!data||!data.client_secret)throw new Error((data&&data.error)||'checkout');
+      return data.client_secret;
+    }});
+    CKI.mount('#ck-mount');
+  }catch(_){pwClose();alert(t('pw_fail'));}
+}
+(function(){
+  const ov=document.getElementById('pw-ov');
+  const x=document.getElementById('pw-close');
+  if(x)x.onclick=pwClose;
+  if(ov)ov.addEventListener('click',e=>{if(e.target===ov)pwClose();});
+})();
+
+/* ═════════ Carte partageable (story 1080×1920) — vrai logo Coach DM ═════════ */
+let LOGO=null,LOGO_TRIED=false;
+function loadLogo(){
+  return new Promise(res=>{
+    if(LOGO)return res(LOGO);
+    if(LOGO_TRIED)return res(null);
+    const im=new Image();
+    const done=ok=>{LOGO_TRIED=true;if(ok)LOGO=im;res(ok?im:null);};
+    im.onload=()=>done(true);
+    im.onerror=()=>done(false);
+    im.src='/logo-dm.png';
+    setTimeout(()=>{if(!LOGO&&!LOGO_TRIED)done(false);},2000);
+  });
+}
+function shGoldGrad(c,x0,y0,x1,y1){
+  const g=c.createLinearGradient(x0,y0,x1,y1);
+  g.addColorStop(0,'#F6E27A');g.addColorStop(.45,'#D9B65C');g.addColorStop(1,'#A47F1E');
+  return g;
+}
+function shBase(c,W,H,title,logo){
+  c.fillStyle='#0B0B0A';c.fillRect(0,0,W,H);
+  const rg=c.createRadialGradient(W/2,0,0,W/2,0,H*.8);
+  rg.addColorStop(0,'rgba(217,182,92,.10)');rg.addColorStop(1,'rgba(217,182,92,0)');
+  c.fillStyle=rg;c.fillRect(0,0,W,H);
+  c.textAlign='center';
+  if(logo){
+    const r=88,cx=W/2,cy=150;
+    c.save();
+    c.beginPath();c.arc(cx,cy,r,0,Math.PI*2);c.closePath();c.clip();
+    c.fillStyle='#0B0B0A';c.fillRect(cx-r,cy-r,r*2,r*2);
+    c.drawImage(logo,cx-r,cy-r,r*2,r*2);
+    c.restore();
+    c.lineWidth=6;c.strokeStyle=shGoldGrad(c,cx-r,cy-r,cx+r,cy+r);
+    c.beginPath();c.arc(cx,cy,r+4,0,Math.PI*2);c.stroke();
+  }else{
+    c.font='800 78px Outfit';c.fillStyle='#F5F5F4';
+    c.fillText('COACH ',W/2-92,170);
+    c.fillStyle=shGoldGrad(c,W/2,110,W/2+240,190);
+    c.fillText('DM',W/2+158,170);
+  }
+  c.font='700 40px Outfit';c.fillStyle='#9CA3AF';
+  c.fillText(title,W/2,logo?312:255);
+  c.strokeStyle='rgba(217,182,92,.5)';c.lineWidth=3;
+  const dy=logo?352:295;
+  c.beginPath();c.moveTo(W/2-130,dy);c.lineTo(W/2+130,dy);c.stroke();
+  c.font='700 42px Outfit';c.fillStyle=shGoldGrad(c,W/2-220,H-150,W/2+220,H-110);
+  c.fillText('Power · Transform · Excel',W/2,H-150);
+  c.font='600 36px Outfit';c.fillStyle='#9CA3AF';
+  c.fillText('coachdm.be  ·  @coachdm.be',W/2,H-85);
+}
+function shCardBar(logo){
+  const W=1080,H=1920,cv=document.createElement('canvas');
+  cv.width=W;cv.height=H;const c=cv.getContext('2d');
+  shBase(c,W,H,t('sh_bar_t'),logo);
+  c.textAlign='center';
+  const mvName=t('mv_'+MV).toUpperCase();
+  c.font='800 58px Outfit';c.fillStyle='#DCBB72';c.fillText(mvName,W/2,470);
+  c.font='700 44px Outfit';c.fillStyle='#9CA3AF';c.fillText(t('sh_reps'),W/2,600);
+  c.font='800 260px Outfit';c.fillStyle=shGoldGrad(c,W/2-320,660,W/2+320,880);
+  c.fillText(String(reps.length),W/2,870);
+  /* tracé bar path de la dernière rep, cadré */
+  if(lastPath&&lastPath.length>1){
+    const bx=W/2-230,by=980,bw=460,bh=470;
+    c.save();
+    c.strokeStyle='rgba(217,182,92,.4)';c.lineWidth=2.5;
+    c.strokeRect(bx,by,bw,bh);
+    c.font='700 32px Outfit';c.fillStyle='#9CA3AF';c.fillText(t('sh_path'),W/2,by-18);
+    let xmin=1,xmax=0,ymin=1,ymax=0;
+    lastPath.forEach(p=>{xmin=Math.min(xmin,p.x);xmax=Math.max(xmax,p.x);ymin=Math.min(ymin,p.y);ymax=Math.max(ymax,p.y);});
+    const sx=(xmax-xmin)||1e-4,sy=(ymax-ymin)||1e-4;
+    const scale=Math.min((bw-70)/sx,(bh-70)/sy);
+    const ox=bx+bw/2-((xmin+xmax)/2)*scale, oy=by+bh/2-((ymin+ymax)/2)*scale;
+    // référence verticale
+    const rx=lastPath[0].x*scale+ox;
+    c.strokeStyle='rgba(255,255,255,.25)';c.lineWidth=2;c.setLineDash([10,10]);
+    c.beginPath();c.moveTo(rx,by+16);c.lineTo(rx,by+bh-16);c.stroke();
+    c.setLineDash([]);c.lineWidth=7;c.lineJoin='round';c.lineCap='round';
+    c.strokeStyle=shGoldGrad(c,bx,by+bh,bx,by);
+    c.beginPath();
+    lastPath.forEach((p,i)=>{const X=p.x*scale+ox,Y=p.y*scale+oy;i?c.lineTo(X,Y):c.moveTo(X,Y);});
+    c.stroke();
+    c.fillStyle='#DCBB72';
+    const lp=lastPath[lastPath.length-1];
+    c.beginPath();c.arc(lp.x*scale+ox,lp.y*scale+oy,10,0,Math.PI*2);c.fill();
+    c.restore();
+  }
+  if(PRO&&VBT.best!=null){
+    const mets=[
+      [VBT.best.toFixed(2),t('sh_peak')],
+      [VBT.vl!=null?('−'+VBT.vl.toFixed(0)+'%'):'—',t('sh_vl')],
+      [VBT.devBest!=null?VBT.devBest.toFixed(0):'—',t('sh_dev')]
+    ];
+    mets.forEach((mm,i)=>{
+      const x=W/6+(i*W/3);
+      c.font='800 92px Outfit';c.fillStyle='#F5F5F4';c.fillText(mm[0],x,1610);
+      c.font='700 32px Outfit';c.fillStyle='#9CA3AF';c.fillText(mm[1],x,1672);
+    });
+  }
+  return cv;
+}
+async function shShare(cv,name){
+  const blob=await new Promise(res=>cv.toBlob(res,'image/png'));
+  const file=new File([blob],name,{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:'Coach DM'});return;}catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  alert(t('sh_fail'));
+}
+async function shGo(){
+  /* iOS : navigator.share doit rester dans la fenêtre du geste utilisateur —
+     zéro attente ici, logo & polices préchargés au démarrage de la page. */
+  await shShare(shCardBar(LOGO),'coachdm-barre.png');
+}
+document.getElementById('b-share').onclick=()=>{if(reps.length)shGo();};
+
+/* ───────── Sauvegarde Supabase (session partagée avec l'app) ───────── */
+
+/* ═════════ REC — vidéo watermarkée, 100% locale ═════════ */
+/* Plafond memoire de l'enregistrement.
+   MediaRecorder empile ses fragments en RAM : il n'existe pas d'ecriture en
+   flux vers le disque depuis une webview iOS. La duree utile ne se gagne donc
+   pas en levant le plafond, mais en baissant le DEBIT.
+   5 Mbit/s etait surdimensionne pour du 720p avec incrustation : a 2,5 Mbit/s
+   la difference est invisible sur une video d'analyse technique, et on passe
+   de 5 a 10 minutes pour la meme empreinte memoire.
+   10 min couvre 100 wall balls (~4 min) avec une marge confortable. */
+const REC_BITRATE=2_500_000;
+const REC_MAX_BYTES=180*1024*1024;   /* ~10 min a 2,5 Mbit/s */
+const REC_MAX_MS=10*60*1000;
+const RECST={on:false,auto:false,pending:null,mr:null,chunks:[],bytes:0,cv:null,ctx:null,raf:0,t0:0,timer:0,maxTimer:0,mime:'',ext:'mp4'};
+const bRec=$('#b-rec');
+function recMime(){
+  const c=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm'];
+  for(const m of c){ if(window.MediaRecorder&&MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(m)) return m; }
+  return '';
+}
+function recFmtT(){const s=Math.max(0,Math.round((performance.now()-RECST.t0)/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function recDrawFrame(){
+  if(!RECST.on)return;
+  const c=RECST.ctx,W=RECST.cv.width,H=RECST.cv.height;
+  c.save();
+  if(facing==='user'){c.translate(W,0);c.scale(-1,1);}
+  try{c.drawImage(video,0,0,W,H);}catch(_){}
+  try{c.drawImage(canvas,0,0,W,H);}catch(_){}
+  c.restore();
+  c.save();
+  c.globalAlpha=0.055;
+  c.translate(W/2,H/2);c.rotate(-28*Math.PI/180);c.translate(-W/2,-H/2);
+  const wm='COACH DM · coachdm.be';
+  c.font='800 '+Math.round(H*0.024)+'px Outfit, sans-serif';
+  c.fillStyle='#FFFFFF';c.textAlign='left';c.textBaseline='middle';
+  const stepX=c.measureText(wm).width+Math.round(W*0.15), stepY=Math.round(H*0.182);
+  let row=0;
+  for(let y=-H*0.35;y<H*1.35;y+=stepY,row++){
+    const off=(row%2)?stepX/2:0;
+    for(let x=-W*0.35-off;x<W*1.35;x+=stepX){c.fillText(wm,x,y);}
+  }
+  c.restore();
+  const done=reps.length;
+  const fs=Math.round(H*0.058);
+  c.textAlign='left';c.textBaseline='top';
+  c.fillStyle='rgba(7,10,8,.55)';
+  c.fillRect(Math.round(W*0.025),Math.round(H*0.025),Math.round(W*0.42),Math.round(fs*2.0));
+  c.font='800 '+fs+'px Outfit, sans-serif';c.fillStyle='#F5F5F4';
+  c.fillText(String(done),Math.round(W*0.045),Math.round(H*0.032));
+  c.font='700 '+Math.round(fs*0.40)+'px Outfit, sans-serif';c.fillStyle='#9CA3AF';
+  c.fillText(t('sh_reps').toUpperCase(),Math.round(W*0.045),Math.round(H*0.032)+fs+2);
+  const tstr='⏱ '+recFmtT();
+  const tfs=Math.round(H*0.042);
+  c.font='800 '+tfs+'px Outfit, sans-serif';c.textAlign='right';c.textBaseline='top';
+  const tw=c.measureText(tstr).width, tpad=Math.round(tfs*0.5);
+  c.fillStyle='rgba(7,10,8,.55)';
+  c.fillRect(W-Math.round(W*0.03)-tw-tpad,Math.round(H*0.028),tw+tpad*2,Math.round(tfs*1.7));
+  c.fillStyle='#F5F5F4';
+  c.fillText(tstr,W-Math.round(W*0.03)-tpad,Math.round(H*0.028)+Math.round(tfs*0.35));
+  const bh=Math.round(H*0.078);
+  const p1='COACH DM', p2='   ·   coachdm.be';
+  const lfs=Math.round(bh*0.42);
+  c.textAlign='left';c.textBaseline='middle';
+  c.font='800 '+lfs+'px Outfit, sans-serif';const w1=c.measureText(p1).width;
+  c.font='700 '+lfs+'px Outfit, sans-serif';const w2=c.measureText(p2).width;
+  const lr=Math.round(bh*0.60), gp=Math.round(bh*0.22);
+  const totalW=lr+gp+w1+w2, bx=Math.round((W-totalW)/2), cyc=H-bh/2;
+  c.fillStyle='rgba(7,10,8,.62)';
+  c.fillRect(bx-Math.round(bh*0.34),H-bh+Math.round(bh*0.12),totalW+Math.round(bh*0.68),Math.round(bh*0.76));
+  let cx=bx;
+  if(LOGO){
+    c.save();c.beginPath();c.arc(cx+lr/2,cyc,lr/2,0,Math.PI*2);c.closePath();c.clip();
+    c.drawImage(LOGO,cx,cyc-lr/2,lr,lr);c.restore();
+    c.lineWidth=2;c.strokeStyle='rgba(217,182,92,.9)';
+    c.beginPath();c.arc(cx+lr/2,cyc,lr/2+1,0,Math.PI*2);c.stroke();
+  }
+  cx+=lr+gp;
+  c.font='800 '+lfs+'px Outfit, sans-serif';
+  const gg=c.createLinearGradient(cx,0,cx+w1,0);
+  gg.addColorStop(0,'#F6E27A');gg.addColorStop(.5,'#D9B65C');gg.addColorStop(1,'#A47F1E');
+  c.fillStyle=gg;c.fillText(p1,cx,cyc);
+  c.font='700 '+lfs+'px Outfit, sans-serif';c.fillStyle='#C9CDD3';
+  c.fillText(p2,cx+w1,cyc);
+  RECST.raf=requestAnimationFrame(recDrawFrame);
+}
+function recStart(){
+  if(RECST.on||!running)return;
+  const mime=recMime();
+  if(!mime){alert(t('rec_fail'));return;}
+  RECST.mime=mime;RECST.ext=mime.indexOf('mp4')>=0?'mp4':'webm';
+  RECST.cv=document.createElement('canvas');
+  RECST.cv.width=canvas.width||720;RECST.cv.height=canvas.height||960;
+  RECST.ctx=RECST.cv.getContext('2d');
+  let strm=null;
+  try{strm=RECST.cv.captureStream(30);}catch(_){alert(t('rec_fail'));return;}
+  RECST.chunks=[];
+  try{RECST.mr=new MediaRecorder(strm,{mimeType:mime,videoBitsPerSecond:REC_BITRATE});}
+  catch(_){try{RECST.mr=new MediaRecorder(strm);}catch(__){alert(t('rec_fail'));return;}}
+  /* Garde-fou memoire. A 5 Mbit/s, chaque minute enregistree pese ~37 Mo
+     conserves en RAM : 10 minutes suffisent a faire tuer la webview par iOS.
+     On compte les octets au fil de l'eau et on coupe net a 120 Mo, ce qui
+     laisse environ 3 minutes — largement au-dela d'une serie filmee. */
+  RECST.bytes=0;
+  RECST.mr.ondataavailable=e=>{
+    if(!e.data||!e.data.size) return;
+    RECST.chunks.push(e.data);
+    RECST.bytes+=e.data.size;
+    if(RECST.bytes>REC_MAX_BYTES){ try{ RECST.auto=true; recStop(); }catch(_){} }
+  };
+  RECST.mr.onstop=recFinish;
+  RECST.on=true;RECST.auto=false;RECST.t0=performance.now();
+  RECST.mr.start(1000);
+  /* Second filet : une coupure au temps, au cas ou le debit reel serait plus
+     bas que prevu et repousserait le plafond d'octets trop loin. */
+  RECST.maxTimer=setTimeout(()=>{ try{ RECST.auto=true; recStop(); }catch(_){} }, REC_MAX_MS);
+  recDrawFrame();
+  bRec.classList.add('rec-on');
+  RECST.timer=setInterval(()=>{
+    const sec=Math.round((performance.now()-RECST.t0)/1000);
+    /* La video s'accumule en MEMOIRE : iOS n'offre aucun moyen d'ecrire au fil
+       de l'eau depuis une WebView. C'est le seul poste qui grossit vraiment
+       pendant une seance, et il etait invisible. On l'affiche : un chiffre
+       qu'on voit monter est un risque qu'on peut arreter a temps. */
+    const mo=RECST.bytes/1048576;
+    bRec.textContent=t('rec_stop').replace('{t}',Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'))
+      +(mo>=1?'  '+mo.toFixed(0)+' Mo':'');
+  },500);
+}
+function recStop(){
+  if(!RECST.on)return;
+  RECST.on=false;
+  cancelAnimationFrame(RECST.raf);
+  clearInterval(RECST.timer);
+  clearTimeout(RECST.maxTimer);
+  bRec.classList.remove('rec-on');
+  bRec.textContent=t('rec_hint');
+  try{RECST.mr.stop();}catch(_){}
+}
+async function recFinish(){
+  const blob=new Blob(RECST.chunks,{type:RECST.mime||'video/mp4'});
+  /* Coupure automatique (plafond memoire ou 3 min) : on N'APPELLE PAS
+     navigator.share ici. iOS n'autorise le partage que dans la fenetre du
+     geste utilisateur — un partage declenche par un minuteur est rejete, et
+     la video serait perdue alors qu'on vient justement de l'enregistrer.
+     On la garde de cote et on transforme le bouton REC en bouton
+     d'enregistrement : le prochain appui EST un geste utilisateur. */
+  if(RECST.auto){
+    RECST.auto=false;
+    RECST.chunks=[]; RECST.bytes=0; RECST.cv=null; RECST.ctx=null;
+    if(!blob.size) return;
+    RECST.pending=blob;
+    bRec.textContent=t('rec_cap');
+    bRec.classList.add('rec-on');
+    bRec.onclick=()=>{ const b=RECST.pending; RECST.pending=null;
+      bRec.classList.remove('rec-on'); bRec.textContent=t('rec_hint');
+      bRec.onclick=()=>{RECST.on?recStop():recStart();};
+      recShareBlob(b); };
+    try{ alert(t('rec_cap_msg')); }catch(_){}
+    return;
+  }
+  RECST.chunks=[]; RECST.bytes=0;
+  /* Le canvas d'enregistrement fait la taille de la video : le garder
+     apres coup retient plusieurs Mo pour rien. */
+  RECST.cv=null; RECST.ctx=null;
+  if(!blob.size)return;
+  return recShareBlob(blob);
+}
+
+async function recShareBlob(blob){
+  if(!blob||!blob.size) return;
+  const file=new File([blob],'coachdm-barre.'+RECST.ext,{type:blob.type});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:'Coach DM'});return;}catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=file.name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),6000);
+  alert(t('rec_dl'));
+}
+
+bRec.onclick=()=>{RECST.on?recStop():recStart();};
+
+import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient})=>{
+  const sbClient=createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
+  SB=sbClient;
+  cuesLoad(sbClient); /* phrases publiques : pas besoin d'attendre la session */
+  let UID=null;
+  sbClient.auth.getSession().then(async({data})=>{
+    UID=data?.session?.user?.id||null;
+    UIDG=UID;
+    if(UID){
+      try{
+        const {data:ok}=await sbClient.rpc('fn_can_analyze',{p_user:UID});
+        ENT.known=true;ENT.ok=!!ok;
+      }catch(_){ENT.known=true;ENT.ok=false;}
+    }else{ENT.known=true;ENT.ok=false;}
+    PRO=ENT.ok;
+    proUI();
+  });
+  const btn=$('#b-save');
+  btn.textContent=t('save');
+  btn.onclick=async()=>{
+    if(!reps.length||btn.disabled)return;
+    if(!UID){alert(t('save_login'));return;}
+    btn.disabled=true;btn.textContent=t('saving');
+    const row={
+      user_id:UID,
+      movement:MV,
+      rep_count:reps.length,
+      reps:reps
+    };
+    if(PRO&&VBT.best!=null){
+      row.load_kg=VBT.loadKg>0?VBT.loadKg:null;
+      row.peak_v_best=+VBT.best.toFixed(3);
+      row.peak_v_last=VBT.last!=null?+VBT.last.toFixed(3):null;
+      row.velocity_loss_pct=VBT.vl!=null?+VBT.vl.toFixed(1):null;
+      row.path_dev_best_cm=VBT.devBest!=null?+VBT.devBest.toFixed(1):null;
+    }
+    const {error}=await sbClient.from('barbell_sets').insert(row);
+    if(error){btn.disabled=false;btn.textContent=t('save');alert(t('save_fail'));return;}
+    btn.textContent=t('saved');
+  };
+}).catch(()=>{ENT.known=true;ENT.ok=false;PRO=false;proUI();});
+
+applyLang();
+proUI();
+/* Préchargement partage : logo + polices prêts avant le premier tap */
+loadLogo();
+try{document.fonts.load('800 300px Outfit');document.fonts.load('700 44px Outfit');document.fonts.load('700 40px Outfit');}catch(_){}
+</script>
+<div class="yt-ov" id="yt-ov">
+  <div class="yt-box">
+    <div class="yt-top">
+      <div class="yt-name" id="yt-name"></div>
+      <button class="yt-close" id="yt-close" aria-label="Fermer">&#10005;</button>
+    </div>
+    <div class="yt-frame" id="yt-slot"></div>
+    <button class="yt-fb" id="yt-fallback"></button>
+  </div>
+</div>
+
+
+<!-- ─────────── CE QU'ON VOIT SUR SOI ───────────────────────────────────────
+   Le squelette vert rassure au debut : on voit que la machine suit. Passe ce
+   moment, il gene — on regarde les points au lieu de regarder son geste, et
+   certains le trouvent simplement laid sur leur video. D'autres ne veulent que
+   le chiffre a la fin.
+   Trois niveaux, memorises dans le navigateur et PARTAGES avec le Mode jeu
+   (meme cle cdm_aff) : ce qu'il choisit une fois vaut partout.
+     complet  le squelette entier, comme avant
+     repere   plus de squelette, on garde seulement le repere de mesure
+              (la ligne doree, le point de hanche) : ce qui sert a comprendre
+     rien     rien du tout sur l'image, il ne reste que le resultat
+   Le calcul ne change pas d'un iota : c'est de l'affichage, pas de la mesure.
+─────────────────────────────────────────────────────────────────────────── -->
+<style>
+  #cdm-aff{position:fixed;right:10px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:60;display:flex;gap:6px;
+    background:rgba(0,0,0,.62);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:5px;backdrop-filter:blur(8px)}
+  #cdm-aff button{appearance:none;border:0;background:transparent;color:#cfd8d4;font:800 11px/1 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;
+    letter-spacing:.7px;padding:8px 11px;border-radius:999px;cursor:pointer}
+  #cdm-aff button.on{background:#DCBB72;color:#1B1405}
+  @media print{#cdm-aff{display:none}}
+</style>
+<div id="cdm-aff" role="group" aria-label="Ce qu'on voit sur soi">
+  <button type="button" data-aff="complet">Squelette</button>
+  <button type="button" data-aff="repere">Repères</button>
+  <button type="button" data-aff="rien">Rien</button>
+</div>
+<script>
+(function(){
+  var K='cdm_aff';
+  function lu(){ try{ var v=localStorage.getItem(K); return (v==='repere'||v==='rien')?v:'complet'; }catch(e){ return 'complet'; } }
+  window.CDM_AFF = lu();
+  window.cdmAffSquelette = function(){ return window.CDM_AFF === 'complet'; };
+  window.cdmAffReperes   = function(){ return window.CDM_AFF !== 'rien'; };
+  function peindre(){
+    var bs=document.querySelectorAll('#cdm-aff button');
+    for(var i=0;i<bs.length;i++) bs[i].classList.toggle('on', bs[i].getAttribute('data-aff')===window.CDM_AFF);
+  }
+  var bs=document.querySelectorAll('#cdm-aff button');
+  for(var i=0;i<bs.length;i++)(function(b){
+    b.onclick=function(){
+      window.CDM_AFF=b.getAttribute('data-aff');
+      try{ localStorage.setItem(K, window.CDM_AFF); }catch(e){}
+      peindre();
+    };
+  })(bs[i]);
+  peindre();
+})();
+</script>
+</body>
+</html>
