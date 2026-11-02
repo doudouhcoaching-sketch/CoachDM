@@ -23,10 +23,10 @@
   d.addEventListener('click',function(e){if(e.target.tagName==='A')d.classList.remove('open')});
 
 
+  var ua=navigator.userAgent||'',store=/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&'ontouchend' in document)?'https://apps.apple.com/be/app/coach-dm/id6792289062':(/Android/.test(ua)?'https://play.google.com/store/apps/details?id=be.coachdm.app':null);
+  if(store){var dl=document.querySelectorAll('.dl-app');for(var z=0;z<dl.length;z++){dl[z].href=store;dl[z].target='_blank';dl[z].rel='noopener'}}
   var ga=document.getElementById('getapp');
-  if(ga){var ua=navigator.userAgent||'';
-    if(/iPhone|iPad|iPod/.test(ua)){ga.href='https://apps.apple.com/be/app/coach-dm/id6792289062';ga.target='_blank';ga.rel='noopener'}
-    else if(/Android/.test(ua)){ga.href='https://play.google.com/store/apps/details?id=be.coachdm.app';ga.target='_blank';ga.rel='noopener'}
+  if(ga){
     var band=document.querySelector('.appband');
     function gs(){var inB=false;if(band){var r=band.getBoundingClientRect();inB=r.top<innerHeight&&r.bottom>0}ga.classList.toggle('show',window.scrollY>300&&!inB)}
     window.addEventListener('scroll',gs,{passive:true});gs();}
