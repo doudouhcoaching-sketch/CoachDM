@@ -291,6 +291,7 @@ h1, h2,
       <button data-tab="messages"><span data-i18n="c_tab_msgs">Messages</span><i class="tcnt" id="tab-msg-cnt" hidden></i></button>
       <button data-tab="workouts" data-i18n="c_tab_workouts">Séances</button>
       <button data-tab="cours" data-i18n="c_tab_classes">Cours</button>
+      <button data-tab="paiements" id="tab-pay" data-i18n="c_tab_pay">Paiements</button>
     </div>
   </div>
 
@@ -299,6 +300,7 @@ h1, h2,
     <div class="pane active" id="pane-clients">
       <div id="cl-dash"></div>
       <div id="cl-cap"></div>
+      <div id="cl-paybar"></div>
       <button class="btn" style="margin-bottom:14px" id="cl-new" data-i18n="c_add_client">＋ Ajouter un client</button>
       <div id="cl-list"><div class="spin"></div></div>
     </div>
@@ -362,6 +364,16 @@ h1, h2,
         <button data-cv="modeles" data-i18n="c_cv_models">Modèles</button>
       </div>
       <div id="cours-body"><div class="spin"></div></div>
+    </div>
+
+    <!-- PAIEMENTS (web uniquement, retire en natif) -->
+    <div class="pane" id="pane-paiements">
+      <div class="subswitch">
+        <button class="on" data-pv="receive" data-i18n="pay_tab_recv">Recevoir des paiements</button>
+        <button data-pv="offers" data-i18n="pay_tab_offers">Mes offres</button>
+        <button data-pv="payments" data-i18n="pay_tab_list">Mes paiements</button>
+      </div>
+      <div id="pay-body"><div class="spin"></div></div>
     </div>
   </div>
 </div>
@@ -639,6 +651,58 @@ h1, h2,
   .dash .d.act .dv{color:var(--brand)}
   /* Bandeau des places offertes : annonce l'offre gratuite sans parler d'argent,
      donc affichable aussi dans l'app iOS. */
+
+  /* ---- PAIEMENTS (Stripe Connect, web) ---- */
+  #pane-paiements{max-width:860px}
+  #pane-paiements .subswitch{flex-wrap:wrap}
+  #pane-paiements .meta{font-size:12.5px;color:var(--muted)}
+  #pane-paiements .field{margin-bottom:12px}
+  #pane-paiements .sec-t{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:18px 2px 10px}
+  .pay-steps{display:grid;gap:10px}
+  .pay-step{display:flex;gap:11px;align-items:flex-start}
+  .pay-step i{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:13px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted)}
+  .pay-step.done i{background:var(--gold);border-color:var(--gold);color:#14110A}
+  .pay-step b{display:block;font-size:14px}
+  .pay-step span{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.45}
+  .pay-list{margin:8px 0 0 18px;padding:0;color:var(--muted);font-size:13px;line-height:1.55}
+  .pay-list li{margin-bottom:4px}
+  .pay-fee-row{display:flex;justify-content:space-between;gap:12px;margin:8px 0 10px}
+  .pay-big{font-size:22px;font-weight:800;color:var(--gold-hi,var(--text))}
+  .pay-bar{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-bottom:6px}
+  .pay-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-mid,#B8963F),var(--gold,#D9B65C))}
+  .pay-warn{border-color:rgba(217,182,92,.45)}
+  .pay-warn b{display:block;margin-bottom:4px}
+  .pay-warn .meta{display:block}
+  .pay-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .pay-2col > *{min-width:0}
+  .pay-offer.off{opacity:.62}
+  .pay-price{font-size:20px;font-weight:800;margin:6px 0 4px}
+  .pay-price small{font-size:13px;font-weight:600;color:var(--muted)}
+  .pay-link{display:flex;gap:8px;margin-top:10px}
+  .pay-link input{flex:1;min-width:0;padding:9px 11px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--text);font-size:12.5px}
+  .pay-edit{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  .pay-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+  .pay-toolbar input[type=month]{padding:9px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--text);font-family:inherit}
+  .pay-totals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:11px}
+  .pay-totals > div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px 12px;min-width:0}
+  .pay-totals b{display:block;font-size:17px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pay-totals .net{border-color:rgba(217,182,92,.5)}
+  .pay-totals .net b{color:var(--gold-hi,var(--text))}
+  @media (max-width:560px){ .pay-totals{grid-template-columns:1fr 1fr} .pay-2col{grid-template-columns:1fr} }
+  .pay-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+  .pay-table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+  .pay-table th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;padding:10px 12px;border-bottom:1px solid var(--line)}
+  .pay-table td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  .pay-table tr:last-child td{border-bottom:0}
+  .pay-table .n{text-align:right;white-space:nowrap}
+  .pill.pay-off{background:var(--surface-2);color:var(--muted)}
+  .pill.pay-ai{background:rgba(217,182,92,.16);color:var(--gold,#D9B65C)}
+  .pay-mini{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;margin:0 0 12px;padding:11px 14px;border-radius:var(--radius-sm);border:1px solid rgba(217,182,92,.35);background:var(--surface);color:var(--text);font:inherit;font-size:13.5px;cursor:pointer;text-align:left}
+  .pay-mini .meta{font-size:12px;color:var(--muted)}
+  /* Le panneau vide « Choisis un client » n'existe qu'en grand ecran. */
+  .detail-void{display:none}
+  /* Cinq onglets sur telephone : la rangee defile au doigt au lieu de deborder. */
+  @media (max-width:759.98px){ .tabs{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;-webkit-overflow-scrolling:touch} .tabs::-webkit-scrollbar{display:none} .tabs button{flex:none} .topbar .row{flex-wrap:wrap;row-gap:8px} }
   .freebar{display:flex;align-items:center;gap:10px;background:var(--brand-soft);
     border:1px solid rgba(0,232,150,.25);border-radius:13px;padding:11px 13px;margin-bottom:12px}
   .freebar .fb-t{flex:1;font-size:13px;color:var(--brand);font-weight:600}
@@ -871,7 +935,7 @@ h1, h2,
   .pane{grid-column:1}
   /* Le constructeur de seances et les cours prennent toute la largeur : leurs
      tableaux sont ce qui gagne le plus a respirer. */
-  #pane-workouts, #pane-cours{grid-column:1 / -1}
+  #pane-workouts, #pane-cours, #pane-paiements{grid-column:1 / -1}
 
   .detail-void{display:none;grid-column:2;position:sticky;top:26px;height:calc(100dvh - 90px);
     flex-direction:column;align-items:center;justify-content:center;gap:14px;
@@ -1688,6 +1752,104 @@ const T = {
  g_note_client:{fr:'Note au client',en:'Note to the client',nl:'Notitie voor de klant'},
  g_add_my_client:{fr:'＋ Ajouter un de mes clients',en:'＋ Add one of my clients',nl:'＋ Een van mijn klanten toevoegen'},
  g_wk_notfound:{fr:'Séance introuvable',en:'Workout not found',nl:'Training niet gevonden'},
+ c_tab_pay:{fr:'Paiements',en:'Payments',nl:'Betalingen'},
+ pay_tab_recv:{fr:'Recevoir des paiements',en:'Receive payments',nl:'Betalingen ontvangen'},
+ pay_tab_offers:{fr:'Mes offres',en:'My offers',nl:'Mijn aanbod'},
+ pay_tab_list:{fr:'Mes paiements',en:'My payments',nl:'Mijn betalingen'},
+ pay_recv_t:{fr:'Recevoir des paiements',en:'Receive payments',nl:'Betalingen ontvangen'},
+ pay_recv_d:{fr:'Tes clients te paient par carte. L\'argent arrive sur TON compte Stripe, puis sur ton compte bancaire. Coach DM ne touche jamais ton argent : seule sa commission est prélevée.',en:'Your clients pay you by card. The money lands in YOUR Stripe account, then in your bank account. Coach DM never holds your money: only its commission is taken.',nl:'Je klanten betalen je met kaart. Het geld komt op JOUW Stripe-account en daarna op je bankrekening. Coach DM komt nooit aan je geld: alleen de commissie wordt ingehouden.'},
+ pay_st_none:{fr:'Pas encore activé',en:'Not set up yet',nl:'Nog niet geactiveerd'},
+ pay_st_todo:{fr:'À compléter',en:'To complete',nl:'Aan te vullen'},
+ pay_st_review:{fr:'Vérification en cours',en:'Being verified',nl:'Wordt gecontroleerd'},
+ pay_st_on:{fr:'Actif',en:'Active',nl:'Actief'},
+ pay_st_err:{fr:'Indisponible',en:'Unavailable',nl:'Niet beschikbaar'},
+ pay_s1_t:{fr:'Crée ton compte Stripe',en:'Create your Stripe account',nl:'Maak je Stripe-account aan'},
+ pay_s1_d:{fr:'Deux minutes. Stripe te demande ton identité et ton IBAN — ces infos restent chez Stripe, Coach DM ne les voit pas.',en:'Two minutes. Stripe asks for your identity and IBAN — that stays with Stripe, Coach DM never sees it.',nl:'Twee minuten. Stripe vraagt je identiteit en IBAN — dat blijft bij Stripe, Coach DM ziet het niet.'},
+ pay_s2_t:{fr:'Stripe vérifie',en:'Stripe checks',nl:'Stripe controleert'},
+ pay_s2_d:{fr:'Souvent quelques minutes, parfois un jour ouvrable.',en:'Often a few minutes, sometimes one business day.',nl:'Vaak enkele minuten, soms één werkdag.'},
+ pay_s3_t:{fr:'Tu encaisses',en:'You get paid',nl:'Je ontvangt betalingen'},
+ pay_s3_d:{fr:'Crée une offre, copie son lien de paiement et envoie-le à ton client.',en:'Create an offer, copy its payment link and send it to your client.',nl:'Maak een aanbod, kopieer de betaallink en stuur die naar je klant.'},
+ pay_start:{fr:'Activer les paiements',en:'Set up payments',nl:'Betalingen activeren'},
+ pay_continue:{fr:'Continuer chez Stripe',en:'Continue with Stripe',nl:'Verder bij Stripe'},
+ pay_opening:{fr:'Ouverture de Stripe…',en:'Opening Stripe…',nl:'Stripe wordt geopend…'},
+ pay_go_offers:{fr:'Créer une offre',en:'Create an offer',nl:'Een aanbod maken'},
+ pay_dash:{fr:'Ouvrir mon tableau de bord Stripe',en:'Open my Stripe dashboard',nl:'Mijn Stripe-dashboard openen'},
+ pay_dash_short:{fr:'Tableau de bord Stripe',en:'Stripe dashboard',nl:'Stripe-dashboard'},
+ pay_how_t:{fr:'Comment ça marche',en:'How it works',nl:'Hoe het werkt'},
+ pay_how_1:{fr:'Ton client paie un abonnement mensuel ou trimestriel à ton nom. Il le résilie quand il veut.',en:'Your client pays a monthly or quarterly subscription in your name. They can cancel anytime.',nl:'Je klant betaalt een maandelijks of driemaandelijks abonnement op jouw naam. Hij kan altijd opzeggen.'},
+ pay_how_2:{fr:'Dès le premier paiement, il apparaît dans tes clients et reçoit l\'app de suivi gratuitement.',en:'From the first payment, they appear in your clients and get the coaching app for free.',nl:'Vanaf de eerste betaling verschijnt hij bij je klanten en krijgt hij de begeleidingsapp gratis.'},
+ pay_how_3:{fr:'Coach DM prélève sa commission sur chaque paiement ; les frais Stripe sont à ta charge, comme sur n\'importe quel terminal.',en:'Coach DM takes its commission on each payment; Stripe fees are yours, as with any card terminal.',nl:'Coach DM houdt zijn commissie in op elke betaling; de Stripe-kosten zijn voor jou, zoals bij elke betaalterminal.'},
+ pay_how_4:{fr:'Si un paiement échoue, Stripe réessaie automatiquement et le client passe en « Paiement en retard » dans ta liste.',en:'If a payment fails, Stripe retries automatically and the client shows “Payment overdue” in your list.',nl:'Mislukt een betaling, dan probeert Stripe automatisch opnieuw en staat de klant op „Betaling achterstallig” in je lijst.'},
+ pay_fee_t:{fr:'Ta commission Coach DM',en:'Your Coach DM commission',nl:'Je Coach DM-commissie'},
+ pay_fee_month:{fr:'prélevés ce mois-ci',en:'taken this month',nl:'deze maand ingehouden'},
+ pay_fee_month_short:{fr:'Commission ce mois :',en:'Commission this month:',nl:'Commissie deze maand:'},
+ pay_fee_cap:{fr:'Plafond mensuel {0} · encore {1} avant que la commission s\'arrête jusqu\'au mois prochain.',en:'Monthly cap {0} · {1} left before the commission stops until next month.',nl:'Maandplafond {0} · nog {1} voordat de commissie stopt tot volgende maand.'},
+ pay_fee_left:{fr:'reste {0} avant le plafond',en:'{0} left before the cap',nl:'nog {0} tot het plafond'},
+ pay_fee_rate:{fr:'taux {0} %',en:'rate {0}%',nl:'tarief {0} %'},
+ pay_fee_nocap:{fr:'Sans abonnement Coach, pas de plafond. Avec l\'abonnement Coach : 5 % plafonnés à 99 € par mois.',en:'Without a Coach plan there is no cap. With the Coach plan: 5% capped at €99 a month.',nl:'Zonder Coach-abonnement geen plafond. Met het Coach-abonnement: 5 % met een plafond van € 99 per maand.'},
+ pay_fee_stripe:{fr:'Frais Stripe en plus, payés par toi (en Europe, environ 1,5 % + 0,25 € par carte).',en:'Stripe fees on top, paid by you (in Europe about 1.5% + €0.25 per card).',nl:'Stripe-kosten komen erbij, door jou betaald (in Europa ongeveer 1,5 % + € 0,25 per kaart).'},
+ pay_plan_free:{fr:'sans abonnement Coach',en:'without a Coach plan',nl:'zonder Coach-abonnement'},
+ pay_plan_coach:{fr:'abonnement Coach',en:'Coach plan',nl:'Coach-abonnement'},
+ pay_plan_founder:{fr:'Fondateur',en:'Founder',nl:'Oprichter'},
+ pay_need_connect_t:{fr:'Active d\'abord les paiements',en:'Set up payments first',nl:'Activeer eerst de betalingen'},
+ pay_need_connect_d:{fr:'Tu pourras créer une offre dès que ton compte Stripe est actif.',en:'You can create an offer as soon as your Stripe account is active.',nl:'Je kunt een aanbod maken zodra je Stripe-account actief is.'},
+ pay_go_recv:{fr:'Recevoir des paiements',en:'Receive payments',nl:'Betalingen ontvangen'},
+ pay_new_t:{fr:'Nouvelle offre',en:'New offer',nl:'Nieuw aanbod'},
+ pay_new_d:{fr:'Minimum 20 € par mois ou 60 € par trimestre.',en:'Minimum €20 a month or €60 a quarter.',nl:'Minimum € 20 per maand of € 60 per kwartaal.'},
+ pay_f_name:{fr:'Nom de l\'offre',en:'Offer name',nl:'Naam van het aanbod'},
+ pay_f_name_ph:{fr:'Ex. Suivi en ligne mensuel',en:'e.g. Monthly online coaching',nl:'Bv. Maandelijkse online begeleiding'},
+ pay_f_desc:{fr:'Ce qui est inclus (facultatif)',en:'What\'s included (optional)',nl:'Wat inbegrepen is (optioneel)'},
+ pay_f_desc_ph:{fr:'Programme sur mesure, check-in chaque semaine, messages…',en:'Custom program, weekly check-in, messages…',nl:'Programma op maat, wekelijkse check-in, berichten…'},
+ pay_f_amount:{fr:'Prix (€)',en:'Price (€)',nl:'Prijs (€)'},
+ pay_f_interval:{fr:'Facturation',en:'Billing',nl:'Facturatie'},
+ pay_int_m:{fr:'Chaque mois',en:'Every month',nl:'Elke maand'},
+ pay_int_q:{fr:'Chaque trimestre',en:'Every quarter',nl:'Elk kwartaal'},
+ pay_per_m:{fr:'/ mois',en:'/ month',nl:'/ maand'},
+ pay_per_q:{fr:'/ trimestre',en:'/ quarter',nl:'/ kwartaal'},
+ pay_estimate:{fr:'Tu reçois environ {0} par paiement — commission {1} % ({2}) et frais Stripe estimés ({3}) déduits.',en:'You receive about {0} per payment — {1}% commission ({2}) and estimated Stripe fees ({3}) deducted.',nl:'Je ontvangt ongeveer {0} per betaling — commissie {1} % ({2}) en geschatte Stripe-kosten ({3}) afgetrokken.'},
+ pay_create:{fr:'Créer l\'offre',en:'Create the offer',nl:'Aanbod maken'},
+ pay_created:{fr:'Offre créée — copie son lien',en:'Offer created — copy its link',nl:'Aanbod gemaakt — kopieer de link'},
+ pay_my_offers:{fr:'Mes offres',en:'My offers',nl:'Mijn aanbod'},
+ pay_o_on:{fr:'En vente',en:'On sale',nl:'Te koop'},
+ pay_o_off:{fr:'Désactivée',en:'Disabled',nl:'Uitgeschakeld'},
+ pay_link:{fr:'Lien de paiement',en:'Payment link',nl:'Betaallink'},
+ pay_copy:{fr:'Copier le lien',en:'Copy link',nl:'Link kopiëren'},
+ pay_copied:{fr:'Lien copié',en:'Link copied',nl:'Link gekopieerd'},
+ pay_change_price:{fr:'Changer le prix',en:'Change price',nl:'Prijs wijzigen'},
+ pay_disable:{fr:'Désactiver',en:'Disable',nl:'Uitschakelen'},
+ pay_enable:{fr:'Remettre en vente',en:'Put back on sale',nl:'Opnieuw te koop zetten'},
+ pay_save:{fr:'Enregistrer',en:'Save',nl:'Opslaan'},
+ pay_saved:{fr:'Enregistré',en:'Saved',nl:'Opgeslagen'},
+ pay_price_note:{fr:'Le nouveau prix vaut pour les nouveaux clients. Ceux déjà abonnés gardent leur prix.',en:'The new price applies to new clients. Existing subscribers keep their price.',nl:'De nieuwe prijs geldt voor nieuwe klanten. Bestaande abonnees behouden hun prijs.'},
+ pay_no_offer:{fr:'Aucune offre pour l\'instant.',en:'No offer yet.',nl:'Nog geen aanbod.'},
+ pay_export:{fr:'Exporter le mois (CSV)',en:'Export the month (CSV)',nl:'Maand exporteren (CSV)'},
+ pay_export_note:{fr:'L\'export reprend chaque paiement du mois avec la commission Coach DM : c\'est la base de la facture de commission. Les frais Stripe et les virements détaillés sont dans ton tableau de bord Stripe.',en:'The export lists every payment of the month with the Coach DM commission: it is the basis of the commission invoice. Stripe fees and payouts in detail are in your Stripe dashboard.',nl:'De export toont elke betaling van de maand met de Coach DM-commissie: dat is de basis van de commissiefactuur. Stripe-kosten en uitbetalingen in detail staan in je Stripe-dashboard.'},
+ pay_c_date:{fr:'Date',en:'Date',nl:'Datum'},
+ pay_c_client:{fr:'Client',en:'Client',nl:'Klant'},
+ pay_c_offer:{fr:'Offre',en:'Offer',nl:'Aanbod'},
+ pay_c_amount:{fr:'Payé',en:'Paid',nl:'Betaald'},
+ pay_c_fee:{fr:'Commission',en:'Commission',nl:'Commissie'},
+ pay_c_stripe:{fr:'Frais Stripe',en:'Stripe fees',nl:'Stripe-kosten'},
+ pay_c_net:{fr:'Net pour toi',en:'Net to you',nl:'Netto voor jou'},
+ pay_c_refund:{fr:'Remboursé',en:'Refunded',nl:'Terugbetaald'},
+ pay_c_invoice:{fr:'Facture Stripe',en:'Stripe invoice',nl:'Stripe-factuur'},
+ pay_total:{fr:'Total',en:'Total',nl:'Totaal'},
+ pay_none_month:{fr:'Aucun paiement ce mois-ci.',en:'No payment this month.',nl:'Geen betaling deze maand.'},
+ pay_refunded:{fr:'Remboursé',en:'Refunded',nl:'Terugbetaald'},
+ pay_part_refund:{fr:'Remb. partiel',en:'Partly refunded',nl:'Deels terugbetaald'},
+ pay_b_paid:{fr:'Payé via Coach DM',en:'Paid via Coach DM',nl:'Betaald via Coach DM'},
+ pay_b_late:{fr:'Paiement en retard',en:'Payment overdue',nl:'Betaling achterstallig'},
+ pay_b_off:{fr:'Hors app',en:'Outside the app',nl:'Buiten de app'},
+ pay_b_ai:{fr:'Premium IA',en:'AI Premium',nl:'AI Premium'},
+ pay_back:{fr:'Retour de Stripe : on vérifie ton compte…',en:'Back from Stripe: checking your account…',nl:'Terug van Stripe: we controleren je account…'},
+ pay_err_connect:{fr:'Active d\'abord les paiements dans « Recevoir des paiements ».',en:'Set up payments first in “Receive payments”.',nl:'Activeer eerst de betalingen in „Betalingen ontvangen”.'},
+ pay_err_connect_inc:{fr:'Ton compte Stripe n\'est pas encore actif : termine l\'étape chez Stripe.',en:'Your Stripe account is not active yet: finish the step with Stripe.',nl:'Je Stripe-account is nog niet actief: rond de stap bij Stripe af.'},
+ pay_err_min:{fr:'Prix minimum : {0}.',en:'Minimum price: {0}.',nl:'Minimumprijs: {0}.'},
+ pay_err_max:{fr:'Prix maximum : {0}.',en:'Maximum price: {0}.',nl:'Maximumprijs: {0}.'},
+ pay_err_name:{fr:'Donne un nom à ton offre.',en:'Give your offer a name.',nl:'Geef je aanbod een naam.'},
+ pay_err_conf:{fr:'Les paiements ne sont pas encore ouverts. Réessaie plus tard.',en:'Payments are not open yet. Try again later.',nl:'Betalingen zijn nog niet open. Probeer later opnieuw.'},
+ pay_err_forbidden:{fr:'Réservé aux comptes coach.',en:'Coach accounts only.',nl:'Alleen voor coach-accounts.'},
+ pay_err_generic:{fr:'Une erreur est survenue. Réessaie dans un instant.',en:'Something went wrong. Try again in a moment.',nl:'Er ging iets mis. Probeer zo opnieuw.'},
 };
 const tr = (k)=> (T[k] ? (T[k][LANG] ?? T[k].fr) : k);
 /* trf('cle', a, b) : {0} et {1} sont remplaces. Indispensable pour le
@@ -1804,7 +1966,13 @@ async function enter(user){
   try{ const { data:pi } = await sb.rpc('coach_my_plan_info'); PLAN_INFO = pi || {paid:false}; }
   catch(e){ PLAN_INFO = {paid:false}; }
   show('app');
-  { let tb='clients'; try{ const q=new URLSearchParams(location.search).get('tab'); const m=q||sessionStorage.getItem('c_tab'); if(['clients','workouts','cours'].includes(m)) tb=m; }catch(_){}
+  /* Paiements : web uniquement, et reserve a l'admin tant que Stripe est en mode test.
+     Au passage en live, PAY_OPEN devient vrai pour tous les coachs (une ligne). */
+  PAY_OPEN = !IS_NATIVE && ROLE==='admin';
+  if(!PAY_OPEN){ const tp=$('#tab-pay'); if(tp) tp.remove(); const pp=$('#pane-paiements'); if(pp) pp.remove(); }
+  else { try{ const v=sessionStorage.getItem('c_pay'); if(['receive','offers','payments'].includes(v)) PAY.view=v; }catch(_){}
+    try{ const q=new URLSearchParams(location.search); if(q.get('connect')){ PAY.view='receive'; history.replaceState(null,'',location.pathname+'?tab=paiements'); toast(tr('pay_back')); } }catch(_){} }
+  { let tb='clients'; try{ const q=new URLSearchParams(location.search).get('tab'); const m=q||sessionStorage.getItem('c_tab'); if(['clients','workouts','cours'].includes(m) || (m==='paiements' && PAY_OPEN)) tb=m; }catch(_){}
     switchTab(tb);
     try{ const sb2=sessionStorage.getItem('c_sub'); if(tb==='workouts'&&sb2){ const bt=document.querySelector('.subswitch [data-sub="'+sb2+'"]'); if(bt) bt.click(); } }catch(_){} }
   loadClientList();
@@ -1836,8 +2004,273 @@ function switchTab(t){
   }
   if(t==='workouts' && !window.__wkLoaded){ window.__wkLoaded=true; loadExercises(); loadWorkouts(); }
   if(t==='cours' && window.__coursOpen){ window.__coursOpen(); }
+  if(t==='paiements'){ if(!PAY_OPEN) return switchTab('clients'); payOpen(); }
 }
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+
+/* ===================================================================
+   PAIEMENTS (03/11/2026) — Stripe Connect, WEB UNIQUEMENT.
+   Trois écrans : Recevoir des paiements, Mes offres, Mes paiements.
+   Rien de tout ça n'existe dans les apps iOS / Android : l'onglet est
+   retiré du DOM en natif (règle 3.1.1 Apple, et règle Google équivalente).
+=================================================================== */
+let PAY_OPEN = false;
+const PAY = { view:'receive', status:null, offers:null, fee:null, month:null, data:null, billing:{} };
+const eur = (v)=> (v==null||isNaN(v)) ? '—' : new Intl.NumberFormat(locale(),{style:'currency',currency:'EUR'}).format(+v);
+const payReason = (r, extra)=>{
+  const k = { connect_required:'pay_err_connect', connect_incomplete:'pay_err_connect_inc', min_price:'pay_err_min',
+    max_price:'pay_err_max', name_required:'pay_err_name', not_configured:'pay_err_conf', forbidden:'pay_err_forbidden' }[r];
+  return k ? trf(k, extra && extra.min_eur!=null ? eur(extra.min_eur) : (extra && extra.max_eur!=null ? eur(extra.max_eur) : '')) : tr('pay_err_generic');
+};
+async function payCall(fn, body){
+  try{
+    const { data, error } = await sb.functions.invoke(fn, { body: body||{} });
+    if(error){
+      let j=null; try{ j = await error.context.json(); }catch(_){}
+      return j || { ok:false, reason:'network' };
+    }
+    return data || { ok:false, reason:'network' };
+  }catch(e){ return { ok:false, reason:'network' }; }
+}
+
+function payOpen(){
+  if(!PAY_OPEN) return;
+  const box = $('#pay-body'); if(!box) return;
+  document.querySelectorAll('#pane-paiements .subswitch [data-pv]').forEach(b=>{
+    b.classList.toggle('on', b.dataset.pv===PAY.view);
+    b.onclick = ()=>{ PAY.view=b.dataset.pv; try{ sessionStorage.setItem('c_pay',PAY.view); }catch(_){} payOpen(); };
+  });
+  if(PAY.view==='offers') return payOffers();
+  if(PAY.view==='payments') return payPayments();
+  return payReceive();
+}
+
+/* ---------- 1. RECEVOIR DES PAIEMENTS ---------- */
+async function payReceive(force){
+  const box=$('#pay-body');
+  box.innerHTML='<div class="spin"></div>';
+  if(!PAY.status || force) PAY.status = await payCall('connect-onboard',{ action:'status' });
+  const s = PAY.status || {};
+  if(!PAY.fee || force){ const { data } = await sb.rpc('coach_fee_status'); PAY.fee = data || null; }
+  const st = s.ok ? s.status : 'error';
+  const pill = { none:['pay_st_none','no'], a_completer:['pay_st_todo','warnp'], verification:['pay_st_review','warnp'], actif:['pay_st_on','ok'], error:['pay_st_err','no'] }[st] || ['pay_st_err','no'];
+  const steps = [
+    ['pay_s1_t','pay_s1_d', st!=='none' && st!=='error'],
+    ['pay_s2_t','pay_s2_d', st==='verification' || st==='actif'],
+    ['pay_s3_t','pay_s3_d', st==='actif'],
+  ];
+  const cta = st==='actif'
+    ? `<button class="btn" id="pay-go-offers">${tr('pay_go_offers')}</button>
+       <a class="btn subtle" style="display:block;text-align:center;text-decoration:none;margin-top:9px" href="https://dashboard.stripe.com" target="_blank" rel="noopener">${tr('pay_dash')}</a>`
+    : `<button class="btn" id="pay-onboard">${tr(st==='none'?'pay_start':'pay_continue')}</button>`;
+  box.innerHTML = `
+    <div class="item pay-hero">
+      <div class="nm" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span>${tr('pay_recv_t')}</span><span class="pill ${pill[1]}">${tr(pill[0])}</span></div>
+      <p class="meta" style="margin:6px 0 12px">${tr('pay_recv_d')}</p>
+      <div class="pay-steps">${steps.map((x,i)=>`<div class="pay-step${x[2]?' done':''}"><i>${x[2]?'✓':i+1}</i><div><b>${tr(x[0])}</b><span>${tr(x[1])}</span></div></div>`).join('')}</div>
+      <div style="margin-top:14px">${cta}</div>
+      <p class="msg" id="pay-recv-msg" style="margin-top:8px"></p>
+    </div>
+    ${payFeeCard()}
+    <div class="item"><div class="nm">${tr('pay_how_t')}</div>
+      <ul class="pay-list">
+        <li>${tr('pay_how_1')}</li><li>${tr('pay_how_2')}</li><li>${tr('pay_how_3')}</li><li>${tr('pay_how_4')}</li>
+      </ul></div>`;
+  const ob=$('#pay-onboard');
+  if(ob) ob.onclick = async ()=>{
+    ob.disabled=true; ob.textContent=tr('pay_opening');
+    const r = await payCall('connect-onboard',{ action:'onboard' });
+    if(r && r.ok && r.url){ location.href = r.url; return; }
+    if(r && r.ok && r.status==='actif'){ PAY.status=r; return payReceive(); }
+    ob.disabled=false; ob.textContent=tr('pay_continue');
+    setMsg('pay-recv-msg', payReason(r && r.reason), 'err');
+  };
+  const go=$('#pay-go-offers'); if(go) go.onclick=()=>{ PAY.view='offers'; payOpen(); };
+}
+
+function payFeeCard(){
+  const f = PAY.fee; if(!f) return '';
+  const pct = +f.fee_percent;
+  const cap = f.cap_eur!=null ? +f.cap_eur : null;
+  const got = +f.collected_eur||0;
+  const bar = cap ? Math.min(100, Math.round(got/cap*100)) : 0;
+  const planK = pct<=3 ? 'pay_plan_founder' : (pct<=5 ? 'pay_plan_coach' : 'pay_plan_free');
+  return `<div class="item pay-fee">
+    <div class="nm">${tr('pay_fee_t')}</div>
+    <div class="pay-fee-row"><div><div class="pay-big">${String(pct).replace('.',',')} %</div><div class="meta">${tr(planK)}</div></div>
+      <div style="text-align:right"><div class="pay-big">${eur(got)}</div><div class="meta">${tr('pay_fee_month')}</div></div></div>
+    ${cap ? `<div class="pay-bar"><i style="width:${bar}%"></i></div>
+      <div class="meta">${trf('pay_fee_cap', eur(cap), eur(f.remaining_eur))}</div>`
+      : `<div class="meta">${tr('pay_fee_nocap')}</div>`}
+    <div class="meta" style="margin-top:6px">${tr('pay_fee_stripe')}</div>
+  </div>`;
+}
+
+/* ---------- 2. MES OFFRES ---------- */
+async function payOffers(force){
+  const box=$('#pay-body');
+  box.innerHTML='<div class="spin"></div>';
+  if(!PAY.status) PAY.status = await payCall('connect-onboard',{ action:'status' });
+  if(!PAY.offers || force){
+    const r = await payCall('coach-offer',{ action:'list' });
+    PAY.offers = r && r.ok ? r : { ok:false, offers:[], reason:r && r.reason };
+  }
+  const active = PAY.status && PAY.status.status==='actif';
+  const pct = PAY.offers.fee_percent!=null ? +PAY.offers.fee_percent : 8;
+  const list = (PAY.offers.offers||[]);
+  const ivl = (i)=> tr(i==='quarter'?'pay_per_q':'pay_per_m');
+  box.innerHTML = `
+    ${active ? '' : `<div class="item pay-warn"><b>${tr('pay_need_connect_t')}</b><span class="meta">${tr('pay_need_connect_d')}</span>
+      <button class="btn sm" id="pay-to-recv" style="margin-top:10px">${tr('pay_go_recv')}</button></div>`}
+    <div class="item">
+      <div class="nm">${tr('pay_new_t')}</div>
+      <p class="meta" style="margin:4px 0 12px">${tr('pay_new_d')}</p>
+      <div class="field"><label>${tr('pay_f_name')}</label><input id="po-name" maxlength="80" placeholder="${esc(tr('pay_f_name_ph'))}"></div>
+      <div class="field"><label>${tr('pay_f_desc')}</label><textarea id="po-desc" maxlength="600" placeholder="${esc(tr('pay_f_desc_ph'))}"></textarea></div>
+      <div class="pay-2col">
+        <div class="field"><label>${tr('pay_f_amount')}</label><input id="po-amt" type="number" inputmode="decimal" min="20" step="1" placeholder="60"></div>
+        <div class="field"><label>${tr('pay_f_interval')}</label><select id="po-int"><option value="month">${tr('pay_int_m')}</option><option value="quarter">${tr('pay_int_q')}</option></select></div>
+      </div>
+      <div class="meta" id="po-est" style="min-height:1.4em"></div>
+      <button class="btn" id="po-create" ${active?'':'disabled'} style="margin-top:10px">${tr('pay_create')}</button>
+      <p class="msg" id="po-msg"></p>
+    </div>
+    <div class="sec-t">${tr('pay_my_offers')}</div>
+    ${list.length ? list.map(o=>`
+      <div class="item pay-offer${o.active?'':' off'}" data-oid="${o.id}">
+        <div class="nm" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>${esc(o.name)}</span>
+          <span class="pill ${o.active?'ok':'no'}">${tr(o.active?'pay_o_on':'pay_o_off')}</span></div>
+        <div class="pay-price">${eur(o.amount_eur)} <small>${ivl(o.interval)}</small></div>
+        ${o.description?`<div class="meta">${esc(o.description)}</div>`:''}
+        <div class="pay-link"><input readonly value="${esc(o.pay_url)}" aria-label="${esc(tr('pay_link'))}"><button class="btn sm" data-copy="${o.id}">${tr('pay_copy')}</button></div>
+        <div class="acts">
+          <button class="btn subtle sm" data-price="${o.id}">${tr('pay_change_price')}</button>
+          <button class="btn subtle sm" data-toggle="${o.id}">${tr(o.active?'pay_disable':'pay_enable')}</button>
+        </div>
+        <div class="pay-edit" id="pe-${o.id}" hidden>
+          <div class="pay-2col"><div class="field"><label>${tr('pay_f_amount')}</label><input type="number" min="${o.interval==='quarter'?60:20}" step="1" value="${o.amount_eur}" id="pe-amt-${o.id}"></div>
+          <div style="display:flex;align-items:flex-end;padding-bottom:14px"><button class="btn sm" data-save="${o.id}">${tr('pay_save')}</button></div></div>
+          <div class="meta">${tr('pay_price_note')}</div>
+        </div>
+      </div>`).join('') : `<p class="empty">${tr('pay_no_offer')}</p>`}`;
+
+  const est = ()=>{
+    const a = parseFloat(String($('#po-amt').value).replace(',','.'));
+    const q = $('#po-int').value==='quarter';
+    const min = q?60:20;
+    if(!a){ $('#po-est').textContent=''; return; }
+    if(a<min){ $('#po-est').textContent = trf('pay_err_min', eur(min)); return; }
+    const fee = a*pct/100, sf = a*0.015+0.25;
+    $('#po-est').textContent = trf('pay_estimate', eur(a-fee-sf), String(pct).replace('.',','), eur(fee), eur(sf));
+  };
+  $('#po-amt').oninput = est; $('#po-int').onchange = ()=>{ $('#po-amt').min = $('#po-int').value==='quarter'?60:20; est(); };
+  const tr2=$('#pay-to-recv'); if(tr2) tr2.onclick=()=>{ PAY.view='receive'; payOpen(); };
+  $('#po-create').onclick = async ()=>{
+    const b=$('#po-create'); b.disabled=true; setMsg('po-msg','…','');
+    const r = await payCall('coach-offer',{ action:'create', name:$('#po-name').value, description:$('#po-desc').value,
+      amount_eur:$('#po-amt').value, interval:$('#po-int').value });
+    b.disabled=false;
+    if(!r || !r.ok){ setMsg('po-msg', payReason(r && r.reason, r), 'err'); return; }
+    toast(tr('pay_created')); PAY.offers=null; payOffers(true);
+  };
+  box.querySelectorAll('[data-copy]').forEach(btn=>btn.onclick=async ()=>{
+    const inp = btn.parentElement.querySelector('input');
+    try{ await navigator.clipboard.writeText(inp.value); toast(tr('pay_copied')); }
+    catch(_){ inp.select(); try{ document.execCommand('copy'); toast(tr('pay_copied')); }catch(__){} }
+  });
+  box.querySelectorAll('[data-price]').forEach(btn=>btn.onclick=()=>{ const e=$('#pe-'+btn.dataset.price); e.hidden=!e.hidden; });
+  box.querySelectorAll('[data-save]').forEach(btn=>btn.onclick=async ()=>{
+    const id=btn.dataset.save; btn.disabled=true;
+    const r = await payCall('coach-offer',{ action:'update', id, amount_eur:$('#pe-amt-'+id).value });
+    btn.disabled=false;
+    if(!r || !r.ok){ toast(payReason(r && r.reason, r)); return; }
+    toast(tr('pay_saved')); payOffers(true);
+  });
+  box.querySelectorAll('[data-toggle]').forEach(btn=>btn.onclick=async ()=>{
+    const id=btn.dataset.toggle; const o=list.find(x=>x.id===id); btn.disabled=true;
+    const r = await payCall('coach-offer',{ action:'update', id, active: !o.active });
+    btn.disabled=false;
+    if(!r || !r.ok){ toast(payReason(r && r.reason, r)); return; }
+    payOffers(true);
+  });
+}
+
+/* ---------- 3. MES PAIEMENTS ---------- */
+function monthNow(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+async function payPayments(){
+  const box=$('#pay-body');
+  if(!PAY.month) PAY.month = monthNow();
+  box.innerHTML='<div class="spin"></div>';
+  const { data, error } = await sb.rpc('coach_payments_month', { p_month: PAY.month+'-01' });
+  if(error || !data){ box.innerHTML=`<p class="empty">${tr('pay_err_generic')}</p>`; return; }
+  PAY.data = data; if(data.fee) PAY.fee = data.fee;
+  const t = data.totals || {};
+  const rows = data.rows || [];
+  const stPill = (s)=> s==='refunded' ? `<span class="pill no">${tr('pay_refunded')}</span>` : (s==='partially_refunded' ? `<span class="pill warnp">${tr('pay_part_refund')}</span>` : '');
+  box.innerHTML = `
+    <div class="pay-toolbar">
+      <div class="field" style="margin:0"><input type="month" id="pp-month" value="${PAY.month}" max="${monthNow()}"></div>
+      <button class="btn subtle sm" id="pp-csv">${tr('pay_export')}</button>
+      <a class="btn subtle sm" href="https://dashboard.stripe.com" target="_blank" rel="noopener" style="text-decoration:none">${tr('pay_dash_short')}</a>
+    </div>
+    <div class="pay-totals">
+      <div><span class="meta">${tr('pay_c_amount')}</span><b>${eur(t.amount_eur)}</b></div>
+      <div><span class="meta">${tr('pay_c_fee')}</span><b>${eur(t.fee_eur)}</b></div>
+      <div><span class="meta">${tr('pay_c_stripe')}</span><b>${eur(t.stripe_fee_eur)}</b></div>
+      <div class="net"><span class="meta">${tr('pay_c_net')}</span><b>${eur(t.net_eur)}</b></div>
+    </div>
+    ${payFeeCard()}
+    ${rows.length ? `<div class="pay-table-wrap"><table class="pay-table">
+      <thead><tr><th>${tr('pay_c_date')}</th><th>${tr('pay_c_client')}</th><th class="n">${tr('pay_c_amount')}</th><th class="n">${tr('pay_c_fee')}</th><th class="n">${tr('pay_c_stripe')}</th><th class="n">${tr('pay_c_net')}</th></tr></thead>
+      <tbody>${rows.map(r=>`<tr><td>${dFR(r.paid_at)}</td><td>${esc(r.client)}${r.offer?`<div class="meta">${esc(r.offer)}</div>`:''} ${stPill(r.status)}</td>
+        <td class="n">${eur(r.amount_eur)}</td><td class="n">${eur(r.fee_eur)}</td><td class="n">${eur(r.stripe_fee_eur)}</td><td class="n"><b>${eur(r.net_eur)}</b></td></tr>`).join('')}</tbody>
+    </table></div>` : `<p class="empty">${tr('pay_none_month')}</p>`}
+    <p class="meta" style="margin-top:10px">${tr('pay_export_note')}</p>`;
+  $('#pp-month').onchange = ()=>{ const v=$('#pp-month').value; if(/^\d{4}-\d{2}$/.test(v)){ PAY.month=v; payPayments(); } };
+  $('#pp-csv').onclick = ()=> payCsv();
+}
+/* Export mensuel : un CSV (séparateur « ; », lisible tel quel par Excel en Belgique). */
+function payCsv(){
+  const d = PAY.data; if(!d) return;
+  const num = (v)=> v==null ? '' : String((+v).toFixed(2)).replace('.',',');
+  const q = (s)=> '"'+String(s==null?'':s).replace(/"/g,'""')+'"';
+  const head = [tr('pay_c_date'),tr('pay_c_client'),tr('pay_c_offer'),tr('pay_c_amount'),tr('pay_c_fee'),tr('pay_c_stripe'),tr('pay_c_net'),tr('pay_c_refund'),tr('pay_c_invoice')];
+  const lines = [head.map(q).join(';')];
+  (d.rows||[]).forEach(r=> lines.push([new Date(r.paid_at).toLocaleDateString(locale()), r.client, r.offer||'', num(r.amount_eur), num(r.fee_eur), num(r.stripe_fee_eur), num(r.net_eur), num(r.refunded_eur), r.invoice_id].map((v,i)=> i>=3&&i<=7 ? v : q(v)).join(';')));
+  const t=d.totals||{};
+  lines.push([q(tr('pay_total')),'""','""',num(t.amount_eur),num(t.fee_eur),num(t.stripe_fee_eur),num(t.net_eur),num(t.refunded_eur),'""'].join(';'));
+  const blob = new Blob(['﻿'+lines.join('\r\n')], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'coach-dm-paiements-'+PAY.month+'.csv';
+  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+
+/* ---------- Badges de paiement + compteur de commission (liste des clients) ---------- */
+async function loadPayBilling(){
+  if(!PAY_OPEN) return;
+  try{
+    const [b, f] = await Promise.all([ sb.rpc('coach_clients_billing'), sb.rpc('coach_fee_status') ]);
+    PAY.billing = {}; (b.data||[]).forEach(r=>{ PAY.billing[r.client_id]=r; });
+    if(f.data) PAY.fee = f.data;
+  }catch(_){}
+}
+function payBadges(cid){
+  if(!PAY_OPEN) return '';
+  const r = PAY.billing[cid]; if(!r) return '';
+  const p = r.pay==='paid' ? `<span class="pill ok">${tr('pay_b_paid')}</span>`
+          : r.pay==='late' ? `<span class="pill no">${tr('pay_b_late')}</span>`
+          : `<span class="pill pay-off">${tr('pay_b_off')}</span>`;
+  return p + (r.premium ? ` <span class="pill pay-ai">${tr('pay_b_ai')}</span>` : '');
+}
+function renderPayCounter(){
+  const box=$('#cl-paybar'); if(!box) return;
+  if(!PAY_OPEN || !PAY.fee){ box.innerHTML=''; return; }
+  const f=PAY.fee, cap=f.cap_eur!=null?+f.cap_eur:null;
+  box.innerHTML = `<button type="button" class="pay-mini" id="pay-mini">
+    <span>${tr('pay_fee_month_short')} <b>${eur(f.collected_eur)}</b></span>
+    <span class="meta">${cap ? trf('pay_fee_left', eur(f.remaining_eur)) : trf('pay_fee_rate', String(+f.fee_percent).replace('.',','))}</span></button>`;
+  $('#pay-mini').onclick = ()=>{ PAY.view='payments'; switchTab('paiements'); };
+}
 
 /* ===================================================================
    CLIENTS — liste + fiche détaillée (RPCs partagées coach/admin)
@@ -1859,9 +2292,10 @@ async function loadClientList(){
   CAP = null; DASH = null;
   if(CAN_COACH && res[1] && res[1].data && res[1].data[0]) CAP = res[1].data[0];
   if(CAN_COACH && res[2] && res[2].data) DASH = res[2].data;
-  await loadThreads();
+  await Promise.all([ loadThreads(), loadPayBilling() ]);
   renderDash();
   renderCap();
+  renderPayCounter();
   renderClientList();
   renderMsgAll();
 }
@@ -1969,7 +2403,7 @@ function renderClientList(){
     const th=THREADS[c.client_id];
     const unread = th && +th.unread>0 ? `<span class="pill msg">${th.unread} non lu${+th.unread>1?'s':''}</span>` : '';
     return `<div class="item" data-cid="${c.client_id}" data-name="${esc(c.full_name||c.email||'')}" style="cursor:pointer">
-      <div class="nm"><span class="cdot ${dot.cls}" title="${esc(dot.label)}"></span>${esc(c.full_name||c.email||'—')} ${access} ${st} ${unread}</div>
+      <div class="nm"><span class="cdot ${dot.cls}" title="${esc(dot.label)}"></span>${esc(c.full_name||c.email||'—')} ${access} ${st} ${unread} ${payBadges(c.client_id)}</div>
       <div class="meta">${bits.map(esc).join(' · ')}</div>
       <div class="acts">
         <button class="btn subtle sm" data-open="${c.client_id}">${tr('b_sheet')}</button>
