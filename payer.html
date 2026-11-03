@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="strict-origin">
+<meta name="theme-color" content="#0A0907">
+<title>Paiement · Coach DM</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0A0907; --ink-2:#12100C; --ink-3:#1A1712; --line:rgba(233,199,103,.16); --line-2:rgba(242,236,222,.08);
+    --gold:#E9C767; --gold-2:#C9A44A; --gold-3:#8F7232; --paper:#F2ECDE; --mute:#A39A88; --mute-2:#6E675A; --err:#E8806B;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--ink);color:var(--paper)}
+  body{font-family:Manrope,-apple-system,"Segoe UI",Arial,sans-serif;font-size:16px;line-height:1.55;min-height:100dvh;
+    background:radial-gradient(900px 520px at 50% -10%,rgba(233,199,103,.10),transparent 70%),var(--ink);
+    padding:env(safe-area-inset-top,0) max(16px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0) max(16px,env(safe-area-inset-left,0px))}
+  .wrap{max-width:520px;margin:0 auto;padding:22px 0 48px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:28px}
+  .brand{display:flex;align-items:center;gap:10px;color:var(--paper);text-decoration:none}
+  .brand img{width:38px;height:38px;border-radius:10px}
+  .brand b{font-family:Sora,sans-serif;font-weight:800;letter-spacing:.06em;font-size:15px}
+  .lang{display:flex;gap:4px}
+  .lang button{font:600 12px/1 Manrope,sans-serif;letter-spacing:.06em;color:var(--mute);background:transparent;border:1px solid var(--line-2);border-radius:999px;padding:7px 10px;cursor:pointer}
+  .lang button.on{color:var(--ink);background:var(--gold);border-color:var(--gold)}
+  .kick{font:700 11.5px/1 Manrope,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin:0 0 12px}
+  h1{font-family:Sora,sans-serif;font-weight:800;font-size:clamp(26px,7vw,34px);line-height:1.12;margin:0 0 10px;text-wrap:balance}
+  .card{background:linear-gradient(180deg,var(--ink-2),var(--ink));border:1px solid var(--line);border-radius:24px;padding:26px 22px;margin-top:22px}
+  .price{display:flex;align-items:baseline;gap:8px;margin:2px 0 4px}
+  .price b{font-family:Sora,sans-serif;font-size:40px;font-weight:800;color:var(--gold);letter-spacing:-.01em}
+  .price span{color:var(--mute);font-weight:600}
+  .desc{color:#D9D1C1;margin:12px 0 0;white-space:pre-line}
+  ul.incl{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:10px;border-top:1px solid var(--line-2);padding-top:18px}
+  ul.incl li{display:flex;gap:10px;align-items:flex-start;color:#D9D1C1;font-size:15px}
+  ul.incl li i{flex:none;width:20px;height:20px;border-radius:50%;background:rgba(233,199,103,.14);color:var(--gold);display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:800;margin-top:2px}
+  .pay{display:block;width:100%;margin-top:22px;padding:17px 20px;border:0;border-radius:16px;cursor:pointer;
+    font:800 17px/1 Sora,sans-serif;color:#14110A;background:linear-gradient(180deg,#F0D27C,var(--gold) 55%,var(--gold-2));
+    box-shadow:0 10px 30px rgba(233,199,103,.18)}
+  .pay[disabled]{opacity:.6;cursor:default}
+  .safe{display:flex;gap:8px;align-items:center;justify-content:center;color:var(--mute);font-size:13px;margin-top:12px}
+  .fine{color:var(--mute-2);font-size:12.5px;line-height:1.6;margin-top:18px}
+  .fine a{color:var(--mute)}
+  .err{color:var(--err);font-size:14px;text-align:center;margin-top:12px;min-height:1em}
+  .stores{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+  .stores a{flex:1 1 180px;display:flex;align-items:center;justify-content:center;gap:9px;padding:13px 14px;border-radius:14px;border:1px solid var(--line);color:var(--paper);text-decoration:none;font-weight:700;background:var(--ink-3)}
+  .stores svg{width:20px;height:20px}
+  .center{text-align:center}
+  .spin{width:28px;height:28px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--gold);animation:s .8s linear infinite;margin:60px auto}
+  @keyframes s{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.spin{animation:none}}
+  .check{width:64px;height:64px;border-radius:50%;margin:4px auto 18px;display:grid;place-items:center;background:rgba(233,199,103,.14);color:var(--gold);font-size:30px;font-weight:800}
+  footer{margin-top:34px;color:var(--mute-2);font-size:12px;text-align:center}
+  footer a{color:var(--mute-2)}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="/"><img src="/logo-dm.png" alt=""><b>COACH DM</b></a>
+    <div class="lang" role="group" aria-label="Langue"><button data-l="fr">FR</button><button data-l="en">EN</button><button data-l="nl">NL</button></div>
+  </header>
+
+  <main id="v-load"><div class="spin" aria-label="…"></div></main>
+
+  <main id="v-offer" hidden>
+    <p class="kick" id="o-kick"></p>
+    <h1 id="o-name"></h1>
+    <div class="card">
+      <div class="price"><b id="o-price"></b><span id="o-per"></span></div>
+      <p class="desc" id="o-desc" hidden></p>
+      <ul class="incl">
+        <li><i>✓</i><span data-t="inc1"></span></li>
+        <li><i>✓</i><span data-t="inc2"></span></li>
+        <li><i>✓</i><span data-t="inc3"></span></li>
+      </ul>
+      <button class="pay" id="o-pay"></button>
+      <div class="safe"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg><span data-t="safe"></span></div>
+      <p class="err" id="o-err"></p>
+      <p class="fine" id="o-fine"></p>
+    </div>
+  </main>
+
+  <main id="v-ok" class="center" hidden>
+    <div class="check">✓</div>
+    <h1 data-t="ok_t"></h1>
+    <p style="color:#D9D1C1" data-t="ok_d"></p>
+    <div class="card" style="text-align:left">
+      <p class="kick" data-t="ok_next"></p>
+      <ul class="incl" style="border:0;padding:0;margin:0">
+        <li><i>1</i><span data-t="ok_s1"></span></li>
+        <li><i>2</i><span data-t="ok_s2"></span></li>
+        <li><i>3</i><span data-t="ok_s3"></span></li>
+      </ul>
+      <div class="stores">
+        <a href="https://apps.apple.com/be/app/coach-dm/id6792289062" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.5-1-2.5-3.9zM14 5.5c.7-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.6 2.8-1.4z"/></svg>App Store</a>
+        <a href="https://play.google.com/store/apps/details?id=be.coachdm.app" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.6 2.3c-.2.2-.3.6-.3 1v17.4c0 .4.1.8.3 1l9.8-9.7zM14.8 13.4l2.9 2.9-11.3 6.4c-.5.3-1 .3-1.4.1zm3.9-3.7 3 1.7c.9.5.9 1.3 0 1.8l-3 1.7-3.2-3.1zM5 1.2c.4-.2.9-.2 1.4.1l11.3 6.4-2.9 2.9z"/></svg>Google Play</a>
+      </div>
+    </div>
+  </main>
+
+  <main id="v-off" class="center" hidden>
+    <h1 data-t="off_t" style="margin-top:30px"></h1>
+    <p style="color:#D9D1C1" data-t="off_d"></p>
+    <p style="margin-top:22px"><a href="/" style="color:var(--gold)" data-t="home"></a></p>
+  </main>
+
+  <footer><span>© 2026 Coach DM · coachdm.be</span> · <a href="/conditions.html" data-t="terms"></a> · <a href="/privacy.html" data-t="privacy"></a></footer>
+</div>
+
+<script>
+(function(){
+  var FN = 'https://kkcmhviyvttwpaclrjmv.supabase.co/functions/v1/coach-checkout';
+  var T = {
+    fr:{ title:'Paiement · Coach DM', kick_c:'Coaching avec {0}', kick:'Coaching', per_m:'/ mois', per_q:'/ trimestre',
+      inc1:'Ton suivi par ton coach, sur l’abonnement que tu choisis.', inc2:'L’app Coach DM offerte : programmes, séances, check-ins et messages avec ton coach.', inc3:'Sans engagement : tu arrêtes quand tu veux.',
+      pay:'Payer {0}', opening:'Ouverture du paiement…', safe:'Paiement sécurisé par Stripe',
+      fine:'Abonnement {1} de {0}, renouvelé automatiquement jusqu’à ce que tu l’arrêtes. Le paiement va directement à {2} ; Coach DM fournit la plateforme et l’app. Les reçus et la gestion de l’abonnement arrivent par e-mail.',
+      fine_m:'mensuel', fine_q:'trimestriel', your_coach:'ton coach',
+      err:'Le paiement n’a pas pu s’ouvrir. Réessaie dans un instant.',
+      ok_t:'Paiement confirmé', ok_d:'Merci ! Ton coach est prévenu.', ok_next:'Et maintenant',
+      ok_s1:'Nouveau sur Coach DM ? Ouvre l’e-mail « Ton accès Coach DM est prêt » et touche le bouton pour créer ton mot de passe. Pas d’e-mail ? Regarde dans les spams.',
+      ok_s2:'Installe l’app Coach DM et connecte-toi avec l’adresse e-mail utilisée pour payer.', ok_s3:'Ton coach te retrouve dans l’app : programme, séances et messages.',
+      off_t:'Offre indisponible', off_d:'Ce lien de paiement n’est plus actif. Demande un nouveau lien à ton coach.', home:'Retour à coachdm.be',
+      terms:'Conditions', privacy:'Confidentialité' },
+    en:{ title:'Payment · Coach DM', kick_c:'Coaching with {0}', kick:'Coaching', per_m:'/ month', per_q:'/ quarter',
+      inc1:'Coaching from your coach, on the plan you choose.', inc2:'The Coach DM app included: programs, sessions, check-ins and messages with your coach.', inc3:'No commitment: stop whenever you want.',
+      pay:'Pay {0}', opening:'Opening the payment…', safe:'Secure payment by Stripe',
+      fine:'{1} subscription of {0}, renewed automatically until you stop it. The payment goes directly to {2}; Coach DM provides the platform and the app. Receipts and subscription management come by email.',
+      fine_m:'Monthly', fine_q:'Quarterly', your_coach:'your coach',
+      err:'The payment could not open. Please try again in a moment.',
+      ok_t:'Payment confirmed', ok_d:'Thank you! Your coach has been notified.', ok_next:'What’s next',
+      ok_s1:'New to Coach DM? Open the email “Your Coach DM access is ready” and tap the button to set your password. No email? Check your spam folder.',
+      ok_s2:'Install the Coach DM app and sign in with the email address you paid with.', ok_s3:'Your coach finds you in the app: program, sessions and messages.',
+      off_t:'Offer unavailable', off_d:'This payment link is no longer active. Ask your coach for a new link.', home:'Back to coachdm.be',
+      terms:'Terms', privacy:'Privacy' },
+    nl:{ title:'Betaling · Coach DM', kick_c:'Coaching met {0}', kick:'Coaching', per_m:'/ maand', per_q:'/ kwartaal',
+      inc1:'Begeleiding door je coach, met het abonnement dat je kiest.', inc2:'De Coach DM-app inbegrepen: programma’s, trainingen, check-ins en berichten met je coach.', inc3:'Zonder verbintenis: je stopt wanneer je wilt.',
+      pay:'{0} betalen', opening:'Betaling wordt geopend…', safe:'Veilige betaling via Stripe',
+      fine:'{1} abonnement van {0}, automatisch verlengd tot je het stopt. De betaling gaat rechtstreeks naar {2}; Coach DM levert het platform en de app. Betaalbewijzen en abonnementsbeheer komen per e-mail.',
+      fine_m:'Maandelijks', fine_q:'Driemaandelijks', your_coach:'je coach',
+      err:'De betaling kon niet worden geopend. Probeer het zo opnieuw.',
+      ok_t:'Betaling bevestigd', ok_d:'Bedankt! Je coach is verwittigd.', ok_next:'Wat nu',
+      ok_s1:'Nieuw bij Coach DM? Open de e-mail over je Coach DM-toegang en tik op de knop om je wachtwoord te kiezen. Geen e-mail? Kijk in je spam.',
+      ok_s2:'Installeer de Coach DM-app en meld je aan met het e-mailadres waarmee je betaalde.', ok_s3:'Je coach vindt je in de app: programma, trainingen en berichten.',
+      off_t:'Aanbod niet beschikbaar', off_d:'Deze betaallink is niet meer actief. Vraag je coach om een nieuwe link.', home:'Terug naar coachdm.be',
+      terms:'Voorwaarden', privacy:'Privacy' }
+  };
+  var q = new URLSearchParams(location.search);
+  var OID = q.get('o') || '';
+  var L = q.get('l');
+  if(!T[L]){ try{ L = localStorage.getItem('cdm_lang'); }catch(_){ L = null; } }
+  if(!T[L]){ var n=(navigator.language||'fr').slice(0,2).toLowerCase(); L = T[n] ? n : 'fr'; }
+  var OFFER = null;
+  var $ = function(id){ return document.getElementById(id); };
+  var f = function(s){ var a=arguments; return s.replace(/\{(\d)\}/g,function(m,i){ return a[+i+1]!=null?a[+i+1]:m; }); };
+  var eur = function(v){ return new Intl.NumberFormat(L==='fr'?'fr-BE':(L==='nl'?'nl-BE':'en-IE'),{style:'currency',currency:'EUR',minimumFractionDigits:(v%1?2:0)}).format(v); };
+
+  function show(id){ ['v-load','v-offer','v-ok','v-off'].forEach(function(v){ $(v).hidden = v!==id; }); }
+  function paint(){
+    var t=T[L]; document.documentElement.lang=L; document.title=t.title;
+    document.querySelectorAll('[data-t]').forEach(function(e){ e.textContent=t[e.getAttribute('data-t')]||''; });
+    document.querySelectorAll('.lang button').forEach(function(b){ b.classList.toggle('on', b.dataset.l===L); });
+    if(OFFER){
+      var o=OFFER, price=eur(o.amount_eur);
+      $('o-kick').textContent = o.coach ? f(t.kick_c,o.coach) : t.kick;
+      $('o-name').textContent = o.name;
+      $('o-price').textContent = price;
+      $('o-per').textContent = o.interval==='quarter' ? t.per_q : t.per_m;
+      $('o-desc').textContent = o.description||''; $('o-desc').hidden = !o.description;
+      $('o-pay').textContent = f(t.pay, price);
+      $('o-fine').textContent = f(t.fine, price, o.interval==='quarter'?t.fine_q:t.fine_m, o.coach||t.your_coach);
+    }
+  }
+  document.querySelectorAll('.lang button').forEach(function(b){ b.onclick=function(){ L=b.dataset.l; try{ localStorage.setItem('cdm_lang',L); }catch(_){} paint(); }; });
+
+  function post(body){
+    return fetch(FN,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+      .then(function(r){ return r.json().catch(function(){ return {ok:false}; }); })
+      .catch(function(){ return {ok:false, reason:'network'}; });
+  }
+  $('o-pay').onclick = function(){
+    var b=$('o-pay'); b.disabled=true; b.textContent=T[L].opening; $('o-err').textContent='';
+    post({offer_id:OID, locale:L}).then(function(r){
+      if(r && r.ok && r.url){ location.href=r.url; return; }
+      if(r && r.reason==='unavailable'){ paint(); show('v-off'); return; }
+      b.disabled=false; paint(); $('o-err').textContent=T[L].err;
+    });
+  };
+
+  paint();
+  if(q.get('ok')==='1'){ show('v-ok'); return; }
+  if(!/^[0-9a-f-]{36}$/i.test(OID)){ show('v-off'); return; }
+  post({action:'info', offer_id:OID}).then(function(r){
+    if(r && r.ok && r.offer){ OFFER=r.offer; paint(); show('v-offer'); }
+    else show('v-off');
+  });
+})();
+</script>
+</body>
+</html>
