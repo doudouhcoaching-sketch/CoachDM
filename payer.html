@@ -121,7 +121,7 @@
   var FN = 'https://kkcmhviyvttwpaclrjmv.supabase.co/functions/v1/coach-checkout';
   var T = {
     fr:{ title:'Paiement · Coach DM', kick_c:'Coaching avec {0}', kick:'Coaching', per_m:'/ mois', per_q:'/ trimestre',
-      inc1:'Ton suivi par ton coach, sur l’abonnement que tu choisis.', inc2:'L’app Coach DM offerte : programmes, séances, check-ins et messages avec ton coach.', inc3:'Sans engagement : tu arrêtes quand tu veux.',
+      inc1:'Ton suivi par ton coach, sur l’abonnement que tu choisis.', inc1_o:'Ton suivi par ton coach, pour l’offre que tu as choisie.', inc2:'L’app Coach DM offerte : programmes, séances, check-ins et messages avec ton coach.', inc3:'Sans engagement : tu arrêtes quand tu veux.',
       pay:'Payer {0}', opening:'Ouverture du paiement…', safe:'Paiement sécurisé par Stripe',
       fine:'Abonnement {1} de {0}, renouvelé automatiquement jusqu’à ce que tu l’arrêtes. Le paiement va directement à {2} ; Coach DM fournit la plateforme et l’app. Les reçus et la gestion de l’abonnement arrivent par e-mail.',
       fine_m:'mensuel', fine_q:'trimestriel', your_coach:'ton coach', per_o:'paiement unique', inc3_o:'Paiement unique, sans abonnement ni renouvellement.',
@@ -133,7 +133,7 @@
       off_t:'Offre indisponible', off_d:'Ce lien de paiement n’est plus actif. Demande un nouveau lien à ton coach.', home:'Retour à coachdm.be',
       terms:'Conditions', privacy:'Confidentialité' },
     en:{ title:'Payment · Coach DM', kick_c:'Coaching with {0}', kick:'Coaching', per_m:'/ month', per_q:'/ quarter',
-      inc1:'Coaching from your coach, on the plan you choose.', inc2:'The Coach DM app included: programs, sessions, check-ins and messages with your coach.', inc3:'No commitment: stop whenever you want.',
+      inc1:'Coaching from your coach, on the plan you choose.', inc1_o:'Coaching from your coach, for the offer you chose.', inc2:'The Coach DM app included: programs, sessions, check-ins and messages with your coach.', inc3:'No commitment: stop whenever you want.',
       pay:'Pay {0}', opening:'Opening the payment…', safe:'Secure payment by Stripe',
       fine:'{1} subscription of {0}, renewed automatically until you stop it. The payment goes directly to {2}; Coach DM provides the platform and the app. Receipts and subscription management come by email.',
       fine_m:'Monthly', fine_q:'Quarterly', your_coach:'your coach', per_o:'one-time payment', inc3_o:'One-time payment: no subscription, no renewal.',
@@ -145,7 +145,7 @@
       off_t:'Offer unavailable', off_d:'This payment link is no longer active. Ask your coach for a new link.', home:'Back to coachdm.be',
       terms:'Terms', privacy:'Privacy' },
     nl:{ title:'Betaling · Coach DM', kick_c:'Coaching met {0}', kick:'Coaching', per_m:'/ maand', per_q:'/ kwartaal',
-      inc1:'Begeleiding door je coach, met het abonnement dat je kiest.', inc2:'De Coach DM-app inbegrepen: programma’s, trainingen, check-ins en berichten met je coach.', inc3:'Zonder verbintenis: je stopt wanneer je wilt.',
+      inc1:'Begeleiding door je coach, met het abonnement dat je kiest.', inc1_o:'Begeleiding door je coach, voor het aanbod dat je koos.', inc2:'De Coach DM-app inbegrepen: programma’s, trainingen, check-ins en berichten met je coach.', inc3:'Zonder verbintenis: je stopt wanneer je wilt.',
       pay:'{0} betalen', opening:'Betaling wordt geopend…', safe:'Veilige betaling via Stripe',
       fine:'{1} abonnement van {0}, automatisch verlengd tot je het stopt. De betaling gaat rechtstreeks naar {2}; Coach DM levert het platform en de app. Betaalbewijzen en abonnementsbeheer komen per e-mail.',
       fine_m:'Maandelijks', fine_q:'Driemaandelijks', your_coach:'je coach', per_o:'eenmalige betaling', inc3_o:'Eenmalige betaling, zonder abonnement of verlenging.',
@@ -179,7 +179,7 @@
       $('o-price').textContent = price;
       var once = o.interval==='once';
       $('o-per').textContent = once ? t.per_o : (o.interval==='quarter' ? t.per_q : t.per_m);
-      if(once){ var i3=document.querySelector('[data-t="inc3"]'); if(i3) i3.textContent=t.inc3_o; }
+      if(once){ var i3=document.querySelector('[data-t="inc3"]'); if(i3) i3.textContent=t.inc3_o; var i1=document.querySelector('[data-t="inc1"]'); if(i1) i1.textContent=t.inc1_o; }
       $('o-desc').textContent = o.description||''; $('o-desc').hidden = !o.description;
       $('o-pay').textContent = f(t.pay, price);
       $('o-fine').textContent = f(once ? t.fine_o : t.fine, price, o.interval==='quarter'?t.fine_q:t.fine_m, o.coach||t.your_coach);

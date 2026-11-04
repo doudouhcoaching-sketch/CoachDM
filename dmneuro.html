@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>DM NEURO</title>
 <style>
-:root{--bg:#0B0B0C;--panel:#141416;--line:#26262A;--gold:#D4AF37;--neon:#00FFA3;
---txt:#F2F2F0;--dim:#8A8A90;--rouge:#E1332D;--bleu:#1273E6;--vert:#17B85A;--jaune:#F2C218}
+:root{--bg:#0A0907;--panel:#12100C;--line:#2A251C;--gold:#E9C767;--neon:#E9C767;
+--txt:#F2ECDE;--dim:#8A8A90;--rouge:#E1332D;--bleu:#1273E6;--vert:#17B85A;--jaune:#F2C218}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);
 font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,sans-serif;
@@ -36,11 +36,11 @@ input[type=range]{width:100%;accent-color:var(--gold);height:30px}
 .rowv{display:flex;align-items:center;gap:14px}
 .rowv span{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums;min-width:60px;text-align:right}
 .hint{font-size:11.5px;line-height:1.5;color:var(--dim);margin-top:8px}
-#go{width:100%;background:var(--gold);color:#0B0B0C;border-radius:14px;padding:20px;font-size:16px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-top:4px}
+#go{width:100%;background:var(--gold);color:#0A0907;border-radius:14px;padding:20px;font-size:16px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-top:4px}
 #go:active{opacity:.85}
 .hide{display:none!important}
 
-#stage{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#fff;color:#0B0B0C;z-index:50;overflow:hidden}
+#stage{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#fff;color:#0A0907;z-index:50;overflow:hidden}
 #stage.on{display:flex}
 #stage .num{font-size:min(56vw,56vh);font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
 #stage .word{font-size:min(20vw,26vh);font-weight:800}
@@ -63,7 +63,7 @@ justify-content:space-between;padding:0 18px;font-size:12px;letter-spacing:.14em
 #hud.on{display:flex}
 #count,#banner{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;text-align:center;font-weight:800}
 #count{background:var(--bg);color:var(--gold);font-size:min(38vw,38vh)}
-#banner{background:#0B0B0C;color:var(--neon);font-size:min(11vw,15vh);letter-spacing:.08em;padding:0 6vw;line-height:1.25;z-index:65}
+#banner{background:#0A0907;color:var(--neon);font-size:min(11vw,15vh);letter-spacing:.08em;padding:0 6vw;line-height:1.25;z-index:65}
 #count.on,#banner.on{display:flex}
 
 #exit{position:fixed;z-index:80;display:none;
@@ -337,8 +337,8 @@ function beep(f,dur){
 
 /* ---------------- rendu réactif ---------------- */
 const stage=$('#stage');
-const bg=()=>cfg.dark?'#0B0B0C':'#FFFFFF';
-const fg=()=>cfg.dark?'#FFFFFF':'#0B0B0C';
+const bg=()=>cfg.dark?'#0A0907':'#FFFFFF';
+const fg=()=>cfg.dark?'#FFFFFF':'#0A0907';
 function svgArrow(dir,cls){
   /* cls==='' est volontaire (flèches Flanker) : ne PAS retomber sur 'arw' = taille plein écran */
   return '<svg class="'+(cls==null?'arw':cls)+'" viewBox="0 0 100 100" style="transform:rotate('+ROT[dir]+'deg)">'+
@@ -346,7 +346,7 @@ function svgArrow(dir,cls){
 }
 function paint(s){
   if(s.type==='nogo'){
-    stage.style.background='#0B0B0C';stage.style.color='#FFF';
+    stage.style.background='#0A0907';stage.style.color='#FFF';
     stage.innerHTML='<svg class="arw" viewBox="0 0 100 100"><path d="M18 12 L50 44 L82 12 L88 18 L56 50 L88 82 L82 88 L50 56 L18 88 L12 82 L44 50 L12 18 Z" fill="currentColor"/></svg>';
     return;
   }
@@ -449,7 +449,7 @@ window.addEventListener('resize',()=>{
 });
 function motStart(){
   motTrial=0;log=[];t0=Date.now();
-  stage.classList.add('on');stage.style.background='#0B0B0C';stage.style.color='#FFF';
+  stage.classList.add('on');stage.style.background='#0A0907';stage.style.color='#FFF';
   motTrialRun();
 }
 function motTrialRun(){
@@ -485,7 +485,7 @@ function motTrialRun(){
   let flash=0;
   const fl=setInterval(()=>{
     flash++;
-    idx.forEach(i=>motDots[i].el.style.background=(flash%2?'#D4AF37':'#FFF'));
+    idx.forEach(i=>motDots[i].el.style.background=(flash%2?'#E9C767':'#FFF'));
     if(flash>=6){clearInterval(fl);idx.forEach(i=>motDots[i].el.style.background='#FFF');motMove()}
   },320);
   beep(880,.12);
@@ -524,15 +524,15 @@ function motMove(){
 }
 function motStop(){
   beep(560,.18);
-  motDots.forEach((d,i)=>{d.el.textContent=i+1;d.el.style.color='#0B0B0C'});
+  motDots.forEach((d,i)=>{d.el.textContent=i+1;d.el.style.color='#0A0907'});
   log.push({t:Date.now()-t0,label:'   arrêt → numéros affichés'});
   stage.onclick=motReveal;
 }
 function motReveal(){
   motDots.forEach((d,i)=>{
     const hit=motTargets.indexOf(i)>=0;
-    d.el.style.background=hit?'#00FFA3':'#3A3A40';
-    d.el.style.color=hit?'#0B0B0C':'#6A6A72';
+    d.el.style.background=hit?'#E9C767':'#3A3A40';
+    d.el.style.color=hit?'#0A0907':'#6A6A72';
   });
   beep(1000,.12);
   stage.onclick=()=>{stage.onclick=stopTap;motTrialRun()};
