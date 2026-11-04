@@ -1776,7 +1776,7 @@ const T = {
  pay_dash:{fr:'Ouvrir mon tableau de bord Stripe',en:'Open my Stripe dashboard',nl:'Mijn Stripe-dashboard openen'},
  pay_dash_short:{fr:'Tableau de bord Stripe',en:'Stripe dashboard',nl:'Stripe-dashboard'},
  pay_how_t:{fr:'Comment ça marche',en:'How it works',nl:'Hoe het werkt'},
- pay_how_1:{fr:'Ton client paie un abonnement mensuel ou trimestriel à ton nom. Il le résilie quand il veut.',en:'Your client pays a monthly or quarterly subscription in your name. They can cancel anytime.',nl:'Je klant betaalt een maandelijks of driemaandelijks abonnement op jouw naam. Hij kan altijd opzeggen.'},
+ pay_how_1:{fr:'Ton client paie un abonnement mensuel ou trimestriel à ton nom, qu\'il résilie quand il veut, ou une offre en paiement unique.',en:'Your client pays a monthly or quarterly subscription in your name, which they can cancel anytime, or a one-time offer.',nl:'Je klant betaalt een maandelijks of driemaandelijks abonnement op jouw naam, dat hij altijd kan opzeggen, of een eenmalig aanbod.'},
  pay_how_2:{fr:'Dès le premier paiement, il apparaît dans tes clients et reçoit l\'app de suivi gratuitement.',en:'From the first payment, they appear in your clients and get the coaching app for free.',nl:'Vanaf de eerste betaling verschijnt hij bij je klanten en krijgt hij de begeleidingsapp gratis.'},
  pay_how_3:{fr:'Coach DM prélève sa commission sur chaque paiement ; les frais Stripe sont à ta charge, comme sur n\'importe quel terminal.',en:'Coach DM takes its commission on each payment; Stripe fees are yours, as with any card terminal.',nl:'Coach DM houdt zijn commissie in op elke betaling; de Stripe-kosten zijn voor jou, zoals bij elke betaalterminal.'},
  pay_how_4:{fr:'Si un paiement échoue, Stripe réessaie automatiquement et le client passe en « Paiement en retard » dans ta liste.',en:'If a payment fails, Stripe retries automatically and the client shows “Payment overdue” in your list.',nl:'Mislukt een betaling, dan probeert Stripe automatisch opnieuw en staat de klant op „Betaling achterstallig” in je lijst.'},
@@ -1795,7 +1795,7 @@ const T = {
  pay_need_connect_d:{fr:'Tu pourras créer une offre dès que ton compte Stripe est actif.',en:'You can create an offer as soon as your Stripe account is active.',nl:'Je kunt een aanbod maken zodra je Stripe-account actief is.'},
  pay_go_recv:{fr:'Recevoir des paiements',en:'Receive payments',nl:'Betalingen ontvangen'},
  pay_new_t:{fr:'Nouvelle offre',en:'New offer',nl:'Nieuw aanbod'},
- pay_new_d:{fr:'Minimum 20 € par mois ou 60 € par trimestre.',en:'Minimum €20 a month or €60 a quarter.',nl:'Minimum € 20 per maand of € 60 per kwartaal.'},
+ pay_new_d:{fr:'Minimum 20 € par mois, 60 € par trimestre ou 20 € en paiement unique (bilan, analyse vidéo, essai…).',en:'Minimum €20 a month, €60 a quarter or €20 one-time (assessment, video review, trial…).',nl:'Minimum € 20 per maand, € 60 per kwartaal of € 20 eenmalig (intake, video-analyse, proefperiode…).'},
  pay_f_name:{fr:'Nom de l\'offre',en:'Offer name',nl:'Naam van het aanbod'},
  pay_f_name_ph:{fr:'Ex. Suivi en ligne mensuel',en:'e.g. Monthly online coaching',nl:'Bv. Maandelijkse online begeleiding'},
  pay_f_desc:{fr:'Ce qui est inclus (facultatif)',en:'What\'s included (optional)',nl:'Wat inbegrepen is (optioneel)'},
@@ -1806,6 +1806,8 @@ const T = {
  pay_int_q:{fr:'Chaque trimestre',en:'Every quarter',nl:'Elk kwartaal'},
  pay_per_m:{fr:'/ mois',en:'/ month',nl:'/ maand'},
  pay_per_q:{fr:'/ trimestre',en:'/ quarter',nl:'/ kwartaal'},
+ pay_int_o:{fr:'Une seule fois',en:'One-time',nl:'Eenmalig'},
+ pay_per_o:{fr:'paiement unique',en:'one-time payment',nl:'eenmalige betaling'},
  pay_estimate:{fr:'Tu reçois environ {0} par paiement — commission {1} % ({2}) et frais Stripe estimés ({3}) déduits.',en:'You receive about {0} per payment — {1}% commission ({2}) and estimated Stripe fees ({3}) deducted.',nl:'Je ontvangt ongeveer {0} per betaling — commissie {1} % ({2}) en geschatte Stripe-kosten ({3}) afgetrokken.'},
  pay_create:{fr:'Créer l\'offre',en:'Create the offer',nl:'Aanbod maken'},
  pay_created:{fr:'Offre créée — copie son lien',en:'Offer created — copy its link',nl:'Aanbod gemaakt — kopieer de link'},
@@ -2119,7 +2121,7 @@ async function payOffers(force){
   const active = PAY.status && PAY.status.status==='actif';
   const pct = PAY.offers.fee_percent!=null ? +PAY.offers.fee_percent : 8;
   const list = (PAY.offers.offers||[]);
-  const ivl = (i)=> tr(i==='quarter'?'pay_per_q':'pay_per_m');
+  const ivl = (i)=> tr(i==='quarter'?'pay_per_q':(i==='once'?'pay_per_o':'pay_per_m'));
   box.innerHTML = `
     ${active ? '' : `<div class="item pay-warn"><b>${tr('pay_need_connect_t')}</b><span class="meta">${tr('pay_need_connect_d')}</span>
       <button class="btn sm" id="pay-to-recv" style="margin-top:10px">${tr('pay_go_recv')}</button></div>`}
@@ -2130,7 +2132,7 @@ async function payOffers(force){
       <div class="field"><label>${tr('pay_f_desc')}</label><textarea id="po-desc" maxlength="600" placeholder="${esc(tr('pay_f_desc_ph'))}"></textarea></div>
       <div class="pay-2col">
         <div class="field"><label>${tr('pay_f_amount')}</label><input id="po-amt" type="number" inputmode="decimal" min="20" step="1" placeholder="60"></div>
-        <div class="field"><label>${tr('pay_f_interval')}</label><select id="po-int"><option value="month">${tr('pay_int_m')}</option><option value="quarter">${tr('pay_int_q')}</option></select></div>
+        <div class="field"><label>${tr('pay_f_interval')}</label><select id="po-int"><option value="month">${tr('pay_int_m')}</option><option value="quarter">${tr('pay_int_q')}</option><option value="once">${tr('pay_int_o')}</option></select></div>
       </div>
       <div class="meta" id="po-est" style="min-height:1.4em"></div>
       <button class="btn" id="po-create" ${active?'':'disabled'} style="margin-top:10px">${tr('pay_create')}</button>

@@ -167,7 +167,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 let RECIPES = [], PROGRAMS = [], SOLO = [], CUR = null, TAB = 'recipes';
 
 const MEALS = {breakfast:'Petit-déj',lunch:'Déjeuner',dinner:'Dîner',snack:'Collation',pre_workout:'Pré-training',post_workout:'Post-training'};
-const PROG_ORDER = ['barbell-strength-12w','physique-12w','booty-10w','open-prep-8w','gravity-10w','hyrox-engine-12w','run-10k-12w','engine-amrap-10w','metcon-emom-8w','fat-burner-10w','football-elite-12w','foundation-8w','core-strength-8w'];
+const PROG_ORDER = ['barbell-strength-12w','physique-12w','booty-10w','open-prep-8w','gravity-10w','hyrox-engine-12w','run-10k-12w','engine-amrap-10w','metcon-emom-8w','fat-burner-10w','football-elite-12w','foundation-8w','core-strength-8w','unlock-8w','banded-8w','second-prime-10w'];
 const PROG_SCENE = {
   'barbell-strength-12w':'a heavily loaded barbell with bumper plates on a lifting platform',
   'physique-12w':'dumbbells and a cable station in a bodybuilding gym corner',
@@ -181,7 +181,10 @@ const PROG_SCENE = {
   'foundation-8w':'clean minimal gym with light dumbbells and a foam roller',
   'booty-10w':'a loaded barbell set up for hip thrusts on a padded bench, resistance bands on the floor',
   'run-10k-12w':'running shoes on an empty road at sunrise, kilometre marker in the distance',
-  'core-strength-8w':'an ab wheel, a kettlebell and a mat on a clean gym floor'
+  'core-strength-8w':'an ab wheel, a kettlebell and a mat on a clean gym floor',
+  'unlock-8w':'a yoga mat, a folded towel and a cushion on a wooden floor in soft evening light',
+  'banded-8w':'a set of resistance loop bands and a mini band coiled on a dark floor next to a door anchor',
+  'second-prime-10w':'a pair of dumbbells, a kettlebell and a sturdy step box in a calm, bright home gym'
 };
 
 function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2600); }

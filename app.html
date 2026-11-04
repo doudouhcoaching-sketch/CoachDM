@@ -5189,7 +5189,7 @@ const T = {
  wn_sub:{fr:'Voici ce qui a changé. Trente secondes de lecture, puis on n’en reparle plus.',en:'Here is what has changed. Thirty seconds to read, then we won’t mention it again.',nl:'Dit is er veranderd. Dertig seconden lezen, daarna hebben we het er niet meer over.'},
  wn_close:{fr:'C’est parti',en:'Got it',nl:'Begrepen'},
  wn_prog_t:{fr:'Trois nouveaux programmes',en:'Three new programmes',nl:'Drie nieuwe programma’s'},
- wn_prog_d:{fr:'BOOTY 10W pour les fessiers en salle, RUN 10K 12W pour passer de zéro à 10 km, CORE STRENGTH 8W pour un gainage solide en 30 minutes. Dans l’onglet Séances, comme les autres.',en:'BOOTY 10W for glutes in the gym, RUN 10K 12W to go from zero to 10 km, CORE STRENGTH 8W for a solid core in 30 minutes. In the Workouts tab, like the others.',nl:'BOOTY 10W voor je bilspieren in de gym, RUN 10K 12W om van nul naar 10 km te gaan, CORE STRENGTH 8W voor een sterke romp in 30 minuten. In het tabblad Trainingen, zoals de andere.'},
+ wn_prog_d:{fr:'UNLOCK 8W pour la mobilité en postures tenues, BANDED 8W pour s’entraîner partout avec des élastiques, SECOND PRIME 10W pour la force et l’équilibre après 45 ans. Dans l’onglet Séances, comme les autres.',en:'UNLOCK 8W for mobility through long holds, BANDED 8W to train anywhere with resistance bands, SECOND PRIME 10W for strength and balance after 45. In the Workouts tab, like the others.',nl:'UNLOCK 8W voor mobiliteit met lang aangehouden houdingen, BANDED 8W om overal te trainen met elastieken, SECOND PRIME 10W voor kracht en evenwicht na je 45e. In het tabblad Trainingen, zoals de andere.'},
  wn_1t:{fr:'Je te parle pendant ta séance — avec ma vraie voix',en:'I talk you through your workout — in my own voice',nl:'Ik praat je door je training — met mijn echte stem'},
  wn_1d:{fr:'Ce n’est plus une voix de robot : c’est moi, Coach DM, enregistré en français, en néerlandais et en anglais. J’annonce ta série, tes répétitions et ta charge, je te donne les consignes pendant l’effort (« Genoux dehors ! ») et je te pousse quand il faut. Réglable avec le bouton son.',en:'No more robot voice: it’s me, Coach DM, recorded in English, French and Dutch. I call your set, your reps and your load, give you cues during the effort (“Knees out!”) and push you when it counts. Adjust it with the sound button.',nl:'Geen robotstem meer: ik ben het, Coach DM, opgenomen in het Nederlands, Frans en Engels. Ik kondig je set, repetities en gewicht aan, geef aanwijzingen tijdens de inspanning (“Knieën naar buiten!”) en duw je door wanneer het telt. Instelbaar via de geluidsknop.'},
  wn_2t:{fr:'Le nouveau Mode séance',en:'The new Workout mode',nl:'De nieuwe Trainingsmodus'},
@@ -7488,7 +7488,7 @@ async function wnHasNewProgs(){
   try{
     const { count } = await sb.from('workouts')
       .select('id',{count:'exact',head:true})
-      .in('program_slug',['booty-10w','run-10k-12w','core-strength-8w'])
+      .in('program_slug',['unlock-8w','banded-8w','second-prime-10w'])
       .eq('is_published',true);
     return (count||0)>0;
   }catch(_){ return false; }
@@ -10522,7 +10522,7 @@ function refreshWorkoutsBg(){
     }catch(e){}
   }).catch(()=>{});
 }
-const PROG_ORDER=['barbell-strength-12w','physique-12w','booty-10w','open-prep-8w','gravity-10w','hyrox-engine-12w','run-10k-12w','engine-amrap-10w','metcon-emom-8w','fat-burner-10w','football-elite-12w','foundation-8w','core-strength-8w'];
+const PROG_ORDER=['barbell-strength-12w','physique-12w','booty-10w','open-prep-8w','gravity-10w','hyrox-engine-12w','run-10k-12w','engine-amrap-10w','metcon-emom-8w','fat-burner-10w','football-elite-12w','foundation-8w','core-strength-8w','unlock-8w','banded-8w','second-prime-10w'];
 /* 03/10/2026 : BOOTY 10W, RUN 10K 12W et CORE STRENGTH 8W rejoignent le catalogue.
    Leurs seances restent is_published=false tant que les nouveaux mouvements n'ont
    pas de video (garde-fou exercise_publish_gate) : la carte n'apparait qu'une fois
@@ -10577,8 +10577,17 @@ const PROG_INFO={
  'football-elite-12w':{
    d:{fr:'Préparation football. Sprint, changements de direction, prévention des blessures au genou, force spécifique.',en:'Football prep. Sprints, changes of direction, knee-injury prevention, sport-specific strength.',nl:'Voetbalvoorbereiding. Sprint, richtingveranderingen, knieblessurepreventie, specifieke kracht.'},
    f:{fr:'tu joues au foot et tu veux tenir toute la saison.',en:'you play football and want to last the whole season.',nl:'je voetbalt en wil het hele seizoen volhouden.'}},
+ 'unlock-8w':{
+   d:{fr:'Mobilité en postures tenues, 2 à 3 minutes chacune. Hanches, dos, épaules, chevilles : on respire et on relâche, 20 minutes, 5 fois par semaine.',en:'Mobility through long holds, 2 to 3 minutes each. Hips, back, shoulders, ankles: you breathe and let go, 20 minutes, 5 times a week.',nl:'Mobiliteit met lang aangehouden houdingen, 2 tot 3 minuten per houding. Heupen, rug, schouders, enkels: ademen en loslaten, 20 minuten, 5 keer per week.'},
+   f:{fr:'tu es raide, tu passes tes journées assis, ou tu veux récupérer mieux entre tes séances.',en:'you are stiff, you sit all day, or you want to recover better between sessions.',nl:'je bent stijf, je zit de hele dag, of je wil beter recupereren tussen je trainingen.'}},
+ 'banded-8w':{
+   d:{fr:'Corps entier, uniquement avec des élastiques. Squat, deadlift, poussées, tirages et gainage, 3 séances de 45 minutes par semaine.',en:'Full body, with resistance bands only. Squats, deadlifts, presses, pulls and core, 3 sessions of 45 minutes a week.',nl:'Volledig lichaam, enkel met elastieken. Squats, deadlifts, duwen, trekken en core, 3 sessies van 45 minuten per week.'},
+   f:{fr:'tu t’entraînes à la maison ou en voyage, sans salle et sans haltères.',en:'you train at home or while travelling, with no gym and no dumbbells.',nl:'je traint thuis of op reis, zonder gym en zonder halters.'}},
+ 'second-prime-10w':{
+   d:{fr:'Force, équilibre et puissance après 45 ans. Tu as connu un prime, mais personne n’a dit qu’on n’avait qu’un seul prime dans sa vie.',en:'Strength, balance and power after 45. You had a prime, but nobody said you only get one prime in your life.',nl:'Kracht, evenwicht en explosiviteit na je 45e. Je hebt een prime gekend, maar niemand zei dat je maar één prime in je leven hebt.'},
+   f:{fr:'tu as 45 ans ou plus et tu veux rester fort, stable et autonome, avec deux tests pour voir tes progrès.',en:'you are 45 or over and want to stay strong, steady and independent, with two tests to see your progress.',nl:'je bent 45 of ouder en wil sterk, stabiel en zelfstandig blijven, met twee tests om je vooruitgang te zien.'}},
 };
-const PROG_MOTIF={'barbell-strength-12w':'m-str','physique-12w':'m-str','open-prep-8w':'m-pulse','gravity-10w':'m-rings','hyrox-engine-12w':'m-pulse','engine-amrap-10w':'m-pulse','metcon-emom-8w':'m-flame','fat-burner-10w':'m-flame','football-elite-12w':'m-found','foundation-8w':'m-found','booty-10w':'m-str','run-10k-12w':'m-pulse','core-strength-8w':'m-found'};
+const PROG_MOTIF={'barbell-strength-12w':'m-str','physique-12w':'m-str','open-prep-8w':'m-pulse','gravity-10w':'m-rings','hyrox-engine-12w':'m-pulse','engine-amrap-10w':'m-pulse','metcon-emom-8w':'m-flame','fat-burner-10w':'m-flame','football-elite-12w':'m-found','foundation-8w':'m-found','booty-10w':'m-str','run-10k-12w':'m-pulse','core-strength-8w':'m-found','unlock-8w':'m-found','banded-8w':'m-str','second-prime-10w':'m-found'};
 let SE_PROG=null;
 /* Le cycle et la séance partagent le conteneur #se-detail : ouvrir un jour
    écrase la liste des jours. On mémorise d'où l'on vient pour la reconstruire

@@ -124,7 +124,8 @@
       inc1:'Ton suivi par ton coach, sur l’abonnement que tu choisis.', inc2:'L’app Coach DM offerte : programmes, séances, check-ins et messages avec ton coach.', inc3:'Sans engagement : tu arrêtes quand tu veux.',
       pay:'Payer {0}', opening:'Ouverture du paiement…', safe:'Paiement sécurisé par Stripe',
       fine:'Abonnement {1} de {0}, renouvelé automatiquement jusqu’à ce que tu l’arrêtes. Le paiement va directement à {2} ; Coach DM fournit la plateforme et l’app. Les reçus et la gestion de l’abonnement arrivent par e-mail.',
-      fine_m:'mensuel', fine_q:'trimestriel', your_coach:'ton coach',
+      fine_m:'mensuel', fine_q:'trimestriel', your_coach:'ton coach', per_o:'paiement unique', inc3_o:'Paiement unique, sans abonnement ni renouvellement.',
+      fine_o:'Paiement unique de {0}, sans abonnement. Le paiement va directement à {2} ; Coach DM fournit la plateforme et l’app. Le reçu arrive par e-mail.',
       err:'Le paiement n’a pas pu s’ouvrir. Réessaie dans un instant.',
       ok_t:'Paiement confirmé', ok_d:'Merci ! Ton coach est prévenu.', ok_next:'Et maintenant',
       ok_s1:'Nouveau sur Coach DM ? Ouvre l’e-mail « Ton accès Coach DM est prêt » et touche le bouton pour créer ton mot de passe. Pas d’e-mail ? Regarde dans les spams.',
@@ -135,7 +136,8 @@
       inc1:'Coaching from your coach, on the plan you choose.', inc2:'The Coach DM app included: programs, sessions, check-ins and messages with your coach.', inc3:'No commitment: stop whenever you want.',
       pay:'Pay {0}', opening:'Opening the payment…', safe:'Secure payment by Stripe',
       fine:'{1} subscription of {0}, renewed automatically until you stop it. The payment goes directly to {2}; Coach DM provides the platform and the app. Receipts and subscription management come by email.',
-      fine_m:'Monthly', fine_q:'Quarterly', your_coach:'your coach',
+      fine_m:'Monthly', fine_q:'Quarterly', your_coach:'your coach', per_o:'one-time payment', inc3_o:'One-time payment: no subscription, no renewal.',
+      fine_o:'One-time payment of {0}, no subscription. The payment goes directly to {2}; Coach DM provides the platform and the app. The receipt comes by email.',
       err:'The payment could not open. Please try again in a moment.',
       ok_t:'Payment confirmed', ok_d:'Thank you! Your coach has been notified.', ok_next:'What’s next',
       ok_s1:'New to Coach DM? Open the email “Your Coach DM access is ready” and tap the button to set your password. No email? Check your spam folder.',
@@ -146,7 +148,8 @@
       inc1:'Begeleiding door je coach, met het abonnement dat je kiest.', inc2:'De Coach DM-app inbegrepen: programma’s, trainingen, check-ins en berichten met je coach.', inc3:'Zonder verbintenis: je stopt wanneer je wilt.',
       pay:'{0} betalen', opening:'Betaling wordt geopend…', safe:'Veilige betaling via Stripe',
       fine:'{1} abonnement van {0}, automatisch verlengd tot je het stopt. De betaling gaat rechtstreeks naar {2}; Coach DM levert het platform en de app. Betaalbewijzen en abonnementsbeheer komen per e-mail.',
-      fine_m:'Maandelijks', fine_q:'Driemaandelijks', your_coach:'je coach',
+      fine_m:'Maandelijks', fine_q:'Driemaandelijks', your_coach:'je coach', per_o:'eenmalige betaling', inc3_o:'Eenmalige betaling, zonder abonnement of verlenging.',
+      fine_o:'Eenmalige betaling van {0}, zonder abonnement. De betaling gaat rechtstreeks naar {2}; Coach DM levert het platform en de app. Het betaalbewijs komt per e-mail.',
       err:'De betaling kon niet worden geopend. Probeer het zo opnieuw.',
       ok_t:'Betaling bevestigd', ok_d:'Bedankt! Je coach is verwittigd.', ok_next:'Wat nu',
       ok_s1:'Nieuw bij Coach DM? Open de e-mail over je Coach DM-toegang en tik op de knop om je wachtwoord te kiezen. Geen e-mail? Kijk in je spam.',
@@ -174,10 +177,12 @@
       $('o-kick').textContent = o.coach ? f(t.kick_c,o.coach) : t.kick;
       $('o-name').textContent = o.name;
       $('o-price').textContent = price;
-      $('o-per').textContent = o.interval==='quarter' ? t.per_q : t.per_m;
+      var once = o.interval==='once';
+      $('o-per').textContent = once ? t.per_o : (o.interval==='quarter' ? t.per_q : t.per_m);
+      if(once){ var i3=document.querySelector('[data-t="inc3"]'); if(i3) i3.textContent=t.inc3_o; }
       $('o-desc').textContent = o.description||''; $('o-desc').hidden = !o.description;
       $('o-pay').textContent = f(t.pay, price);
-      $('o-fine').textContent = f(t.fine, price, o.interval==='quarter'?t.fine_q:t.fine_m, o.coach||t.your_coach);
+      $('o-fine').textContent = f(once ? t.fine_o : t.fine, price, o.interval==='quarter'?t.fine_q:t.fine_m, o.coach||t.your_coach);
     }
   }
   document.querySelectorAll('.lang button').forEach(function(b){ b.onclick=function(){ L=b.dataset.l; try{ localStorage.setItem('cdm_lang',L); }catch(_){} paint(); }; });
