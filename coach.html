@@ -1966,9 +1966,10 @@ async function enter(user){
   try{ const { data:pi } = await sb.rpc('coach_my_plan_info'); PLAN_INFO = pi || {paid:false}; }
   catch(e){ PLAN_INFO = {paid:false}; }
   show('app');
-  /* Paiements : web uniquement, et reserve a l'admin tant que Stripe est en mode test.
-     Au passage en live, PAY_OPEN devient vrai pour tous les coachs (une ligne). */
-  PAY_OPEN = !IS_NATIVE && ROLE==='admin';
+  /* Paiements : web uniquement. Admin toujours ; coachs seulement quand l'interrupteur
+     connect_open est active en base (passage en live), sans redeployer cette page. */
+  { let open=false; if(!IS_NATIVE && ROLE==='coach'){ try{ const { data } = await sb.rpc('connect_is_open'); open = data===true; }catch(_){} }
+    PAY_OPEN = !IS_NATIVE && (ROLE==='admin' || open); }
   if(!PAY_OPEN){ const tp=$('#tab-pay'); if(tp) tp.remove(); const pp=$('#pane-paiements'); if(pp) pp.remove(); }
   else { try{ const v=sessionStorage.getItem('c_pay'); if(['receive','offers','payments'].includes(v)) PAY.view=v; }catch(_){}
     try{ const q=new URLSearchParams(location.search); if(q.get('connect')){ PAY.view='receive'; history.replaceState(null,'',location.pathname+'?tab=paiements'); toast(tr('pay_back')); } }catch(_){} }
