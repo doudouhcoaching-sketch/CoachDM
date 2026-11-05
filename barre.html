@@ -1835,7 +1835,7 @@ async function loadModel(){
 
 async function startCam(){
   stream=await navigator.mediaDevices.getUserMedia({
-    video:{facingMode:facing,width:{ideal:1280},height:{ideal:720},frameRate:{ideal:60,min:24}},audio:false
+    video:{facingMode:facing,width:{ideal:1280},height:{ideal:720},frameRate:{ideal:60}},audio:false
   });
   video.srcObject=stream;
   await video.play();
