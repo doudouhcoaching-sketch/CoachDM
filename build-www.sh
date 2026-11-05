@@ -21,7 +21,7 @@ cp app.html www/index.html
 # admin-subs.html : ecran d approbation des substitutions, ouvert par un href
 # relatif depuis le profil admin de app.html. Meme piege que admin.html : hors
 # du bundle, le clic donnait un 404 silencieux sous capacitor://.
-PAGES="app.html coach.html saut.html squat.html barre.html course.html hyrox.html aide.html privacy.html conditions.html admin.html admin-subs.html tv.html studio.html"
+PAGES="app.html coach.html saut.html squat.html barre.html course.html hyrox.html chrono.html aide.html privacy.html conditions.html admin.html admin-subs.html tv.html studio.html"
 for f in $PAGES; do
   if [ -f "$f" ]; then cp "$f" www/; fi
 done

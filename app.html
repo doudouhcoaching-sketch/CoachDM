@@ -4991,6 +4991,8 @@ const T = {
  an_run:{fr:'Analyse Course',en:'Running Analysis',nl:'Loopanalyse'},
  an_run_sub:{fr:'Gratuit : cadence + pas \u00b7 Pro : tronc, oscillation, overstride',en:'Free: cadence + steps \u00b7 Pro: trunk, oscillation, overstride',nl:'Gratis: cadans + stappen \u00b7 Pro: romp, oscillatie, overstride'},
  an_hyrox:{fr:'Analyse HYROX',en:'HYROX Analysis',nl:'HYROX-analyse'},
+ an_chrono:{fr:'Chrono Navette',en:'Shuttle Timer',nl:'Pendeltimer'},
+ an_chrono_sub:{fr:'Gratuit : temps + meilleur essai \u00b7 Pro : aller/retour, r\u00e9action, fatigue',en:'Free: times + best rep \u00b7 Pro: out/back, reaction, fatigue',nl:'Gratis: tijden + beste poging \u00b7 Pro: heen/terug, reactie, vermoeidheid'},
  an_hyrox_sub:{fr:'Gratuit : reps + no-reps + cadence \u00b7 Pro : fade, blocage, p\u00e9nalit\u00e9',en:'Free: reps + no-reps + cadence \u00b7 Pro: fade, rest, penalty',nl:'Gratis: reps + no-reps + cadans \u00b7 Pro: fade, rust, straf'},
  an_you_get:{fr:'Tu obtiens :',en:'You get:',nl:'Je krijgt:'},
  an_start:{fr:'Lancer l’analyse',en:'Start the analysis',nl:'Analyse starten'},
@@ -5005,6 +5007,7 @@ const T = {
  an_bar_sub_n:{fr:'Reps et trajectoire de barre en direct',en:'Reps and live bar path',nl:'Reps en live stangbaan'},
  an_run_sub_n:{fr:'Cadence et nombre de pas',en:'Cadence and step count',nl:'Cadans en aantal stappen'},
  an_hyrox_sub_n:{fr:'Reps, no-reps et cadence',en:'Reps, no-reps and cadence',nl:'Reps, no-reps en cadans'},
+ an_chrono_sub_n:{fr:'Temps de chaque sprint avec changement de direction',en:'Time of every change-of-direction sprint',nl:'Tijd van elke sprint met richtingsverandering'},
  pf_week:{fr:'Semaine',en:'Week',nl:'Week'},
  au_email:{fr:'Email',en:'Email',nl:'E-mail'},
  au_pass:{fr:'Mot de passe',en:'Password',nl:'Wachtwoord'},
@@ -10636,6 +10639,10 @@ const AN_INFO={
       donne — c'est la seule facon de ne pas promettre une mesure impossible. */
    h:{fr:'À 2-3 m, corps entier dans l’image. De côté pour la profondeur et le dos, de face pour les genoux. 3 répétitions suffisent.',en:'2-3 m away, whole body in frame. Side-on for depth and back, front-on for knees. 3 reps is enough.',nl:'Op 2-3 m, volledig lichaam in beeld. Zijwaarts voor diepte en rug, frontaal voor de knieën. 3 repetities volstaan.'},
    g:{fr:'Répétitions et parallèle dans les deux vues. De côté : profondeur, dos arrondi, inclinaison du buste, vitesse. De face : valgus des genoux.',en:'Reps and parallel in both views. Side-on: depth, back rounding, torso lean, speed. Front-on: knee valgus.',nl:'Repetities en parallel in beide standen. Zijwaarts: diepte, ronde rug, romphelling, snelheid. Frontaal: knievalgus.'}},
+ 'chrono.html':{ sec:20, lex:[],
+   d:{fr:'Le temps de tes sprints avec changement de direction : il démarre quand tu sors de la zone et s’arrête quand tu y reviens.',en:'The time of your change-of-direction sprints: it starts when you leave the zone and stops when you come back.',nl:'De tijd van je sprints met richtingsverandering: hij start als je de zone verlaat en stopt als je terugkomt.'},
+   h:{fr:'Téléphone sur trépied, de côté, perpendiculaire à la ligne de départ. Tu places la zone du doigt.',en:'Phone on a tripod, side-on, perpendicular to the start line. You place the zone with your finger.',nl:'Telefoon op statief, zijdelings, loodrecht op de startlijn. Je plaatst de zone met je vinger.'},
+   g:{fr:'Temps de chaque essai et meilleur temps. Aller / retour séparés, temps de réaction sur signal et indice de fatigue sur la série.',en:'Time of every rep and best time. Separate out / back splits, reaction time on a signal and fatigue index over the set.',nl:'Tijd van elke poging en beste tijd. Aparte heen / terug, reactietijd op signaal en vermoeidheidsindex over de reeks.'}},
  'saut.html':{ sec:20, lex:['fv_profile'],
    d:{fr:'La hauteur réelle de ton saut, au centimètre, et ce qui te limite.',en:'Your true jump height, to the centimetre, and what limits it.',nl:'Je echte spronghoogte, tot op de centimeter.'},
    h:{fr:'Téléphone de face, à 3 m, bien stable. Deux sauts maximum, sans élan.',en:'Phone facing you, 3 m away, held steady. Two max jumps, no run-up.',nl:'Telefoon frontaal, 3 m, stabiel. Twee maximale sprongen, zonder aanloop.'},
@@ -10661,6 +10668,7 @@ function renderAnalyseSection(){
   const jumpIc='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><path d="M12 6.5v4.5M12 11l-4 3.5M12 11l4 3.5M8 8l4 1.5L16 8"/></svg>';
   const barIc='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="2"/><path d="M12 9v4M12 13l-3 4M12 13l3 4M12 10l-5-4M12 10l5-4"/><rect x="3" y="4.5" width="2.6" height="3" rx=".6"/><rect x="18.4" y="4.5" width="2.6" height="3" rx=".6"/></svg>';
   const runIc='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="4.5" r="2"/><path d="M13 7l-2.5 4.5L7 13M10.5 11.5l2 3-1.5 5M12.5 14.5l3.5 1.5 2 4M13 7l4 1.5 2.5 3"/></svg>';
+  const chronoIc='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.5" r="7"/><path d="M12 13.5V10M10 3h4M12 3v3.5M18.5 7l1.5-1.5"/></svg>';
   const hyroxIc='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2.5-6 4 12 2.5-6H21"/></svg>';
   host.innerHTML=`<div class="an-h"><h3>${t('an_title')}</h3><span class="an-live">LIVE</span></div>
   <div class="an-sub">${t('an_sub')}</div>
@@ -10670,6 +10678,7 @@ function renderAnalyseSection(){
     ['barre.html', barIc,   'an_bar'],
     ['course.html',runIc,   'an_run'],
     ['hyrox.html', hyroxIc, 'an_hyrox'],
+    ['chrono.html',chronoIc,'an_chrono'],
   ].map(([page,ic,key])=>{
     const inf=AN_INFO[page]||{};
     const lexBtns=(inf.lex||[]).map(k=>lexQ(k)).join('');
