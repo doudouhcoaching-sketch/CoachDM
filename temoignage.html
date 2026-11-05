@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0A0907">
+<title>Ton témoignage · Coach DM</title>
+<link rel="icon" href="logo-dm.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=Manrope:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0907;--card:#12100C;--card2:#17140F;--line:rgba(242,236,222,.10);--line2:rgba(233,199,103,.35);
+  --ink:#F2ECDE;--mut:#A39A88;--gold:#E9C767;--gold1:#F1D485;--gold2:#D9B154;--err:#E8806B;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.55 Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;
+  background-image:radial-gradient(900px 500px at 85% -10%,rgba(233,199,103,.10),transparent 60%),radial-gradient(700px 400px at -10% 110%,rgba(233,199,103,.06),transparent 60%)}
+a{color:var(--gold)}
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px 64px}
+header{display:flex;align-items:center;justify-content:space-between;padding:4px 0 36px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font:700 13px/1 Sora,sans-serif;letter-spacing:.16em}
+.brand img{width:34px;height:34px;border-radius:9px;object-fit:cover}
+.langs{display:flex;gap:4px}
+.langs button{background:none;border:0;color:var(--mut);font:600 12px/1 Manrope,sans-serif;letter-spacing:.08em;padding:8px 10px;border-radius:999px;cursor:pointer}
+.langs button[aria-pressed="true"]{background:var(--gold);color:#14110A}
+.eyebrow{display:flex;align-items:center;gap:12px;color:var(--gold);font:600 11px/1 Manrope,sans-serif;letter-spacing:.22em;text-transform:uppercase}
+.eyebrow::before{content:"";width:34px;height:1px;background:var(--gold)}
+h1{font:700 clamp(38px,9vw,56px)/1.02 Sora,sans-serif;letter-spacing:-.03em;margin:18px 0 18px}
+h1 em{font:italic 400 1.08em/1 "Instrument Serif",Georgia,serif;color:var(--gold);letter-spacing:-.01em}
+.lead{color:var(--mut);font-size:17px;max-width:54ch}
+form{margin-top:36px;display:grid;gap:14px}
+.q{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px 18px}
+.q label.t,.q .t{display:block;font:600 15px/1.35 Sora,sans-serif;letter-spacing:-.01em;margin-bottom:4px}
+.q .n{color:var(--gold);font:600 11px/1 Manrope,sans-serif;letter-spacing:.16em;margin-bottom:10px;display:block}
+.q .h{color:var(--mut);font-size:13.5px;margin-bottom:12px;display:block}
+.req::after{content:" *";color:var(--gold)}
+.row{display:grid;grid-template-columns:1fr 110px;gap:10px}
+input[type=text],input[type=email],textarea{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:12px;color:var(--ink);
+  font:500 16px/1.4 Manrope,sans-serif;padding:13px 14px;outline:none;transition:border-color .15s}
+textarea{min-height:92px;resize:vertical}
+input:focus,textarea:focus{border-color:var(--gold)}
+input::placeholder,textarea::placeholder{color:#6F685A}
+.count{display:block;text-align:right;color:#6F685A;font-size:12px;margin-top:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip span{display:inline-block;padding:10px 15px;border-radius:999px;border:1px solid var(--line);background:var(--card2);font:500 14.5px/1.2 Manrope,sans-serif;cursor:pointer;transition:all .15s}
+.chip input:checked+span{border-color:var(--gold);color:#14110A;background:linear-gradient(var(--gold1),var(--gold2))}
+.chip input:focus-visible+span{outline:2px solid var(--gold);outline-offset:2px}
+.stars{display:flex;gap:6px}
+.stars button{background:none;border:0;cursor:pointer;padding:2px;line-height:0}
+.stars svg{width:38px;height:38px;fill:transparent;stroke:#5E584B;stroke-width:1.4;transition:all .12s}
+.stars button.on svg{fill:var(--gold);stroke:var(--gold)}
+.radios{display:grid;gap:8px}
+.radio{display:flex;gap:12px;align-items:flex-start;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card2);cursor:pointer;font-size:15px}
+.radio input{appearance:none;width:20px;height:20px;border-radius:50%;border:1.5px solid #6F685A;flex:none;margin-top:1px;display:grid;place-content:center}
+.radio input:checked{border-color:var(--gold)}
+.radio input:checked::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--gold)}
+.radio:has(input:checked){border-color:var(--line2)}
+.check{display:flex;gap:12px;align-items:flex-start;cursor:pointer;font-size:15px}
+.check input{appearance:none;width:20px;height:20px;border-radius:6px;border:1.5px solid #6F685A;flex:none;margin-top:1px;display:grid;place-content:center}
+.check input:checked{background:var(--gold);border-color:var(--gold)}
+.check input:checked::after{content:"";width:9px;height:5px;border:2px solid #14110A;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+#emailBox{margin-top:12px;display:none}
+.legal{color:var(--mut);font-size:13px;padding:2px 4px}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.btn{appearance:none;border:0;cursor:pointer;width:100%;padding:17px 22px;border-radius:999px;background:linear-gradient(var(--gold1),var(--gold2));color:#14110A;
+  font:700 16px/1 Sora,sans-serif;letter-spacing:-.01em;box-shadow:0 10px 30px -10px rgba(233,199,103,.45);transition:transform .1s,opacity .15s}
+.btn:active{transform:scale(.99)}
+.btn[disabled]{opacity:.55;cursor:wait}
+.err{color:var(--err);font-size:14px;min-height:1px;padding:0 4px}
+.done{display:none;margin-top:40px;background:var(--card);border:1px solid var(--line2);border-radius:24px;padding:34px 22px;text-align:center}
+.done h2{font:700 30px/1.1 Sora,sans-serif;letter-spacing:-.02em;margin-bottom:12px}
+.done h2 em{font:italic 400 1.1em/1 "Instrument Serif",serif;color:var(--gold)}
+.done p{color:var(--mut);margin-bottom:22px}
+.done a.btn{display:inline-block;width:auto;text-decoration:none}
+footer{margin-top:48px;color:#6F685A;font-size:12.5px;text-align:center}
+footer a{color:#8D8576}
+@media (max-width:420px){.row{grid-template-columns:1fr 90px}.stars svg{width:34px;height:34px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="index.html"><img src="logo-dm.png" alt="Coach DM">COACH DM</a>
+    <div class="langs" role="group" aria-label="Langue">
+      <button type="button" data-l="fr">FR</button><button type="button" data-l="en">EN</button><button type="button" data-l="nl">NL</button>
+    </div>
+  </header>
+
+  <main id="main">
+    <p class="eyebrow" data-i="eyebrow"></p>
+    <h1 data-i="title"></h1>
+    <p class="lead" data-i="lead"></p>
+
+    <form id="f" novalidate>
+      <div class="hp" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+
+      <div class="q">
+        <span class="n">01</span>
+        <span class="t req" data-i="q1"></span>
+        <span class="h" data-i="q1h"></span>
+        <div class="row">
+          <input type="text" name="first_name" maxlength="40" autocomplete="given-name" data-ph="ph_first" required>
+          <input type="text" name="last_initial" maxlength="3" autocomplete="off" data-ph="ph_init">
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="n">02</span>
+        <span class="t" data-i="q2"></span>
+        <div class="chips" style="margin-top:12px">
+          <label class="chip"><input type="radio" name="service" value="pt"><span data-i="s_pt"></span></label>
+          <label class="chip"><input type="radio" name="service" value="group"><span data-i="s_group"></span></label>
+          <label class="chip"><input type="radio" name="service" value="online"><span data-i="s_online"></span></label>
+          <label class="chip"><input type="radio" name="service" value="app"><span data-i="s_app"></span></label>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="n">03</span>
+        <span class="t" data-i="q3"></span>
+        <div class="chips" style="margin-top:12px">
+          <label class="chip"><input type="radio" name="duration" value="lt3m"><span data-i="d1"></span></label>
+          <label class="chip"><input type="radio" name="duration" value="3to12m"><span data-i="d2"></span></label>
+          <label class="chip"><input type="radio" name="duration" value="gt1y"><span data-i="d3"></span></label>
+        </div>
+      </div>
+
+      <div class="q">
+        <span class="n">04</span>
+        <label class="t" for="before_text" data-i="q4"></label>
+        <span class="h" data-i="q4h"></span>
+        <textarea id="before_text" name="before_text" maxlength="600" data-ph="ph4"></textarea>
+      </div>
+
+      <div class="q">
+        <span class="n">05</span>
+        <label class="t" for="after_text" data-i="q5"></label>
+        <span class="h" data-i="q5h"></span>
+        <textarea id="after_text" name="after_text" maxlength="600" data-ph="ph5"></textarea>
+      </div>
+
+      <div class="q">
+        <span class="n">06</span>
+        <label class="t req" for="quote" data-i="q6"></label>
+        <span class="h" data-i="q6h"></span>
+        <textarea id="quote" name="quote" maxlength="280" data-ph="ph6" required></textarea>
+        <span class="count"><span id="qc">0</span>/280</span>
+      </div>
+
+      <div class="q">
+        <span class="n">07</span>
+        <span class="t" data-i="q7"></span>
+        <div class="stars" id="stars" style="margin-top:12px"></div>
+      </div>
+
+      <div class="q">
+        <span class="n">08</span>
+        <span class="t req" data-i="q8"></span>
+        <span class="h" data-i="q8h"></span>
+        <div class="radios">
+          <label class="radio"><input type="radio" name="publish" value="name"><span data-i="p_name"></span></label>
+          <label class="radio"><input type="radio" name="publish" value="anonymous"><span data-i="p_anon"></span></label>
+          <label class="radio"><input type="radio" name="publish" value="private"><span data-i="p_priv"></span></label>
+        </div>
+        <div style="margin-top:16px">
+          <label class="check"><input type="checkbox" name="recontact" id="recontact"><span data-i="recontact"></span></label>
+          <div id="emailBox"><input type="email" name="email" maxlength="200" autocomplete="email" data-ph="ph_mail"></div>
+        </div>
+      </div>
+
+      <p class="legal" data-i="legal"></p>
+      <p class="err" id="err" role="alert"></p>
+      <button class="btn" type="submit" id="send" data-i="send"></button>
+    </form>
+  </main>
+
+  <section class="done" id="done" aria-live="polite">
+    <h2 data-i="thx_t"></h2>
+    <p data-i="thx_p"></p>
+    <a class="btn" href="index.html" data-i="thx_b"></a>
+  </section>
+
+  <footer>© 2026 Coach DM · <a href="mailto:contact@coachdm.be">contact@coachdm.be</a> · <a href="privacy.html" data-i="privacy"></a></footer>
+</div>
+
+<script>
+(function(){
+  var SB_URL = 'https://kkcmhviyvttwpaclrjmv.supabase.co';
+  var SB_KEY = 'sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b';
+
+  var T = {
+    fr: {
+      eyebrow: 'Témoignage · 2 minutes',
+      title: 'Ton avis compte. <em>Vraiment.</em>',
+      lead: "Tu t'entraînes avec moi ? Raconte en quelques mots ce qui a changé. Ça aide ceux qui hésitent à se lancer. Rien n'est publié sans ton accord : c'est toi qui choisis, en bas.",
+      q1: 'Ton prénom', q1h: "Et l'initiale de ton nom si tu veux, comme « Sarah V. ».", ph_first: 'Prénom', ph_init: 'Initiale',
+      q2: 'Avec moi, tu fais quoi ?', s_pt: 'Personal training', s_group: 'Cours collectifs', s_online: 'Coaching en ligne', s_app: "L'app Coach DM",
+      q3: 'Depuis combien de temps ?', d1: 'Moins de 3 mois', d2: '3 à 12 mois', d3: "Plus d'un an",
+      q4: 'Avant de commencer, tu en étais où ?', q4h: 'Ton objectif, ou ce qui te bloquait.', ph4: "Ex. : je reprenais après 10 ans sans sport, je n'arrivais pas à être régulier…",
+      q5: "Qu'est-ce qui a changé depuis ?", q5h: "Un chiffre si tu en as un, c'est encore plus parlant.", ph5: 'Ex. : −6 kg en 4 mois, mon premier pull-up, 100 kg au deadlift, ma première Hyrox…',
+      q6: 'En une phrase, tu dirais quoi à quelqu’un qui hésite ?', q6h: 'Avec tes mots, comme tu le dirais à un ami.', ph6: 'Ta phrase…',
+      q7: 'Ta note', star: 'étoile', stars: 'étoiles',
+      q8: 'Je peux publier ton témoignage ?', q8h: 'Sur coachdm.be et sur Instagram @coachdm.be.',
+      p_name: "Oui, avec mon prénom et l'initiale de mon nom", p_anon: 'Oui, mais sans mon prénom', p_priv: "Non, c'est juste pour toi",
+      recontact: 'Tu peux me recontacter, par exemple pour une photo ou une courte vidéo', ph_mail: 'Ton e-mail',
+      legal: 'Tes réponses sont gardées par Coach DM et servent uniquement à ça. Tu peux retirer ton témoignage quand tu veux : écris à contact@coachdm.be.',
+      send: 'Envoyer mon témoignage', sending: 'Envoi…',
+      e_first: 'Ton prénom manque.', e_quote: 'Il manque ta phrase (question 06).', e_pub: 'Dis-moi si je peux publier (question 08).', e_mail: "Ton e-mail n'est pas valide.", e_net: "L'envoi n'a pas marché. Réessaie dans un instant, ou écris-moi à contact@coachdm.be.",
+      thx_t: 'Merci. <em>Vraiment.</em>', thx_p: 'Je lis chaque réponse moi-même. Ce que tu viens d’écrire va aider quelqu’un à se lancer.', thx_b: 'Retour au site',
+      privacy: 'Confidentialité', doc: 'Ton témoignage · Coach DM'
+    },
+    en: {
+      eyebrow: 'Testimonial · 2 minutes',
+      title: 'Your words matter. <em>Really.</em>',
+      lead: "Training with me? Tell me in a few words what has changed. It helps people who are hesitating to get started. Nothing is published without your consent: you choose, at the bottom.",
+      q1: 'Your first name', q1h: 'And your last-name initial if you like, e.g. “Sarah V.”.', ph_first: 'First name', ph_init: 'Initial',
+      q2: 'What do you do with me?', s_pt: 'Personal training', s_group: 'Group classes', s_online: 'Online coaching', s_app: 'The Coach DM app',
+      q3: 'For how long?', d1: 'Less than 3 months', d2: '3 to 12 months', d3: 'More than a year',
+      q4: 'Before you started, where were you at?', q4h: 'Your goal, or what was holding you back.', ph4: "E.g. I was getting back into sport after 10 years off, I couldn't stay consistent…",
+      q5: 'What has changed since?', q5h: 'A number if you have one says even more.', ph5: 'E.g. −6 kg in 4 months, my first pull-up, 100 kg deadlift, my first Hyrox…',
+      q6: 'In one sentence, what would you tell someone who is hesitating?', q6h: 'In your own words, like you would tell a friend.', ph6: 'Your sentence…',
+      q7: 'Your rating', star: 'star', stars: 'stars',
+      q8: 'Can I publish your testimonial?', q8h: 'On coachdm.be and on Instagram @coachdm.be.',
+      p_name: 'Yes, with my first name and last-name initial', p_anon: 'Yes, but without my name', p_priv: "No, it's just for you",
+      recontact: 'You can contact me again, for example for a photo or a short video', ph_mail: 'Your email',
+      legal: 'Your answers are kept by Coach DM and used for this purpose only. You can withdraw your testimonial at any time: write to contact@coachdm.be.',
+      send: 'Send my testimonial', sending: 'Sending…',
+      e_first: 'Your first name is missing.', e_quote: 'Your sentence is missing (question 06).', e_pub: 'Tell me if I can publish it (question 08).', e_mail: 'Your email is not valid.', e_net: "Sending failed. Try again in a moment, or write to contact@coachdm.be.",
+      thx_t: 'Thank you. <em>Really.</em>', thx_p: 'I read every answer myself. What you just wrote will help someone get started.', thx_b: 'Back to the site',
+      privacy: 'Privacy', doc: 'Your testimonial · Coach DM'
+    },
+    nl: {
+      eyebrow: 'Getuigenis · 2 minuten',
+      title: 'Jouw mening telt. <em>Echt.</em>',
+      lead: 'Train je met mij? Vertel in een paar woorden wat er veranderd is. Zo help je mensen die twijfelen om te starten. Niets wordt gepubliceerd zonder jouw akkoord: jij kiest, onderaan.',
+      q1: 'Je voornaam', q1h: 'En de eerste letter van je achternaam als je wil, zoals „Sarah V.”.', ph_first: 'Voornaam', ph_init: 'Initiaal',
+      q2: 'Wat doe je met mij?', s_pt: 'Personal training', s_group: 'Groepslessen', s_online: 'Online coaching', s_app: 'De Coach DM-app',
+      q3: 'Sinds wanneer?', d1: 'Minder dan 3 maanden', d2: '3 tot 12 maanden', d3: 'Meer dan een jaar',
+      q4: 'Waar stond je voor je begon?', q4h: 'Je doel, of wat je tegenhield.', ph4: 'Bv. ik begon opnieuw na 10 jaar zonder sport, ik kon het niet volhouden…',
+      q5: 'Wat is er sindsdien veranderd?', q5h: 'Een cijfer zegt nog meer, als je er een hebt.', ph5: 'Bv. −6 kg in 4 maanden, mijn eerste pull-up, 100 kg deadlift, mijn eerste Hyrox…',
+      q6: 'Wat zou je in één zin zeggen tegen iemand die twijfelt?', q6h: 'In je eigen woorden, zoals tegen een vriend.', ph6: 'Jouw zin…',
+      q7: 'Jouw score', star: 'ster', stars: 'sterren',
+      q8: 'Mag ik je getuigenis publiceren?', q8h: 'Op coachdm.be en op Instagram @coachdm.be.',
+      p_name: 'Ja, met mijn voornaam en de initiaal van mijn achternaam', p_anon: 'Ja, maar zonder mijn naam', p_priv: 'Nee, het is enkel voor jou',
+      recontact: 'Je mag me opnieuw contacteren, bijvoorbeeld voor een foto of een korte video', ph_mail: 'Je e-mail',
+      legal: 'Je antwoorden worden door Coach DM bewaard en enkel hiervoor gebruikt. Je kan je getuigenis altijd intrekken: schrijf naar contact@coachdm.be.',
+      send: 'Mijn getuigenis versturen', sending: 'Versturen…',
+      e_first: 'Je voornaam ontbreekt.', e_quote: 'Je zin ontbreekt (vraag 06).', e_pub: 'Laat me weten of ik mag publiceren (vraag 08).', e_mail: 'Je e-mail is niet geldig.', e_net: 'Versturen is mislukt. Probeer het zo meteen opnieuw, of schrijf naar contact@coachdm.be.',
+      thx_t: 'Bedankt. <em>Echt.</em>', thx_p: 'Ik lees elk antwoord zelf. Wat je net schreef, gaat iemand helpen om te starten.', thx_b: 'Terug naar de site',
+      privacy: 'Privacy', doc: 'Jouw getuigenis · Coach DM'
+    }
+  };
+
+  var params = new URLSearchParams(location.search);
+  var lang = params.get('lang');
+  if (!T[lang]) {
+    try { lang = localStorage.getItem('cdm_lang'); } catch (e) { lang = null; }
+  }
+  if (!T[lang]) {
+    var nav = (navigator.language || 'fr').slice(0, 2).toLowerCase();
+    lang = T[nav] ? nav : 'fr';
+  }
+
+  var f = document.getElementById('f');
+  var err = document.getElementById('err');
+  var send = document.getElementById('send');
+  var rating = 0;
+
+  function apply() {
+    var t = T[lang];
+    document.documentElement.lang = lang;
+    document.title = t.doc;
+    document.querySelectorAll('[data-i]').forEach(function (el) {
+      var k = el.getAttribute('data-i');
+      if (t[k] == null) return;
+      if (k === 'title' || k === 'thx_t') el.innerHTML = t[k]; else el.textContent = t[k];
+    });
+    document.querySelectorAll('[data-ph]').forEach(function (el) { el.placeholder = t[el.getAttribute('data-ph')]; });
+    document.querySelectorAll('.langs button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.l === lang ? 'true' : 'false'); });
+    drawStars();
+  }
+
+  document.querySelectorAll('.langs button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      lang = b.dataset.l;
+      try { localStorage.setItem('cdm_lang', lang); } catch (e) {}
+      err.textContent = '';
+      apply();
+    });
+  });
+
+  var STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.83 5.73 6.32.92-4.58 4.46 1.08 6.3L12 17.24l-5.65 2.97 1.08-6.3L2.85 9.45l6.32-.92z"/></svg>';
+  function drawStars() {
+    var box = document.getElementById('stars');
+    var t = T[lang];
+    box.innerHTML = '';
+    for (var i = 1; i <= 5; i++) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.innerHTML = STAR;
+      b.className = i <= rating ? 'on' : '';
+      b.setAttribute('aria-label', i + ' ' + (i === 1 ? t.star : t.stars));
+      b.setAttribute('aria-pressed', i === rating ? 'true' : 'false');
+      (function (v) { b.addEventListener('click', function () { rating = (rating === v ? 0 : v); drawStars(); }); })(i);
+      box.appendChild(b);
+    }
+  }
+
+  var preset = params.get('s');
+  if (preset) {
+    var r = f.querySelector('input[name=service][value="' + preset.replace(/[^a-z]/g, '') + '"]');
+    if (r) r.checked = true;
+  }
+
+  var quote = f.elements.quote;
+  quote.addEventListener('input', function () { document.getElementById('qc').textContent = quote.value.length; });
+
+  var rc = document.getElementById('recontact');
+  rc.addEventListener('change', function () { document.getElementById('emailBox').style.display = rc.checked ? 'block' : 'none'; });
+
+  function val(name) {
+    var el = f.elements[name];
+    if (!el) return null;
+    if (el instanceof RadioNodeList) return el.value || null;
+    var v = (el.value || '').trim();
+    return v || null;
+  }
+
+  f.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var t = T[lang];
+    err.textContent = '';
+    if (val('website')) { showDone(); return; }
+
+    var first = val('first_name');
+    var q = val('quote');
+    var pub = val('publish');
+    var mail = rc.checked ? val('email') : null;
+    if (!first) { err.textContent = t.e_first; f.elements.first_name.focus(); return; }
+    if (!q) { err.textContent = t.e_quote; quote.focus(); return; }
+    if (!pub) { err.textContent = t.e_pub; return; }
+    if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) { err.textContent = t.e_mail; f.elements.email.focus(); return; }
+
+    var init = val('last_initial');
+    if (init) init = init.replace(/[^A-Za-zÀ-ÿ]/g, '').slice(0, 2).toUpperCase() || null;
+
+    var row = {
+      source: 'site',
+      lang: lang,
+      first_name: first,
+      last_initial: init,
+      service: val('service'),
+      duration: val('duration'),
+      before_text: val('before_text'),
+      after_text: val('after_text'),
+      quote: q,
+      rating: rating || null,
+      publish: pub,
+      recontact: rc.checked && !!mail,
+      email: mail
+    };
+
+    send.disabled = true;
+    send.textContent = t.sending;
+    fetch(SB_URL + '/rest/v1/testimonials', {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify(row)
+    }).then(function (res) {
+      if (!res.ok) throw new Error('http ' + res.status);
+      showDone();
+    }).catch(function () {
+      err.textContent = t.e_net;
+      send.disabled = false;
+      send.textContent = t.send;
+    });
+  });
+
+  function showDone() {
+    document.getElementById('main').style.display = 'none';
+    document.getElementById('done').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  apply();
+})();
+</script>
+</body>
+</html>
