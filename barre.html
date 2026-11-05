@@ -237,6 +237,763 @@ h1, h2,
   <button data-mv="snatch">Snatch</button><button data-mv="clean">Clean</button><button data-mv="jerk">Jerk</button>
 </div>
 
+<!-- ══════════ VIDÉO PRÉCISE — suivi du disque (ajout) ══════════
+   Le mode Direct estime la barre par le milieu des poignets et l'echelle par
+   la taille de l'athlete. Ici on suit LE DISQUE image par image (correlation
+   normalisee, sous-pixel) et l'echelle vient de son diametre (45 cm) :
+   trajectoire au millimetre, vitesse/force/puissance filtrees sans retard,
+   points cles (decollage, transition, extension, hauteur max, reception).
+   Freemium : trajectoire + points cles gratuits ; chiffres, courbes,
+   ecarts en cm, export et sauvegarde detaillee = Premium. -->
+<style>
+  .vpmode{display:flex;gap:6px;margin:0 0 12px;padding:4px;border-radius:15px;background:rgba(255,255,255,.04)}
+  .vpmode button{flex:1;padding:11px 6px;border-radius:12px;font-size:13.5px;font-weight:800;color:var(--muted)}
+  .vpmode button.on{background:linear-gradient(135deg,#C9A043,#F6E3A1 45%,#D9B65A);color:#120f08}
+  body.vp-on #stage, body.vp-on #live-controls, body.vp-on .result, body.vp-on #save-row,
+  body.vp-on #vbt-card, body.vp-on #list-card, body.vp-on #cdm-aff{display:none!important}
+  #vp{display:none}
+  body.vp-on #vp{display:block}
+  .vp-stage{position:relative;width:100%;border-radius:22px;overflow:hidden;background:#000;touch-action:manipulation;user-select:none;-webkit-user-select:none;margin-bottom:12px}
+  .vp-stage.editing{touch-action:none}
+  .vp-stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+  .vp-stage canvas{position:absolute;inset:0;width:100%;height:100%}
+  .vp-pill{position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:8px;padding:7px 12px 7px 10px;border-radius:999px;background:rgba(8,8,8,.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font-size:12px;font-weight:700;z-index:3}
+  .vp-pill i{width:8px;height:8px;border-radius:50%;background:#E9C767;box-shadow:0 0 10px #E9C767}
+  .vp-pill.wait i{background:#ffb44d;box-shadow:0 0 10px #ffb44d}
+  .vp-live{position:absolute;top:12px;right:12px;padding:7px 12px;border-radius:14px;background:rgba(8,8,8,.62);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);text-align:right;z-index:3}
+  .vp-live b{font:800 30px/1 'Sora',sans-serif;letter-spacing:-.03em;background:linear-gradient(135deg,#C9A043,#F8E7A8 45%,#D9B65A);-webkit-background-clip:text;background-clip:text;color:transparent;font-variant-numeric:tabular-nums}
+  .vp-live small{display:block;font-size:9.5px;letter-spacing:1.6px;color:var(--muted);font-weight:700;margin-top:2px}
+  .vp-hint{position:absolute;left:50%;top:54px;transform:translateX(-50%);padding:8px 14px;border-radius:999px;background:rgba(8,8,8,.7);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font-size:12.5px;font-weight:600;white-space:nowrap;z-index:3;color:#F6E3A1}
+  .vp-empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;z-index:5;background:radial-gradient(500px 300px at 50% 40%,rgba(212,175,55,.09),transparent 70%),#0b0a08}
+  .vp-empty h4{font:800 19px/1.15 'Sora',sans-serif;letter-spacing:-.02em}
+  .vp-empty p{color:var(--muted);font-size:13px;max-width:330px;line-height:1.45}
+  .vp-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .vp-btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border-radius:14px;font-weight:800;font-size:14px;background:rgba(255,255,255,.07)}
+  .vp-btn.pri{background:linear-gradient(135deg,#C9A043,#F6E3A1 45%,#D9B65A);color:#120f08}
+  .vp-btn[disabled]{opacity:.4;pointer-events:none}
+  .vp-btn input{position:absolute;inset:0;opacity:0;width:100%}
+  .vp-card{background:var(--surface);border-radius:20px;padding:16px;margin-bottom:12px}
+  .vp-card h3{display:flex;justify-content:space-between;align-items:center;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .vp-card h3 small{text-transform:none;letter-spacing:0;font-weight:600;font-size:12px}
+  .vp-tr{display:flex;align-items:center;gap:8px}
+  .vp-ib{position:relative;overflow:hidden;width:44px;height:44px;border-radius:13px;background:rgba(255,255,255,.07);display:grid;place-items:center;flex:none}
+  .vp-ib.pri{background:linear-gradient(135deg,#C9A043,#F6E3A1 45%,#D9B65A);color:#120f08}
+  .vp-ib svg{width:18px;height:18px}
+  .vp-ib input{position:absolute;inset:0;opacity:0}
+  #vp input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:4px;background:rgba(255,255,255,.12)}
+  #vp input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#F6E3A1;box-shadow:0 0 0 4px rgba(212,175,55,.25)}
+  .vp-tc{font-size:12px;font-weight:700;color:var(--muted);min-width:44px;text-align:right;font-variant-numeric:tabular-nums}
+  .vp-seg{display:flex;gap:4px;padding:4px;border-radius:13px;background:rgba(255,255,255,.04)}
+  .vp-seg button{flex:1;padding:8px 6px;border-radius:10px;font-size:12.5px;font-weight:700;color:var(--muted)}
+  .vp-seg button.on{background:rgba(255,255,255,.1);color:#F6E3A1}
+  .vp-two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .vp-prog{height:6px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:12px}
+  .vp-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#C9A043,#F6E3A1)}
+  .vp-pm{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--muted);margin-top:7px;font-variant-numeric:tabular-nums}
+  .vp-graph{position:relative;width:100%;height:210px;touch-action:none}
+  .vp-graph canvas{position:absolute;inset:0;width:100%;height:100%}
+  .vp-lock{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:16px;background:rgba(10,9,7,.55);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);border-radius:14px;z-index:2}
+  .vp-lock b{font-size:14px}
+  .vp-lock span{color:var(--muted);font-size:12.5px;max-width:300px}
+  .vp-locked .vp-lock{display:flex}
+  .vp-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+  .vp-kpi{background:rgba(255,255,255,.04);border-radius:14px;padding:11px 10px}
+  .vp-kpi span{display:block;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:7px;line-height:1.25}
+  .vp-kpi b{font:800 22px/1 'Sora',sans-serif;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .vp-kpi b em{font-style:normal;font-size:12px;color:var(--muted);margin-left:2px;font-family:'Manrope',sans-serif}
+  .vp-kpi b.lk{color:var(--muted);font-size:16px}
+  .vp-ph{display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;border-radius:14px;background:rgba(255,255,255,.04);margin-bottom:6px;text-align:left}
+  .vp-ph i{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:0 0 0 3px rgba(0,0,0,.6)}
+  .vp-ph b{font-size:14.5px;font-weight:800;flex:1}
+  .vp-ph small{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+  .vp-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:11.5px;color:var(--muted)}
+  .vp-legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+  .vp-inp{display:flex;align-items:center;background:rgba(255,255,255,.05);border-radius:12px;padding:0 12px}
+  .vp-inp input{flex:1;min-width:0;background:none;border:0;outline:none;padding:12px 0;font:inherit;font-size:14.5px;color:var(--txt)}
+  .vp-inp span{color:var(--muted);font-size:13px}
+  .vp-f{display:grid;gap:7px}
+  .vp-f>span{font-size:12.5px;color:var(--muted);font-weight:600}
+  .vp-f small{color:#6b6559;font-size:11.5px}
+  .vp-protag{font-size:10px;font-weight:800;letter-spacing:.1em;padding:3px 7px;border-radius:999px;background:linear-gradient(135deg,#C9A043,#F6E3A1);color:#120f08;margin-left:6px;vertical-align:2px}
+  .vp-toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,30px);opacity:0;background:#1d1b16;color:var(--txt);padding:12px 16px;border-radius:14px;font-size:13.5px;box-shadow:0 18px 40px -12px rgba(0,0,0,.8);transition:.25s;z-index:80;max-width:90vw;text-align:center}
+  .vp-toast.on{opacity:1;transform:translate(-50%,0)}
+  .vp-hide{display:none!important}
+  .vp-card{overflow:hidden}
+  .vp-two>*,.vp-f,.vp-seg button{min-width:0}
+  .vp-inp input{width:100%}
+  .vp-seg button{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+
+<div class="vpmode" id="vpmode">
+  <button data-v="live" data-k="m_live">Direct</button>
+  <button data-v="video" data-k="m_video">Vidéo précise</button>
+</div>
+
+<section id="vp">
+  <div class="vp-stage" id="vp-stage">
+    <video id="vp-video" playsinline muted preload="auto"></video>
+    <canvas id="vp-ov"></canvas>
+    <div class="vp-pill" id="vp-pill"><i></i><span id="vp-pill-tx"></span></div>
+    <div class="vp-live vp-hide" id="vp-live"><b id="vp-live-v">0,00</b><small>M/S</small></div>
+    <div class="vp-hint vp-hide" id="vp-hint"></div>
+    <div class="vp-empty" id="vp-empty">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#E9C767" stroke-width="1.8" stroke-linecap="round"><path d="M2 12h20"/><rect x="4" y="7" width="3" height="10" rx="1"/><rect x="17" y="7" width="3" height="10" rx="1"/></svg>
+      <h4 data-k="e_t">Analyse vidéo au millimètre</h4>
+      <p data-k="e_p">Filme de profil sur trépied. Le disque est suivi image par image : trajectoire, vitesse, force et points de transition.</p>
+      <div class="vp-row">
+        <label class="vp-btn pri"><span data-k="rec">Filmer</span><input type="file" accept="video/*" capture="environment" id="vp-cap"></label>
+        <label class="vp-btn"><span data-k="imp">Importer</span><input type="file" accept="video/*" id="vp-imp"></label>
+      </div>
+    </div>
+  </div>
+
+  <div class="vp-card">
+    <div class="vp-tr">
+      <button class="vp-ib" id="vp-back" aria-label="-1"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 6h2v12H7zM20 6v12l-9-6z"/></svg></button>
+      <button class="vp-ib pri" id="vp-play" aria-label="play"><svg id="vp-pico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+      <button class="vp-ib" id="vp-fwd" aria-label="+1"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15 6h2v12h-2zM4 6v12l9-6z"/></svg></button>
+      <input type="range" id="vp-scrub" min="0" max="1000" value="0">
+      <div class="vp-tc" id="vp-tc">0,00</div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:12px;align-items:center">
+      <div class="vp-seg" id="vp-rate" style="flex:1"><button data-v="0.25">0.25×</button><button data-v="0.5">0.5×</button><button data-v="1">1×</button></div>
+      <label class="vp-ib"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg><input type="file" accept="video/*" id="vp-imp2"></label>
+    </div>
+    <div class="vp-two" style="margin-top:12px">
+      <button class="vp-btn" id="vp-cal" data-k="cal">Placer le disque</button>
+      <button class="vp-btn pri" id="vp-track" data-k="track">Lancer le suivi</button>
+    </div>
+    <div class="vp-hide" id="vp-progw"><div class="vp-prog"><i id="vp-progb"></i></div><div class="vp-pm"><span id="vp-progt"></span><span id="vp-progp">0 %</span></div></div>
+  </div>
+
+  <div class="vp-card vp-hide" id="vp-gcard">
+    <h3><span><span data-k="curve">Courbe</span><span class="vp-protag">PRO</span></span><small id="vp-gunit"></small></h3>
+    <div class="vp-seg" id="vp-metric" style="margin-bottom:10px">
+      <button data-v="v" data-k="mv">Vitesse</button><button data-v="h" data-k="mh">Hauteur</button><button data-v="f" data-k="mf">Force</button><button data-v="p" data-k="mp">Puissance</button>
+    </div>
+    <div class="vp-graph" id="vp-graph"><canvas id="vp-gcv"></canvas>
+      <div class="vp-lock"><b data-k="lock_t">Courbes et chiffres en Premium</b><span data-k="lock_p">Vitesse, force, puissance et écarts en cm, image par image.</span></div>
+    </div>
+    <div class="vp-legend" id="vp-legend"></div>
+  </div>
+
+  <div class="vp-card">
+    <h3><span data-k="res">Résultats</span><small id="vp-prec"></small></h3>
+    <div class="vp-kpis" id="vp-kpis"></div>
+    <div id="vp-phases"></div>
+    <div class="vp-two" style="margin-top:8px">
+      <button class="vp-btn" id="vp-save" data-k="save">Enregistrer</button>
+      <button class="vp-btn" id="vp-copy" data-k="copy">Copier</button>
+    </div>
+  </div>
+
+  <div class="vp-card">
+    <h3 data-k="set">Réglages</h3>
+    <div style="display:grid;gap:14px">
+      <div class="vp-two">
+        <div class="vp-f"><span data-k="load">Charge</span><div class="vp-inp"><input id="vp-load" inputmode="decimal" placeholder="60"><span>kg</span></div></div>
+        <div class="vp-f"><span data-k="plate">Diamètre disque</span><div class="vp-inp"><input id="vp-plate" inputmode="decimal" placeholder="45"><span>cm</span></div></div>
+      </div>
+      <div class="vp-f"><span data-k="face">L'athlète regarde vers</span>
+        <div class="vp-seg" id="vp-face"><button data-v="-1" data-k="left">← Gauche</button><button data-v="1" data-k="right">Droite →</button></div>
+        <small data-k="face_s">Pour savoir si la barre part vers l'athlète ou vers l'avant.</small>
+      </div>
+      <div class="vp-f"><span data-k="slow">Vidéo au ralenti</span>
+        <div class="vp-seg" id="vp-slow"><button data-v="1">×1</button><button data-v="2">×2</button><button data-v="4">×4</button><button data-v="8">×8</button></div>
+        <small data-k="slow_s">Si la vidéo est lue au ralenti, indique le facteur pour retrouver le temps réel.</small>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="vp-toast" id="vp-toast"></div>
+
+<script type="module">
+// Coach DM — barbell tracking + kinematics engine (no DOM)
+
+function toGray(d, n) {
+  const g = new Float32Array(n);
+  for (let i = 0, j = 0; i < n; i++, j += 4) g[i] = 0.299 * d[j] + 0.587 * d[j + 1] + 0.114 * d[j + 2];
+  return g;
+}
+
+/* Plate tracker: normalised cross-correlation on the plate hub, with
+   constant-velocity prediction, coarse-to-fine search and sub-pixel peak. */
+class PlateTracker {
+  constructor(w, h, r) {
+    this.w = w; this.h = h;
+    this.hs = Math.max(6, Math.min(40, Math.round(r * 0.75)));
+    this.R = Math.max(8, Math.round(r * 0.75));
+    this.lostRun = 0;
+    this.ii = new Float64Array((w + 1) * (h + 1)); this.ii2 = new Float64Array((w + 1) * (h + 1));
+  }
+  _integral(g) {
+    const { w, h, ii, ii2 } = this, W = w + 1;
+    for (let y = 0; y < h; y++) {
+      let s = 0, s2 = 0;
+      for (let x = 0; x < w; x++) {
+        const v = g[y * w + x]; s += v; s2 += v * v;
+        ii[(y + 1) * W + x + 1] = ii[y * W + x + 1] + s;
+        ii2[(y + 1) * W + x + 1] = ii2[y * W + x + 1] + s2;
+      }
+    }
+  }
+  _patch(g, cx, cy) {
+    const { w, h, hs } = this, sz = 2 * hs + 1;
+    if (cx - hs < 0 || cy - hs < 0 || cx + hs >= w || cy + hs >= h) return null;
+    const p = new Float32Array(sz * sz); let m = 0, k = 0;
+    for (let y = -hs; y <= hs; y++) for (let x = -hs; x <= hs; x++) { const v = g[(cy + y) * w + cx + x]; p[k++] = v; m += v; }
+    m /= p.length; let n2 = 0;
+    for (let i = 0; i < p.length; i++) { p[i] -= m; n2 += p[i] * p[i]; }
+    const nn = Math.sqrt(n2) || 1; for (let i = 0; i < p.length; i++) p[i] /= nn;
+    return p;
+  }
+  _score(g, T, cx, cy) {
+    const { w, h, hs, ii, ii2 } = this, W = w + 1, sz = 2 * hs + 1, n = sz * sz;
+    if (cx - hs < 0 || cy - hs < 0 || cx + hs >= w || cy + hs >= h) return -2;
+    const x0 = cx - hs, y0 = cy - hs, x1 = cx + hs + 1, y1 = cy + hs + 1;
+    const s = ii[y1 * W + x1] - ii[y0 * W + x1] - ii[y1 * W + x0] + ii[y0 * W + x0];
+    const s2 = ii2[y1 * W + x1] - ii2[y0 * W + x1] - ii2[y1 * W + x0] + ii2[y0 * W + x0];
+    const v = s2 - s * s / n; if (v < 1e-3) return -2;
+    let dot = 0, k = 0;
+    for (let y = y0; y < y1; y++) { let o = y * w + x0; for (let x = 0; x < sz; x++) dot += g[o++] * T[k++]; }
+    return dot / Math.sqrt(v);
+  }
+  _search(g, px, py, R) {
+    const cx = Math.round(px), cy = Math.round(py);
+    let best = -3, bx = cx, by = cy;
+    for (let dy = -R; dy <= R; dy += 2) for (let dx = -R; dx <= R; dx += 2) {
+      const s = this._score(g, this.T, cx + dx, cy + dy); if (s > best) { best = s; bx = cx + dx; by = cy + dy; }
+    }
+    const fx = bx, fy = by;
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+      const s = this._score(g, this.T, fx + dx, fy + dy); if (s > best) { best = s; bx = fx + dx; by = fy + dy; }
+    }
+    return { best, bx, by };
+  }
+  init(g, x, y) {
+    this.pos = { x, y }; this.vel = { x: 0, y: 0 };
+    this.T0 = this._patch(g, Math.round(x), Math.round(y));
+    if (!this.T0) throw new Error('Plate too close to the edge');
+    this.T = this.T0.slice();
+  }
+  step(g) {
+    this._integral(g);
+    const px = this.pos.x + this.vel.x, py = this.pos.y + this.vel.y;
+    let r = this._search(g, px, py, this.R + Math.round(Math.hypot(this.vel.x, this.vel.y) * 0.5));
+    if (r.best < 0.6) { const r2 = this._search(g, px, py, Math.round(this.R * 2.6)); if (r2.best > r.best) r = r2; }
+    if (r.best < 0.35) {
+      this.lostRun++; this.pos = { x: px, y: py }; this.vel = { x: this.vel.x * 0.8, y: this.vel.y * 0.8 };
+      return null;
+    }
+    // sub-pixel refinement (parabolic fit)
+    const s0 = r.best, T = this.T;
+    const sxm = this._score(g, T, r.bx - 1, r.by), sxp = this._score(g, T, r.bx + 1, r.by);
+    const sym = this._score(g, T, r.bx, r.by - 1), syp = this._score(g, T, r.bx, r.by + 1);
+    const ox = (sxm > -2 && sxp > -2) ? clampOff((sxm - sxp) / (2 * (sxm - 2 * s0 + sxp))) : 0;
+    const oy = (sym > -2 && syp > -2) ? clampOff((sym - syp) / (2 * (sym - 2 * s0 + syp))) : 0;
+    const nx = r.bx + ox, ny = r.by + oy;
+    const vx = nx - this.pos.x, vy = ny - this.pos.y;
+    this.vel = this.lostRun ? { x: vx / (this.lostRun + 1), y: vy / (this.lostRun + 1) } : { x: 0.7 * vx + 0.3 * this.vel.x, y: 0.7 * vy + 0.3 * this.vel.y };
+    this.pos = { x: nx, y: ny }; this.lostRun = 0;
+    if (s0 > 0.75) { // slow template adaptation anchored to the first template
+      const p = this._patch(g, r.bx, r.by);
+      if (p) {
+        let n2 = 0; for (let i = 0; i < T.length; i++) { T[i] = 0.8 * T[i] + 0.1 * this.T0[i] + 0.1 * p[i]; n2 += T[i] * T[i]; }
+        const nn = Math.sqrt(n2) || 1; for (let i = 0; i < T.length; i++) T[i] /= nn;
+      }
+    }
+    return { x: nx, y: ny, score: s0 };
+  }
+}
+function clampOff(o) { return Number.isFinite(o) ? Math.max(-0.5, Math.min(0.5, o)) : 0; }
+
+/* Zero-phase 2nd-order Butterworth low-pass (filtfilt with odd reflection). */
+function lowpass(x, fc, fs) {
+  const n = x.length; if (n < 7) return x.slice();
+  fc = Math.min(fc, fs * 0.45);
+  const K = Math.tan(Math.PI * fc / fs), Q = Math.SQRT1_2, norm = 1 / (1 + K / Q + K * K);
+  const b0 = K * K * norm, b1 = 2 * b0, b2 = b0, a1 = 2 * (K * K - 1) * norm, a2 = (1 - K / Q + K * K) * norm;
+  const pad = Math.min(n - 1, Math.max(6, Math.round(fs * 0.4)));
+  const ext = new Float64Array(n + 2 * pad);
+  for (let i = 0; i < pad; i++) ext[i] = 2 * x[0] - x[pad - i];
+  for (let i = 0; i < n; i++) ext[pad + i] = x[i];
+  for (let i = 0; i < pad; i++) ext[pad + n + i] = 2 * x[n - 1] - x[n - 2 - i];
+  const run = a => { let x1 = a[0], x2 = a[0], y1 = a[0], y2 = a[0]; for (let i = 0; i < a.length; i++) { const x0 = a[i], y0 = b0 * x0 + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2; x2 = x1; x1 = x0; y2 = y1; y1 = y0; a[i] = y0; } };
+  run(ext); ext.reverse(); run(ext); ext.reverse();
+  return Array.from(ext.subarray(pad, pad + n));
+}
+function deriv(y, dt) {
+  const n = y.length, d = new Array(n);
+  for (let i = 0; i < n; i++) d[i] = i === 0 ? (y[1] - y[0]) / dt : i === n - 1 ? (y[n - 1] - y[n - 2]) / dt : (y[i + 1] - y[i - 1]) / (2 * dt);
+  return d;
+}
+const argmax = (a, i0, i1) => { let b = i0; for (let i = i0; i <= i1; i++) if (a[i] > a[b]) b = i; return b; };
+const argmin = (a, i0, i1) => { let b = i0; for (let i = i0; i <= i1; i++) if (a[i] < a[b]) b = i; return b; };
+
+/**
+ * pts: per-frame bar centre in video px (or null), index 0 = first tracked frame.
+ * Returns kinematics in SI units (y up, x positive = direction the athlete faces).
+ */
+function analyseBar(pts, { fps, slow = 1, mPerPx, face = 1, load = 0, type = 'oly', fc = 7 }) {
+  let a = 0, b = pts.length - 1;
+  while (a <= b && !pts[a]) a++; while (b >= a && !pts[b]) b--;
+  if (b - a < 8) return { ok: false };
+  // fill gaps linearly
+  const raw = pts.slice(a, b + 1).map(p => p ? { ...p } : null);
+  for (let i = 0; i < raw.length; i++) if (!raw[i]) {
+    let j = i; while (!raw[j]) j++; const p0 = raw[i - 1], p1 = raw[j];
+    for (let k = i; k < j; k++) { const f = (k - i + 1) / (j - i + 1); raw[k] = { x: p0.x + f * (p1.x - p0.x), y: p0.y + f * (p1.y - p0.y), filled: true }; }
+    i = j;
+  }
+  const fs = fps * slow, dt = 1 / fs, n = raw.length;
+  const xs = lowpass(raw.map(p => p.x), fc, fs), ys = lowpass(raw.map(p => p.y), fc, fs);
+  const smoothPx = new Array(pts.length).fill(null);
+  for (let k = 0; k < n; k++) smoothPx[a + k] = { x: xs[k], y: ys[k] };
+  const t = Array.from({ length: n }, (_, k) => (a + k) * dt);
+  const y = ys.map(v => -(v - ys[0]) * mPerPx);
+  const xr = xs.map(v => (v - xs[0]) * mPerPx * face);
+  const v = deriv(y, dt);
+  const acc = lowpass(deriv(v, dt), fc, fs);
+  const F = load > 0 ? acc.map(q => load * (q + 9.81)) : null;
+  const P = F ? F.map((f, k) => f * v[k]) : null;
+  const res = { ok: true, offset: a, t, y, xr, v, acc, F, P, smoothPx, phases: [], fs };
+
+  if (type === 'vbt') {
+    // zig-zag pivots with 3 cm hysteresis → concentric phases
+    const th = 0.03, piv = [];
+    let mode = null, lo = { i: 0, y: y[0] }, hi = { i: 0, y: y[0] };
+    for (let i = 0; i < n; i++) {
+      if (y[i] > hi.y) hi = { i, y: y[i] }; if (y[i] < lo.y) lo = { i, y: y[i] };
+      if (mode !== 'up' && y[i] - lo.y > th) { piv.push({ k: 'min', ...lo }); mode = 'up'; hi = { i, y: y[i] }; }
+      else if (mode !== 'down' && hi.y - y[i] > th) { piv.push({ k: 'max', ...hi }); mode = 'down'; lo = { i, y: y[i] }; }
+    }
+    if (mode === 'up') piv.push({ k: 'max', ...hi });
+    const reps = [];
+    for (let j = 0; j + 1 < piv.length; j++) {
+      if (piv[j].k !== 'min' || piv[j + 1].k !== 'max') continue;
+      let i0 = piv[j].i, i1 = piv[j + 1].i; const rom = y[i1] - y[i0];
+      if (rom < 0.08) continue;
+      while (i0 < i1 && v[i0] < 0.02) i0++; while (i1 > i0 && v[i1] < 0.02) i1--;
+      if (i1 - i0 < 2) continue;
+      let s = 0; for (let i = i0; i <= i1; i++) s += v[i];
+      const rep = { i0, i1, rom, mcv: s / (i1 - i0 + 1), peak: v[argmax(v, i0, i1)] };
+      if (P) rep.Pmax = P[argmax(P, i0, i1)];
+      reps.push(rep);
+    }
+    res.reps = reps;
+    res.bestMcv = reps.length ? Math.max(...reps.map(r => r.mcv)) : 0;
+    res.vLoss = reps.length > 1 ? (res.bestMcv - reps[reps.length - 1].mcv) / res.bestMcv * 100 : 0;
+    res.x0px = xs[0];
+    if (!reps.length) res.ok = true;
+    return res;
+  }
+
+  // weightlifting: key points
+  let L = -1;
+  for (let i = 1; i < n; i++) if (y[i] > 0.01 && v[i] > 0.05) { L = i; break; }
+  if (L < 0) return { ok: false };
+  while (L > 0 && v[L - 1] > 0.02) L--;
+  const Pk = argmax(y, L, n - 1);
+  if (y[Pk] - y[L] < 0.05) return { ok: false };
+  const E = argmax(v, L, Pk);
+  let T = null;
+  for (let i = L + 1; i < E - 1; i++) {
+    if (v[i] >= v[i - 1] && v[i] > v[i + 1] && v[i] > 0.2) {
+      const m = argmin(v, i, E);
+      if (m > i && v[i] - v[m] > 0.04) { T = m; break; }
+    }
+  }
+  if (T == null && E - L > 6) { // no velocity dip: use the acceleration trough (plateau) as transition
+    const A = argmax(acc, L, L + Math.floor((E - L) / 2));
+    const end = E - Math.max(3, Math.floor(0.2 * (E - L)));
+    const m = A + 1 < end ? argmin(acc, A + 1, end) : -1;
+    if (m > 0 && m < end && acc[A] > 0.5 && acc[m] < 0.6 * acc[A] && acc[argmax(acc, m, E)] > acc[m] + 0.3 * acc[A]) T = m;
+  }
+  let C = null, Bt = null;
+  const win = Math.min(n - 1, Pk + Math.round(fs * 1.5));
+  if (win > Pk + 2) {
+    const M = argmin(v, Pk, win);
+    if (v[M] < -0.25) C = M;
+    const B = argmin(y, Pk, Math.min(n - 1, Pk + Math.round(fs * 2.5)));
+    if (y[Pk] - y[B] > 0.03 && B !== C) Bt = B;
+  }
+  const end = C != null ? C : Pk;
+  const ixMin = argmin(xr, L, end), ixMax = argmax(xr, L, end);
+  res.x0px = xs[L];
+  res.toward = xr[ixMin] - xr[L] < -0.002 ? -(xr[ixMin] - xr[L]) : 0;
+  res.away = xr[ixMax] - xr[L] > 0.002 ? xr[ixMax] - xr[L] : 0;
+  res.towardPx = res.toward ? xs[ixMin] : null;
+  res.awayPx = res.away ? xs[ixMax] : null;
+  res.vmax = v[E]; res.hmax = y[Pk] - y[L];
+  res.drop = C != null ? y[Pk] - y[C] : null;
+  res.Fmax = F ? F[argmax(F, L, Pk)] : null;
+  res.Pmax = P ? P[argmax(P, L, Pk)] : null;
+  const ph = [{ k: 'start', i: L }];
+  if (T != null) ph.push({ k: 'trans', i: T });
+  ph.push({ k: 'ext', i: E }, { k: 'top', i: Pk });
+  if (C != null) ph.push({ k: 'catch', i: C });
+  if (Bt != null && Bt > (C ?? Pk)) ph.push({ k: 'bottom', i: Bt });
+  res.phases = ph.map(p => ({ k: p.k, i: p.i + a }));   // indices in pts space
+  // heights relative to lift-off
+  const y0 = y[L]; for (let i = 0; i < n; i++) y[i] -= y0;
+  res.hmax = y[Pk];
+  return res;
+}
+
+
+const VPI = {
+m_live:{fr:'Direct',en:'Live',nl:'Live'},
+m_video:{fr:'Vidéo précise',en:'Precise video',nl:'Precieze video'},
+e_t:{fr:'Analyse vidéo au millimètre',en:'Millimetre-accurate video analysis',nl:'Video-analyse tot op de millimeter'},
+e_p:{fr:'Filme de profil sur trépied. Le disque est suivi image par image : trajectoire, vitesse, force et points de transition.',en:'Film side-on from a tripod. The plate is tracked frame by frame: bar path, velocity, force and transition points.',nl:'Film zijdelings op statief. De schijf wordt beeld per beeld gevolgd: stangbaan, snelheid, kracht en overgangspunten.'},
+rec:{fr:'Filmer',en:'Record',nl:'Filmen'},imp:{fr:'Importer',en:'Import',nl:'Importeren'},
+cal:{fr:'Placer le disque',en:'Place the plate',nl:'Schijf plaatsen'},cal_ok:{fr:'Valider le disque',en:'Confirm plate',nl:'Schijf bevestigen'},
+track:{fr:'Lancer le suivi',en:'Start tracking',nl:'Tracking starten'},retrack:{fr:'Relancer le suivi',en:'Track again',nl:'Opnieuw tracken'},cancel:{fr:'Annuler',en:'Cancel',nl:'Annuleren'},
+curve:{fr:'Courbe',en:'Curve',nl:'Curve'},mv:{fr:'Vitesse',en:'Velocity',nl:'Snelheid'},mh:{fr:'Hauteur',en:'Height',nl:'Hoogte'},mf:{fr:'Force',en:'Force',nl:'Kracht'},mp:{fr:'Puissance',en:'Power',nl:'Vermogen'},
+lock_t:{fr:'Courbes et chiffres en Premium',en:'Curves and numbers in Premium',nl:'Curves en cijfers in Premium'},
+lock_p:{fr:'Vitesse, force, puissance et écarts en cm, image par image.',en:'Velocity, force, power and drift in cm, frame by frame.',nl:'Snelheid, kracht, vermogen en afwijking in cm, beeld per beeld.'},
+res:{fr:'Résultats',en:'Results',nl:'Resultaten'},save:{fr:'Enregistrer',en:'Save',nl:'Opslaan'},copy:{fr:'Copier',en:'Copy',nl:'Kopiëren'},
+set:{fr:'Réglages',en:'Settings',nl:'Instellingen'},load:{fr:'Charge',en:'Load',nl:'Gewicht'},plate:{fr:'Diamètre disque',en:'Plate diameter',nl:'Schijfdiameter'},
+face:{fr:"L'athlète regarde vers",en:'The athlete faces',nl:'De atleet kijkt naar'},left:{fr:'← Gauche',en:'← Left',nl:'← Links'},right:{fr:'Droite →',en:'Right →',nl:'Rechts →'},
+face_s:{fr:"Pour savoir si la barre part vers l'athlète ou vers l'avant.",en:'Tells whether the bar moves toward the athlete or forward.',nl:'Om te weten of de stang naar de atleet of naar voren gaat.'},
+slow:{fr:'Vidéo au ralenti',en:'Slow-motion video',nl:'Slow-motion video'},
+slow_s:{fr:'Si la vidéo est lue au ralenti, indique le facteur pour retrouver le temps réel.',en:'If the video plays in slow motion, set the factor to get real time.',nl:'Speelt de video vertraagd af, geef dan de factor op voor de echte tijd.'},
+hint:{fr:'Glisse le cercle sur le disque · poignée = taille',en:'Drag the circle onto the plate · handle = size',nl:'Sleep de cirkel op de schijf · handvat = grootte'},
+st_none:{fr:'Aucune vidéo',en:'No video',nl:'Geen video'},st_cal:{fr:'Étape 1 · Place le disque au départ',en:'Step 1 · Place the plate at the start',nl:'Stap 1 · Plaats de schijf bij de start'},
+st_ready:{fr:'Étape 2 · Lance le suivi',en:'Step 2 · Start tracking',nl:'Stap 2 · Start de tracking'},st_track:{fr:'Suivi en cours…',en:'Tracking…',nl:'Tracking bezig…'},
+st_done:{fr:'Analyse terminée',en:'Analysis complete',nl:'Analyse klaar'},st_lost:{fr:'Disque perdu',en:'Plate lost',nl:'Schijf kwijt'},
+k_v:{fr:'Vitesse max',en:'Peak velocity',nl:'Max snelheid'},k_h:{fr:'Hauteur max',en:'Peak height',nl:'Max hoogte'},k_d:{fr:'Chute sous la barre',en:'Drop under bar',nl:'Daling onder stang'},
+k_l:{fr:'Vers athlète / avant',en:'Toward athlete / forward',nl:'Naar atleet / voren'},k_f:{fr:'Force max',en:'Peak force',nl:'Max kracht'},k_p:{fr:'Puissance max',en:'Peak power',nl:'Max vermogen'},
+p_start:{fr:'Décollage',en:'Lift-off',nl:'Loskomen'},p_start_j:{fr:'Départ',en:'Start',nl:'Start'},p_trans:{fr:'Transition',en:'Transition',nl:'Transitie'},p_ext:{fr:'Extension',en:'Extension',nl:'Extensie'},
+p_top:{fr:'Hauteur max',en:'Peak height',nl:'Max hoogte'},p_catch:{fr:'Réception',en:'Catch',nl:'Opvang'},p_bottom:{fr:'Position basse',en:'Bottom',nl:'Laagste positie'},
+no_lift:{fr:'Aucun mouvement de barre détecté. Vérifie le cercle sur le disque.',en:'No bar movement detected. Check the circle on the plate.',nl:'Geen stangbeweging gedetecteerd. Controleer de cirkel.'},
+need_load:{fr:'Indique la charge pour la force et la puissance',en:'Enter the load for force and power',nl:'Geef het gewicht op voor kracht en vermogen'},
+fps:{fr:'Détection de la cadence…',en:'Detecting frame rate…',nl:'Beeldsnelheid detecteren…'},tracking:{fr:'Suivi',en:'Tracking',nl:'Tracking'},left_s:{fr:'restant',en:'left',nl:'resterend'},
+done_n:{fr:'Suivi terminé · {n} images',en:'Tracking done · {n} frames',nl:'Tracking klaar · {n} beelden'},cancelled:{fr:'Suivi annulé',en:'Tracking cancelled',nl:'Tracking geannuleerd'},
+prec:{fr:'{fps} i/s · 1 px ≈ {mm} mm',en:'{fps} fps · 1 px ≈ {mm} mm',nl:'{fps} fps · 1 px ≈ {mm} mm'},
+lost_w:{fr:'Disque perdu sur {n} images : vérifie le cadrage.',en:'Plate lost on {n} frames: check the framing.',nl:'Schijf {n} beelden kwijt: controleer de kadrering.'},
+cal_first:{fr:"Place d'abord le cercle sur le disque",en:'Place the circle on the plate first',nl:'Plaats eerst de cirkel op de schijf'},
+copied:{fr:'Copié ✓',en:'Copied ✓',nl:'Gekopieerd ✓'},copy_fail:{fr:'Copie impossible',en:"Couldn't copy",nl:'Kopiëren mislukt'},
+saving:{fr:'Enregistrement…',en:'Saving…',nl:'Opslaan…'},saved:{fr:'✓ Analyse enregistrée',en:'✓ Analysis saved',nl:'✓ Analyse opgeslagen'},
+save_fail:{fr:'Échec — vérifie ta connexion',en:'Failed — check your connection',nl:'Mislukt — controleer je verbinding'},
+save_login:{fr:"Connecte-toi dans l'app pour enregistrer.",en:'Log in to the app to save.',nl:'Log in in de app om op te slaan.'},
+pro_only:{fr:'Disponible en Premium',en:'Available in Premium',nl:'Beschikbaar in Premium'},
+lock_t_n:{fr:'Chiffres détaillés non inclus',en:'Detailed numbers not included',nl:'Gedetailleerde cijfers niet inbegrepen'},
+lock_p_n:{fr:'Ton compte affiche la trajectoire et les points clés.',en:'Your account shows the bar path and key points.',nl:'Je account toont de stangbaan en de kernpunten.'},
+pro_only_n:{fr:'Non inclus dans ton compte',en:'Not included in your account',nl:'Niet inbegrepen in je account'},
+};
+const $v = s => document.querySelector(s);
+const lg = () => { try { const l = localStorage.getItem('cdm_lang'); return ['fr', 'en', 'nl'].includes(l) ? l : 'fr'; } catch { return 'fr'; } };
+const tv = (k, vars) => { const o = VPI[k]; let s = o ? (o[lg()] || o.fr) : k; if (vars) for (const x in vars) s = s.replace('{' + x + '}', vars[x]); return s; };
+const fv = (v, d = 2) => Number.isFinite(v) ? (lg() === 'en' ? v.toFixed(d) : v.toFixed(d).replace('.', ',')) : '–';
+const host = () => window.CDM_BARRE || {};
+const isPro = () => !!host().pro;
+/* iOS : aucun palier Pro achetable dans l'app (App Store 3.1.3) -> on decrit, on ne vend pas. */
+const VP_NATIVE = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+const tvn = k => tv(VP_NATIVE && VPI[k + '_n'] ? k + '_n' : k);
+const st = { get(k, d) { try { const v = localStorage.getItem('cdm_vp_' + k); return v == null ? d : JSON.parse(v); } catch { return d; } }, set(k, v) { try { localStorage.setItem('cdm_vp_' + k, JSON.stringify(v)); } catch {} } };
+let tt; function toast(m, ms = 2800) { const e = $v('#vp-toast'); e.textContent = m; e.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => e.classList.remove('on'), ms); }
+
+const V = { mode: st.get('mode', 'live'), metric: 'v', rate: 1, slow: st.get('slow', 1), face: st.get('face', 1),
+  has: false, fps: 0, cal: null, calibrating: false, tracking: false, cancel: false, track: null, res: null };
+const video = $v('#vp-video'), stage = $v('#vp-stage'), cv = $v('#vp-ov'), ctx = cv.getContext('2d'), gcv = $v('#vp-gcv'), gctx = gcv.getContext('2d');
+const vw = () => video.videoWidth || 16, vh = () => video.videoHeight || 9;
+
+/* ---- mode Direct / Vidéo ---- */
+function setMode(m) {
+  V.mode = m; st.set('mode', m);
+  document.body.classList.toggle('vp-on', m === 'video');
+  if (m === 'video' && host().stopLive) host().stopLive();
+  if (m !== 'video') video.pause();
+  sync();
+}
+$v('#vpmode').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setMode(b.dataset.v); });
+
+function layout() {
+  const W = stage.clientWidth || 360, ar = V.has ? vw() / vh() : 4 / 5;
+  stage.style.height = Math.round(Math.max(Math.min(W / ar, Math.max(320, innerHeight * 0.62)), 300)) + 'px';
+  const dpr = Math.min(devicePixelRatio || 1, 2.5);
+  cv.width = Math.round(stage.clientWidth * dpr); cv.height = Math.round(stage.clientHeight * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const g = $v('#vp-graph'); gcv.width = Math.round(g.clientWidth * dpr); gcv.height = Math.round(g.clientHeight * dpr); gctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+addEventListener('resize', layout);
+const cRect = () => { const W = stage.clientWidth, H = stage.clientHeight, s = Math.min(W / vw(), H / vh()); const w = vw() * s, h = vh() * s; return { x: (W - w) / 2, y: (H - h) / 2, w, h, s }; };
+
+/* ---- vidéo ---- */
+function loadFile(f) {
+  if (!f) return;
+  if (V.url) URL.revokeObjectURL(V.url);
+  V.url = URL.createObjectURL(f); video.src = V.url; video.muted = true; video.load();
+  V.has = true; V.track = null; V.res = null; V.fps = 0; $v('#vp-progw').classList.add('vp-hide'); $v('#vp-gcard').classList.add('vp-hide');
+  render(); sync();
+}
+video.addEventListener('loadedmetadata', () => {
+  layout(); try { video.currentTime = 0.001; } catch {}
+  const c = st.get('cal', null);
+  V.cal = c ? { x: c.x * vw(), y: c.y * vh(), r: c.r * vh() } : { x: vw() * 0.5, y: vh() * 0.75, r: Math.min(vw(), vh()) * 0.14 };
+  setCal(true);
+});
+['vp-cap', 'vp-imp', 'vp-imp2'].forEach(id => $v('#' + id).addEventListener('change', e => { loadFile(e.target.files[0]); e.target.value = ''; }));
+
+const SNAP = [24, 25, 30, 48, 50, 60, 90, 100, 120, 240];
+function estimateFps() {
+  return new Promise(res => {
+    if (!('requestVideoFrameCallback' in HTMLVideoElement.prototype)) return res(30);
+    const ts = []; let done = false;
+    const fin = () => { if (done) return; done = true; video.pause(); video.playbackRate = V.rate;
+      const d = []; for (let i = 1; i < ts.length; i++) { const x = ts[i] - ts[i - 1]; if (x > 0.0015) d.push(x); }
+      d.sort((a, b) => a - b); const f = d.length ? 1 / d[Math.floor(d.length * 0.25)] : 30;
+      res(SNAP.reduce((b, s) => Math.abs(s - f) < Math.abs(b - f) ? s : b, SNAP[0])); };
+    const cb = (n, md) => { if (done) return; ts.push(md.mediaTime); if (ts.length < 12) video.requestVideoFrameCallback(cb); else fin(); };
+    video.playbackRate = 0.2; video.requestVideoFrameCallback(cb); video.play().catch(fin); setTimeout(fin, 3500);
+  });
+}
+let rvfcOK = true;
+function seekTo(time) {
+  return new Promise(resolve => {
+    let done = false;
+    const fin = () => { if (done) return; done = true; video.removeEventListener('seeked', on); clearTimeout(g); resolve(); };
+    const on = () => { if (rvfcOK && video.requestVideoFrameCallback) { let got = false; video.requestVideoFrameCallback(() => { got = true; fin(); }); setTimeout(() => { if (!got) { rvfcOK = false; fin(); } }, 150); } else requestAnimationFrame(() => fin()); };
+    const g = setTimeout(fin, 2000); video.addEventListener('seeked', on); video.currentTime = time;
+  });
+}
+const num = id => parseFloat(String($v(id).value).replace(',', '.')) || 0;
+
+async function runTrack() {
+  if (V.tracking) { V.cancel = true; return; }
+  if (!V.has || !V.cal) { toast(tv('cal_first')); return; }
+  setCal(false); V.tracking = true; V.cancel = false; V.res = null; sync();
+  const t0 = video.currentTime; video.pause();
+  const prog = (p, l) => { $v('#vp-progw').classList.remove('vp-hide'); $v('#vp-progb').style.width = (p * 100).toFixed(1) + '%'; $v('#vp-progp').textContent = Math.round(p * 100) + ' %'; if (l != null) $v('#vp-progt').textContent = l; };
+  try {
+    prog(0, tv('fps'));
+    if (!V.fps) V.fps = await estimateFps();
+    const fps = V.fps, step = 1 / fps, f0 = Math.max(0, Math.round(t0 * fps - 0.5)), n = Math.max(1, Math.floor(video.duration * fps) - f0);
+    const sc = Math.min(1, 30 / V.cal.r, 720 / Math.max(vw(), vh()));
+    const pw = Math.max(32, Math.round(vw() * sc)), ph = Math.max(32, Math.round(vh() * sc));
+    const can = document.createElement('canvas'); can.width = pw; can.height = ph;
+    const c2 = can.getContext('2d', { willReadFrequently: true });
+    const trk = new PlateTracker(pw, ph, V.cal.r * sc);
+    const grab = () => { c2.drawImage(video, 0, 0, pw, ph); return toGray(c2.getImageData(0, 0, pw, ph).data, pw * ph); };
+    await seekTo((f0 + 0.5) * step);
+    trk.init(grab(), V.cal.x * sc, V.cal.y * sc);
+    const pts = [{ x: V.cal.x, y: V.cal.y, score: 1 }]; const tS = performance.now(); let lost = 0;
+    V.track = { f0, fps, pts };
+    for (let i = 1; i < n; i++) {
+      if (V.cancel) break;
+      await seekTo((f0 + i + 0.5) * step);
+      const r = trk.step(grab());
+      if (r) pts.push({ x: r.x / sc, y: r.y / sc, score: r.score }); else { pts.push(null); lost++; }
+      if (trk.lostRun > Math.max(8, fps * 0.6)) break;
+      if (i % 3 === 0) { const el = (performance.now() - tS) / 1000; prog(i / n, `${tv('tracking')} · ${Math.ceil(el / i * (n - i))} s ${tv('left_s')}`); }
+    }
+    if (V.cancel) { V.track = null; toast(tv('cancelled')); $v('#vp-progw').classList.add('vp-hide'); return; }
+    prog(1, tv('done_n', { n: pts.length }));
+    if (lost > 3) toast(tv('lost_w', { n: lost }), 4000);
+    compute(); $v('#vp-gcard').classList.remove('vp-hide'); layout();
+    await seekTo(t0);
+  } catch (e) { console.error(e); toast(String(e.message || e)); }
+  finally { V.tracking = false; sync(); }
+}
+function compute() {
+  if (!V.track) return;
+  const plate = (num('#vp-plate') || 45) / 100;
+  V.res = analyseBar(V.track.pts, { fps: V.track.fps, slow: V.slow, mPerPx: plate / (2 * V.cal.r), face: V.face, load: num('#vp-load'), type: 'oly' });
+  $v('#vp-prec').textContent = tv('prec', { fps: V.track.fps, mm: fv(plate / (2 * V.cal.r) * 1000, 1) });
+  render();
+}
+$v('#vp-track').addEventListener('click', runTrack);
+
+/* ---- disque (calibration) ---- */
+function setCal(on) { V.calibrating = on; stage.classList.toggle('editing', on); sync(); }
+$v('#vp-cal').addEventListener('click', () => { if (!V.has) return; video.pause(); setCal(!V.calibrating); });
+let drag = null;
+const vPt = e => { const b = stage.getBoundingClientRect(), R = cRect(); return { x: (e.clientX - b.left - R.x) / R.s, y: (e.clientY - b.top - R.y) / R.s }; };
+stage.addEventListener('pointerdown', e => {
+  if (!V.calibrating) { if (V.has && !V.tracking && e.target === cv) $v('#vp-play').click(); return; }
+  e.preventDefault(); stage.setPointerCapture(e.pointerId);
+  const p = vPt(e), c = V.cal, R = cRect();
+  if (Math.hypot(p.x - (c.x + c.r), p.y - c.y) * R.s < 30) drag = { k: 'r' };
+  else { drag = { k: 'm', dx: p.x - c.x, dy: p.y - c.y }; if (Math.hypot(drag.dx, drag.dy) > c.r * 1.3) { c.x = p.x; c.y = p.y; drag.dx = 0; drag.dy = 0; } }
+});
+stage.addEventListener('pointermove', e => { if (!drag) return; const p = vPt(e), c = V.cal;
+  if (drag.k === 'r') c.r = Math.max(8, Math.hypot(p.x - c.x, p.y - c.y)); else { c.x = Math.min(vw(), Math.max(0, p.x - drag.dx)); c.y = Math.min(vh(), Math.max(0, p.y - drag.dy)); } });
+const endD = () => { if (!drag) return; drag = null; st.set('cal', { x: V.cal.x / vw(), y: V.cal.y / vh(), r: V.cal.r / vh() }); };
+stage.addEventListener('pointerup', endD); stage.addEventListener('pointercancel', endD);
+
+/* ---- transport ---- */
+const pIco = p => $v('#vp-pico').innerHTML = p ? '<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+$v('#vp-play').addEventListener('click', () => { if (!V.has || V.tracking) return; if (video.paused) { video.playbackRate = V.rate; video.play().catch(() => {}); } else video.pause(); });
+video.addEventListener('play', () => pIco(true)); video.addEventListener('pause', () => pIco(false));
+const stepF = d => { if (!V.has || V.tracking) return; video.pause(); const f = V.fps || 30; video.currentTime = Math.max(0, Math.min(video.duration || 0, (Math.round(video.currentTime * f - 0.5) + d + 0.5) / f)); };
+$v('#vp-back').addEventListener('click', () => stepF(-1)); $v('#vp-fwd').addEventListener('click', () => stepF(1));
+let scrub = false;
+$v('#vp-scrub').addEventListener('input', e => { if (!V.has || V.tracking) return; scrub = true; video.pause(); video.currentTime = e.target.value / 1000 * (video.duration || 0); });
+$v('#vp-scrub').addEventListener('change', () => scrub = false);
+
+/* ---- dessin ---- */
+const PC = { start: '#FFFFFF', trans: '#F6E3A1', ext: '#E9B949', top: '#FFD27A', catch: '#7FD3FF', bottom: '#9AA4FF' };
+const idxAt = time => { if (!V.track) return -1; const i = Math.round(time * V.track.fps - 0.5) - V.track.f0; return i < 0 ? -1 : Math.min(i, V.track.pts.length - 1); };
+function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function chip(x, y, txt, col) { ctx.font = '700 11px Manrope, sans-serif'; const w = ctx.measureText(txt).width + 14; ctx.fillStyle = 'rgba(8,8,8,.74)'; rr(ctx, x, y, w, 21, 10.5); ctx.fill(); ctx.fillStyle = col; ctx.fillText(txt, x + 7, y + 14.5); }
+const pill = (w, tx) => { $v('#vp-pill').className = 'vp-pill' + (w ? ' wait' : ''); $v('#vp-pill-tx').textContent = tx; };
+function frame() {
+  requestAnimationFrame(frame);
+  if (V.mode !== 'video') return;
+  const W = stage.clientWidth, H = stage.clientHeight; ctx.clearRect(0, 0, W, H);
+  if (!V.has) { pill(false, tv('st_none')); return; }
+  const R = cRect(), ct = video.currentTime, X = x => R.x + x * R.s, Y = y => R.y + y * R.s;
+  $v('#vp-tc').textContent = fv(ct / V.slow);
+  if (!scrub && video.duration) $v('#vp-scrub').value = Math.round(ct / video.duration * 1000);
+  const live = $v('#vp-live');
+  if (V.calibrating && V.cal) {
+    const c = V.cal; ctx.save(); ctx.strokeStyle = '#F6E3A1'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(X(c.x), Y(c.y), c.r * R.s, 0, 7); ctx.stroke(); ctx.fillStyle = 'rgba(212,175,55,.12)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(X(c.x) - 10, Y(c.y)); ctx.lineTo(X(c.x) + 10, Y(c.y)); ctx.moveTo(X(c.x), Y(c.y) - 10); ctx.lineTo(X(c.x), Y(c.y) + 10); ctx.stroke();
+    ctx.beginPath(); ctx.arc(X(c.x + c.r), Y(c.y), 11, 0, 7); ctx.fillStyle = '#E9C767'; ctx.fill(); ctx.beginPath(); ctx.arc(X(c.x + c.r), Y(c.y), 4.5, 0, 7); ctx.fillStyle = '#0b0b0b'; ctx.fill();
+    chip(X(c.x) - 26, Y(c.y - c.r) - 30, `Ø ${num('#vp-plate') || 45} cm`, '#F6E3A1'); ctx.restore();
+    pill(true, tv('st_cal')); live.classList.add('vp-hide'); return;
+  }
+  if (!V.track) { pill(false, V.tracking ? tv('st_track') : tv('st_ready')); live.classList.add('vp-hide'); return; }
+  const pts = V.track.pts, i = idxAt(ct), res = V.res, ok = res && res.ok, pro = isPro();
+  if (ok) {
+    const top = R.y + 8, bot = R.y + R.h - 8;
+    const line = (x, col, dash) => { ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 1.6; ctx.setLineDash(dash); ctx.beginPath(); ctx.moveTo(X(x), top); ctx.lineTo(X(x), bot); ctx.stroke(); ctx.restore(); };
+    line(res.x0px, 'rgba(255,255,255,.85)', [6, 5]);
+    if (pro && res.towardPx != null) line(res.towardPx, 'rgba(127,211,255,.9)', []);
+    if (pro && res.awayPx != null) line(res.awayPx, 'rgba(233,185,73,.95)', []);
+  }
+  ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  const P = ok ? res.smoothPx : pts;
+  const path = (upto, style, w) => { ctx.strokeStyle = style; ctx.lineWidth = w; ctx.beginPath(); let s = false;
+    for (let k = 0; k <= upto && k < P.length; k++) { const p = P[k]; if (!p) { s = false; continue; } if (!s) { ctx.moveTo(X(p.x), Y(p.y)); s = true; } else ctx.lineTo(X(p.x), Y(p.y)); } ctx.stroke(); };
+  path(pts.length - 1, 'rgba(233,203,116,.28)', 2.5);
+  if (i >= 0) { const g = ctx.createLinearGradient(0, R.y, 0, R.y + R.h); g.addColorStop(0, '#F8E7A8'); g.addColorStop(1, '#C9A043'); path(i, g, 3.4); }
+  ctx.restore();
+  if (ok) for (const ph of res.phases) { const p = res.smoothPx[ph.i]; if (!p) continue; ctx.beginPath(); ctx.arc(X(p.x), Y(p.y), 5.5, 0, 7); ctx.fillStyle = PC[ph.k]; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#0b0b0b'; ctx.stroke(); }
+  const cur = i >= 0 ? P[i] : null;
+  if (cur) { ctx.save(); ctx.shadowColor = '#D4AF37'; ctx.shadowBlur = 16; ctx.beginPath(); ctx.arc(X(cur.x), Y(cur.y), 8, 0, 7); ctx.fillStyle = '#F6E3A1'; ctx.fill(); ctx.shadowBlur = 0; ctx.beginPath(); ctx.arc(X(cur.x), Y(cur.y), 3, 0, 7); ctx.fillStyle = '#0b0b0b'; ctx.fill(); ctx.restore(); }
+  if (ok && pro) { const y = R.y + R.h - 34; if (res.toward) chip(X(res.towardPx) + 6, y, `${fv(res.toward * 100, 1)} cm`, '#7FD3FF'); if (res.away) chip(X(res.awayPx) + 6, y - 26, `${fv(res.away * 100, 1)} cm`, '#E9B949'); }
+  const lostNow = i >= 0 && !pts[i]; pill(lostNow, lostNow ? tv('st_lost') : tv('st_done'));
+  const j = ok ? i - res.offset : -1;
+  if (pro && j >= 0 && j < res.v.length) { live.classList.remove('vp-hide'); $v('#vp-live-v').textContent = fv(res.v[j]); } else live.classList.add('vp-hide');
+}
+
+/* ---- courbe ---- */
+const MET = { v: { k: 'v', u: 'm/s', s: 1, d: 2 }, h: { k: 'y', u: 'cm', s: 100, d: 1 }, f: { k: 'F', u: 'N', s: 1, d: 0 }, p: { k: 'P', u: 'W', s: 1, d: 0 } };
+function ticks(lo, hi, n) { const sp = hi - lo; if (!(sp > 0)) return [lo]; const s0 = Math.pow(10, Math.floor(Math.log10(sp / n))), e = sp / n / s0; const st2 = s0 * (e >= 7.5 ? 10 : e >= 3.5 ? 5 : e >= 1.5 ? 2 : 1); const o = []; for (let v = Math.ceil(lo / st2) * st2; v <= hi + 1e-9; v += st2) o.push(+v.toFixed(6)); return o; }
+function graph() {
+  requestAnimationFrame(graph);
+  if (V.mode !== 'video') return;
+  const res = V.res, W = $v('#vp-graph').clientWidth, H = $v('#vp-graph').clientHeight; gctx.clearRect(0, 0, W, H);
+  $v('#vp-gcard').classList.toggle('vp-locked', !isPro());
+  if (!res || !res.ok) return;
+  const m = MET[V.metric], arr = res[m.k]; $v('#vp-gunit').textContent = m.u;
+  if (!arr) { gctx.fillStyle = '#8D877B'; gctx.font = '600 13px Manrope'; gctx.textAlign = 'center'; gctx.fillText(tv('need_load'), W / 2, H / 2); gctx.textAlign = 'left'; return; }
+  const L = 40, Rr = 10, T = 18, B = 24, gw = W - L - Rr, gh = H - T - B, n = arr.length, t = res.t;
+  let lo = Infinity, hi = -Infinity; for (const v of arr) if (Number.isFinite(v)) { lo = Math.min(lo, v * m.s); hi = Math.max(hi, v * m.s); }
+  lo = Math.min(lo, 0); hi = Math.max(hi, 0); const pad = (hi - lo) * 0.08 || 1; lo -= pad; hi += pad;
+  const X = k => L + (t[k] - t[0]) / (t[n - 1] - t[0] || 1) * gw, Y = v => T + (hi - v) / (hi - lo) * gh;
+  gctx.font = '600 10.5px Manrope'; gctx.fillStyle = '#6b6559'; gctx.strokeStyle = 'rgba(255,255,255,.06)'; gctx.lineWidth = 1;
+  for (const v of ticks(lo, hi, 4)) { const y = Y(v); gctx.beginPath(); gctx.moveTo(L, y); gctx.lineTo(W - Rr, y); gctx.stroke(); gctx.fillText(Math.abs(v) >= 10 ? fv(v, 0) : fv(v, 1), 4, y + 3.5); }
+  const dur = t[n - 1] - t[0];
+  for (const s of ticks(0, dur, 5)) { const x = L + s / (dur || 1) * gw; if (x <= W - Rr + 1) gctx.fillText(fv(s, 1) + 's', x - 8, H - 6); }
+  gctx.strokeStyle = 'rgba(255,255,255,.22)'; gctx.beginPath(); gctx.moveTo(L, Y(0)); gctx.lineTo(W - Rr, Y(0)); gctx.stroke();
+  for (const ph of res.phases) { const x = X(ph.i - res.offset); gctx.strokeStyle = PC[ph.k]; gctx.globalAlpha = .55; gctx.setLineDash([3, 4]); gctx.beginPath(); gctx.moveTo(x, T); gctx.lineTo(x, T + gh); gctx.stroke(); gctx.setLineDash([]); gctx.globalAlpha = 1; gctx.beginPath(); gctx.arc(x, T - 6, 3.5, 0, 7); gctx.fillStyle = PC[ph.k]; gctx.fill(); }
+  const gr = gctx.createLinearGradient(0, T, 0, T + gh); gr.addColorStop(0, 'rgba(233,203,116,.28)'); gr.addColorStop(1, 'rgba(233,203,116,0)');
+  gctx.beginPath(); let s = false;
+  for (let k = 0; k < n; k++) { const v = arr[k]; if (!Number.isFinite(v)) continue; const x = X(k), y = Y(v * m.s); if (!s) { gctx.moveTo(x, Y(0)); gctx.lineTo(x, y); s = true; } else gctx.lineTo(x, y); }
+  gctx.lineTo(X(n - 1), Y(0)); gctx.closePath(); gctx.fillStyle = gr; gctx.fill();
+  const lgr = gctx.createLinearGradient(L, 0, W, 0); lgr.addColorStop(0, '#C9A043'); lgr.addColorStop(.5, '#F8E7A8'); lgr.addColorStop(1, '#D9B65A');
+  gctx.beginPath(); s = false; gctx.strokeStyle = lgr; gctx.lineWidth = 2.4; gctx.lineJoin = 'round';
+  for (let k = 0; k < n; k++) { const v = arr[k]; if (!Number.isFinite(v)) { s = false; continue; } const x = X(k), y = Y(v * m.s); if (!s) { gctx.moveTo(x, y); s = true; } else gctx.lineTo(x, y); }
+  gctx.stroke();
+  const i = idxAt(video.currentTime) - res.offset;
+  if (i >= 0 && i < n && Number.isFinite(arr[i])) {
+    const x = X(i), y = Y(arr[i] * m.s);
+    gctx.strokeStyle = 'rgba(255,255,255,.5)'; gctx.beginPath(); gctx.moveTo(x, T); gctx.lineTo(x, T + gh); gctx.stroke();
+    gctx.beginPath(); gctx.arc(x, y, 5, 0, 7); gctx.fillStyle = '#fff'; gctx.fill();
+    const lb = fv(arr[i] * m.s, m.d) + ' ' + m.u; gctx.font = '700 11.5px Manrope'; const w = gctx.measureText(lb).width + 12;
+    const bx = Math.min(W - Rr - w, Math.max(L, x - w / 2)); gctx.fillStyle = 'rgba(8,8,8,.85)'; rr(gctx, bx, T - 2, w, 20, 10); gctx.fill(); gctx.fillStyle = '#F6E3A1'; gctx.fillText(lb, bx + 6, T + 12);
+  }
+}
+(() => { const g = $v('#vp-graph'); let d = false;
+  const seek = e => { const res = V.res; if (!res || !res.ok || !isPro()) return; const b = g.getBoundingClientRect(); const f = Math.min(1, Math.max(0, (e.clientX - b.left - 40) / (b.width - 50))); const k = Math.round(f * (res.t.length - 1)); video.pause(); video.currentTime = (k + res.offset + V.track.f0 + 0.5) / V.track.fps; };
+  g.addEventListener('pointerdown', e => { d = true; g.setPointerCapture(e.pointerId); seek(e); }); g.addEventListener('pointermove', e => { if (d) seek(e); });
+  g.addEventListener('pointerup', () => d = false); g.addEventListener('pointercancel', () => d = false); })();
+
+/* ---- résultats ---- */
+const lock = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+const kpi = (l, v, u) => `<div class="vp-kpi"><span>${l}</span>${isPro() ? `<b>${v}${u ? `<em>${u}</em>` : ''}</b>` : `<b class="lk">${lock}</b>`}</div>`;
+const pName = k => tv(k === 'start' && (host().mv && host().mv() === 'jerk') ? 'p_start_j' : 'p_' + k);
+function render() {
+  const res = V.res, K = $v('#vp-kpis'), PH = $v('#vp-phases');
+  const labels = [tv('k_v'), tv('k_h'), tv('k_d'), tv('k_l'), tv('k_f'), tv('k_p')];
+  if (!res) { K.innerHTML = labels.map(l => `<div class="vp-kpi"><span>${l}</span><b>–</b></div>`).join(''); PH.innerHTML = ''; $v('#vp-legend').innerHTML = ''; return; }
+  if (!res.ok) { K.innerHTML = ''; PH.innerHTML = `<p style="color:var(--muted);font-size:13.5px;text-align:center;padding:14px 0">${tv('no_lift')}</p>`; return; }
+  K.innerHTML = kpi(labels[0], fv(res.vmax), 'm/s') + kpi(labels[1], fv(res.hmax * 100, 1), 'cm') + kpi(labels[2], res.drop != null ? fv(res.drop * 100, 1) : '–', res.drop != null ? 'cm' : '') +
+    kpi(labels[3], `${fv((res.toward || 0) * 100, 1)} / ${fv((res.away || 0) * 100, 1)}`, 'cm') + kpi(labels[4], res.Fmax != null ? fv(res.Fmax, 0) : '–', res.Fmax != null ? 'N' : '') + kpi(labels[5], res.Pmax != null ? fv(res.Pmax, 0) : '–', res.Pmax != null ? 'W' : '');
+  PH.innerHTML = res.phases.map(ph => { const j = ph.i - res.offset;
+    const det = isPro() ? `${fv(res.t[j] - res.t[0], 2)} s · ${fv(res.y[j] * 100, 1)} cm · ${fv(res.v[j])} m/s` : `${fv(res.t[j] - res.t[0], 2)} s`;
+    return `<button class="vp-ph" data-i="${ph.i}"><i style="background:${PC[ph.k]}"></i><b>${pName(ph.k)}</b><small>${det}</small></button>`; }).join('');
+  PH.querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => { video.pause(); video.currentTime = (+b.dataset.i + V.track.f0 + 0.5) / V.track.fps; }));
+  $v('#vp-legend').innerHTML = res.phases.map(ph => `<span><i style="background:${PC[ph.k]}"></i>${pName(ph.k)}</span>`).join('');
+}
+function summary() {
+  const r = V.res; if (!r || !r.ok) return '';
+  const L = [`Coach DM — ${host().mv ? host().mv() : ''}`.trim(), new Date().toLocaleDateString(lg())];
+  if (num('#vp-load')) L.push(`${tv('load')} : ${num('#vp-load')} kg`);
+  L.push('', `${tv('k_v')} : ${fv(r.vmax)} m/s`, `${tv('k_h')} : ${fv(r.hmax * 100, 1)} cm`);
+  if (r.drop != null) L.push(`${tv('k_d')} : ${fv(r.drop * 100, 1)} cm`);
+  L.push(`${tv('k_l')} : ${fv((r.toward || 0) * 100, 1)} / ${fv((r.away || 0) * 100, 1)} cm`);
+  if (r.Fmax != null) L.push(`${tv('k_f')} : ${fv(r.Fmax, 0)} N · ${tv('k_p')} : ${fv(r.Pmax, 0)} W`);
+  L.push('', ...r.phases.map(ph => { const j = ph.i - r.offset; return `${pName(ph.k)} : ${fv(r.t[j] - r.t[0], 2)} s · ${fv(r.y[j] * 100, 1)} cm · ${fv(r.v[j])} m/s`; }));
+  return L.join('\n');
+}
+$v('#vp-copy').addEventListener('click', async () => {
+  if (!isPro()) { toast(tvn('pro_only')); return; }
+  const txt = summary(); if (!txt) return;
+  try { await navigator.clipboard.writeText(txt); toast(tv('copied')); } catch { toast(tv('copy_fail')); }
+});
+$v('#vp-save').addEventListener('click', async () => {
+  const r = V.res, h = host(), b = $v('#vp-save'); if (!r || !r.ok || b.disabled) return;
+  const sb = h.sb && h.sb(), uid = h.uid;
+  if (!sb || !uid) { toast(tv('save_login')); return; }
+  b.disabled = true; b.textContent = tv('saving');
+  const pro = isPro(), load = num('#vp-load');
+  const detail = { source: 'video_plate', fps: V.track.fps, phases: r.phases.map(ph => ({ k: ph.k, t: +(r.t[ph.i - r.offset] - r.t[0]).toFixed(3) })) };
+  if (pro) Object.assign(detail, { vmax: +r.vmax.toFixed(3), hmax_cm: +(r.hmax * 100).toFixed(1), drop_cm: r.drop != null ? +(r.drop * 100).toFixed(1) : null,
+    toward_cm: +((r.toward || 0) * 100).toFixed(1), away_cm: +((r.away || 0) * 100).toFixed(1), fmax_n: r.Fmax != null ? Math.round(r.Fmax) : null, pmax_w: r.Pmax != null ? Math.round(r.Pmax) : null });
+  const row = { user_id: uid, movement: h.mv ? h.mv() : 'snatch', rep_count: 1, reps: [detail] };
+  if (pro) { row.load_kg = load > 0 ? load : null; row.peak_v_best = +r.vmax.toFixed(3); row.peak_v_last = +r.vmax.toFixed(3); row.path_dev_best_cm = +(((r.toward || 0) + (r.away || 0)) * 100).toFixed(1); }
+  const { error } = await sb.from('barbell_sets').insert(row);
+  b.disabled = false; b.textContent = error ? tv('save') : tv('saved'); if (error) toast(tv('save_fail'));
+});
+['vp-load', 'vp-plate'].forEach(id => { const e = $v('#' + id); e.value = st.get(id, ''); e.addEventListener('input', () => { st.set(id, e.value); compute(); }); });
+
+/* ---- ui ---- */
+function bind(id, get, set) { const e = $v('#' + id); e.addEventListener('click', ev => { const b = ev.target.closest('button'); if (!b) return; set(b.dataset.v); sync(); }); e._get = get; }
+bind('vp-metric', () => V.metric, v => V.metric = v);
+bind('vp-rate', () => String(V.rate), v => { V.rate = +v; video.playbackRate = V.rate; });
+bind('vp-slow', () => String(V.slow), v => { V.slow = +v; st.set('slow', V.slow); compute(); });
+bind('vp-face', () => String(V.face), v => { V.face = +v; st.set('face', V.face); compute(); });
+function i18n() { document.querySelectorAll('#vp [data-k], #vpmode [data-k]').forEach(e => e.textContent = tvn(e.dataset.k)); }
+function sync() {
+  document.querySelectorAll('#vp .vp-seg').forEach(e => { if (!e._get) return; const v = e._get(); e.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); });
+  document.querySelectorAll('#vpmode button').forEach(b => b.classList.toggle('on', b.dataset.v === V.mode));
+  $v('#vp-empty').classList.toggle('vp-hide', V.has);
+  $v('#vp-hint').classList.toggle('vp-hide', !V.calibrating); $v('#vp-hint').textContent = tv('hint');
+  const c = $v('#vp-cal'); c.textContent = V.calibrating ? tv('cal_ok') : tv('cal'); c.classList.toggle('pri', V.calibrating); c.disabled = !V.has || V.tracking;
+  const t = $v('#vp-track'); t.disabled = !V.has; t.textContent = V.tracking ? tv('cancel') : (V.track ? tv('retrack') : tv('track')); t.classList.toggle('pri', !V.calibrating || V.tracking);
+  layout();
+}
+document.getElementById('lang')?.addEventListener('click', () => setTimeout(() => { i18n(); render(); sync(); }, 0));
+addEventListener('cdm:pro', () => render());
+i18n(); render(); setMode(V.mode); requestAnimationFrame(frame); requestAnimationFrame(graph);
+</script>
+<!-- ══════════ fin VIDÉO PRÉCISE ══════════ -->
+
+
 <div class="stage" id="stage">
   <video id="cam" playsinline muted autoplay></video>
   <canvas id="overlay"></canvas>
@@ -251,7 +1008,7 @@ h1, h2,
   </div>
 </div>
 
-<div class="controls">
+<div class="controls" id="live-controls">
   <button class="btn" id="b-start"></button>
   <button class="btn ghost" id="b-flip" disabled>⇄</button>
   <button class="btn ghost" id="b-reset" disabled></button>
@@ -299,7 +1056,7 @@ h1, h2,
   <div class="vnote" id="vbt-note"></div>
 </div>
 
-<div class="card">
+<div class="card" id="list-card">
   <h3 id="list-h"></h3>
   <ul class="rlist" id="rlist"></ul>
   <div class="empty" id="rempty"></div>
@@ -341,7 +1098,7 @@ h1, h2,
   </div>
 </div>
 
-<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">barre v1.0</span></footer>
+<footer>Coach DM · <b>Power · Transform · Excel</b> · coachdm.be · <span id="ver">barre v2.0</span></footer>
 
 <script type="module">
 /* Shim: MediaPipe's WASM glue references bare globals (dbg/out/err). If any DOM element
@@ -753,6 +1510,7 @@ function renderVBT(){
   if(VBT.last!=null){spdChip.hidden=false;$('#spd-val').textContent=VBT.last.toFixed(2);}
 }
 function proUI(){
+  try{dispatchEvent(new Event('cdm:pro'));}catch(_){}
   $('#vbt-gate').style.display=(ENT.known&&!PRO)?'':'none';
   if(ENT.known&&!PRO)pwLoad();
   $('#vbt-card').style.display=PRO?'':'none';
@@ -1077,7 +1835,7 @@ async function loadModel(){
 
 async function startCam(){
   stream=await navigator.mediaDevices.getUserMedia({
-    video:{facingMode:facing,width:{ideal:1280},height:{ideal:720}},audio:false
+    video:{facingMode:facing,width:{ideal:1280},height:{ideal:720},frameRate:{ideal:60,min:24}},audio:false
   });
   video.srcObject=stream;
   await video.play();
@@ -1615,6 +2373,8 @@ import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({creat
   };
 }).catch(()=>{ENT.known=true;ENT.ok=false;PRO=false;proUI();});
 
+/* Pont vers le mode Vidéo précise (module séparé) : lecture seule de l'état. */
+window.CDM_BARRE={get pro(){return PRO;},get uid(){return UIDG;},sb:()=>SB,mv:()=>MV,stopLive:()=>{try{if(running)stop();}catch(_){}}};
 applyLang();
 proUI();
 /* Préchargement partage : logo + polices prêts avant le premier tap 📤 */
