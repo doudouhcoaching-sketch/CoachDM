@@ -1699,6 +1699,8 @@ body.nx #se-list > #se-top,body.nx #se-list > .se-bh,body.nx #se-list > #se-wod,
 .nx-acts .nx-cta{flex:1;height:52px;font-size:15px}
 .nx-ic2{width:52px;height:52px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;flex:0 0 auto;color:var(--text)}
 .nx-ic2 svg{width:21px;height:21px}
+.nx-gi{width:26px;height:26px;object-fit:contain;display:block;flex:none}
+.nx-hist .nx-gi{width:18px;height:18px}
 
 /* ---------- Moi ---------- */
 body.nx #pf-hub > *:not(#nx-me){display:none!important}
@@ -2315,6 +2317,9 @@ i.r3{background:linear-gradient(180deg,#E0A877,#A86A3D)!important;color:#1B1005!
   #nx-rail .nx-rl-logo b{font:700 19px var(--font-d);letter-spacing:.16em;color:var(--gold)}
   #nx-rail button{display:flex;align-items:center;gap:13px;height:48px;padding:0 14px;border-radius:14px;color:var(--muted);font:600 15px var(--font-t);background:transparent;text-align:left}
   #nx-rail button svg{width:22px;height:22px;flex:none}
+  #nx-rail .nx-rli{width:26px;height:26px;flex:none;object-fit:contain;opacity:.78;filter:saturate(.9);transition:opacity .2s,filter .2s,transform .2s}
+  #nx-rail button:hover .nx-rli{opacity:.85}
+  #nx-rail button.on .nx-rli{opacity:1;filter:none;transform:scale(1.06)}
   #nx-rail button:hover{background:var(--surface);color:var(--text)}
   #nx-rail button.on{background:var(--surface-2);color:var(--gold)}
   #nx-rail .nx-rl-sp{flex:1}
@@ -3798,6 +3803,7 @@ i.r3{background:linear-gradient(180deg,#E0A877,#A86A3D)!important;color:#1B1005!
   .gp-h{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   .gp-h b{font-family:'Outfit',sans-serif;font-size:14.5px}
   .gp-h svg{width:17px;height:17px;flex:none;color:var(--brand)}
+  .gp-gi{width:22px;height:22px;flex:none;object-fit:contain}
   .gp-goal{font-family:'Outfit',sans-serif;font-size:16.5px;font-weight:700;line-height:1.3;margin-bottom:7px}
   .gp-p{font-size:13.5px;line-height:1.55;opacity:.9;margin:0 0 6px}
   .gp-key{color:var(--brand-ink);font-weight:700}
@@ -8526,7 +8532,7 @@ function renderGoalPlain(sum){
 
   box.innerHTML = `<div class="gp">
     <div class="gp-h">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>
+      <img class="gp-gi" src="icons/ui_goal.webp" alt="" decoding="async">
       <b>${t('gp_title')}</b>
     </div>
     <div class="gp-goal">${t(GOAL_KEY[goal]||'gp_maintain')}</div>
@@ -15522,8 +15528,8 @@ const NXI={
   menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 9h14M9 15h10"/></svg>',
   back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
   cam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.5-2.5h7L17 8h3v11H4z"/><circle cx="12" cy="13.2" r="3.3"/></svg>',
-  scan:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3.5 8V5a1.5 1.5 0 0 1 1.5-1.5h3M16 3.5h3A1.5 1.5 0 0 1 20.5 5v3M20.5 16v3a1.5 1.5 0 0 1-1.5 1.5h-3M8 20.5H5A1.5 1.5 0 0 1 3.5 19v-3M7.5 8v8M10.5 8v8M13 8v8M16.5 8v8"/></svg>',
-  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>',
+  scan:'<img class="nx-gi" src="icons/ui_scan.webp" alt="" decoding="async">',
+  search:'<img class="nx-gi" src="icons/ui_search.webp" alt="" decoding="async">',
   chev:'<svg class="nx-ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>'
 };
 const nxImg=u=>u?`<div class="nx-ph"><img src="${esc(u)}" alt="" loading="lazy" decoding="async"></div>`:'<div class="nx-ph"></div>';
@@ -15537,7 +15543,7 @@ const nxFmt=w=>w.wod_format==='emom'&&w.emom_rounds?'EMOM '+w.emom_rounds:w.wod_
 const nxRing=(p,lab,r=19,sw=4)=>{ const s=2*(r+sw), c=2*Math.PI*r, v=Math.max(0,Math.min(1,p||0)); return `<div class="nx-ring" style="width:${s}px;height:${s}px"><svg viewBox="0 0 ${s} ${s}"><circle cx="${s/2}" cy="${s/2}" r="${r}" fill="none" stroke="#2C2A25" stroke-width="${sw}"/><circle cx="${s/2}" cy="${s/2}" r="${r}" fill="none" stroke="var(--gold)" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-v)}"/></svg><b>${lab}</b></div>`; };
 
 /* ---------- les cinq espaces et la barre fine ---------- */
-const NXI_HIST='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>';
+const NXI_HIST='<img class="nx-gi" src="icons/ui_history.webp" alt="" decoding="async">';
 const NX_SP=['home','seances','cours','journal','profile'];
 let NX_CUR='home', NX_LAST='home';
 function nxHeader(){
@@ -17029,7 +17035,9 @@ const NXRL_I={
   profile:'<circle cx="12" cy="8" r="4"/><path d="M4 20.5c.8-4 4-6.2 8-6.2s7.2 2.2 8 6.2"/>',
   menu:'<path d="M4 7h16M4 12h16M4 17h10"/>'
 };
-const nxrlIc=k=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+NXRL_I[k]+'</svg>';
+/* Icones or de la navigation. Le trait reste en repli si une image manque. */
+const NXRL_IMG={home:'nav_home',seances:'nav_train',cours:'nav_club',journal:'nav_eat',profile:'nav_me',menu:'nav_more'};
+const nxrlIc=k=>NXRL_IMG[k]?'<img class="nx-rli" src="icons/'+NXRL_IMG[k]+'.webp" alt="" decoding="async">':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+NXRL_I[k]+'</svg>';
 function nxRail(){
   let r=document.getElementById('nx-rail');
   if(!r){ r=document.createElement('nav'); r.id='nx-rail'; document.body.appendChild(r); }
