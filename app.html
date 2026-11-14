@@ -2555,8 +2555,9 @@ i.r3{background:linear-gradient(180deg,#E0A877,#A86A3D)!important;color:#1B1005!
     <div class="field"><label data-i18n="au_email">Email</label><input id="au-email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" placeholder="ton@email.be" /></div>
     <div class="field"><label data-i18n="au_pass">Mot de passe</label><div class="pw-wrap"><input id="au-pass" type="password" autocomplete="current-password" placeholder="••••••••" /><button type="button" class="pw-eye" data-eye="au-pass" aria-label="Afficher le mot de passe" data-i18n-aria="pw_show"></button></div>
       <div class="au-hint hidden" id="au-pw-hint" data-i18n="pw_rule">8 caractères minimum.</div></div>
-    <!-- RGPD : case obligatoire, jamais cochee d'avance. 16 ans = le seuil le
-         plus haut fixe par un pays de l'UE (art. 8 RGPD) : valable partout. -->
+    <!-- RGPD : case obligatoire, jamais cochee d'avance. 18 ans (decision du
+         14/11/2026) : au-dessus de tous les seuils de l'UE (art. 8 RGPD), meme
+         age que le contrat d'abonnement et que les conditions du fournisseur IA. -->
     <label class="au-cons hidden" id="au-cons-row"><input type="checkbox" id="au-cons" /><span id="au-cons-tx"></span></label>
     <button class="btn" id="au-login" data-i18n="au_login">Se connecter</button>
     <button class="btn ghost" id="au-signup" data-i18n="au_signup">Créer un compte</button>
@@ -3012,7 +3013,7 @@ i.r3{background:linear-gradient(180deg,#E0A877,#A86A3D)!important;color:#1B1005!
         <div class="field"><label data-i18n="lbl_height">Taille (cm)</label><input id="p-height" type="number" inputmode="numeric" placeholder="180" /></div>
       </div>
       <div class="row2">
-        <div class="field"><label data-i18n="lbl_age">Âge</label><input id="p-age" type="number" inputmode="numeric" min="16" max="100" placeholder="30" /></div>
+        <div class="field"><label data-i18n="lbl_age">Âge</label><input id="p-age" type="number" inputmode="numeric" min="18" max="100" placeholder="30" /></div>
         <div class="field"><label data-i18n="lbl_sex">Sexe</label><select id="p-sex"><option value="male" data-i18n="sex_male">Homme</option><option value="female" data-i18n="sex_female">Femme</option></select></div>
       </div>
       <div class="field"><label data-i18n="lbl_act">Niveau d'activité</label>
@@ -5329,7 +5330,7 @@ const T = {
  au_signup_go:{fr:'Créer mon compte',en:'Create my account',nl:'Mijn account aanmaken'},
  au_have:{fr:'J’ai déjà un compte',en:'I already have an account',nl:'Ik heb al een account'},
  au_try_signup:{fr:'Pas encore de compte ? Crée-le',en:'No account yet? Create one',nl:'Nog geen account? Maak er een aan'},
- au_cons:{fr:'J’ai 16 ans ou plus et j’accepte la {p} et les {c}.',en:'I am 16 or older and I accept the {p} and the {c}.',nl:'Ik ben 16 jaar of ouder en ik aanvaard het {p} en de {c}.'},
+ au_cons:{fr:'J’ai 18 ans ou plus et j’accepte la {p} et les {c}.',en:'I am 18 or older and I accept the {p} and the {c}.',nl:'Ik ben 18 jaar of ouder en ik aanvaard het {p} en de {c}.'},
  au_cons_p:{fr:'politique de confidentialité',en:'privacy policy',nl:'privacybeleid'},
  au_cons_c:{fr:'conditions d’utilisation',en:'terms of use',nl:'gebruiksvoorwaarden'},
  au_cons_need:{fr:'Coche la case pour confirmer ton âge et accepter les conditions.',en:'Tick the box to confirm your age and accept the terms.',nl:'Vink het vakje aan om je leeftijd te bevestigen en de voorwaarden te aanvaarden.'},
@@ -5349,10 +5350,10 @@ const T = {
  otp_pending:{fr:'Un code t’a déjà été envoyé à cette adresse. Saisis le code du dernier e-mail reçu.',en:'A code has already been sent to this address. Enter the code from the latest email.',nl:'Er is al een code naar dit adres gestuurd. Voer de code uit de laatste e-mail in.'},
  otp_tried:{fr:'Ce code a déjà été essayé. Vérifie le dernier e-mail reçu, ou demande un nouveau code.',en:'This code has already been tried. Check the latest email, or request a new code.',nl:'Deze code is al geprobeerd. Kijk in de laatste e-mail, of vraag een nieuwe code aan.'},
  cg_terms_t:{fr:'Avant de continuer',en:'Before you continue',nl:'Voor je verdergaat'},
- cg_terms_p:{fr:'Nous avons mis à jour notre politique de confidentialité et nos conditions d’utilisation. Coach DM est réservé aux personnes de <b>16 ans ou plus</b>.',en:'We have updated our privacy policy and terms of use. Coach DM is for people aged <b>16 or older</b>.',nl:'We hebben ons privacybeleid en onze gebruiksvoorwaarden bijgewerkt. Coach DM is voor personen van <b>16 jaar of ouder</b>.'},
+ cg_terms_p:{fr:'Nous avons mis à jour notre politique de confidentialité et nos conditions d’utilisation. Coach DM est réservé aux personnes de <b>18 ans ou plus</b>.',en:'We have updated our privacy policy and terms of use. Coach DM is for people aged <b>18 or older</b>.',nl:'We hebben ons privacybeleid en onze gebruiksvoorwaarden bijgewerkt. Coach DM is voor personen van <b>18 jaar of ouder</b>.'},
  cg_continue:{fr:'Continuer',en:'Continue',nl:'Doorgaan'},
  cg_logout:{fr:'Me déconnecter',en:'Log me out',nl:'Uitloggen'},
- cg_under:{fr:'Tu as moins de 16 ans ? Tu ne peux pas utiliser Coach DM pour le moment. Tu peux supprimer ton compte dans Moi › Compte, ou écrire à contact@coachdm.be.',en:'Under 16? You cannot use Coach DM for now. You can delete your account in Me › Account, or write to contact@coachdm.be.',nl:'Jonger dan 16? Je kunt Coach DM voorlopig niet gebruiken. Je kunt je account verwijderen via Ik › Account, of schrijven naar contact@coachdm.be.'},
+ cg_under:{fr:'Tu as moins de 18 ans ? Tu ne peux pas utiliser Coach DM pour le moment. Tu peux supprimer ton compte dans Moi › Compte, ou écrire à contact@coachdm.be.',en:'Under 18? You cannot use Coach DM for now. You can delete your account in Me › Account, or write to contact@coachdm.be.',nl:'Jonger dan 18? Je kunt Coach DM voorlopig niet gebruiken. Je kunt je account verwijderen via Ik › Account, of schrijven naar contact@coachdm.be.'},
  cg_health_t:{fr:'Tes données de santé',en:'Your health data',nl:'Je gezondheidsgegevens'},
  cg_health_p:{fr:'Pour calculer tes calories et suivre tes progrès, Coach DM enregistre ton <b>poids, ta taille, ton âge, ton sexe, tes mensurations, tes bilans et tes photos de progression</b>{hk}. Ce sont des données de santé : elles servent uniquement à ton suivi dans l’app, et à ton coach si tu en as un. Elles ne sont jamais vendues ni utilisées pour de la publicité. Tu peux retirer ton accord à tout moment dans Moi › Compte.',en:'To calculate your calories and track your progress, Coach DM stores your <b>weight, height, age, sex, body measurements, check-ins and progress photos</b>{hk}. This is health data: it is used only for your tracking in the app, and by your coach if you have one. It is never sold or used for advertising. You can withdraw your consent at any time in Me › Account.',nl:'Om je calorieën te berekenen en je vooruitgang te volgen, bewaart Coach DM je <b>gewicht, lengte, leeftijd, geslacht, lichaamsmaten, check-ins en vooruitgangsfoto’s</b>{hk}. Dit zijn gezondheidsgegevens: ze dienen enkel voor je opvolging in de app, en voor je coach als je er een hebt. Ze worden nooit verkocht of gebruikt voor reclame. Je kunt je toestemming op elk moment intrekken via Ik › Account.'},
  cg_health_hk:{fr:', et, si tu le connectes, les données d’Apple Santé (pas, sommeil, fréquence cardiaque, poids)',en:', and, if you connect it, Apple Health data (steps, sleep, heart rate, weight)',nl:', en, als je het koppelt, gegevens uit Apple Gezondheid (stappen, slaap, hartslag, gewicht)'},
@@ -5374,7 +5375,7 @@ const T = {
  cons_w_p:{fr:'Coach DM n’enregistrera plus ton poids, tes mensurations, tes bilans, tes photos ni Apple Santé. Le calcul de tes calories ne pourra plus être mis à jour. Pour effacer aussi ce qui est déjà enregistré, écris à contact@coachdm.be ou supprime ton compte.',en:'Coach DM will no longer save your weight, measurements, check-ins, photos or Apple Health. Your calorie target can no longer be updated. To also erase what is already saved, write to contact@coachdm.be or delete your account.',nl:'Coach DM bewaart je gewicht, maten, check-ins, foto’s en Apple Gezondheid niet meer. Je caloriedoel kan niet meer worden bijgewerkt. Om ook wat al bewaard is te wissen, schrijf naar contact@coachdm.be of verwijder je account.'},
  cons_w_go:{fr:'Retirer mon accord',en:'Withdraw my consent',nl:'Toestemming intrekken'},
  cons_saved:{fr:'C’est enregistré.',en:'Saved.',nl:'Opgeslagen.'},
- err_age16:{fr:'Coach DM est réservé aux personnes de 16 ans ou plus.',en:'Coach DM is for people aged 16 or older.',nl:'Coach DM is voor personen van 16 jaar of ouder.'},
+ err_age16:{fr:'Coach DM est réservé aux personnes de 18 ans ou plus.',en:'Coach DM is for people aged 18 or older.',nl:'Coach DM is voor personen van 18 jaar of ouder.'},
  err_age_bad:{fr:'Âge invalide.',en:'Invalid age.',nl:'Ongeldige leeftijd.'},
  mfa_t:{fr:'Double authentification',en:'Two-factor authentication',nl:'Tweestapsverificatie'},
  mfa_p:{fr:'Ton compte est protégé. Saisis le code à 6 chiffres de ton application d’authentification. Tu ne le feras qu’une fois sur cet appareil.',en:'Your account is protected. Enter the 6-digit code from your authenticator app. You only do this once on this device.',nl:'Je account is beveiligd. Voer de 6-cijferige code uit je authenticator-app in. Dit doe je maar één keer op dit toestel.'},
@@ -5782,7 +5783,7 @@ sb.auth.onAuthStateChange((_e,session)=>{
 /* ============================================================================
    CONNEXION ET CREATION DE COMPTE (nov. 2026)
    - deux modes sur la meme carte : « Se connecter » / « Crée ton compte »
-   - case 16 ans + conditions obligatoire a l'inscription (RGPD art. 8)
+   - case 18 ans + conditions obligatoire a l'inscription (RGPD art. 8)
    - toutes les erreurs Supabase traduites FR/EN/NL, jamais d'anglais brut
    - un code n'est jamais renvoye si l'ecran du code est deja ouvert
    - un code n'est jamais verifie deux fois
@@ -5958,7 +5959,7 @@ $('#au-signup').onclick = async ()=>{
   const gb=auGoBtn(), gl=gb.textContent; gb.disabled=true; gb.textContent='…';
   let data=null, error=null;
   try{
-    const r = await sb.auth.signUp({ email, password:pass, options:{ data:{ locale:LANG, consent:{ terms:Object.assign({ age16:true }, consentStamp()) } } } });
+    const r = await sb.auth.signUp({ email, password:pass, options:{ data:{ locale:LANG, consent:{ terms:Object.assign({ age18:true }, consentStamp()) } } } });
     data=r.data; error=r.error;
   }catch(e){ error=e; }
   AU_BUSY=false; gb.textContent=gl; auSync();
@@ -6148,10 +6149,10 @@ function legalLinks(){
    une fois, au demarrage. Sans accord : deconnexion. */
 async function consTermsGate(){
   const c=consGet();
-  if(c.terms && c.terms.v===CONSENT_V && c.terms.age16){ consLogSignupOnce(); return true; }
+  if(c.terms && c.terms.v===CONSENT_V && c.terms.age18){ consLogSignupOnce(); return true; }
   const ok = await cgAsk({ title:t('cg_terms_t'), html:t('cg_terms_p'), check:legalLinks(),
     ok:t('cg_continue'), cancel:t('cg_logout'), foot:esc(t('cg_under')),
-    onOk:()=>consSet('terms', Object.assign({ age16:true }, consentStamp())) });
+    onOk:()=>consSet('terms', Object.assign({ age18:true }, consentStamp())) });
   if(!ok){ try{ await sb.auth.signOut(); }catch(_){} show('auth'); return false; }
   return true;
 }
@@ -6169,8 +6170,9 @@ async function healthOK(){
 }
 /* Abonnement payant sur le web : contrat => 18 ans ou accord parental. */
 async function paidOK(){
-  const p=consGet().paid18;
+  const p=consGet().paid18, tm=consGet().terms;
   if(p && p.at) return true;
+  if(tm && tm.age18) return true;          /* compte deja declare 18 ans et plus */
   return cgAsk({ title:t('cg_paid_t'), html:t('cg_paid_p'), check:esc(t('cg_paid_chk')),
     ok:t('cg_continue'), cancel:t('cg_cancel'),
     onOk:()=>consSet('paid18', consentStamp()) });
@@ -9922,7 +9924,7 @@ $('#p-calc').onclick = async ()=>{
   const w=parseFloat($('#p-weight').value), h=parseFloat($('#p-height').value), a=parseInt($('#p-age').value);
   const sex=$('#p-sex').value, act=$('#p-act').value, goal=$('#p-goal').value;
   if(!w||!h||!a) return setMsg('p-msg',t('need_fields'),'err');
-  if(a<16) return setMsg('p-msg',t('err_age16'),'err');
+  if(a<18) return setMsg('p-msg',t('err_age16'),'err');
   if(a>100) return setMsg('p-msg',t('err_age_bad'),'err');
   if(!await healthOK()) return setMsg('p-msg',t('cg_health_no'),'err');
   const bmr = 10*w + 6.25*h - 5*a + (sex==='male'?5:-161);
