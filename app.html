@@ -6091,8 +6091,31 @@ async function consSet(key, val){
   const { data, error } = await sb.auth.updateUser({ data:{ consent:c } });
   if(error) throw error;
   if(data && data.user) USER=data.user; else if(USER){ USER.user_metadata=Object.assign({}, USER.user_metadata, { consent:c }); }
+  consLog(key, val && val.withdrawn_at ? 'withdrawn' : 'given');
   try{ consRender(); }catch(_){}
   return true;
+}
+/* Historique RGPD (table user_consents : ajout seul, jamais modifie). Ne
+   bloque jamais l'app : l'accord est deja enregistre sur le compte. */
+function consPlatform(){ return IS_NATIVE ? (NATIVE_PLATFORM==='ios'||NATIVE_PLATFORM==='android' ? NATIVE_PLATFORM : 'native') : 'web'; }
+function consLog(kind, action){
+  try{
+    if(!USER||!USER.id) return;
+    sb.from('user_consents').insert({ user_id:USER.id, kind, action, text_version:CONSENT_V, locale:LANG, platform:consPlatform() })
+      .then(r=>{ if(r && r.error) console.warn('[consents] '+r.error.message); }, ()=>{});
+  }catch(_){}
+}
+/* L'accord donne a l'inscription est ecrit avant que la session existe :
+   on l'ajoute a l'historique a la premiere entree, une seule fois. */
+async function consLogSignupOnce(){
+  try{
+    const k='cdm_cons_log_'+USER.id+'_'+CONSENT_V;
+    if(localStorage.getItem(k)) return;
+    const { data, error } = await sb.from('user_consents').select('id').eq('user_id',USER.id).eq('kind','terms').eq('text_version',CONSENT_V).limit(1);
+    if(error) return;
+    if(!data || !data.length) consLog('terms','given');
+    localStorage.setItem(k,'1');
+  }catch(_){}
 }
 /* cgAsk({ title, html, check, ok, cancel, danger }) -> Promise<boolean> */
 function cgAsk(o){
@@ -6125,7 +6148,7 @@ function legalLinks(){
    une fois, au demarrage. Sans accord : deconnexion. */
 async function consTermsGate(){
   const c=consGet();
-  if(c.terms && c.terms.v===CONSENT_V && c.terms.age16) return true;
+  if(c.terms && c.terms.v===CONSENT_V && c.terms.age16){ consLogSignupOnce(); return true; }
   const ok = await cgAsk({ title:t('cg_terms_t'), html:t('cg_terms_p'), check:legalLinks(),
     ok:t('cg_continue'), cancel:t('cg_logout'), foot:esc(t('cg_under')),
     onOk:()=>consSet('terms', Object.assign({ age16:true }, consentStamp())) });
