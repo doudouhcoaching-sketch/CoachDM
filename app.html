@@ -2440,6 +2440,32 @@ i.r3{background:linear-gradient(180deg,#E0A877,#A86A3D)!important;color:#1B1005!
 .nx-tsb>.nx-cta+.nx-cno{margin-top:0}
 
 </style>
+<style>
+/* Connexion / RGPD (nov. 2026) */
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:48px!important}
+.pw-eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:0;background:transparent;cursor:pointer;opacity:.7;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E") center/22px no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E") center/22px no-repeat;
+  background-color:var(--muted)}
+.pw-eye.on{opacity:1;background-color:var(--gold)}
+.au-hint{font-size:12px;color:var(--muted);margin:6px 2px 0;line-height:1.45}
+.au-mode-t{font-family:var(--font-d);font-size:19px;font-weight:800;color:var(--text);text-align:center;margin:0 0 14px;letter-spacing:.01em}
+.au-cons,.cg-chk{display:flex;gap:11px;align-items:flex-start;font-size:13px;line-height:1.5;color:var(--text);margin:4px 0 16px;cursor:pointer;text-align:left}
+.au-cons input,.cg-chk input{flex:0 0 auto;width:20px;height:20px;margin:1px 0 0;accent-color:var(--gold)}
+.au-cons a,.cg-chk a,.cg-tx a{color:var(--gold);text-decoration:underline}
+.au-link{display:block;width:100%;margin-top:12px;background:none;border:0;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer}
+#au-signup:disabled{opacity:.45}
+.cg-sheet{max-height:88vh;overflow:auto;padding:24px 22px calc(22px + env(safe-area-inset-bottom))!important}
+.cg-sheet h3{margin:0 0 10px;font-size:19px}
+.cg-tx{font-size:14px;line-height:1.6;color:var(--muted);margin:0 0 14px}
+.cg-tx b{color:var(--text)}
+.cg-sheet .btn{margin-top:8px}
+.cg-code{text-align:center;letter-spacing:.34em;font-size:22px;font-weight:800}
+.cons-box{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 0 12px;margin:4px 0 14px}
+.cons-h{font-weight:800;color:var(--text);font-size:14px;margin-bottom:6px}
+.cons-l{font-size:12.5px;color:var(--muted);line-height:1.55}
+</style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -2526,8 +2552,12 @@ i.r3{background:linear-gradient(180deg,#E0A877,#A86A3D)!important;color:#1B1005!
     <p>Power · Transform · Excel</p>
   </div>
   <div class="card" id="au-card">
-    <div class="field"><label data-i18n="au_email">Email</label><input id="au-email" type="email" autocomplete="email" inputmode="email" placeholder="ton@email.be" /></div>
-    <div class="field"><label data-i18n="au_pass">Mot de passe</label><input id="au-pass" type="password" autocomplete="current-password" placeholder="••••••••" /></div>
+    <div class="field"><label data-i18n="au_email">Email</label><input id="au-email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" placeholder="ton@email.be" /></div>
+    <div class="field"><label data-i18n="au_pass">Mot de passe</label><div class="pw-wrap"><input id="au-pass" type="password" autocomplete="current-password" placeholder="••••••••" /><button type="button" class="pw-eye" data-eye="au-pass" aria-label="Afficher le mot de passe" data-i18n-aria="pw_show"></button></div>
+      <div class="au-hint hidden" id="au-pw-hint" data-i18n="pw_rule">8 caractères minimum.</div></div>
+    <!-- RGPD : case obligatoire, jamais cochee d'avance. 16 ans = le seuil le
+         plus haut fixe par un pays de l'UE (art. 8 RGPD) : valable partout. -->
+    <label class="au-cons hidden" id="au-cons-row"><input type="checkbox" id="au-cons" /><span id="au-cons-tx"></span></label>
     <button class="btn" id="au-login" data-i18n="au_login">Se connecter</button>
     <button class="btn ghost" id="au-signup" data-i18n="au_signup">Créer un compte</button>
     <!-- Sans ce lien, un membre qui oublie son mot de passe est enferme dehors
@@ -2535,6 +2565,7 @@ i.r3{background:linear-gradient(180deg,#E0A877,#A86A3D)!important;color:#1B1005!
          profil. C'est une perte de client seche, et Apple teste ce parcours. -->
     <button type="button" id="au-forgot" data-i18n="pw_forgot" style="display:block;width:100%;margin-top:12px;background:none;border:0;color:var(--muted);font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer">Mot de passe oublié ?</button>
     <div class="msg" id="au-msg"></div>
+    <button type="button" class="btn subtle hidden" id="au-try-signup" style="margin-top:10px" data-i18n="au_try_signup">Pas encore de compte ? Crée-le</button>
   </div>
 
   <!-- RECUPERATION DE MOT DE PASSE : meme principe que la confirmation
@@ -2551,7 +2582,8 @@ i.r3{background:linear-gradient(180deg,#E0A877,#A86A3D)!important;color:#1B1005!
     </div>
     <div class="field">
       <label data-i18n="pw_new">Nouveau mot de passe</label>
-      <input id="au-rec-pass" type="password" autocomplete="new-password" placeholder="••••••••" />
+      <div class="pw-wrap"><input id="au-rec-pass" type="password" autocomplete="new-password" placeholder="••••••••" /><button type="button" class="pw-eye" data-eye="au-rec-pass" aria-label="Afficher le mot de passe" data-i18n-aria="pw_show"></button></div>
+      <div class="au-hint" data-i18n="pw_rule">8 caractères minimum.</div>
     </div>
     <button class="btn" id="au-rec-go" data-i18n="pw_save">Enregistrer et me connecter</button>
     <button class="btn ghost" id="au-rec-resend" data-i18n="otp_resend">Renvoyer le code</button>
@@ -2566,6 +2598,7 @@ i.r3{background:linear-gradient(180deg,#E0A877,#A86A3D)!important;color:#1B1005!
     <div style="text-align:center;margin-bottom:14px">
       <div style="font-size:15px;font-weight:800;color:#fff" data-i18n="otp_title">Confirme ton email</div>
       <div class="msg" id="au-otp-to" style="font-size:12px;margin-top:4px"></div>
+      <div class="au-hint" style="margin-top:6px" data-i18n="otp_last">Seul le code du dernier e-mail reçu est valable.</div>
     </div>
     <div class="field">
       <label data-i18n="otp_label">Code reçu par email</label>
@@ -2979,7 +3012,7 @@ i.r3{background:linear-gradient(180deg,#E0A877,#A86A3D)!important;color:#1B1005!
         <div class="field"><label data-i18n="lbl_height">Taille (cm)</label><input id="p-height" type="number" inputmode="numeric" placeholder="180" /></div>
       </div>
       <div class="row2">
-        <div class="field"><label data-i18n="lbl_age">Âge</label><input id="p-age" type="number" inputmode="numeric" placeholder="30" /></div>
+        <div class="field"><label data-i18n="lbl_age">Âge</label><input id="p-age" type="number" inputmode="numeric" min="16" max="100" placeholder="30" /></div>
         <div class="field"><label data-i18n="lbl_sex">Sexe</label><select id="p-sex"><option value="male" data-i18n="sex_male">Homme</option><option value="female" data-i18n="sex_female">Femme</option></select></div>
       </div>
       <div class="field"><label data-i18n="lbl_act">Niveau d'activité</label>
@@ -3177,10 +3210,17 @@ i.r3{background:linear-gradient(180deg,#E0A877,#A86A3D)!important;color:#1B1005!
            fuite, et attendu par Apple au meme titre que la suppression. -->
       <button class="btn subtle" id="p-pw-open" style="margin-bottom:9px" data-i18n="pw_change">Changer mon mot de passe</button>
       <div id="p-pw-panel" style="display:none;margin-bottom:9px">
-        <div class="field"><label data-i18n="pw_new">Nouveau mot de passe</label><input id="p-pw-new" type="password" autocomplete="new-password" placeholder="••••••••" /></div>
+        <div class="field"><label data-i18n="pw_new">Nouveau mot de passe</label><div class="pw-wrap"><input id="p-pw-new" type="password" autocomplete="new-password" placeholder="••••••••" /><button type="button" class="pw-eye" data-eye="p-pw-new" aria-label="Afficher le mot de passe" data-i18n-aria="pw_show"></button></div><div class="au-hint" data-i18n="pw_rule">8 caractères minimum.</div></div>
         <button class="btn" id="p-pw-go" data-i18n="btn_save">Enregistrer</button>
         <button class="btn ghost" id="p-pw-cancel" data-i18n="btn_cancel">Annuler</button>
         <div class="msg" id="p-pw-msg"></div>
+      </div>
+      <div class="cons-box" id="p-cons">
+        <div class="cons-h" data-i18n="cons_h">Mes données et accords</div>
+        <div class="cons-l" id="p-cons-terms"></div>
+        <div class="cons-l" id="p-cons-health"></div>
+        <button class="btn subtle" id="p-cons-hbtn" type="button" style="margin-top:8px"></button>
+        <div class="msg" id="p-cons-msg"></div>
       </div>
       <button class="btn subtle" id="p-out" data-i18n="btn_logout">Se déconnecter</button>
       <button class="btn dangr" id="p-del" style="margin-top:9px" data-i18n="del_btn">Supprimer mon compte</button>
@@ -4047,10 +4087,18 @@ body{overscroll-behavior-y:contain}
   </div>
 </div></div>
 
+<div class="overlay" id="cg-ov" role="dialog" aria-modal="true"><div class="sheet cg-sheet" id="cg-body"></div></div>
 <div class="toast" id="toast"></div>
 
+<!-- supabase-js embarque dans l'app (version figee) : plus de telechargement
+     a chaque ouverture, plus de dependance au CDN, et plus de mise a jour
+     surprise de la librairie entre deux builds. Repli sur le CDN, meme version,
+     si le fichier manque (site web pas encore a jour). -->
+<script src="supabase-2.119.0.js"></script>
 <script type="module">
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const { createClient } = (window.supabase && window.supabase.createClient)
+  ? window.supabase
+  : await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/+esm');
 
 const SUPABASE_URL = 'https://kkcmhviyvttwpaclrjmv.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b';
@@ -5249,7 +5297,7 @@ const T = {
  f_dur:{fr:'Durée (s)',en:'Duration (s)',nl:'Duur (s)'},
  f_dist:{fr:'Distance (m)',en:'Distance (m)',nl:'Afstand (m)'},
  f_cal:{fr:'Calories',en:'Calories',nl:'Calorieën'},
- err_pwd_min:{fr:'Mot de passe : 6 caractères minimum.',en:'Password: 6 characters minimum.',nl:'Wachtwoord: minimaal 6 tekens.'},
+ err_pwd_min:{fr:'Mot de passe : 8 caractères minimum.',en:'Password: 8 characters minimum.',nl:'Wachtwoord: minimaal 8 tekens.'},
  signup_confirm:{fr:'Compte créé. Vérifie ta boîte mail pour confirmer, puis connecte-toi.',en:'Account created. Check your email to confirm, then log in.',nl:'Account aangemaakt. Bevestig via je e-mail en log dan in.'},
  auth_invalid:{fr:'Email ou mot de passe incorrect.',en:'Wrong email or password.',nl:'Verkeerd e-mailadres of wachtwoord.'},
  auth_exists:{fr:'Cette adresse a déjà un compte. Connecte-toi — ou touche « Mot de passe oublié ».',en:'This address already has an account. Log in — or tap “Forgot password”.',nl:'Dit adres heeft al een account. Log in — of tik op “Wachtwoord vergeten”.'},
@@ -5276,6 +5324,62 @@ const T = {
  otp_expired:{fr:'Ce code a expiré. Demande un nouveau code.',en:'This code has expired. Request a new one.',nl:'Deze code is verlopen. Vraag een nieuwe aan.'},
  otp_rate:{fr:'Trop de tentatives. Patiente une minute.',en:'Too many attempts. Wait a minute.',nl:'Te veel pogingen. Wacht even een minuut.'},
  otp_wait:{fr:'Patiente {s} s avant de redemander un code.',en:'Wait {s} s before requesting another code.',nl:'Wacht {s} s voor je een nieuwe code vraagt.'},
+ /* ---- Connexion, inscription, RGPD (nov. 2026) ---- */
+ au_signup_t:{fr:'Crée ton compte',en:'Create your account',nl:'Maak je account aan'},
+ au_signup_go:{fr:'Créer mon compte',en:'Create my account',nl:'Mijn account aanmaken'},
+ au_have:{fr:'J’ai déjà un compte',en:'I already have an account',nl:'Ik heb al een account'},
+ au_try_signup:{fr:'Pas encore de compte ? Crée-le',en:'No account yet? Create one',nl:'Nog geen account? Maak er een aan'},
+ au_cons:{fr:'J’ai 16 ans ou plus et j’accepte la {p} et les {c}.',en:'I am 16 or older and I accept the {p} and the {c}.',nl:'Ik ben 16 jaar of ouder en ik aanvaard het {p} en de {c}.'},
+ au_cons_p:{fr:'politique de confidentialité',en:'privacy policy',nl:'privacybeleid'},
+ au_cons_c:{fr:'conditions d’utilisation',en:'terms of use',nl:'gebruiksvoorwaarden'},
+ au_cons_need:{fr:'Coche la case pour confirmer ton âge et accepter les conditions.',en:'Tick the box to confirm your age and accept the terms.',nl:'Vink het vakje aan om je leeftijd te bevestigen en de voorwaarden te aanvaarden.'},
+ pw_show:{fr:'Afficher le mot de passe',en:'Show password',nl:'Wachtwoord tonen'},
+ pw_hide:{fr:'Masquer le mot de passe',en:'Hide password',nl:'Wachtwoord verbergen'},
+ pw_rule:{fr:'8 caractères minimum.',en:'8 characters minimum.',nl:'Minimaal 8 tekens.'},
+ err_pwd_weak:{fr:'Ce mot de passe est trop faible. Choisis-en un plus long, avec des lettres et des chiffres.',en:'This password is too weak. Choose a longer one, with letters and numbers.',nl:'Dit wachtwoord is te zwak. Kies een langer wachtwoord, met letters en cijfers.'},
+ err_pwd_same:{fr:'C’est déjà ton mot de passe actuel. Choisis-en un autre.',en:'This is already your current password. Choose another one.',nl:'Dit is al je huidige wachtwoord. Kies een ander.'},
+ err_email_bad:{fr:'Cette adresse e-mail n’est pas valide.',en:'This email address is not valid.',nl:'Dit e-mailadres is niet geldig.'},
+ err_network:{fr:'Pas de connexion. Vérifie ton réseau, puis réessaie.',en:'No connection. Check your network, then try again.',nl:'Geen verbinding. Controleer je netwerk en probeer opnieuw.'},
+ err_signup_off:{fr:'Les inscriptions sont fermées pour le moment. Écris à contact@coachdm.be.',en:'Sign-ups are closed for now. Write to contact@coachdm.be.',nl:'Inschrijven is momenteel gesloten. Schrijf naar contact@coachdm.be.'},
+ err_session:{fr:'Ta session a expiré. Reconnecte-toi.',en:'Your session has expired. Please log in again.',nl:'Je sessie is verlopen. Log opnieuw in.'},
+ err_generic:{fr:'Une erreur est survenue. Réessaie dans un instant.',en:'Something went wrong. Try again in a moment.',nl:'Er ging iets mis. Probeer zo dadelijk opnieuw.'},
+ otp_badexp:{fr:'Code incorrect ou expiré. Prends le code du dernier e-mail reçu, ou demande un nouveau code.',en:'Wrong or expired code. Use the code from the latest email, or request a new one.',nl:'Verkeerde of verlopen code. Gebruik de code uit de laatste e-mail, of vraag een nieuwe aan.'},
+ otp_last:{fr:'Seul le code du dernier e-mail reçu est valable.',en:'Only the code in the latest email is valid.',nl:'Alleen de code uit de laatste e-mail is geldig.'},
+ otp_resent_auto:{fr:'Ce compte n’est pas encore confirmé : un nouveau code vient de partir. Regarde ta boîte mail, et tes spams.',en:'This account is not confirmed yet: a new code has just been sent. Check your inbox, and your spam folder.',nl:'Dit account is nog niet bevestigd: er is zonet een nieuwe code verstuurd. Kijk in je inbox en je spam.'},
+ otp_pending:{fr:'Un code t’a déjà été envoyé à cette adresse. Saisis le code du dernier e-mail reçu.',en:'A code has already been sent to this address. Enter the code from the latest email.',nl:'Er is al een code naar dit adres gestuurd. Voer de code uit de laatste e-mail in.'},
+ otp_tried:{fr:'Ce code a déjà été essayé. Vérifie le dernier e-mail reçu, ou demande un nouveau code.',en:'This code has already been tried. Check the latest email, or request a new code.',nl:'Deze code is al geprobeerd. Kijk in de laatste e-mail, of vraag een nieuwe code aan.'},
+ cg_terms_t:{fr:'Avant de continuer',en:'Before you continue',nl:'Voor je verdergaat'},
+ cg_terms_p:{fr:'Nous avons mis à jour notre politique de confidentialité et nos conditions d’utilisation. Coach DM est réservé aux personnes de <b>16 ans ou plus</b>.',en:'We have updated our privacy policy and terms of use. Coach DM is for people aged <b>16 or older</b>.',nl:'We hebben ons privacybeleid en onze gebruiksvoorwaarden bijgewerkt. Coach DM is voor personen van <b>16 jaar of ouder</b>.'},
+ cg_continue:{fr:'Continuer',en:'Continue',nl:'Doorgaan'},
+ cg_logout:{fr:'Me déconnecter',en:'Log me out',nl:'Uitloggen'},
+ cg_under:{fr:'Tu as moins de 16 ans ? Tu ne peux pas utiliser Coach DM pour le moment. Tu peux supprimer ton compte dans Moi › Compte, ou écrire à contact@coachdm.be.',en:'Under 16? You cannot use Coach DM for now. You can delete your account in Me › Account, or write to contact@coachdm.be.',nl:'Jonger dan 16? Je kunt Coach DM voorlopig niet gebruiken. Je kunt je account verwijderen via Ik › Account, of schrijven naar contact@coachdm.be.'},
+ cg_health_t:{fr:'Tes données de santé',en:'Your health data',nl:'Je gezondheidsgegevens'},
+ cg_health_p:{fr:'Pour calculer tes calories et suivre tes progrès, Coach DM enregistre ton <b>poids, ta taille, ton âge, ton sexe, tes mensurations, tes bilans et tes photos de progression</b>{hk}. Ce sont des données de santé : elles servent uniquement à ton suivi dans l’app, et à ton coach si tu en as un. Elles ne sont jamais vendues ni utilisées pour de la publicité. Tu peux retirer ton accord à tout moment dans Moi › Compte.',en:'To calculate your calories and track your progress, Coach DM stores your <b>weight, height, age, sex, body measurements, check-ins and progress photos</b>{hk}. This is health data: it is used only for your tracking in the app, and by your coach if you have one. It is never sold or used for advertising. You can withdraw your consent at any time in Me › Account.',nl:'Om je calorieën te berekenen en je vooruitgang te volgen, bewaart Coach DM je <b>gewicht, lengte, leeftijd, geslacht, lichaamsmaten, check-ins en vooruitgangsfoto’s</b>{hk}. Dit zijn gezondheidsgegevens: ze dienen enkel voor je opvolging in de app, en voor je coach als je er een hebt. Ze worden nooit verkocht of gebruikt voor reclame. Je kunt je toestemming op elk moment intrekken via Ik › Account.'},
+ cg_health_hk:{fr:', et, si tu le connectes, les données d’Apple Santé (pas, sommeil, fréquence cardiaque, poids)',en:', and, if you connect it, Apple Health data (steps, sleep, heart rate, weight)',nl:', en, als je het koppelt, gegevens uit Apple Gezondheid (stappen, slaap, hartslag, gewicht)'},
+ cg_health_chk:{fr:'J’accepte que Coach DM traite mes données de santé pour mon suivi.',en:'I agree that Coach DM processes my health data for my tracking.',nl:'Ik ga ermee akkoord dat Coach DM mijn gezondheidsgegevens verwerkt voor mijn opvolging.'},
+ cg_accept:{fr:'J’accepte',en:'I agree',nl:'Ik ga akkoord'},
+ cg_notnow:{fr:'Pas maintenant',en:'Not now',nl:'Niet nu'},
+ cg_health_no:{fr:'Sans ton accord, ces informations ne sont pas enregistrées.',en:'Without your consent, this information is not saved.',nl:'Zonder je toestemming wordt deze informatie niet bewaard.'},
+ cg_paid_t:{fr:'Abonnement',en:'Subscription',nl:'Abonnement'},
+ cg_paid_p:{fr:'Un abonnement payant est un contrat. Il est réservé aux personnes de <b>18 ans ou plus</b>, ou à un mineur qui a l’accord d’un parent ou d’un tuteur légal.',en:'A paid subscription is a contract. It is reserved for people aged <b>18 or older</b>, or for a minor with the consent of a parent or legal guardian.',nl:'Een betalend abonnement is een contract. Het is voorbehouden aan personen van <b>18 jaar of ouder</b>, of aan een minderjarige met de toestemming van een ouder of wettelijke voogd.'},
+ cg_paid_chk:{fr:'J’ai 18 ans ou plus, ou un parent ou tuteur légal a donné son accord pour cet abonnement.',en:'I am 18 or older, or a parent or legal guardian has agreed to this subscription.',nl:'Ik ben 18 jaar of ouder, of een ouder of wettelijke voogd heeft ingestemd met dit abonnement.'},
+ cg_cancel:{fr:'Annuler',en:'Cancel',nl:'Annuleren'},
+ cons_h:{fr:'Mes données et accords',en:'My data and consents',nl:'Mijn gegevens en toestemmingen'},
+ cons_terms_ok:{fr:'Conditions et politique de confidentialité acceptées le {d}.',en:'Terms and privacy policy accepted on {d}.',nl:'Voorwaarden en privacybeleid aanvaard op {d}.'},
+ cons_health_ok:{fr:'Données de santé : autorisées depuis le {d}.',en:'Health data: allowed since {d}.',nl:'Gezondheidsgegevens: toegestaan sinds {d}.'},
+ cons_health_off:{fr:'Données de santé : non autorisées. Ton poids, tes mensurations et Apple Santé ne sont pas enregistrés.',en:'Health data: not allowed. Your weight, measurements and Apple Health are not saved.',nl:'Gezondheidsgegevens: niet toegestaan. Je gewicht, maten en Apple Gezondheid worden niet bewaard.'},
+ cons_h_give:{fr:'Autoriser mes données de santé',en:'Allow my health data',nl:'Mijn gezondheidsgegevens toestaan'},
+ cons_h_withdraw:{fr:'Retirer mon accord santé',en:'Withdraw my health consent',nl:'Mijn toestemming voor gezondheid intrekken'},
+ cons_w_t:{fr:'Retirer ton accord ?',en:'Withdraw your consent?',nl:'Je toestemming intrekken?'},
+ cons_w_p:{fr:'Coach DM n’enregistrera plus ton poids, tes mensurations, tes bilans, tes photos ni Apple Santé. Le calcul de tes calories ne pourra plus être mis à jour. Pour effacer aussi ce qui est déjà enregistré, écris à contact@coachdm.be ou supprime ton compte.',en:'Coach DM will no longer save your weight, measurements, check-ins, photos or Apple Health. Your calorie target can no longer be updated. To also erase what is already saved, write to contact@coachdm.be or delete your account.',nl:'Coach DM bewaart je gewicht, maten, check-ins, foto’s en Apple Gezondheid niet meer. Je caloriedoel kan niet meer worden bijgewerkt. Om ook wat al bewaard is te wissen, schrijf naar contact@coachdm.be of verwijder je account.'},
+ cons_w_go:{fr:'Retirer mon accord',en:'Withdraw my consent',nl:'Toestemming intrekken'},
+ cons_saved:{fr:'C’est enregistré.',en:'Saved.',nl:'Opgeslagen.'},
+ err_age16:{fr:'Coach DM est réservé aux personnes de 16 ans ou plus.',en:'Coach DM is for people aged 16 or older.',nl:'Coach DM is voor personen van 16 jaar of ouder.'},
+ err_age_bad:{fr:'Âge invalide.',en:'Invalid age.',nl:'Ongeldige leeftijd.'},
+ mfa_t:{fr:'Double authentification',en:'Two-factor authentication',nl:'Tweestapsverificatie'},
+ mfa_p:{fr:'Ton compte est protégé. Saisis le code à 6 chiffres de ton application d’authentification. Tu ne le feras qu’une fois sur cet appareil.',en:'Your account is protected. Enter the 6-digit code from your authenticator app. You only do this once on this device.',nl:'Je account is beveiligd. Voer de 6-cijferige code uit je authenticator-app in. Dit doe je maar één keer op dit toestel.'},
+ mfa_go:{fr:'Valider',en:'Confirm',nl:'Bevestigen'},
+ mfa_bad:{fr:'Code incorrect ou expiré. Prends le code affiché maintenant.',en:'Wrong or expired code. Use the code shown right now.',nl:'Verkeerde of verlopen code. Gebruik de code die nu getoond wordt.'},
  no_food_a:{fr:'Aucun aliment trouvé pour « ',en:'No food found for "',nl:'Geen voedsel gevonden voor "'},
  no_food_b:{fr:' ».',en:'".',nl:'".'},
  jo_none_today:{fr:'Rien de noté aujourd’hui. Cherche un aliment, scanne un code-barres, ou photographie ton assiette.',en:'Nothing logged today. Search a food, scan a barcode, or photograph your plate.',nl:'Vandaag niets genoteerd. Zoek een voedingsmiddel, scan een barcode of fotografeer je bord.'},
@@ -5480,6 +5584,7 @@ function applyI18n(){
      bouton annonce « Retour » par VoiceOver a un neerlandophone n'aide pas. */
   document.querySelectorAll('[data-i18n-aria]').forEach(el=>{ const k=el.getAttribute('data-i18n-aria'); if(T[k]) el.setAttribute('aria-label',t(k)); });
   const ps=document.getElementById('p-sub'); if(ps && ps.dataset.key){ ps.textContent = t(ps.dataset.key) + (ps.dataset.extra||''); }
+  try{ if(typeof AU_MODE!=='undefined' && AU_MODE==='signup') auConsText(); if(typeof USER!=='undefined' && USER) consRender(); }catch(_){}
 }
 function renderLangBtns(){ document.querySelectorAll('#lang-seg button, #auth-lang button').forEach(b=>b.classList.toggle('on', b.dataset.lang===LANG)); }
 function setLang(l){
@@ -5658,7 +5763,7 @@ async function boot(){
        Mail, on la ramene directement sur l'ecran du code (valable 1 h). */
     setTimeout(()=>{ try{
       const p=JSON.parse(localStorage.getItem('cdm_otp_pending')||'null');
-      if(p && p.email && Date.now()-p.at < 3600000) otpShow(p.email);
+      if(p && p.email && Date.now()-p.at < 3600000){ otpShow(p.email,false); OTP.until=p.at+60000; }
     }catch(_){} },0);
   }
 }
@@ -5674,42 +5779,199 @@ sb.auth.onAuthStateChange((_e,session)=>{
   show('auth');
 });
 
+/* ============================================================================
+   CONNEXION ET CREATION DE COMPTE (nov. 2026)
+   - deux modes sur la meme carte : « Se connecter » / « Crée ton compte »
+   - case 16 ans + conditions obligatoire a l'inscription (RGPD art. 8)
+   - toutes les erreurs Supabase traduites FR/EN/NL, jamais d'anglais brut
+   - un code n'est jamais renvoye si l'ecran du code est deja ouvert
+   - un code n'est jamais verifie deux fois
+   ========================================================================== */
+const CONSENT_V='2026-11';            /* version des textes : a changer quand privacy/conditions changent */
+const PW_MIN=8;
+let AU_MODE='login', AU_BUSY=false;
+function consentStamp(){ return { v:CONSENT_V, at:new Date().toISOString(), lang:LANG, app:IS_NATIVE?(NATIVE_PLATFORM||'native'):'web' }; }
+function auConsText(){
+  const el=$('#au-cons-tx'); if(!el) return;
+  el.innerHTML=esc(t('au_cons'))
+    .replace('{p}','<a href="#" data-legal="privacy.html">'+esc(t('au_cons_p'))+'</a>')
+    .replace('{c}','<a href="#" data-legal="conditions.html">'+esc(t('au_cons_c'))+'</a>');
+  el.querySelectorAll('[data-legal]').forEach(a=>a.onclick=(e)=>{ e.preventDefault(); e.stopPropagation(); openLegal(a.dataset.legal); });
+}
+/* Les deux ecrans (connexion / « Crée ton compte ») sont dessines par la
+   couche 2.4 plus bas (nx-au-*) ; auMode() y ajoute la case RGPD, la regle
+   des 8 caracteres et bloque le bouton tant que la case n'est pas cochee.
+   Sans la couche 2.4, la carte bascule elle-meme (repli). */
+function auMode(m){
+  AU_MODE=m;
+  const su=(m==='signup'), nx=!!document.getElementById('nx-au-go');
+  $('#au-cons-row').classList.toggle('hidden',!su);
+  $('#au-pw-hint').classList.toggle('hidden',!su);
+  $('#au-try-signup').classList.add('hidden');
+  $('#au-pass').setAttribute('autocomplete', su?'new-password':'current-password');
+  if(!nx){
+    $('#au-forgot').style.display = su ? 'none' : 'block';
+    $('#au-login').style.display = su ? 'none' : '';
+    const b=$('#au-signup'); b.classList.toggle('ghost',!su);
+    b.textContent = t(su?'au_signup_go':'au_signup'); b.setAttribute('data-i18n', su?'au_signup_go':'au_signup');
+  }
+  if(su){ auConsText(); $('#au-cons').checked=false; }
+  auSync();
+}
+function auGoBtn(){ return document.getElementById('nx-au-go') || $('#au-signup'); }
+function auSync(){
+  const b=auGoBtn(); if(!b) return;
+  b.disabled = (AU_MODE==='signup') && !$('#au-cons').checked;
+}
+function auSwitch(m){
+  /* passe par la couche 2.4 quand elle existe, pour garder un seul etat */
+  const want=(m==='signup');
+  const nxBtn=document.querySelector(want?'#au-card .nx-aubtn':'#au-card .nx-aulink');
+  if(nxBtn){ nxBtn.click(); return; }
+  if(want!==(AU_MODE==='signup')) auMode(m);
+}
+$('#au-cons').onchange=auSync;
+$('#au-try-signup').onclick=()=>{ const em=$('#au-email').value; auSwitch('signup'); $('#au-email').value=em; try{ $('#au-pass').focus(); }catch(_){} };
+/* Oeil : afficher / masquer le mot de passe */
+document.querySelectorAll('.pw-eye').forEach(b=>{
+  b.onclick=()=>{ const i=document.getElementById(b.dataset.eye); if(!i) return;
+    const show=i.type==='password'; i.type=show?'text':'password';
+    b.classList.toggle('on',show); b.setAttribute('aria-label',t(show?'pw_hide':'pw_show')); };
+});
+['#au-email','#au-pass'].forEach(s=>{ const e=$(s); if(e) e.addEventListener('input',()=>{ const m=$('#au-msg'); if(m && m.classList.contains('err')) setMsg('au-msg','',''); }); });
+['#au-email','#au-pass'].forEach(s=>{ const e=$(s); if(e) e.addEventListener('keydown',ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); (AU_MODE==='signup'?$('#au-signup'):$('#au-login')).click(); } }); });
+
+/* Traduction de TOUTES les erreurs d'authentification. Un message anglais
+   brut de Supabase a l'ecran, c'est l'image d'une app pas finie. */
+function authErrKey(m){
+  m=String(m||'');
+  if(/invalid login|invalid credentials/i.test(m)) return 'auth_invalid';
+  if(/already registered|already exists|user_already_exists/i.test(m)) return 'auth_exists';
+  if(/not confirmed/i.test(m)) return 'auth_unconfirmed';
+  if(/same password|different from the old|should be different/i.test(m)) return 'err_pwd_same';
+  if(/password.*(at least|least \d|characters|short)/i.test(m)) return 'err_pwd_min';
+  if(/weak|pwned|leaked|compromised|known to be/i.test(m)) return 'err_pwd_weak';
+  if(/expired or is invalid|otp_expired/i.test(m)) return 'otp_badexp';
+  if(/expired/i.test(m)) return 'otp_expired';
+  if(/token.*invalid|invalid.*(otp|token|code)|incorrect/i.test(m)) return 'otp_bad';
+  if(/rate|too many|security purposes|after \d+ seconds/i.test(m)) return 'otp_rate';
+  if(/signups? not allowed|signup.*disabled/i.test(m)) return 'err_signup_off';
+  if(/invalid.*email|email.*invalid|valid email|unable to validate email/i.test(m)) return 'err_email_bad';
+  if(/session.*missing|session_not_found|refresh token|jwt expired/i.test(m)) return 'err_session';
+  if(/failed to fetch|network|load failed|fetch|timeout|retryable/i.test(m)) return 'err_network';
+  return 'err_generic';
+}
+function humanAuth(m){
+  const s=String(m||''), k=authErrKey(s);
+  if(k==='err_generic') console.warn('[auth] '+s);
+  if(k==='otp_rate'){ const n=s.match(/(\d+)\s*seconds?/i); if(n) return t('otp_wait').replace('{s}',n[1]); }
+  return t(k);
+}
+function humanOtp(m){ return humanAuth(m); }
+function authErr(e){ return humanAuth(e && (e.code ? e.code+' '+e.message : e.message) || e); }
+
+/* Etat « code en attente » partage entre inscription, connexion et redemarrage. */
+const OTP={ email:'', until:0, busy:false, tried:new Set() };
+const OTP_KEY='cdm_otp_pending';
+function otpPending(email){
+  try{ const p=JSON.parse(localStorage.getItem(OTP_KEY)||'null');
+    if(p && p.email && Date.now()-p.at < 3600000 && (!email || p.email.toLowerCase()===String(email).toLowerCase())) return p;
+  }catch(_){}
+  return null;
+}
+function otpShow(email, sentNow){
+  const same = OTP.email && OTP.email.toLowerCase()===String(email).toLowerCase();
+  OTP.email=email;
+  if(!same) OTP.tried=new Set();
+  if(sentNow){
+    OTP.until=Date.now()+60000;
+    try{ localStorage.setItem(OTP_KEY, JSON.stringify({ email, at:Date.now() })); }catch(_){}
+  }else if(!otpPending(email)){
+    try{ localStorage.setItem(OTP_KEY, JSON.stringify({ email, at:Date.now() })); }catch(_){}
+  }
+  $('#au-card').classList.add('hidden');
+  $('#au-rec').classList.add('hidden');
+  $('#au-otp').classList.remove('hidden');
+  $('#au-otp-to').textContent=email;
+  $('#au-code').value='';
+  setMsg('au-otp-msg','','');
+  setTimeout(()=>{ try{ $('#au-code').focus(); }catch(_){} },80);
+}
+function otpHide(){
+  try{ localStorage.removeItem(OTP_KEY); }catch(_){}
+  $('#au-otp').classList.add('hidden');
+  $('#au-card').classList.remove('hidden');
+}
+async function otpResend(auto){
+  const left = Math.ceil((OTP.until-Date.now())/1000);
+  if(left>0){ if(!auto) setMsg('au-otp-msg', t('otp_wait').replace('{s}', left),'err'); return false; }
+  setBtn('#au-resend',true,'…');
+  const { error } = await sb.auth.resend({ type:'signup', email:OTP.email });
+  setBtn('#au-resend',false,t('otp_resend'));
+  if(error){ setMsg('au-otp-msg', humanAuth(error.message),'err'); return false; }
+  OTP.until = Date.now()+60000;   /* anti-spam cote client, en plus du quota Supabase */
+  OTP.tried=new Set();            /* nouveau code : les anciens essais ne comptent plus */
+  try{ localStorage.setItem(OTP_KEY, JSON.stringify({ email:OTP.email, at:Date.now() })); }catch(_){}
+  return true;
+}
+
 $('#au-login').onclick = async ()=>{
   const email=$('#au-email').value.trim(), pass=$('#au-pass').value;
+  $('#au-try-signup').classList.add('hidden');
   if(!email||!pass) return setMsg('au-msg',t('err_credentials'),'err');
   setBtn('#au-login',true,'…');
-  const { data, error } = await sb.auth.signInWithPassword({ email, password:pass });
+  let data=null, error=null;
+  try{ const r=await sb.auth.signInWithPassword({ email, password:pass }); data=r.data; error=r.error; }
+  catch(e){ error=e; }
   setBtn('#au-login',false,t('au_login'));
   if(error){
-    /* Compte cree mais jamais confirme : on l'emmene directement sur l'ecran
-       de code au lieu de le laisser bloque sur un message d'erreur. */
-    if(/email not confirmed|not confirmed/i.test(error.message)){
-      otpShow(email);
-      return setMsg('au-otp-msg', t('otp_need'),'err');
+    const k=authErrKey(error.code ? error.code+' '+error.message : error.message);
+    /* Compte cree mais jamais confirme : on l'emmene sur l'ecran du code et on
+       renvoie un code tout seul — sauf si un code est parti il y a moins d'une
+       minute (le precedent est alors encore le bon). */
+    if(k==='auth_unconfirmed'){
+      const p=otpPending(email);
+      otpShow(email,false);
+      if(p && Date.now()-p.at < 60000){ OTP.until=p.at+60000; return setMsg('au-otp-msg', t('otp_pending'),'ok'); }
+      const sent=await otpResend(true);
+      return setMsg('au-otp-msg', t(sent?'otp_resent_auto':'otp_need'), sent?'ok':'err');
     }
-    return setMsg('au-msg', humanAuth(error.message),'err');
+    setMsg('au-msg', humanAuth(error.code ? error.code+' '+error.message : error.message),'err');
+    if(k==='auth_invalid') $('#au-try-signup').classList.remove('hidden');
+    return;
   }
   await enter(data.user);
 };
 $('#au-signup').onclick = async ()=>{
+  if(AU_MODE!=='signup'){ auSwitch('signup'); return; }
   const email=$('#au-email').value.trim(), pass=$('#au-pass').value;
   if(!email||!pass) return setMsg('au-msg',t('err_credentials'),'err');
-  if(pass.length<6) return setMsg('au-msg',t('err_pwd_min'),'err');
-  setBtn('#au-signup',true,'…');
-  const { data, error } = await sb.auth.signUp({ email, password:pass });
-  setBtn('#au-signup',false,t('au_signup'));
-  if(error) return setMsg('au-msg', humanAuth(error.message),'err');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return setMsg('au-msg',t('err_email_bad'),'err');
+  if(pass.length<PW_MIN) return setMsg('au-msg',t('err_pwd_min'),'err');
+  if(!$('#au-cons').checked) return setMsg('au-msg',t('au_cons_need'),'err');
+  /* Un code est deja parti vers cette adresse (moins d'une heure) : on ne
+     relance PAS l'inscription — Supabase renverrait un nouveau code et
+     l'ancien, peut-etre deja ouvert dans Mail, ne marcherait plus. */
+  if(otpPending(email)){ otpShow(email,false); return setMsg('au-otp-msg', t('otp_pending'),'ok'); }
+  if(AU_BUSY) return;                       /* un seul envoi, meme sur double tape */
+  AU_BUSY=true;
+  const gb=auGoBtn(), gl=gb.textContent; gb.disabled=true; gb.textContent='…';
+  let data=null, error=null;
+  try{
+    const r = await sb.auth.signUp({ email, password:pass, options:{ data:{ locale:LANG, consent:{ terms:Object.assign({ age16:true }, consentStamp()) } } } });
+    data=r.data; error=r.error;
+  }catch(e){ error=e; }
+  AU_BUSY=false; gb.textContent=gl; auSync();
+  if(error) return setMsg('au-msg', humanAuth(error.code ? error.code+' '+error.message : error.message),'err');
 
   /* ⚠️ Adresse deja inscrite : Supabase ne renvoie AUCUNE erreur.
      Pour empecher qu'un inconnu devine qui possede un compte, l'API repond un
      utilisateur factice — sans session, et surtout avec `identities` VIDE — et
-     n'envoie aucun email. Le code partait alors dans la branche « pas de
-     session » et affichait « Code envoye. Regarde ta boite mail » pour un code
-     qui n'existerait jamais. La personne attend, fouille ses spams, et s'en va.
-     `identities.length === 0` est le seul signal fiable de ce cas. */
+     n'envoie aucun email. `identities.length === 0` est le seul signal fiable. */
   const alreadyRegistered = Array.isArray(data?.user?.identities) && data.user.identities.length===0;
   if(alreadyRegistered){
-    $('#au-pass').value='';
+    auSwitch('login');
+    $('#au-email').value=email; $('#au-pass').value='';
     try{ $('#au-pass').focus(); }catch(_){}
     return setMsg('au-msg', t('auth_exists'),'err');
   }
@@ -5717,23 +5979,24 @@ $('#au-signup').onclick = async ()=>{
   /* Session immediate = la confirmation est desactivee cote Supabase.
      Session absente = un code vient reellement de partir. */
   if(data.session?.user){ await enter(data.user); }
-  else { otpShow(email); setMsg('au-otp-msg', t('otp_sent'),'ok'); }
+  else { otpShow(email,true); setMsg('au-otp-msg', t('otp_sent'),'ok'); }
 };
 
 /* ---------------- Mot de passe oublie ----------------------------------------
    Supabase envoie un code a usage unique (type 'recovery'). On le verifie, ce
-   qui ouvre une session temporaire, puis on ecrit le nouveau mot de passe avec
-   updateUser(). L'utilisateur se retrouve connecte : aucun aller-retour de plus.
-   Comme pour l'inscription, l'API ne dit jamais si l'adresse existe — on affiche
-   donc toujours le meme message, et on n'apprend rien a un curieux. */
-const REC={ email:'', until:0 };
+   qui ouvre une session temporaire, puis on ecrit le nouveau mot de passe.
+   Le code n'est verifie QU'UNE fois : si l'ecriture du mot de passe echoue
+   (trop faible, identique...), on garde la session et on ne redemande que le
+   mot de passe. L'API ne dit jamais si l'adresse existe. */
+const REC={ email:'', until:0, ok:false, user:null, busy:false };
 function recShow(email){
-  REC.email=email;
+  REC.email=email; REC.ok=false; REC.user=null;
   $('#au-card').classList.add('hidden');
   $('#au-otp').classList.add('hidden');
   $('#au-rec').classList.remove('hidden');
   $('#au-rec-to').textContent=email;
   $('#au-rec-code').value=''; $('#au-rec-pass').value='';
+  $('#au-rec-code').disabled=false;
   setMsg('au-rec-msg','','');
   setTimeout(()=>{ try{ $('#au-rec-code').focus(); }catch(_){} },80);
 }
@@ -5747,95 +6010,195 @@ async function recSend(btnSel,msgSel,label){
   const now=Date.now();
   if(REC.until>now) return setMsg(msgSel,t('otp_wait').replace('{s}',Math.ceil((REC.until-now)/1000)),'err');
   setBtn(btnSel,true,'…');
-  const { error } = await sb.auth.resetPasswordForEmail(email);
+  let error=null;
+  try{ const r=await sb.auth.resetPasswordForEmail(email); error=r.error; }catch(e){ error=e; }
   setBtn(btnSel,false,t(label));
-  if(error && /rate|too many|security purposes/i.test(error.message||'')){
+  if(error && authErrKey(error.message)==='otp_rate'){
     REC.until=now+60000;
-    return setMsg(msgSel,t('otp_rate'),'err');
+    return setMsg(msgSel,humanAuth(error.message),'err');
   }
+  if(error && authErrKey(error.message)==='err_network') return setMsg(msgSel,t('err_network'),'err');
   REC.until=now+30000;
   recShow(email);
   setMsg('au-rec-msg',t('pw_sent'),'ok');
 }
 $('#au-forgot').onclick = ()=>recSend('#au-forgot','au-msg','pw_forgot');
-$('#au-rec-resend').onclick = ()=>recSend('#au-rec-resend','au-rec-msg','otp_resend');
-$('#au-rec-back').onclick = ()=>{ recHide(); setMsg('au-msg','',''); };
+$('#au-rec-resend').onclick = ()=>{ REC.ok=false; $('#au-rec-code').disabled=false; recSend('#au-rec-resend','au-rec-msg','otp_resend'); };
+$('#au-rec-back').onclick = async ()=>{
+  /* Code deja valide mais mot de passe jamais enregistre : on referme la
+     session temporaire, sinon le prochain lancement entrerait dans l'app. */
+  if(REC.ok){ try{ await sb.auth.signOut({ scope:'local' }); }catch(_){} REC.ok=false; }
+  recHide(); setMsg('au-msg','','');
+};
 $('#au-rec-code').oninput = e=>{ e.target.value=e.target.value.replace(/\D/g,''); };
 $('#au-rec-go').onclick = async ()=>{
+  if(REC.busy) return;
   const token=($('#au-rec-code').value||'').replace(/\D/g,'');
   const pass=$('#au-rec-pass').value;
-  if(token.length<6) return setMsg('au-rec-msg',t('otp_short'),'err');
-  if(!pass||pass.length<6) return setMsg('au-rec-msg',t('err_pwd_min'),'err');
-  setBtn('#au-rec-go',true,'…');
-  const { data, error } = await sb.auth.verifyOtp({ email:REC.email, token, type:'recovery' });
-  if(error){ setBtn('#au-rec-go',false,t('pw_save')); return setMsg('au-rec-msg',humanOtp(error.message),'err'); }
-  const up = await sb.auth.updateUser({ password:pass });
-  setBtn('#au-rec-go',false,t('pw_save'));
-  if(up.error) return setMsg('au-rec-msg',up.error.message,'err');
-  recHide();
-  await enter((up.data&&up.data.user)||(data&&data.user));
+  if(!REC.ok && token.length<6) return setMsg('au-rec-msg',t('otp_short'),'err');
+  if(!pass||pass.length<PW_MIN) return setMsg('au-rec-msg',t('err_pwd_min'),'err');
+  REC.busy=true; setBtn('#au-rec-go',true,'…');
+  try{
+    if(!REC.ok){
+      const { data, error } = await sb.auth.verifyOtp({ email:REC.email, token, type:'recovery' });
+      if(error){ setMsg('au-rec-msg',humanAuth(error.message),'err'); return; }
+      REC.ok=true; REC.user=data&&data.user;
+      $('#au-rec-code').disabled=true;          /* le code est consomme : on ne le renverra plus */
+    }
+    const up = await sb.auth.updateUser({ password:pass });
+    if(up.error){ setMsg('au-rec-msg',humanAuth(up.error.code ? up.error.code+' '+up.error.message : up.error.message),'err'); return; }
+    REC.ok=false;
+    recHide();
+    await enter((up.data&&up.data.user)||REC.user);
+  }catch(e){ setMsg('au-rec-msg',authErr(e),'err'); }
+  finally{ REC.busy=false; setBtn('#au-rec-go',false,t('pw_save')); }
 };
 
 /* ---------------- Verification de l'adresse email (code a usage unique) ---------------- */
-const OTP={ email:'', until:0 };
-const OTP_KEY='cdm_otp_pending';
-function otpShow(email){
-  OTP.email=email;
-  try{ localStorage.setItem(OTP_KEY, JSON.stringify({ email, at:Date.now() })); }catch(_){}
-  $('#au-card').classList.add('hidden');
-  $('#au-otp').classList.remove('hidden');
-  $('#au-otp-to').textContent=email;
-  $('#au-code').value='';
-  setMsg('au-otp-msg','','');
-  setTimeout(()=>{ try{ $('#au-code').focus(); }catch(_){} },80);
-}
-function otpHide(){
-  try{ localStorage.removeItem(OTP_KEY); }catch(_){}
-  $('#au-otp').classList.add('hidden');
-  $('#au-card').classList.remove('hidden');
-}
-function humanOtp(m){
-  if(/expired/i.test(m))                    return t('otp_expired');
-  if(/invalid|incorrect/i.test(m))          return t('otp_bad');
-  if(/rate|too many|security purposes/i.test(m)) return t('otp_rate');
-  return m;
-}
 $('#au-code').oninput = e=>{ e.target.value = e.target.value.replace(/\D/g,''); };
 $('#au-code').onkeydown = e=>{ if(e.key==='Enter') $('#au-verify').click(); };
 $('#au-verify').onclick = async ()=>{
+  if(OTP.busy) return;                       /* jamais deux verifications en parallele */
   const token=($('#au-code').value||'').replace(/\D/g,'');
   if(token.length<6) return setMsg('au-otp-msg', t('otp_short'),'err');
-  setBtn('#au-verify',true,'…');
-  /* 'email' est le nom actuel du type ; 'signup' reste accepte et sert de
-     repli si le SDK charge est plus ancien. */
-  let { data, error } = await sb.auth.verifyOtp({ email:OTP.email, token, type:'email' });
+  if(OTP.tried.has(token)) return setMsg('au-otp-msg', t('otp_tried'),'err');
+  OTP.busy=true; setBtn('#au-verify',true,'…');
+  let data=null, error=null;
+  try{ const r = await sb.auth.verifyOtp({ email:OTP.email, token, type:'email' }); data=r.data; error=r.error; }
+  catch(e){ error=e; }
+  OTP.busy=false; setBtn('#au-verify',false,t('otp_verify'));
   if(error){
-    const r = await sb.auth.verifyOtp({ email:OTP.email, token, type:'signup' });
-    data=r.data; error=r.error;
+    const k=authErrKey(error.message);
+    if(k==='otp_bad'||k==='otp_expired'||k==='otp_badexp') OTP.tried.add(token);   /* reseau coupe : on pourra reessayer le meme */
+    return setMsg('au-otp-msg', humanAuth(error.message),'err');
   }
-  setBtn('#au-verify',false,t('otp_verify'));
-  if(error) return setMsg('au-otp-msg', humanOtp(error.message),'err');
   if(!data?.user) return setMsg('au-otp-msg', t('otp_bad'),'err');
   otpHide();
   await enter(data.user);
 };
-$('#au-resend').onclick = async ()=>{
-  const left = Math.ceil((OTP.until-Date.now())/1000);
-  if(left>0) return setMsg('au-otp-msg', t('otp_wait').replace('{s}', left),'err');
-  setBtn('#au-resend',true,'…');
-  const { error } = await sb.auth.resend({ type:'signup', email:OTP.email });
-  setBtn('#au-resend',false,t('otp_resend'));
-  if(error) return setMsg('au-otp-msg', humanOtp(error.message),'err');
-  OTP.until = Date.now()+60000;   /* anti-spam cote client, en plus du quota Supabase */
-  setMsg('au-otp-msg', t('otp_sent'),'ok');
-};
+$('#au-resend').onclick = async ()=>{ if(await otpResend(false)) setMsg('au-otp-msg', t('otp_sent'),'ok'); };
 $('#au-otp-back').onclick = ()=>{ otpHide(); };
 
-function humanAuth(m){
-  if(/invalid login/i.test(m)) return t('auth_invalid');
-  if(/already registered/i.test(m)) return t('auth_exists');
-  if(/email not confirmed/i.test(m)) return t('auth_unconfirmed');
-  return m;
+/* ============================================================================
+   ACCORDS RGPD : fenetre generique + enregistrement horodate
+   Les accords sont ecrits dans user_metadata.consent du compte (date, version
+   du texte, langue, support) : lie au compte, horodate par le serveur, sans
+   nouvelle table. Une table d'historique pourra s'y ajouter plus tard.
+   ========================================================================== */
+function consGet(){ const m=(USER&&USER.user_metadata)||{}; return (m.consent && typeof m.consent==='object') ? m.consent : {}; }
+async function consSet(key, val){
+  const c=Object.assign({}, consGet()); c[key]=val;
+  const { data, error } = await sb.auth.updateUser({ data:{ consent:c } });
+  if(error) throw error;
+  if(data && data.user) USER=data.user; else if(USER){ USER.user_metadata=Object.assign({}, USER.user_metadata, { consent:c }); }
+  try{ consRender(); }catch(_){}
+  return true;
+}
+/* cgAsk({ title, html, check, ok, cancel, danger }) -> Promise<boolean> */
+function cgAsk(o){
+  return new Promise(res=>{
+    const ov=$('#cg-ov'), b=$('#cg-body');
+    b.innerHTML=`<h3>${esc(o.title)}</h3><div class="cg-tx">${o.html}</div>
+      ${o.check?`<label class="cg-chk"><input type="checkbox" id="cg-c"><span>${o.check}</span></label>`:''}
+      <button class="btn${o.danger?' dangr-full':''}" id="cg-ok" type="button">${esc(o.ok)}</button>
+      ${o.cancel?`<button class="btn ghost" id="cg-no" type="button">${esc(o.cancel)}</button>`:''}
+      ${o.foot?`<div class="cg-tx" style="font-size:12px;margin:12px 0 0">${o.foot}</div>`:''}
+      <div class="msg" id="cg-msg"></div>`;
+    b.querySelectorAll('[data-legal]').forEach(a=>a.onclick=(e)=>{ e.preventDefault(); e.stopPropagation(); openLegal(a.dataset.legal); });
+    const ok=$('#cg-ok'), c=$('#cg-c');
+    if(c){ ok.disabled=true; c.onchange=()=>{ ok.disabled=!c.checked; }; }
+    const done=(v)=>{ ov.classList.remove('show'); res(v); };
+    ok.onclick=async()=>{
+      if(c && !c.checked) return;
+      if(o.onOk){ ok.disabled=true; try{ await o.onOk(); }catch(e){ ok.disabled=false; setMsg('cg-msg',o.err?t(o.err):authErr(e),'err'); return; } }
+      done(true);
+    };
+    const no=$('#cg-no'); if(no) no.onclick=()=>done(false);
+    ov.classList.add('show');
+  });
+}
+function legalLinks(){
+  return esc(t('au_cons')).replace('{p}','<a href="#" data-legal="privacy.html">'+esc(t('au_cons_p'))+'</a>')
+    .replace('{c}','<a href="#" data-legal="conditions.html">'+esc(t('au_cons_c'))+'</a>');
+}
+/* Comptes crees avant le 14/11/2026 (ou textes mis a jour) : accord demande
+   une fois, au demarrage. Sans accord : deconnexion. */
+async function consTermsGate(){
+  const c=consGet();
+  if(c.terms && c.terms.v===CONSENT_V && c.terms.age16) return true;
+  const ok = await cgAsk({ title:t('cg_terms_t'), html:t('cg_terms_p'), check:legalLinks(),
+    ok:t('cg_continue'), cancel:t('cg_logout'), foot:esc(t('cg_under')),
+    onOk:()=>consSet('terms', Object.assign({ age16:true }, consentStamp())) });
+  if(!ok){ try{ await sb.auth.signOut(); }catch(_){} show('auth'); return false; }
+  return true;
+}
+/* Donnees de sante (RGPD art. 9) : accord explicite et separe, demande au
+   premier moment ou l'on en a besoin. Sans accord, rien ne part au serveur. */
+function healthOn(){ const h=consGet().health; return !!(h && h.at && !h.withdrawn_at); }
+async function healthOK(){
+  if(healthOn()) return true;
+  const hk = (IS_NATIVE && NATIVE_PLATFORM!=='android') ? t('cg_health_hk') : '';
+  const ok = await cgAsk({ title:t('cg_health_t'), html:t('cg_health_p').replace('{hk}',hk), check:esc(t('cg_health_chk')),
+    ok:t('cg_accept'), cancel:t('cg_notnow'),
+    onOk:()=>consSet('health', consentStamp()) });
+  if(!ok) toast(t('cg_health_no'));
+  return ok;
+}
+/* Abonnement payant sur le web : contrat => 18 ans ou accord parental. */
+async function paidOK(){
+  const p=consGet().paid18;
+  if(p && p.at) return true;
+  return cgAsk({ title:t('cg_paid_t'), html:t('cg_paid_p'), check:esc(t('cg_paid_chk')),
+    ok:t('cg_continue'), cancel:t('cg_cancel'),
+    onOk:()=>consSet('paid18', consentStamp()) });
+}
+function consDate(iso){ try{ return new Date(iso).toLocaleDateString(locale(),{ day:'numeric', month:'long', year:'numeric' }); }catch(_){ return ''; } }
+function consRender(){
+  const c=consGet(), tl=$('#p-cons-terms'), hl=$('#p-cons-health'), hb=$('#p-cons-hbtn');
+  if(!tl) return;
+  tl.textContent = c.terms && c.terms.at ? t('cons_terms_ok').replace('{d}',consDate(c.terms.at)) : '';
+  const on=healthOn();
+  hl.textContent = on ? t('cons_health_ok').replace('{d}',consDate(c.health.at)) : t('cons_health_off');
+  hb.textContent = t(on?'cons_h_withdraw':'cons_h_give');
+  hb.onclick = async ()=>{
+    setMsg('p-cons-msg','','');
+    if(!healthOn()){ if(await healthOK()) setMsg('p-cons-msg',t('cons_saved'),'ok'); return; }
+    const go = await cgAsk({ title:t('cons_w_t'), html:esc(t('cons_w_p')), ok:t('cons_w_go'), cancel:t('cg_cancel'), danger:true,
+      onOk:()=>consSet('health', Object.assign({}, consGet().health||{}, { withdrawn_at:new Date().toISOString() })) });
+    if(go){
+      try{ localStorage.removeItem(HK_KEY); }catch(_){}
+      setMsg('p-cons-msg',t('cons_saved'),'ok');
+    }
+  };
+}
+
+/* ============================================================================
+   DOUBLE AUTHENTIFICATION (compte admin)
+   Quand un code est valide dans la console admin, Supabase ferme toutes les
+   sessions du compte restees au niveau 1 (aal1) : l'app etait deconnectee a
+   chaque fois. Elle demande donc le code une fois, passe en aal2, et n'est
+   plus fermee. Ne concerne que les comptes qui ont active la double
+   authentification.
+   ========================================================================== */
+async function mfaGate(){
+  let lvl=null;
+  try{ const r=await sb.auth.mfa.getAuthenticatorAssuranceLevel(); lvl=r&&r.data; }catch(_){ return true; }
+  if(!lvl || lvl.nextLevel!=='aal2' || lvl.currentLevel==='aal2') return true;
+  let factor=null;
+  try{ const f=await sb.auth.mfa.listFactors(); factor=f&&f.data&&(f.data.totp||[]).find(x=>x.status==='verified'); }catch(_){}
+  if(!factor) return true;
+  const ok = await cgAsk({ title:t('mfa_t'), html:esc(t('mfa_p'))+
+      `<div class="field" style="margin-top:14px"><input id="mfa-code" class="cg-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••"></div>`,
+    ok:t('mfa_go'), cancel:t('cg_logout'), err:'mfa_bad',
+    onOk:async()=>{
+      const code=(($('#mfa-code')||{}).value||'').replace(/\D/g,'');
+      if(code.length!==6) throw new Error('invalid code');
+      const { error } = await sb.auth.mfa.challengeAndVerify({ factorId:factor.id, code });
+      if(error) throw new Error('invalid code');
+    } });
+  if(!ok){ try{ await sb.auth.signOut({ scope:'local' }); }catch(_){} show('auth'); return false; }
+  try{ const r=await sb.auth.getUser(); if(r&&r.data&&r.data.user) USER=r.data.user; }catch(_){}
+  return true;
 }
 
 /* Cache de demarrage : toutes les requetes du boot en un seul aller-retour parallele */
@@ -5856,6 +6219,9 @@ async function prefetchBoot(uid){
 async function enter(user){
   USER=user;
   show('boot');
+  if(!await mfaGate()) return;
+  if(!await consTermsGate()) return;
+  user=USER||user;
   /* Trace l'appareil reellement utilise et la date d'ouverture, pour la console
      admin. Volontairement non bloquant et silencieux : si l'appel echoue, le
      boot continue — cette information est du confort, pas une dependance. */
@@ -5891,6 +6257,7 @@ async function enter(user){
      mais AUCUN onglet n'etait actif — ecran vide, watchdog deja annule, aucun
      bouton pour s'en sortir. */
   await etape('profil', ()=>loadProfileInfo(user));
+  await etape('accords', async ()=>consRender());
   await etape('objectifs', ()=>loadTargets());
   await etape('aujourdhui', ()=>loadToday());
   _PRE=null;
@@ -6082,11 +6449,11 @@ $('#gate-out').onclick = $('#p-out').onclick = async ()=>{
   cancel.onclick=()=>{ panel.style.display='none'; open.style.display=''; };
   go.onclick=async ()=>{
     const pass=$('#p-pw-new').value;
-    if(!pass||pass.length<6) return setMsg('p-pw-msg',t('err_pwd_min'),'err');
+    if(!pass||pass.length<PW_MIN) return setMsg('p-pw-msg',t('err_pwd_min'),'err');
     setBtn('#p-pw-go',true,'…');
     const { error } = await sb.auth.updateUser({ password:pass });
     setBtn('#p-pw-go',false,t('btn_save'));
-    if(error) return setMsg('p-pw-msg',error.message,'err');
+    if(error) return setMsg('p-pw-msg',humanAuth(error.code ? error.code+' '+error.message : error.message),'err');
     $('#p-pw-new').value='';
     panel.style.display='none'; open.style.display='';
     toast(t('pw_changed'));
@@ -6207,6 +6574,7 @@ function resetConsent(){
 // Ouvre l'overlay sur l'étape consentement. Le paiement n'est monté qu'après acceptation.
 async function startCheckout(lk,msgSel){
   if(IS_NATIVE){ toast(t('native_nosub')); return; }
+  if(!await paidOK()) return;
   PENDING_CK={lk,msgSel:msgSel||'#sub-msg'};
   if(CK){ try{CK.destroy();}catch(e){} CK=null; }
   resetConsent();
@@ -7245,6 +7613,7 @@ let HK_SENT_KEY='';
 async function hkPersist(d){
   try{
     if(!USER || !USER.id) return;
+    if(!healthOn()) return;                                /* RGPD art. 9 : rien sans accord */
     const day = new Date().toLocaleDateString('sv-SE');   /* AAAA-MM-JJ local */
     const row = { day };
     if(d.steps  != null) row.steps       = Math.round(d.steps);
@@ -7266,6 +7635,7 @@ async function hkPersist(d){
 async function hkConnect(){
   const H=hkPlugin();
   if(!H){ setMsg('p-health-msg',t('hk_unavail'),'err'); return; }
+  if(!await healthOK()) return;
   const b=$('#p-health-go'), b2=$('#act-connect');
   if(b) b.disabled=true; if(b2) b2.disabled=true;
   try{
@@ -9529,6 +9899,9 @@ $('#p-calc').onclick = async ()=>{
   const w=parseFloat($('#p-weight').value), h=parseFloat($('#p-height').value), a=parseInt($('#p-age').value);
   const sex=$('#p-sex').value, act=$('#p-act').value, goal=$('#p-goal').value;
   if(!w||!h||!a) return setMsg('p-msg',t('need_fields'),'err');
+  if(a<16) return setMsg('p-msg',t('err_age16'),'err');
+  if(a>100) return setMsg('p-msg',t('err_age_bad'),'err');
+  if(!await healthOK()) return setMsg('p-msg',t('cg_health_no'),'err');
   const bmr = 10*w + 6.25*h - 5*a + (sex==='male'?5:-161);
   const actMul = {sedentary:1.2,light:1.375,moderate:1.55,active:1.725,very_active:1.9}[act];
   const tdee = bmr*actMul;
@@ -10207,6 +10580,7 @@ function suCI(){
   el.querySelectorAll('.su-sc,.su-chips').forEach(g=>g.querySelectorAll('button').forEach(b=>b.onclick=()=>{ v[g.dataset.k]=+b.dataset.v; g.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); }));
   const go=document.getElementById('su-ci-go'); if(!go) return;
   go.onclick=async()=>{
+    if(!await healthOK()) return;
     go.disabled=true;
     const w=parseFloat(String(document.getElementById('su-w').value).replace(',','.'));
     const row={ client_id:USER.id, relationship_id:SU.rel?SU.rel.id:null, coach_id:SU.rel?SU.rel.coach_id:null, status:'submitted',
@@ -10274,6 +10648,7 @@ function suMS(){
     ${first&&last&&first!==last?`<p class="su-sub" style="margin-top:-4px">${suE(suTx('su_since',{d:suShort(first.measured_date)}))}</p>`:''}
     <button class="btn" id="su-ms-go" type="button">${suE(t('su_save'))}</button>`;
   document.getElementById('su-ms-go').onclick=async()=>{
+    if(!await healthOK()) return;
     const row={ user_id:USER.id, measured_date:suISO(new Date()) }; let any=false;
     el.querySelectorAll('[data-m]').forEach(i=>{ const v=parseFloat(String(i.value).replace(',','.')); if(isFinite(v)&&v>10&&v<300){ row[i.dataset.m]=v; any=true; } });
     if(!any) return;
@@ -10310,7 +10685,7 @@ async function suPH(){
   el.querySelectorAll('#su-pose button').forEach(b=>b.onclick=()=>{ SU.pose=b.dataset.p; suPH(); });
   const cs=document.getElementById('su-cs'); if(cs) cs.onchange=()=>{ SU.coachSees=cs.checked; };
   const f=document.getElementById('su-file');
-  document.getElementById('su-ph-add').onclick=()=>f.click();
+  document.getElementById('su-ph-add').onclick=async()=>{ if(healthOn()){ f.click(); return; } if(await healthOK()) f.click(); };
   f.onchange=async()=>{
     const file=f.files&&f.files[0]; if(!file) return; const b=document.getElementById('su-ph-add'); b.disabled=true; b.textContent=t('su_ph_up');
     try{
@@ -16449,7 +16824,7 @@ function nxWaterSheet(d,after){
     s_up:['Ton adresse mail et un mot de passe. Un code à 6 chiffres arrive par mail pour confirmer que c’est bien toi.','Your email and a password. A 6-digit code arrives by email to confirm it’s really you.','Je e-mail en een wachtwoord. Een code van 6 cijfers komt per mail om te bevestigen dat jij het bent.'],
     no:['Pas encore de compte ?','No account yet?','Nog geen account?'], mk:['Créer un compte','Create an account','Account aanmaken'],
     have:['J’ai déjà un compte','I already have an account','Ik heb al een account'], go:['Recevoir mon code','Get my code','Mijn code ontvangen'],
-    p2:['Confirme le mot de passe','Confirm the password','Bevestig het wachtwoord'], pmin:['Au moins 6 caractères','At least 6 characters','Minstens 6 tekens'],
+    p2:['Confirme le mot de passe','Confirm the password','Bevestig het wachtwoord'], pmin:['Au moins 8 caractères','At least 8 characters','Minstens 8 tekens'],
     diff:['Les deux mots de passe ne sont pas identiques.','The two passwords don’t match.','De twee wachtwoorden zijn niet gelijk.'],
     spam:['Pas reçu dans 2 minutes ? Regarde dans les spams ou « Promotions », puis marque le mail « Pas un spam » : les suivants arriveront au bon endroit.','Not there within 2 minutes? Check spam or “Promotions”, then mark the email “Not spam”: the next ones will land in the right place.','Niet ontvangen binnen 2 minuten? Kijk in spam of “Promoties” en markeer de mail als “Geen spam”: de volgende komen dan goed aan.'] };
   const T=k=>X[k][{fr:0,en:1,nl:2}[LANG]||0];
@@ -16472,8 +16847,10 @@ function nxWaterSheet(d,after){
     sw.innerHTML=up?`<button type="button" class="nx-aulink">${esc(T('have'))}</button>`
                    :`<span>${esc(T('no'))}</span><button type="button" class="nx-aubtn">${esc(T('mk'))}</button>`;
     sw.querySelector('button').onclick=()=>{ try{ buzz(8); }catch(_){} mode=up?'in':'up'; try{ setMsg('au-msg','',''); }catch(_){} paint(); try{ document.getElementById('au-email').focus(); }catch(_){} };
+    try{ if((AU_MODE==='signup')!==up) auMode(up?'signup':'login'); else auSync(); }catch(_){}
   };
   go.onclick=async()=>{
+    if(go.disabled) return;
     const p2=document.getElementById('nx-au-p2').value;
     if(pass.value&&p2!==pass.value) return setMsg('au-msg',T('diff'),'err');
     await SU();
