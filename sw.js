@@ -3,7 +3,7 @@
 // icones, polices) est servie depuis le cache quand le reseau manque.
 // Les donnees Supabase ne passent JAMAIS par ici (autre origine) : c'est
 // l'app elle-meme qui garde ses copies locales (programmes, seances).
-const CACHE_NAME = "coachdm-shell-v2";
+const CACHE_NAME = "coachdm-shell-v3";
 const SHELL_FILES = [
   "/app.html", "/manifest.json", "/vendor/supabase.js",
   "/cdm-ui.js", "/cdm-icons.js", "/cdm-track.js", "/anim.js",

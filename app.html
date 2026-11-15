@@ -16074,7 +16074,7 @@ function animCharger(){
   ANIM_ETAT=1;
   return new Promise(r=>{
     const sc=document.createElement('script');
-    sc.src='anim.js?v=2';
+    sc.src='anim.js?v=3';
     sc.onload=()=>{ ANIM_ETAT=2; r(true); };
     sc.onerror=()=>{ ANIM_ETAT=3; r(false); };
     document.head.appendChild(sc);
@@ -17620,7 +17620,9 @@ function nxFigTransform(svg,sex){
 { const _as=animSVG; animSVG=function(slug,mode){
   const sex=nxFigSex(), k=slug+'|'+mode+'|'+sex; if(NXF_CACHE[k]!==undefined) return NXF_CACHE[k];
   let s=_as(slug,mode); if(!s) return s;
-  try{ s=nxFigTransform(s,sex).replace(/#E9C767/gi,'rgba(220,187,114,.55)').replace(/#00FFA3/gi,'#DCBB72'); }catch(_){}
+  /* 2.5 : retour au bonhomme squelette (traits fins, sans muscles) : plus lisible.
+     nxFigTransform reste disponible mais n'est plus appliquee. */
+  try{ s=s.replace(/#E9C767/gi,'rgba(220,187,114,.55)').replace(/#00FFA3/gi,'#DCBB72'); }catch(_){}
   return NXF_CACHE[k]=s;
 }; }
 /* la story dessine le meme bonhomme */
@@ -17628,7 +17630,7 @@ msStoryFig=function(slug,color,frame){
   return new Promise(res=>{
     const A=window.MOUV_ANIM&&window.MOUV_ANIM[slug]; if(!A) return res(null);
     const fr=(A.ok||[])[Math.min(frame,(A.ok||[]).length-1)]; if(!fr) return res(null);
-    let body=fr; try{ body=nxFigTransform(fr,nxFigSex()); }catch(_){}
+    const body=fr;   /* 2.5 : squelette, comme dans l'app */
     const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 '+A.vh+'">'+(A.dc||'')+body+'</svg>';
     const s2=svg.replace(/#DCBB72/gi,color).replace(/#00FFA3/gi,color);
     const im=new Image(); im.onload=()=>res({im,vh:A.vh}); im.onerror=()=>res(null);
@@ -17646,6 +17648,7 @@ setTimeout(()=>{ nxFigLoad().catch(()=>{}); },1500);
   const paint=()=>{ blk.innerHTML=`<h3>${esc(tx('h'))}</h3><p class="fk" style="margin:0 0 12px">${esc(tx('s'))}</p><div class="theme-seg nx-figseg"><button data-f="male" class="${nxFigSex()==='male'?'on':''}">${esc(tx('m'))}</button><button data-f="female" class="${nxFigSex()==='female'?'on':''}">${esc(tx('f'))}</button></div>`;
     blk.querySelectorAll('button').forEach(b=>b.onclick=()=>{ nxBuzz(); nxFigSet(b.dataset.f); paint(); }); };
   paint(); box.appendChild(blk);
+  blk.hidden=true;   /* 2.5 : bonhomme squelette pour tous, plus de choix homme / femme */
   { const _ps=pfShow; pfShow=function(v){ _ps(v); if(v==='appearance') try{ paint(); }catch(_){} }; }
 })();
 /* ==========================================================================
