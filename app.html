@@ -12013,6 +12013,7 @@ function buzz(ms){
   try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){}
 }
 function tones(seq){ try{
+  if(naOK()){ naTones(seq); return; }
   const A=window.AudioContext||window.webkitAudioContext; if(!A) return;
   /* iOS : un contexte cree hors d'un toucher reste muet -> on reutilise celui de la voix */
   const c=vcCtx(); let t0=c.currentTime;
@@ -12388,13 +12389,14 @@ function msUtter(text,v,fb){ const u=new SpeechSynthesisUtterance(text);
 const AD={on:false,t:0,skip:false};
 function adOn(){ try{ return localStorage.getItem('cdm_ms_duck')!=='0'; }catch(_){ return true; } }
 function adPlugin(){ try{ const P=window.Capacitor&&window.Capacitor.Plugins; return P&&P.AudioDuck||null; }catch(_){ return null; } }
-function adDuck(){ if(AD.skip) return; const p=adPlugin(); if(!p||!adOn()) return;
+function adDuck(){ if(AD.skip||naOK()) return; const p=adPlugin(); if(!p||!adOn()) return;
   if(!AD.on){ AD.on=true; try{ p.duck().catch(()=>{}); }catch(_){} } adWatch(); }
 function adWatch(){ clearTimeout(AD.t); AD.t=setTimeout(()=>{
   if(vcSpeaking()){ adWatch(); return; }
   const p=adPlugin(); AD.on=false; if(!p) return; let n=0;
   const go=()=>{ try{ p.unduck().catch(()=>{ if(++n<6&&!AD.on) setTimeout(go,150); }); }catch(_){} }; go(); },180); }
 function msSay(parts){
+  if(MSV.on&&naOK()){ if(!naMuted()) naSay(parts); return; }
   if(!MSV.on||!('speechSynthesis' in window)) return;
   adDuck();
   try{
@@ -12564,18 +12566,104 @@ const vcReady=()=>VC_CORE.every(k=>vcHas(LANG,k));
 const vcAny=()=>!!(VC_IDX&&((VC_IDX[LANG]&&Object.keys(VC_IDX[LANG]).length)||(VC_IDX.x&&Object.keys(VC_IDX.x).length)));
 function vcMode(){ let m=null; try{ m=localStorage.getItem('cdm_ms_vmode'); }catch(_){} if(m==='phone') return 'phone'; return vcAny()?'coach':'phone'; }
 function vcCuesToo(){ try{ return localStorage.getItem('cdm_ms_vcues')==='1'; }catch(_){ return false; } }
-function vcCtx(){ if(!VC_AC) VC_AC=new (window.AudioContext||window.webkitAudioContext)(); if(VC_AC.state!=='running') VC_AC.resume().catch(()=>{}); return VC_AC; }
+/* ==========================================================================
+   COACH DM 2.5 — AUDIO NATIF iOS (plugin CdmAudio)
+   Avant, sur iPhone, voix et bips passaient par Web Audio :
+     - WebKit prenait la session audio en exclusif : Spotify / Apple Music s'arretaient ;
+     - ecran verrouille, iOS gele le JavaScript : voix en retard sur le chrono, ou qui saute.
+   Maintenant, sur iPhone, plus aucun son ne passe par Web Audio :
+     - chaque son (morceau de voix deja traite, bip) est rendu UNE fois ici, puis confie au natif ;
+     - le natif le joue a l'heure exacte, par-dessus la musique (baissee pour une vraie phrase) ;
+     - naPlan() calcule a l'avance tout ce que les timers vont dire et le confie au natif, qui
+       le joue seul quand l'app est en arriere-plan (ecran verrouille). Au retour, le JavaScript
+       reprend la main en silence pendant 1,3 s : il rattrape son etat sans rien redire.
+   Android et web : rien ne change (Web Audio, comme avant).
+   ========================================================================== */
+const NA={L:new Map(),mute:0,busy:0,sig:'',seq:0};
+const NA_SR=48000;
+let NA_DEC=null;
+function naP(){ try{ const C=window.Capacitor; if(!C||!C.isNativePlatform||!C.isNativePlatform()) return null;
+  if(C.getPlatform&&C.getPlatform()!=='ios') return null;
+  if(C.isPluginAvailable&&!C.isPluginAvailable('CdmAudio')) return null;
+  return (C.Plugins&&C.Plugins.CdmAudio)||null; }catch(_){ return null; } }
+function naOK(){ return !!naP(); }
+/* app cachee : c'est le natif qui parle. Juste apres le retour : rattrapage silencieux. */
+function naMuted(){ return document.hidden||Date.now()<NA.mute; }
+function naLang(en){ return en&&LANG!=='en'?'en-US':(({fr:'fr-FR',nl:'nl-NL',en:'en-US'})[LANG]||'fr-FR'); }
+function naOff(sec){ const C=window.OfflineAudioContext||window.webkitOfflineAudioContext; return new C(1,Math.max(1,Math.ceil(sec*NA_SR)),NA_SR); }
+/* PCM 16 bits little-endian, en base64 */
+function naPcm(f){ const n=f.length, u=new Uint8Array(n*2);
+  for(let i=0;i<n;i++){ let v=f[i]; v=v>1?1:v<-1?-1:v; const x=Math.round(v<0?v*32768:v*32767); u[2*i]=x&255; u[2*i+1]=(x>>8)&255; }
+  let b=''; for(let i=0;i<u.length;i+=0x8000) b+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(b); }
+/* un son : rendu une seule fois, envoye une seule fois au natif */
+function naEnsure(id,render){ let p=NA.L.get(id); if(p) return p;
+  p=(async()=>{ const f=await render(); await naP().put({id,pcm:naPcm(f)}); return id; })();
+  NA.L.set(id,p); p.catch(()=>NA.L.delete(id)); return p; }
+async function naRender(ac){ return (await ac.startRendering()).getChannelData(0); }
+/* morceau de voix : decoupe, fondus de 8 ms et meme chaine que la voix en direct (vcChain) */
+function naClip(o){ return naEnsure(o.id,()=>{ const d=Math.max(.05,o.en-o.st), ac=naOff(d+.06);
+  const src=ac.createBufferSource(), g=ac.createGain(); src.buffer=o.buf;
+  g.gain.setValueAtTime(0,0); g.gain.linearRampToValueAtTime(1,.008);
+  g.gain.setValueAtTime(1,Math.max(.009,d-.012)); g.gain.linearRampToValueAtTime(0,d);
+  src.connect(g).connect(vcChain(ac)); src.start(0,o.st,d); return naRender(ac); }); }
+/* bip du Timer (meme son que nxtBeep) */
+function naBeep(f,d,v){ d=Math.max(.16,d||.16); v=v||.5;
+  return naEnsure('b:'+f+':'+d+':'+v,()=>{ const ac=naOff(d+.06), t0=.005, g=ac.createGain();
+    g.gain.setValueAtTime(.0001,t0); g.gain.exponentialRampToValueAtTime(v,t0+.012); g.gain.setValueAtTime(v,t0+d*.6); g.gain.exponentialRampToValueAtTime(.0001,t0+d);
+    [[f,'sine',1],[f*2,'triangle',.3]].forEach(o=>{ const os=ac.createOscillator(), og=ac.createGain(); os.type=o[1]; os.frequency.value=o[0]; og.gain.value=o[2]; os.connect(og); og.connect(g); os.start(t0); os.stop(t0+d+.03); });
+    g.connect(ac.destination); return naRender(ac); }); }
+/* bips des seances (SND) : meme melodie, mais audibles par-dessus la musique
+   (avant : 14 % du volume, couverts par Spotify) */
+function naTone(f,d){ return naEnsure('t:'+f+':'+d,()=>{ const ac=naOff(d+.03), o=ac.createOscillator(), g=ac.createGain();
+  o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(ac.destination);
+  g.gain.setValueAtTime(.0001,0); g.gain.exponentialRampToValueAtTime(.38,.005); g.gain.exponentialRampToValueAtTime(.0001,d);
+  o.start(0); o.stop(d+.01); return naRender(ac); }); }
+function naSend(tag,events,replace){ const P=naP(); if(!P) return; try{ P.schedule({tag,events,replace:!!replace}).catch(()=>{}); }catch(_){} }
+function naClear(tag){ const P=naP(); if(!P) return; try{ P.clear({tag}).catch(()=>{}); }catch(_){} }
+async function naTonesEv(seq,at){ const ev=[]; let t=at; for(const p of seq){ ev.push({at:Math.round(t),id:await naTone(p[0],p[1])}); t+=p[1]*850; } return ev; }
+async function naTones(seq){ if(naMuted()) return; try{ const ev=await naTonesEv(seq,Date.now()+30); if(!naMuted()) naSend('fx',ev); }catch(_){} }
+async function naBeepNow(f,d,v){ if(naMuted()) return; try{ const id=await naBeep(f,d,v); if(!naMuted()) naSend('fx',[{at:Date.now()+15,id}]); }catch(_){} }
+/* une phrase (morceaux enregistres, pauses, textes lus par la voix du telephone) -> sons a l'heure */
+async function naItems(items,t0,duck){ const ev=[]; let t=t0, prev=false;
+  for(const x of items){
+    if(x.pause){ t+=x.pause; prev=false; continue; }
+    if(x.tts){ ev.push({at:Math.round(t),tts:x.tts,lang:naLang(x.en),duck}); t+=500+x.tts.length*62; prev=false; continue; }
+    if(!x.k) continue;
+    let o; try{ o=await vcLoad(x.l,x.k); await naClip(o); }catch(_){ continue; }
+    if(prev) t-=20;                                   /* 20 ms de chevauchement, comme vcRunIn */
+    ev.push({at:Math.round(t),id:o.id,duck}); t+=Math.max(.05,o.en-o.st)*1000; prev=true; }
+  return {ev,end:t}; }
+const naPrep=items=>Promise.all(items.filter(x=>x.k).map(x=>vcLoad(x.l,x.k).then(naClip).catch(()=>{})));
+async function naRun(items,my,duck){
+  await naPrep(items);                                 /* tout est pret avant de parler : la phrase part d'un bloc */
+  if(my!==VC_RUN||naMuted()) return;
+  const r=await naItems(items,Date.now()+70,duck);
+  if(my!==VC_RUN||naMuted()||!r.ev.length) return;
+  naSend('fg',r.ev); NA.busy=r.end;
+  await vcWait(Math.max(0,r.end-Date.now())+40);
+}
+/* voix du telephone (mode « voix du telephone » ou phrase non enregistree) */
+function naTts(parts){ return [].concat(parts).filter(Boolean).map(x=>typeof x==='object'?(LANG==='en'?{tts:x.t}:msNamesMode()==='en'?{tts:x.t,en:true}:{tts:x.lex}):{tts:x}); }
+function naSay(parts){ const it=naTts(parts); if(!it.length) return;
+  vcStop(); const my=VC_RUN; VC_BUSY=my; const duck=!AD.skip&&adOn();
+  naRun(it,my,duck).catch(()=>{}).finally(()=>{ if(VC_BUSY===my) VC_BUSY=0; }); }
+/* contexte de decodage seul (jamais de sortie son : WebKit ne touche plus a la session audio) */
+function naDec(){ if(!NA_DEC) NA_DEC=naOff(.1); return NA_DEC; }
+function vcCtx(){ if(naOK()) return naDec(); if(!VC_AC) VC_AC=new (window.AudioContext||window.webkitAudioContext)(); if(VC_AC.state!=='running') VC_AC.resume().catch(()=>{}); return VC_AC; }
 /* La voix doit passer au-dessus de la musique sans agresser : environ +5 dB percus, un compresseur
    qui remonte les fins de mots et tient les pics (comme un micro de coach en salle). */
 let VC_OUT=null;
-function vcOut(){ const ac=vcCtx(); if(VC_OUT&&VC_OUT.context===ac) return VC_OUT;
+/* la chaine (gain, compresseur, gain, limiteur) branchee sur la sortie d'un contexte : la meme en
+   direct (Web Audio) et pour le rendu des sons confies au natif (iPhone) */
+function vcChain(ac){
   try{ const g=ac.createGain(); g.gain.value=1.8; const c=ac.createDynamicsCompressor();
     c.threshold.value=-20; c.knee.value=8; c.ratio.value=4; c.attack.value=.003; c.release.value=.2;
     const p=ac.createGain(); p.gain.value=1.6;                       /* on remonte le tout… */
     const l=ac.createDynamicsCompressor();                           /* …et un limiteur : jamais de saturation */
     l.threshold.value=-3; l.knee.value=0; l.ratio.value=20; l.attack.value=.001; l.release.value=.08;
-    g.connect(c).connect(p).connect(l).connect(ac.destination); VC_OUT=g; }catch(_){ VC_OUT=ac.destination; }
-  return VC_OUT; }
+    g.connect(c).connect(p).connect(l).connect(ac.destination); return g; }catch(_){ return ac.destination; } }
+function vcOut(){ const ac=vcCtx(); if(VC_OUT&&VC_OUT.context===ac) return VC_OUT;
+  VC_OUT=vcChain(ac); return VC_OUT; }
 async function vcLoad(l,k){
   const r=VC_IDX[l][k]; const id=l+'/'+k+'@'+r.updated_at; if(VC_BUF[id]) return VC_BUF[id];
   const url=VC_BASE+r.path+'?v='+encodeURIComponent(r.updated_at);
@@ -12583,7 +12671,7 @@ async function vcLoad(l,k){
   try{ const c=await caches.open('cdm-voice-1'); resp=await c.match(url); if(!resp){ resp=await fetch(url); if(resp.ok) try{ await c.put(url,resp.clone()); }catch(_){} } }catch(_){ resp=await fetch(url); }
   const ab=await resp.arrayBuffer(); const buf=await vcDecode(ab);
   const lv=vcLevel(buf,r);
-  return VC_BUF[id]=Object.assign({r},vcProcess(vcCtx(),buf,lv.st,lv.en));
+  return VC_BUF[id]=Object.assign({r,id},vcProcess(vcCtx(),buf,lv.st,lv.en));
 }
 /* decodages a la file (en parallele, le telephone en rate une partie) + 2 reessais */
 let VC_DQ=Promise.resolve();
@@ -12669,7 +12757,7 @@ function vcEdges(y,sr,dur){
 
 /* precharge en arriere-plan tout ce dont la seance aura besoin */
 function vcPreload(keys){ keys.forEach(([l,k])=>{ if(vcHas(l,k)) vcLoad(l,k).catch(()=>{}); }); }
-function vcStop(){ VC_RUN++; VC_BUSY=0; VC_SRC.forEach(s=>{ try{ s.stop(); }catch(_){} }); VC_SRC=[]; try{ speechSynthesis.cancel(); }catch(_){} }
+function vcStop(){ VC_RUN++; VC_BUSY=0; VC_SRC.forEach(s=>{ try{ s.stop(); }catch(_){} }); VC_SRC=[]; if(naOK()){ NA.busy=0; naClear('fg'); return; } try{ speechSynthesis.cancel(); }catch(_){} }
 function vcPlayBuf(o){ return new Promise(res=>{ const ac=vcCtx(), src=ac.createBufferSource(), g=ac.createGain();
   g.gain.value=o.gn||o.r.gain||1; src.buffer=o.buf; src.connect(g).connect(ac.destination);
   const st=o.st!=null?o.st:(o.r.trim_start||0), en=o.en!=null?o.en:(o.r.trim_end||o.buf.duration); src.onended=()=>res();
@@ -12725,6 +12813,7 @@ async function vcRun(items,fallback){
     try{ await Promise.all(items.filter(it=>it.k).map(it=>vcLoad(it.l,it.k))); }
     catch(_){ if(my===VC_RUN&&fallback!=null&&vcMode()!=='coach') msSay(fallback); return; }
     if(my!==VC_RUN) return;
+    if(naOK()){ if(!naMuted()) await naRun(items,my,duckIt&&adOn()); return; }
     if(duckIt) adDuck();
     await vcRunIn(items,my);
   } finally { if(VC_BUSY===my) VC_BUSY=0; }
@@ -12813,7 +12902,7 @@ async function vcCueData(slugs){
   return VC_CUES;
 }
 function vcLiveOn(){ try{ return localStorage.getItem('cdm_ms_vlive')!=='0'; }catch(_){ return true; } }
-const vcSpeaking=()=>!!VC_BUSY||(('speechSynthesis' in window)&&speechSynthesis.speaking);
+const vcSpeaking=()=>!!VC_BUSY||Date.now()<NA.busy||(('speechSynthesis' in window)&&speechSynthesis.speaking);
 function msLiveStop(){ if(MS&&MS.liveT){ clearTimeout(MS.liveT); MS.liveT=0; } }
 /* ── Les consignes de Coach DM, placées comme à la box ──────────────────────
    Une consigne = 2 à 5 mots, criée pendant l'effort, une seule à la fois, dans l'ordre
@@ -13437,6 +13526,54 @@ function msTypeVal(what){
 }
 function msAdjR(d){ const s=MS&&MS.cur; if(!s) return; const t=msTarget(s); t.r=Math.max(1,(t.r||(d>0?4:6))+d); buzz(10); msTv(); }
 
+/* 2.5 : l'annonce d'une serie (« Back squat. Serie 2 sur 4, 5 repetitions a 80 kilos… »).
+   peek=true : on la calcule a l'avance pour le moteur natif (fin du repos ecran verrouille),
+   sans rien marquer comme deja dit. */
+function msAnn(s,peek){
+    const name=pick(s.ex,'name'), n=s.pills.length;
+    const cue=[pick(s.it,'notes'),pick(s.ex,'cue')].filter(Boolean).join(' ');
+    const t=msTarget(s); const first=!MS.seen[s.it.id]; if(!peek) MS.seen[s.it.id]=1;
+    const nm=msNm(name);
+    let line='';
+    if(LANG==='fr'){ line=`Série ${msNum(s.k+1)} sur ${msNum(n)}.`+(t.r?` ${msNum(t.r)} répétitions${s._side?' par côté':''}`:'')+(t.load==='weight'&&t.kg?`, à ${msKg(t.kg)}`:'')+'.'; }
+    else if(LANG==='nl'){ line=`Set ${s.k+1} van ${n}.`+(t.r?` ${t.r} repetities`:'')+(t.load==='weight'&&t.kg?`, ${msKg(t.kg)}`:'')+'.'; }
+    else { line=`Set ${s.k+1} of ${n}.`+(t.r?` ${t.r} reps`:'')+(t.load==='weight'&&t.kg?` at ${msKg(t.kg)}`:'')+'.'; }
+    /* comme un coach a cote de toi : la 1re serie complete, ensuite l'essentiel.
+       Le nom seulement au debut de l'exercice, « sur N » seulement a la 1re et a la derniere
+       serie, la charge seulement si elle change. */
+    const prevKg=MS.lastKg&&MS.lastKg[s.it.id]; if(!peek) (MS.lastKg=MS.lastKg||{})[s.it.id]=t.kg;
+    const intro=first||s.k===0, sayOf=intro||s.k+1===n, sayKg=t.load==='weight'&&t.kg&&(intro||prevKg!==t.kg);
+    const P={pause:160}, spec=intro?[{name:s.ex.slug,text:name},P]:[];
+    if(intro&&s.ex&&/^primer-/.test(s.ex.slug||'')){ spec.splice(0,spec.length); if(vcHas(LANG,'nm_'+s.ex.slug)) spec.push('nm_'+s.ex.slug,P); }
+    if(intro){ const ph0=msPhase(s), bk=(s.it&&s.it.block)||''; const pk=ph0==='warm'?'p_warm':ph0==='cool'?'p_cool':(bk==='strength'||bk==='skill')?'p_skill':null; const tag=pk||ph0; if(MS.lastPhK!==tag){ if(!peek) MS.lastPhK=tag; if(pk&&vcMode()==='coach'&&vcHas(LANG,pk)) spec.unshift(pk,{pause:260}); } }
+    { const sk=s.k+1, alt=['w_set',{n:sk}].concat(sayOf?['w_of',{n:n}]:[]);
+      spec.push(sayOf?(n<=10&&sk<=n?{full:'s_'+sk+'_'+n,alt}:alt[0]):(sk<=10?{full:'s_'+sk,alt}:alt[0]));
+      if(!(sayOf?(n<=10&&sk<=n):(sk<=10))) spec.push(...alt.slice(1)); }
+    spec.push(P);
+    if(t.load==='time'&&t.v){ if(t.v>=60&&t.v%60===0){ const m=t.v/60; spec.push(m<=10?{full:'min_'+m,alt:[{n:m},'w_min']}:{n:m},...(m<=10?[]:['w_min'])); }
+      else { const v=t.v; spec.push(VC_SECS.includes(v)?{full:'sec_'+v,alt:[{n:v},'w_sec']}:{n:v},...(VC_SECS.includes(v)?[]:['w_sec'])); } }
+    else if(t.load==='distance'&&t.v){ spec.push({n:t.v>=1000?t.v/1000:t.v},t.v>=1000?{tts:'km'}:'w_m'); }
+    else if(t.load==='calories'&&t.v){ spec.push({n:t.v},'w_cal'); }
+    else if(t.r){ if(VC_REPS.includes(t.r)) spec.push({full:'r_'+t.r,alt:[{n:t.r},'w_reps']}); else spec.push({n:t.r},'w_reps'); if(s._side) spec.push('w_side'); }
+    if(sayKg){ spec.push({pause:90}); if(LANG!=='nl') spec.push('w_at'); spec.push({kg:t.kg}); }
+    const ex1=first&&vcMode()==='coach'?vcExpl(s.ex.slug,!!msTempoOf(s)):null, lastS=n>1&&s.k+1===n;
+    if(ex1) spec.push({pause:350},ex1);                                   /* la 1re fois : la consigne expliquee en entier */
+    else if(first&&cue&&vcCuesToo()&&vcMode()!=='coach') spec.push({pause:350},{tts:msCue(cue)});
+    const cx=msCtx(Object.assign({},s,{n}),'pre'), work=cx.ph==='work';
+    let pre=null;
+    if(VC_CUES&&VC_CUES.meta&&(VC_CUES.meta[s.ex.slug]||[]).length){
+      const su=vcCuesFor(s.ex.slug,'setup'), mi=vcCuesFor(s.ex.slug,'mid'), short=msShortSet(s,t);
+      if(su.length&&(intro||short)) pre=su[s.k%su.length];             /* « Enleve le mou… » : avant de tirer */
+      else if(short&&mi.length) pre=mi[s.k%mi.length];                  /* serie lourde de 1 a 3 reps : la consigne avant */
+    }
+    const preS=pre?vcCueSpec(pre):null;
+    if(preS) spec.push({pause:300},preS);
+    if(!preS&&!ex1&&!(first&&cue&&vcCuesToo())&&intro&&work&&cx.reps&&Math.random()<.8){ const k=vcPick('start_'); if(k) spec.push({pause:350},k); }
+    if(!intro&&lastS&&work&&Math.random()<.95){ const k=vcPick('last_'); if(k) spec.push({pause:350},k); }
+    else if(!intro&&!preS&&Math.random()<.45){ const k=vcPickEnc(cx); if(k) spec.push({pause:350},k); }
+    if(!intro) line=line.replace(/^[^.]*\./,LANG==='fr'?`Série ${msNum(s.k+1)}${sayOf?' sur '+msNum(n):''}.`:LANG==='nl'?`Set ${s.k+1}${sayOf?' van '+n:''}.`:`Set ${s.k+1}${sayOf?' of '+n:''}.`);
+    return {spec,fb:[intro?nm:'',line.replace(/\.\./g,'.'),first&&cue&&vcCuesToo()?msCue(cue):''].filter(Boolean)};
+}
 async function msWork(announce){
   if(!MS) return;
   const s=msCur(); if(!s){ msEnd(); return; }
@@ -13476,49 +13613,7 @@ async function msWork(announce){
   { const b=document.getElementById('ms-ts'), eo=s.it.exercise; b.hidden=!(eo&&SUBS&&(SUBS[eo.id]||[]).length); }
   const gh=document.getElementById('ms-ghost'); gh.textContent='';
   msLastTime(s.wrap.dataset.ex).then(r=>{ if(!MS||MS.cur!==s) return; gh.innerHTML=r?`${esc(mt('last'))} : <b>${esc(msLastTxt(r))}</b>`:esc(mt('first')); });
-  if(announce){
-    const t=msTarget(s); const first=!MS.seen[s.it.id]; MS.seen[s.it.id]=1;
-    const nm=msNm(name);
-    let line='';
-    if(LANG==='fr'){ line=`Série ${msNum(s.k+1)} sur ${msNum(n)}.`+(t.r?` ${msNum(t.r)} répétitions${s._side?' par côté':''}`:'')+(t.load==='weight'&&t.kg?`, à ${msKg(t.kg)}`:'')+'.'; }
-    else if(LANG==='nl'){ line=`Set ${s.k+1} van ${n}.`+(t.r?` ${t.r} repetities`:'')+(t.load==='weight'&&t.kg?`, ${msKg(t.kg)}`:'')+'.'; }
-    else { line=`Set ${s.k+1} of ${n}.`+(t.r?` ${t.r} reps`:'')+(t.load==='weight'&&t.kg?` at ${msKg(t.kg)}`:'')+'.'; }
-    /* comme un coach a cote de toi : la 1re serie complete, ensuite l'essentiel.
-       Le nom seulement au debut de l'exercice, « sur N » seulement a la 1re et a la derniere
-       serie, la charge seulement si elle change. */
-    const prevKg=MS.lastKg&&MS.lastKg[s.it.id]; (MS.lastKg=MS.lastKg||{})[s.it.id]=t.kg;
-    const intro=first||s.k===0, sayOf=intro||s.k+1===n, sayKg=t.load==='weight'&&t.kg&&(intro||prevKg!==t.kg);
-    const P={pause:160}, spec=intro?[{name:s.ex.slug,text:name},P]:[];
-    if(intro&&s.ex&&/^primer-/.test(s.ex.slug||'')){ spec.splice(0,spec.length); if(vcHas(LANG,'nm_'+s.ex.slug)) spec.push('nm_'+s.ex.slug,P); }
-    if(intro){ const ph0=msPhase(s), bk=(s.it&&s.it.block)||''; const pk=ph0==='warm'?'p_warm':ph0==='cool'?'p_cool':(bk==='strength'||bk==='skill')?'p_skill':null; const tag=pk||ph0; if(MS.lastPhK!==tag){ MS.lastPhK=tag; if(pk&&vcMode()==='coach'&&vcHas(LANG,pk)) spec.unshift(pk,{pause:260}); } }
-    { const sk=s.k+1, alt=['w_set',{n:sk}].concat(sayOf?['w_of',{n:n}]:[]);
-      spec.push(sayOf?(n<=10&&sk<=n?{full:'s_'+sk+'_'+n,alt}:alt[0]):(sk<=10?{full:'s_'+sk,alt}:alt[0]));
-      if(!(sayOf?(n<=10&&sk<=n):(sk<=10))) spec.push(...alt.slice(1)); }
-    spec.push(P);
-    if(t.load==='time'&&t.v){ if(t.v>=60&&t.v%60===0){ const m=t.v/60; spec.push(m<=10?{full:'min_'+m,alt:[{n:m},'w_min']}:{n:m},...(m<=10?[]:['w_min'])); }
-      else { const v=t.v; spec.push(VC_SECS.includes(v)?{full:'sec_'+v,alt:[{n:v},'w_sec']}:{n:v},...(VC_SECS.includes(v)?[]:['w_sec'])); } }
-    else if(t.load==='distance'&&t.v){ spec.push({n:t.v>=1000?t.v/1000:t.v},t.v>=1000?{tts:'km'}:'w_m'); }
-    else if(t.load==='calories'&&t.v){ spec.push({n:t.v},'w_cal'); }
-    else if(t.r){ if(VC_REPS.includes(t.r)) spec.push({full:'r_'+t.r,alt:[{n:t.r},'w_reps']}); else spec.push({n:t.r},'w_reps'); if(s._side) spec.push('w_side'); }
-    if(sayKg){ spec.push({pause:90}); if(LANG!=='nl') spec.push('w_at'); spec.push({kg:t.kg}); }
-    const ex1=first&&vcMode()==='coach'?vcExpl(s.ex.slug,!!msTempoOf(s)):null, lastS=n>1&&s.k+1===n;
-    if(ex1) spec.push({pause:350},ex1);                                   /* la 1re fois : la consigne expliquee en entier */
-    else if(first&&cue&&vcCuesToo()&&vcMode()!=='coach') spec.push({pause:350},{tts:msCue(cue)});
-    const cx=msCtx(Object.assign({},s,{n}),'pre'), work=cx.ph==='work';
-    let pre=null;
-    if(VC_CUES&&VC_CUES.meta&&(VC_CUES.meta[s.ex.slug]||[]).length){
-      const su=vcCuesFor(s.ex.slug,'setup'), mi=vcCuesFor(s.ex.slug,'mid'), short=msShortSet(s,t);
-      if(su.length&&(intro||short)) pre=su[s.k%su.length];             /* « Enleve le mou… » : avant de tirer */
-      else if(short&&mi.length) pre=mi[s.k%mi.length];                  /* serie lourde de 1 a 3 reps : la consigne avant */
-    }
-    const preS=pre?vcCueSpec(pre):null;
-    if(preS) spec.push({pause:300},preS);
-    if(!preS&&!ex1&&!(first&&cue&&vcCuesToo())&&intro&&work&&cx.reps&&Math.random()<.8){ const k=vcPick('start_'); if(k) spec.push({pause:350},k); }
-    if(!intro&&lastS&&work&&Math.random()<.95){ const k=vcPick('last_'); if(k) spec.push({pause:350},k); }
-    else if(!intro&&!preS&&Math.random()<.45){ const k=vcPickEnc(cx); if(k) spec.push({pause:350},k); }
-    if(!intro) line=line.replace(/^[^.]*\./,LANG==='fr'?`Série ${msNum(s.k+1)}${sayOf?' sur '+msNum(n):''}.`:LANG==='nl'?`Set ${s.k+1}${sayOf?' van '+n:''}.`:`Set ${s.k+1}${sayOf?' of '+n:''}.`);
-    msSayC(spec,[intro?nm:'',line.replace(/\.\./g,'.'),first&&cue&&vcCuesToo()?msCue(cue):''].filter(Boolean));
-  }
+  if(announce){ const A=msAnn(s,false); msSayC(A.spec,A.fb); }
   msLiveCues(s);
 }
 
@@ -13813,6 +13908,11 @@ function lkAsk(){
 let BGK=null;
 function bgKeep(on){
   try{
+    if(naOK()){
+      if(on){ lkAsk(); if(BGK) return; BGK={na:1}; try{ naP().start().catch(()=>{}); }catch(_){} naReplan(); }
+      else if(BGK){ BGK=null; NA.sig=''; naSend('bg',[],true); try{ naP().stop().catch(()=>{}); }catch(_){} }
+      return;
+    }
     if(on){
       lkAsk();
       if(BGK) return;
@@ -13825,18 +13925,181 @@ function bgKeep(on){
   }catch(_){}
 }
 function bgKeepSync(){
-  const active=(typeof NXT!=='undefined'&&NXT&&!NXT.done)||(typeof SESSION!=='undefined'&&!!SESSION)||(typeof WOD!=='undefined'&&WOD&&!WOD.ended);
+  const active=(typeof NXT!=='undefined'&&NXT&&!NXT.done)||(typeof SESSION!=='undefined'&&!!SESSION)||(typeof WOD!=='undefined'&&WOD&&!WOD.ended)||(typeof NXTS!=='undefined'&&NXTS&&!NXTS.done);
   bgKeep(!!active);
 }
+/* ==========================================================================
+   2.5 — CE QUE LES TIMERS VONT DIRE, CALCULE A L'AVANCE (iPhone)
+   Chaque fonction reprend EXACTEMENT les regles de son tick (memes secondes, memes
+   phrases, memes bips) et les pose sur l'horloge. Le natif ne les joue que si l'app est
+   en arriere-plan. Recalcule chaque seconde (et a chaque passage en arriere-plan) :
+   pause, +15 s, repos passe… le programme suit. Les choix au hasard sont tires une
+   seule fois (memorises sur le timer) pour que le programme reste stable.
+   ========================================================================== */
+const NA_FIN=[[784,.14],[988,.14],[1175,.32]], NA_REST=[[880,.12],[880,.12],[1046,.26]], NA_START=[[523,.15],[659,.15],[784,.28]], NA_TICK=[[660,.07]];
+const naW=(fr,nl,en)=>LANG==='fr'?fr:LANG==='nl'?nl:en;
+/* ce que msSayC dirait (null = rien) */
+function naSayItems(spec,fb){ if(!MSV.on) return null;
+  if(vcMode()==='coach'){ let it=vcPlan(spec); if(!it||it.some(x=>x.tts)) it=vcPlanLoose(spec); return it&&it.some(x=>x.k)?it:null; }
+  const it=naTts(fb); return it.length?it:null; }
+/* ce que vcSayCue dirait */
+function naCueItems(k){ if(!MSV.on) return null; if(vcMode()==='coach') return vcHas(LANG,k)?[{l:LANG,k}]:null;
+  return VC_CUES&&VC_CUES.txt&&VC_CUES.txt[k]?naTts(VC_CUES.txt[k]):null; }
+
+function naPlanNxt(add){
+  const X=(typeof NXT!=='undefined')?NXT:null; if(!X||X.done||X.pAt||!NXT_SND) return;
+  let ph=false; try{ ph=localStorage.getItem('cdm_ms_vmode')==='phone'; }catch(_){}
+  const sayOK=NXT_VC&&MSV.on&&(ph||vcAny());
+  const T=sec=>Math.round(X.t0+X.paused+sec*1000);
+  const say=(at,spec,fb,duck)=>{ if(sayOK) add({at,k:'say',spec,fb,duck:!!duck}); };
+  const beep=(at,f,d,v)=>add({at,k:'beep',f,d,v});
+  const end=at=>{ add({at,k:'tones',seq:NA_FIN}); say(at,['p_time'],'Time !'); };
+  const NUM={3:naW('Trois.','Drie.','Three.'),2:naW('Deux.','Twee.','Two.'),1:naW('Un.','Eén.','One.')};
+  for(const l of [3,2,1]) if(X.pre>=l){ beep(T(X.pre-l),880,.18,.5); say(T(X.pre-l),[{n:l}],NUM[l]); }
+  let acc=X.pre, all=true;
+  for(let i=0;i<X.P.length;i++){ const p=X.P[i], st=acc;
+    if(p.t==='work'){ beep(T(st),1320,.5,.6);
+      if(i===0) say(T(st),['p_go'],naW('C’est parti !','Daar gaan we!','Let’s go!'));
+      else if(X.P[i-1].t==='rest') say(T(st),[{full:'p_again',alt:['p_go']}],naW('C’est reparti !','Daar gaan we weer!','Here we go again!')); }
+    else { beep(T(st),660,.3,.45); if(p.d>=10) say(T(st),['p_rest'],naW('Récupère.','Recupereer.','Recover.'),p.d>=20); }
+    if(p.d==null){ all=false;
+      if(p.cap){ if(p.cap>=10) say(T(st+p.cap-10),['p_10s'],LANG==='fr'?'Dix secondes !':'Ten seconds!');
+        for(const l of [3,2,1]) if(p.cap>l) beep(T(st+p.cap-l),880,.18,.5);
+        end(T(st+p.cap)); }
+      break; }
+    if(p.d>=30) say(T(st+p.d-10),['p_10s'],LANG==='fr'?'Dix secondes !':'Ten seconds!');
+    if((X.k==='amrap'||X.k==='down')&&p.d>=120) say(T(st+p.d/2),['p_half'],LANG==='fr'?'La moitié. Tiens bon.':'Halfway.',true);
+    for(const l of [3,2,1]) if(p.d>l) beep(T(st+p.d-l),880,.18,.5);
+    acc+=p.d; }
+  if(all) end(T(acc));
+}
+
+function naPlanMs(add){
+  if(typeof MS==='undefined'||!MS) return;
+  /* repos entre deux series : mi-repos, 3-2-1, fin, puis l'annonce de la serie suivante */
+  const r=MS.rest;
+  if(r&&r.end&&r.nx){ const sec=r.total, nx=r.nx, e=r.end;
+    let nxWork=false; try{ nxWork=msPhase(nx)==='work'; }catch(_){}
+    if(sec>=25&&nxWork&&vcMode()==='coach'){
+      if(r._naH===undefined){ let k=null; try{ k=vcPick('rest_'); if(k==='rest_5'&&!msCtx(nx,'pre').push) k=vcHas(LANG,'rest_1')?'rest_1':null; }catch(_){} r._naH=k||null; }
+      if(r._naH&&MSV.on) add({at:e-Math.round(sec/2)*1000,k:'say',items:[{l:LANG,k:r._naH}]}); }
+    for(const l of [3,2,1]) if(sec>l) add({at:e-l*1000,k:'tones',seq:NA_TICK});
+    add({at:e,k:'tones',seq:NA_REST});
+    if(r._naA===undefined){ try{ r._naA=msAnn(nx,true); }catch(_){ r._naA=null; } }
+    if(r._naA) add({at:e+250,k:'say',spec:r._naA.spec,fb:r._naA.fb});
+  }
+  /* exercice au temps (gainage, maintien…) */
+  const h=MS.hold;
+  if(h&&h.end){ const tot=h.total, e=h.end;
+    (h.cues||[]).forEach(c=>{ if(!c.done&&tot-c.at>11){ const it=naCueItems(c.k); if(it) add({at:e-(tot-c.at)*1000,k:'say',items:it}); } });
+    if(tot>=20){ const H=Math.floor(tot/2);
+      if(H>10){ if(vcMode()==='coach'){ if(vcHas(LANG,'p_half')) add({at:e-H*1000,k:'say',spec:['p_half'],fb:mt('half')}); }
+        else add({at:e-H*1000,k:'say',spec:[{tts:mt('half')}],fb:mt('half')}); }
+      add({at:e-10000,k:'say',spec:['p_10s'],fb:naW('Dix secondes.','Tien seconden.','Ten seconds.')}); }
+    for(const l of [3,2,1]) if(tot>l) add({at:e-l*1000,k:'tones',seq:NA_TICK});
+    add({at:e,k:'tones',seq:NA_FIN});
+  }
+  /* box : etape chronometree (echauffement, retour au calme) */
+  const b=MS.box&&MS.bt;
+  if(b&&b.run&&b.end){ let c=null; try{ c=bxCur(); }catch(_){}
+    if(c&&b.g===c.K.g){ if(c.g.t==='time') for(const l of [3,2,1]) if(b.tot>l) add({at:b.end-l*1000,k:'tones',seq:NA_TICK});
+      add({at:b.end,k:'tones',seq:NA_REST}); } }
+}
+
+/* repos de l'ecran Seance (barre du bas) */
+function naPlanRest(add){
+  if(typeof REST==='undefined'||!REST||!REST.end) return;
+  for(const l of [3,2,1]) if(REST.total>l) add({at:REST.end-l*1000,k:'tones',seq:NA_TICK});
+  add({at:REST.end,k:'tones',seq:NA_REST});
+}
+
+/* WOD : AMRAP / EMOM / For Time / RFT (barre WOD + ecran WOD du Mode seance) */
+function naPlanWod(add){
+  if(typeof WOD==='undefined'||!WOD||WOD.ended||!WOD.t0) return;
+  const T=sec=>Math.round(WOD.t0+sec*1000), tn=(at,seq)=>add({at,k:'tones',seq});
+  const ms=typeof MS!=='undefined'&&MS&&MS.wod&&MS.said?MS:null;
+  const say=(at,spec,fb)=>add({at,k:'say',spec,fb});
+  const vOr=(k,txt)=>vcHas(LANG,k)?[k]:[{tts:txt}];
+  const count=endS=>{ if(!ms) return;
+    if(endS>10) say(T(endS-10),['p_10s'],naW('Dix secondes !','Tien seconden!','Ten seconds!'));
+    const W={3:naW('Trois !','Drie!','Three!'),2:naW('Deux !','Twee!','Two!'),1:naW('Un !','Eén!','One!')};
+    for(const l of [3,2,1]) if(endS>l){ tn(T(endS-l),NA_TICK); say(T(endS-l),[{n:l}],W[l]); } };
+  const fin=endS=>{ tn(T(endS),NA_FIN); if(!ms) return;
+    say(T(endS),['p_time'],[{t:'Time!',lex:LANG==='nl'?'Tajjjm!':'Taïïïme !',en:1}]);
+    if(vcMode()==='coach'&&vcHas(LANG,'wod_end')) add({at:T(endS)+4500,k:'say',items:[{l:LANG,k:'wod_end'}]}); };
+  const talk=()=>{ if(ms&&ms.f!=='emom'&&vcMode()==='coach'&&MSV.on&&vcHas(LANG,'wod_start')) add({at:T(6),k:'say',items:[{l:LANG,k:'wod_start'}]}); };
+  if(WOD.f==='amrap'&&WOD.cap){ const c=WOD.cap;
+    [60,30,10].forEach(l=>{ if(c>l) tn(T(c-l),NA_REST); });
+    if(ms){ if(c>=240){ const H=Math.floor(c/2); if(H>60) say(T(c-H),vOr('wod_half',mt('half')),mt('half')); }
+      if(c>=120) say(T(c-60),vOr('wod_last',mt('wod_last')),mt('wod_last'));
+      talk(); count(c); }
+    fin(c); }
+  else if(WOD.f==='emom'&&WOD.rounds){ const itv=WOD.itv, R=WOD.rounds;
+    for(let r=2;r<=R;r++) tn(T((r-1)*itv),NA_START);
+    if(ms){ const items=ms.items||[], n=items.length;
+      for(let r=1;r<=R;r++){ const x=items[n>1?(r-1)%n:0];
+        if(x) say(T((r-1)*itv),[{name:x.ex.slug,text:pick(x.ex,'name')}],[naW('Minute ','Minuut ','Minute ')+r+'.',msNm(pick(x.ex,'name'))]);
+        if(r<R) for(const l of [3,2,1]) if(itv>l) tn(T(r*itv-l),NA_TICK); }
+      count(R*itv); }
+    fin(itv*R); }
+  else if(WOD.cap){ const c=WOD.cap;
+    if(ms){ if(c>=120) say(T(c-60),vOr('wod_last',mt('wod_last')),mt('wod_last')); talk(); count(c); }
+    fin(c); }
+  else talk();
+}
+
+/* test de force (Force & Skill) : fenetre de test et repos entre deux essais */
+function naPlanNxts(add){
+  const X=(typeof NXTS!=='undefined')?NXTS:null; if(!X||X.done) return;
+  const say=(at,spec,fb)=>{ if(!MSV.on) return; if(vcMode()==='coach'&&!spec.every(k=>typeof k!=='string'||vcHas(LANG,k))) return; add({at,k:'say',spec,fb}); };
+  if(X.t0&&X.win&&!X.winSaid){ const at=X.t0+X.win*1000; say(at,['p_time'],'Time!'); add({at,k:'tones',seq:NA_FIN}); }
+  if(X.rest&&X.rest.end){ const e=X.rest.end;
+    if(X.rest.total>=30&&!X.rest.said10) say(e-10000,['p_10s'],LANG==='fr'?'Dix secondes !':'Ten seconds!');
+    for(const l of [3,2,1]) if(X.rest.total>l) add({at:e-l*1000,k:'tones',seq:[[660,.08]]});
+    add({at:e,k:'tones',seq:[[1180,.3]]}); say(e,['p_go'],LANG==='fr'?'C’est parti !':'Let’s go!'); }
+}
+
+function naPlan(){
+  const L=[], add=c=>{ if(c&&c.at>0) L.push(c); };
+  for(const f of [naPlanNxt,naPlanMs,naPlanRest,naPlanWod,naPlanNxts]){ try{ f(add); }catch(e){ console.warn('[na-plan] '+(e&&e.message||e)); } }
+  L.sort((a,b)=>a.at-b.at); return L;
+}
+/* les sons de chaque annonce, a l'heure */
+async function naResolve(L){ const out=[], duckOK=adOn();
+  for(const c of L){
+    try{
+      if(c.k==='beep') out.push({at:c.at,id:await naBeep(c.f,c.d,c.v)});
+      else if(c.k==='tones') out.push(...await naTonesEv(c.seq,c.at));
+      else if(c.k==='say'){ const it=c.items||naSayItems(c.spec,c.fb); if(!it) continue;
+        await naPrep(it); out.push(...(await naItems(it,c.at,duckOK&&c.duck!==false)).ev); }
+    }catch(_){}
+  }
+  return out; }
+async function naReplan(){
+  if(!naOK()) return;
+  const L=naPlan(), sig=JSON.stringify(L);
+  if(sig===NA.sig) return; NA.sig=sig; const my=++NA.seq;
+  const ev=await naResolve(L); if(my!==NA.seq) return;
+  const now=Date.now(); naSend('bg',ev.filter(e=>e.at>now+150),true);
+}
+/* chaque seconde : session audio ouverte tant qu'un timer tourne, fermee sinon ; programme a jour */
+if(naOK()) setInterval(()=>{ try{ bgKeepSync(); }catch(_){} naReplan().catch(()=>{}); },1000);
 document.addEventListener('visibilitychange',()=>{
   try{
     msNotif(0);
+    if(naOK()){
+      /* iPhone : la voix et les bips continuent en natif, a l'heure ; pas besoin de notifications
+         (elles feraient un 2e son). Au retour : 1,3 s de rattrapage silencieux. */
+      if(document.hidden){ bgKeepSync(); NA.sig=''; naReplan(); }
+      else { NA.mute=Date.now()+1300; lkCancel(); bgKeepSync(); }
+      return;
+    }
     if(document.hidden) lkArm();
     else { lkCancel(); bgKeepSync(); try{ if(VC_AC&&VC_AC.state!=='running') VC_AC.resume().catch(()=>{}); }catch(_){} }
   }catch(_){}
 });
 /* pagehide : certaines versions d'iOS gelent la page avant visibilitychange */
-window.addEventListener('pagehide',()=>{ try{ lkArm(); }catch(_){} });
+window.addEventListener('pagehide',()=>{ try{ if(naOK()) naReplan(); else lkArm(); }catch(_){} });
 function msHoldStart(){
   const s=MS&&MS.cur; if(!s) return; const t=msTarget(s); if(!(t.v>0)) return;
   MS.holdReady=false; const db=document.getElementById('ms-done'), tv=document.getElementById('ms-tv2');
@@ -18149,7 +18412,7 @@ function nxtSay(spec,fb,duck){ if(!NXT_SND||!NXT_VC) return; try{ if(typeof MSV!
   if(!ph&&!vcAny()) return; AD.skip=!duck; try{ msSayC(spec,fb); } finally { AD.skip=false; } }catch(_){} }
 /* 2.4.3 : des bips qu'on entend par-dessus la musique (deux oscillateurs, attaque douce, aucun clic).
    Avant : 14 % du volume pendant moins d'un dixieme de seconde, inaudible avec de la musique. */
-function nxtBeep(f,d,v){ if(!NXT_SND) return; try{ const c=vcCtx(), t0=c.currentTime+.01, g=c.createGain(), vol=v||.5;
+function nxtBeep(f,d,v){ if(!NXT_SND) return; if(naOK()){ naBeepNow(f,d,v); return; } try{ const c=vcCtx(), t0=c.currentTime+.01, g=c.createGain(), vol=v||.5;
   d=Math.max(.16,d||.16);
   g.gain.setValueAtTime(.0001,t0); g.gain.exponentialRampToValueAtTime(vol,t0+.012); g.gain.setValueAtTime(vol,t0+d*.6); g.gain.exponentialRampToValueAtTime(.0001,t0+d);
   [[f,'sine',1],[f*2,'triangle',.3]].forEach(o=>{ const os=c.createOscillator(), og=c.createGain(); os.type=o[1]; os.frequency.value=o[0]; og.gain.value=o[2]; os.connect(og); og.connect(g); os.start(t0); os.stop(t0+d+.03); });
