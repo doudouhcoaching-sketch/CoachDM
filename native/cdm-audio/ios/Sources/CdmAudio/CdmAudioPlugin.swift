@@ -408,3 +408,21 @@ final class CdmAudioCore {
         }
     }
 }
+
+/* Acces au moteur depuis le reste de l'app native (Live Activity : « Série faite »
+   touche ecran verrouille -> les sons du repos partent tout de suite). */
+public enum CdmAudioBridge {
+    public static func schedule(_ events: [[String: Any]], tag: String, replace: Bool) {
+        var evs: [CdmAudioCore.Ev] = []
+        for e in events {
+            guard let at = (e["at"] as? NSNumber)?.doubleValue ?? (e["at"] as? Double) else { continue }
+            let id = e["id"] as? String
+            let tts = e["tts"] as? String
+            if id == nil && tts == nil { continue }
+            evs.append(CdmAudioCore.Ev(at: at, id: id, tts: tts, lang: e["lang"] as? String,
+                                       duck: (e["duck"] as? Bool) ?? false, tag: tag))
+        }
+        let core = CdmAudioCore.shared
+        core.q.async { core.schedule(evs, tag: tag, replace: replace) }
+    }
+}

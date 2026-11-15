@@ -13974,11 +13974,9 @@ function naPlanNxt(add){
   if(all) end(T(acc));
 }
 
-function naPlanMs(add){
-  if(typeof MS==='undefined'||!MS) return;
-  /* repos entre deux series : mi-repos, 3-2-1, fin, puis l'annonce de la serie suivante */
-  const r=MS.rest;
-  if(r&&r.end&&r.nx){ const sec=r.total, nx=r.nx, e=r.end;
+/* un repos du Mode seance (r={total,end,nx}) : ce que msRest et son tick diront.
+   r._naS : la phrase du debut de repos quand la serie a ete validee ecran verrouille. */
+function naPlanMsRest(r,add){ const sec=r.total, nx=r.nx, e=r.end;
     let nxWork=false; try{ nxWork=msPhase(nx)==='work'; }catch(_){}
     if(sec>=25&&nxWork&&vcMode()==='coach'){
       if(r._naH===undefined){ let k=null; try{ k=vcPick('rest_'); if(k==='rest_5'&&!msCtx(nx,'pre').push) k=vcHas(LANG,'rest_1')?'rest_1':null; }catch(_){} r._naH=k||null; }
@@ -13987,7 +13985,12 @@ function naPlanMs(add){
     add({at:e,k:'tones',seq:NA_REST});
     if(r._naA===undefined){ try{ r._naA=msAnn(nx,true); }catch(_){ r._naA=null; } }
     if(r._naA) add({at:e+250,k:'say',spec:r._naA.spec,fb:r._naA.fb});
-  }
+    if(r._naS) add({at:r._naS.at,k:'say',spec:r._naS.spec,fb:r._naS.fb});
+}
+function naPlanMs(add){
+  if(typeof MS==='undefined'||!MS) return;
+  /* repos entre deux series : mi-repos, 3-2-1, fin, puis l'annonce de la serie suivante */
+  if(MS.rest&&MS.rest.end&&MS.rest.nx) naPlanMsRest(MS.rest,add);
   /* exercice au temps (gainage, maintien…) */
   const h=MS.hold;
   if(h&&h.end){ const tot=h.total, e=h.end;
@@ -14082,15 +14085,152 @@ async function naReplan(){
   const ev=await naResolve(L); if(my!==NA.seq) return;
   const now=Date.now(); naSend('bg',ev.filter(e=>e.at>now+150),true);
 }
-/* chaque seconde : session audio ouverte tant qu'un timer tourne, fermee sinon ; programme a jour */
-if(naOK()) setInterval(()=>{ try{ bgKeepSync(); }catch(_){} naReplan().catch(()=>{}); },1000);
+/* ==========================================================================
+   2.5 — LIVE ACTIVITY (iPhone, iOS 16.2+ ; bouton « Série faite » des iOS 17)
+   La carte Coach DM de l'ecran verrouille et de la Dynamic Island :
+     - lvTimeline() : les etats a venir, chacun a son heure (repos -> serie suivante,
+       phases du Timer, rounds d'EMOM…). Le natif passe de l'un a l'autre tout seul.
+     - lvArm() : ce que « Série faite » declenche, calcule a l'avance pour 3 series :
+       sons du repos (voix, 3-2-1, annonce suivante) et etats de la carte. Le natif
+       les lance a l'instant du toucher, meme si le JavaScript dort.
+     - lvDone() : au reveil, l'app valide la serie A L'HEURE DU TOUCHER (le repos
+       finit donc pile quand la voix l'a annonce), en silence : tout a deja ete dit.
+   ========================================================================== */
+const LV={sig:'',akey:'',on:false,last:0,lvl:null,chain:Promise.resolve(),hooked:false};
+function lvP(){ try{ if(!naOK()) return null; const C=window.Capacitor;
+  if(C.isPluginAvailable&&!C.isPluginAvailable('CdmLive')) return null; return (C.Plugins&&C.Plugins.CdmLive)||null; }catch(_){ return null; } }
+const lvT=k=>((({rest:['Récupère','Rest','Herstel'],next:['Ensuite','Next','Hierna'],set:['Série','Set','Set'],done:['Série faite','Set done','Set klaar'],
+  ready:['Prêt','Get ready','Klaar'],work:['Travail','Work','Werk'],pause:['Pause','Paused','Pauze'],time:['Time !','Time!','Time!'],
+  rnd:['Round','Round','Ronde'],hold:['Tiens bon','Hold','Hou vast'],left:['Temps restant','Time left','Resterende tijd'],
+  end:['Séance terminée','Workout complete','Training klaar'],sess:['Séance en cours','Workout in progress','Training bezig']})[k])||[k])[{fr:0,en:1,nl:2}[LANG]||0];
+function lvSet(x){ const t=msTarget(x), n=x.pills.length; let d=lvT('set')+' '+(x.k+1)+'/'+n;
+  if(t.load==='time'&&t.v) d+=' · '+msFmt(t.v);
+  else if(t.load==='distance'&&t.v) d+=' · '+t.v+' m';
+  else if(t.load==='calories'&&t.v) d+=' · '+t.v+' cal';
+  else if(t.r) d+=' · '+t.r+(t.load==='weight'&&t.kg?' × '+String(t.kg).replace('.',',')+' kg':' reps');
+  return d; }
+/* une serie a faire : le bouton n'apparait pas pour un exercice au temps (il a son propre Demarrer) */
+function lvWork(x){ const t=msTarget(x);
+  return {title:pick(x.ex,'name')||'',detail:lvSet(x),phase:'work',start:SESSION&&SESSION.started||undefined,canDone:!(t.load==='time'&&t.v>0),doneLabel:lvT('done')}; }
+function lvTimeline(){
+  const L=[], st=(at,o)=>L.push({at:Math.round(at),s:JSON.parse(JSON.stringify(o))});
+  /* Timer (Tabata, EMOM, AMRAP…) */
+  const X=(typeof NXT!=='undefined')?NXT:null;
+  if(X&&!X.done){ const nm=nxtt(X.k);
+    if(X.pAt){ st(0,{title:nm,detail:lvT('pause'),phase:'pause'}); return L; }
+    const T=sec=>X.t0+X.paused+sec*1000, R=X.c&&X.c.rounds, multi=X.P.filter(q=>q.t==='work').length>1;
+    st(0,{title:nm,detail:lvT('ready'),phase:'timer',end:T(X.pre)});
+    let acc=X.pre, all=true;
+    for(const p of X.P){
+      const det=(X.k==='emom'||X.k==='e2mom')?lvT('rnd')+' '+p.r+'/'+R:(p.t==='rest'?lvT('rest'):lvT('work'))+(multi?' · '+lvT('rnd')+' '+p.r+'/'+R:'');
+      if(p.d==null){ all=false; st(T(acc),{title:nm,detail:det,phase:'work',start:T(acc)}); if(p.cap) st(T(acc+p.cap),{title:nm,detail:lvT('time'),phase:'done'}); break; }
+      st(T(acc),{title:nm,detail:det,phase:p.t==='rest'?'rest':'work',end:T(acc+p.d)}); acc+=p.d; }
+    if(all) st(T(acc),{title:nm,detail:lvT('time'),phase:'done'});
+    return L; }
+  /* WOD (barre WOD ou Mode seance WOD) */
+  if(typeof WOD!=='undefined'&&WOD&&!WOD.ended&&WOD.t0){ const T=sec=>WOD.t0+sec*1000;
+    if(WOD.f==='amrap'&&WOD.cap){ st(0,{title:'AMRAP',detail:lvT('left'),phase:'work',end:T(WOD.cap)}); st(T(WOD.cap),{title:'AMRAP',detail:lvT('time'),phase:'done'}); }
+    else if(WOD.f==='emom'&&WOD.rounds){ const items=(typeof MS!=='undefined'&&MS&&MS.wod&&MS.items)||[], n=items.length;
+      for(let r=1;r<=WOD.rounds;r++){ const x=n?items[n>1?(r-1)%n:0]:null;
+        st(r===1?0:T((r-1)*WOD.itv),{title:'EMOM · '+r+'/'+WOD.rounds,detail:x?pick(x.ex,'name')||'':'',phase:'work',end:T(r*WOD.itv)}); }
+      st(T(WOD.rounds*WOD.itv),{title:'EMOM',detail:lvT('time'),phase:'done'}); }
+    else { const nm=WOD.f==='rft'&&WOD.rft?WOD.rft+' RFT':'For Time';
+      st(0,{title:nm,detail:'',phase:'work',start:WOD.t0}); if(WOD.cap) st(T(WOD.cap),{title:nm,detail:lvT('time'),phase:'done'}); }
+    return L; }
+  /* Mode seance (series + repos) */
+  if(typeof MS!=='undefined'&&MS&&typeof SESSION!=='undefined'&&SESSION){
+    const r=MS.rest;
+    if(r&&r.end&&r.nx){ st(0,{title:lvT('rest'),detail:lvT('next')+' : '+(pick(r.nx.ex,'name')||'')+' · '+lvSet(r.nx),phase:'rest',end:r.end}); st(r.end,lvWork(r.nx)); return L; }
+    if(MS.hold&&MS.hold.end&&MS.cur){ st(0,{title:pick(MS.cur.ex,'name')||'',detail:lvT('hold'),phase:'work',end:MS.hold.end}); return L; }
+    if(MS.box||MS.wod){ st(0,{title:lvT('sess'),detail:'',phase:'work',start:SESSION.started}); return L; }
+    if(MS.cur&&!MS.cur.pill.classList.contains('done')){ st(0,lvWork(MS.cur)); return L; }
+    return L; }
+  /* repos de l'ecran Seance (barre du bas) */
+  if(typeof REST!=='undefined'&&REST&&REST.end){ st(0,{title:lvT('rest'),detail:'',phase:'rest',end:REST.end}); return L; }
+  return L;
+}
+/* « Série faite » touche ecran verrouille : ce qui se passe, pour 3 series d'avance.
+   Memes regles que msValidate -> msAfterSet -> msRest / msWork. */
+function lvLevels(){
+  if(typeof MS==='undefined'||!MS||!MS.cur||MS.rest||MS.hold||MS.box||MS.wod||!SESSION) return [];
+  const out=[], virt=new Set(); let prev=MS.cur;
+  if(prev.pill.classList.contains('done')||!lvWork(prev).canDone) return [];
+  for(let depth=0;depth<3;depth++){
+    virt.add(prev);
+    const left=MS.slots.filter(x=>!virt.has(x)&&!x.pill.classList.contains('done'));
+    const nx=left[0], D=[], TL=[];
+    D.push({at:0,k:'tones',seq:[[1046,.1]]});
+    if(!nx){ TL.push({at:0,s:{title:lvT('end'),detail:'',phase:'done'}}); out.push({D,TL}); break; }
+    const chain=prev.it.superset_group&&nx.it.superset_group===prev.it.superset_group&&nx.k===prev.k;
+    const flow=['warm','cool'].includes(msPhase(prev));
+    const restS=chain||flow?0:(parseInt(prev.wrap.dataset.rest,10)||0);
+    let r=null, S=null;
+    if(!restS){ const A=msAnn(nx,true); D.push({at:300,k:'say',spec:A.spec,fb:A.fb}); TL.push({at:0,s:lvWork(nx)}); }
+    else {
+      const newEx=nx.it.id!==prev.it.id, lastSet=left.length===1, nxWork=msPhase(nx)==='work';
+      S=newEx?{spec:['p_next',{pause:150},{name:nx.ex.slug,text:pick(nx.ex,'name')}],fb:LANG==='fr'?['Récupère. Ensuite :',msNm(pick(nx.ex,'name'))]:LANG==='nl'?['Herstel. Hierna:',msNm(pick(nx.ex,'name'))]:['Rest. Next up:',msNm(pick(nx.ex,'name'))]}
+        :{spec:[lastSet&&nxWork?'p_last':'p_rest'],fb:lastSet&&nxWork?(LANG==='fr'?'Dernière série après ce repos. Tu vas tout donner.':LANG==='nl'?'Laatste set na deze rust. Geef alles.':'Last set after this rest. Give it everything.')
+          :(LANG==='fr'?'Récupère. Respire par le nez.':LANG==='nl'?'Herstel. Adem door je neus.':'Rest. Breathe through your nose.')};
+      D.push({at:300,k:'say',spec:S.spec,fb:S.fb});
+      r={total:restS,end:restS*1000,nx}; naPlanMsRest(r,c=>D.push(c));
+      TL.push({at:0,s:{title:lvT('rest'),detail:lvT('next')+' : '+(pick(nx.ex,'name')||'')+' · '+lvSet(nx),phase:'rest',endIn:restS*1000}});
+      TL.push({at:restS*1000,s:lvWork(nx)}); }
+    out.push({D,TL,r,S});
+    prev=nx; if(!lvWork(nx).canDone) break;
+  }
+  return out;
+}
+async function lvArm(){
+  const P=lvP(); if(!P) return;
+  const M=(typeof MS!=='undefined'&&MS)||null;
+  const key=JSON.stringify([LANG,MSV.on,vcMode(),adOn(),!!(M&&M.rest),!!(M&&M.hold),M&&M.cur&&M.cur.it&&M.cur.it.id,M&&M.cur&&M.cur.k,
+    M&&M.slots?M.slots.map(x=>x.pill.classList.contains('done')?1:0).join(''):'']);
+  if(key===LV.akey) return; LV.akey=key;
+  const lv=lvLevels(); LV.lvl=lv;
+  let arm=null;
+  for(let i=lv.length-1;i>=0;i--){
+    const ev=await naResolve(lv[i].D); if(LV.lvl!==lv) return;
+    arm={events:ev,timeline:lv[i].TL.map(x=>({at:x.at,s:JSON.parse(JSON.stringify(x.s))})),next:arm||undefined};
+    arm=JSON.parse(JSON.stringify(arm)); }
+  try{ P.arm({arm}).catch(()=>{}); }catch(_){}
+}
+function lvSync(){
+  const P=lvP(); if(!P) return;
+  if(!LV.hooked){ LV.hooked=true; try{ P.addListener('done',e=>{ LV.chain=LV.chain.then(()=>lvDone(e)).catch(()=>{}); }); }catch(_){} }
+  const L=lvTimeline();
+  if(!L.length){ if(LV.on){ LV.on=false; LV.sig=''; LV.akey=''; try{ P.end().catch(()=>{}); }catch(_){} } return; }
+  const sig=JSON.stringify(L);
+  if(sig!==LV.sig){ LV.sig=sig; LV.on=true; try{ P.show({timeline:L}).catch(()=>{}); }catch(_){} }
+  lvArm().catch(()=>{});
+}
+/* le toucher sur l'ecran verrouille, rejoue dans l'app a l'heure exacte */
+async function lvDone(e){
+  const at=(e&&e.at)||Date.now(); if(at<=LV.last) return; LV.last=at;
+  if(typeof MS==='undefined'||!MS||!SESSION||MS.box||MS.wod||MS.hold) return;
+  const lvl=LV.lvl&&LV.lvl[0];
+  const quiet=document.hidden||Date.now()-at>1200;
+  if(quiet) NA.mute=Math.max(NA.mute,Date.now()+2500);
+  /* toucher suivant alors que le repos etait fini : on passe d'abord a la serie suivante */
+  if(MS.rest&&MS.rest.end<=at){ clearInterval(MS.rest.iv); MS.rest=null; msNotif(0); await msWork(false); }
+  if(!MS||!MS.cur||MS.rest) return;
+  await msValidate();
+  if(MS&&MS.rest){
+    MS.rest.end=at+MS.rest.total*1000;
+    if(lvl&&lvl.r&&lvl.r.nx===MS.rest.nx){ MS.rest._naH=lvl.r._naH; MS.rest._naA=lvl.r._naA; }
+    if(quiet&&lvl&&lvl.S) MS.rest._naS={at:at+300,spec:lvl.S.spec,fb:lvl.S.fb};
+  }
+  if(quiet) NA.mute=Math.max(NA.mute,Date.now()+2500);
+  NA.sig=''; LV.sig=''; LV.akey=''; naReplan().catch(()=>{}); lvSync();
+}
+/* chaque seconde : session audio ouverte tant qu'un timer tourne, fermee sinon ; programme a jour ; carte a jour */
+if(naOK()) setInterval(()=>{ try{ bgKeepSync(); }catch(_){} naReplan().catch(()=>{}); try{ lvSync(); }catch(_){} },1000);
 document.addEventListener('visibilitychange',()=>{
   try{
     msNotif(0);
     if(naOK()){
       /* iPhone : la voix et les bips continuent en natif, a l'heure ; pas besoin de notifications
          (elles feraient un 2e son). Au retour : 1,3 s de rattrapage silencieux. */
-      if(document.hidden){ bgKeepSync(); NA.sig=''; naReplan(); }
+      if(document.hidden){ bgKeepSync(); NA.sig=''; naReplan(); try{ LV.sig=''; lvSync(); }catch(_){} }
       else { NA.mute=Date.now()+1300; lkCancel(); bgKeepSync(); }
       return;
     }

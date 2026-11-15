@@ -28,6 +28,13 @@ workflows:
           npx cap add ios
           npx cap sync ios
 
+      # Live Activity (ecran verrouille + Dynamic Island, bouton « Série faite ») :
+      # ajoute l'extension CoachDMLive au projet genere. Signature : l'identifiant
+      # be.coachdm.app.live doit exister sur developer.apple.com (Identifiers).
+      - name: Live Activity
+        script: |
+          ruby native/live-activity/add-live-activity.rb
+
       - name: Icones et splash (fond noir Coach DM)
         script: |
           mkdir -p assets
