@@ -2351,7 +2351,7 @@ async function recShareBlob(blob){
 
 bRec.onclick=()=>{RECST.on?recStop():recStart();};
 
-import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient})=>{
+import('./vendor/supabase.js').then(({createClient})=>{
   const sbClient=createClient('https://kkcmhviyvttwpaclrjmv.supabase.co','sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
   SB=sbClient;
   cuesLoad(sbClient); /* phrases publiques : pas besoin d'attendre la session */

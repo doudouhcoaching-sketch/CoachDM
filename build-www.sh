@@ -33,7 +33,8 @@ done
 
 # icons/, badges/ et fonts/ : sans eux l'app embarquee perd ses icones or,
 # ses badges et ses polices (Barlow Condensed, Inter). Ajoute pour la 2.4.1.
-for d in icons badges fonts; do
+# vendor/ : supabase-js embarque, sans lui l app ne demarre pas hors connexion.
+for d in icons badges fonts vendor; do
   if [ -d "$d" ]; then cp -R "$d" www/; fi
 done
 

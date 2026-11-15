@@ -48,6 +48,9 @@ workflows:
           $PB -c "Add :NSPhotoLibraryAddUsageDescription string Permet d'enregistrer tes cartes de résultats Coach DM dans tes photos." "$PLIST"
           $PB -c "Delete :ITSAppUsesNonExemptEncryption" "$PLIST" 2>/dev/null || true
           $PB -c "Add :ITSAppUsesNonExemptEncryption bool false" "$PLIST"
+          # Timers et voix ecran verrouille : mode audio d'arriere-plan
+          $PB -c "Add :UIBackgroundModes array" "$PLIST" 2>/dev/null || true
+          $PB -c "Print :UIBackgroundModes" "$PLIST" | grep -q audio || $PB -c "Add :UIBackgroundModes:0 string audio" "$PLIST"
 
       - name: Numero de build
         script: |
