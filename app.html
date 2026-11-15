@@ -4050,11 +4050,205 @@ body{overscroll-behavior-y:contain}
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { createClient } from './vendor/supabase.js';
 
 const SUPABASE_URL = 'https://kkcmhviyvttwpaclrjmv.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b';
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+const sbReal = createClient(SUPABASE_URL, SUPABASE_KEY);
+/* Hors ligne, supabase-js tente de rafraichir le jeton expire avant CHAQUE
+   requete, avec des reessais pendant ~13 s : l'app semblait figee. Tant qu'on
+   est hors ligne, les lectures/ecritures repondent donc tout de suite
+   « hors ligne » (meme forme qu'une vraie erreur reseau) ; l'app se rabat sur
+   ce qui est garde sur le telephone, et les ecritures passent par la file. */
+const OFF={forced:false};
+const offNow=()=>(typeof navigator!=='undefined'&&navigator.onLine===false)||OFF.forced;
+const OFF_RES={data:null,error:{message:'offline: Failed to fetch',code:''},count:null,status:0};
+function offStub(){
+  let p; const h={ get(_t,k){
+    if(k==='then') return (a,b)=>Promise.resolve(OFF_RES).then(a,b);
+    if(k==='catch') return ()=>Promise.resolve(OFF_RES);
+    if(k==='finally') return (f)=>Promise.resolve(OFF_RES).finally(f);
+    return ()=>p; } };
+  p=new Proxy(function(){},h); return p;
+}
+const sb = new Proxy(sbReal,{ get(t,k){
+  if((k==='from'||k==='rpc') && offNow()) return ()=>offStub();
+  const v=Reflect.get(t,k); return typeof v==='function'?v.bind(t):v;
+}});
+
+/* ================= HORS LIGNE (15/11/2026) =================
+   Sans reseau, l'app doit rester utilisable pour s'entrainer :
+   - la session deja ouverte sur le telephone suffit pour entrer ;
+   - acces premium, profil, catalogue et detail des seances deja charges
+     sont relus depuis le telephone ;
+   - une seance demarree et ses series validees hors ligne partent dans une
+     file d'envoi (OB), videe dans l'ordre des que le reseau revient.
+   Les id (seance, serie) sont generes ici : la base les accepte (uuid) et la
+   serie peut ainsi pointer vers une seance pas encore envoyee. */
+const SB_TOKEN_KEY='sb-kkcmhviyvttwpaclrjmv-auth-token';
+function offIsNet(err){
+  if(offNow()) return true;
+  const m=String((err&&(err.message||err.name))||err||'');
+  return /fetch|network|load failed|internet|offline|timed? ?out|abort|connexion/i.test(m);
+}
+const offGet=(k)=>{ try{ return JSON.parse(localStorage.getItem('cdm_off_'+k)||'null'); }catch(_){ return null; } };
+const offSet=(k,v)=>{ try{ localStorage.setItem('cdm_off_'+k,JSON.stringify(v)); }catch(_){} };
+function offStoredUser(){
+  try{ const o=JSON.parse(localStorage.getItem(SB_TOKEN_KEY)||'null'); return (o&&o.user&&o.user.id)?o.user:null; }catch(_){ return null; }
+}
+function offUuid(){
+  try{ if(crypto&&crypto.randomUUID) return crypto.randomUUID(); }catch(_){}
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{ const r=Math.random()*16|0; return (c==='x'?r:(r&3|8)).toString(16); });
+}
+/* Petit stockage cle/valeur IndexedDB : le detail de centaines de seances ne
+   tiendrait pas dans les 5 Mo de localStorage. */
+const IDB={ p:null,
+  open(){ if(this.p) return this.p;
+    this.p=new Promise((res,rej)=>{ try{ const r=indexedDB.open('cdm-offline',1);
+      r.onupgradeneeded=()=>{ try{ r.result.createObjectStore('kv'); }catch(_){} };
+      r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }catch(e){ rej(e); } });
+    this.p.catch(()=>{ this.p=null; }); return this.p; },
+  async get(k){ try{ const d=await this.open(); return await new Promise(res=>{ const q=d.transaction('kv').objectStore('kv').get(k); q.onsuccess=()=>res(q.result); q.onerror=()=>res(undefined); }); }catch(_){ return undefined; } },
+  async set(k,v){ try{ const d=await this.open(); await new Promise(res=>{ const tx=d.transaction('kv','readwrite'); tx.objectStore('kv').put(v,k); tx.oncomplete=res; tx.onerror=res; tx.onabort=res; }); }catch(_){} }
+};
+/* ---- File d'envoi ---- */
+const OB_KEY='cdm_outbox';
+function obAll(){ try{ return JSON.parse(localStorage.getItem(OB_KEY)||'[]'); }catch(_){ return []; } }
+function obSave(a){ try{ localStorage.setItem(OB_KEY,JSON.stringify(a)); }catch(_){} }
+function obPush(op){ const a=obAll(); a.push(op); obSave(a); offBadge(); obFlushSoon(); }
+const obRetry=(e)=>offIsNet(e)||/jwt|token|401|refresh/i.test(String((e&&e.message)||''));
+/* Ecriture qui survit a l'absence de reseau. kind : 'insert' | 'update' (par id). */
+async function dbw(table,kind,data,id){
+  const op={table,kind,data,id:id||null,at:Date.now()};
+  /* File non vide = on passe derriere : une serie ne doit jamais partir avant sa seance. */
+  if(obAll().length || offNow()){ obPush(op); return {error:null,queued:true}; }
+  try{
+    const r = kind==='insert' ? await sb.from(table).insert(data) : await sb.from(table).update(data).eq('id',id);
+    if(r.error && offIsNet(r.error)){ obPush(op); return {error:null,queued:true}; }
+    return {error:r.error||null};
+  }catch(e){
+    if(offIsNet(e)){ obPush(op); return {error:null,queued:true}; }
+    return {error:e};
+  }
+}
+let OB_BUSY=false, OB_T=null;
+function obFlushSoon(ms){ clearTimeout(OB_T); OB_T=setTimeout(()=>{ obFlush(); }, ms||5000); }
+async function obFlush(){
+  if(OB_BUSY || offNow() || !obAll().length) return;
+  OB_BUSY=true;
+  try{
+    for(let guard=0; guard<500; guard++){
+      const a=obAll(); if(!a.length) break;
+      const op=a[0]; let err=null;
+      try{
+        const r = op.kind==='insert' ? await sb.from(op.table).insert(op.data) : await sb.from(op.table).update(op.data).eq('id',op.id);
+        err=r.error||null;
+      }catch(e){ err=e; }
+      if(err && obRetry(err)) break;
+      /* 23505 = deja en base (envoi precedent coupe apres ecriture) : c'est un succes. */
+      if(err && err.code!=='23505') console.warn('[outbox] '+op.table+' abandonne : '+(err.message||err));
+      const b=obAll(); b.shift(); obSave(b);
+    }
+  } finally { OB_BUSY=false; offBadge(); }
+  if(obAll().length) obFlushSoon(20000);
+}
+/* Pastille discrete : « Hors ligne » ou « Synchronisation… » */
+function offBadge(){
+  try{
+    const n=obAll().length, off=offNow();
+    let b=document.getElementById('off-pill');
+    if(!off && !n){ if(b) b.remove(); return; }
+    if(!b){ b=document.createElement('div'); b.id='off-pill';
+      b.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px) + 6px);left:50%;transform:translateX(-50%);z-index:99999;padding:5px 12px;border-radius:999px;background:#141412;color:#DCBB72;font:700 11.5px/1.2 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;letter-spacing:.02em;box-shadow:0 4px 14px rgba(0,0,0,.45);pointer-events:none';
+      document.body.appendChild(b); }
+    const L=(typeof LANG!=='undefined'?LANG:'fr');
+    b.textContent = off
+      ? ({fr:'Hors ligne',en:'Offline',nl:'Offline'})[L]+(n?' · '+n+' '+({fr:'en attente',en:'pending',nl:'in wachtrij'})[L]:'')
+      : ({fr:'Synchronisation…',en:'Syncing…',nl:'Synchroniseren…'})[L];
+  }catch(_){}
+}
+/* ---- Programmes sur le telephone ----
+   offPrefetch(ids) : copie locale du detail de ces seances (exercices, consignes,
+   remplacements). Une copie de moins de 3 jours n'est pas retelechargee. */
+let OFF_PF_BUSY=false;
+async function offPrefetch(ids){
+  if(offNow() || !ids || !ids.length) return;
+  if(OFF_PF_BUSY){ setTimeout(()=>offPrefetch(ids),8000); return; }
+  OFF_PF_BUSY=true;
+  try{
+    const todo=[];
+    for(const id of [...new Set(ids)]){ const c=await IDB.get('wo:'+id); if(!c || Date.now()-(c.t||0)>3*864e5) todo.push(id); }
+    for(let i=0;i<todo.length;i+=25){
+      const part=todo.slice(i,i+25);
+      const { data:rows, error } = await sb.from('workout_exercises')
+        .select('id,workout_id,block,display_order,sets,reps,rest_sec,tempo,target_rpe,load_pct_1rm,superset_group,notes_fr,notes_en,notes_nl,exercise:exercises(id,slug,pct_ref_slug,category,pattern,name_fr,name_en,name_nl,primary_muscle,equipment,load_type,video_url,youtube_query,thumbnail_url,cue_fr,cue_en,cue_nl)')
+        .in('workout_id',part).order('display_order',{ascending:true}).range(0,4999);
+      if(error || !rows) break;
+      const exIds=[...new Set(rows.map(r=>r.exercise&&r.exercise.id).filter(Boolean))];
+      const tipsBy={}, subsBy={};
+      if(exIds.length){
+        const [{ data:tp },{ data:sbs }] = await Promise.all([
+          sb.from('exercise_tips').select('exercise_id,severity,body_fr,body_en,body_nl,reference').in('exercise_id',exIds).order('display_order',{ascending:true}),
+          sb.from('exercise_substitutions')
+            .select('exercise_id,rank,reason,note_fr,note_en,note_nl,substitute:exercises!exercise_substitutions_substitute_id_fkey(id,slug,pct_ref_slug,name_fr,name_en,name_nl,primary_muscle,equipment,load_type,video_url,youtube_query,thumbnail_url,cue_fr,cue_en,cue_nl)')
+            .in('exercise_id',exIds).in('reason',['equipment','regression'])
+            .order('reason',{ascending:true}).order('rank',{ascending:true})
+        ]);
+        (tp||[]).forEach(x=>{ if(!tipsBy[x.exercise_id]) tipsBy[x.exercise_id]=x; });
+        (sbs||[]).forEach(r=>{ if(r.substitute) (subsBy[r.exercise_id]=subsBy[r.exercise_id]||[]).push(r); });
+      }
+      for(const wid of part){
+        const items=rows.filter(r=>r.workout_id===wid).map(r=>{ const o=Object.assign({},r); delete o.workout_id; return o; });
+        if(!items.length) continue;
+        const tips={}, subs={};
+        items.forEach(it=>{ const e=it.exercise&&it.exercise.id; if(!e) return; if(tipsBy[e]) tips[e]=tipsBy[e]; if(subsBy[e]) subs[e]=subsBy[e]; });
+        await IDB.set('wo:'+wid,{items,tips,subs,t:Date.now()});
+      }
+    }
+  }catch(e){ console.warn('[offline] prefetch : '+(e&&e.message||e)); }
+  finally{ OFF_PF_BUSY=false; }
+}
+/* Au demarrage (avec reseau) : les programmes que la personne suit — plan du
+   coach + programmes des seances faites ces dernieres semaines — partent
+   sur le telephone, sans rien demander. */
+async function offWarm(){
+  if(offNow() || !USER) return;
+  try{
+    await fetchWorkouts();
+    const { data } = await sb.from('workout_sessions').select('workout_id').eq('user_id',USER.id)
+      .order('started_at',{ascending:false}).limit(40);
+    const ws=SE_WORKOUTS||[];
+    const slugs=new Set();
+    (data||[]).forEach(r=>{ const w=ws.find(x=>x.id===r.workout_id); if(w&&w.program_slug) slugs.add(w.program_slug); });
+    const ids=ws.filter(x=>slugs.has(x.program_slug)).map(x=>x.id).concat([...MY_PLAN_IDS]);
+    await refreshPlanIds();
+    offPrefetch(ids.concat([...MY_PLAN_IDS]));
+  }catch(e){ console.warn('[offline] warm : '+(e&&e.message||e)); }
+}
+/* Reseau « present » mais mort (wifi de salle, une barre de 4G) : un ping court
+   au serveur tranche, au lieu d'attendre les reessais de supabase-js. */
+async function offPing(ms){
+  try{ const c=new AbortController(); const tm=setTimeout(()=>c.abort(),ms||4000);
+    await fetch(SUPABASE_URL+'/auth/v1/health',{headers:{apikey:SUPABASE_KEY},signal:c.signal,cache:'no-store'});
+    clearTimeout(tm); return true; }catch(_){ return false; }
+}
+let OFF_IV=null;
+function offForce(on){
+  OFF.forced=!!on; offBadge();
+  clearInterval(OFF_IV); OFF_IV=null;
+  if(on) OFF_IV=setInterval(async()=>{ if(navigator.onLine!==false && await offPing(4000)) offBack(); },30000);
+}
+function offBack(){
+  if(OFF.forced) offForce(false);
+  offBadge();
+  /* jeton rafraichi maintenant que le serveur repond, puis envoi de la file */
+  try{ sbReal.auth.getSession().then(()=>obFlushSoon(500),()=>obFlushSoon(3000)); }catch(_){ obFlushSoon(1500); }
+}
+window.addEventListener('online',()=>{ offBack(); });
+window.addEventListener('offline',()=>offBadge());
+document.addEventListener('visibilitychange',()=>{ if(document.hidden) return;
+  if(OFF.forced){ offPing(3000).then(ok=>{ if(ok) offBack(); }); return; }
+  if(obAll().length) obFlushSoon(1500); });
 
 const $ = (s)=>document.querySelector(s);
 
@@ -5153,6 +5347,8 @@ const T = {
  err_credentials:{fr:'Email et mot de passe requis.',en:'Email and password required.',nl:'E-mail en wachtwoord vereist.'},
  jeu_load:{fr:'Mode jeu — chargement du suivi de mouvement…',en:'Game mode — loading motion tracking…',nl:'Spelmodus — bewegingsherkenning laden…'},
  jeu_load_ko:{fr:'Le suivi de mouvement n\'a pas pu se charger. V\u00e9rifie ta connexion et r\u00e9essaie.',en:'Motion tracking could not load. Check your connection and try again.',nl:'Bewegingsherkenning kon niet laden. Controleer je verbinding en probeer opnieuw.'},
+ wo_not_offline:{fr:'Cette séance n\'est pas encore sur ton téléphone. Ouvre-la une fois avec du réseau : tout son programme restera ensuite disponible hors ligne.',en:'This workout is not on your phone yet. Open it once while online: its whole program will then stay available offline.',nl:'Deze training staat nog niet op je telefoon. Open ze één keer met netwerk: het hele programma blijft daarna offline beschikbaar.'},
+ boot_offline:{fr:'Hors ligne : tes programmes déjà chargés restent disponibles. Tout se synchronise au retour du réseau.',en:'Offline: programs already on your phone stay available. Everything syncs when you are back online.',nl:'Offline: programma\'s die al op je telefoon staan blijven beschikbaar. Alles synchroniseert zodra je weer online bent.'},
  boot_partiel:{fr:'Réseau instable : une partie des données n\'a pas pu être chargée. Tire vers le bas pour rafraîchir.',en:'Unstable network: some data could not load. Pull down to refresh.',nl:'Instabiel netwerk: sommige gegevens konden niet laden. Trek naar beneden om te vernieuwen.'},
  insight_title:{fr:'Insight du jour',en:'Daily insight',nl:'Inzicht van de dag'},
  see_all_workouts:{fr:'‹ Toutes les séances',en:'‹ All workouts',nl:'‹ Alle trainingen'},
@@ -5640,11 +5836,33 @@ async function boot(){
      reseau. Sur une connexion qui saute, il LEVE — et sans ce try, boot()
      etait rejete sans que personne n'attrape : ni ecran de connexion, ni
      message, juste le spinner. */
+  let sessErr=null;
+  /* Jeton expire + pas de serveur joignable : getSession() resterait bloque
+     dans ses reessais. On entre directement avec le compte du telephone. */
+  const stored=offStoredUser();
+  if(stored){
+    let exp=0; try{ exp=(JSON.parse(localStorage.getItem(SB_TOKEN_KEY)||'{}').expires_at||0)*1000; }catch(_){}
+    if(navigator.onLine===false || (exp<Date.now()+30000 && !(await offPing(4000)))){
+      if(navigator.onLine!==false) offForce(true);
+      try{ await enter(stored); }
+      catch(e){ console.warn('[boot] enter hors ligne : '+(e&&e.message||e)); if(window.__cdmPanne) window.__cdmPanne(); }
+      return;
+    }
+  }
   try{
     const r = await sb.auth.getSession();
     session = r && r.data ? r.data.session : null;
+    sessErr = r && r.error;
   }catch(e){
+    sessErr = e;
     console.warn('[boot] getSession : '+(e&&e.message||e));
+  }
+  /* Hors ligne : le jeton a expire et ne peut pas etre rafraichi, mais la
+     personne s'est deja connectee sur ce telephone. On entre avec le compte
+     memorise ; supabase-js rafraichira le jeton tout seul au retour du reseau. */
+  if(!session){
+    const u=offStoredUser();
+    if(u && (navigator.onLine===false || (sessErr && offIsNet(sessErr)))) session={user:u, offline:true};
   }
   if(session && session.user){
     try{ await enter(session.user); }
@@ -5668,7 +5886,10 @@ async function boot(){
    une nouvelle inscription repondait « adresse deja utilisee ». Si on est deja
    sur l'ecran d'authentification, on ne touche a rien. */
 sb.auth.onAuthStateChange((_e,session)=>{
-  if(session) return;
+  if(session){ if(obAll().length) obFlushSoon(1500); return; }
+  /* Hors ligne, un rafraichissement de jeton rate n'est pas une deconnexion :
+     on garde l'app ouverte tant que le compte est memorise sur le telephone. */
+  if(offNow() && offStoredUser()) return;
   const a=$('#auth');
   if(a && !a.classList.contains('hidden')) return;
   show('auth');
@@ -5900,9 +6121,12 @@ async function enter(user){
   }
   if(boot_degrade || BOOT_KO){
     /* On le dit, au lieu de laisser croire que des cartes vides sont normales. */
-    try{ toast(t('boot_partiel')); }catch(_){}
+    try{ toast(offNow()?t('boot_offline'):t('boot_partiel')); }catch(_){}
   }
   loadCoachCard(); loadCalls(); initChatLive();
+  /* Hors ligne : file d'envoi en attente + programmes suivis copies sur le telephone. */
+  offBadge(); if(obAll().length) obFlushSoon(2000);
+  setTimeout(()=>{ offWarm(); }, 6000);
   /* Les invitations en attente sont chargees des l'entree : c'est la premiere
      chose que doit voir un membre invite, avant meme sa seance du jour. */
   loadCoachInvites();
@@ -5923,6 +6147,8 @@ async function loadProfileInfo(user){
       prof2 = r.data || null;
     }catch(e){}
   }
+  if(prof2) offSet('prof',{u:user.id,p:prof2});
+  else { const c=offGet('prof'); if(c && c.u===user.id) prof2=c.p; }
   if(prof2 && prof2.full_name){ PROFILE_NAME = prof2.full_name; if($('#p-name')) $('#p-name').value = prof2.full_name; }
   try{
     const role = prof2 && prof2.role;
@@ -6039,10 +6265,17 @@ async function loadProfileInfo(user){
 
 let ACCESS='free';
 async function hasAccess(uid){
+  let netKO=false;
   try{
     const { data, error } = await sb.rpc('access_level');
-    if(!error && data){ ACCESS = data; return ACCESS==='full'; }
-  }catch(e){}
+    if(!error && data){ ACCESS = data; offSet('acc',{u:uid,a:data,t:Date.now()}); return ACCESS==='full'; }
+    if(error && offIsNet(error)) netKO=true;
+  }catch(e){ netKO=offIsNet(e); }
+  /* Hors ligne : on reprend le dernier acces confirme par le serveur, 14 jours max. */
+  if(netKO){
+    const c=offGet('acc');
+    if(c && c.u===uid && Date.now()-c.t < 14*864e5){ ACCESS=c.a; return ACCESS==='full'; }
+  }
   // Repli local si le RPC est indisponible (hors-ligne).
   // Même règle qu'au serveur : le rôle coach seul ne donne pas le premium,
   // il faut un plan coach payant. Sinon ce repli rouvrait la faille.
@@ -9672,9 +9905,12 @@ function countUp(el,target,dur){
 let PRMAP=null, PRROWS=null, PRSLUG=null, PR_LIFTS=null;
 async function loadPRMap(force){
   if(PRMAP&&!force) return PRMAP;
-  const { data } = await sb.from('personal_records').select('exercise_id,value,achieved_at')
+  let { data, error } = await sb.from('personal_records').select('exercise_id,value,achieved_at')
     .eq('user_id',USER.id).eq('category','strength_1rm').not('exercise_id','is',null)
     .order('achieved_at',{ascending:false}).limit(150);
+  /* Hors ligne : les 1RM gardes sur le telephone, pour que les % restent justes. */
+  if(error || !data){ const c=offGet('pr'); data=(c&&c.u===USER.id)?c.rows:[]; }
+  else offSet('pr',{u:USER.id,rows:data});
   PRMAP={}; PRROWS=[];
   (data||[]).forEach(r=>{ if(PRMAP[r.exercise_id]===undefined){ PRMAP[r.exercise_id]=+r.value; PRROWS.push(r); } });
   return PRMAP;
@@ -9682,12 +9918,14 @@ async function loadPRMap(force){
 async function loadPRSlugMap(){
   if(PRSLUG) return PRSLUG;
   PRSLUG={};
-  const { data:refs } = await sb.from('exercises').select('pct_ref_slug').not('pct_ref_slug','is',null).limit(500);
+  const { data:refs, error:refErr } = await sb.from('exercises').select('pct_ref_slug').not('pct_ref_slug','is',null).limit(500);
+  if(refErr || !refs){ PRSLUG=offGet('prslug')||{}; return PRSLUG; }
   const slugs=[...new Set((refs||[]).map(r=>r.pct_ref_slug).filter(Boolean))];
   if(slugs.length){
     const { data:par } = await sb.from('exercises').select('id,slug,name_fr,name_en,name_nl').in('slug',slugs);
     (par||[]).forEach(p=>{ PRSLUG[p.slug]=p; });
   }
+  if(Object.keys(PRSLUG).length) offSet('prslug',PRSLUG);
   return PRSLUG;
 }
 async function loadPRLifts(){
@@ -10586,17 +10824,22 @@ const mpT=k=>{const o=MP_L[k];return o?(o[LANG]||o.fr):k;};
 let MY_PLAN_IDS=new Set();
 async function refreshPlanIds(){
   try{
-    const { data:d } = await sb.rpc('client_my_plan');
+    const { data:d, error } = await sb.rpc('client_my_plan');
+    if(error && offIsNet(error)){ MY_PLAN_IDS=new Set(offGet('plan')||[]); return; }
     MY_PLAN_IDS=new Set(((d&&d.items)||[]).map(x=>x.workout_id));
-  }catch(e){}
+    offSet('plan',[...MY_PLAN_IDS]);
+  }catch(e){ if(offIsNet(e)) MY_PLAN_IDS=new Set(offGet('plan')||[]); }
 }
 async function loadMyPlan(){
   const box=$('#myplan');
   try{
     const { data:d, error } = await sb.rpc('client_my_plan');
-    if(error||!d||!d.plan){ box.innerHTML=''; MY_PLAN_IDS=new Set(); return; }
+    if(error && offIsNet(error)){ MY_PLAN_IDS=new Set(offGet('plan')||[]); return; }
+    if(error||!d||!d.plan){ box.innerHTML=''; MY_PLAN_IDS=new Set(); offSet('plan',[]); return; }
     const items=d.items||[];
     MY_PLAN_IDS=new Set(items.map(x=>x.workout_id));
+    offSet('plan',[...MY_PLAN_IDS]);
+    offPrefetch([...MY_PLAN_IDS]);
     if(!items.length){ box.innerHTML=''; return; }
     const doneN=items.filter(x=>x.completed_at).length;
     const pct=Math.round(doneN/items.length*100);
@@ -10845,6 +11088,13 @@ async function netFetchWorkouts(){
       .eq('is_published',true).not('program_slug','is',null).order('created_at',{ascending:true});
     const cntQ = sb.from('v_workout_ex_counts').select('workout_id,n').range(0,9999);
     const [wr,cr] = await Promise.all([wsQ,cntQ]);
+    /* Reseau absent : surtout ne pas remplacer le catalogue garde sur le
+       telephone par une liste vide. */
+    if(wr.error || !Array.isArray(wr.data)){
+      if(!SE_WORKOUTS){ try{ const c=JSON.parse(localStorage.getItem(SE_CACHE_KEY)||'null'); if(c&&Array.isArray(c.ws)){ SE_WORKOUTS=c.ws; SE_COUNTS=c.counts||{}; } }catch(_){} }
+      if(!SE_WORKOUTS){ SE_WORKOUTS=[]; SE_COUNTS={}; }
+      return;
+    }
     SE_WORKOUTS = wr.data||[]; SE_COUNTS={};
     if(cr && cr.data && cr.data.length){
       cr.data.forEach(r=>{ SE_COUNTS[r.workout_id]=r.n; });
@@ -11558,12 +11808,26 @@ async function openWorkout(id){
   $('#se-detail').classList.remove('hidden');
   $('#se-detail').innerHTML=skel(4,96);
   window.scrollTo(0,0);
-  const [{ data:items }] = await Promise.all([
+  const [{ data:items, error:itErr }] = await Promise.all([
     sb.from('workout_exercises')
       .select('id,block,display_order,sets,reps,rest_sec,tempo,target_rpe,load_pct_1rm,superset_group,notes_fr,notes_en,notes_nl,exercise:exercises(id,slug,pct_ref_slug,category,pattern,name_fr,name_en,name_nl,primary_muscle,equipment,load_type,video_url,youtube_query,thumbnail_url,cue_fr,cue_en,cue_nl)')
       .eq('workout_id',id).order('display_order',{ascending:true}),
     loadPRMap(), loadPRSlugMap(), loadVBTDay(true)
   ]);
+  /* Hors ligne : la seance gardee sur le telephone (ouverte ou telechargee avant). */
+  if(itErr || !items){
+    const c=await IDB.get('wo:'+id);
+    if(!SE_CUR||!SE_CUR.w||SE_CUR.w.id!==id) return;
+    if(!c){
+      $('#se-detail').innerHTML='<button class="se-back" id="se-back">'+t('see_all_workouts')+'</button><div style="padding:34px 8px;text-align:center;color:var(--muted);line-height:1.55">'+t('wo_not_offline')+'</div>';
+      $('#se-back').onclick=()=>{ backToList(); };
+      return;
+    }
+    SUBS=c.subs||{};
+    SE_ITEMS=c.items||[]; SE_TIPS=c.tips||{};
+    renderDetail(w,SE_ITEMS,SE_TIPS);
+    return;
+  }
   const list=items||[];
   const exIds=[...new Set(list.map(it=>it.exercise&&it.exercise.id).filter(Boolean))];
   let tips={};
@@ -11572,6 +11836,10 @@ async function openWorkout(id){
     (tp||[]).forEach(t=>{ if(!tips[t.exercise_id]) tips[t.exercise_id]=t; });
   }
   await subLoad(exIds);
+  IDB.set('wo:'+id,{items:list,tips,subs:SUBS,t:Date.now()});
+  /* Toute la semaine / tout le programme de cette seance part sur le telephone en
+     tache de fond : une fois un programme ouvert, il reste utilisable sans reseau. */
+  if(w.program_slug) offPrefetch((SE_WORKOUTS||[]).filter(x=>x.program_slug===w.program_slug).map(x=>x.id));
   SE_ITEMS=list; SE_TIPS=tips; /* H#37 : necessaires pour re-rendre apres un remplacement */
   renderDetail(w,list,tips);
 }
@@ -11811,7 +12079,8 @@ async function quickSet(wrap,pill){
     fb='✓ '+reps+(row.weight_kg?(' × '+row.weight_kg+' kg'):'');
   }
   pill.style.opacity=.5;
-  const { error } = await sb.from('set_logs').insert(row);
+  row.id=offUuid();
+  const { error } = await dbw('set_logs','insert',row);
   pill.style.opacity='';
   if(error){ toast(t('save_fail')); return; }
   pill.classList.add('done'); pill.textContent='✓';
@@ -12215,6 +12484,10 @@ async function vcIndex(force){
   try{ const { data } = await sb.from('voice_clips').select('lang,key,path,trim_start,trim_end,gain,updated_at').in('lang',[LANG,'x']).limit(3000);
     (data||[]).forEach(r=>{ (idx[r.lang]=idx[r.lang]||{})[r.key]=r; }); }catch(_){}
   if(!Object.keys(idx).length&&VC_IDX) return VC_IDX;   /* hors ligne : on garde ce qu'on avait */
+  /* Hors ligne des le demarrage : l'index garde sur le telephone. Les fichiers
+     audio eux-memes sont deja dans le cache 'cdm-voice-1'. */
+  if(!Object.keys(idx).length){ const c=offGet('vc_'+LANG); if(c) return VC_IDX=c; }
+  else offSet('vc_'+LANG,idx);
   return VC_IDX=idx;
 }
 const vcHas=(l,k)=>!!(VC_IDX&&VC_IDX[l]&&VC_IDX[l][k]);
@@ -13268,7 +13541,9 @@ async function msValidate(){
     if(prev!=null&&est>prev+0.05){ pr={est,prev}; PRMAP[row.exercise_id]=est; }
   }
   btn.disabled=true;
-  const { data:ins, error } = await sb.from('set_logs').insert(row).select('id').single();
+  row.id=offUuid();
+  const { error } = await dbw('set_logs','insert',row);
+  const ins=error?null:{id:row.id};
   btn.disabled=false;
   if(error){ toast(t('save_fail')); return; }
   MS.lastSet=(ins&&row.weight_kg>0&&row.reps>=1&&row.reps<=10&&msPhase(s)!=='warm'&&msPhase(s)!=='cool')?{id:ins.id,w:row.weight_kg,r:row.reps,ex:row.exercise_id}:null;
@@ -13345,7 +13620,7 @@ async function msRest(sec,nx,prev){
 async function msRir(n,btn){
   const L=MS&&MS.lastSet; if(!L) return;
   btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===btn)); buzz(10);
-  const { error } = await sb.from('set_logs').update({rir:n}).eq('id',L.id);
+  const { error } = await dbw('set_logs','update',{rir:n},L.id);
   if(error) return;
   const est=msE1rm(L.w,L.r,n), prev=PRMAP?PRMAP[L.ex]:null;
   if(MS_KEEP){ const R=(MS_KEEP.rir=MS_KEEP.rir||{}); R[L.ex]=Math.min(R[L.ex]==null?9:R[L.ex],n); }
@@ -13454,16 +13729,114 @@ function msNotif(sec,body){
   if(!(sec>0)) return;
   try{ P.schedule({notifications:[{id:7311,title:'Coach DM',body:body||mt('rest_end'),schedule:{at:new Date(Date.now()+sec*1000),allowWhileIdle:true}}]}).catch(()=>{}); }catch(_){}
 }
+/* ---- 15/11/2026 : timers ecran verrouille ----
+   Quand l'ecran se verrouille, iOS/Android peuvent geler le JavaScript : plus de
+   bip, plus de voix. On programme donc a l'avance, en notifications locales
+   (avec son), TOUTES les transitions a venir des timers actifs : fin de repos,
+   fin de chrono, chaque round d'EMOM, chaque phase work/rest du Timer, time cap
+   du WOD… Au retour sur l'app, tout est annule : l'app reprend la main, et
+   comme chaque chrono se calcule depuis son heure de depart, il affiche
+   l'heure juste. iOS garde 64 notifications en attente au maximum : on en
+   programme 60. */
+const LK_BASE=7400, LK_MAX=60;
+let LK_N=0;
+const lkT=(k)=>(({
+  go:{fr:'C’est parti !',en:'Let’s go!',nl:'Daar gaan we!'},
+  work:{fr:'Travail',en:'Work',nl:'Werk'},
+  rest:{fr:'Récupère',en:'Rest',nl:'Rust'},
+  rnd:{fr:'Round',en:'Round',nl:'Ronde'},
+  time:{fr:'Time ! Chrono terminé.',en:'Time! Timer done.',nl:'Time! Timer klaar.'},
+  last:{fr:'Dernière minute !',en:'Last minute!',nl:'Laatste minuut!'},
+  next:{fr:'Étape suivante',en:'Next step',nl:'Volgende stap'}
+})[k]||{})[typeof LANG!=='undefined'?LANG:'fr']||k;
+function lkPlan(){
+  const now=Date.now(), ev=[];
+  const add=(at,body)=>{ if(at>now+500) ev.push({at,body}); };
+  try{
+    /* Timer (onglet S'entrainer) : chaque phase */
+    const X=(typeof NXT!=='undefined')?NXT:null;
+    if(X&&!X.done&&!X.pAt){
+      let t=X.t0+X.paused+X.pre*1000; add(t,lkT('go'));
+      for(let i=0;i<X.P.length;i++){ const p=X.P[i];
+        if(i>0) add(t,p.t==='rest'?lkT('rest')+(p.d?' · '+nxtFmt(p.d):''):(p.r&&X.c&&X.c.rounds>1?lkT('rnd')+' '+p.r+'/'+X.c.rounds+' · ':'')+lkT('work'));
+        if(p.d==null){ if(p.cap) add(t+p.cap*1000,lkT('time')); break; }
+        t+=p.d*1000;
+        if(i===X.P.length-1) add(t,lkT('time'));
+      }
+    }
+    /* Repos entre les series */
+    if(typeof REST!=='undefined'&&REST&&REST.end) add(REST.end,mt('rest_end'));
+    if(typeof MS!=='undefined'&&MS){
+      if(MS.rest&&MS.rest.end) add(MS.rest.end,mt('rest_end'));
+      if(MS.hold&&MS.hold.end) add(MS.hold.end,mt('hold_end'));
+      if(MS.bt&&MS.bt.run&&MS.bt.end) add(MS.bt.end,lkT('next'));
+    }
+    /* WOD : AMRAP / EMOM / For Time / RFT */
+    if(typeof WOD!=='undefined'&&WOD&&!WOD.ended){
+      if(WOD.f==='amrap'&&WOD.cap){ if(WOD.cap>=120) add(WOD.t0+(WOD.cap-60)*1000,lkT('last')); add(WOD.t0+WOD.cap*1000,lkT('time')); }
+      else if(WOD.f==='emom'&&WOD.rounds){
+        for(let r=2;r<=WOD.rounds;r++) add(WOD.t0+(r-1)*WOD.itv*1000,lkT('rnd')+' '+r+'/'+WOD.rounds);
+        add(WOD.t0+WOD.itv*WOD.rounds*1000,lkT('time'));
+      } else if(WOD.cap) add(WOD.t0+WOD.cap*1000,lkT('time'));
+    }
+  }catch(e){ console.warn('[lock] '+(e&&e.message||e)); }
+  ev.sort((a,b)=>a.at-b.at);
+  /* deux alertes a moins d'une seconde : une seule (ex. fin de repos = round suivant) */
+  return ev.filter((e,i)=>!i||e.at-ev[i-1].at>900).slice(0,LK_MAX);
+}
+function lkCancel(){
+  const P=(typeof fsPlugin==='function')?fsPlugin():null; if(!P||!LK_N) { LK_N=0; return; }
+  const ids=[]; for(let i=0;i<LK_N;i++) ids.push({id:LK_BASE+i});
+  LK_N=0; try{ P.cancel({notifications:ids}).catch(()=>{}); }catch(_){}
+}
+function lkArm(){
+  const P=(typeof fsPlugin==='function')?fsPlugin():null; if(!P) return;
+  lkCancel();
+  const ev=lkPlan(); if(!ev.length) return;
+  LK_N=ev.length;
+  try{ P.schedule({notifications:ev.map((e,i)=>({id:LK_BASE+i,title:'Coach DM',body:e.body,
+    schedule:{at:new Date(e.at),allowWhileIdle:true}}))}).catch(()=>{}); }catch(_){}
+}
+/* Un timer demarre = on demande la permission des notifications une fois,
+   au moment ou elle a du sens (sinon iOS ne sonnera jamais ecran verrouille). */
+let LK_ASKED=false;
+function lkAsk(){
+  if(LK_ASKED) return; LK_ASKED=true;
+  const P=(typeof fsPlugin==='function')?fsPlugin():null; if(!P) return;
+  try{ P.checkPermissions().then(r=>{ if(r&&r.display==='prompt') P.requestPermissions().catch(()=>{}); }).catch(()=>{}); }catch(_){}
+}
+/* Garder l'app eveillee : un son muet en continu (Web Audio, gain 0) pendant un
+   timer ou une seance. Avec le mode audio d'arriere-plan (UIBackgroundModes
+   audio, cote natif), iOS laisse l'app tourner ecran verrouille : la voix et les
+   bips continuent. Passe par le meme contexte audio que la voix, donc par la
+   meme session audio que le plugin AudioDuck : la musique du membre continue. */
+let BGK=null;
+function bgKeep(on){
+  try{
+    if(on){
+      lkAsk();
+      if(BGK) return;
+      const ac=vcCtx(); const o=ac.createOscillator(), g=ac.createGain();
+      g.gain.value=0.0001; o.frequency.value=40; o.connect(g); g.connect(ac.destination); o.start();
+      BGK={o,g};
+    } else if(BGK){
+      try{ BGK.o.stop(); BGK.o.disconnect(); BGK.g.disconnect(); }catch(_){} BGK=null;
+    }
+  }catch(_){}
+}
+function bgKeepSync(){
+  const active=(typeof NXT!=='undefined'&&NXT&&!NXT.done)||(typeof SESSION!=='undefined'&&!!SESSION)||(typeof WOD!=='undefined'&&WOD&&!WOD.ended);
+  bgKeep(!!active);
+}
 document.addEventListener('visibilitychange',()=>{
   try{
-    if(document.hidden){
-      const now=Date.now();
-      if(MS&&MS.hold&&MS.hold.end) msNotif(Math.ceil((MS.hold.end-now)/1000),mt('hold_end'));
-      else if(MS&&MS.rest&&MS.rest.end) msNotif(Math.ceil((MS.rest.end-now)/1000),mt('rest_end'));
-      else if(typeof REST!=='undefined'&&REST&&REST.end) msNotif(Math.ceil((REST.end-now)/1000),mt('rest_end'));
-    } else msNotif(0);
+    msNotif(0);
+    if(document.hidden) lkArm();
+    else { lkCancel(); bgKeepSync(); try{ if(VC_AC&&VC_AC.state!=='running') VC_AC.resume().catch(()=>{}); }catch(_){} }
   }catch(_){}
 });
+/* pagehide : certaines versions d'iOS gelent la page avant visibilitychange */
+window.addEventListener('pagehide',()=>{ try{ lkArm(); }catch(_){} });
 function msHoldStart(){
   const s=MS&&MS.cur; if(!s) return; const t=msTarget(s); if(!(t.v>0)) return;
   MS.holdReady=false; const db=document.getElementById('ms-done'), tv=document.getElementById('ms-tv2');
@@ -14170,6 +14543,7 @@ function armSession(resumed){
     WO_TOTAL=document.querySelectorAll('#se-detail .pill').length;
     WO_DONE=document.querySelectorAll('#se-detail .pill.done').length;
     WO_VOL=0; LAST_SET={};
+    bgKeep(true);
     $('#wo-hud').classList.add('on'); updHud();
     msButton();
     if(!resumed){
@@ -14183,12 +14557,16 @@ async function liveResume(){
   let s=SESSION;
   if(!s){
     const o=liveGet(); if(!o||o.w!==SE_CUR.w.id) return;
-    const { data } = await sb.from('workout_sessions').select('id,status').eq('id',o.id).maybeSingle();
-    if(!data||data.status!=='in_progress'){ liveClear(); return; }
+    const { data, error } = await sb.from('workout_sessions').select('id,status').eq('id',o.id).maybeSingle();
+    /* Hors ligne, ou seance pas encore envoyee : on la reprend telle quelle. */
+    const pend=obAll().some(op=>op.table==='workout_sessions'&&op.data&&op.data.id===o.id);
+    if(!pend && !(error&&offIsNet(error)) && (!data||data.status!=='in_progress')){ liveClear(); return; }
     s={id:o.id, started:o.started};
   }
   if(!SE_CUR||!SE_CUR.w) return;
-  const { data:logs } = await sb.from('set_logs').select('workout_exercise_id,set_number,reps,weight_kg').eq('session_id',s.id);
+  const { data:logsDb } = await sb.from('set_logs').select('workout_exercise_id,set_number,reps,weight_kg').eq('session_id',s.id);
+  /* + les series validees hors ligne, encore dans la file d'envoi */
+  const logs=(logsDb||[]).concat(obAll().filter(op=>op.table==='set_logs'&&op.kind==='insert'&&op.data&&op.data.session_id===s.id).map(op=>op.data));
   (logs||[]).forEach(l=>{
     const p=document.querySelector('#se-detail .pills[data-we="'+l.workout_exercise_id+'"] .pill[data-set="'+l.set_number+'"]');
     if(p){ p.classList.add('done'); p.textContent='\u2713'; }
@@ -14213,10 +14591,13 @@ async function startOrFinish(){
   try{ if(!SESSION) vcCtx(); }catch(_){}
   if(!SESSION){
     btn.disabled=true; btn.textContent='…';
-    const { data, error } = await sb.from('workout_sessions').insert({
-      user_id:USER.id, workout_id:SE_CUR.w.id, name_fr:SE_CUR.w.name_fr,
+    /* id genere ici : la seance demarre aussi sans reseau (envoyee plus tard). */
+    const sid=offUuid();
+    const { error } = await dbw('workout_sessions','insert',{
+      id:sid, user_id:USER.id, workout_id:SE_CUR.w.id, name_fr:SE_CUR.w.name_fr,
       scheduled_date:todayStr(), started_at:new Date().toISOString(), status:'in_progress'
-    }).select('id').single();
+    });
+    const data=error?null:{id:sid};
     btn.disabled=false;
     if(error||!data){ btn.textContent=t('start_session'); toast(t('start_fail')); return; }
     SESSION={id:data.id, started:Date.now()};
@@ -14231,8 +14612,9 @@ async function startOrFinish(){
     }
     stopWOD();
     const mins=Math.max(1,Math.round((Date.now()-SESSION.started)/60000));
-    await sb.from('workout_sessions').update({status:'completed',completed_at:new Date().toISOString(),duration_min:mins}).eq('id',SESSION.id);
+    await dbw('workout_sessions','update',{status:'completed',completed_at:new Date().toISOString(),duration_min:mins},SESSION.id);
     SESSION=null; liveClear(); btn.disabled=false; retAfter();
+    setTimeout(()=>{ try{ bgKeepSync(); }catch(_){} },6000);
     /* Un record bat pendant la seance a deja mis a jour le 1RM en base (trigger) :
        on vide le cache pour que la seance suivante calcule ses % sur le nouveau 1RM. */
     PRMAP=null;
@@ -14319,7 +14701,8 @@ $('#set-save').onclick=async ()=>{
     set_number:SET_CTX.setN, is_completed:true, logged_at:new Date().toISOString(),
     reps:g('f-reps'), weight_kg:g('f-kg'), duration_sec:g('f-dur'), distance_m:g('f-dist'), calories:g('f-cal') };
   setBtn('#set-save',true,'…');
-  const { error } = await sb.from('set_logs').insert(row);
+  row.id=offUuid();
+  const { error } = await dbw('set_logs','insert',row);
   setBtn('#set-save',false,t('set_save'));
   if(error){ toast(t('save_fail')); return; }
   SET_CTX.pill.classList.add('done'); SET_CTX.pill.textContent='✓';
@@ -17200,7 +17583,7 @@ async function nxBilanSend(coach,mins){
   window.NX_SKIPSUM=true;
   try{ msClose(true); await startOrFinish(); }catch(e){ console.error(e); }
   try{ if(sid&&(rpe||note)){ const up={}; if(rpe){ up.session_rpe=rpe; up.load_au=Math.round(rpe*Math.max(1,Math.round(mins))); } if(note) up.notes=note.slice(0,2000);
-      await sb.from('workout_sessions').update(up).eq('id',sid); } }catch(_){}
+      await dbw('workout_sessions','update',up,sid); } }catch(_){}
   if(coach&&note){ try{ const txt=nxm('msg_pre')+' · '+(pick(w,'name')||'')+(rpe?' · '+rpe+'/10':'')+'\n'+note;
       const { error } = await sb.rpc('msg_send',{ p_peer:COACH_THREAD.peer_id, p_body:txt }); if(!error) toast(nxm('sent')); }catch(_){} }
 }
@@ -17646,7 +18029,7 @@ async function nxtsLog(ok){
   const st=nxtsCurStep(), s=X.s;
   const row={ session_id:SESSION&&SESSION.id, exercise_id:s.wrap.dataset.ex, workout_exercise_id:s.wrap.dataset.we,
     set_number:X.atts.length+1, reps:ok?st.r:0, weight_kg:X.kg, is_completed:!!ok, is_warmup:!!st.a, logged_at:new Date().toISOString() };
-  if(row.session_id){ try{ const { error }=await sb.from('set_logs').insert(row); if(error) toast(t('save_fail')); }catch(_){} }
+  if(row.session_id){ try{ row.id=offUuid(); const { error }=await dbw('set_logs','insert',row); if(error) toast(t('save_fail')); }catch(_){} }
   X.atts.push({kg:X.kg,r:st.r,ok,a:!!st.a}); X.busy=false;
   if(ok){ try{ tones([[1046,.1]]); WO_DONE++; WO_VOL+=X.kg*st.r; updHud(); }catch(_){}
     const isPr=!st.a&&X.n===1&&X.rm&&X.kg>X.rm;
@@ -17790,6 +18173,7 @@ function nxtOpen(){ nxtVoice();
 }
 function nxtClose(){
   if(NXT){ clearInterval(NXT.iv); try{ NXT.lock&&NXT.lock.release(); }catch(_){} NXT=null; }
+  try{ bgKeepSync(); }catch(_){}
   const o=document.getElementById('nx-tmr'); if(o) o.remove();
 }
 function nxtHead(back){
@@ -17798,7 +18182,7 @@ function nxtHead(back){
 }
 function nxtWireHead(ov){
   ov.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{ nxBuzz(); const a=b.dataset.t;
-    if(a==='close') nxtClose(); else if(a==='menu'){ if(NXT){ clearInterval(NXT.iv); try{ NXT.lock&&NXT.lock.release(); }catch(_){} NXT=null; } nxtMenu(); }
+    if(a==='close') nxtClose(); else if(a==='menu'){ if(NXT){ clearInterval(NXT.iv); try{ NXT.lock&&NXT.lock.release(); }catch(_){} NXT=null; try{ bgKeepSync(); }catch(_){} } nxtMenu(); }
     else if(a==='snd'){ NXT_SND=!NXT_SND; try{ localStorage.setItem('cdm_tmr_snd',NXT_SND?'1':'0'); }catch(_){} b.classList.toggle('on',NXT_SND); const i=b.querySelector('img'); if(i) i.src='icons/ui_'+(NXT_SND?'snd':'mute')+'.webp'; if(!NXT_SND){ try{ vcStop(); }catch(_){} } } });
 }
 function nxtMenu(){
@@ -17845,7 +18229,7 @@ function nxtRun(k,c){
     document.getElementById('nx-tmpa').textContent=nxtt(NXT.pAt?'resume':'pause'); ov.classList.toggle('paused',!!NXT.pAt); };
   document.getElementById('nx-tmst').onclick=()=>{ nxBuzz(); if(!NXT) return; if(NXT.done){ nxtSetup(k); return; } nxtFinish(true); };
   { const me=NXT; nxtVoice().then(()=>{ if(NXT===me&&!me.pAt&&(Date.now()-me.t0-me.paused)/1000<me.pre-4) nxtSay(['p_ready'],LANG==='fr'?'Mets-toi en place.':LANG==='nl'?'Ga klaarstaan.':'Get set.'); }); }
-  nxtTick(); NXT.iv=setInterval(nxtTick,200);
+  nxtTick(); NXT.iv=setInterval(nxtTick,200); bgKeep(true);
   void nR;
 }
 /* l'horloge : tout se calcule depuis l'heure de depart (moins les pauses) */
@@ -17894,6 +18278,7 @@ function nxtTick(){
 }
 function nxtFinish(stopped){
   const X=NXT; if(!X||X.done) return; X.done=true; clearInterval(X.iv); try{ X.lock&&X.lock.release(); }catch(_){}
+  setTimeout(()=>{ try{ bgKeepSync(); }catch(_){} },6000);   /* laisse le « Time ! » se dire */
   let el=Math.max(0,((X.pAt||Date.now())-X.t0-X.paused)/1000-X.pre);
   if(!stopped){ const tot=X.P.reduce((a,p)=>a+(p.d||0),0); const cap=X.P[0]&&X.P[0].cap; if(tot) el=Math.min(el,tot); else if(cap) el=Math.min(el,cap); }
   if(!stopped){ try{ tones([[784,.14],[988,.14],[1175,.32]]); buzz(200); }catch(_){} nxtSay(['p_time'],'Time !'); }
