@@ -9,10 +9,28 @@
     document.documentElement.lang=l;
     var els=document.querySelectorAll('.t');
     for(var i=0;i<els.length;i++){var v=els[i].getAttribute('data-'+l);if(v!==null)els[i].innerHTML=v;}
+    kick();
     var b=document.querySelectorAll('.langs button');
     for(var j=0;j<b.length;j++)b[j].classList.toggle('on',b[j].getAttribute('data-l')===l);
     put(l);
   }
+  /* Sur-titres dorés : chaque morceau reste d'un bloc, jamais de « · » seul en bout de ligne */
+  function kick(){
+    var ks=document.querySelectorAll('.kicker');
+    for(var i=0;i<ks.length;i++){
+      var k=ks[i],h=k.innerHTML;
+      if(h.indexOf('<span')<0&&h.indexOf('<i>·</i>')>-1){
+        var p=h.split('<i>·</i>');
+        for(var j=0;j<p.length;j++)p[j]='<span class="kw">'+p[j].trim()+(j<p.length-1?' <i>·</i>':'')+'</span>';
+        k.innerHTML=p.join(' ');
+      }
+      var w=k.querySelectorAll('.kw');
+      for(var m=0;m<w.length;m++)w[m].classList.remove('eol');
+      for(var n=0;n<w.length-1;n++)if(w[n+1].offsetTop>w[n].offsetTop+2)w[n].classList.add('eol');
+    }
+  }
+  window.addEventListener('resize',kick,{passive:true});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(kick);
   window.setL=setL;
   setL(get()||((navigator.language||'fr').slice(0,2)));
   document.addEventListener('click',function(e){var t=e.target.closest('.langs button');if(t)setL(t.getAttribute('data-l'));});
