@@ -24,6 +24,16 @@ proj_path = File.join(IOS, 'App.xcodeproj')
 abort "[live] #{proj_path} introuvable : lancer d'abord npx cap add ios" unless File.exist?(proj_path)
 proj = Xcodeproj::Project.open(proj_path)
 app = proj.targets.find { |t| t.name == 'App' } or abort '[live] target App introuvable'
+# ---- 0. le plugin CdmLive (dans l'app, pas dans un paquet npm) : Capacitor doit le charger.
+#      « npx cap sync » reecrit cette liste a chaque fois : on la corrige a chaque passage. ----
+cfg = File.join(IOS, 'App', 'capacitor.config.json')
+if File.exist?(cfg)
+  j = JSON.parse(File.read(cfg))
+  list = j['packageClassList'] ||= []
+  list << 'CdmLivePlugin' unless list.include?('CdmLivePlugin')
+  File.write(cfg, JSON.pretty_generate(j))
+end
+
 if proj.targets.any? { |t| t.name == EXT }
   puts '[live] deja installee'
   exit 0
@@ -84,15 +94,6 @@ bf = embed.add_file_reference(ext.product_reference, true)
 bf.settings = { 'ATTRIBUTES' => ['RemoveHeadersOnCopy'] }
 
 proj.save
-
-# ---- 5. le plugin CdmLive (dans l'app, pas dans un paquet npm) : Capacitor doit le charger ----
-cfg = File.join(IOS, 'App', 'capacitor.config.json')
-if File.exist?(cfg)
-  j = JSON.parse(File.read(cfg))
-  list = j['packageClassList'] ||= []
-  list << 'CdmLivePlugin' unless list.include?('CdmLivePlugin')
-  File.write(cfg, JSON.pretty_generate(j))
-end
 
 # ---- 6. l'app declare les Live Activities ----
 plist = File.join(IOS, 'App', 'Info.plist')
