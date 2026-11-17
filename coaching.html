@@ -197,7 +197,8 @@
       <h2 class="t reveal" data-fr="Un coach, &lt;em&gt;chaque semaine.&lt;/em&gt;" data-en="A coach, &lt;em&gt;every week.&lt;/em&gt;" data-nl="Een coach, &lt;em&gt;elke week.&lt;/em&gt;">Un coach, <em>chaque semaine.</em></h2></div>
       <p class="t reveal" data-fr="Sans engagement : tu arrêtes quand tu veux. Payé au trimestre, c&#x27;est 10 % de moins." data-en="No commitment: stop whenever you want. Paid per quarter, it&#x27;s 10% less." data-nl="Zonder verbintenis: je stopt wanneer je wilt. Per kwartaal betaald is het 10 % minder.">Sans engagement : tu arrêtes quand tu veux. Payé au trimestre, c'est 10 % de moins.</p>
     </div>
-    <div class="plans four">
+    <div class="unfold-wrap"><button type="button" class="t btn btn-line unfold" data-for="formules" data-fr="Voir les 4 formules" data-en="See the 4 plans" data-nl="Bekijk de 4 formules">Voir les 4 formules</button></div>
+    <div class="plans four fold">
       <article class="plan reveal">
         <div class="t name" data-fr="Essentiel" data-en="Essential" data-nl="Essentieel">Essentiel</div>
         <h3 class="t" data-fr="Le bon programme, &lt;em class=&#x27;serif&#x27;&gt;ajusté.&lt;/em&gt;" data-en="The right program, &lt;em class=&#x27;serif&#x27;&gt;adjusted.&lt;/em&gt;" data-nl="Het juiste programma, &lt;em class=&#x27;serif&#x27;&gt;bijgestuurd.&lt;/em&gt;">Le bon programme, <em class='serif'>ajusté.</em></h3>
@@ -244,7 +245,8 @@
       <h2 class="t reveal" data-fr="Une course, une assiette, &lt;em&gt;un partenaire.&lt;/em&gt;" data-en="A race, a plate, &lt;em&gt;a partner.&lt;/em&gt;" data-nl="Een wedstrijd, een bord, &lt;em&gt;een partner.&lt;/em&gt;">Une course, une assiette, <em>un partenaire.</em></h2></div>
       <p class="t reveal" data-fr="Des formules taillées pour un but clair. Même méthode, même exigence." data-en="Plans built for one clear goal. Same method, same standards." data-nl="Formules voor één duidelijk doel. Dezelfde methode, dezelfde eisen.">Des formules taillées pour un but clair. Même méthode, même exigence.</p>
     </div>
-    <div class="plans">
+    <div class="unfold-wrap"><button type="button" class="t btn btn-line unfold" data-for="objectifs" data-fr="Voir les 5 formules" data-en="See the 5 plans" data-nl="Bekijk de 5 formules">Voir les 5 formules</button></div>
+    <div class="plans fold">
       <article class="plan hl reveal"><span class="t flag" data-fr="Saison Hyrox" data-en="Hyrox season" data-nl="Hyrox-seizoen">Saison Hyrox</span>
         <div class="t name" data-fr="Prépa Hyrox 12 semaines" data-en="Hyrox prep 12 weeks" data-nl="Hyrox-voorbereiding 12 weken">Prépa Hyrox 12 semaines</div>
         <h3 class="t" data-fr="Ton Hyrox, &lt;em class=&#x27;serif&#x27;&gt;préparé.&lt;/em&gt;" data-en="Your Hyrox, &lt;em class=&#x27;serif&#x27;&gt;prepared.&lt;/em&gt;" data-nl="Jouw Hyrox, &lt;em class=&#x27;serif&#x27;&gt;voorbereid.&lt;/em&gt;">Ton Hyrox, <em class='serif'>préparé.</em></h3>
@@ -345,7 +347,14 @@
   <div class="legal"><span>© 2026 Coach DM — coachdm.be</span><span>BCE : BE0840.260.421</span></div>
 </footer>
 
+<style>.plans.fold{display:none}.unfold-wrap{display:flex;justify-content:center;margin-top:8px}</style>
 <script src="assets/cdm25.js"></script>
+<script>
+(function(){function open(id){var sec=document.getElementById(id);if(!sec)return;var g=sec.querySelector('.plans.fold'),b=sec.querySelector('.unfold-wrap');if(g){g.classList.remove('fold');g.querySelectorAll('.reveal').forEach(function(e){e.classList.add('in')})}if(b)b.remove()}
+document.addEventListener('click',function(e){var b=e.target.closest('.unfold');if(b){open(b.dataset.for);try{gtag('event','view_plans',{section:b.dataset.for})}catch(x){}return}var a=e.target.closest('a[href^="#"]');if(a)open(a.getAttribute('href').slice(1))});
+if(location.hash)open(location.hash.slice(1));})();
+</script>
+
 <script>
 document.addEventListener('click',function(e){var a=e.target.closest('a.pay');if(!a)return;var l=document.documentElement.lang||'fr';if(a.href.indexOf('&l=')<0)a.href+='&l='+l;try{var c=a.closest('.plan'),n=c&&c.querySelector('.name');gtag('event','begin_checkout',{item_name:n?n.textContent:'Essai 2 semaines'})}catch(x){}});
 </script>
