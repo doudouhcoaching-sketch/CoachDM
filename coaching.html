@@ -347,12 +347,14 @@
   <div class="legal"><span>© 2026 Coach DM — coachdm.be</span><span>BCE : BE0840.260.421</span></div>
 </footer>
 
-<style>.plans.fold{display:none}.unfold-wrap{display:flex;justify-content:center;margin-top:8px}</style>
+<style>.plans.fold{display:none}.unfold-wrap{display:flex;justify-content:center;margin-top:8px}body.nosticky .getapp{opacity:0!important;transform:translateY(140%)!important;pointer-events:none}</style>
 <script src="assets/cdm25.js"></script>
 <script>
 (function(){function open(id){var sec=document.getElementById(id);if(!sec)return;var g=sec.querySelector('.plans.fold'),b=sec.querySelector('.unfold-wrap');if(g){g.classList.remove('fold');g.querySelectorAll('.reveal').forEach(function(e){e.classList.add('in')})}if(b)b.remove()}
 document.addEventListener('click',function(e){var b=e.target.closest('.unfold');if(b){open(b.dataset.for);try{gtag('event','view_plans',{section:b.dataset.for})}catch(x){}return}var a=e.target.closest('a[href^="#"]');if(a)open(a.getAttribute('href').slice(1))});
 if(location.hash)open(location.hash.slice(1));})();
+(function(){if(!('IntersectionObserver' in window))return;var seen=new Set();var io=new IntersectionObserver(function(es){es.forEach(function(x){x.isIntersecting?seen.add(x.target):seen.delete(x.target)});[...seen].forEach(function(t){if(!document.body.contains(t))seen.delete(t)});document.body.classList.toggle('nosticky',seen.size>0)});
+function watch(){document.querySelectorAll('.unfold-wrap, a.pay:not(#getapp)').forEach(function(e){io.observe(e)})}watch();document.addEventListener('click',function(e){if(e.target.closest('.unfold,a[href^="#"]'))setTimeout(watch,50)})})();
 </script>
 
 <script>
