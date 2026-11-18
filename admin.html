@@ -356,6 +356,7 @@ h1,h2,h3{font-family:'Barlow Condensed',-apple-system,BlinkMacSystemFont,'Segoe 
       <button data-tab="cours">Cours</button>
       <button data-tab="prospects">Prospects</button>
       <button data-tab="growth">Croissance</button>
+      <button data-tab="transfo">Transformation<span id="tx-badge"></span></button>
       <button data-tab="founders">Fondateurs</button>
       <button data-tab="ia">IA</button>
       <button data-tab="progs">Programmes</button>
@@ -479,6 +480,13 @@ h1,h2,h3{font-family:'Barlow Condensed',-apple-system,BlinkMacSystemFont,'Segoe 
       <div class="gr-kpis" id="gr-kpis"><div class="spin"></div></div>
       <div class="gr-filters" id="gr-filters"></div>
       <div id="gr-list"><div class="spin"></div></div>
+    </div>
+
+    <div class="pane" id="pane-transfo">
+      <div class="toolbar"><div class="sub" style="text-align:left;margin:0">Tunnel <a href="transformation.html" target="_blank" style="color:var(--brand)">Transformation 12 semaines</a> : les candidats réservent eux-mêmes leur appel. Après l'appel, un bouton envoie le lien de paiement (1 fois ou 3 fois) ; les relances partent seules.</div>
+        <div style="display:flex;gap:8px"><button class="btn subtle sm" data-txa="settings">Réglages</button><button class="btn subtle sm" data-txa="refresh">↻</button></div></div>
+      <div class="gr-kpis" id="tx-kpis"><div class="spin"></div></div>
+      <div id="tx-list"><div class="spin"></div></div>
     </div>
 
     <div class="pane" id="pane-founders">
@@ -749,7 +757,7 @@ async function enter(user){
   if(!mfaOk) return;
   applyRoleUI();
   show('app');
-  switchTab('members'); loadUsers(); loadNotifs();
+  switchTab(location.hash==='#transfo'?'transfo':'members'); loadUsers(); loadNotifs();
   /* Compte des apports en attente dès l'ouverture : la pastille sur l'onglet
      doit être visible sans avoir à cliquer dessus. */
   loadApports();
@@ -855,6 +863,7 @@ function switchTab(t){
   if(t==='prospects'){ loadProspects(); }
   if(t==='founders'){ loadFounders(); }
   if(t==='growth'){ window.loadGrowth&&window.loadGrowth(); }
+  if(t==='transfo'){ window.loadTransfo&&window.loadTransfo(); }
   if(t==='apports'){ loadApports(); }
   if(t==='ia'){ loadIA(); }
   if(t==='progs'){ if(!window.__wkLoaded){ window.__wkLoaded=true; loadExercises(); loadWorkouts(); } loadProgs(); }
@@ -2582,6 +2591,113 @@ document.addEventListener('click',async e=>{
 });
 })();
 
+
+/* ===================================================================
+   TRANSFORMATION 12 SEMAINES — candidatures, appels, liens de paiement
+   Tables : transfo_applications, transfo_settings (RLS admin).
+   Actions : RPC admin_transfo_action / admin_transfo_settings
+   (les e-mails partent via l'edge function transfo-mail).
+=================================================================== */
+(function(){
+const tesc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const TX_ST={booked:'Appel prévu',called:'Appelé',link_sent:'Lien envoyé',won:'Gagné 🏆',lost:'Perdu',no_show:'Absent',cancelled:'Annulé'};
+const TX_OF={online:'En ligne',hybrid:'Hybride Reasfit',unsure:'Ne sait pas'};
+const TX_BU={yes:'Oui',split:'Oui, en 3 fois',no:'Non / pas maintenant'};
+const DAYS=[['1','Lundi'],['2','Mardi'],['3','Mercredi'],['4','Jeudi'],['5','Vendredi'],['6','Samedi'],['7','Dimanche']];
+let TX=[], TXS=null, TXO=[];
+const fmt=d=>new Intl.DateTimeFormat('fr-BE',{timeZone:'Europe/Brussels',weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(d));
+async function loadTransfo(){
+  const [a,s]=await Promise.all([sb.from('transfo_applications').select('*').order('call_at',{ascending:true}),sb.from('transfo_settings').select('*').maybeSingle()]);
+  if(a.error){ $('#tx-list').innerHTML='<p class="empty">Erreur (accès admin requis).</p>'; return; }
+  TX=a.data||[]; TXS=s.data||null;
+  const ids=TXS?Object.values(TXS.offer_ids||{}):[];
+  if(ids.length){ const o=await sb.from('coach_offers').select('id,name,amount_cents,interval,installments,active').in('id',ids); TXO=o.data||[]; }
+  renderTransfo();
+}
+window.loadTransfo=loadTransfo;
+function renderTransfo(){
+  const n=k=>TX.filter(x=>x.status===k).length, now=Date.now();
+  const won=TX.filter(x=>x.status==='won'), ca=won.reduce((t,x)=>t+(x.link_offer==='hybrid'?3000:1500),0);
+  const k=[['À appeler',TX.filter(x=>x.status==='booked').length,'appels prévus'],['À conclure',n('called'),'appelés, lien pas envoyé'],['Liens envoyés',n('link_sent'),'relances automatiques'],['Gagnés',won.length,ca.toLocaleString('fr-BE')+' € (prix plein)'],['Candidatures',TX.length,'au total']];
+  $('#tx-kpis').innerHTML=k.map(([l,v,s])=>`<div class="gr-kpi"><div class="gr-n">${tesc(v)}</div><div class="gr-l">${tesc(l)}</div><div class="gr-s">${tesc(s)}</div></div>`).join('');
+  const b=$('#tx-badge'); if(b){ const c=TX.filter(x=>x.status==='booked'||x.status==='called').length; b.textContent=c?' '+c:''; }
+  const groups=[['Appels à venir',x=>x.status==='booked'&&new Date(x.call_at).getTime()>now-3600e3],
+    ['Appel passé : mets à jour',x=>x.status==='booked'&&new Date(x.call_at).getTime()<=now-3600e3],
+    ['Appelés : envoie le lien',x=>x.status==='called'],['Lien envoyé (relances auto)',x=>x.status==='link_sent'],
+    ['Terminés',x=>['won','lost','no_show','cancelled'].includes(x.status)]];
+  let h='';
+  groups.forEach(([t,f])=>{ const r=TX.filter(f); if(!r.length) return;
+    h+=`<div class="muted" style="margin:14px 0 6px;font-weight:700">${tesc(t)} · ${r.length}</div>`+r.map(x=>`<div class="gr-card" data-txid="${x.id}"><div><div class="gr-t">${tesc(x.full_name)} <span class="muted" style="font-weight:500">· ${tesc(TX_OF[x.offer]||x.offer)}</span></div><div class="muted" style="font-size:13px">${x.call_at?tesc(fmt(x.call_at)):''} · ${tesc(x.phone)}${x.commitment?' · motivation '+x.commitment+'/10':''}</div></div><div class="muted" style="font-size:12px;white-space:nowrap">${tesc(TX_ST[x.status]||x.status)}</div></div>`).join('');
+  });
+  if(!TX.length) h='<p class="empty">Pas encore de candidature. Partage le lien coachdm.be/transformation.html (bio Instagram, stories, Superprof).</p>';
+  if(TXS && !Object.keys(TXS.offer_ids||{}).length) h='<div class="card" style="margin-bottom:12px">Les offres de paiement ne sont pas encore créées. <button class="btn sm" data-txa="offers" style="width:auto;margin-left:8px">Créer les 4 offres</button></div>'+h;
+  $('#tx-list').innerHTML=h;
+}
+function row(l,v){ return v?`<div style="margin:0 0 10px"><div class="muted" style="font-size:12px">${tesc(l)}</div><div style="white-space:pre-wrap">${tesc(v)}</div></div>`:''; }
+function sheet(x){
+  const ov=document.createElement('div'); ov.id='gr-ov';
+  const open=!['won','lost','cancelled'].includes(x.status);
+  ov.innerHTML=`<div class="gr-sheet card"><div class="row"><h3 style="margin:0;font-size:17px">${tesc(x.full_name)}</h3><button class="btn subtle sm" data-txa="close" style="width:auto">Fermer</button></div>
+  <div class="muted" style="margin:4px 0 12px">${tesc(TX_ST[x.status]||x.status)}${x.call_at?' · appel '+tesc(fmt(x.call_at)):''}${x.link_sent_at?' · lien envoyé le '+tesc(fmt(x.link_sent_at)):''}</div>
+  <div class="gr-acts"><a class="btn sm" style="width:auto;text-decoration:none" href="tel:${tesc(x.phone.replace(/\s/g,''))}">Appeler ${tesc(x.phone)}</a><a class="btn subtle sm" style="width:auto;text-decoration:none" href="mailto:${tesc(x.email)}">E-mail</a></div>
+  ${open?`<div class="muted" style="margin:6px 0">Après l'appel</div><div class="gr-acts">
+    <button class="btn sm" data-txa="link" data-o="online" style="width:auto">Envoyer le lien · En ligne</button>
+    <button class="btn sm" data-txa="link" data-o="hybrid" style="width:auto">Envoyer le lien · Hybride</button></div>
+    <div class="gr-acts"><button class="btn subtle sm" data-txa="called" style="width:auto">Appel fait (je réfléchis)</button><button class="btn subtle sm" data-txa="no_show" style="width:auto">Absent → lui proposer un créneau</button>
+    <button class="btn subtle sm" data-txa="won" style="width:auto">Gagné</button><button class="btn subtle sm" data-txa="lost" style="width:auto;color:var(--warn)">Pas pour lui</button></div>`:''}
+  ${row('Offre visée',TX_OF[x.offer])}${row('Objectif',x.goal)}${row('Échéance',x.deadline)}${row('Situation',x.situation)}${row('Ce qui bloque',x.obstacle)}${row('Motivation',x.commitment?x.commitment+' / 10':'')}${row('Budget',TX_BU[x.budget])}${row('E-mail',x.email)}${row('Langue',String(x.lang||'').toUpperCase())}${row('Source',x.source)}
+  <div class="field"><label>Notes de l'appel</label><textarea id="tx-notes" rows="4">${tesc(x.notes||'')}</textarea></div>
+  <button class="btn subtle" data-txa="note">Enregistrer les notes</button>
+  <button class="btn subtle sm" data-txa="del" style="margin-top:8px;color:var(--warn)">Supprimer</button>
+  <div class="msg" id="tx-msg"></div></div>`;
+  ov.dataset.id=x.id; document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+}
+function settingsSheet(){
+  const s=TXS||{slots:{},blocked_days:[],horizon_days:10,min_notice_hours:16,active:true,offer_ids:{}};
+  const offs=Object.entries(s.offer_ids||{}).map(([k,id])=>{ const o=TXO.find(z=>z.id===id); return o?`<div style="font-size:13px">${tesc(o.name)} · <b>${(o.amount_cents/100).toLocaleString('fr-BE')} €</b>${o.installments?' × '+o.installments:''}${o.active?'':' · <span style="color:var(--warn)">inactive</span>'}</div>`:''; }).join('');
+  const ov=document.createElement('div'); ov.id='gr-ov';
+  ov.innerHTML=`<div class="gr-sheet card"><div class="row"><h3 style="margin:0;font-size:17px">Réglages des appels</h3><button class="btn subtle sm" data-txa="close" style="width:auto">Fermer</button></div>
+  <p class="sub" style="text-align:left">Heures de Bruxelles, séparées par des virgules (ex. 12:30, 13:00). Laisse vide un jour où tu n'appelles pas.</p>
+  ${DAYS.map(([d,l])=>`<div class="field"><label>${l}</label><input id="txs-${d}" value="${tesc(((s.slots||{})[d]||[]).join(', '))}" placeholder="—"></div>`).join('')}
+  <div class="field"><label>Jours bloqués (vacances, matchs…) : AAAA-MM-JJ, séparés par des virgules</label><input id="txs-blocked" value="${tesc((s.blocked_days||[]).join(', '))}"></div>
+  <div class="row2"><div class="field"><label>Créneaux visibles (jours)</label><input id="txs-h" type="number" min="2" max="30" value="${s.horizon_days}"></div><div class="field"><label>Délai minimum (heures)</label><input id="txs-n" type="number" min="1" max="72" value="${s.min_notice_hours}"></div></div>
+  <label style="display:flex;gap:8px;align-items:center;margin:8px 0 14px"><input type="checkbox" id="txs-a" ${s.active?'checked':''}> Prise de rendez-vous ouverte</label>
+  <button class="btn" data-txa="save-settings">Enregistrer</button>
+  <div class="muted" style="margin:18px 0 6px;font-weight:700">Offres de paiement</div>${offs||'<div class="muted">Pas encore créées.</div>'}
+  <div class="muted" style="font-size:12px;margin-top:6px">Pour changer un prix : console coach → Mes offres.</div>
+  <div class="msg" id="tx-msg"></div></div>`;
+  document.body.appendChild(ov); ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+}
+async function act(id,action,offer){
+  const notes=$('#tx-notes')?$('#tx-notes').value:null;
+  const { error } = await sb.rpc('admin_transfo_action',{p_id:id,p_action:action,p_offer:offer||null,p_notes:notes});
+  if(error){ const m=$('#tx-msg'); if(m){ m.textContent=error.message; m.className='msg err'; } return; }
+  toast(action==='send_link'?'Lien de paiement envoyé':action==='no_show'?'E-mail « nouveau créneau » envoyé':'Enregistré');
+  const ov=$('#gr-ov'); if(ov) ov.remove(); loadTransfo();
+}
+document.addEventListener('click',async e=>{
+  const c=e.target.closest('[data-txid]'); if(c&&!$('#gr-ov')){ sheet(TX.find(x=>x.id===c.dataset.txid)); return; }
+  const b=e.target.closest('[data-txa]'); if(!b) return;
+  const a=b.dataset.txa, ov=$('#gr-ov'), id=ov&&ov.dataset.id;
+  if(a==='close'){ if(ov) ov.remove(); }
+  else if(a==='refresh'){ loadTransfo(); }
+  else if(a==='settings'){ settingsSheet(); }
+  else if(a==='link'){ if(b.dataset.c!=='1'){ b.dataset.c='1'; b.textContent='Confirmer l’envoi'; return; } act(id,'send_link',b.dataset.o); }
+  else if(['called','no_show','won','lost','note'].includes(a)){ act(id,a); }
+  else if(a==='del'){ if(b.dataset.c!=='1'){ b.dataset.c='1'; b.textContent='Confirmer la suppression'; return; } const { error } = await sb.from('transfo_applications').delete().eq('id',id); if(!error){ ov.remove(); loadTransfo(); } }
+  else if(a==='offers'){ b.disabled=true; await sb.rpc('admin_transfo_settings',{p:{create_offers:true}}); setTimeout(loadTransfo,6000); toast('Création des offres…'); }
+  else if(a==='save-settings'){
+    const slots={}; let bad='';
+    DAYS.forEach(([d])=>{ const v=$('#txs-'+d).value.split(',').map(x=>x.trim()).filter(Boolean); v.forEach(h=>{ if(!/^([01]?\d|2[0-3]):[0-5]\d$/.test(h)) bad=h; }); if(v.length) slots[d]=v.map(h=>h.padStart(5,'0')); });
+    const blocked=$('#txs-blocked').value.split(',').map(x=>x.trim()).filter(Boolean); blocked.forEach(x=>{ if(!/^\d{4}-\d{2}-\d{2}$/.test(x)) bad=x; });
+    const m=$('#tx-msg'); if(bad){ m.textContent='Format incorrect : '+bad; m.className='msg err'; return; }
+    const { error } = await sb.rpc('admin_transfo_settings',{p:{slots,blocked_days:blocked,horizon_days:+$('#txs-h').value,min_notice_hours:+$('#txs-n').value,active:$('#txs-a').checked}});
+    if(error){ m.textContent=error.message; m.className='msg err'; return; }
+    toast('Réglages enregistrés'); ov.remove(); loadTransfo();
+  }
+});
+})();
 </script>
 <a id="cdm-voice" href="studio-voix.html" style="position:fixed;left:96px;bottom:14px;z-index:9999;background:#0F0F0E;color:#E9C767;border:1px solid #232220;border-radius:999px;padding:10px 16px;font:600 14px/1 -apple-system,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.4)">&#127897; Studio voix</a>
 <a id="cdm-backapp" href="app.html" style="position:fixed;left:14px;bottom:14px;z-index:9999;background:#0F0F0E;color:#DCBB72;border:1px solid #232220;border-radius:999px;padding:10px 16px;font:600 14px/1 -apple-system,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.4)">&#8249; App</a>
