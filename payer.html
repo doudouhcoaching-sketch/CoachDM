@@ -121,6 +121,7 @@
   var FN = 'https://kkcmhviyvttwpaclrjmv.supabase.co/functions/v1/coach-checkout';
   var T = {
     fr:{ title:'Paiement · Coach DM', kick_c:'Coaching avec {0}', kick:'Coaching', per_m:'/ mois', per_q:'/ trimestre',
+      inc3_i:'{0} mensualités, puis le paiement s’arrête tout seul.', fine_i:'{1} paiements mensuels de {0}, soit {3} au total. Le paiement s’arrête automatiquement après le dernier. Le paiement va directement à {2} ; Coach DM fournit la plateforme et l’app. Les reçus arrivent par e-mail.',
       inc1:'Ton suivi par ton coach, sur l’abonnement que tu choisis.', inc1_o:'Ton suivi par ton coach, pour l’offre que tu as choisie.', inc2:'L’app Coach DM offerte : programmes, séances, check-ins et messages avec ton coach.', inc3:'Sans engagement : tu arrêtes quand tu veux.',
       pay:'Payer {0}', opening:'Ouverture du paiement…', safe:'Paiement sécurisé par Stripe',
       fine:'Abonnement {1} de {0}, renouvelé automatiquement jusqu’à ce que tu l’arrêtes. Le paiement va directement à {2} ; Coach DM fournit la plateforme et l’app. Les reçus et la gestion de l’abonnement arrivent par e-mail.',
@@ -133,6 +134,7 @@
       off_t:'Offre indisponible', off_d:'Ce lien de paiement n’est plus actif. Demande un nouveau lien à ton coach.', home:'Retour à coachdm.be',
       terms:'Conditions', privacy:'Confidentialité' },
     en:{ title:'Payment · Coach DM', kick_c:'Coaching with {0}', kick:'Coaching', per_m:'/ month', per_q:'/ quarter',
+      inc3_i:'{0} monthly instalments, then payments stop on their own.', fine_i:'{1} monthly payments of {0}, {3} in total. Payments stop automatically after the last one. The payment goes directly to {2}; Coach DM provides the platform and the app. Receipts come by email.',
       inc1:'Coaching from your coach, on the plan you choose.', inc1_o:'Coaching from your coach, for the offer you chose.', inc2:'The Coach DM app included: programs, sessions, check-ins and messages with your coach.', inc3:'No commitment: stop whenever you want.',
       pay:'Pay {0}', opening:'Opening the payment…', safe:'Secure payment by Stripe',
       fine:'{1} subscription of {0}, renewed automatically until you stop it. The payment goes directly to {2}; Coach DM provides the platform and the app. Receipts and subscription management come by email.',
@@ -145,6 +147,7 @@
       off_t:'Offer unavailable', off_d:'This payment link is no longer active. Ask your coach for a new link.', home:'Back to coachdm.be',
       terms:'Terms', privacy:'Privacy' },
     nl:{ title:'Betaling · Coach DM', kick_c:'Coaching met {0}', kick:'Coaching', per_m:'/ maand', per_q:'/ kwartaal',
+      inc3_i:'{0} maandelijkse betalingen, daarna stopt het vanzelf.', fine_i:'{1} maandelijkse betalingen van {0}, in totaal {3}. De betaling stopt automatisch na de laatste. De betaling gaat rechtstreeks naar {2}; Coach DM levert het platform en de app. Betaalbewijzen komen per e-mail.',
       inc1:'Begeleiding door je coach, met het abonnement dat je kiest.', inc1_o:'Begeleiding door je coach, voor het aanbod dat je koos.', inc2:'De Coach DM-app inbegrepen: programma’s, trainingen, check-ins en berichten met je coach.', inc3:'Zonder verbintenis: je stopt wanneer je wilt.',
       pay:'{0} betalen', opening:'Betaling wordt geopend…', safe:'Veilige betaling via Stripe',
       fine:'{1} abonnement van {0}, automatisch verlengd tot je het stopt. De betaling gaat rechtstreeks naar {2}; Coach DM levert het platform en de app. Betaalbewijzen en abonnementsbeheer komen per e-mail.',
@@ -183,6 +186,11 @@
       $('o-desc').textContent = o.description||''; $('o-desc').hidden = !o.description;
       $('o-pay').textContent = f(t.pay, price);
       $('o-fine').textContent = f(once ? t.fine_o : t.fine, price, o.interval==='quarter'?t.fine_q:t.fine_m, o.coach||t.your_coach);
+      var n=Number(o.installments||0);
+      if(!once && n>1){
+        var i3b=document.querySelector('[data-t="inc3"]'); if(i3b) i3b.textContent=f(t.inc3_i,n);
+        $('o-fine').textContent = f(t.fine_i, price, n, o.coach||t.your_coach, eur(o.amount_eur*n));
+      }
     }
   }
   document.querySelectorAll('.lang button').forEach(function(b){ b.onclick=function(){ L=b.dataset.l; try{ localStorage.setItem('cdm_lang',L); }catch(_){} paint(); }; });
