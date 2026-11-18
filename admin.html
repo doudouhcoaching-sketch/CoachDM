@@ -251,6 +251,24 @@
   .ia-limits input{width:150px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--text)}
   .ia-limits button{padding:10px 16px;border-radius:10px;border:0;background:var(--brand);color:#1B1405;font-weight:800}
 </style>
+<style>
+.gr-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.gr-kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+.gr-n{font-family:var(--font-d);font-size:26px;font-weight:800;color:var(--gold-hi)}
+.gr-l{font-size:13px;font-weight:700;margin-top:2px}.gr-s{font-size:12px;color:var(--muted)}
+.gr-filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px}
+.gr-filters button{flex:none;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);padding:8px 12px;border-radius:999px;font:700 12px var(--font-d);cursor:pointer}
+.gr-filters button.on{background:var(--brand);color:#1B1405;border-color:var(--brand)}
+.gr-card{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:8px;cursor:pointer}
+.gr-t{font-weight:700}
+#gr-ov{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:10000;display:flex;align-items:flex-end;justify-content:center}
+.gr-sheet{width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0}
+.gr-sheet select{width:100%;background:var(--surface-2);border:1.5px solid var(--line);border-radius:11px;color:var(--text);padding:11px;font-size:16px;font-family:inherit}
+.gr-msg{background:var(--surface-2);border-radius:12px;padding:12px;white-space:pre-wrap;font-size:14px;line-height:1.5}
+.gr-subj{color:var(--brand);font-weight:700;margin-bottom:6px}
+.gr-acts{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
+</style>
+
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap">
 <style>
 /* === Coach DM - typographie unifiee : titres condenses comme sur coachdm.be === */
@@ -337,6 +355,7 @@ h1,h2,h3{font-family:'Barlow Condensed',-apple-system,BlinkMacSystemFont,'Segoe 
       <button data-tab="foods">Aliments</button>
       <button data-tab="cours">Cours</button>
       <button data-tab="prospects">Prospects</button>
+      <button data-tab="growth">Croissance</button>
       <button data-tab="founders">Fondateurs</button>
       <button data-tab="ia">IA</button>
       <button data-tab="progs">Programmes</button>
@@ -452,6 +471,14 @@ h1,h2,h3{font-family:'Barlow Condensed',-apple-system,BlinkMacSystemFont,'Segoe 
     <div class="pane" id="pane-ia">
       <div class="asub" id="ia-days"><button data-d="7">7 jours</button><button class="on" data-d="30">30 jours</button><button data-d="90">90 jours</button></div>
       <div id="ia-body"><div class="spin"></div></div>
+    </div>
+
+    <div class="pane" id="pane-growth">
+      <div class="toolbar"><div class="sub" style="text-align:left;margin:0">Tes chiffres et ta prospection (clubs, Anderlecht, entreprises, coachs). Les entreprises trouvées chaque lundi arrivent ici automatiquement.</div>
+        <div style="display:flex;gap:8px"><button class="btn sm" data-gra="new">+ Fiche</button><button class="btn subtle sm" data-gra="refresh">↻</button></div></div>
+      <div class="gr-kpis" id="gr-kpis"><div class="spin"></div></div>
+      <div class="gr-filters" id="gr-filters"></div>
+      <div id="gr-list"><div class="spin"></div></div>
     </div>
 
     <div class="pane" id="pane-founders">
@@ -827,6 +854,7 @@ function switchTab(t){
   if(t==='cours' && window.__coursOpen){ window.__coursOpen(); }
   if(t==='prospects'){ loadProspects(); }
   if(t==='founders'){ loadFounders(); }
+  if(t==='growth'){ window.loadGrowth&&window.loadGrowth(); }
   if(t==='apports'){ loadApports(); }
   if(t==='ia'){ loadIA(); }
   if(t==='progs'){ if(!window.__wkLoaded){ window.__wkLoaded=true; loadExercises(); loadWorkouts(); } loadProgs(); }
@@ -2361,6 +2389,199 @@ $('#mg-send').onclick=async()=>{
   ['mg-title','mg-body','mg-cta','mg-q'].forEach(i=>$('#'+i).value=''); MG_TARGET=null; $('#mg-res').innerHTML='';
   setMsg('mg-msg','Envoyé. Il s’affichera à la prochaine ouverture de l’app.','ok'); loadMsgs();
 };
+/* ---- CROISSANCE : chiffres clés + prospection (clubs, Anderlecht, entreprises, coachs) ----
+   Table biz_prospects (admins seulement) + RPC admin_growth_kpis. Les entreprises trouvées
+   par la recherche automatique du lundi arrivent directement dans cette table. */
+(function(){
+const GR_STAGES=[{k:'new',l:'À contacter'},{k:'s1',l:'Contacté'},{k:'s2',l:'Relance 1'},{k:'s3',l:'Relance 2'},{k:'s4',l:'Dernier msg'},{k:'talk',l:'En discussion'},{k:'trial',l:'Test / RDV'},{k:'won',l:'Signé'},{k:'lost',l:'Pas intéressé'}];
+const GR_NEXT={new:'s1',s1:'s2',s2:'s3',s3:'s4',s4:'lost'}, GR_STEP={new:1,s1:2,s2:3,s3:4}, GR_DELAY={s1:3,s2:4,s3:7};
+const GR_TYPES=['Entreprise','Club de football','Club de futsal','Académie de football','Personal trainer','Box CrossFit','Salle Hyrox / Cross-Training','Coach nutrition','Préparateur physique','Coach en ligne','Autre'];
+const GR_CH={email:'E-mail',dm:'DM Instagram',li:'LinkedIn'};
+let GR=[], grFilter='todo', grEdit=null;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today=()=>new Date().toISOString().slice(0,10);
+const addDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)};
+const fmtD=d=>d?new Date(d+'T12:00').toLocaleDateString('fr-BE',{day:'numeric',month:'short'}):'';
+const stageL=k=>(GR_STAGES.find(s=>s.k===k)||{}).l||k;
+
+const T={
+fr:{
+ 1:{s:"Coach DM pour {structure} ?",b:"Salut {prenom} ! Je suis tombé sur ton travail, j'aime beaucoup ta façon de coacher.\n\nCoach DM, c'est une app belge de coaching fitness et nutrition, en français, anglais et néerlandais. Avec la console coach, tes clients, leurs séances, leurs repas et vos messages sont au même endroit, et tu peux recevoir leurs paiements.\n\nC'est gratuit pour toujours jusqu'à 3 clients. Je t'envoie le lien ?"},
+ 2:{s:"Re : Coach DM",b:"Petite relance {prenom} 🙂 Je sais que les journées de coach sont longues.\n\nSi tu veux, je te montre en 2 minutes comment ça marche : tu crées le programme, ton client le suit dans l'app, tu vois ses séances et tu ajustes. Ça te dit ?"},
+ 3:{s:"Tes clients, leurs séances et leurs repas au même endroit",b:"{prenom}, une question : aujourd'hui, comment tu envoies tes programmes et tes plans repas à tes clients ?\n\nAvec l'offre Coach (39,99 €/mois, sans engagement) : clients illimités, les programmes Coach DM, l'assistant qui crée les programmes, les plans repas calculés au gramme près, messagerie, visios et vidéos. Et tes clients ne paient rien pour suivre ton programme.\n\nTout est ici : coachdm.be/offre-coach.html"},
+ 4:{s:"Dernier message",b:"Dernier message, promis 🙂 Si ce n'est pas le moment, aucun souci.\n\nLe lien reste là si un jour tu veux essayer, gratuit jusqu'à 3 clients : coachdm.be/offre-coach.html\n\nBonne continuation {prenom} !"},
+ hi:"Bonjour {prenom},\n\n",sig:"\n\nCoach DM\ncoachdm.be · contact@coachdm.be\n\nPas intéressé ? Réponds simplement « stop » et on ne te recontactera pas."},
+nl:{
+ 1:{s:"Coach DM voor {structure}?",b:"Hoi {prenom}! Ik kwam je werk tegen en vind je manier van coachen echt top.\n\nCoach DM is een Belgische app voor fitness- en voedingscoaching, in het Nederlands, Frans en Engels. Met de coachconsole staan je klanten, hun trainingen, hun maaltijden en jullie berichten op één plek, en kan je hun betalingen ontvangen.\n\nGratis voor altijd tot 3 klanten. Zal ik je de link sturen?"},
+ 2:{s:"Re: Coach DM",b:"Kleine herinnering {prenom} 🙂 Ik weet dat coachdagen lang zijn.\n\nAls je wil, toon ik je in 2 minuten hoe het werkt: jij maakt het programma, je klant volgt het in de app, jij ziet zijn trainingen en stuurt bij. Interesse?"},
+ 3:{s:"Je klanten, hun trainingen en maaltijden op één plek",b:"{prenom}, een vraagje: hoe stuur je vandaag je programma's en voedingsplannen door naar je klanten?\n\nMet het Coach-abonnement (€ 39,99/maand, zonder verplichting): onbeperkt klanten, de Coach DM-programma's, de assistent die programma's maakt, maaltijdplannen tot op de gram berekend, berichten, videogesprekken en video's. En je klanten betalen niets om je programma te volgen.\n\nAlles staat hier: coachdm.be/offre-coach.html"},
+ 4:{s:"Laatste bericht",b:"Laatste bericht, beloofd 🙂 Als het nu niet het moment is, geen probleem.\n\nDe link blijft staan als je het ooit wil proberen, gratis tot 3 klanten: coachdm.be/offre-coach.html\n\nVeel succes {prenom}!"},
+ hi:"Hallo {prenom},\n\n",sig:"\n\nCoach DM\ncoachdm.be · contact@coachdm.be\n\nGeen interesse? Antwoord gewoon « stop » en we contacteren je niet meer."},
+en:{
+ 1:{s:"Coach DM for {structure}?",b:"Hey {prenom}! I came across your work and really like the way you coach.\n\nCoach DM is a Belgian fitness and nutrition coaching app, in English, French and Dutch. With the coach console, your clients, their workouts, their meals and your messages are all in one place, and you can receive their payments.\n\nIt's free forever for up to 3 clients. Want me to send you the link?"},
+ 2:{s:"Re: Coach DM",b:"Quick follow-up {prenom} 🙂 I know coaching days are long.\n\nIf you'd like, I can show you how it works in 2 minutes: you build the program, your client follows it in the app, you see their sessions and adjust. Interested?"},
+ 3:{s:"Your clients, their workouts and meals in one place",b:"{prenom}, quick question: how do you send your programs and meal plans to your clients today?\n\nWith the Coach plan (€39.99/month, no commitment): unlimited clients, the Coach DM programs, the assistant that builds programs, meal plans calculated to the gram, messaging, video calls and videos. And your clients pay nothing to follow your program.\n\nEverything is here: coachdm.be/offre-coach.html"},
+ 4:{s:"Last message",b:"Last message, promise 🙂 If now isn't the right time, no worries at all.\n\nThe link is here whenever you want to try it, free for up to 3 clients: coachdm.be/offre-coach.html\n\nAll the best {prenom}!"},
+ hi:"Hi {prenom},\n\n",sig:"\n\nCoach DM\ncoachdm.be · contact@coachdm.be\n\nNot interested? Just reply \"stop\" and we won't contact you again."}
+};
+
+const CLUB_TYPES=['Club de football','Club de futsal','Académie de football'];
+const TC={
+fr:{
+ 1:{s:"Préparation physique de vos équipes · {structure}",b:"Je me permets de vous contacter au sujet de la préparation physique de vos équipes.\n\nCoach DM accompagne les clubs et les académies, des U13 aux seniors : audit physique du groupe, planification de la saison avec le coach principal, suivi des blessures et retour au jeu, sessions thématiques. Intervention possible sur votre lieu d'entraînement.\n\nDerrière Coach DM, un préparateur physique de terrain : plus de douze ans d'expérience, préparateur physique d'un club de première division de futsal (D1 belge).\n\nSeriez-vous ouverts à un échange de 15 minutes avec votre staff ?"},
+ 2:{s:"Re : préparation physique · {structure}",b:"Je me permets de revenir vers vous.\n\nUn joueur sur le terrain vaut plus que dix joueurs talentueux blessés. Notre travail part de là : on mesure (sprint, CMJ, Nordic curl, FMS), on planifie, puis on vérifie que ça progresse avant que ça devienne une blessure.\n\nVoulez-vous qu'on en parle avec votre coach principal ?"},
+ 3:{s:"Une proposition concrète pour {structure}",b:"Une proposition concrète : un audit physique de votre groupe sur votre lieu d'entraînement, puis un plan de saison construit avec votre coach principal.\n\nTarifs sur demande. Tous les détails : coachdm.be/football.html"},
+ 4:{s:"Dernier message",b:"Dernier message de ma part : si ce n'est pas le bon moment pour le club, aucun souci.\n\nLa porte reste ouverte, pour cette saison ou la prochaine : coachdm.be/football.html\n\nBonne saison à toute l'équipe !"},
+ hi:"Bonjour,\n\n",sig:"\n\nCoach DM · Préparation physique football et futsal\ncoachdm.be/football.html · contact@coachdm.be\n\nPas intéressés ? Répondez simplement « stop » et nous ne vous recontacterons pas."},
+nl:{
+ 1:{s:"Fysieke voorbereiding van jullie ploegen · {structure}",b:"Ik contacteer jullie over de fysieke voorbereiding van jullie ploegen.\n\nCoach DM begeleidt clubs en academies, van U13 tot senioren: fysieke audit van de groep, seizoensplanning met de hoofdtrainer, opvolging van blessures en terugkeer naar het veld, thematische sessies. Interventie mogelijk op jullie trainingslocatie.\n\nAchter Coach DM staat een fysiek trainer van het terrein: meer dan twaalf jaar ervaring, fysiek trainer van een club in de Belgische eerste klasse zaalvoetbal.\n\nStaan jullie open voor een gesprek van 15 minuten met jullie staff?"},
+ 2:{s:"Re: fysieke voorbereiding · {structure}",b:"Ik kom even bij jullie terug.\n\nEén speler op het veld is meer waard dan tien geblesseerde talenten. Daar vertrekken we van: we meten (sprint, CMJ, Nordic curl, FMS), we plannen, en we controleren of het vooruitgaat voordat het een blessure wordt.\n\nZullen we het daar eens over hebben met jullie hoofdtrainer?"},
+ 3:{s:"Een concreet voorstel voor {structure}",b:"Een concreet voorstel: een fysieke audit van jullie groep op jullie trainingslocatie, daarna een seizoensplan opgesteld samen met jullie hoofdtrainer.\n\nTarieven op aanvraag. Alle details: coachdm.be/football.html"},
+ 4:{s:"Laatste bericht",b:"Laatste bericht van mij: als het nu niet het juiste moment is voor de club, geen probleem.\n\nDe deur blijft open, voor dit seizoen of het volgende: coachdm.be/football.html\n\nEen goed seizoen aan de hele ploeg!"},
+ hi:"Hallo,\n\n",sig:"\n\nCoach DM · Fysieke voorbereiding voetbal en zaalvoetbal\ncoachdm.be/football.html · contact@coachdm.be\n\nGeen interesse? Antwoord gewoon « stop » en we contacteren jullie niet meer."},
+en:{
+ 1:{s:"Physical preparation for your teams · {structure}",b:"I'm reaching out about the physical preparation of your teams.\n\nCoach DM works with clubs and academies, from U13 to senior teams: physical audit of the squad, season planning with the head coach, injury tracking and return to play, themed sessions. We can work at your training ground.\n\nBehind Coach DM is a hands-on strength & conditioning coach: over twelve years of experience, S&C coach for a Belgian First Division futsal club.\n\nWould you be open to a 15-minute call with your staff?"},
+ 2:{s:"Re: physical preparation · {structure}",b:"Just following up.\n\nOne player on the pitch is worth more than ten talented players on the injury list. That's where our work starts: we measure (sprint, CMJ, Nordic curl, FMS), we plan, and we check progress before a weakness turns into an injury.\n\nShall we discuss it with your head coach?"},
+ 3:{s:"A concrete proposal for {structure}",b:"A concrete proposal: a physical audit of your squad at your training ground, followed by a season plan built with your head coach.\n\nPricing on request. All the details: coachdm.be/football.html"},
+ 4:{s:"Last message",b:"Last message from me: if it's not the right time for the club, no problem at all.\n\nThe door stays open, for this season or the next: coachdm.be/football.html\n\nHave a great season, everyone!"},
+ hi:"Hello,\n\n",sig:"\n\nCoach DM · Football and futsal physical preparation\ncoachdm.be/football.html · contact@coachdm.be\n\nNot interested? Just reply \"stop\" and we won't contact you again."}
+};
+
+const TE={
+fr:{
+ 1:{s:"Le bien-être physique de vos équipes · {structure}",b:"Je me permets de vous contacter au sujet de la forme et de l'énergie de vos équipes chez {structure}.\n\nCoach DM propose du coaching physique en entreprise : des séances sur site ou chez Reasfit à Vilvoorde, pour tous les niveaux, avec un programme suivi dans l'app Coach DM. Nous proposons aussi des conférences et ateliers nutrition, avec des plans adaptés aux horaires de vos collaborateurs.\n\nSeriez-vous ouvert(e) à un échange de 15 minutes ?"},
+ 2:{s:"Re : vos équipes · {structure}",b:"Je me permets de revenir vers vous.\n\nJe peux vous montrer en 15 minutes comment cela se passe concrètement : les séances, l'app et le suivi de vos collaborateurs.\n\nQuel moment vous conviendrait ?"},
+ 3:{s:"Un suivi mesurable pour {structure}",b:"Un point qui intéresse souvent les RH : chaque collaborateur suit son programme dans l'app Coach DM, et vous recevez des rapports de suivi en PDF, par personne ou par groupe.\n\nTarifs sur demande. Toutes les offres : coachdm.be/football.html#b2b"},
+ 4:{s:"Dernier message",b:"Dernier message de ma part : si ce n'est pas le bon moment, aucun souci.\n\nLa porte reste ouverte quand vous voudrez mettre vos équipes en mouvement : coachdm.be/football.html#b2b\n\nBelle fin de journée !"},
+ hi:"Bonjour {prenom},\n\n",sig:"\n\nCoach DM · Coaching physique en entreprise\ncoachdm.be · contact@coachdm.be\n\nPas intéressé(e) ? Répondez simplement « stop » et nous ne vous recontacterons pas."},
+nl:{
+ 1:{s:"Het fysieke welzijn van jullie teams · {structure}",b:"Ik contacteer u over de fitheid en energie van uw teams bij {structure}.\n\nCoach DM biedt fysieke coaching in bedrijven: sessies op locatie of bij Reasfit in Vilvoorde, voor alle niveaus, met een programma dat opgevolgd wordt in de Coach DM-app. We bieden ook voedingsconferenties en -workshops, met plannen die aangepast zijn aan de werkuren van uw medewerkers.\n\nStaat u open voor een gesprek van 15 minuten?"},
+ 2:{s:"Re: uw teams · {structure}",b:"Ik kom even bij u terug.\n\nIn 15 minuten toon ik u hoe het concreet werkt: de sessies, de app en de opvolging van uw medewerkers.\n\nWelk moment past u?"},
+ 3:{s:"Meetbare opvolging voor {structure}",b:"Iets wat HR vaak interesseert: elke medewerker volgt zijn programma in de Coach DM-app, en u ontvangt opvolgingsrapporten in pdf, per persoon of per groep.\n\nPrijs op aanvraag. Alle aanbiedingen: coachdm.be/football.html#b2b"},
+ 4:{s:"Laatste bericht",b:"Laatste bericht van mij: als het nu niet het juiste moment is, geen probleem.\n\nDe deur blijft open wanneer u uw teams in beweging wilt brengen: coachdm.be/football.html#b2b\n\nNog een fijne dag!"},
+ hi:"Hallo {prenom},\n\n",sig:"\n\nCoach DM · Fysieke coaching in bedrijven\ncoachdm.be · contact@coachdm.be\n\nGeen interesse? Antwoord gewoon « stop » en we contacteren u niet meer."},
+en:{
+ 1:{s:"Your teams' physical wellbeing · {structure}",b:"I'm reaching out about the fitness and energy of your teams at {structure}.\n\nCoach DM offers corporate physical coaching: sessions on site or at Reasfit in Vilvoorde, for all levels, with a program tracked in the Coach DM app. We also run nutrition talks and workshops, with plans adapted to your employees' working hours.\n\nWould you be open to a 15-minute call?"},
+ 2:{s:"Re: your teams · {structure}",b:"Just following up.\n\nIn 15 minutes I can show you how it works in practice: the sessions, the app and how your employees are followed up.\n\nWhat time would suit you?"},
+ 3:{s:"Measurable follow-up for {structure}",b:"One thing HR teams often like: each employee follows their program in the Coach DM app, and you receive PDF progress reports, per person or per group.\n\nPricing on request. All offers: coachdm.be/football.html#b2b"},
+ 4:{s:"Last message",b:"Last message from me: if it's not the right time, no problem at all.\n\nThe door stays open whenever you want to get your teams moving: coachdm.be/football.html#b2b\n\nHave a great day!"},
+ hi:"Hello {prenom},\n\n",sig:"\n\nCoach DM · Corporate physical coaching\ncoachdm.be · contact@coachdm.be\n\nNot interested? Just reply \"stop\" and we won't contact you again."}
+};
+
+
+function fill(str,p){const first=(p.prenom||'').trim()||({fr:'',nl:'',en:''})[p.lang];return str.replace(/\{prenom\}/g,first).replace(/\{structure\}/g,(p.structure||p.prenom||'toi').trim()).replace(/ !/g,first?' !':' !').replace(/(Salut|Hoi|Hey|Bonjour|Hallo|Hi) ([!,])/g,'$1$2')}
+function isClub(p){return CLUB_TYPES.includes(p.type)}
+function isBiz(p){return p.type==='Entreprise'}
+function message(p,step){const club=isClub(p),SET=isBiz(p)?TE:club?TC:T,L=SET[p.lang]||SET.fr,t=L[step];if(!t)return null;let body=(step===1&&p.custom1)?p.custom1:t.b;if(p.channel==='email')body=L.hi+body.replace(/^(Salut|Hoi|Hey) \{prenom\} ?! /,'')+L.sig;return{subject:p.channel==='email'?fill(t.s,p):'',body:fill(body,p)}}
+
+
+const due=p=>p.next&&!['won','lost'].includes(p.stage)&&p.next<=today();
+const fresh=p=>p.stage==='new'&&!p.next;
+
+async function loadGrowth(){
+  const k=$('#gr-kpis'); if(!k) return;
+  try{
+    const { data, error } = await sb.rpc('admin_growth_kpis');
+    if(error) throw error;
+    const t=[['Comptes',data.accounts,'+'+data.new_7d+' cette semaine'],['Actifs 7 j',data.active_7d,'+'+data.new_30d+' inscrits en 30 j'],['Abonnés payants',data.paying,'+'+data.paying_new_7d+' cette semaine'],['Fondateurs',data.founder_claimed+' / '+data.founder_sent,'invitations utilisées'],['Essais terminés',data.trial_ended_not_paying,'sans abonnement']];
+    k.innerHTML=t.map(([l,v,s])=>`<div class="gr-kpi"><div class="gr-n">${esc(v)}</div><div class="gr-l">${esc(l)}</div><div class="gr-s">${esc(s)}</div></div>`).join('');
+  }catch(e){ k.innerHTML='<p class="empty">Chiffres indisponibles.</p>'; }
+  const { data:rows, error:e2 } = await sb.from('biz_prospects').select('*').order('pinned',{ascending:false}).order('updated_at',{ascending:false});
+  if(e2){ $('#gr-list').innerHTML='<p class="empty">Erreur (accès admin requis).</p>'; return; }
+  GR=rows||[]; renderGrowth();
+}
+window.loadGrowth=loadGrowth;
+
+function grMatch(p){
+  if(grFilter==='todo') return due(p)||(fresh(p)&&p.pinned);
+  if(grFilter==='anderlecht') return p.pinned;
+  if(grFilter==='biz') return p.type==='Entreprise';
+  if(grFilter==='club') return CLUB_TYPES.includes(p.type);
+  if(grFilter==='coach') return p.type!=='Entreprise'&&!CLUB_TYPES.includes(p.type);
+  if(grFilter==='talk') return ['talk','trial','won'].includes(p.stage);
+  return true;
+}
+function grCard(p){
+  const late=p.next&&p.next<today()&&!['won','lost'].includes(p.stage);
+  const pill=['won','lost'].includes(p.stage)?`<span class="pill sec">${stageL(p.stage)}</span>`:p.next?`<span class="pill ${late?'no':'role'}">${late?'Retard · ':''}${fmtD(p.next)}</span>`:`<span class="pill sec">${stageL(p.stage)}</span>`;
+  return `<div class="gr-card" data-grid="${p.id}"><div><div class="gr-t">${p.pinned?'★ ':''}${esc(p.structure||p.prenom||'Sans nom')}</div><div class="muted">${esc(p.type)} · ${esc(p.ville||'—')} · ${GR_CH[p.channel]||''} · ${String(p.lang).toUpperCase()}</div></div>${pill}</div>`;
+}
+function renderGrowth(){
+  const n=f=>{const o=grFilter;grFilter=f;const c=GR.filter(grMatch).length;grFilter=o;return c};
+  const F=[['todo','À faire'],['anderlecht','Anderlecht'],['biz','Entreprises'],['club','Clubs'],['coach','Coachs'],['talk','En discussion'],['all','Tous']];
+  $('#gr-filters').innerHTML=F.map(([k,l])=>`<button class="${grFilter===k?'on':''}" data-grf="${k}">${l} ${n(k)}</button>`).join('');
+  const list=GR.filter(grMatch);
+  $('#gr-list').innerHTML=list.length?list.map(grCard).join(''):'<p class="empty">Rien ici. Les fiches « À faire » sont les relances du jour et Anderlecht.</p>';
+}
+
+function grSheet(p){
+  grEdit=p?JSON.parse(JSON.stringify(p)):{structure:'',prenom:'',type:'Entreprise',ville:'',pays:'Belgique',lang:'fr',channel:'li',contact:'',notes:'',stage:'new',next:null,hist:[],pinned:false};
+  const isNew=!p, step=GR_STEP[grEdit.stage], m=step&&!isNew?message(grEdit,step):null;
+  const ov=document.createElement('div'); ov.id='gr-ov';
+  ov.innerHTML=`<div class="gr-sheet card"><div class="row"><h3 style="margin:0;font-size:17px">${isNew?'Nouvelle fiche':esc(grEdit.structure||grEdit.prenom)}</h3><button class="btn subtle sm" data-gra="close" style="width:auto">Fermer</button></div>
+  ${m?`<div class="muted" style="margin-bottom:6px">Message à envoyer · étape ${step}/4</div><div class="gr-msg" id="gr-msgbox">${m.subject?`<div class="gr-subj">Objet : ${esc(m.subject)}</div>`:''}<span id="gr-msgtxt">${esc(m.body)}</span></div>
+  <div class="gr-acts"><button class="btn sm" data-gra="copy" style="width:auto">Copier</button><button class="btn subtle sm" data-gra="ai" style="width:auto">✦ Personnaliser (IA)</button>${grLink(grEdit,m)}<button class="btn subtle sm" data-gra="sent" style="width:auto">Marquer envoyé ✓</button></div>`:''}
+  ${!isNew&&!['won','lost'].includes(grEdit.stage)?`<div class="gr-acts"><button class="btn subtle sm" data-gra="talk" style="width:auto">A répondu</button><button class="btn subtle sm" data-gra="trial" style="width:auto">RDV / test</button><button class="btn subtle sm" data-gra="won" style="width:auto">Signé 🏆</button><button class="btn subtle sm" data-gra="lost" style="width:auto">Pas intéressé</button></div>`:''}
+  <div class="row2"><div class="field"><label>Structure</label><input id="grf-structure" value="${esc(grEdit.structure)}"></div><div class="field"><label>Prénom du contact</label><input id="grf-prenom" value="${esc(grEdit.prenom)}"></div></div>
+  <div class="row2"><div class="field"><label>Type</label><select id="grf-type">${GR_TYPES.map(t=>`<option ${t===grEdit.type?'selected':''}>${t}</option>`).join('')}</select></div><div class="field"><label>Ville</label><input id="grf-ville" value="${esc(grEdit.ville)}"></div></div>
+  <div class="row2"><div class="field"><label>Langue</label><select id="grf-lang">${['fr','nl','en'].map(l=>`<option value="${l}" ${l===grEdit.lang?'selected':''}>${l.toUpperCase()}</option>`).join('')}</select></div><div class="field"><label>Canal</label><select id="grf-channel">${Object.entries(GR_CH).map(([k,v])=>`<option value="${k}" ${k===grEdit.channel?'selected':''}>${v}</option>`).join('')}</select></div></div>
+  <div class="field"><label>E-mail, @Instagram ou lien LinkedIn</label><input id="grf-contact" value="${esc(grEdit.contact)}"></div>
+  <div class="row2"><div class="field"><label>Étape</label><select id="grf-stage">${GR_STAGES.map(s=>`<option value="${s.k}" ${s.k===grEdit.stage?'selected':''}>${s.l}</option>`).join('')}</select></div><div class="field"><label>Prochaine action</label><input type="date" id="grf-next" value="${grEdit.next||''}"></div></div>
+  <div class="field"><label>Notes</label><textarea id="grf-notes" rows="4">${esc(grEdit.notes)}</textarea></div>
+  ${(grEdit.hist||[]).length?`<div class="muted" style="margin:6px 0">${grEdit.hist.slice().reverse().map(h=>esc(fmtD(h.d)+' · '+h.t)).join('<br>')}</div>`:''}
+  <button class="btn" data-gra="save">${isNew?'Ajouter':'Enregistrer'}</button>
+  ${isNew?'':'<button class="btn subtle sm" data-gra="del" style="margin-top:8px;color:var(--warn)">Supprimer</button>'}
+  <div class="msg" id="gr-sheetmsg"></div></div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{ if(e.target===ov) ov.remove(); });
+}
+function grLink(p,m){
+  const c=(p.contact||'').trim(); if(!c) return '';
+  let u='';
+  if(c.includes('@')&&!c.startsWith('@')) u='mailto:'+encodeURIComponent(c)+'?subject='+encodeURIComponent(m.subject||'')+'&body='+encodeURIComponent(m.body);
+  else if(c.startsWith('@')) u='https://ig.me/m/'+encodeURIComponent(c.slice(1));
+  else if(/^https?:/.test(c)) u=c;
+  return u?`<a class="btn subtle sm" style="width:auto;text-decoration:none" href="${esc(u)}" target="_blank" rel="noopener">Ouvrir ↗</a>`:'';
+}
+function grRead(){ ['structure','prenom','type','ville','lang','channel','contact','stage','notes'].forEach(k=>{const el=$('#grf-'+k); if(el) grEdit[k]=el.value.trim();}); const n=$('#grf-next'); grEdit.next=n&&n.value?n.value:null; }
+async function grSave(extra){
+  const row={structure:grEdit.structure,prenom:grEdit.prenom,type:grEdit.type,ville:grEdit.ville,pays:grEdit.pays||'Belgique',lang:grEdit.lang,channel:grEdit.channel,contact:grEdit.contact,notes:grEdit.notes,stage:grEdit.stage,next:grEdit.next,last_at:grEdit.last_at||null,hist:grEdit.hist||[],pinned:!!grEdit.pinned,...(extra||{})};
+  const q=grEdit.id?sb.from('biz_prospects').update(row).eq('id',grEdit.id):sb.from('biz_prospects').insert({...row,source:'manuel'});
+  const { error } = await q;
+  if(error){ const m=$('#gr-sheetmsg'); if(m){ m.textContent=error.message.includes('duplicate')?'Cette structure existe déjà.':error.message; m.className='msg err'; } return false; }
+  const ov=$('#gr-ov'); if(ov) ov.remove(); await loadGrowth(); return true;
+}
+function grStage(k,label){ grRead(); grEdit.stage=k; grEdit.next=['won','lost'].includes(k)?null:addDays(k==='talk'?2:5); grEdit.hist=[...(grEdit.hist||[]),{d:today(),t:label}]; grSave(); }
+
+document.addEventListener('click',async e=>{
+  const f=e.target.closest('[data-grf]'); if(f){ grFilter=f.dataset.grf; renderGrowth(); return; }
+  const c=e.target.closest('[data-grid]'); if(c&&!$('#gr-ov')){ grSheet(GR.find(x=>x.id===c.dataset.grid)); return; }
+  const b=e.target.closest('[data-gra]'); if(!b) return;
+  const a=b.dataset.gra;
+  if(a==='close'){ const ov=$('#gr-ov'); if(ov) ov.remove(); }
+  else if(a==='new'){ grSheet(null); }
+  else if(a==='copy'){ const s=$('#gr-msgbox .gr-subj'); const txt=(s?s.textContent+'\n\n':'')+$('#gr-msgtxt').textContent; try{ await navigator.clipboard.writeText(txt); b.textContent='Copié ✓'; }catch(_){ b.textContent='Sélectionne le texte'; } }
+  else if(a==='sent'){ grRead(); const step=GR_STEP[grEdit.stage], nx=GR_NEXT[grEdit.stage]; grEdit.hist=[...(grEdit.hist||[]),{d:today(),t:'Message '+step+' envoyé ('+(GR_CH[grEdit.channel]||'')+')'}]; grEdit.stage=nx; grEdit.last_at=today(); grEdit.next=nx==='lost'?null:addDays(GR_DELAY[nx]||3); grSave(); }
+  else if(a==='talk') grStage('talk','A répondu');
+  else if(a==='trial') grStage('trial','RDV / test');
+  else if(a==='won') grStage('won','Signé 🏆');
+  else if(a==='lost') grStage('lost','Pas intéressé');
+  else if(a==='save'){ grRead(); if(!grEdit.structure&&!grEdit.prenom){ const m=$('#gr-sheetmsg'); m.textContent='Ajoute au moins une structure ou un prénom.'; m.className='msg err'; return; } if(!grEdit.id&&!(grEdit.hist||[]).length) grEdit.hist=[{d:today(),t:'Ajouté'}]; grSave(); }
+  else if(a==='del'){ if(b.dataset.c!=='1'){ b.dataset.c='1'; b.textContent='Confirmer la suppression'; return; } const { error } = await sb.from('biz_prospects').delete().eq('id',grEdit.id); if(!error){ $('#gr-ov').remove(); loadGrowth(); } }
+  else if(a==='refresh'){ loadGrowth(); }
+  else if(a==='ai'){
+    grRead(); const step=GR_STEP[grEdit.stage]||1, base=$('#gr-msgtxt').textContent;
+    b.disabled=true; b.textContent='✦ Rédaction…';
+    try{
+      const { data, error } = await sb.functions.invoke('biz-personalize',{ body:{ step, base, prospect:{ structure:grEdit.structure, prenom:grEdit.prenom, type:grEdit.type, ville:grEdit.ville, lang:grEdit.lang, channel:grEdit.channel, notes:grEdit.notes } } });
+      if(error||!data||!data.text) throw error||new Error('vide');
+      $('#gr-msgtxt').textContent=data.text; b.textContent='✦ Réécrire';
+    }catch(e){ b.textContent='IA indisponible, réessaie'; }
+    b.disabled=false;
+  }
+});
+})();
+
 </script>
 <a id="cdm-voice" href="studio-voix.html" style="position:fixed;left:96px;bottom:14px;z-index:9999;background:#0F0F0E;color:#E9C767;border:1px solid #232220;border-radius:999px;padding:10px 16px;font:600 14px/1 -apple-system,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.4)">&#127897; Studio voix</a>
 <a id="cdm-backapp" href="app.html" style="position:fixed;left:14px;bottom:14px;z-index:9999;background:#0F0F0E;color:#DCBB72;border:1px solid #232220;border-radius:999px;padding:10px 16px;font:600 14px/1 -apple-system,sans-serif;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.4)">&#8249; App</a>
