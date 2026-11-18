@@ -2520,7 +2520,7 @@ function grSheet(p){
   const ov=document.createElement('div'); ov.id='gr-ov';
   ov.innerHTML=`<div class="gr-sheet card"><div class="row"><h3 style="margin:0;font-size:17px">${isNew?'Nouvelle fiche':esc(grEdit.structure||grEdit.prenom)}</h3><button class="btn subtle sm" data-gra="close" style="width:auto">Fermer</button></div>
   ${m?`<div class="muted" style="margin-bottom:6px">Message à envoyer · étape ${step}/4</div><div class="gr-msg" id="gr-msgbox">${m.subject?`<div class="gr-subj">Objet : ${esc(m.subject)}</div>`:''}<span id="gr-msgtxt">${esc(m.body)}</span></div>
-  <div class="gr-acts"><button class="btn sm" data-gra="copy" style="width:auto">Copier</button>${grLink(grEdit,m)}<button class="btn subtle sm" data-gra="sent" style="width:auto">Marquer envoyé ✓</button></div>`:''}
+  <div class="gr-acts"><button class="btn sm" data-gra="copy" style="width:auto">Copier</button><button class="btn subtle sm" data-gra="ai" style="width:auto">✦ Personnaliser (IA)</button>${grLink(grEdit,m)}<button class="btn subtle sm" data-gra="sent" style="width:auto">Marquer envoyé ✓</button></div>`:''}
   ${!isNew&&!['won','lost'].includes(grEdit.stage)?`<div class="gr-acts"><button class="btn subtle sm" data-gra="talk" style="width:auto">A répondu</button><button class="btn subtle sm" data-gra="trial" style="width:auto">RDV / test</button><button class="btn subtle sm" data-gra="won" style="width:auto">Signé 🏆</button><button class="btn subtle sm" data-gra="lost" style="width:auto">Pas intéressé</button></div>`:''}
   <div class="row2"><div class="field"><label>Structure</label><input id="grf-structure" value="${esc(grEdit.structure)}"></div><div class="field"><label>Prénom du contact</label><input id="grf-prenom" value="${esc(grEdit.prenom)}"></div></div>
   <div class="row2"><div class="field"><label>Type</label><select id="grf-type">${GR_TYPES.map(t=>`<option ${t===grEdit.type?'selected':''}>${t}</option>`).join('')}</select></div><div class="field"><label>Ville</label><input id="grf-ville" value="${esc(grEdit.ville)}"></div></div>
@@ -2569,6 +2569,16 @@ document.addEventListener('click',async e=>{
   else if(a==='save'){ grRead(); if(!grEdit.structure&&!grEdit.prenom){ const m=$('#gr-sheetmsg'); m.textContent='Ajoute au moins une structure ou un prénom.'; m.className='msg err'; return; } if(!grEdit.id&&!(grEdit.hist||[]).length) grEdit.hist=[{d:today(),t:'Ajouté'}]; grSave(); }
   else if(a==='del'){ if(b.dataset.c!=='1'){ b.dataset.c='1'; b.textContent='Confirmer la suppression'; return; } const { error } = await sb.from('biz_prospects').delete().eq('id',grEdit.id); if(!error){ $('#gr-ov').remove(); loadGrowth(); } }
   else if(a==='refresh'){ loadGrowth(); }
+  else if(a==='ai'){
+    grRead(); const step=GR_STEP[grEdit.stage]||1, base=$('#gr-msgtxt').textContent;
+    b.disabled=true; b.textContent='✦ Rédaction…';
+    try{
+      const { data, error } = await sb.functions.invoke('biz-personalize',{ body:{ step, base, prospect:{ structure:grEdit.structure, prenom:grEdit.prenom, type:grEdit.type, ville:grEdit.ville, lang:grEdit.lang, channel:grEdit.channel, notes:grEdit.notes } } });
+      if(error||!data||!data.text) throw error||new Error('vide');
+      $('#gr-msgtxt').textContent=data.text; b.textContent='✦ Réécrire';
+    }catch(e){ b.textContent='IA indisponible, réessaie'; }
+    b.disabled=false;
+  }
 });
 })();
 
