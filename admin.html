@@ -357,6 +357,7 @@ h1,h2,h3{font-family:'Barlow Condensed',-apple-system,BlinkMacSystemFont,'Segoe 
       <button data-tab="prospects">Prospects</button>
       <button data-tab="growth">Croissance</button>
       <button data-tab="transfo">Transformation<span id="tx-badge"></span></button>
+      <button data-tab="clubs">Clubs</button>
       <button data-tab="founders">Fondateurs</button>
       <button data-tab="ia">IA</button>
       <button data-tab="progs">Programmes</button>
@@ -487,6 +488,12 @@ h1,h2,h3{font-family:'Barlow Condensed',-apple-system,BlinkMacSystemFont,'Segoe 
         <div style="display:flex;gap:8px"><button class="btn subtle sm" data-txa="settings">Réglages</button><button class="btn subtle sm" data-txa="refresh">↻</button></div></div>
       <div class="gr-kpis" id="tx-kpis"><div class="spin"></div></div>
       <div id="tx-list"><div class="spin"></div></div>
+    </div>
+
+    <div class="pane" id="pane-clubs">
+      <div class="toolbar"><div class="sub" style="text-align:left;margin:0">Abonnement <a href="club.html" target="_blank" style="color:var(--brand)">Club</a> : 129 €/mois ou 1 290 €/an, coachs et membres illimités, 2 % sur les cotisations. L'état est relu chez Stripe chaque heure.</div>
+        <button class="btn subtle sm" id="cl-ref">↻</button></div>
+      <div id="cl-list"><div class="spin"></div></div>
     </div>
 
     <div class="pane" id="pane-founders">
@@ -864,6 +871,7 @@ function switchTab(t){
   if(t==='founders'){ loadFounders(); }
   if(t==='growth'){ window.loadGrowth&&window.loadGrowth(); }
   if(t==='transfo'){ window.loadTransfo&&window.loadTransfo(); }
+  if(t==='clubs'){ window.loadClubs&&window.loadClubs(); }
   if(t==='apports'){ loadApports(); }
   if(t==='ia'){ loadIA(); }
   if(t==='progs'){ if(!window.__wkLoaded){ window.__wkLoaded=true; loadExercises(); loadWorkouts(); } loadProgs(); }
@@ -2656,6 +2664,20 @@ async function loadTransfo(){
   renderTransfo();
 }
 window.loadTransfo=loadTransfo;
+async function loadClubs(){
+  const box=$('#cl-list'); const { data, error } = await sb.rpc('admin_clubs');
+  if(error){ box.innerHTML='<p class="empty">Erreur (accès admin requis).</p>'; return; }
+  if(!(data||[]).length){ box.innerHTML='<p class="empty">Aucun club pour l’instant.</p>'; return; }
+  const st={pending:'En attente de paiement',active:'Actif',past_due:'Paiement en retard',canceled:'Résilié'};
+  const e=x=>(x??'').toString().replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const live=data.filter(c=>c.status==='active');
+  const mrr=live.reduce((a,c)=>a+(c.plan==='year'?107.5:129),0);
+  box.innerHTML='<p class="sub" style="text-align:left">'+live.length+' club(s) actif(s) · environ '+Math.round(mrr)+' € par mois hors cotisations</p>'+
+    data.map(c=>'<div class="card" style="margin-bottom:10px"><b>'+e(c.name)+'</b> · '+e(st[c.status]||c.status)+(c.plan?' · '+(c.plan==='year'?'annuel':'mensuel'):'')+
+    '<div class="sub" style="text-align:left;margin:4px 0 0">'+e(c.owner_email)+' · '+c.members+' membre(s) · '+c.coaches+' coach(s)'+(c.current_period_end?' · jusqu’au '+new Date(c.current_period_end).toLocaleDateString('fr-BE'):'')+'</div></div>').join('');
+}
+window.loadClubs=loadClubs;
+document.addEventListener('click',ev=>{ if(ev.target&&ev.target.id==='cl-ref') loadClubs(); });
 function renderTransfo(){
   const n=k=>TX.filter(x=>x.status===k).length, now=Date.now();
   const won=TX.filter(x=>x.status==='won'), ca=won.reduce((t,x)=>t+(x.link_offer==='hybrid'?3000:1500),0);
