@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coach DM Club · box et salles de sport</title>
+<meta name="description" content="Coach DM Club : le compte de ta box ou de ta salle. Coachs et membres illimités, planning et réservations, ta TV avec ton logo, cotisations par domiciliation SEPA.">
+<link rel="canonical" href="https://coachdm.be/club.html">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0A0907">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5LX2LCKZNK"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-5LX2LCKZNK');</script>
+<style>
+:root{--bg:#0A0907;--s1:#12100C;--s2:#1A1712;--line:#2A251C;--txt:#F2ECDE;--mut:#A39A88;--gold:#E9C767;--red:#EF4444;--amb:#F59E0B;--grn:#4ADE80}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,system-ui,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--gold)}
+header{position:sticky;top:0;z-index:5;background:rgba(10,9,7,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:12px 16px;display:flex;align-items:center;gap:10px}
+header img{width:32px;height:32px;border-radius:8px}
+header b{font-weight:800;letter-spacing:.08em;font-size:14px}
+header .sp{flex:1}
+.lg button{background:none;border:0;color:var(--mut);font-weight:700;font-size:12px;padding:6px;cursor:pointer}.lg button.on{color:var(--gold)}
+.wrap{max-width:760px;margin:0 auto;padding:18px 16px 60px}
+h1{font-size:26px;margin:8px 0 6px}h2{font-size:18px;margin:0 0 10px}
+.mut{color:var(--mut)}.sm{font-size:13px}
+.card{background:var(--s1);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.btn{display:inline-block;border:0;border-radius:12px;padding:11px 15px;font-weight:800;font-size:14px;cursor:pointer;color:#000;background:var(--gold);text-decoration:none;text-align:center}
+.btn.sec{background:var(--s2);color:var(--txt);border:1px solid var(--line)}
+.btn.red{background:transparent;color:var(--red);border:1px solid rgba(239,68,68,.4)}
+.btn.small{padding:7px 10px;font-size:12.5px;border-radius:10px}
+.btn[disabled]{opacity:.5;pointer-events:none}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+label{display:block;font-size:12px;font-weight:700;color:var(--mut);margin:12px 0 5px}
+input,select{width:100%;background:var(--s2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:11px 12px;font-size:15px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+ul.ck{margin:8px 0 0;padding-left:18px;line-height:1.7;color:#d9d1bf}ul.ck li::marker{color:var(--gold)}
+.price{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.price .card{margin:0;text-align:center}.price b{display:block;font-size:24px;color:var(--gold)}
+.tabs{display:flex;gap:6px;margin:12px 0}
+.tabs button{flex:1;padding:10px 6px;border-radius:12px;border:1px solid var(--line);background:var(--s1);color:var(--mut);font-weight:800;font-size:13px;cursor:pointer}
+.tabs button.on{background:var(--gold);color:#000;border-color:var(--gold)}
+.day{font-size:12px;font-weight:800;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;margin:16px 2px 8px}
+.pill{font-size:12px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap;background:rgba(233,199,103,.14);color:var(--gold)}
+.pill.w{background:rgba(245,158,11,.15);color:var(--amb)}.pill.r{background:rgba(239,68,68,.15);color:var(--red)}.pill.g{background:rgba(74,222,128,.13);color:var(--grn)}
+.club-head{display:flex;align-items:center;gap:12px}
+.club-head img{width:52px;height:52px;border-radius:12px;object-fit:contain;background:#fff1}
+.code{font-family:ui-monospace,Menlo,monospace;font-size:20px;font-weight:800;letter-spacing:.12em;color:var(--gold)}
+#qr{background:#fff;padding:10px;border-radius:12px;display:inline-block;margin-top:10px}
+.roster{margin-top:10px;border-top:1px solid var(--line);padding-top:8px;font-size:13.5px}
+.roster div{padding:4px 0;color:#d9d1bf}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1F1B14;border:1px solid var(--gold);color:var(--txt);padding:10px 16px;border-radius:12px;font-size:14px;opacity:0;transition:.2s;pointer-events:none;z-index:9;max-width:90vw}
+.toast.show{opacity:1}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html"><img src="logo-dm.png" alt="Coach DM"></a><b>COACH DM · CLUB</b>
+  <div class="sp"></div>
+  <div class="lg"><button data-l="fr">FR</button><button data-l="en">EN</button><button data-l="nl">NL</button></div>
+</header>
+<div class="wrap" id="app"><p class="mut">…</p></div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm';
+const SB_URL='https://kkcmhviyvttwpaclrjmv.supabase.co';
+const sb=createClient(SB_URL,'sb_publishable_XA3iF2j17_cNROPNaG9JuQ_1Swkbz8b');
+const $=s=>document.querySelector(s), app=$('#app');
+const esc=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const QS=new URLSearchParams(location.search);
+let L=(()=>{try{return localStorage.getItem('cdm_lang')}catch(_){return null}})()||((navigator.language||'fr').slice(0,2));
+if(!['fr','en','nl'].includes(L)) L='fr';
+
+const T={
+ intro_h:{fr:'Le compte de ta box ou de ta salle',en:'The account for your box or gym',nl:'Het account van je box of zaal'},
+ intro_p:{fr:'Un seul abonnement pour le club. Tes coachs et tes membres utilisent Coach DM gratuitement, en illimité.',en:'One subscription for the club. Your coaches and members use Coach DM for free, without limits.',nl:'Eén abonnement voor de club. Je coaches en leden gebruiken Coach DM gratis, onbeperkt.'},
+ inc:{fr:['Compte du club en Premium','Coachs et membres illimités','Planning des cours et réservations des membres','Chaque coach voit ses cours et les membres inscrits','La TV de la box : ton logo et ton nom à côté de celui de Coach DM','Cotisations de tes membres par domiciliation SEPA : 2 % pour Coach DM + frais Stripe','Sur le web pour commencer (coachdm.be)'],
+      en:['Club account with Premium','Unlimited coaches and members','Class schedule and member bookings','Each coach sees their classes and the members booked','The box TV: your logo and name next to the Coach DM logo','Member dues by SEPA direct debit: 2 % for Coach DM + Stripe fees','On the web to start (coachdm.be)'],
+      nl:['Clubaccount met Premium','Onbeperkt coaches en leden','Lesrooster en reservaties van leden','Elke coach ziet zijn lessen en de ingeschreven leden','De tv van de box: jouw logo en naam naast het logo van Coach DM','Lidgelden via SEPA-domiciliëring: 2 % voor Coach DM + Stripe-kosten','Eerst op het web (coachdm.be)']},
+ m:{fr:'par mois',en:'per month',nl:'per maand'}, y:{fr:'par an',en:'per year',nl:'per jaar'}, y2:{fr:'2 mois offerts',en:'2 months free',nl:'2 maanden gratis'},
+ login_h:{fr:'Connexion',en:'Log in',nl:'Inloggen'}, signup_h:{fr:'Créer un compte',en:'Create an account',nl:'Account aanmaken'},
+ email:{fr:'E-mail',en:'Email',nl:'E-mail'}, pw:{fr:'Mot de passe',en:'Password',nl:'Wachtwoord'}, name:{fr:'Prénom et nom',en:'First and last name',nl:'Voor- en achternaam'},
+ go_login:{fr:'Se connecter',en:'Log in',nl:'Inloggen'}, go_signup:{fr:'Créer mon compte',en:'Create my account',nl:'Mijn account aanmaken'},
+ sw_signup:{fr:'Pas encore de compte ? Crée-le',en:'No account yet? Create one',nl:'Nog geen account? Maak er een'}, sw_login:{fr:'J’ai déjà un compte',en:'I already have an account',nl:'Ik heb al een account'},
+ bad_login:{fr:'Connexion refusée',en:'Login refused',nl:'Inloggen geweigerd'}, check_mail:{fr:'Compte créé. Confirme ton e-mail puis reviens sur cette page.',en:'Account created. Confirm your email, then come back to this page.',nl:'Account aangemaakt. Bevestig je e-mail en kom terug naar deze pagina.'},
+ join_h:{fr:'Rejoindre ton club',en:'Join your club',nl:'Word lid van je club'}, join_p:{fr:'Entre le code affiché à ta box.',en:'Enter the code shown at your box.',nl:'Voer de code in die in je box hangt.'},
+ join_b:{fr:'Rejoindre',en:'Join',nl:'Lid worden'}, joined:{fr:'Bienvenue au club',en:'Welcome to the club',nl:'Welkom bij de club'},
+ bad_code:{fr:'Code inconnu',en:'Unknown code',nl:'Onbekende code'}, club_inactive:{fr:'Ce club n’est pas actif pour le moment',en:'This club is not active right now',nl:'Deze club is momenteel niet actief'}, removed:{fr:'Le club t’a retiré : contacte ton club',en:'The club removed you: contact your club',nl:'De club heeft je verwijderd: neem contact op met je club'},
+ create_h:{fr:'Tu gères une box ou une salle ?',en:'Do you run a box or a gym?',nl:'Beheer je een box of een zaal?'}, club_name:{fr:'Nom du club',en:'Club name',nl:'Naam van de club'}, create_b:{fr:'Créer mon club',en:'Create my club',nl:'Mijn club aanmaken'},
+ activate_h:{fr:'Active ton club',en:'Activate your club',nl:'Activeer je club'}, activate_p:{fr:'Paiement sécurisé par Stripe. Tu peux résilier quand tu veux depuis cette page.',en:'Secure payment by Stripe. Cancel anytime from this page.',nl:'Veilige betaling via Stripe. Op elk moment opzegbaar via deze pagina.'},
+ pay_m:{fr:'129 € par mois',en:'€129 per month',nl:'€ 129 per maand'}, pay_y:{fr:'1 290 € par an',en:'€1,290 per year',nl:'€ 1.290 per jaar'},
+ waiting:{fr:'Paiement reçu, activation en cours…',en:'Payment received, activating…',nl:'Betaling ontvangen, activeren…'},
+ t_plan:{fr:'Planning',en:'Schedule',nl:'Rooster'}, t_people:{fr:'Membres',en:'Members',nl:'Leden'}, t_club:{fr:'Club',en:'Club',nl:'Club'},
+ none:{fr:'Aucun cours dans les 14 prochains jours.',en:'No classes in the next 14 days.',nl:'Geen lessen in de komende 14 dagen.'},
+ book:{fr:'Réserver',en:'Book',nl:'Reserveren'}, cancel_b:{fr:'Annuler',en:'Cancel',nl:'Annuleren'}, booked:{fr:'Réservé',en:'Booked',nl:'Gereserveerd'}, waitl:{fr:'Liste d’attente',en:'Waitlist',nl:'Wachtlijst'}, full:{fr:'Complet',en:'Full',nl:'Volzet'}, cancelled:{fr:'Annulé',en:'Cancelled',nl:'Geannuleerd'},
+ roster:{fr:'Inscrits',en:'Booked',nl:'Ingeschreven'}, del_class:{fr:'Annuler le cours',en:'Cancel class',nl:'Les annuleren'}, sure:{fr:'Annuler ce cours pour tout le monde ?',en:'Cancel this class for everyone?',nl:'Deze les voor iedereen annuleren?'},
+ add_h:{fr:'Ajouter un cours',en:'Add a class',nl:'Les toevoegen'}, c_name:{fr:'Nom du cours',en:'Class name',nl:'Naam van de les'}, c_date:{fr:'Date',en:'Date',nl:'Datum'}, c_time:{fr:'Heure',en:'Time',nl:'Uur'},
+ c_dur:{fr:'Durée (min)',en:'Duration (min)',nl:'Duur (min)'}, c_cap:{fr:'Places',en:'Spots',nl:'Plaatsen'}, c_weeks:{fr:'Répéter (semaines)',en:'Repeat (weeks)',nl:'Herhalen (weken)'}, c_coach:{fr:'Coach',en:'Coach',nl:'Coach'}, c_loc:{fr:'Salle / lieu (facultatif)',en:'Room / place (optional)',nl:'Zaal / plaats (optioneel)'},
+ add_b:{fr:'Ajouter',en:'Add',nl:'Toevoegen'}, added:{fr:'Cours ajouté',en:'Class added',nl:'Les toegevoegd'},
+ people_p:{fr:'Tes coachs rejoignent avec le code du club, puis tu les passes en « Coach ».',en:'Your coaches join with the club code, then you switch them to “Coach”.',nl:'Je coaches worden lid met de clubcode, daarna zet je ze op “Coach”.'},
+ r_coach:{fr:'Coach',en:'Coach',nl:'Coach'}, r_member:{fr:'Membre',en:'Member',nl:'Lid'}, r_removed:{fr:'Retiré',en:'Removed',nl:'Verwijderd'},
+ mk_coach:{fr:'Passer coach',en:'Make coach',nl:'Coach maken'}, mk_member:{fr:'Passer membre',en:'Make member',nl:'Lid maken'}, rm:{fr:'Retirer',en:'Remove',nl:'Verwijderen'}, readd:{fr:'Réintégrer',en:'Re-add',nl:'Terug toevoegen'},
+ dues:{fr:'Cotisation',en:'Dues',nl:'Lidgeld'}, d_active:{fr:'à jour',en:'paid',nl:'betaald'}, d_late:{fr:'en retard',en:'late',nl:'achterstallig'}, d_none:{fr:'aucune',en:'none',nl:'geen'},
+ no_people:{fr:'Personne pour l’instant. Partage le lien ou le QR code du club.',en:'Nobody yet. Share the club link or QR code.',nl:'Nog niemand. Deel de link of de QR-code van de club.'},
+ sub_h:{fr:'Abonnement Club',en:'Club subscription',nl:'Clubabonnement'}, plan_m:{fr:'Mensuel · 129 €',en:'Monthly · €129',nl:'Maandelijks · € 129'}, plan_y:{fr:'Annuel · 1 290 €',en:'Yearly · €1,290',nl:'Jaarlijks · € 1.290'},
+ renew:{fr:'Renouvellement le',en:'Renews on',nl:'Verlenging op'}, ends:{fr:'Se termine le',en:'Ends on',nl:'Eindigt op'}, late:{fr:'Paiement en retard : mets à jour ton moyen de paiement.',en:'Payment late: update your payment method.',nl:'Betaling achterstallig: werk je betaalmethode bij.'},
+ portal:{fr:'Factures, moyen de paiement, résiliation',en:'Invoices, payment method, cancellation',nl:'Facturen, betaalmethode, opzegging'},
+ ident_h:{fr:'Nom et logo',en:'Name and logo',nl:'Naam en logo'}, save:{fr:'Enregistrer',en:'Save',nl:'Opslaan'}, saved:{fr:'Enregistré',en:'Saved',nl:'Opgeslagen'},
+ logo_b:{fr:'Choisir le logo (PNG, JPG ou WebP, 700 Ko max)',en:'Choose the logo (PNG, JPG or WebP, 700 KB max)',nl:'Logo kiezen (PNG, JPG of WebP, max 700 kB)'}, too_big:{fr:'Image trop lourde (700 Ko max)',en:'Image too large (700 KB max)',nl:'Afbeelding te groot (max 700 kB)'},
+ logo_p:{fr:'Il s’affiche sur la TV à côté du logo Coach DM, qui reste toujours présent.',en:'It shows on the TV next to the Coach DM logo, which always stays.',nl:'Het verschijnt op de tv naast het logo van Coach DM, dat altijd blijft staan.'},
+ join_link_h:{fr:'Lien et QR code d’inscription',en:'Sign-up link and QR code',nl:'Inschrijflink en QR-code'}, join_link_p:{fr:'À afficher à l’accueil ou sur la TV. Tes membres et tes coachs rejoignent le club avec.',en:'Display it at the desk or on the TV. Your members and coaches join the club with it.',nl:'Hang het aan het onthaal of toon het op de tv. Je leden en coaches worden er lid mee.'},
+ copy:{fr:'Copier le lien',en:'Copy link',nl:'Link kopiëren'}, copied:{fr:'Lien copié',en:'Link copied',nl:'Link gekopieerd'}, newcode:{fr:'Nouveau code',en:'New code',nl:'Nieuwe code'}, newcode_q:{fr:'L’ancien code ne marchera plus. Continuer ?',en:'The old code will stop working. Continue?',nl:'De oude code werkt dan niet meer. Doorgaan?'},
+ dues_h:{fr:'Cotisations des membres',en:'Member dues',nl:'Lidgelden'},
+ dues_p:{fr:'Tu crées tes formules (mensuel, trimestriel, carte…) et tu partages leur lien. Le membre signe son mandat SEPA en ligne, il est prélevé automatiquement chaque mois et l’argent arrive sur ton compte Stripe. Coach DM prend 2 % par paiement, Stripe prend ses frais. Un membre qui paie rejoint ton club tout seul.',
+        en:'You create your plans (monthly, quarterly, punch card…) and share their link. The member signs the SEPA mandate online, is debited automatically each month, and the money goes to your Stripe account. Coach DM takes 2 % per payment, Stripe takes its fees. A member who pays joins your club automatically.',
+        nl:'Je maakt je formules (maandelijks, per kwartaal, beurtenkaart…) en deelt hun link. Het lid tekent het SEPA-mandaat online, wordt elke maand automatisch gedebiteerd en het geld komt op je Stripe-rekening. Coach DM neemt 2 % per betaling, Stripe zijn kosten. Een lid dat betaalt, wordt automatisch lid van je club.'},
+ dues_b:{fr:'Configurer mes cotisations',en:'Set up my dues',nl:'Mijn lidgelden instellen'},
+ tv_h:{fr:'La TV de la box',en:'The box TV',nl:'De tv van de box'}, tv_p:{fr:'Ouvre coachdm.be/tv sur l’écran, puis pilote-le depuis ton téléphone. Ton logo et ton nom s’affichent automatiquement.',en:'Open coachdm.be/tv on the screen, then control it from your phone. Your logo and name show automatically.',nl:'Open coachdm.be/tv op het scherm en bedien het met je telefoon. Je logo en naam verschijnen automatisch.'},
+ tv_b:{fr:'Piloter la TV',en:'Control the TV',nl:'De tv bedienen'},
+ leave:{fr:'Quitter ce club',en:'Leave this club',nl:'Deze club verlaten'}, leave_q:{fr:'Quitter le club ?',en:'Leave the club?',nl:'De club verlaten?'},
+ inactive_m:{fr:'Ton club n’est pas actif pour le moment.',en:'Your club is not active right now.',nl:'Je club is momenteel niet actief.'},
+ app_b:{fr:'Ouvrir l’app Coach DM',en:'Open the Coach DM app',nl:'De Coach DM-app openen'}, logout:{fr:'Se déconnecter',en:'Log out',nl:'Uitloggen'},
+ err:{fr:'Une erreur est survenue, réessaie.',en:'Something went wrong, try again.',nl:'Er ging iets mis, probeer opnieuw.'},
+ coach_mine:{fr:'Tes cours',en:'Your classes',nl:'Jouw lessen'},
+ info_h:{fr:'Une question ?',en:'A question?',nl:'Een vraag?'}, info_p:{fr:'Écris-moi : contact@coachdm.be',en:'Write to me: contact@coachdm.be',nl:'Schrijf me: contact@coachdm.be'}
+};
+const t=k=>(T[k]&&(T[k][L]||T[k].fr))||k;
+const LOC={fr:'fr-BE',en:'en-GB',nl:'nl-BE'}[L];
+const dKey=d=>new Date(d).toLocaleDateString(LOC,{weekday:'long',day:'numeric',month:'long'});
+const hhmm=d=>new Date(d).toLocaleTimeString(LOC,{hour:'2-digit',minute:'2-digit'});
+const dShort=d=>new Date(d).toLocaleDateString(LOC,{day:'numeric',month:'long',year:'numeric'});
+const toast=m=>{const e=$('#toast');e.textContent=m;e.classList.add('show');clearTimeout(e._);e._=setTimeout(()=>e.classList.remove('show'),2600);};
+document.querySelectorAll('.lg button').forEach(b=>{b.classList.toggle('on',b.dataset.l===L);b.onclick=()=>{L=b.dataset.l;try{localStorage.setItem('cdm_lang',L)}catch(_){}location.reload();};});
+document.documentElement.lang=L;
+
+let ME=null, CLUBS=[], CUR=null, TAB='plan';
+// code d'inscription garde le temps de se connecter / creer son compte
+const jq=QS.get('join'); if(jq){ try{ localStorage.setItem('cdm_club_join',jq.toUpperCase()); }catch(_){} }
+const pendingJoin=()=>{ try{ return localStorage.getItem('cdm_club_join'); }catch(_){ return null; } };
+
+async function api(action,extra){
+  const {data:{session}}=await sb.auth.getSession();
+  const r=await fetch(SB_URL+'/functions/v1/club-api',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(session?.access_token||'')},body:JSON.stringify({action,locale:L,...(extra||{})})});
+  try{ return await r.json(); }catch(_){ return {ok:false}; }
+}
+
+function introHtml(){
+  return `<h1>${esc(t('intro_h'))}</h1><p class="mut">${esc(t('intro_p'))}</p>
+  <div class="card"><ul class="ck">${T.inc[L].map(x=>'<li>'+esc(x)+'</li>').join('')}</ul>
+  <div class="price"><div class="card"><b>129 €</b><span class="mut sm">${esc(t('m'))}</span></div>
+  <div class="card"><b>1 290 €</b><span class="mut sm">${esc(t('y'))} · ${esc(t('y2'))}</span></div></div></div>`;
+}
+
+/* ---------------- connexion ---------------- */
+function renderAuth(mode){
+  const su=mode==='signup';
+  app.innerHTML=(pendingJoin()?`<h1>${esc(t('join_h'))}</h1>`:introHtml())+`
+  <div class="card"><h2>${esc(t(su?'signup_h':'login_h'))}</h2>
+   ${su?`<label>${esc(t('name'))}</label><input id="fn" autocomplete="name">`:''}
+   <label>${esc(t('email'))}</label><input id="em" type="email" autocomplete="username">
+   <label>${esc(t('pw'))}</label><input id="pw" type="password" autocomplete="${su?'new-password':'current-password'}">
+   <div class="row" style="margin-top:14px"><button class="btn grow" id="go">${esc(t(su?'go_signup':'go_login'))}</button></div>
+   <p class="sm" style="text-align:center;margin:14px 0 0"><a href="#" id="sw">${esc(t(su?'sw_login':'sw_signup'))}</a></p></div>
+  <div class="card"><h2>${esc(t('info_h'))}</h2><p class="mut" style="margin:0">${esc(t('info_p'))}</p></div>`;
+  $('#sw').onclick=e=>{e.preventDefault();renderAuth(su?'login':'signup');};
+  $('#go').onclick=async()=>{
+    const em=$('#em').value.trim(), pw=$('#pw').value; $('#go').disabled=true;
+    if(su){
+      const {data,error}=await sb.auth.signUp({email:em,password:pw,options:{data:{full_name:$('#fn').value.trim(),locale:L},emailRedirectTo:'https://coachdm.be/club.html'}});
+      $('#go').disabled=false;
+      if(error) return toast(error.message);
+      if(!data.session) return toast(t('check_mail'));
+    } else {
+      const {error}=await sb.auth.signInWithPassword({email:em,password:pw});
+      $('#go').disabled=false;
+      if(error) return toast(t('bad_login'));
+    }
+    boot();
+  };
+}
+
+/* ---------------- demarrage ---------------- */
+async function boot(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session) return renderAuth('login');
+  ME=session.user.id;
+  const code=pendingJoin();
+  if(code){
+    const {data,error}=await sb.rpc('club_join',{p_code:code});
+    try{ localStorage.removeItem('cdm_club_join'); }catch(_){}
+    if(error) toast(t('err')); else if(data?.ok) toast(t('joined')+' '+data.name); else toast(t(data?.reason||'err'));
+    if(QS.has('join')) history.replaceState(null,'',location.pathname);
+  }
+  if(QS.get('paid')==='1'){ await waitPaid(); return; }
+  await load();
+}
+async function load(keepTab){
+  const {data,error}=await sb.rpc('club_me');
+  if(error){ app.innerHTML=`<p>${esc(t('err'))}</p>`; return; }
+  CLUBS=data||[];
+  CUR=CLUBS.find(c=>CUR&&c.id===CUR.id)||CLUBS[0]||null;
+  if(!keepTab) TAB='plan';
+  render();
+}
+async function waitPaid(){
+  app.innerHTML=`<div class="card"><p>${esc(t('waiting'))}</p></div>`;
+  for(let i=0;i<6;i++){ const r=await api('sync'); if(r?.club?.status==='active') break; await new Promise(z=>setTimeout(z,2500)); }
+  history.replaceState(null,'',location.pathname); await load();
+}
+
+function shell(inner){
+  const c=CUR;
+  const head=c?`<div class="club-head">${c.logo_url?`<img src="${esc(c.logo_url)}" alt="">`:''}<div class="grow"><h1 style="margin:0">${esc(c.name)}</h1>
+    <span class="mut sm">${esc(t(c.role==='owner'?'t_club':c.role==='coach'?'r_coach':'r_member'))}</span></div></div>`:'';
+  const pick=CLUBS.length>1?`<select id="pick" style="margin-top:10px">${CLUBS.map(x=>`<option value="${x.id}" ${x.id===c.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`:'';
+  app.innerHTML=head+pick+inner+`<div class="row" style="margin-top:22px"><a class="btn sec grow" href="app.html">${esc(t('app_b'))}</a><button class="btn sec" id="lo">${esc(t('logout'))}</button></div>`;
+  if($('#pick')) $('#pick').onchange=e=>{CUR=CLUBS.find(x=>x.id===e.target.value);TAB='plan';render();};
+  $('#lo').onclick=async()=>{await sb.auth.signOut();location.href='club.html';};
+}
+
+function render(){
+  if(!CUR) return renderNoClub();
+  if(CUR.role==='owner' && !CUR.alive) return renderActivate();
+  if(!CUR.alive){ shell(`<div class="card" style="margin-top:14px"><p>${esc(t('club_inactive'))}</p></div>`); return; }
+  if(CUR.role==='owner') return renderOwner();
+  if(CUR.role==='coach') return renderStaffPlan(false);
+  return renderMember();
+}
+
+/* ---------------- pas de club ---------------- */
+function renderNoClub(){
+  app.innerHTML=`<div class="card"><h2>${esc(t('join_h'))}</h2><p class="mut sm">${esc(t('join_p'))}</p>
+    <div class="row"><input id="jc" class="grow" placeholder="ABC123…" style="text-transform:uppercase;flex:1"><button class="btn" id="jb">${esc(t('join_b'))}</button></div></div>
+  ${introHtml()}
+  <div class="card"><h2>${esc(t('create_h'))}</h2><label>${esc(t('club_name'))}</label><input id="cn" maxlength="60">
+    <button class="btn" id="cb" style="width:100%;margin-top:14px">${esc(t('create_b'))}</button></div>
+  <div class="row"><a class="btn sec grow" href="app.html">${esc(t('app_b'))}</a><button class="btn sec" id="lo">${esc(t('logout'))}</button></div>`;
+  $('#lo').onclick=async()=>{await sb.auth.signOut();location.href='club.html';};
+  $('#jb').onclick=async()=>{ const {data,error}=await sb.rpc('club_join',{p_code:$('#jc').value.trim()});
+    if(error) return toast(t('err')); if(!data?.ok) return toast(t(data?.reason||'err')); toast(t('joined')+' '+data.name); load(); };
+  $('#cb').onclick=async()=>{ $('#cb').disabled=true; const {data,error}=await sb.rpc('club_create',{p_name:$('#cn').value});
+    $('#cb').disabled=false; if(error||!data?.ok) return toast(t('err')); gtag('event','club_created'); load(); };
+}
+
+/* ---------------- activation (gerant) ---------------- */
+function renderActivate(){
+  shell(`<div class="card" style="margin-top:14px"><h2>${esc(t('activate_h'))}</h2><ul class="ck">${T.inc[L].map(x=>'<li>'+esc(x)+'</li>').join('')}</ul>
+    <div class="price"><button class="btn" data-plan="month">${esc(t('pay_m'))}</button><button class="btn sec" data-plan="year">${esc(t('pay_y'))}<br><span class="sm mut">${esc(t('y2'))}</span></button></div>
+    <p class="mut sm" style="margin:12px 0 0">${esc(t('activate_p'))}</p></div>
+    <div class="card"><h2>${esc(t('ident_h'))}</h2><label>${esc(t('club_name'))}</label><input id="cn" maxlength="60" value="${esc(CUR.name)}"><button class="btn sec small" id="cs" style="margin-top:10px">${esc(t('save'))}</button></div>`);
+  document.querySelectorAll('[data-plan]').forEach(b=>b.onclick=async()=>{
+    b.disabled=true; const r=await api('checkout',{plan:b.dataset.plan}); b.disabled=false;
+    if(r?.url){ gtag('event','club_checkout',{plan:b.dataset.plan}); location.href=r.url; }
+    else if(r?.reason==='already_active') load(); else toast(t('err'));
+  });
+  $('#cs').onclick=saveName;
+}
+async function saveName(){ const {data,error}=await sb.rpc('club_rename',{p_club:CUR.id,p_name:$('#cn').value}); if(error||!data?.ok) return toast(t('err')); toast(t('saved')); load(true); }
+
+/* ---------------- gerant ---------------- */
+function renderOwner(){
+  const tabs=`<div class="tabs">${['plan','people','club'].map(k=>`<button data-t="${k}" class="${TAB===k?'on':''}">${esc(t(k==='plan'?'t_plan':k==='people'?'t_people':'t_club'))}</button>`).join('')}</div><div id="pane"></div>`;
+  shell(tabs);
+  document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;renderOwner();});
+  if(TAB==='plan') paneSchedule(true); else if(TAB==='people') panePeople(); else paneClub();
+}
+
+/* planning staff (gerant : tout ; coach : ses cours) */
+function renderStaffPlan(){ shell(`<h2 style="margin-top:16px">${esc(t('coach_mine'))}</h2><div id="pane"></div>
+  <div class="card"><h2>${esc(t('tv_h'))}</h2><p class="mut sm">${esc(t('tv_p'))}</p><a class="btn" href="tv.html">${esc(t('tv_b'))}</a></div>`); paneSchedule(false); }
+
+async function paneSchedule(owner){
+  const pane=$('#pane'); pane.innerHTML='<p class="mut">…</p>';
+  const [{data:rows,error},{data:staff}]=await Promise.all([sb.rpc('club_schedule',{p_club:CUR.id,p_days:21}), sb.rpc('club_staff',{p_club:CUR.id})]);
+  if(error){ pane.innerHTML=`<p>${esc(t('err'))}</p>`; return; }
+  const list=(rows||[]).filter(r=>owner||r.mine);
+  let h='', day='';
+  if(!list.length) h+=`<p class="mut">${esc(t('none'))}</p>`;
+  list.forEach(r=>{ const d=dKey(r.starts_at); if(d!==day){ day=d; h+=`<div class="day">${esc(d)}</div>`; }
+    const off=r.status==='cancelled';
+    h+=`<div class="card"><div class="row"><div class="grow"><b>${esc(hhmm(r.starts_at))} · ${esc(r.name)}</b>
+      <div class="mut sm">${esc(r.coach_name)}${r.location?' · '+esc(r.location):''}</div></div>
+      ${off?`<span class="pill r">${esc(t('cancelled'))}</span>`:`<span class="pill">${r.booked_count}/${r.capacity}</span>`}</div>
+      ${off?'':`<div class="row" style="margin-top:10px"><button class="btn sec small" data-ro="${r.id}">${esc(t('roster'))}</button><button class="btn red small" data-cx="${r.id}">${esc(t('del_class'))}</button></div><div class="roster hide" id="ro-${r.id}"></div>`}</div>`; });
+  const me=(staff||[]).find(s=>s.user_id===ME);
+  const coachSel=owner?`<label>${esc(t('c_coach'))}</label><select id="k-coach">${(staff||[]).map(s=>`<option value="${s.user_id}" ${s.user_id===ME?'selected':''}>${esc(s.full_name||'—')}</option>`).join('')}</select>`:'';
+  const td=new Date(Date.now()+864e5).toISOString().slice(0,10);
+  h+=`<div class="card" style="margin-top:16px"><h2>${esc(t('add_h'))}</h2>
+    <label>${esc(t('c_name'))}</label><input id="k-name" maxlength="60" placeholder="WOD, Hyrox, Open Gym…">
+    <div class="g2"><div><label>${esc(t('c_date'))}</label><input id="k-date" type="date" value="${td}"></div><div><label>${esc(t('c_time'))}</label><input id="k-time" type="time" value="18:00"></div></div>
+    <div class="g3"><div><label>${esc(t('c_dur'))}</label><input id="k-dur" type="number" value="60" min="15" max="240"></div><div><label>${esc(t('c_cap'))}</label><input id="k-cap" type="number" value="12" min="1" max="200"></div><div><label>${esc(t('c_weeks'))}</label><input id="k-wk" type="number" value="1" min="1" max="12"></div></div>
+    <label>${esc(t('c_loc'))}</label><input id="k-loc" maxlength="80">${coachSel}
+    <button class="btn" id="k-add" style="width:100%;margin-top:14px">${esc(t('add_b'))}</button></div>`;
+  pane.innerHTML=h;
+  pane.querySelectorAll('[data-ro]').forEach(b=>b.onclick=async()=>{ const box=$('#ro-'+b.dataset.ro);
+    if(!box.classList.contains('hide')){ box.classList.add('hide'); return; }
+    const {data,error}=await sb.rpc('class_roster',{p_instance:b.dataset.ro}); if(error) return toast(t('err'));
+    box.innerHTML=(data||[]).length?data.map(p=>`<div>${esc(p.full_name||p.email)} ${p.status==='waitlist'?`<span class="pill w">${esc(t('waitl'))}</span>`:''}</div>`).join(''):`<div class="mut">—</div>`;
+    box.classList.remove('hide'); });
+  pane.querySelectorAll('[data-cx]').forEach(b=>b.onclick=async()=>{ if(!confirm(t('sure'))) return;
+    const {data,error}=await sb.rpc('club_cancel_class',{p_instance:b.dataset.cx}); if(error||!data?.ok) return toast(t('err')); paneSchedule(owner); });
+  $('#k-add').onclick=async()=>{
+    const start=new Date($('#k-date').value+'T'+$('#k-time').value);
+    if(isNaN(start)) return toast(t('err'));
+    $('#k-add').disabled=true;
+    const p={name:$('#k-name').value,starts_at:start.toISOString(),duration_min:+$('#k-dur').value,capacity:+$('#k-cap').value,weeks:+$('#k-wk').value,location:$('#k-loc').value,coach_id:owner?$('#k-coach').value:ME};
+    const {data,error}=await sb.rpc('club_add_class',{p_club:CUR.id,p});
+    $('#k-add').disabled=false;
+    if(error||!data?.ok) return toast(t('err'));
+    toast(t('added')+' ('+data.created+')'); paneSchedule(owner);
+  };
+}
+
+async function panePeople(){
+  const pane=$('#pane'); pane.innerHTML='<p class="mut">…</p>';
+  const {data,error}=await sb.rpc('club_people',{p_club:CUR.id});
+  if(error){ pane.innerHTML=`<p>${esc(t('err'))}</p>`; return; }
+  let h=`<p class="mut sm">${esc(t('people_p'))}</p>`;
+  if(!(data||[]).length) h+=`<div class="card"><p class="mut" style="margin:0">${esc(t('no_people'))}</p></div>`;
+  (data||[]).forEach(p=>{
+    const rm=p.status==='removed';
+    const role=rm?`<span class="pill r">${esc(t('r_removed'))}</span>`:p.role==='coach'?`<span class="pill">${esc(t('r_coach'))}</span>`:`<span class="pill g">${esc(t('r_member'))}</span>`;
+    const ds=p.dues_status, dues=ds?(['active','trialing'].includes(ds)?t('d_active'):['past_due','unpaid','incomplete'].includes(ds)?t('d_late'):t('d_none')):t('d_none');
+    const acts=rm?`<button class="btn sec small" data-pa="member" data-u="${p.user_id}">${esc(t('readd'))}</button>`
+      :`${p.role==='coach'?`<button class="btn sec small" data-pa="member" data-u="${p.user_id}">${esc(t('mk_member'))}</button>`:`<button class="btn sec small" data-pa="coach" data-u="${p.user_id}">${esc(t('mk_coach'))}</button>`}<button class="btn red small" data-pa="remove" data-u="${p.user_id}">${esc(t('rm'))}</button>`;
+    h+=`<div class="card"><div class="row"><div class="grow"><b>${esc(p.full_name||'—')}</b><div class="mut sm">${esc(p.email)}</div>
+      <div class="sm ${ds&&['past_due','unpaid','incomplete'].includes(ds)?'':'mut'}" style="margin-top:3px">${esc(t('dues'))}${L==='fr'?' : ':': '}${esc(dues)}</div></div>${role}</div>
+      <div class="row" style="margin-top:10px">${acts}</div></div>`; });
+  pane.innerHTML=h;
+  pane.querySelectorAll('[data-pa]').forEach(b=>b.onclick=async()=>{
+    const {data,error}=await sb.rpc('club_set_person',{p_club:CUR.id,p_user:b.dataset.u,p_action:b.dataset.pa});
+    if(error||!data?.ok) return toast(t('err')); panePeople(); });
+}
+
+function paneClub(){
+  const c=CUR, link='https://coachdm.be/club.html?join='+c.join_code;
+  const end=c.current_period_end?dShort(c.current_period_end):'';
+  $('#pane').innerHTML=`
+  <div class="card"><h2>${esc(t('sub_h'))}</h2>
+    <div><b>${esc(t(c.plan==='year'?'plan_y':'plan_m'))}</b></div>
+    ${c.status==='past_due'?`<p style="color:var(--amb)">${esc(t('late'))}</p>`:''}
+    ${end?`<p class="mut sm">${esc(t(c.cancel_at_period_end||c.status==='canceled'?'ends':'renew'))} ${esc(end)}</p>`:''}
+    <button class="btn sec small" id="portal">${esc(t('portal'))}</button></div>
+  <div class="card"><h2>${esc(t('join_link_h'))}</h2><p class="mut sm">${esc(t('join_link_p'))}</p>
+    <div class="code">${esc(c.join_code)}</div><div class="mut sm" style="word-break:break-all">${esc(link)}</div>
+    <div id="qr"></div>
+    <div class="row" style="margin-top:10px"><button class="btn sec small" id="cp">${esc(t('copy'))}</button><button class="btn sec small" id="nc">${esc(t('newcode'))}</button></div></div>
+  <div class="card"><h2>${esc(t('dues_h'))}</h2><p class="mut sm">${esc(t('dues_p'))}</p><a class="btn" href="coach.html?tab=paiements">${esc(t('dues_b'))}</a></div>
+  <div class="card"><h2>${esc(t('tv_h'))}</h2><p class="mut sm">${esc(t('tv_p'))}</p><a class="btn sec" href="tv.html">${esc(t('tv_b'))}</a></div>
+  <div class="card"><h2>${esc(t('ident_h'))}</h2>
+    <label>${esc(t('club_name'))}</label><input id="cn" maxlength="60" value="${esc(c.name)}"><button class="btn sec small" id="cs" style="margin-top:10px">${esc(t('save'))}</button>
+    <p class="mut sm">${esc(t('logo_p'))}</p>
+    <label class="btn sec small" style="display:inline-block">${esc(t('logo_b'))}<input type="file" id="lf" accept="image/png,image/jpeg,image/webp" hidden></label></div>`;
+  try{ new QRCode($('#qr'),{text:link,width:180,height:180,correctLevel:QRCode.CorrectLevel.M}); }catch(_){ $('#qr').remove(); }
+  $('#cp').onclick=async()=>{ try{ await navigator.clipboard.writeText(link); toast(t('copied')); }catch(_){ prompt('',link); } };
+  $('#nc').onclick=async()=>{ if(!confirm(t('newcode_q'))) return; const {error}=await sb.rpc('club_new_code',{p_club:c.id}); if(error) return toast(t('err')); load(true); };
+  $('#portal').onclick=async()=>{ const r=await api('portal'); if(r?.url) location.href=r.url; else toast(t('err')); };
+  $('#cs').onclick=saveName;
+  $('#lf').onchange=e=>{ const f=e.target.files[0]; if(!f) return; if(f.size>700*1024) return toast(t('too_big'));
+    const rd=new FileReader(); rd.onload=async()=>{ const r=await api('logo',{data:rd.result,type:f.type}); if(r?.ok){ toast(t('saved')); load(true); } else toast(t(r?.reason==='too_big'?'too_big':'err')); }; rd.readAsDataURL(f); };
+}
+
+/* ---------------- membre ---------------- */
+async function renderMember(){
+  shell(`<h2 style="margin-top:16px">${esc(t('t_plan'))}</h2><div id="pane"><p class="mut">…</p></div>
+    <p style="text-align:center;margin-top:18px"><a href="#" id="lv" class="sm mut">${esc(t('leave'))}</a></p>`);
+  $('#lv').onclick=async e=>{ e.preventDefault(); if(!confirm(t('leave_q'))) return; await sb.rpc('club_leave',{p_club:CUR.id}); CUR=null; load(); };
+  const {data,error}=await sb.rpc('club_schedule',{p_club:CUR.id,p_days:14});
+  const pane=$('#pane'); if(error){ pane.innerHTML=`<p>${esc(t('err'))}</p>`; return; }
+  let h='', day='';
+  const list=(data||[]).filter(r=>r.status!=='cancelled'||r.my_status);
+  if(!list.length) h=`<p class="mut">${esc(t('none'))}</p>`;
+  list.forEach(r=>{ const d=dKey(r.starts_at); if(d!==day){ day=d; h+=`<div class="day">${esc(d)}</div>`; }
+    const left=r.capacity-r.booked_count, mine=r.my_status==='booked'||r.my_status==='waitlist', off=r.status==='cancelled';
+    const pill=off?`<span class="pill r">${esc(t('cancelled'))}</span>`:r.my_status==='booked'?`<span class="pill g">${esc(t('booked'))}</span>`:r.my_status==='waitlist'?`<span class="pill w">${esc(t('waitl'))}</span>`:left<=0?`<span class="pill r">${esc(t('full'))}</span>`:`<span class="pill">${left}/${r.capacity}</span>`;
+    const act=off?'':mine?(r.can_cancel?`<button class="btn sec small" data-cn="${r.id}">${esc(t('cancel_b'))}</button>`:''):`<button class="btn small" data-bk="${r.id}">${esc(left<=0?t('waitl'):t('book'))}</button>`;
+    h+=`<div class="card"><div class="row"><div class="grow"><b>${esc(hhmm(r.starts_at))} · ${esc(r.name)}</b><div class="mut sm">${esc(r.coach_name)}${r.location?' · '+esc(r.location):''}</div></div>${pill}</div>${act?`<div class="row" style="margin-top:10px">${act}</div>`:''}</div>`; });
+  pane.innerHTML=h;
+  pane.querySelectorAll('[data-bk]').forEach(b=>b.onclick=async()=>{ b.disabled=true; const {data,error}=await sb.rpc('class_book',{p_instance:b.dataset.bk}); if(error||!data?.ok) toast(t('err')); renderMember(); });
+  pane.querySelectorAll('[data-cn]').forEach(b=>b.onclick=async()=>{ b.disabled=true; const {error}=await sb.rpc('class_cancel',{p_instance:b.dataset.cn}); if(error) toast(t('err')); renderMember(); });
+}
+
+boot();
+</script>
+</body>
+</html>
