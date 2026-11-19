@@ -102,7 +102,7 @@ const T={
  add_h:{fr:'Ajouter un cours',en:'Add a class',nl:'Les toevoegen'}, c_name:{fr:'Nom du cours',en:'Class name',nl:'Naam van de les'}, c_date:{fr:'Date',en:'Date',nl:'Datum'}, c_time:{fr:'Heure',en:'Time',nl:'Uur'},
  c_dur:{fr:'Durée (min)',en:'Duration (min)',nl:'Duur (min)'}, c_cap:{fr:'Places',en:'Spots',nl:'Plaatsen'}, c_weeks:{fr:'Répéter (semaines)',en:'Repeat (weeks)',nl:'Herhalen (weken)'}, c_coach:{fr:'Coach',en:'Coach',nl:'Coach'}, c_loc:{fr:'Salle / lieu (facultatif)',en:'Room / place (optional)',nl:'Zaal / plaats (optioneel)'},
  add_b:{fr:'Ajouter',en:'Add',nl:'Toevoegen'}, added:{fr:'Cours ajouté',en:'Class added',nl:'Les toegevoegd'},
- people_p:{fr:'Tes coachs rejoignent avec le code du club, puis tu les passes en « Coach ».',en:'Your coaches join with the club code, then you switch them to “Coach”.',nl:'Je coaches worden lid met de clubcode, daarna zet je ze op “Coach”.'},
+ people_p:{fr:'Avec le code ou le QR du club, chaque personne envoie une demande que tu valides. Avec l’invitation par e-mail, elle entre directement.',en:'With the club code or QR, each person sends a request that you approve. With an email invitation, they join directly.',nl:'Met de clubcode of QR stuurt elke persoon een aanvraag die jij goedkeurt. Met een uitnodiging per e-mail komt die meteen binnen.'},
  r_coach:{fr:'Coach',en:'Coach',nl:'Coach'}, r_member:{fr:'Membre',en:'Member',nl:'Lid'}, r_removed:{fr:'Retiré',en:'Removed',nl:'Verwijderd'},
  mk_coach:{fr:'Passer coach',en:'Make coach',nl:'Coach maken'}, mk_member:{fr:'Passer membre',en:'Make member',nl:'Lid maken'}, rm:{fr:'Retirer',en:'Remove',nl:'Verwijderen'}, readd:{fr:'Réintégrer',en:'Re-add',nl:'Terug toevoegen'},
  dues:{fr:'Cotisation',en:'Dues',nl:'Lidgeld'}, d_active:{fr:'à jour',en:'paid',nl:'betaald'}, d_late:{fr:'en retard',en:'late',nl:'achterstallig'}, d_none:{fr:'aucune',en:'none',nl:'geen'},
@@ -113,7 +113,7 @@ const T={
  ident_h:{fr:'Nom et logo',en:'Name and logo',nl:'Naam en logo'}, save:{fr:'Enregistrer',en:'Save',nl:'Opslaan'}, saved:{fr:'Enregistré',en:'Saved',nl:'Opgeslagen'},
  logo_b:{fr:'Choisir le logo (PNG, JPG ou WebP, 700 Ko max)',en:'Choose the logo (PNG, JPG or WebP, 700 KB max)',nl:'Logo kiezen (PNG, JPG of WebP, max 700 kB)'}, too_big:{fr:'Image trop lourde (700 Ko max)',en:'Image too large (700 KB max)',nl:'Afbeelding te groot (max 700 kB)'},
  logo_p:{fr:'Il s’affiche sur la TV à côté du logo Coach DM, qui reste toujours présent.',en:'It shows on the TV next to the Coach DM logo, which always stays.',nl:'Het verschijnt op de tv naast het logo van Coach DM, dat altijd blijft staan.'},
- join_link_h:{fr:'Lien et QR code d’inscription',en:'Sign-up link and QR code',nl:'Inschrijflink en QR-code'}, join_link_p:{fr:'À afficher à l’accueil ou sur la TV. Tes membres et tes coachs rejoignent le club avec.',en:'Display it at the desk or on the TV. Your members and coaches join the club with it.',nl:'Hang het aan het onthaal of toon het op de tv. Je leden en coaches worden er lid mee.'},
+ join_link_h:{fr:'Lien et QR code d’inscription',en:'Sign-up link and QR code',nl:'Inschrijflink en QR-code'}, join_link_p:{fr:'À afficher à l’accueil ou sur la TV. Chaque inscription arrive en demande : toi ou un coach admin la validez.',en:'Display it at the desk or on the TV. Each sign-up arrives as a request that you or a coach admin approve.',nl:'Hang het aan het onthaal of toon het op de tv. Elke inschrijving komt binnen als aanvraag die jij of een coach admin goedkeurt.'},
  copy:{fr:'Copier le lien',en:'Copy link',nl:'Link kopiëren'}, copied:{fr:'Lien copié',en:'Link copied',nl:'Link gekopieerd'}, newcode:{fr:'Nouveau code',en:'New code',nl:'Nieuwe code'}, newcode_q:{fr:'L’ancien code ne marchera plus. Continuer ?',en:'The old code will stop working. Continue?',nl:'De oude code werkt dan niet meer. Doorgaan?'},
  dues_h:{fr:'Cotisations des membres',en:'Member dues',nl:'Lidgelden'},
  dues_p:{fr:'Tu crées tes formules (mensuel, trimestriel, carte…) et tu partages leur lien. Le membre signe son mandat SEPA en ligne, il est prélevé automatiquement chaque mois et l’argent arrive sur ton compte Stripe. Coach DM prend 2 % par paiement, Stripe prend ses frais. Un membre qui paie rejoint ton club tout seul.',
@@ -127,6 +127,22 @@ const T={
  app_b:{fr:'Ouvrir l’app Coach DM',en:'Open the Coach DM app',nl:'De Coach DM-app openen'}, logout:{fr:'Se déconnecter',en:'Log out',nl:'Uitloggen'},
  err:{fr:'Une erreur est survenue, réessaie.',en:'Something went wrong, try again.',nl:'Er ging iets mis, probeer opnieuw.'},
  coach_mine:{fr:'Tes cours',en:'Your classes',nl:'Jouw lessen'},
+ pending_sent:{fr:'Demande envoyée. Le club doit la valider.',en:'Request sent. The club must approve it.',nl:'Aanvraag verstuurd. De club moet ze goedkeuren.'},
+ pending_wait:{fr:'Demande en attente de validation',en:'Request awaiting approval',nl:'Aanvraag wacht op goedkeuring'},
+ pending_h:{fr:'Demandes à valider',en:'Requests to approve',nl:'Aanvragen goed te keuren'},
+ approve:{fr:'Accepter',en:'Accept',nl:'Aanvaarden'}, reject:{fr:'Refuser',en:'Decline',nl:'Weigeren'},
+ inv_h:{fr:'Inviter par e-mail',en:'Invite by email',nl:'Uitnodigen per e-mail'},
+ inv_p:{fr:'Lien personnel, valable 14 jours, utilisable une seule fois et seulement avec cette adresse e-mail. La personne entre directement dans le club.',en:'Personal link, valid 14 days, single use and only with this email address. The person joins the club directly.',nl:'Persoonlijke link, 14 dagen geldig, eenmalig en alleen met dit e-mailadres. De persoon wordt meteen lid van de club.'},
+ inv_b:{fr:'Envoyer l’invitation',en:'Send the invitation',nl:'Uitnodiging versturen'}, inv_ok:{fr:'Invitation envoyée',en:'Invitation sent',nl:'Uitnodiging verstuurd'},
+ inv_list:{fr:'Invitations récentes',en:'Recent invitations',nl:'Recente uitnodigingen'}, inv_used:{fr:'acceptée',en:'accepted',nl:'aanvaard'}, inv_exp:{fr:'expirée',en:'expired',nl:'verlopen'}, inv_wait:{fr:'en attente',en:'pending',nl:'wacht'}, revoke:{fr:'Annuler',en:'Revoke',nl:'Intrekken'},
+ as_member:{fr:'Membre',en:'Member',nl:'Lid'}, as_coach:{fr:'Coach',en:'Coach',nl:'Coach'},
+ bad_email:{fr:'Adresse e-mail invalide',en:'Invalid email address',nl:'Ongeldig e-mailadres'}, already_member:{fr:'Cette personne est déjà dans le club',en:'This person is already in the club',nl:'Deze persoon is al lid van de club'},
+ too_many:{fr:'Trop d’invitations aujourd’hui, réessaie demain',en:'Too many invitations today, try tomorrow',nl:'Te veel uitnodigingen vandaag, probeer morgen'}, mail_failed:{fr:'L’e-mail n’a pas pu partir, réessaie',en:'The email could not be sent, try again',nl:'De e-mail kon niet vertrekken, probeer opnieuw'},
+ bad_invite:{fr:'Invitation inconnue',en:'Unknown invitation',nl:'Onbekende uitnodiging'}, invite_used:{fr:'Cette invitation a déjà été utilisée',en:'This invitation was already used',nl:'Deze uitnodiging werd al gebruikt'}, invite_expired:{fr:'Invitation expirée : demande-en une nouvelle au club',en:'Invitation expired: ask the club for a new one',nl:'Uitnodiging verlopen: vraag de club een nieuwe'},
+ wrong_email:{fr:'Cette invitation est pour une autre adresse e-mail. Connecte-toi avec',en:'This invitation is for another email address. Log in with',nl:'Deze uitnodiging is voor een ander e-mailadres. Log in met'},
+ too_many_requests:{fr:'Trop de demandes en attente pour ce club',en:'Too many pending requests for this club',nl:'Te veel openstaande aanvragen voor deze club'},
+ r_admin:{fr:'Coach admin',en:'Coach admin',nl:'Coach admin'}, adm_on:{fr:'Donner les droits admin',en:'Give admin rights',nl:'Adminrechten geven'}, adm_off:{fr:'Retirer les droits admin',en:'Remove admin rights',nl:'Adminrechten afnemen'},
+ adm_p:{fr:'Un coach admin valide les demandes, invite et retire des membres. Il ne touche pas aux coachs ni à l’abonnement.',en:'A coach admin approves requests, invites and removes members. They cannot change coaches or the subscription.',nl:'Een coach admin keurt aanvragen goed, nodigt leden uit en verwijdert ze. Coaches en abonnement blijven buiten bereik.'},
  info_h:{fr:'Une question ?',en:'A question?',nl:'Een vraag?'}, info_p:{fr:'Écris-moi : contact@coachdm.be',en:'Write to me: contact@coachdm.be',nl:'Schrijf me: contact@coachdm.be'}
 };
 const t=k=>(T[k]&&(T[k][L]||T[k].fr))||k;
@@ -142,6 +158,9 @@ let ME=null, CLUBS=[], CUR=null, TAB='plan';
 // code d'inscription garde le temps de se connecter / creer son compte
 const jq=QS.get('join'); if(jq){ try{ localStorage.setItem('cdm_club_join',jq.toUpperCase()); }catch(_){} }
 const pendingJoin=()=>{ try{ return localStorage.getItem('cdm_club_join'); }catch(_){ return null; } };
+const iq=QS.get('invite'); if(iq&&/^[0-9a-f]{20,80}$/i.test(iq)){ try{ localStorage.setItem('cdm_club_invite',iq.toLowerCase()); }catch(_){} }
+const pendingInvite=()=>{ try{ return localStorage.getItem('cdm_club_invite'); }catch(_){ return null; } };
+let MSG='';
 
 async function api(action,extra){
   const {data:{session}}=await sb.auth.getSession();
@@ -159,7 +178,7 @@ function introHtml(){
 /* ---------------- connexion ---------------- */
 function renderAuth(mode){
   const su=mode==='signup';
-  app.innerHTML=(pendingJoin()?`<h1>${esc(t('join_h'))}</h1>`:introHtml())+`
+  app.innerHTML=msgHtml()+((pendingJoin()||pendingInvite())?`<h1>${esc(t('join_h'))}</h1>`:introHtml())+`
   <div class="card"><h2>${esc(t(su?'signup_h':'login_h'))}</h2>
    ${su?`<label>${esc(t('name'))}</label><input id="fn" autocomplete="name">`:''}
    <label>${esc(t('email'))}</label><input id="em" type="email" autocomplete="username">
@@ -189,13 +208,21 @@ async function boot(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session) return renderAuth('login');
   ME=session.user.id;
+  const inv=pendingInvite();
+  if(inv){
+    const {data,error}=await sb.rpc('club_accept_invite',{p_token:inv});
+    if(!(data&&data.reason==='wrong_email')){ try{ localStorage.removeItem('cdm_club_invite'); }catch(_){} }
+    if(error) MSG=t('err'); else if(data?.ok) toast(t('joined')+' '+data.name);
+    else MSG=data?.reason==='wrong_email'?t('wrong_email')+' '+(data.email||''):t(data?.reason||'err');
+    if(data?.reason==='wrong_email'){ await sb.auth.signOut(); return renderAuth('login'); }
+  }
   const code=pendingJoin();
   if(code){
     const {data,error}=await sb.rpc('club_join',{p_code:code});
     try{ localStorage.removeItem('cdm_club_join'); }catch(_){}
-    if(error) toast(t('err')); else if(data?.ok) toast(t('joined')+' '+data.name); else toast(t(data?.reason||'err'));
-    if(QS.has('join')) history.replaceState(null,'',location.pathname);
+    if(error) MSG=t('err'); else if(data?.ok) (data.pending?(MSG=t('pending_sent')+' ('+data.name+')'):toast(t('joined')+' '+data.name)); else MSG=t(data?.reason||'err');
   }
+  if(QS.has('join')||QS.has('invite')) history.replaceState(null,'',location.pathname);
   if(QS.get('paid')==='1'){ await waitPaid(); return; }
   await load();
 }
@@ -213,12 +240,13 @@ async function waitPaid(){
   history.replaceState(null,'',location.pathname); await load();
 }
 
+const msgHtml=()=>MSG?`<div class="card" style="border-color:var(--gold)">${esc(MSG)}</div>`:'';
 function shell(inner){
   const c=CUR;
   const head=c?`<div class="club-head">${c.logo_url?`<img src="${esc(c.logo_url)}" alt="">`:''}<div class="grow"><h1 style="margin:0">${esc(c.name)}</h1>
     <span class="mut sm">${esc(t(c.role==='owner'?'t_club':c.role==='coach'?'r_coach':'r_member'))}</span></div></div>`:'';
   const pick=CLUBS.length>1?`<select id="pick" style="margin-top:10px">${CLUBS.map(x=>`<option value="${x.id}" ${x.id===c.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`:'';
-  app.innerHTML=head+pick+inner+`<div class="row" style="margin-top:22px"><a class="btn sec grow" href="app.html">${esc(t('app_b'))}</a><button class="btn sec" id="lo">${esc(t('logout'))}</button></div>`;
+  app.innerHTML=msgHtml()+head+pick+inner+`<div class="row" style="margin-top:22px"><a class="btn sec grow" href="app.html">${esc(t('app_b'))}</a><button class="btn sec" id="lo">${esc(t('logout'))}</button></div>`;
   if($('#pick')) $('#pick').onchange=e=>{CUR=CLUBS.find(x=>x.id===e.target.value);TAB='plan';render();};
   $('#lo').onclick=async()=>{await sb.auth.signOut();location.href='club.html';};
 }
@@ -228,13 +256,14 @@ function render(){
   if(CUR.role==='owner' && !CUR.alive) return renderActivate();
   if(!CUR.alive){ shell(`<div class="card" style="margin-top:14px"><p>${esc(t('club_inactive'))}</p></div>`); return; }
   if(CUR.role==='owner') return renderOwner();
-  if(CUR.role==='coach') return renderStaffPlan(false);
+  if(CUR.role==='coach') return CUR.can_manage?renderManager():renderStaffPlan(false);
   return renderMember();
 }
 
 /* ---------------- pas de club ---------------- */
-function renderNoClub(){
-  app.innerHTML=`<div class="card"><h2>${esc(t('join_h'))}</h2><p class="mut sm">${esc(t('join_p'))}</p>
+async function renderNoClub(){
+  let req=[]; try{ const r=await sb.rpc('club_my_requests'); req=r.data||[]; }catch(_){}
+  app.innerHTML=msgHtml()+req.map(x=>`<div class="card"><b>${esc(x.name)}</b><div class="mut sm">${esc(t('pending_wait'))}</div></div>`).join('')+`<div class="card"><h2>${esc(t('join_h'))}</h2><p class="mut sm">${esc(t('join_p'))}</p>
     <div class="row"><input id="jc" class="grow" placeholder="ABC123…" style="text-transform:uppercase;flex:1"><button class="btn" id="jb">${esc(t('join_b'))}</button></div></div>
   ${introHtml()}
   <div class="card"><h2>${esc(t('create_h'))}</h2><label>${esc(t('club_name'))}</label><input id="cn" maxlength="60">
@@ -242,7 +271,8 @@ function renderNoClub(){
   <div class="row"><a class="btn sec grow" href="app.html">${esc(t('app_b'))}</a><button class="btn sec" id="lo">${esc(t('logout'))}</button></div>`;
   $('#lo').onclick=async()=>{await sb.auth.signOut();location.href='club.html';};
   $('#jb').onclick=async()=>{ const {data,error}=await sb.rpc('club_join',{p_code:$('#jc').value.trim()});
-    if(error) return toast(t('err')); if(!data?.ok) return toast(t(data?.reason||'err')); toast(t('joined')+' '+data.name); load(); };
+    if(error) return toast(t('err')); if(!data?.ok) return toast(t(data?.reason||'err'));
+    if(data.pending){ MSG=t('pending_sent')+' ('+data.name+')'; } else toast(t('joined')+' '+data.name); load(); };
   $('#cb').onclick=async()=>{ $('#cb').disabled=true; const {data,error}=await sb.rpc('club_create',{p_name:$('#cn').value});
     $('#cb').disabled=false; if(error||!data?.ok) return toast(t('err')); gtag('event','club_created'); load(); };
 }
@@ -270,6 +300,13 @@ function renderOwner(){
   if(TAB==='plan') paneSchedule(true); else if(TAB==='people') panePeople(); else paneClub();
 }
 
+/* coach admin : ses cours + gestion des membres */
+function renderManager(){
+  if(!['plan','people'].includes(TAB)) TAB='plan';
+  shell(`<div class="tabs">${['plan','people'].map(k=>`<button data-t="${k}" class="${TAB===k?'on':''}">${esc(t(k==='plan'?'coach_mine':'t_people'))}</button>`).join('')}</div><div id="pane"></div>`);
+  document.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;renderManager();});
+  if(TAB==='plan') paneSchedule(false); else panePeople();
+}
 /* planning staff (gerant : tout ; coach : ses cours) */
 function renderStaffPlan(){ shell(`<h2 style="margin-top:16px">${esc(t('coach_mine'))}</h2><div id="pane"></div>
   <div class="card"><h2>${esc(t('tv_h'))}</h2><p class="mut sm">${esc(t('tv_p'))}</p><a class="btn" href="tv.html">${esc(t('tv_b'))}</a></div>`); paneSchedule(false); }
@@ -318,23 +355,53 @@ async function paneSchedule(owner){
 
 async function panePeople(){
   const pane=$('#pane'); pane.innerHTML='<p class="mut">…</p>';
-  const {data,error}=await sb.rpc('club_people',{p_club:CUR.id});
+  const owner=CUR.role==='owner';
+  const [{data,error},{data:invs}]=await Promise.all([sb.rpc('club_people',{p_club:CUR.id}), sb.rpc('club_invites_list',{p_club:CUR.id})]);
   if(error){ pane.innerHTML=`<p>${esc(t('err'))}</p>`; return; }
+  const all=data||[], pend=all.filter(p=>p.status==='pending'), rest=all.filter(p=>p.status!=='pending');
   let h=`<p class="mut sm">${esc(t('people_p'))}</p>`;
-  if(!(data||[]).length) h+=`<div class="card"><p class="mut" style="margin:0">${esc(t('no_people'))}</p></div>`;
-  (data||[]).forEach(p=>{
+  if(pend.length){ h+=`<h2>${esc(t('pending_h'))} (${pend.length})</h2>`;
+    pend.forEach(p=>{ h+=`<div class="card"><b>${esc(p.full_name||'—')}</b><div class="mut sm">${esc(p.email)}</div>
+      <div class="row" style="margin-top:10px"><button class="btn small" data-pa="approve" data-u="${p.user_id}">${esc(t('approve'))}</button><button class="btn red small" data-pa="reject" data-u="${p.user_id}">${esc(t('reject'))}</button></div></div>`; }); }
+  h+=`<div class="card"><h2>${esc(t('inv_h'))}</h2><p class="mut sm">${esc(t('inv_p'))}</p>
+    <div class="row"><input id="iv-em" type="email" placeholder="email@exemple.be" style="flex:1;min-width:180px">${owner?`<select id="iv-role" style="width:auto"><option value="member">${esc(t('as_member'))}</option><option value="coach">${esc(t('as_coach'))}</option></select>`:''}</div>
+    <button class="btn" id="iv-go" style="width:100%;margin-top:10px">${esc(t('inv_b'))}</button>
+    ${(invs||[]).length?`<div class="roster"><div class="mut sm" style="font-weight:800">${esc(t('inv_list'))}</div>${invs.slice(0,15).map(i=>{
+      const st=i.used_at?t('inv_used'):new Date(i.expires_at)<new Date()?t('inv_exp'):t('inv_wait');
+      return `<div class="row"><span class="grow">${esc(i.email)}${i.role==='coach'?' · '+esc(t('as_coach')):''} · <span class="mut">${esc(st)}</span></span>${!i.used_at?`<button class="btn sec small" data-rv="${i.id}">${esc(t('revoke'))}</button>`:''}</div>`; }).join('')}</div>`:''}</div>`;
+  if(owner) h+=`<p class="mut sm">${esc(t('adm_p'))}</p>`;
+  if(!rest.length) h+=`<div class="card"><p class="mut" style="margin:0">${esc(t('no_people'))}</p></div>`;
+  rest.forEach(p=>{
     const rm=p.status==='removed';
-    const role=rm?`<span class="pill r">${esc(t('r_removed'))}</span>`:p.role==='coach'?`<span class="pill">${esc(t('r_coach'))}</span>`:`<span class="pill g">${esc(t('r_member'))}</span>`;
-    const ds=p.dues_status, dues=ds?(['active','trialing'].includes(ds)?t('d_active'):['past_due','unpaid','incomplete'].includes(ds)?t('d_late'):t('d_none')):t('d_none');
-    const acts=rm?`<button class="btn sec small" data-pa="member" data-u="${p.user_id}">${esc(t('readd'))}</button>`
-      :`${p.role==='coach'?`<button class="btn sec small" data-pa="member" data-u="${p.user_id}">${esc(t('mk_member'))}</button>`:`<button class="btn sec small" data-pa="coach" data-u="${p.user_id}">${esc(t('mk_coach'))}</button>`}<button class="btn red small" data-pa="remove" data-u="${p.user_id}">${esc(t('rm'))}</button>`;
+    if(!owner && p.role==='coach') return;
+    const role=rm?`<span class="pill r">${esc(t('r_removed'))}</span>`:p.role==='coach'?`<span class="pill">${esc(t(p.can_manage?'r_admin':'r_coach'))}</span>`:`<span class="pill g">${esc(t('r_member'))}</span>`;
+    const ds=p.dues_status, late=ds&&['past_due','unpaid','incomplete'].includes(ds), dues=ds?(['active','trialing'].includes(ds)?t('d_active'):late?t('d_late'):t('d_none')):t('d_none');
+    let acts='';
+    if(rm) acts=`<button class="btn sec small" data-pa="member" data-u="${p.user_id}">${esc(t('readd'))}</button>`;
+    else {
+      if(owner) acts+=p.role==='coach'?`<button class="btn sec small" data-pa="member" data-u="${p.user_id}">${esc(t('mk_member'))}</button><button class="btn sec small" data-pa="${p.can_manage?'admin_off':'admin_on'}" data-u="${p.user_id}">${esc(t(p.can_manage?'adm_off':'adm_on'))}</button>`
+        :`<button class="btn sec small" data-pa="coach" data-u="${p.user_id}">${esc(t('mk_coach'))}</button>`;
+      acts+=`<button class="btn red small" data-pa="remove" data-u="${p.user_id}">${esc(t('rm'))}</button>`;
+    }
     h+=`<div class="card"><div class="row"><div class="grow"><b>${esc(p.full_name||'—')}</b><div class="mut sm">${esc(p.email)}</div>
-      <div class="sm ${ds&&['past_due','unpaid','incomplete'].includes(ds)?'':'mut'}" style="margin-top:3px">${esc(t('dues'))}${L==='fr'?' : ':': '}${esc(dues)}</div></div>${role}</div>
+      <div class="sm ${late?'':'mut'}" style="margin-top:3px">${esc(t('dues'))}${L==='fr'?' : ':': '}${esc(dues)}</div></div>${role}</div>
       <div class="row" style="margin-top:10px">${acts}</div></div>`; });
+  if(!owner && CUR.join_code){ const link='https://coachdm.be/club.html?join='+CUR.join_code;
+    h+=`<div class="card"><h2>${esc(t('join_link_h'))}</h2><p class="mut sm">${esc(t('join_link_p'))}</p><div class="code">${esc(CUR.join_code)}</div><div id="qr"></div></div>`;
+    setTimeout(()=>{ try{ new QRCode($('#qr'),{text:link,width:180,height:180,correctLevel:QRCode.CorrectLevel.M}); }catch(_){} },0); }
   pane.innerHTML=h;
   pane.querySelectorAll('[data-pa]').forEach(b=>b.onclick=async()=>{
+    b.disabled=true;
     const {data,error}=await sb.rpc('club_set_person',{p_club:CUR.id,p_user:b.dataset.u,p_action:b.dataset.pa});
-    if(error||!data?.ok) return toast(t('err')); panePeople(); });
+    if(error||!data?.ok){ b.disabled=false; return toast(t('err')); } panePeople(); });
+  pane.querySelectorAll('[data-rv]').forEach(b=>b.onclick=async()=>{ await sb.rpc('club_revoke_invite',{p_invite:b.dataset.rv}); panePeople(); });
+  $('#iv-go').onclick=async()=>{
+    const em=$('#iv-em').value.trim(); if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return toast(t('bad_email'));
+    $('#iv-go').disabled=true;
+    const r=await api('invite',{club_id:CUR.id,email:em,role:owner&&$('#iv-role')?$('#iv-role').value:'member'});
+    $('#iv-go').disabled=false;
+    if(r?.ok){ toast(t('inv_ok')); panePeople(); } else toast(t(r?.reason&&T[r.reason]?r.reason:'err'));
+  };
 }
 
 function paneClub(){
