@@ -2410,7 +2410,7 @@ $('#mg-send').onclick=async()=>{
    Table biz_prospects (admins seulement) + RPC admin_growth_kpis. Les entreprises trouvées
    par la recherche automatique du lundi arrivent directement dans cette table. */
 (function(){
-const GR_STAGES=[{k:'new',l:'À contacter'},{k:'s1',l:'Contacté'},{k:'s2',l:'Relance 1'},{k:'s3',l:'Relance 2'},{k:'s4',l:'Dernier msg'},{k:'talk',l:'En discussion'},{k:'trial',l:'Test / RDV'},{k:'won',l:'Signé'},{k:'lost',l:'Pas intéressé'}];
+const GR_STAGES=[{k:'new',l:'À contacter'},{k:'s1',l:'Contacté'},{k:'s2',l:'Relance 1'},{k:'s3',l:'Relance 2'},{k:'s4',l:'Dernier msg'},{k:'talk',l:'En discussion'},{k:'trial',l:'Test / RDV'},{k:'won',l:'Signé'},{k:'lost',l:'Pas intéressé'},{k:'aside',l:'Mis de côté'}];
 const GR_NEXT={new:'s1',s1:'s2',s2:'s3',s3:'s4',s4:'lost'}, GR_STEP={new:1,s1:2,s2:3,s3:4}, GR_DELAY={s1:3,s2:4,s3:7};
 const GR_TYPES=['Entreprise','Club de football','Club de futsal','Académie de football','Personal trainer','Box CrossFit','Salle Hyrox / Cross-Training','Coach nutrition','Préparateur physique','Coach en ligne','Autre'];
 const GR_CH={email:'E-mail',dm:'DM Instagram',li:'LinkedIn'};
@@ -2514,7 +2514,7 @@ function isBiz(p){return p.type==='Entreprise'}
 function message(p,step){const club=isClub(p),SET=isBiz(p)?TE:club?TC:BOX_TYPES.includes(p.type)?TB:T,L=SET[p.lang]||SET.fr,t=L[step];if(!t)return null;let body=(step===1&&p.custom1)?p.custom1:t.b;if(p.channel==='email')body=L.hi+body.replace(/^(Salut|Hoi|Hey) \{prenom\} ?! /,'')+L.sig;return{subject:p.channel==='email'?fill(t.s,p):'',body:fill(body,p)}}
 
 
-const due=p=>p.next&&!['won','lost'].includes(p.stage)&&p.next<=today();
+const due=p=>p.next&&!['won','lost','aside'].includes(p.stage)&&p.next<=today();
 const fresh=p=>p.stage==='new'&&!p.next;
 
 async function loadGrowth(){
@@ -2541,8 +2541,8 @@ function grMatch(p){
   return true;
 }
 function grCard(p){
-  const late=p.next&&p.next<today()&&!['won','lost'].includes(p.stage);
-  const pill=['won','lost'].includes(p.stage)?`<span class="pill sec">${stageL(p.stage)}</span>`:p.next?`<span class="pill ${late?'no':'role'}">${late?'Retard · ':''}${fmtD(p.next)}</span>`:`<span class="pill sec">${stageL(p.stage)}</span>`;
+  const late=p.next&&p.next<today()&&!['won','lost','aside'].includes(p.stage);
+  const pill=['won','lost','aside'].includes(p.stage)?`<span class="pill sec">${stageL(p.stage)}</span>`:p.next?`<span class="pill ${late?'no':'role'}">${late?'Retard · ':''}${fmtD(p.next)}</span>`:`<span class="pill sec">${stageL(p.stage)}</span>`;
   return `<div class="gr-card" data-grid="${p.id}"><div><div class="gr-t">${p.pinned?'★ ':''}${esc(p.structure||p.prenom||'Sans nom')}</div><div class="muted">${esc(p.type)} · ${esc(p.ville||'—')} · ${GR_CH[p.channel]||''} · ${String(p.lang).toUpperCase()}</div></div>${pill}</div>`;
 }
 function renderGrowth(){
@@ -2560,7 +2560,7 @@ function grSheet(p){
   ov.innerHTML=`<div class="gr-sheet card"><div class="row"><h3 style="margin:0;font-size:17px">${isNew?'Nouvelle fiche':esc(grEdit.structure||grEdit.prenom)}</h3><button class="btn subtle sm" data-gra="close" style="width:auto">Fermer</button></div>
   ${m?`<div class="muted" style="margin-bottom:6px">Message à envoyer · étape ${step}/4</div><div class="gr-msg" id="gr-msgbox">${m.subject?`<div class="gr-subj">Objet : ${esc(m.subject)}</div>`:''}<span id="gr-msgtxt">${esc(m.body)}</span></div>
   <div class="gr-acts"><button class="btn sm" data-gra="copy" style="width:auto">Copier</button><button class="btn subtle sm" data-gra="ai" style="width:auto">✦ Personnaliser (IA)</button>${grLink(grEdit,m)}<button class="btn subtle sm" data-gra="sent" style="width:auto">Marquer envoyé ✓</button></div>`:''}
-  ${!isNew&&!['won','lost'].includes(grEdit.stage)?`<div class="gr-acts"><button class="btn subtle sm" data-gra="talk" style="width:auto">A répondu</button><button class="btn subtle sm" data-gra="trial" style="width:auto">RDV / test</button><button class="btn subtle sm" data-gra="won" style="width:auto">Signé 🏆</button><button class="btn subtle sm" data-gra="lost" style="width:auto">Pas intéressé</button></div>`:''}
+  ${!isNew&&!['won','lost','aside'].includes(grEdit.stage)?`<div class="gr-acts"><button class="btn subtle sm" data-gra="talk" style="width:auto">A répondu</button><button class="btn subtle sm" data-gra="trial" style="width:auto">RDV / test</button><button class="btn subtle sm" data-gra="won" style="width:auto">Signé 🏆</button><button class="btn subtle sm" data-gra="lost" style="width:auto">Pas intéressé</button></div>`:''}
   ${!isNew?`<div class="muted" style="margin:14px 0 6px;font-weight:700">Il t'a répondu ?</div>
   <div class="field"><textarea id="gr-in" rows="4" placeholder="Colle ici sa réponse (e-mail, DM, LinkedIn…) : l'IA prépare ta réponse avec les vraies infos de Coach DM."></textarea></div>
   <div class="gr-acts"><button class="btn sm" data-gra="reply" style="width:auto">✦ Préparer ma réponse</button></div>
@@ -2595,7 +2595,7 @@ async function grSave(extra){
   if(error){ const m=$('#gr-sheetmsg'); if(m){ m.textContent=error.message.includes('duplicate')?'Cette structure existe déjà.':error.message; m.className='msg err'; } return false; }
   const ov=$('#gr-ov'); if(ov) ov.remove(); await loadGrowth(); return true;
 }
-function grStage(k,label){ grRead(); grEdit.stage=k; grEdit.next=['won','lost'].includes(k)?null:addDays(k==='talk'?2:5); grEdit.hist=[...(grEdit.hist||[]),{d:today(),t:label}]; grSave(); }
+function grStage(k,label){ grRead(); grEdit.stage=k; grEdit.next=['won','lost','aside'].includes(k)?null:addDays(k==='talk'?2:5); grEdit.hist=[...(grEdit.hist||[]),{d:today(),t:label}]; grSave(); }
 
 document.addEventListener('click',async e=>{
   const f=e.target.closest('[data-grf]'); if(f){ grFilter=f.dataset.grf; renderGrowth(); return; }
