@@ -131,6 +131,7 @@
       ok_t:'Paiement confirmé', ok_d:'Merci ! Ton coach est prévenu.', ok_next:'Et maintenant',
       ok_s1:'Nouveau sur Coach DM ? Ouvre l’e-mail « Ton accès Coach DM est prêt » et touche le bouton pour créer ton mot de passe. Pas d’e-mail ? Regarde dans les spams.',
       ok_s2:'Installe l’app Coach DM et connecte-toi avec l’adresse e-mail utilisée pour payer.', ok_s3:'Ton coach te retrouve dans l’app : programme, séances et messages.',
+      tr_s1:'Ouvre l’e-mail « Paiement reçu : dernière étape pour ton programme » et réponds aux questions (2 minutes). Pas d’e-mail ? Regarde dans les spams.', tr_s2:'Environ 1 heure après tes réponses, ton programme d’entraînement et ton plan nutrition au gramme près arrivent dans ton app (le lendemain matin si tu réponds tard le soir).', tr_s3:'Installe l’app Coach DM et connecte-toi avec l’adresse e-mail utilisée pour payer.',
       off_t:'Offre indisponible', off_d:'Ce lien de paiement n’est plus actif. Demande un nouveau lien à ton coach.', home:'Retour à coachdm.be',
       terms:'Conditions', privacy:'Confidentialité' },
     en:{ title:'Payment · Coach DM', kick_c:'Coaching with {0}', kick:'Coaching', per_m:'/ month', per_q:'/ quarter',
@@ -144,6 +145,7 @@
       ok_t:'Payment confirmed', ok_d:'Thank you! Your coach has been notified.', ok_next:'What’s next',
       ok_s1:'New to Coach DM? Open the email “Your Coach DM access is ready” and tap the button to set your password. No email? Check your spam folder.',
       ok_s2:'Install the Coach DM app and sign in with the email address you paid with.', ok_s3:'Your coach finds you in the app: program, sessions and messages.',
+      tr_s1:'Open the email “Payment received: one last step for your program” and answer the questions (2 minutes). No email? Check your spam folder.', tr_s2:'About 1 hour after your answers, your training program and your nutrition plan down to the gram arrive in your app (the next morning if you answer late in the evening).', tr_s3:'Install the Coach DM app and sign in with the email address you paid with.',
       off_t:'Offer unavailable', off_d:'This payment link is no longer active. Ask your coach for a new link.', home:'Back to coachdm.be',
       terms:'Terms', privacy:'Privacy' },
     nl:{ title:'Betaling · Coach DM', kick_c:'Coaching met {0}', kick:'Coaching', per_m:'/ maand', per_q:'/ kwartaal',
@@ -157,6 +159,7 @@
       ok_t:'Betaling bevestigd', ok_d:'Bedankt! Je coach is verwittigd.', ok_next:'Wat nu',
       ok_s1:'Nieuw bij Coach DM? Open de e-mail over je Coach DM-toegang en tik op de knop om je wachtwoord te kiezen. Geen e-mail? Kijk in je spam.',
       ok_s2:'Installeer de Coach DM-app en meld je aan met het e-mailadres waarmee je betaalde.', ok_s3:'Je coach vindt je in de app: programma, trainingen en berichten.',
+      tr_s1:'Open de e-mail “Betaling ontvangen: nog één stap voor je programma” en beantwoord de vragen (2 minuten). Geen e-mail? Kijk in je spam.', tr_s2:'Ongeveer 1 uur na je antwoorden komen je trainingsprogramma en je voedingsplan tot op de gram in je app (de volgende ochtend als je laat op de avond antwoordt).', tr_s3:'Installeer de Coach DM-app en meld je aan met het e-mailadres waarmee je betaalde.',
       off_t:'Aanbod niet beschikbaar', off_d:'Deze betaallink is niet meer actief. Vraag je coach om een nieuwe link.', home:'Terug naar coachdm.be',
       terms:'Voorwaarden', privacy:'Privacy' }
   };
@@ -166,6 +169,8 @@
   if(!T[L]){ try{ L = localStorage.getItem('cdm_lang'); }catch(_){ L = null; } }
   if(!T[L]){ var n=(navigator.language||'fr').slice(0,2).toLowerCase(); L = T[n] ? n : 'fr'; }
   var OFFER = null;
+  /* Offres d'essai : apres le paiement, le circuit automatique envoie le questionnaire (trial-flow). */
+  var TRIAL = ['97985618-4553-4620-a73e-2cd26013bcbe'];
   var $ = function(id){ return document.getElementById(id); };
   var f = function(s){ var a=arguments; return s.replace(/\{(\d)\}/g,function(m,i){ return a[+i+1]!=null?a[+i+1]:m; }); };
   var eur = function(v){ return new Intl.NumberFormat(L==='fr'?'fr-BE':(L==='nl'?'nl-BE':'en-IE'),{style:'currency',currency:'EUR',minimumFractionDigits:(v%1?2:0)}).format(v); };
@@ -173,7 +178,8 @@
   function show(id){ ['v-load','v-offer','v-ok','v-off'].forEach(function(v){ $(v).hidden = v!==id; }); }
   function paint(){
     var t=T[L]; document.documentElement.lang=L; document.title=t.title;
-    document.querySelectorAll('[data-t]').forEach(function(e){ e.textContent=t[e.getAttribute('data-t')]||''; });
+    var tr = q.get('ok')==='1' && TRIAL.indexOf(OID)>=0;
+    document.querySelectorAll('[data-t]').forEach(function(e){ var k=e.getAttribute('data-t'); if(tr && /^ok_s\d$/.test(k)) k='tr_s'+k.slice(-1); e.textContent=t[k]||''; });
     document.querySelectorAll('.lang button').forEach(function(b){ b.classList.toggle('on', b.dataset.l===L); });
     if(OFFER){
       var o=OFFER, price=eur(o.amount_eur);
