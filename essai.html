@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="strict-origin">
+<meta name="theme-color" content="#0A0907">
+<title>Ton programme · Coach DM</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0A0907; --ink-2:#12100C; --ink-3:#1A1712; --line:rgba(233,199,103,.16); --line-2:rgba(242,236,222,.08);
+    --gold:#E9C767; --gold-2:#C9A44A; --paper:#F2ECDE; --mute:#A39A88; --mute-2:#6E675A; --err:#E8806B;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--ink);color:var(--paper)}
+  body{font-family:Manrope,-apple-system,"Segoe UI",Arial,sans-serif;font-size:16px;line-height:1.55;min-height:100dvh;
+    background:radial-gradient(900px 520px at 50% -10%,rgba(233,199,103,.10),transparent 70%),var(--ink);
+    padding:env(safe-area-inset-top,0) max(16px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0) max(16px,env(safe-area-inset-left,0px))}
+  .wrap{max-width:560px;margin:0 auto;padding:22px 0 56px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:28px}
+  .brand{display:flex;align-items:center;gap:10px;color:var(--paper);text-decoration:none}
+  .brand img{width:38px;height:38px;border-radius:10px}
+  .brand b{font-family:Sora,sans-serif;font-weight:800;letter-spacing:.06em;font-size:15px}
+  .lang{display:flex;gap:4px}
+  .lang button{font:600 12px/1 Manrope,sans-serif;letter-spacing:.06em;color:var(--mute);background:transparent;border:1px solid var(--line-2);border-radius:999px;padding:7px 10px;cursor:pointer}
+  .lang button.on{color:var(--ink);background:var(--gold);border-color:var(--gold)}
+  .kick{font:700 11.5px/1 Manrope,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin:0 0 12px}
+  h1{font-family:Sora,sans-serif;font-weight:800;font-size:clamp(26px,7vw,34px);line-height:1.12;margin:0 0 10px;text-wrap:balance}
+  .lead{color:#D9D1C1;margin:0}
+  .card{background:linear-gradient(180deg,var(--ink-2),var(--ink));border:1px solid var(--line);border-radius:24px;padding:24px 20px;margin-top:18px}
+  .card h2{font-family:Sora,sans-serif;font-size:17px;font-weight:700;margin:0 0 16px;display:flex;align-items:center;gap:10px}
+  .card h2 i{flex:none;width:24px;height:24px;border-radius:50%;background:rgba(233,199,103,.14);color:var(--gold);display:grid;place-items:center;font-style:normal;font-size:12.5px;font-weight:800}
+  .card h2 small{font:600 12px/1 Manrope,sans-serif;color:var(--mute-2);margin-left:auto;letter-spacing:.04em}
+  .f{margin:0 0 16px}
+  .f:last-child{margin-bottom:0}
+  .f > span{display:block;font-weight:600;font-size:14px;color:var(--mute);margin:0 0 8px}
+  .row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .num{position:relative}
+  .num input{padding-right:40px}
+  .num em{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--mute-2);font-size:13px;font-weight:600;pointer-events:none}
+  input[type=number],input[type=text],input[type=date],textarea{width:100%;font:500 16px/1.3 Manrope,sans-serif;color:var(--paper);background:var(--ink-3);border:1px solid var(--line-2);border-radius:14px;padding:13px 13px;outline:none;-webkit-appearance:none;appearance:none}
+  input[type=date]{min-height:48px}
+  textarea{resize:vertical;min-height:74px}
+  input:focus,textarea:focus{border-color:var(--gold)}
+  input::placeholder,textarea::placeholder{color:var(--mute-2)}
+  .bad input,.bad .pills{border-color:var(--err)!important}
+  .bad > span{color:var(--err)}
+  .pills{display:flex;flex-wrap:wrap;gap:8px;border:1px solid transparent;border-radius:16px}
+  .pills button{font:600 14.5px/1 Manrope,sans-serif;color:#D9D1C1;background:var(--ink-3);border:1px solid var(--line-2);border-radius:999px;padding:11px 15px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .pills button.on{color:#14110A;background:var(--gold);border-color:var(--gold)}
+  .hint{color:var(--mute-2);font-size:13px;margin:8px 0 0}
+  .ok{display:flex;gap:12px;align-items:flex-start;cursor:pointer;color:#D9D1C1;font-size:15px}
+  .ok input{flex:none;width:22px;height:22px;margin:1px 0 0;accent-color:var(--gold)}
+  .send{display:block;width:100%;margin-top:22px;padding:17px 20px;border:0;border-radius:16px;cursor:pointer;
+    font:800 17px/1 Sora,sans-serif;color:#14110A;background:linear-gradient(180deg,#F0D27C,var(--gold) 55%,var(--gold-2));
+    box-shadow:0 10px 30px rgba(233,199,103,.18)}
+  .send[disabled]{opacity:.6;cursor:default}
+  .ghost{background:var(--ink-3);color:var(--gold);box-shadow:none;border:1px solid var(--line)}
+  .err{color:var(--err);font-size:14px;text-align:center;margin-top:12px;min-height:1em}
+  .center{text-align:center}
+  .spin{width:28px;height:28px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--gold);animation:s .8s linear infinite;margin:60px auto}
+  @keyframes s{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.spin{animation:none}}
+  .check{width:64px;height:64px;border-radius:50%;margin:4px auto 18px;display:grid;place-items:center;background:rgba(233,199,103,.14);color:var(--gold);font-size:30px;font-weight:800}
+  .when{font-family:Sora,sans-serif;font-size:30px;font-weight:800;color:var(--gold);margin:6px 0 2px}
+  ul.steps{list-style:none;padding:0;margin:0;display:grid;gap:12px}
+  ul.steps li{display:flex;gap:10px;align-items:flex-start;color:#D9D1C1;font-size:15px}
+  ul.steps li i{flex:none;width:22px;height:22px;border-radius:50%;background:rgba(233,199,103,.14);color:var(--gold);display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:800;margin-top:1px}
+  footer{margin-top:34px;color:var(--mute-2);font-size:12px;text-align:center}
+  footer a{color:var(--mute-2)}
+  [hidden]{display:none!important}
+  @media (max-width:380px){.row{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="/"><img src="/logo-dm.png" alt=""><b>COACH DM</b></a>
+    <div class="lang" id="langs" role="group" aria-label="Langue"><button data-l="fr">FR</button><button data-l="en">EN</button><button data-l="nl">NL</button></div>
+  </header>
+
+  <main id="v-load"><div class="spin" aria-label="…"></div></main>
+
+  <!-- Questionnaire -->
+  <main id="v-form" hidden>
+    <p class="kick" data-t="kick"></p>
+    <h1 id="hello"></h1>
+    <p class="lead" data-t="lead"></p>
+
+    <section class="card">
+      <h2><i>1</i><span data-t="s1"></span></h2>
+      <div class="f" data-k="sex"><span data-t="sex"></span><div class="pills" data-one="sex"><button data-v="male" data-t="male"></button><button data-v="female" data-t="female"></button></div></div>
+      <div class="row">
+        <label class="f" data-k="age"><span data-t="age"></span><div class="num"><input type="number" inputmode="numeric" id="age" min="18" max="90"><em data-t="yrs"></em></div></label>
+        <label class="f" data-k="height"><span data-t="height"></span><div class="num"><input type="number" inputmode="numeric" id="height" min="130" max="220"><em>cm</em></div></label>
+        <label class="f" data-k="weight"><span data-t="weight"></span><div class="num"><input type="number" inputmode="decimal" step="0.1" id="weight" min="35" max="250"><em>kg</em></div></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><i>2</i><span data-t="s2"></span></h2>
+      <div class="f"><span data-t="goal"></span><div class="pills" data-one="goal">
+        <button data-v="perte_gras" data-t="g_fat"></button><button data-v="forme" data-t="g_fit"></button><button data-v="force" data-t="g_str"></button><button data-v="endurance" data-t="g_end"></button><button data-v="energie" data-t="g_nrg"></button></div></div>
+      <div class="row2">
+        <label class="f" data-k="target_weight"><span data-t="tw"></span><div class="num"><input type="number" inputmode="decimal" step="0.1" id="target_weight" min="35" max="250"><em>kg</em></div></label>
+        <label class="f"><span data-t="when"></span><input type="date" id="deadline"></label>
+      </div>
+      <p class="hint" data-t="when_h"></p>
+    </section>
+
+    <section class="card">
+      <h2><i>3</i><span data-t="s3"></span></h2>
+      <div class="f"><span data-t="level"></span><div class="pills" data-one="level"><button data-v="beginner" data-t="l1"></button><button data-v="intermediate" data-t="l2"></button><button data-v="advanced" data-t="l3"></button></div></div>
+      <div class="f"><span data-t="place"></span><div class="pills" data-one="place"><button data-v="salle" data-t="p1"></button><button data-v="maison" data-t="p2"></button><button data-v="maison_materiel" data-t="p3"></button></div></div>
+      <div class="f"><span data-t="days"></span><div class="pills" data-one="days"><button data-v="2">2</button><button data-v="3">3</button><button data-v="4">4</button><button data-v="5">5</button></div></div>
+      <div class="f"><span data-t="dur"></span><div class="pills" data-one="session_min"><button data-v="30">30 min</button><button data-v="45">45 min</button><button data-v="60">60 min</button></div></div>
+      <div class="f"><span data-t="daily"></span><div class="pills" data-one="daily"><button data-v="assis" data-t="d1"></button><button data-v="debout" data-t="d2"></button><button data-v="physique" data-t="d3"></button></div></div>
+    </section>
+
+    <section class="card">
+      <h2><i>4</i><span data-t="s4"></span></h2>
+      <div class="f"><span data-t="pain"></span><div class="pills" data-many="pain"><button data-v="none" data-t="none"></button><button data-v="dos" data-t="z_back"></button><button data-v="genou" data-t="z_knee"></button><button data-v="epaule" data-t="z_sh"></button><button data-v="poignet" data-t="z_wr"></button></div></div>
+      <label class="f"><input type="text" id="pain_other" maxlength="300" data-ph="pain_o"></label>
+      <p class="hint" data-t="pain_h"></p>
+    </section>
+
+    <section class="card">
+      <h2><i>5</i><span data-t="s5"></span></h2>
+      <div class="f"><div class="pills" data-many="diet"><button data-v="vegetarien" data-t="veg"></button><button data-v="sans_lactose" data-t="nolac"></button><button data-v="sans_gluten" data-t="nogl"></button><button data-v="sans_fruits_coque" data-t="nonut"></button><button data-v="sans_poisson" data-t="nofish"></button></div></div>
+      <label class="f"><input type="text" id="avoid" maxlength="300" data-ph="avoid"></label>
+    </section>
+
+    <section class="card">
+      <h2><i>6</i><span data-t="s6"></span><small data-t="opt"></small></h2>
+      <label class="f"><span data-t="hist"></span><input type="text" id="history" maxlength="300" data-ph="hist_ph"></label>
+      <label class="f"><span data-t="note"></span><textarea id="note" maxlength="500" data-ph="note_ph"></textarea></label>
+    </section>
+
+    <section class="card" data-k="medical_ok">
+      <label class="ok"><input type="checkbox" id="medical_ok"><span data-t="med"></span></label>
+    </section>
+
+    <button class="send" id="send" data-t="send"></button>
+    <p class="err" id="err"></p>
+  </main>
+
+  <!-- Merci -->
+  <main id="v-done" class="center" hidden>
+    <div class="check">✓</div>
+    <h1 id="done_t"></h1>
+    <p class="lead" id="done_d"></p>
+    <p class="when" id="done_when" hidden></p>
+    <div class="card" style="text-align:left">
+      <p class="kick" data-t="next"></p>
+      <ul class="steps">
+        <li><i>1</i><span data-t="n1"></span></li>
+        <li><i>2</i><span data-t="n2"></span></li>
+        <li><i>3</i><span data-t="n3"></span></li>
+      </ul>
+    </div>
+  </main>
+
+  <!-- Lien invalide -->
+  <main id="v-off" class="center" hidden>
+    <h1 data-t="off_t" style="margin-top:30px"></h1>
+    <p class="lead" data-t="off_d"></p>
+    <p style="margin-top:22px"><a href="mailto:contact@coachdm.be" style="color:var(--gold)">contact@coachdm.be</a></p>
+  </main>
+
+  <!-- Espace coach : confirmation des liens de l'e-mail -->
+  <main id="v-admin" hidden>
+    <p class="kick">Essai coaching</p>
+    <h1 id="a_t"></h1>
+    <p class="lead" id="a_d"></p>
+    <button class="send" id="a_go"></button>
+    <p class="err" id="a_err"></p>
+  </main>
+
+  <footer><span>© 2026 Coach DM · coachdm.be</span> · <a href="/conditions.html" data-t="terms"></a> · <a href="/privacy.html" data-t="privacy"></a></footer>
+</div>
+
+<script>
+(function(){
+  var FN = 'https://kkcmhviyvttwpaclrjmv.supabase.co/functions/v1/trial-flow';
+  var T = {
+    fr:{ title:'Ton programme · Coach DM', kick:'Essai coaching · 2 semaines', hi:'Salut {0}, on construit ton programme', hi0:'On construit ton programme',
+      lead:'2 minutes de questions, et je prépare ton programme d’entraînement et ton plan nutrition au gramme près.',
+      s1:'Toi', sex:'Tu es', male:'Un homme', female:'Une femme', age:'Âge', yrs:'ans', height:'Taille', weight:'Poids actuel',
+      s2:'Ton objectif', goal:'Ce que tu viens chercher', g_fat:'Perdre du gras', g_fit:'Me remettre en forme', g_str:'Gagner en force', g_end:'Gagner en endurance', g_nrg:'Retrouver de l’énergie',
+      tw:'Poids visé', when:'Pour quand', when_h:'Pas de date précise ? Laisse vide. Poids stable visé : mets ton poids actuel.',
+      s3:'Ton entraînement', level:'Ton niveau', l1:'Je débute ou je reprends', l2:'Je m’entraîne déjà', l3:'Confirmé',
+      place:'Où tu t’entraînes', p1:'En salle', p2:'À la maison, sans matériel', p3:'À la maison, avec haltères ou kettlebell',
+      days:'Séances par semaine', dur:'Durée d’une séance', daily:'Au quotidien, tu es plutôt', d1:'Assis', d2:'Debout, en mouvement', d3:'Travail physique',
+      s4:'Ton corps', pain:'Une douleur ou une blessure en ce moment ?', none:'Aucune', z_back:'Dos', z_knee:'Genou', z_sh:'Épaule', z_wr:'Poignet',
+      pain_o:'Autre chose à me signaler ?', pain_h:'Si tu signales une douleur, je regarde moi-même ton programme avant de te l’envoyer.',
+      s5:'Ton alimentation', veg:'Végétarien', nolac:'Sans lactose', nogl:'Sans gluten', nonut:'Sans fruits à coque', nofish:'Sans poisson', avoid:'Un aliment que tu ne manges pas ?',
+      s6:'En deux mots', opt:'FACULTATIF', hist:'Ton passé sportif', hist_ph:'Ex. foot pendant 10 ans, arrêté il y a 3 ans', note:'Ce que je dois savoir', note_ph:'Ton rythme, ton travail, ce qui t’a fait arrêter avant…',
+      med:'J’ai le feu vert de mon médecin pour faire du sport. Si une douleur apparaît, j’arrête et je consulte mon médecin ou un spécialiste.',
+      send:'Envoyer mes réponses', sending:'Je prépare ton programme…', missing:'Il manque une réponse : regarde les champs en rouge.', med_miss:'Coche le feu vert médical pour continuer.',
+      neterr:'L’envoi n’a pas abouti. Vérifie ta connexion et réessaie.',
+      done_t:'C’est noté, {0}', done_t0:'C’est noté', done_soon:'Ton programme arrive dans ton app vers', done_morning:'Il est tard : ton programme arrive dans ton app demain matin vers',
+      done_held:'Tu m’as signalé une douleur : je regarde moi-même ton programme avant de te l’envoyer. Tu le reçois dans ton app très vite.',
+      done_prep:'Ton programme est en préparation. Tu le reçois dans ton app très vite.',
+      done_sent:'Ton programme t’attend déjà dans ton app.',
+      next:'En attendant', n1:'Installe l’app Coach DM et connecte-toi avec l’adresse e-mail utilisée pour payer.',
+      n2:'Tu recevras un e-mail et une notification dès que ton programme et ton plan nutrition sont prêts.',
+      n3:'Une question ? Écris-moi dans la messagerie de l’app.',
+      off_t:'Lien introuvable', off_d:'Ce lien n’est pas valide. Reprends le lien de l’e-mail reçu après ton paiement, ou écris-moi.',
+      terms:'Conditions', privacy:'Confidentialité' },
+    en:{ title:'Your program · Coach DM', kick:'Coaching trial · 2 weeks', hi:'Hi {0}, let’s build your program', hi0:'Let’s build your program',
+      lead:'2 minutes of questions, and I build your training program and your nutrition plan down to the gram.',
+      s1:'You', sex:'You are', male:'A man', female:'A woman', age:'Age', yrs:'yrs', height:'Height', weight:'Current weight',
+      s2:'Your goal', goal:'What you are here for', g_fat:'Lose fat', g_fit:'Get back in shape', g_str:'Get stronger', g_end:'Build endurance', g_nrg:'Get my energy back',
+      tw:'Target weight', when:'By when', when_h:'No exact date? Leave it empty. Keeping your weight? Enter your current weight.',
+      s3:'Your training', level:'Your level', l1:'Starting or coming back', l2:'Already training', l3:'Experienced',
+      place:'Where you train', p1:'At the gym', p2:'At home, no equipment', p3:'At home, with dumbbells or a kettlebell',
+      days:'Sessions per week', dur:'Session length', daily:'During the day, you are mostly', d1:'Sitting', d2:'Standing, moving', d3:'Physical work',
+      s4:'Your body', pain:'Any pain or injury right now?', none:'None', z_back:'Back', z_knee:'Knee', z_sh:'Shoulder', z_wr:'Wrist',
+      pain_o:'Anything else I should know?', pain_h:'If you report pain, I check your program myself before sending it.',
+      s5:'Your nutrition', veg:'Vegetarian', nolac:'Lactose-free', nogl:'Gluten-free', nonut:'No tree nuts', nofish:'No fish', avoid:'A food you don’t eat?',
+      s6:'In a few words', opt:'OPTIONAL', hist:'Your sports background', hist_ph:'E.g. football for 10 years, stopped 3 years ago', note:'What I should know', note_ph:'Your schedule, your job, what made you stop before…',
+      med:'My doctor has given me the green light to exercise. If pain appears, I stop and see my doctor or a specialist.',
+      send:'Send my answers', sending:'Building your program…', missing:'An answer is missing: check the fields in red.', med_miss:'Tick the medical green light to continue.',
+      neterr:'Sending failed. Check your connection and try again.',
+      done_t:'Got it, {0}', done_t0:'Got it', done_soon:'Your program arrives in your app around', done_morning:'It’s late: your program arrives in your app tomorrow morning around',
+      done_held:'You reported pain: I check your program myself before sending it. You will get it in your app very soon.',
+      done_prep:'Your program is being prepared. You will get it in your app very soon.',
+      done_sent:'Your program is already waiting in your app.',
+      next:'Meanwhile', n1:'Install the Coach DM app and sign in with the email address you paid with.',
+      n2:'You get an email and a notification as soon as your program and nutrition plan are ready.',
+      n3:'A question? Write to me in the app’s messages.',
+      off_t:'Link not found', off_d:'This link is not valid. Use the link in the email you received after paying, or write to me.',
+      terms:'Terms', privacy:'Privacy' },
+    nl:{ title:'Je programma · Coach DM', kick:'Coachingproef · 2 weken', hi:'Hoi {0}, we bouwen je programma', hi0:'We bouwen je programma',
+      lead:'2 minuten vragen, en ik maak je trainingsprogramma en je voedingsplan tot op de gram.',
+      s1:'Jij', sex:'Je bent', male:'Een man', female:'Een vrouw', age:'Leeftijd', yrs:'jaar', height:'Lengte', weight:'Huidig gewicht',
+      s2:'Je doel', goal:'Waarvoor je komt', g_fat:'Vet verliezen', g_fit:'Terug in vorm komen', g_str:'Sterker worden', g_end:'Meer uithouding', g_nrg:'Meer energie',
+      tw:'Streefgewicht', when:'Tegen wanneer', when_h:'Geen precieze datum? Laat leeg. Gewicht behouden? Vul je huidige gewicht in.',
+      s3:'Je training', level:'Je niveau', l1:'Ik begin of herbegin', l2:'Ik train al', l3:'Ervaren',
+      place:'Waar je traint', p1:'In de gym', p2:'Thuis, zonder materiaal', p3:'Thuis, met dumbbells of een kettlebell',
+      days:'Trainingen per week', dur:'Duur van een training', daily:'Overdag ben je vooral', d1:'Zittend', d2:'Staand, in beweging', d3:'Fysiek werk',
+      s4:'Je lichaam', pain:'Nu pijn of een blessure?', none:'Geen', z_back:'Rug', z_knee:'Knie', z_sh:'Schouder', z_wr:'Pols',
+      pain_o:'Nog iets dat ik moet weten?', pain_h:'Meld je pijn, dan bekijk ik je programma zelf voor ik het stuur.',
+      s5:'Je voeding', veg:'Vegetarisch', nolac:'Lactosevrij', nogl:'Glutenvrij', nonut:'Zonder noten', nofish:'Zonder vis', avoid:'Iets dat je niet eet?',
+      s6:'In een paar woorden', opt:'OPTIONEEL', hist:'Je sportverleden', hist_ph:'Bv. 10 jaar voetbal, 3 jaar geleden gestopt', note:'Wat ik moet weten', note_ph:'Je ritme, je werk, waarom je vroeger stopte…',
+      med:'Mijn arts geeft me groen licht om te sporten. Krijg ik pijn, dan stop ik en raadpleeg ik mijn arts of een specialist.',
+      send:'Mijn antwoorden versturen', sending:'Je programma wordt gemaakt…', missing:'Er ontbreekt een antwoord: bekijk de rode velden.', med_miss:'Vink het medisch groen licht aan om verder te gaan.',
+      neterr:'Versturen mislukt. Controleer je verbinding en probeer opnieuw.',
+      done_t:'Genoteerd, {0}', done_t0:'Genoteerd', done_soon:'Je programma komt in je app rond', done_morning:'Het is laat: je programma komt morgenochtend in je app rond',
+      done_held:'Je meldde pijn: ik bekijk je programma zelf voor ik het stuur. Je krijgt het heel snel in je app.',
+      done_prep:'Je programma wordt klaargemaakt. Je krijgt het heel snel in je app.',
+      done_sent:'Je programma wacht al in je app.',
+      next:'Ondertussen', n1:'Installeer de Coach DM-app en meld je aan met het e-mailadres waarmee je betaalde.',
+      n2:'Je krijgt een e-mail en een melding zodra je programma en voedingsplan klaar zijn.',
+      n3:'Een vraag? Stuur me een bericht in de app.',
+      off_t:'Link niet gevonden', off_d:'Deze link is niet geldig. Gebruik de link uit de e-mail na je betaling, of stuur me een bericht.',
+      terms:'Voorwaarden', privacy:'Privacy' }
+  };
+  var q = new URLSearchParams(location.search);
+  var TOKEN = q.get('t') || '';
+  var L = q.get('l');
+  if(!T[L]){ try{ L = localStorage.getItem('cdm_lang'); }catch(_){ L = null; } }
+  if(!T[L]){ var n=(navigator.language||'fr').slice(0,2).toLowerCase(); L = T[n] ? n : 'fr'; }
+  var FIRST = '', DONE = null, PAIN = false;
+  var S = { sex:'', goal:'perte_gras', level:'beginner', place:'salle', days:'3', session_min:'45', daily:'assis', pain:[], diet:[] };
+  var $ = function(id){ return document.getElementById(id); };
+  var f = function(s){ var a=arguments; return s.replace(/\{(\d)\}/g,function(m,i){ return a[+i+1]!=null?a[+i+1]:m; }); };
+  var VIEWS = ['v-load','v-form','v-done','v-off','v-admin'];
+  function show(id){ VIEWS.forEach(function(v){ $(v).hidden = v!==id; }); window.scrollTo(0,0); }
+  function hhmm(iso){ try{ return new Intl.DateTimeFormat(L==='en'?'en-GB':(L==='nl'?'nl-BE':'fr-BE'),{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Brussels'}).format(new Date(iso)); }catch(_){ return ''; } }
+
+  function paint(){
+    var t=T[L]; document.documentElement.lang=L; document.title=t.title;
+    document.querySelectorAll('[data-t]').forEach(function(e){ var v=t[e.getAttribute('data-t')]; if(v!=null) e.textContent=v; });
+    document.querySelectorAll('[data-ph]').forEach(function(e){ e.placeholder=t[e.getAttribute('data-ph')]||''; });
+    document.querySelectorAll('#langs button').forEach(function(b){ b.classList.toggle('on', b.dataset.l===L); });
+    $('hello').textContent = FIRST ? f(t.hi, FIRST) : t.hi0;
+    if(DONE) paintDone();
+  }
+  function paintPills(){
+    document.querySelectorAll('[data-one]').forEach(function(g){ var k=g.dataset.one; g.querySelectorAll('button').forEach(function(b){ b.classList.toggle('on', S[k]===b.dataset.v); }); });
+    document.querySelectorAll('[data-many]').forEach(function(g){ var k=g.dataset.many; g.querySelectorAll('button').forEach(function(b){ b.classList.toggle('on', b.dataset.v==='none' ? (S[k].length===0 && g.dataset.touched==='1') : S[k].indexOf(b.dataset.v)>=0); }); });
+  }
+  document.querySelectorAll('[data-one] button').forEach(function(b){ b.type='button'; b.onclick=function(){ var k=b.parentNode.dataset.one; S[k]=b.dataset.v; var w=b.closest('[data-k]'); if(w) w.classList.remove('bad'); paintPills(); }; });
+  document.querySelectorAll('[data-many] button').forEach(function(b){ b.type='button'; b.onclick=function(){ var g=b.parentNode, k=g.dataset.many, v=b.dataset.v; g.dataset.touched='1';
+    if(v==='none'){ S[k]=[]; } else { var i=S[k].indexOf(v); if(i>=0) S[k].splice(i,1); else S[k].push(v); } paintPills(); }; });
+  document.querySelectorAll('#langs button').forEach(function(b){ b.onclick=function(){ L=b.dataset.l; try{ localStorage.setItem('cdm_lang',L); }catch(_){} paint(); }; });
+  document.querySelectorAll('input').forEach(function(i){ i.addEventListener('input', function(){ var w=i.closest('[data-k]'); if(w) w.classList.remove('bad'); }); });
+  var dl=$('deadline'); var tmr=new Date(Date.now()+86400000*14); dl.min=tmr.toISOString().slice(0,10);
+
+  function post(body){
+    return fetch(FN,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+      .then(function(r){ return r.json().catch(function(){ return {ok:false}; }); })
+      .catch(function(){ return {ok:false, reason:'network'}; });
+  }
+
+  function paintDone(){
+    var t=T[L], d=DONE;
+    $('done_t').textContent = FIRST ? f(t.done_t, FIRST) : t.done_t0;
+    $('done_when').hidden = true;
+    if(d.status==='sent' || d.status==='sent_by_coach'){ $('done_d').textContent=t.done_sent; return; }
+    if(d.status==='ready' && d.send_at){
+      $('done_d').textContent = d.tomorrow ? t.done_morning : t.done_soon;
+      $('done_when').textContent = hhmm(d.send_at); $('done_when').hidden = false; return;
+    }
+    $('done_d').textContent = PAIN ? t.done_held : t.done_prep;
+  }
+
+  $('send').onclick = function(){
+    var t=T[L], bad=[];
+    var num=function(id){ var v=String($(id).value||'').replace(',','.'); return v===''?null:Number(v); };
+    var a = { sex:S.sex, age:num('age'), height:num('height'), weight:num('weight'), target_weight:num('target_weight'), deadline:$('deadline').value||'',
+      goal:S.goal, level:S.level, place:S.place, days:Number(S.days), session_min:Number(S.session_min), daily:S.daily,
+      pain:S.pain.slice(), pain_other:$('pain_other').value.trim(), diet:{}, avoid:$('avoid').value.trim(),
+      history:$('history').value.trim(), note:$('note').value.trim(), medical_ok:$('medical_ok').checked };
+    S.diet.forEach(function(k){ a.diet[k]=true; });
+    if(!a.sex) bad.push('sex');
+    if(!(a.age>=18 && a.age<=90)) bad.push('age');
+    if(!(a.height>=130 && a.height<=220)) bad.push('height');
+    if(!(a.weight>=35 && a.weight<=250)) bad.push('weight');
+    if(!(a.target_weight>=35 && a.target_weight<=250)) bad.push('target_weight');
+    document.querySelectorAll('[data-k]').forEach(function(w){ w.classList.toggle('bad', bad.indexOf(w.dataset.k)>=0); });
+    if(bad.length){ $('err').textContent=t.missing; var first=document.querySelector('[data-k].bad'); if(first) first.scrollIntoView({behavior:'smooth',block:'center'}); return; }
+    if(!a.medical_ok){ document.querySelector('[data-k="medical_ok"]').classList.add('bad'); $('err').textContent=t.med_miss; return; }
+    document.querySelector('[data-k="medical_ok"]').classList.remove('bad');
+    PAIN = a.pain.length>0 || a.pain_other.length>0;
+    var b=$('send'); b.disabled=true; b.textContent=t.sending; $('err').textContent='';
+    post({kind:'form', token:TOKEN, answers:a}).then(function(r){
+      if(r && r.ok){ DONE={status:r.status, send_at:r.send_at, tomorrow:!!r.tomorrow}; paintDone(); show('v-done'); return; }
+      b.disabled=false; b.textContent=t.send;
+      if(r && r.reason==='missing'){ (r.fields||[]).forEach(function(k){ var w=document.querySelector('[data-k="'+k+'"]'); if(w) w.classList.add('bad'); }); $('err').textContent=t.missing; return; }
+      if(r && r.reason==='token'){ show('v-off'); return; }
+      $('err').textContent=t.neterr;
+    });
+  };
+
+  /* Espace coach : les boutons de l'e-mail interne arrivent ici et demandent une confirmation,
+     pour qu'un antivirus qui ouvre les liens d'un e-mail ne declenche jamais un envoi. */
+  function admin(){
+    $('langs').hidden = true; L='fr'; paint();
+    var act=q.get('a'), sig=q.get('k')||'';
+    post({kind:'admin_info', token:TOKEN, action:act, sig:sig}).then(function(r){
+      if(!(r && r.ok)){ $('a_t').textContent='Lien invalide'; $('a_d').textContent='Ce lien de validation n’est pas valide.'; $('a_go').hidden=true; show('v-admin'); return; }
+      var who = r.first_name || 'ce client';
+      if(r.status==='sent' || r.status==='sent_by_coach'){ $('a_t').textContent='Déjà envoyé'; $('a_d').textContent='Le programme de '+who+' est déjà parti.'; $('a_go').hidden=true; show('v-admin'); return; }
+      if(act==='send'){ $('a_t').textContent='Envoyer le programme de '+who+' ?'; $('a_d').textContent='Programme, plan nutrition, message personnel et e-mail partent tout de suite.'; $('a_go').textContent='Envoyer maintenant'; }
+      else { $('a_t').textContent='Retenir l’envoi pour '+who+' ?'; $('a_d').textContent='L’envoi automatique s’arrête. Rien ne part tant que tu n’as pas appuyé sur « Envoyer maintenant » dans l’e-mail.'; $('a_go').textContent='Retenir l’envoi'; $('a_go').classList.add('ghost'); }
+      show('v-admin');
+      $('a_go').onclick=function(){
+        var g=$('a_go'); g.disabled=true; $('a_err').textContent='';
+        post({kind:'admin', token:TOKEN, action:act, sig:sig}).then(function(x){
+          if(x && x.ok){ $('a_t').textContent = x.done==='sent' ? 'Envoyé' : 'Envoi retenu'; $('a_d').textContent = x.done==='sent' ? who+' reçoit son programme, son plan nutrition et ton message.' : 'Rien ne part sans toi. Le bouton « Envoyer maintenant » de l’e-mail reste valable.'; g.hidden=true; return; }
+          g.disabled=false; $('a_err').textContent = 'Échec : '+((x&&x.reason)||'réseau')+'. Réessaie ou passe par la console coach.';
+        });
+      };
+    });
+  }
+
+  paint(); paintPills();
+  if(!/^[0-9a-f-]{36}$/i.test(TOKEN)){ show('v-off'); return; }
+  if(q.get('admin')==='1'){ admin(); return; }
+  post({kind:'info', token:TOKEN}).then(function(r){
+    if(!(r && r.ok)){ show('v-off'); return; }
+    FIRST = r.first_name || '';
+    if(!q.get('l') && T[r.lang]) L = r.lang;
+    paint();
+    if(r.status==='awaiting_form' || r.status==='failed'){ show('v-form'); return; }
+    DONE={status:r.status, send_at:r.send_at, tomorrow: !!r.send_at && new Date(r.send_at).toDateString()!==new Date().toDateString()}; paintDone(); show('v-done');
+  });
+})();
+</script>
+</body>
+</html>
