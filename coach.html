@@ -313,6 +313,7 @@ h1,h2,h3{font-family:'Barlow Condensed',-apple-system,BlinkMacSystemFont,'Segoe 
   <div class="page">
     <!-- CLIENTS -->
     <div class="pane active" id="pane-clients">
+      <div id="cl-trials"></div>
       <div id="cl-dash"></div>
       <div id="cl-cap"></div>
       <div id="cl-paybar"></div>
@@ -712,6 +713,23 @@ h1,h2,h3{font-family:'Barlow Condensed',-apple-system,BlinkMacSystemFont,'Segoe 
   .pay-table .n{text-align:right;white-space:nowrap}
   .pill.pay-off{background:var(--surface-2);color:var(--muted)}
   .pill.pay-ai{background:rgba(217,182,92,.16);color:var(--gold,#D9B65C)}
+  /* Essais 2 semaines (trial-flow) */
+  .tr-card{background:var(--surface);border:1px solid rgba(217,182,92,.35);border-radius:var(--radius-sm);padding:14px;margin:0 0 14px}
+  .tr-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:15px}
+  .tr-cnt{background:var(--brand);color:#1B1405;border-radius:999px;padding:1px 8px;font-size:12px;font-weight:800}
+  .tr-empty{color:var(--muted);font-size:13.5px;margin:4px 0 0;line-height:1.5}
+  .tr-row{padding:11px 0;border-top:1px solid var(--line)}
+  .tr-row:first-of-type{border-top:0}
+  .tr-top{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:15px}
+  .tr-sub{color:var(--muted);font-size:12.5px;margin-top:3px}
+  .tr-auto{background:rgba(217,182,92,.16);color:var(--brand);text-transform:none;letter-spacing:0}
+  .tr-hold{background:rgba(232,128,107,.16);color:#E8806B;text-transform:none;letter-spacing:0}
+  .tr-done{background:rgba(127,127,127,.14);color:var(--muted);text-transform:none;letter-spacing:0}
+  .tr-det{margin-top:8px}
+  .tr-det summary{cursor:pointer;color:var(--brand);font-size:13px;font-weight:700}
+  .tr-meta{color:var(--muted);font-size:13px;line-height:1.5;margin:6px 0 0}
+  .tr-msg{white-space:pre-wrap;background:var(--bg,rgba(0,0,0,.2));border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13.5px;line-height:1.55;margin-top:6px}
+  .tr-act{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}
   .pay-mini{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;margin:0 0 12px;padding:11px 14px;border-radius:var(--radius-sm);border:1px solid rgba(217,182,92,.35);background:var(--surface);color:var(--text);font:inherit;font-size:13.5px;cursor:pointer;text-align:left}
   .pay-mini .meta{font-size:12px;color:var(--muted)}
   /* Le panneau vide « Choisis un client » n'existe qu'en grand ecran. */
@@ -1994,6 +2012,7 @@ async function enter(user){
     switchTab(tb);
     try{ const sb2=sessionStorage.getItem('c_sub'); if(tb==='workouts'&&sb2){ const bt=document.querySelector('.subswitch [data-sub="'+sb2+'"]'); if(bt) bt.click(); } }catch(_){} }
   loadClientList();
+  loadTrials();
   initChatLive();
   /* Lien direct depuis l'Atelier : coach.html?chat=<id>&n=<prenom> ouvre la conversation (verrou compris). */
   try{ const q=new URLSearchParams(location.search), cid=q.get('chat');
@@ -2293,6 +2312,104 @@ function renderPayCounter(){
 /* ===================================================================
    CLIENTS — liste + fiche détaillée (RPCs partagées coach/admin)
 =================================================================== */
+/* ===================================================================
+   ESSAIS 2 SEMAINES — circuit automatique (trial-flow)
+   Admin : envoi automatique 1 h apres le questionnaire (8 h si la nuit),
+   sauf douleur ou programme modifie. Autres coachs : toujours valides a la main.
+=================================================================== */
+const TRL = {
+  title:{fr:'Essais 2 semaines',en:'2-week trials',nl:'Proeven van 2 weken'},
+  empty:{fr:'Aucun essai en cours. Dès qu’un client paie l’essai, il apparaît ici avec son questionnaire, son programme et son plan nutrition.',en:'No trial in progress. As soon as a client pays for the trial, they show up here with their questionnaire, program and nutrition plan.',nl:'Geen proef bezig. Zodra een klant de proef betaalt, verschijnt die hier met vragenlijst, programma en voedingsplan.'},
+  s_awaiting_form:{fr:'Questionnaire en attente',en:'Waiting for questionnaire',nl:'Wacht op vragenlijst'},
+  s_generating:{fr:'Préparation…',en:'Preparing…',nl:'Wordt voorbereid…'},
+  s_ready:{fr:'Envoi auto',en:'Auto send',nl:'Automatisch verzenden'},
+  s_held:{fr:'À valider',en:'To validate',nl:'Te valideren'},
+  s_sent:{fr:'Envoyé',en:'Sent',nl:'Verzonden'},
+  s_sent_by_coach:{fr:'Envoyé par toi',en:'Sent by you',nl:'Door jou verzonden'},
+  r_injury:{fr:'Douleur déclarée',en:'Pain reported',nl:'Pijn gemeld'},
+  r_coach_validation:{fr:'Validation manuelle',en:'Manual validation',nl:'Manuele validatie'},
+  r_nutrition_check:{fr:'Plan repas à vérifier',en:'Meal plan to check',nl:'Voedingsplan nakijken'},
+  r_engine:{fr:'Programme non construit',en:'Program not built',nl:'Programma niet gebouwd'},
+  r_edited:{fr:'Tu as modifié le programme',en:'You edited the program',nl:'Je wijzigde het programma'},
+  r_coach:{fr:'Retenu par toi',en:'Held by you',nl:'Door jou tegengehouden'},
+  r_error:{fr:'Erreur à reprendre',en:'Error to fix',nl:'Fout op te lossen'},
+  at:{fr:'à',en:'at',nl:'om'},
+  tomorrow:{fr:'demain',en:'tomorrow',nl:'morgen'},
+  paid:{fr:'Payé le',en:'Paid on',nl:'Betaald op'},
+  send:{fr:'Envoyer maintenant',en:'Send now',nl:'Nu verzenden'},
+  send_ok:{fr:'Confirmer l’envoi',en:'Confirm sending',nl:'Verzenden bevestigen'},
+  hold:{fr:'Retenir',en:'Hold',nl:'Tegenhouden'},
+  open:{fr:'Fiche client',en:'Client file',nl:'Klantfiche'},
+  details:{fr:'Détails',en:'Details',nl:'Details'},
+  msg:{fr:'Message qui partira',en:'Message that will be sent',nl:'Bericht dat verstuurd wordt'},
+  targets:{fr:'Cibles',en:'Targets',nl:'Doelen'},
+  sessions:{fr:'séances',en:'sessions',nl:'trainingen'},
+  edit_hint:{fr:'Pour corriger : ouvre la fiche, modifie le programme ou le plan repas, puis « Envoyer maintenant ». Une modification arrête l’envoi automatique.',en:'To correct: open the file, edit the program or meal plan, then “Send now”. Any edit stops the automatic send.',nl:'Corrigeren: open de fiche, pas programma of voedingsplan aan en kies daarna “Nu verzenden”. Een wijziging stopt het automatisch verzenden.'},
+  done_sent:{fr:'Programme envoyé.',en:'Program sent.',nl:'Programma verzonden.'},
+  done_held:{fr:'Envoi retenu.',en:'Sending held.',nl:'Verzending tegengehouden.'},
+  fail:{fr:'Échec, réessaie.',en:'Failed, try again.',nl:'Mislukt, probeer opnieuw.'},
+  lv_beginner:{fr:'débutant',en:'beginner',nl:'beginner'}, lv_intermediate:{fr:'intermédiaire',en:'intermediate',nl:'gevorderd'}, lv_advanced:{fr:'confirmé',en:'advanced',nl:'ervaren'},
+  pl_salle:{fr:'salle',en:'gym',nl:'gym'}, pl_maison:{fr:'maison sans matériel',en:'home, no equipment',nl:'thuis zonder materiaal'}, pl_maison_materiel:{fr:'maison avec matériel',en:'home with equipment',nl:'thuis met materiaal'},
+};
+const trl = k => (TRL[k] ? (TRL[k][LANG] ?? TRL[k].fr) : k);
+let TRIALS = { admin:false, list:[] };
+function trialWhen(iso){
+  if(!iso) return '';
+  const d=new Date(iso), now=new Date();
+  const loc = LANG==='en'?'en-GB':(LANG==='nl'?'nl-BE':'fr-BE');
+  const hm = d.toLocaleTimeString(loc,{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Brussels'});
+  return (d.toDateString()===now.toDateString() ? '' : trl('tomorrow')+' ') + trl('at')+' '+hm;
+}
+async function loadTrials(){
+  const box=$('#cl-trials'); if(!box) return;
+  const r = await payCall('trial-flow', { kind:'coach_list' });
+  if(!r || !r.ok){ box.innerHTML=''; return; }
+  TRIALS = { admin: !!r.admin, list: r.trials||[] };
+  renderTrials();
+}
+function renderTrials(){
+  const box=$('#cl-trials'); if(!box) return;
+  const L=TRIALS.list;
+  if(!L.length && !TRIALS.admin){ box.innerHTML=''; return; }
+  const open = L.filter(t=>!['sent','sent_by_coach','cancelled'].includes(t.status));
+  const rows = L.slice(0,12).map(t=>{
+    const T=t.targets||{}, a=t.answers||{};
+    let pill='', line='';
+    if(t.status==='ready'){ pill=`<span class="pill tr-auto">${trl('s_ready')} ${esc(trialWhen(t.send_after))}</span>`; }
+    else if(t.status==='held'){ pill=`<span class="pill tr-hold">${trl('s_held')}</span>`; line = t.hold_reason ? trl('r_'+t.hold_reason) : ''; }
+    else pill=`<span class="pill tr-done">${trl('s_'+t.status)}</span>`;
+    const paid = new Date(t.paid_at).toLocaleDateString(LANG==='en'?'en-GB':(LANG==='nl'?'nl-BE':'fr-BE'),{day:'2-digit',month:'2-digit'});
+    const facts = T.kcal ? `${T.kcal} kcal · P ${T.protein} g · G ${T.carbs} g · L ${T.fat} g${T.sessions?' · '+T.sessions+' '+trl('sessions'):''}` : '';
+    const canAct = t.status==='ready' || t.status==='held';
+    const det = (t.message_draft||facts) ? `<details class="tr-det"><summary>${trl('details')}</summary>
+        ${a.weight?`<p class="tr-meta">${esc(a.weight)} kg → ${esc(a.target_weight)} kg${a.deadline?' · '+esc(a.deadline):''} · ${esc(trl('lv_'+a.level))} · ${esc(trl('pl_'+a.place))} · ${esc(a.days||'')}×${esc(a.session_min||'')} min${(a.pain&&a.pain.length)||a.pain_other?' · <b>'+esc([...(a.pain||[]),a.pain_other].filter(Boolean).join(', '))+'</b>':''}</p>`:''}
+        ${facts?`<p class="tr-meta"><b>${trl('targets')}</b> · ${esc(facts)}</p>`:''}
+        ${t.message_draft?`<p class="tr-meta"><b>${trl('msg')}</b></p><div class="tr-msg">${esc(t.message_draft)}</div>`:''}
+        ${canAct?`<p class="tr-meta">${trl('edit_hint')}</p>`:''}
+      </details>` : '';
+    return `<div class="tr-row" data-id="${esc(t.id)}">
+      <div class="tr-top"><b>${esc(t.first_name||t.email)}</b>${pill}</div>
+      <div class="tr-sub">${trl('paid')} ${esc(paid)}${line?' · '+esc(line):''}</div>
+      ${det}
+      <div class="tr-act">
+        ${canAct?`<button class="btn sm tr-send">${trl('send')}</button><button class="btn subtle sm tr-hold-b"${t.status==='held'?' hidden':''}>${trl('hold')}</button>`:''}
+        ${t.client_id?`<button class="btn subtle sm tr-open">${trl('open')}</button>`:''}
+      </div></div>`;
+  }).join('');
+  box.innerHTML = `<div class="tr-card"><div class="tr-head"><b>${trl('title')}</b>${open.length?`<span class="tr-cnt">${open.length}</span>`:''}</div>
+    ${L.length?rows:`<p class="tr-empty">${trl('empty')}</p>`}</div>`;
+  box.querySelectorAll('.tr-row').forEach(row=>{
+    const id=row.dataset.id, t=L.find(x=>x.id===id);
+    const s=row.querySelector('.tr-send'), h=row.querySelector('.tr-hold-b'), o=row.querySelector('.tr-open');
+    if(o) o.onclick=()=>openClientDetail(t.client_id);
+    if(h) h.onclick=async()=>{ h.disabled=true; const r=await payCall('trial-flow',{kind:'coach_action',id,action:'hold'}); toast(r&&r.ok?trl('done_held'):trl('fail')); loadTrials(); };
+    if(s) s.onclick=async()=>{
+      if(!s.dataset.armed){ s.dataset.armed='1'; s.textContent=trl('send_ok'); setTimeout(()=>{ if(s.isConnected){ delete s.dataset.armed; s.textContent=trl('send'); } },5000); return; }
+      s.disabled=true; const r=await payCall('trial-flow',{kind:'coach_action',id,action:'send'}); toast(r&&r.ok?trl('done_sent'):trl('fail')); loadTrials(); loadClientList();
+    };
+  });
+}
+
 let CLIST=[], CAP=null;
 const STATUS_PILL_K = { pending:'p_invitation', paused:'p_paused' };
 const statusPill = (s)=> STATUS_PILL_K[s] ? `<span class="pill warnp">${tr(STATUS_PILL_K[s])}</span>` : '';
