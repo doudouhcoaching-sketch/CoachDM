@@ -1185,6 +1185,10 @@ async function loadNotifs(){
     else if(n.kind==='coach_promoted') txt='Nouveau coach : '+esc(p.full_name||p.email||'')+' ('+esc(p.tier||'')+')';
     else if(n.kind==='coach_plan_canceled') txt='Plan coach annulé';
     else if(n.kind==='coaching_sold') txt='<b>💪 Nouveau client coaching '+esc(p.tier||'')+'</b> — '+esc(p.name||'')+(p.amount_cents?(' · '+(p.amount_cents/100).toFixed(2).replace('.',',')+' €'):'')+(p.goal?'<br>Objectif : '+esc(p.goal):'')+(p.email?'<br><a href="mailto:'+esc(p.email)+'" style="color:var(--brand)">'+esc(p.email)+'</a>':'')+(p.emailed===false?'<br><span style="color:#E9C767">Mail de bienvenue non parti : écris-lui.</span>':'')+'<br><span style="color:var(--muted)">À faire sous 24 h : son programme.</span>';
+    else if(n.kind==='coach_client_trial_started') txt='<b>Essai 2 semaines payé</b>'+(p.amount_cents?(' · '+(p.amount_cents/100).toFixed(2).replace('.',',')+' €'):'')+'<br><span style="color:var(--muted)">Questionnaire envoyé au client. Suivi et validation : <a href="coach.html" style="color:var(--brand)">console coach</a>, bloc « Essais 2 semaines ».</span>';
+    else if(n.kind==='trial_sent') txt='<b>Programme d’essai envoyé</b>'+(p.by_coach?' (par toi)':' (automatique)');
+    else if(n.kind==='coach_client_paid_once') txt='<b>Paiement unique reçu</b>'+(p.amount_cents?(' · '+(p.amount_cents/100).toFixed(2).replace('.',',')+' €'):'')+(p.emailed===false&&p.created_account?'<br><span style="color:#E9C767">E-mail d’accès non parti : écris-lui.</span>':'');
+    else if(n.kind==='coach_client_paid') txt='<b>Nouvel abonnement client</b>'+(p.amount_cents?(' · '+(p.amount_cents/100).toFixed(2).replace('.',',')+' €'):'');
     else if(n.kind==='coaching_canceled') txt='Coaching arrêté ('+esc(p.lookup_key||'')+')';
     else if(n.kind==='double_subscription') txt='<b>Double abonnement</b> — '+esc(p.todo||'');
     /* Les demandes venant du site et de l'app tombaient dans le cas par defaut
